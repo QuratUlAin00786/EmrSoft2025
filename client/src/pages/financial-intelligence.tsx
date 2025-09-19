@@ -154,6 +154,14 @@ export default function FinancialIntelligence() {
     patient: "",
     serviceDate: "",
     totalAmount: "",
+    insuranceProvider: "",
+    procedures: [
+      {
+        code: "",
+        description: "",
+        amount: "",
+      }
+    ],
   });
   const [patientDropdownOpen, setPatientDropdownOpen] = useState(false);
   const [verifyEligibilityOpen, setVerifyEligibilityOpen] = useState(false);
@@ -919,11 +927,12 @@ export default function FinancialIntelligence() {
                   Submit New Claim
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Submit Insurance Claim</DialogTitle>
                 </DialogHeader>
-                <div className="space-y-4">
+                <div className="space-y-6">
+                  {/* Patient Selection */}
                   <div>
                     <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
                       Patient
@@ -990,6 +999,39 @@ export default function FinancialIntelligence() {
                       </PopoverContent>
                     </Popover>
                   </div>
+
+                  {/* Insurance Provider */}
+                  <div>
+                    <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                      Insurance Provider
+                    </label>
+                    <Select
+                      value={claimFormData.insuranceProvider}
+                      onValueChange={(value) =>
+                        setClaimFormData((prev) => ({
+                          ...prev,
+                          insuranceProvider: value,
+                        }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select insurance provider" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="United Healthcare">United Healthcare</SelectItem>
+                        <SelectItem value="Blue Cross Blue Shield">Blue Cross Blue Shield</SelectItem>
+                        <SelectItem value="Aetna">Aetna</SelectItem>
+                        <SelectItem value="Cigna">Cigna</SelectItem>
+                        <SelectItem value="Humana">Humana</SelectItem>
+                        <SelectItem value="Kaiser Permanente">Kaiser Permanente</SelectItem>
+                        <SelectItem value="Anthem">Anthem</SelectItem>
+                        <SelectItem value="Medicare">Medicare</SelectItem>
+                        <SelectItem value="Medicaid">Medicaid</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Service Date */}
                   <div>
                     <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
                       Service Date
@@ -1005,32 +1047,142 @@ export default function FinancialIntelligence() {
                       }
                     />
                   </div>
+
+                  {/* Procedures Section */}
+                  <div>
+                    <div className="flex justify-between items-center mb-3">
+                      <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                        Procedures
+                      </label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setClaimFormData((prev) => ({
+                            ...prev,
+                            procedures: [
+                              ...prev.procedures,
+                              { code: "", description: "", amount: "" }
+                            ]
+                          }));
+                        }}
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Procedure
+                      </Button>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      {claimFormData.procedures.map((procedure, index) => (
+                        <div key={index} className="border rounded-lg p-4 space-y-3">
+                          <div className="flex justify-between items-center">
+                            <h4 className="text-sm font-medium">Procedure {index + 1}</h4>
+                            {claimFormData.procedures.length > 1 && (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  const newProcedures = claimFormData.procedures.filter((_, i) => i !== index);
+                                  setClaimFormData((prev) => ({
+                                    ...prev,
+                                    procedures: newProcedures,
+                                    totalAmount: newProcedures.reduce((sum, proc) => sum + (parseFloat(proc.amount) || 0), 0).toFixed(2)
+                                  }));
+                                }}
+                              >
+                                Remove
+                              </Button>
+                            )}
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <div>
+                              <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                                Procedure Code
+                              </label>
+                              <Input
+                                placeholder="e.g., 99215"
+                                value={procedure.code}
+                                onChange={(e) => {
+                                  const newProcedures = [...claimFormData.procedures];
+                                  newProcedures[index].code = e.target.value;
+                                  setClaimFormData((prev) => ({
+                                    ...prev,
+                                    procedures: newProcedures
+                                  }));
+                                }}
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                                Description
+                              </label>
+                              <Input
+                                placeholder="e.g., Office visit, established patient"
+                                value={procedure.description}
+                                onChange={(e) => {
+                                  const newProcedures = [...claimFormData.procedures];
+                                  newProcedures[index].description = e.target.value;
+                                  setClaimFormData((prev) => ({
+                                    ...prev,
+                                    procedures: newProcedures
+                                  }));
+                                }}
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                                Amount ($)
+                              </label>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                placeholder="0.00"
+                                value={procedure.amount}
+                                onChange={(e) => {
+                                  const newProcedures = [...claimFormData.procedures];
+                                  newProcedures[index].amount = e.target.value;
+                                  const totalAmount = newProcedures.reduce((sum, proc) => sum + (parseFloat(proc.amount) || 0), 0).toFixed(2);
+                                  setClaimFormData((prev) => ({
+                                    ...prev,
+                                    procedures: newProcedures,
+                                    totalAmount: totalAmount
+                                  }));
+                                }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Total Amount (Read-only, calculated from procedures) */}
                   <div>
                     <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
                       Total Amount
                     </label>
                     <Input
-                      placeholder="0.00"
-                      value={claimFormData.totalAmount}
-                      onChange={(e) =>
-                        setClaimFormData((prev) => ({
-                          ...prev,
-                          totalAmount: e.target.value,
-                        }))
-                      }
+                      value={`$${claimFormData.totalAmount || '0.00'}`}
+                      readOnly
+                      className="bg-gray-50 dark:bg-gray-800"
                     />
                   </div>
                   <Button
                     className="w-full"
                     onClick={() => {
+                      // Validation
                       if (
                         !claimFormData.patient ||
                         !claimFormData.serviceDate ||
-                        !claimFormData.totalAmount
+                        !claimFormData.insuranceProvider ||
+                        claimFormData.procedures.length === 0 ||
+                        claimFormData.procedures.some(proc => !proc.code || !proc.description || !proc.amount)
                       ) {
                         toast({
                           title: "Missing Information",
-                          description: "Please fill in all required fields",
+                          description: "Please fill in all required fields including at least one complete procedure",
                           variant: "destructive",
                         });
                         return;
@@ -1044,12 +1196,25 @@ export default function FinancialIntelligence() {
                         ? `${selectedPatient.firstName} ${selectedPatient.lastName}`
                         : "";
 
+                      // Generate claim number like CLM-2024-001236
+                      const currentYear = new Date().getFullYear();
+                      const claimNumber = `CLM-${currentYear}-${Date.now().toString().slice(-6)}`;
+
                       // Submit the claim using the mutation
                       submitClaimMutation.mutate({
+                        patientId: claimFormData.patient,
                         patientName: patientName,
-                        amount: parseFloat(claimFormData.totalAmount),
-                        status: "pending",
+                        claimNumber: claimNumber,
+                        insuranceProvider: claimFormData.insuranceProvider,
                         serviceDate: claimFormData.serviceDate,
+                        submissionDate: new Date().toISOString(),
+                        amount: parseFloat(claimFormData.totalAmount || "0"),
+                        status: "pending",
+                        procedures: claimFormData.procedures.map(proc => ({
+                          code: proc.code,
+                          description: proc.description,
+                          amount: parseFloat(proc.amount)
+                        }))
                       });
 
                       // Reset form and close dialog
@@ -1057,15 +1222,24 @@ export default function FinancialIntelligence() {
                         patient: "",
                         serviceDate: "",
                         totalAmount: "",
+                        insuranceProvider: "",
+                        procedures: [
+                          {
+                            code: "",
+                            description: "",
+                            amount: "",
+                          }
+                        ],
                       });
                       setSubmitClaimOpen(false);
 
                       toast({
                         title: "Claim Submitted",
-                        description: `Insurance claim for ${patientName} has been submitted successfully`,
+                        description: `Insurance claim ${claimNumber} for ${patientName} has been submitted successfully`,
                       });
                     }}
                     disabled={submitClaimMutation.isPending}
+                    data-testid="button-submit-claim"
                   >
                     {submitClaimMutation.isPending
                       ? "Submitting..."
