@@ -1052,7 +1052,7 @@ export default function ClinicalDecisionSupport() {
                       disabled={updateInsightMutation.isPending}
                       onClick={() => updateInsightMutation.mutate({ 
                         insightId: insight.id.toString(), 
-                        status: "reviewed" 
+                        status: "resolved" 
                       })}
                     >
                       {updateInsightMutation.isPending ? "Updating..." : "Mark Reviewed"}
@@ -1063,7 +1063,7 @@ export default function ClinicalDecisionSupport() {
                       disabled={updateInsightMutation.isPending}
                       onClick={() => updateInsightMutation.mutate({ 
                         insightId: insight.id.toString(), 
-                        status: "implemented" 
+                        status: "resolved" 
                       })}
                     >
                       {updateInsightMutation.isPending ? "Updating..." : "Mark Implemented"}
