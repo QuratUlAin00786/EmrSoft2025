@@ -1040,6 +1040,7 @@ export default function ImagingPage() {
                 <Button
                   variant="outline"
                   onClick={() => setShowUploadDialog(true)}
+                  className="bg-medical-blue hover:bg-blue-700 text-white"
                 >
                   <Share className="h-4 w-4 mr-2" />
                   Order Study
