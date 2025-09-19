@@ -1548,7 +1548,7 @@ export default function FinancialIntelligence() {
                     <div>
                       <div className="text-sm text-gray-500">Copay</div>
                       <div className="font-medium">
-                        {formatCurrency(insurance.benefits.copay)}
+                        {formatCurrency(insurance.copay || 0)}
                       </div>
                     </div>
                   </div>
@@ -1561,21 +1561,21 @@ export default function FinancialIntelligence() {
                       <div>
                         <div className="text-sm text-gray-500 mb-1">
                           Deductible (
-                          {formatCurrency(insurance.benefits.deductibleMet)}{" "}
+                          {formatCurrency(0)}{" "}
                           met)
                         </div>
                         <Progress
                           value={
-                            (insurance.benefits.deductibleMet /
-                              insurance.benefits.deductible) *
+                            (0 /
+                              (insurance.deductible || 1000)) *
                             100
                           }
                           className="h-2"
                         />
                         <div className="text-xs text-gray-500 mt-1">
                           {formatCurrency(
-                            insurance.benefits.deductible -
-                              insurance.benefits.deductibleMet,
+                            (insurance.deductible || 1000) -
+                              0,
                           )}{" "}
                           remaining
                         </div>
@@ -1583,21 +1583,21 @@ export default function FinancialIntelligence() {
                       <div>
                         <div className="text-sm text-gray-500 mb-1">
                           Out-of-Pocket Max (
-                          {formatCurrency(insurance.benefits.outOfPocketMet)}{" "}
+                          {formatCurrency(0)}{" "}
                           met)
                         </div>
                         <Progress
                           value={
-                            (insurance.benefits.outOfPocketMet /
-                              insurance.benefits.outOfPocketMax) *
+                            (0 /
+                              5000) *
                             100
                           }
                           className="h-2"
                         />
                         <div className="text-xs text-gray-500 mt-1">
                           {formatCurrency(
-                            insurance.benefits.outOfPocketMax -
-                              insurance.benefits.outOfPocketMet,
+                            5000 -
+                              0,
                           )}{" "}
                           remaining
                         </div>
@@ -2036,11 +2036,11 @@ export default function FinancialIntelligence() {
                         Deductible
                       </span>
                       <span className="text-green-700">
-                        ${selectedInsurance.benefits.deductible}
+                        ${selectedInsurance.deductible || 1000}
                       </span>
                     </div>
                     <div className="text-sm text-green-600 mt-1">
-                      Met: ${selectedInsurance.benefits.deductibleMet}
+                      Met: $0
                     </div>
                   </div>
 
@@ -2050,11 +2050,11 @@ export default function FinancialIntelligence() {
                         Out-of-Pocket Max
                       </span>
                       <span className="text-blue-700">
-                        ${selectedInsurance.benefits.outOfPocketMax}
+                        $5000
                       </span>
                     </div>
                     <div className="text-sm text-blue-600 mt-1">
-                      Met: ${selectedInsurance.benefits.outOfPocketMet}
+                      Met: $0
                     </div>
                   </div>
 
@@ -2062,7 +2062,7 @@ export default function FinancialIntelligence() {
                     <div className="border-l-4 border-orange-400 bg-orange-50 p-3">
                       <div className="font-medium text-orange-800">Copay</div>
                       <div className="text-orange-700">
-                        ${selectedInsurance.benefits.copay}
+                        ${selectedInsurance.copay || 0}
                       </div>
                     </div>
 
@@ -2071,7 +2071,7 @@ export default function FinancialIntelligence() {
                         Coinsurance
                       </div>
                       <div className="text-purple-700">
-                        {selectedInsurance.benefits.coinsurance}%
+                        20%
                       </div>
                     </div>
                   </div>
