@@ -335,6 +335,35 @@ export default function FinancialIntelligence() {
     },
   });
 
+  // Delete claim mutation
+  const deleteClaimMutation = useMutation({
+    mutationFn: async (claimId: string) => {
+      const response = await fetch(`/api/financial/claims/${claimId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+          "X-Tenant-Subdomain": "demo",
+        },
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error("Failed to delete claim");
+      return response.json();
+    },
+    onSuccess: () => {
+      // Immediately invalidate and refetch claims data
+      queryClient.invalidateQueries({ queryKey: ["/api/financial/claims"] });
+      queryClient.refetchQueries({ 
+        queryKey: ["/api/financial/claims"],
+        type: 'active'
+      });
+      
+      toast({ 
+        title: "Claim deleted successfully",
+        description: "The claim has been removed from the system"
+      });
+    },
+  });
+
   // Verify insurance mutation
   const verifyInsuranceMutation = useMutation({
     mutationFn: async (insuranceId: string) => {
@@ -1437,6 +1466,19 @@ export default function FinancialIntelligence() {
                           }}
                         >
                           Track Status
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => {
+                            if (window.confirm(`Are you sure you want to delete claim ${claim.claimNumber || `CLM-${claim.id}`}? This action cannot be undone.`)) {
+                              deleteClaimMutation.mutate(claim.id);
+                            }
+                          }}
+                          disabled={deleteClaimMutation.isPending}
+                          data-testid="button-delete-claim"
+                        >
+                          {deleteClaimMutation.isPending ? "Deleting..." : "Delete"}
                         </Button>
                       </div>
                     </CardContent>

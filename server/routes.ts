@@ -1989,6 +1989,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete claim
+  app.delete("/api/financial/claims/:id", authMiddleware, requireRole(["admin", "finance", "doctor", "nurse"]), async (req: TenantRequest, res) => {
+    try {
+      const claimId = parseInt(req.params.id);
+      const organizationId = req.organizationId;
+      
+      if (isNaN(claimId)) {
+        return res.status(400).json({ error: "Invalid claim ID" });
+      }
+
+      // Check if claim exists and belongs to this organization
+      const existingClaim = await storage.getClaimById(claimId);
+      if (!existingClaim || existingClaim.organizationId !== organizationId) {
+        return res.status(404).json({ error: "Claim not found" });
+      }
+
+      // Delete the claim
+      await storage.deleteClaim(claimId);
+      
+      res.json({ message: "Claim deleted successfully" });
+    } catch (error) {
+      handleRouteError(error, "delete claim", res);
+    }
+  });
+
   // Persistent insurance data for demo purposes (in production this would be in database)
   let mockInsurances: any[] = [
     // Records removed as requested - Sarah Johnson (ins_1) and Michael Chen (ins_2) deleted

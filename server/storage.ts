@@ -3585,6 +3585,15 @@ export class DatabaseStorage implements IStorage {
       .limit(limit);
   }
 
+  async getClaimById(claimId: number): Promise<Claim | null> {
+    const result = await db.select().from(claims).where(eq(claims.id, claimId)).limit(1);
+    return result[0] || null;
+  }
+
+  async deleteClaim(claimId: number): Promise<void> {
+    await db.delete(claims).where(eq(claims.id, claimId));
+  }
+
   async getClaimsByPatient(patientId: number, organizationId: number): Promise<Claim[]> {
     return await db.select()
       .from(claims)
