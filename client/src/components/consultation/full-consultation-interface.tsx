@@ -1161,14 +1161,14 @@ Patient should be advised of potential side effects and expected timeline for re
                `Primary Treatment: ${selectedTreatment || 'Not specified'}\n` +
                `Treatment Intensity: ${selectedTreatmentIntensity || 'Not specified'}\n` +
                `Session Frequency: ${selectedSessionFrequency || 'Not specified'}\n` +
-               `Primary Symptoms: ${selectedSymptom || 'Not specified'}\n` +
-               `Severity Scale: ${selectedSeverity || 'Not specified'}\n` +
-               `Follow-up Plan: ${selectedFollowUp || 'Not specified'}\n\n` +
+               `Primary Symptoms: ${primarySymptoms || 'Not specified'}\n` +
+               `Severity Scale: ${severityScale || 'Not specified'}\n` +
+               `Follow-up Plan: ${followUpPlan || 'Not specified'}\n\n` +
                `${generatedTreatmentPlan ? 'Generated Treatment Plan:\n' + generatedTreatmentPlan : 'No treatment plan generated.'}`,
         diagnosis: `Professional anatomical analysis - ${selectedMuscleGroup ? selectedMuscleGroup.replace(/_/g, ' ') : 'General assessment'}`,
         treatment: selectedTreatment ? selectedTreatment.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : undefined,
-        followUpRequired: selectedFollowUp && selectedFollowUp !== "no_followup",
-        followUpDate: selectedFollowUp && selectedFollowUp !== "no_followup" ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] : undefined
+        followUpRequired: followUpPlan && followUpPlan !== "no_followup",
+        followUpDate: followUpPlan && followUpPlan !== "no_followup" ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] : undefined
       };
 
       const token = localStorage.getItem('auth_token');
