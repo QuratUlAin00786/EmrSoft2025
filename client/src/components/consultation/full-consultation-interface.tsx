@@ -1083,6 +1083,15 @@ ${
   const [isSavingRespiratoryExam, setIsSavingRespiratoryExam] = useState(false);
   const [isSavingCardiovascularExam, setIsSavingCardiovascularExam] = useState(false);
   const [isSavingNeurologicalExam, setIsSavingNeurologicalExam] = useState(false);
+  const [isSavingGeneralExam, setIsSavingGeneralExam] = useState(false);
+
+  // General examination state
+  const [generalExamData, setGeneralExamData] = useState({
+    generalAppearance: "",
+    mentalStatus: "",
+    skinAssessment: "",
+    lymphNodes: ""
+  });
 
   // Respiratory examination state
   const [respiratoryExamData, setRespiratoryExamData] = useState({
@@ -1505,6 +1514,73 @@ Patient should be advised of potential side effects and expected timeline for re
       });
     } finally {
       setIsSavingNeurologicalExam(false);
+    }
+  };
+
+  const saveGeneralExamination = async () => {
+    setIsSavingGeneralExam(true);
+    
+    try {
+      const currentPatientId = patientId || patient?.id;
+      if (!currentPatientId) {
+        throw new Error("No patient selected");
+      }
+
+      // Build comprehensive general examination data
+      const examNotes = Object.entries(generalExamData)
+        .filter(([_, value]) => value && value.trim()) // Only include filled fields
+        .map(([field, value]) => {
+          const fieldName = field.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+          return `${fieldName}: ${value}`;
+        })
+        .join('\n\n');
+
+      const generalExamRecord = {
+        type: "consultation",
+        title: "Clinical Examination - General",
+        notes: `Comprehensive general examination completed.\n\n${examNotes || 'No general examination findings recorded.'}`,
+        diagnosis: `General examination findings - ${Object.keys(generalExamData).filter(key => generalExamData[key]).join(', ') || 'Multiple parameters evaluated'}`,
+        treatment: "General examination completed - refer to detailed findings for treatment recommendations"
+      };
+
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`/api/patients/${currentPatientId}/records`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'X-Tenant-Subdomain': 'demo'
+        },
+        body: JSON.stringify(generalExamRecord)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const savedRecord = await response.json();
+      
+      toast({
+        title: "General Examination Saved",
+        description: "General examination findings have been saved to patient medical records."
+      });
+      
+      // Invalidate and refetch medical records
+      queryClient.invalidateQueries({ queryKey: ['/api/patients', currentPatientId, 'records'] });
+      
+      // Close the modal
+      setShowGeneralExamModal(false);
+      
+    } catch (error) {
+      console.error('Failed to save general examination:', error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to save general examination. Please try again.";
+      toast({
+        title: "Save Failed", 
+        description: errorMessage,
+        variant: "destructive"
+      });
+    } finally {
+      setIsSavingGeneralExam(false);
     }
   };
 
@@ -3412,19 +3488,39 @@ Patient should be advised of potential side effects and expected timeline for re
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>General Appearance</Label>
-                <Textarea placeholder="Overall appearance, posture, gait..." className="h-20" />
+                <Textarea 
+                  placeholder="Overall appearance, posture, gait..." 
+                  className="h-20"
+                  value={generalExamData.generalAppearance}
+                  onChange={(e) => setGeneralExamData(prev => ({...prev, generalAppearance: e.target.value}))}
+                />
               </div>
               <div className="space-y-2">
                 <Label>Mental Status</Label>
-                <Textarea placeholder="Consciousness level, orientation..." className="h-20" />
+                <Textarea 
+                  placeholder="Consciousness level, orientation..." 
+                  className="h-20"
+                  value={generalExamData.mentalStatus}
+                  onChange={(e) => setGeneralExamData(prev => ({...prev, mentalStatus: e.target.value}))}
+                />
               </div>
               <div className="space-y-2">
                 <Label>Skin Assessment</Label>
-                <Textarea placeholder="Color, texture, lesions..." className="h-20" />
+                <Textarea 
+                  placeholder="Color, texture, lesions..." 
+                  className="h-20"
+                  value={generalExamData.skinAssessment}
+                  onChange={(e) => setGeneralExamData(prev => ({...prev, skinAssessment: e.target.value}))}
+                />
               </div>
               <div className="space-y-2">
                 <Label>Lymph Nodes</Label>
-                <Textarea placeholder="Palpable lymph nodes..." className="h-20" />
+                <Textarea 
+                  placeholder="Palpable lymph nodes..." 
+                  className="h-20"
+                  value={generalExamData.lymphNodes}
+                  onChange={(e) => setGeneralExamData(prev => ({...prev, lymphNodes: e.target.value}))}
+                />
               </div>
             </div>
           </div>
@@ -3432,8 +3528,19 @@ Patient should be advised of potential side effects and expected timeline for re
             <Button variant="outline" onClick={() => setShowGeneralExamModal(false)}>
               Cancel
             </Button>
-            <Button onClick={() => setShowGeneralExamModal(false)} className="bg-blue-600 hover:bg-blue-700">
-              Save
+            <Button 
+              onClick={saveGeneralExamination} 
+              disabled={isSavingGeneralExam}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {isSavingGeneralExam ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Saving...
+                </>
+              ) : (
+                'Save'
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
