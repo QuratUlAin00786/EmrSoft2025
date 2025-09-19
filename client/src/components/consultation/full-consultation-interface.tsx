@@ -1082,6 +1082,7 @@ ${
   const [isSavingPhysicalExam, setIsSavingPhysicalExam] = useState(false);
   const [isSavingRespiratoryExam, setIsSavingRespiratoryExam] = useState(false);
   const [isSavingCardiovascularExam, setIsSavingCardiovascularExam] = useState(false);
+  const [isSavingNeurologicalExam, setIsSavingNeurologicalExam] = useState(false);
 
   // Respiratory examination state
   const [respiratoryExamData, setRespiratoryExamData] = useState({
@@ -1101,6 +1102,16 @@ ${
     peripheralPulses: "",
     edemaAssessment: "",
     chestInspection: ""
+  });
+
+  // Neurological examination state
+  const [neurologicalExamData, setNeurologicalExamData] = useState({
+    mentalStatus: "",
+    cranialNerves: "",
+    motorFunction: "",
+    sensoryFunction: "",
+    reflexes: "",
+    gaitCoordination: ""
   });
 
   // Speech recognition state
@@ -1427,6 +1438,73 @@ Patient should be advised of potential side effects and expected timeline for re
       });
     } finally {
       setIsSavingCardiovascularExam(false);
+    }
+  };
+
+  const saveNeurologicalExamination = async () => {
+    setIsSavingNeurologicalExam(true);
+    
+    try {
+      const currentPatientId = patientId || patient?.id;
+      if (!currentPatientId) {
+        throw new Error("No patient selected");
+      }
+
+      // Build comprehensive neurological examination data
+      const examNotes = Object.entries(neurologicalExamData)
+        .filter(([_, value]) => value && value.trim()) // Only include filled fields
+        .map(([field, value]) => {
+          const fieldName = field.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+          return `${fieldName}: ${value}`;
+        })
+        .join('\n\n');
+
+      const neurologicalExamRecord = {
+        type: "consultation",
+        title: "Clinical Examination - Neurological Examination",
+        notes: `Comprehensive neurological examination completed.\n\n${examNotes || 'No neurological examination findings recorded.'}`,
+        diagnosis: `Neurological examination findings - ${Object.keys(neurologicalExamData).filter(key => neurologicalExamData[key]).join(', ') || 'Multiple parameters evaluated'}`,
+        treatment: "Neurological examination completed - refer to detailed findings for treatment recommendations"
+      };
+
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`/api/patients/${currentPatientId}/records`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'X-Tenant-Subdomain': 'demo'
+        },
+        body: JSON.stringify(neurologicalExamRecord)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const savedRecord = await response.json();
+      
+      toast({
+        title: "Neurological Examination Saved",
+        description: "Neurological examination findings have been saved to patient medical records."
+      });
+      
+      // Invalidate and refetch medical records
+      queryClient.invalidateQueries({ queryKey: ['/api/patients', currentPatientId, 'records'] });
+      
+      // Close the modal
+      setShowNeurologicalExamModal(false);
+      
+    } catch (error) {
+      console.error('Failed to save neurological examination:', error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to save neurological examination. Please try again.";
+      toast({
+        title: "Save Failed", 
+        description: errorMessage,
+        variant: "destructive"
+      });
+    } finally {
+      setIsSavingNeurologicalExam(false);
     }
   };
 
@@ -3374,27 +3452,57 @@ Patient should be advised of potential side effects and expected timeline for re
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Heart Rate & Rhythm</Label>
-                <Textarea placeholder="Rate, rhythm, regularity..." className="h-20" />
+                <Textarea 
+                  placeholder="Rate, rhythm, regularity..." 
+                  className="h-20"
+                  value={cardiovascularExamData.heartRateRhythm}
+                  onChange={(e) => setCardiovascularExamData(prev => ({...prev, heartRateRhythm: e.target.value}))}
+                />
               </div>
               <div className="space-y-2">
                 <Label>Heart Sounds</Label>
-                <Textarea placeholder="S1, S2, murmurs, gallops..." className="h-20" />
+                <Textarea 
+                  placeholder="S1, S2, murmurs, gallops..." 
+                  className="h-20"
+                  value={cardiovascularExamData.heartSounds}
+                  onChange={(e) => setCardiovascularExamData(prev => ({...prev, heartSounds: e.target.value}))}
+                />
               </div>
               <div className="space-y-2">
                 <Label>Blood Pressure</Label>
-                <Textarea placeholder="Systolic/Diastolic measurements..." className="h-20" />
+                <Textarea 
+                  placeholder="Systolic/Diastolic measurements..." 
+                  className="h-20"
+                  value={cardiovascularExamData.bloodPressure}
+                  onChange={(e) => setCardiovascularExamData(prev => ({...prev, bloodPressure: e.target.value}))}
+                />
               </div>
               <div className="space-y-2">
                 <Label>Peripheral Pulses</Label>
-                <Textarea placeholder="Radial, pedal, carotid pulses..." className="h-20" />
+                <Textarea 
+                  placeholder="Radial, pedal, carotid pulses..." 
+                  className="h-20"
+                  value={cardiovascularExamData.peripheralPulses}
+                  onChange={(e) => setCardiovascularExamData(prev => ({...prev, peripheralPulses: e.target.value}))}
+                />
               </div>
               <div className="space-y-2">
                 <Label>Edema Assessment</Label>
-                <Textarea placeholder="Peripheral edema, JVP..." className="h-20" />
+                <Textarea 
+                  placeholder="Peripheral edema, JVP..." 
+                  className="h-20"
+                  value={cardiovascularExamData.edemaAssessment}
+                  onChange={(e) => setCardiovascularExamData(prev => ({...prev, edemaAssessment: e.target.value}))}
+                />
               </div>
               <div className="space-y-2">
                 <Label>Chest Inspection</Label>
-                <Textarea placeholder="Chest wall, point of maximal impulse..." className="h-20" />
+                <Textarea 
+                  placeholder="Chest wall, point of maximal impulse..." 
+                  className="h-20"
+                  value={cardiovascularExamData.chestInspection}
+                  onChange={(e) => setCardiovascularExamData(prev => ({...prev, chestInspection: e.target.value}))}
+                />
               </div>
             </div>
           </div>
@@ -3402,8 +3510,19 @@ Patient should be advised of potential side effects and expected timeline for re
             <Button variant="outline" onClick={() => setShowCardiovascularExamModal(false)}>
               Cancel
             </Button>
-            <Button onClick={() => setShowCardiovascularExamModal(false)} className="bg-blue-600 hover:bg-blue-700">
-              Save
+            <Button 
+              onClick={saveCardiovascularExamination} 
+              disabled={isSavingCardiovascularExam}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {isSavingCardiovascularExam ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Saving...
+                </>
+              ) : (
+                'Save'
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -3511,27 +3630,57 @@ Patient should be advised of potential side effects and expected timeline for re
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Mental Status</Label>
-                <Textarea placeholder="Consciousness, orientation, memory..." className="h-20" />
+                <Textarea 
+                  placeholder="Consciousness, orientation, memory..." 
+                  className="h-20"
+                  value={neurologicalExamData.mentalStatus}
+                  onChange={(e) => setNeurologicalExamData(prev => ({...prev, mentalStatus: e.target.value}))}
+                />
               </div>
               <div className="space-y-2">
                 <Label>Cranial Nerves</Label>
-                <Textarea placeholder="CN I-XII assessment..." className="h-20" />
+                <Textarea 
+                  placeholder="CN I-XII assessment..." 
+                  className="h-20"
+                  value={neurologicalExamData.cranialNerves}
+                  onChange={(e) => setNeurologicalExamData(prev => ({...prev, cranialNerves: e.target.value}))}
+                />
               </div>
               <div className="space-y-2">
                 <Label>Motor Function</Label>
-                <Textarea placeholder="Strength, tone, coordination..." className="h-20" />
+                <Textarea 
+                  placeholder="Strength, tone, coordination..." 
+                  className="h-20"
+                  value={neurologicalExamData.motorFunction}
+                  onChange={(e) => setNeurologicalExamData(prev => ({...prev, motorFunction: e.target.value}))}
+                />
               </div>
               <div className="space-y-2">
                 <Label>Sensory Function</Label>
-                <Textarea placeholder="Touch, pain, temperature, vibration..." className="h-20" />
+                <Textarea 
+                  placeholder="Touch, pain, temperature, vibration..." 
+                  className="h-20"
+                  value={neurologicalExamData.sensoryFunction}
+                  onChange={(e) => setNeurologicalExamData(prev => ({...prev, sensoryFunction: e.target.value}))}
+                />
               </div>
               <div className="space-y-2">
                 <Label>Reflexes</Label>
-                <Textarea placeholder="Deep tendon reflexes, pathological reflexes..." className="h-20" />
+                <Textarea 
+                  placeholder="Deep tendon reflexes, pathological reflexes..." 
+                  className="h-20"
+                  value={neurologicalExamData.reflexes}
+                  onChange={(e) => setNeurologicalExamData(prev => ({...prev, reflexes: e.target.value}))}
+                />
               </div>
               <div className="space-y-2">
                 <Label>Gait & Coordination</Label>
-                <Textarea placeholder="Walking pattern, balance, coordination tests..." className="h-20" />
+                <Textarea 
+                  placeholder="Walking pattern, balance, coordination tests..." 
+                  className="h-20"
+                  value={neurologicalExamData.gaitCoordination}
+                  onChange={(e) => setNeurologicalExamData(prev => ({...prev, gaitCoordination: e.target.value}))}
+                />
               </div>
             </div>
           </div>
@@ -3539,8 +3688,19 @@ Patient should be advised of potential side effects and expected timeline for re
             <Button variant="outline" onClick={() => setShowNeurologicalExamModal(false)}>
               Cancel
             </Button>
-            <Button onClick={() => setShowNeurologicalExamModal(false)} className="bg-blue-600 hover:bg-blue-700">
-              Save
+            <Button 
+              onClick={saveNeurologicalExamination} 
+              disabled={isSavingNeurologicalExam}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {isSavingNeurologicalExam ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Saving...
+                </>
+              ) : (
+                'Save'
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
