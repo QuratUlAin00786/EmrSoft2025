@@ -519,8 +519,8 @@ export default function ClinicalDecisionSupport() {
                             <FormControl>
                               <SelectTrigger data-testid="select-patient">
                                 <SelectValue placeholder="Select patient">
-                                  {patients.find(p => p.id === field.value) 
-                                    ? `${patients.find(p => p.id === field.value)?.firstName} ${patients.find(p => p.id === field.value)?.lastName}` 
+                                  {patients.find((p: any) => p.id === field.value) 
+                                    ? `${patients.find((p: any) => p.id === field.value)?.firstName} ${patients.find((p: any) => p.id === field.value)?.lastName}` 
                                     : "Select patient"}
                                 </SelectValue>
                               </SelectTrigger>
@@ -1000,7 +1000,7 @@ export default function ClinicalDecisionSupport() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => deleteInsightMutation.mutate(insight.id)}
+                        onClick={() => deleteInsightMutation.mutate(insight.id.toString())}
                         disabled={deleteInsightMutation.isPending}
                         data-testid={`button-delete-insight-${insight.id}`}
                         className="text-red-600 hover:text-red-700 hover:bg-red-50"
@@ -1049,7 +1049,7 @@ export default function ClinicalDecisionSupport() {
                       size="sm"
                       disabled={updateInsightMutation.isPending}
                       onClick={() => updateInsightMutation.mutate({ 
-                        insightId: insight.id, 
+                        insightId: insight.id.toString(), 
                         status: "reviewed" 
                       })}
                     >
@@ -1060,7 +1060,7 @@ export default function ClinicalDecisionSupport() {
                       variant="outline"
                       disabled={updateInsightMutation.isPending}
                       onClick={() => updateInsightMutation.mutate({ 
-                        insightId: insight.id, 
+                        insightId: insight.id.toString(), 
                         status: "implemented" 
                       })}
                     >
@@ -1071,7 +1071,7 @@ export default function ClinicalDecisionSupport() {
                       variant="ghost"
                       disabled={updateInsightMutation.isPending}
                       onClick={() => updateInsightMutation.mutate({ 
-                        insightId: insight.id, 
+                        insightId: insight.id.toString(), 
                         status: "dismissed" 
                       })}
                     >
