@@ -231,12 +231,14 @@ export default function PrescriptionsPage() {
     patientName: "",
     providerId: "",
     diagnosis: "",
-    medicationName: "",
-    dosage: "",
-    frequency: "",
-    quantity: "",
-    refills: "",
-    instructions: "",
+    medications: [{
+      name: "",
+      dosage: "",
+      frequency: "",
+      quantity: "",
+      refills: "",
+      instructions: "",
+    }],
     pharmacyName: "Halo Health",
     pharmacyAddress: "Unit 2 Drayton Court, Solihull, B90 4NG",
     pharmacyPhone: "+44(0)121 827 5531",
@@ -246,18 +248,23 @@ export default function PrescriptionsPage() {
   // Update form data when selectedPrescription changes
   useEffect(() => {
     if (selectedPrescription) {
-      const firstMedication = selectedPrescription.medications[0] || {};
+      const medications = selectedPrescription.medications.length > 0 
+        ? selectedPrescription.medications.map(med => ({
+            name: med.name || "",
+            dosage: med.dosage || "",
+            frequency: med.frequency || "",
+            quantity: med.quantity?.toString() || "",
+            refills: med.refills?.toString() || "",
+            instructions: med.instructions || "",
+          })) 
+        : [{ name: "", dosage: "", frequency: "", quantity: "", refills: "", instructions: "" }];
+      
       setFormData({
         patientId: selectedPrescription.patientId?.toString() || "",
         patientName: selectedPrescription.patientName || "",
         providerId: selectedPrescription.providerId?.toString() || "",
         diagnosis: selectedPrescription.diagnosis || "",
-        medicationName: firstMedication.name || "",
-        dosage: firstMedication.dosage || "",
-        frequency: firstMedication.frequency || "",
-        quantity: firstMedication.quantity?.toString() || "",
-        refills: firstMedication.refills?.toString() || "",
-        instructions: firstMedication.instructions || "",
+        medications: medications,
         pharmacyName: selectedPrescription.pharmacy?.name || "Halo Health",
         pharmacyAddress:
           selectedPrescription.pharmacy?.address ||
@@ -273,12 +280,14 @@ export default function PrescriptionsPage() {
         patientName: "",
         providerId: "",
         diagnosis: "",
-        medicationName: "",
-        dosage: "",
-        frequency: "",
-        quantity: "",
-        refills: "",
-        instructions: "",
+        medications: [{
+          name: "",
+          dosage: "",
+          frequency: "",
+          quantity: "",
+          refills: "",
+          instructions: "",
+        }],
         pharmacyName: "Halo Health",
         pharmacyAddress: "Unit 2 Drayton Court, Solihull, B90 4NG",
         pharmacyPhone: "+44(0)121 827 5531",
@@ -596,6 +605,42 @@ export default function PrescriptionsPage() {
   };
 
   const { toast } = useToast();
+
+  // Medication management helper functions
+  const addMedication = () => {
+    setFormData(prev => ({
+      ...prev,
+      medications: [
+        ...prev.medications,
+        {
+          name: "",
+          dosage: "",
+          frequency: "",
+          quantity: "",
+          refills: "",
+          instructions: "",
+        }
+      ]
+    }));
+  };
+
+  const removeMedication = (index: number) => {
+    if (formData.medications.length > 1) {
+      setFormData(prev => ({
+        ...prev,
+        medications: prev.medications.filter((_, i) => i !== index)
+      }));
+    }
+  };
+
+  const updateMedication = (index: number, field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      medications: prev.medications.map((med, i) => 
+        i === index ? { ...med, [field]: value } : med
+      )
+    }));
+  };
 
   // E-signature functions
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -1374,12 +1419,14 @@ export default function PrescriptionsPage() {
                           patientName: "",
                           providerId: "",
                           diagnosis: "",
-                          medicationName: "",
-                          dosage: "",
-                          frequency: "",
-                          quantity: "",
-                          refills: "",
-                          instructions: "",
+                          medications: [{
+                            name: "",
+                            dosage: "",
+                            frequency: "",
+                            quantity: "",
+                            refills: "",
+                            instructions: "",
+                          }],
                           pharmacyName: "Halo Health",
                           pharmacyAddress:
                             "Unit 2 Drayton Court, Solihull, B90 4NG",
@@ -1471,109 +1518,117 @@ export default function PrescriptionsPage() {
                         />
                       </div>
 
-                      <div className="space-y-3">
-                        <Label>Medications</Label>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <Label htmlFor="medication">Medication Name</Label>
-                            <Input
-                              placeholder="Enter medication"
-                              value={formData.medicationName}
-                              onChange={(e) =>
-                                setFormData((prev) => ({
-                                  ...prev,
-                                  medicationName: e.target.value,
-                                }))
-                              }
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="dosage">Dosage</Label>
-                            <Input
-                              placeholder="e.g., 10mg"
-                              value={formData.dosage}
-                              onChange={(e) =>
-                                setFormData((prev) => ({
-                                  ...prev,
-                                  dosage: e.target.value,
-                                }))
-                              }
-                            />
-                          </div>
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center">
+                          <Label className="text-lg font-medium">Medications</Label>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={addMedication}
+                            data-testid="button-add-medication"
+                            className="flex items-center gap-2"
+                          >
+                            <Plus className="h-4 w-4" />
+                            Add Medication
+                          </Button>
                         </div>
-                        <div className="grid grid-cols-3 gap-4">
-                          <div>
-                            <Label htmlFor="frequency">Frequency</Label>
-                            <Select
-                              value={formData.frequency}
-                              onValueChange={(value) =>
-                                setFormData((prev) => ({
-                                  ...prev,
-                                  frequency: value,
-                                }))
-                              }
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select frequency" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="Once daily">
-                                  Once daily
-                                </SelectItem>
-                                <SelectItem value="Twice daily">
-                                  Twice daily
-                                </SelectItem>
-                                <SelectItem value="Three times daily">
-                                  Three times daily
-                                </SelectItem>
-                                <SelectItem value="Four times daily">
-                                  Four times daily
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
+                        
+                        {formData.medications.map((medication, index) => (
+                          <div key={index} className="border rounded-lg p-4 space-y-4 relative">
+                            <div className="flex justify-between items-start">
+                              <h4 className="font-medium text-md">Medication {index + 1}</h4>
+                              {formData.medications.length > 1 && (
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => removeMedication(index)}
+                                  data-testid={`button-remove-medication-${index}`}
+                                  className="text-red-500 hover:text-red-700"
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              )}
+                            </div>
+                            
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <Label htmlFor={`medication-name-${index}`}>Medication Name</Label>
+                                <Input
+                                  id={`medication-name-${index}`}
+                                  placeholder="Enter medication"
+                                  value={medication.name}
+                                  onChange={(e) => updateMedication(index, 'name', e.target.value)}
+                                  data-testid={`input-medication-name-${index}`}
+                                />
+                              </div>
+                              <div>
+                                <Label htmlFor={`medication-dosage-${index}`}>Dosage</Label>
+                                <Input
+                                  id={`medication-dosage-${index}`}
+                                  placeholder="e.g., 10mg"
+                                  value={medication.dosage}
+                                  onChange={(e) => updateMedication(index, 'dosage', e.target.value)}
+                                  data-testid={`input-medication-dosage-${index}`}
+                                />
+                              </div>
+                            </div>
+                            
+                            <div className="grid grid-cols-3 gap-4">
+                              <div>
+                                <Label htmlFor={`medication-frequency-${index}`}>Frequency</Label>
+                                <Select
+                                  value={medication.frequency}
+                                  onValueChange={(value) => updateMedication(index, 'frequency', value)}
+                                >
+                                  <SelectTrigger data-testid={`select-frequency-${index}`}>
+                                    <SelectValue placeholder="Select frequency" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="Once daily">Once daily</SelectItem>
+                                    <SelectItem value="Twice daily">Twice daily</SelectItem>
+                                    <SelectItem value="Three times daily">Three times daily</SelectItem>
+                                    <SelectItem value="Four times daily">Four times daily</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div>
+                                <Label htmlFor={`medication-quantity-${index}`}>Quantity</Label>
+                                <Input
+                                  id={`medication-quantity-${index}`}
+                                  type="number"
+                                  placeholder="30"
+                                  value={medication.quantity}
+                                  onChange={(e) => updateMedication(index, 'quantity', e.target.value)}
+                                  data-testid={`input-medication-quantity-${index}`}
+                                />
+                              </div>
+                              <div>
+                                <Label htmlFor={`medication-refills-${index}`}>Refills</Label>
+                                <Input
+                                  id={`medication-refills-${index}`}
+                                  type="number"
+                                  placeholder="3"
+                                  value={medication.refills}
+                                  onChange={(e) => updateMedication(index, 'refills', e.target.value)}
+                                  data-testid={`input-medication-refills-${index}`}
+                                />
+                              </div>
+                            </div>
+                            
+                            <div>
+                              <Label htmlFor={`medication-instructions-${index}`}>Instructions</Label>
+                              <Textarea
+                                id={`medication-instructions-${index}`}
+                                placeholder="Special instructions for patient"
+                                value={medication.instructions}
+                                onChange={(e) => updateMedication(index, 'instructions', e.target.value)}
+                                data-testid={`textarea-medication-instructions-${index}`}
+                              />
+                            </div>
                           </div>
-                          <div>
-                            <Label htmlFor="quantity">Quantity</Label>
-                            <Input
-                              type="number"
-                              placeholder="30"
-                              value={formData.quantity}
-                              onChange={(e) =>
-                                setFormData((prev) => ({
-                                  ...prev,
-                                  quantity: e.target.value,
-                                }))
-                              }
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="refills">Refills</Label>
-                            <Input
-                              type="number"
-                              placeholder="3"
-                              value={formData.refills}
-                              onChange={(e) =>
-                                setFormData((prev) => ({
-                                  ...prev,
-                                  refills: e.target.value,
-                                }))
-                              }
-                            />
-                          </div>
-                        </div>
-                        <div>
-                          <Label htmlFor="instructions">Instructions</Label>
-                          <Textarea
-                            placeholder="Special instructions for patient"
-                            value={formData.instructions}
-                            onChange={(e) =>
-                              setFormData((prev) => ({
-                                ...prev,
-                                instructions: e.target.value,
-                              }))
-                            }
-                          />
-                        </div>
+                        ))}
                       </div>
 
                       {/* Pharmacy Information Section */}
@@ -1656,14 +1711,28 @@ export default function PrescriptionsPage() {
                             if (
                               !formData.patientId ||
                               !formData.providerId ||
-                              !formData.medicationName
+                              !formData.medications.some(med => med.name.trim())
                             ) {
                               alert(
-                                "Please fill in all required fields (Patient, Doctor, and Medication Name)",
+                                "Please fill in all required fields (Patient, Doctor, and at least one Medication Name)",
                               );
                               return;
                             }
 
+                            // Filter out empty medications and prepare data
+                            const validMedications = formData.medications
+                              .filter(med => med.name.trim())
+                              .map(med => ({
+                                name: med.name.trim(),
+                                dosage: med.dosage.trim(),
+                                frequency: med.frequency.trim(),
+                                duration: "30 days", // Default for now
+                                quantity: parseInt(med.quantity) || 0,
+                                refills: parseInt(med.refills) || 0,
+                                instructions: med.instructions.trim(),
+                                genericAllowed: true,
+                              }));
+                            
                             const prescriptionData = {
                               patientId: parseInt(formData.patientId),
                               providerId: parseInt(formData.providerId),
@@ -1674,18 +1743,7 @@ export default function PrescriptionsPage() {
                                 phone: formData.pharmacyPhone,
                                 email: formData.pharmacyEmail,
                               },
-                              medications: [
-                                {
-                                  name: formData.medicationName,
-                                  dosage: formData.dosage,
-                                  frequency: formData.frequency,
-                                  duration: "30 days", // Default for now
-                                  quantity: parseInt(formData.quantity) || 0,
-                                  refills: parseInt(formData.refills) || 0,
-                                  instructions: formData.instructions,
-                                  genericAllowed: true,
-                                },
-                              ],
+                              medications: validMedications,
                             };
 
                             console.log("=== FRONTEND PRESCRIPTION DEBUG ===");
