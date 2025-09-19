@@ -730,8 +730,15 @@ export default function ClinicalDecisionSupport() {
                     </Button>
                     <Button
                       type="submit"
-                      disabled={createInsightMutation.isPending}
+                      disabled={createInsightMutation.isPending || !form.formState.isValid}
                       data-testid="button-submit"
+                      onClick={() => {
+                        console.log("Button clicked - form state:", form.formState);
+                        console.log("Form values:", form.getValues());
+                        console.log("Form errors:", form.formState.errors);
+                        console.log("Is form valid:", form.formState.isValid);
+                        console.log("Mutation pending:", createInsightMutation.isPending);
+                      }}
                     >
                       {createInsightMutation.isPending && (
                         <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
