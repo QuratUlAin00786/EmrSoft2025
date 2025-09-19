@@ -1866,9 +1866,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // FINANCIAL INTELLIGENCE ROUTES
   // ============================================
 
-  // In-memory storage for submitted claims
-  let submittedClaims: any[] = [];
-
   // Get revenue data
   app.get("/api/financial/revenue", authMiddleware, requireRole(["admin", "finance", "doctor"]), async (req: TenantRequest, res) => {
     try {
@@ -1893,12 +1890,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get claims data
   app.get("/api/financial/claims", authMiddleware, requireRole(["admin", "finance", "doctor", "nurse"]), async (req: TenantRequest, res) => {
     try {
-      // Mock claims data - in production this would come from claims management system
-      const mockClaims: any[] = [];
+      const organizationId = req.organizationId;
+      const claims = await storage.getClaimsByOrganization(organizationId);
       
-      // Combine mock claims with submitted claims
-      const allClaims = [...mockClaims, ...submittedClaims];
-      res.json(allClaims);
+      // Get all unique patient IDs to fetch patient names in one query
+      const patientIds = [...new Set(claims.map(claim => claim.patientId))];
+      const patients = await Promise.all(
+        patientIds.map(id => storage.getPatient(id, organizationId))
+      );
+      
+      // Create a map of patient ID to patient name
+      const patientMap = new Map();
+      patients.forEach(patient => {
+        if (patient) {
+          patientMap.set(patient.id, `${patient.firstName} ${patient.lastName}`);
+        }
+      });
+      
+      // Transform the claims data to match the expected frontend format
+      const transformedClaims = claims.map(claim => ({
+        id: claim.id.toString(),
+        patientId: claim.patientId.toString(),
+        patientName: patientMap.get(claim.patientId) || `Patient ${claim.patientId}`,
+        claimNumber: claim.claimNumber,
+        serviceDate: claim.serviceDate.toISOString().split('T')[0],
+        submissionDate: claim.submissionDate.toISOString().split('T')[0],
+        amount: parseFloat(claim.amount),
+        status: claim.status,
+        paymentAmount: claim.paymentAmount ? parseFloat(claim.paymentAmount) : undefined,
+        paymentDate: claim.paymentDate?.toISOString().split('T')[0],
+        denialReason: claim.denialReason,
+        insuranceProvider: claim.insuranceProvider,
+        procedures: claim.procedures || []
+      }));
+      
+      res.json(transformedClaims);
     } catch (error) {
       handleRouteError(error, "fetch claims data", res);
     }
@@ -1925,19 +1951,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
         submissionDate: z.string().optional()
       }).parse(req.body);
 
-      // In production, this would create a claim in the database
-      const newClaim = {
-        id: `claim_${Date.now()}`,
-        ...claimData,
+      const organizationId = req.organizationId;
+      
+      // Create claim record for database
+      const newClaimData = {
+        organizationId: organizationId,
+        patientId: claimData.patientId || 1, // Default to patient 1 if not provided
+        claimNumber: claimData.claimNumber || `CLM-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`,
+        serviceDate: new Date(claimData.serviceDate),
+        submissionDate: new Date(),
+        amount: claimData.amount.toString(),
         status: claimData.status || "pending",
-        submissionDate: new Date().toISOString(),
-        claimNumber: `CLM-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`
+        insuranceProvider: claimData.insuranceProvider || "Unknown Provider",
+        procedures: claimData.procedures || []
       };
 
-      // Add the new claim to the in-memory storage
-      submittedClaims.push(newClaim);
+      // Save to database
+      const savedClaim = await storage.createClaim(newClaimData);
 
-      res.status(201).json(newClaim);
+      // Transform response to match frontend expectations
+      const responseData = {
+        id: savedClaim.id.toString(),
+        patientId: savedClaim.patientId.toString(),
+        patientName: claimData.patientName,
+        claimNumber: savedClaim.claimNumber,
+        serviceDate: savedClaim.serviceDate.toISOString().split('T')[0],
+        submissionDate: savedClaim.submissionDate.toISOString().split('T')[0],
+        amount: parseFloat(savedClaim.amount),
+        status: savedClaim.status,
+        insuranceProvider: savedClaim.insuranceProvider,
+        procedures: savedClaim.procedures || []
+      };
+
+      res.status(201).json(responseData);
     } catch (error) {
       handleRouteError(error, "submit claim", res);
     }
