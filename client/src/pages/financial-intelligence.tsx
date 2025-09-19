@@ -7,17 +7,40 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   LineChart,
   Line,
@@ -25,9 +48,9 @@ import {
   Pie,
   Cell,
   AreaChart,
-  Area
+  Area,
 } from "recharts";
-import { 
+import {
   DollarSign,
   TrendingUp,
   TrendingDown,
@@ -51,7 +74,7 @@ import {
   ArrowLeft,
   Check,
   ChevronsUpDown,
-  Plus
+  Plus,
 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -75,7 +98,7 @@ interface Claim {
   serviceDate: string;
   submissionDate: string;
   amount: number;
-  status: 'submitted' | 'approved' | 'denied' | 'pending' | 'paid';
+  status: "submitted" | "approved" | "denied" | "pending" | "paid";
   denialReason?: string;
   paymentAmount?: number;
   paymentDate?: string;
@@ -93,9 +116,9 @@ interface Insurance {
   provider: string;
   policyNumber: string;
   groupNumber: string;
-  status: 'active' | 'inactive' | 'pending' | 'expired';
-  coverageType: 'primary' | 'secondary';
-  eligibilityStatus: 'verified' | 'pending' | 'invalid';
+  status: "active" | "inactive" | "pending" | "expired";
+  coverageType: "primary" | "secondary";
+  eligibilityStatus: "verified" | "pending" | "invalid";
   lastVerified: string;
   benefits: {
     deductible: number;
@@ -112,7 +135,7 @@ interface FinancialForecast {
   currentMonth: number;
   projectedNext: number;
   variance: number;
-  trend: 'up' | 'down' | 'stable';
+  trend: "up" | "down" | "stable";
   confidence: number;
   factors: string[];
 }
@@ -128,9 +151,9 @@ export default function FinancialIntelligence() {
   const [trackStatusOpen, setTrackStatusOpen] = useState(false);
   const [trackingClaim, setTrackingClaim] = useState<Claim | null>(null);
   const [claimFormData, setClaimFormData] = useState({
-    patient: '',
-    serviceDate: '',
-    totalAmount: ''
+    patient: "",
+    serviceDate: "",
+    totalAmount: "",
   });
   const [patientDropdownOpen, setPatientDropdownOpen] = useState(false);
   const [verifyEligibilityOpen, setVerifyEligibilityOpen] = useState(false);
@@ -140,28 +163,28 @@ export default function FinancialIntelligence() {
   const [patientSearchOpen, setPatientSearchOpen] = useState(false);
   const [selectedInsurance, setSelectedInsurance] = useState<any>(null);
   const [verificationFormData, setVerificationFormData] = useState({
-    patientName: '',
-    insuranceProvider: '',
-    policyNumber: '',
-    groupNumber: '',
-    coverageType: '',
-    verificationStatus: 'pending',
-    verificationDate: ''
+    patientName: "",
+    insuranceProvider: "",
+    policyNumber: "",
+    groupNumber: "",
+    coverageType: "",
+    verificationStatus: "pending",
+    verificationDate: "",
   });
   const [newInsuranceFormData, setNewInsuranceFormData] = useState({
-    patientName: '',
-    provider: '',
-    policyNumber: '',
-    groupNumber: '',
-    coverageType: 'primary',
-    status: 'active',
-    eligibilityStatus: 'pending',
-    copay: '',
-    deductible: '',
-    deductibleMet: '',
-    outOfPocketMax: '',
-    outOfPocketMet: '',
-    coinsurance: ''
+    patientName: "",
+    provider: "",
+    policyNumber: "",
+    groupNumber: "",
+    coverageType: "primary",
+    status: "active",
+    eligibilityStatus: "pending",
+    copay: "",
+    deductible: "",
+    deductibleMet: "",
+    outOfPocketMax: "",
+    outOfPocketMet: "",
+    coinsurance: "",
   });
   const { toast } = useToast();
 
@@ -169,7 +192,7 @@ export default function FinancialIntelligence() {
   const handleScrollDown = () => {
     window.scrollBy({
       top: window.innerHeight * 0.8,
-      behavior: 'smooth'
+      behavior: "smooth",
     });
   };
 
@@ -179,7 +202,7 @@ export default function FinancialIntelligence() {
       const scrolled = window.scrollY;
       const windowHeight = window.innerHeight;
       const documentHeight = document.documentElement.scrollHeight;
-      
+
       // Hide button when near bottom of page
       if (scrolled + windowHeight >= documentHeight - 100) {
         setShowScrollButton(false);
@@ -188,14 +211,14 @@ export default function FinancialIntelligence() {
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   // Fetch revenue data
   const { data: revenueData, isLoading: revenueLoading } = useQuery({
     queryKey: ["/api/financial/revenue", dateRange],
-    enabled: true
+    enabled: true,
   });
 
   // Fetch claims
@@ -204,15 +227,15 @@ export default function FinancialIntelligence() {
     queryFn: async () => {
       const response = await fetch("/api/financial/claims", {
         headers: {
-          "Authorization": `Bearer ${localStorage.getItem('auth_token')}`,
-          "X-Tenant-Subdomain": "demo"
+          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+          "X-Tenant-Subdomain": "demo",
         },
-        credentials: "include"
+        credentials: "include",
       });
       if (!response.ok) throw new Error("Failed to fetch claims");
       return response.json();
     },
-    enabled: true
+    enabled: true,
   });
 
   // Fetch insurance verifications
@@ -221,21 +244,21 @@ export default function FinancialIntelligence() {
     queryFn: async () => {
       const response = await fetch("/api/financial/insurance", {
         headers: {
-          "Authorization": `Bearer ${localStorage.getItem('auth_token')}`,
-          "X-Tenant-Subdomain": "demo"
+          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+          "X-Tenant-Subdomain": "demo",
         },
-        credentials: "include"
+        credentials: "include",
       });
       if (!response.ok) throw new Error("Failed to fetch insurance data");
       return response.json();
     },
-    enabled: true
+    enabled: true,
   });
 
   // Fetch financial forecasts
   const { data: forecasts, isLoading: forecastsLoading } = useQuery({
     queryKey: ["/api/financial/forecasts"],
-    enabled: true
+    enabled: true,
   });
 
   // Fetch patients for claim submission
@@ -244,30 +267,29 @@ export default function FinancialIntelligence() {
     queryFn: async () => {
       const response = await fetch("/api/patients", {
         headers: {
-          "Authorization": `Bearer ${localStorage.getItem('auth_token')}`,
-          "X-Tenant-Subdomain": "demo"
+          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+          "X-Tenant-Subdomain": "demo",
         },
-        credentials: "include"
+        credentials: "include",
       });
       if (!response.ok) throw new Error("Failed to fetch patients");
       return response.json();
     },
-    enabled: true
+    enabled: true,
   });
-
 
   // Submit claim mutation
   const submitClaimMutation = useMutation({
     mutationFn: async (claimData: Partial<Claim>) => {
       const response = await fetch("/api/financial/claims", {
         method: "POST",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem('auth_token')}`,
-          "X-Tenant-Subdomain": "demo"
+          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+          "X-Tenant-Subdomain": "demo",
         },
         body: JSON.stringify(claimData),
-        credentials: "include"
+        credentials: "include",
       });
       if (!response.ok) throw new Error("Failed to submit claim");
       return response.json();
@@ -278,51 +300,60 @@ export default function FinancialIntelligence() {
       // Force refetch the claims data
       queryClient.refetchQueries({ queryKey: ["/api/financial/claims"] });
       toast({ title: "Claim submitted successfully" });
-    }
+    },
   });
 
   // Verify insurance mutation
   const verifyInsuranceMutation = useMutation({
     mutationFn: async (insuranceId: string) => {
-      const response = await fetch(`/api/financial/insurance/${insuranceId}/verify`, {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${localStorage.getItem('auth_token')}`,
-          "X-Tenant-Subdomain": "demo"
+      const response = await fetch(
+        `/api/financial/insurance/${insuranceId}/verify`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+            "X-Tenant-Subdomain": "demo",
+          },
+          credentials: "include",
         },
-        credentials: "include"
-      });
+      );
       if (!response.ok) throw new Error("Failed to verify insurance");
       return response.json();
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/financial/insurance"] });
-      toast({ 
+      toast({
         title: "Insurance verification completed",
-        description: data.message || "Eligibility status updated successfully"
+        description: data.message || "Eligibility status updated successfully",
       });
     },
     onError: (error) => {
-      toast({ 
-        title: "Insurance verification failed", 
+      toast({
+        title: "Insurance verification failed",
         description: error.message || "Failed to verify insurance eligibility",
-        variant: "destructive" 
+        variant: "destructive",
       });
-    }
+    },
   });
 
   // Update insurance mutation
   const updateInsuranceMutation = useMutation({
-    mutationFn: async ({ insuranceId, data }: { insuranceId: string; data: any }) => {
+    mutationFn: async ({
+      insuranceId,
+      data,
+    }: {
+      insuranceId: string;
+      data: any;
+    }) => {
       const response = await fetch(`/api/financial/insurance/${insuranceId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem('auth_token')}`,
-          "X-Tenant-Subdomain": "demo"
+          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+          "X-Tenant-Subdomain": "demo",
         },
         credentials: "include",
-        body: JSON.stringify(data)
+        body: JSON.stringify(data),
       });
       if (!response.ok) throw new Error("Failed to update insurance");
       return response.json();
@@ -330,19 +361,19 @@ export default function FinancialIntelligence() {
     onSuccess: (data) => {
       console.log("Insurance update success:", data);
       queryClient.invalidateQueries({ queryKey: ["/api/financial/insurance"] });
-      toast({ 
+      toast({
         title: "Insurance updated successfully",
-        description: data.message || "Insurance verification data updated"
+        description: data.message || "Insurance verification data updated",
       });
     },
     onError: (error) => {
       console.error("Insurance update error:", error);
-      toast({ 
+      toast({
         title: "Update failed",
         description: "Failed to update insurance verification data",
-        variant: "destructive"
+        variant: "destructive",
       });
-    }
+    },
   });
 
   // Add insurance mutation
@@ -352,8 +383,8 @@ export default function FinancialIntelligence() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem('auth_token')}`,
-          "X-Tenant-Subdomain": "demo"
+          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+          "X-Tenant-Subdomain": "demo",
         },
         credentials: "include",
         body: JSON.stringify({
@@ -366,53 +397,95 @@ export default function FinancialIntelligence() {
             outOfPocketMax: parseFloat(data.outOfPocketMax) || 0,
             outOfPocketMet: parseFloat(data.outOfPocketMet) || 0,
             copay: parseFloat(data.copay) || 0,
-            coinsurance: parseFloat(data.coinsurance) || 0
-          }
-        })
+            coinsurance: parseFloat(data.coinsurance) || 0,
+          },
+        }),
       });
       if (!response.ok) throw new Error("Failed to add insurance");
       return response.json();
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/financial/insurance"] });
-      toast({ 
+      toast({
         title: "Insurance added successfully",
-        description: "New insurance information has been added to the system"
+        description: "New insurance information has been added to the system",
       });
       setAddInsuranceOpen(false);
       setNewInsuranceFormData({
-        patientName: '',
-        provider: '',
-        policyNumber: '',
-        groupNumber: '',
-        coverageType: 'primary',
-        status: 'active',
-        eligibilityStatus: 'pending',
-        copay: '',
-        deductible: '',
-        deductibleMet: '',
-        outOfPocketMax: '',
-        outOfPocketMet: '',
-        coinsurance: ''
+        patientName: "",
+        provider: "",
+        policyNumber: "",
+        groupNumber: "",
+        coverageType: "primary",
+        status: "active",
+        eligibilityStatus: "pending",
+        copay: "",
+        deductible: "",
+        deductibleMet: "",
+        outOfPocketMax: "",
+        outOfPocketMet: "",
+        coinsurance: "",
       });
     },
     onError: (error) => {
-      toast({ 
+      toast({
         title: "Failed to add insurance",
         description: "There was an error adding the insurance information",
-        variant: "destructive"
+        variant: "destructive",
       });
-    }
+    },
   });
 
   // Mock data
   const mockRevenueData: RevenueData[] = [
-    { month: "Jan", revenue: 125000, expenses: 85000, profit: 40000, collections: 118000, target: 130000 },
-    { month: "Feb", revenue: 135000, expenses: 88000, profit: 47000, collections: 128000, target: 130000 },
-    { month: "Mar", revenue: 142000, expenses: 92000, profit: 50000, collections: 135000, target: 135000 },
-    { month: "Apr", revenue: 138000, expenses: 90000, profit: 48000, collections: 132000, target: 135000 },
-    { month: "May", revenue: 155000, expenses: 95000, profit: 60000, collections: 148000, target: 140000 },
-    { month: "Jun", revenue: 162000, expenses: 98000, profit: 64000, collections: 156000, target: 145000 }
+    {
+      month: "Jan",
+      revenue: 125000,
+      expenses: 85000,
+      profit: 40000,
+      collections: 118000,
+      target: 130000,
+    },
+    {
+      month: "Feb",
+      revenue: 135000,
+      expenses: 88000,
+      profit: 47000,
+      collections: 128000,
+      target: 130000,
+    },
+    {
+      month: "Mar",
+      revenue: 142000,
+      expenses: 92000,
+      profit: 50000,
+      collections: 135000,
+      target: 135000,
+    },
+    {
+      month: "Apr",
+      revenue: 138000,
+      expenses: 90000,
+      profit: 48000,
+      collections: 132000,
+      target: 135000,
+    },
+    {
+      month: "May",
+      revenue: 155000,
+      expenses: 95000,
+      profit: 60000,
+      collections: 148000,
+      target: 140000,
+    },
+    {
+      month: "Jun",
+      revenue: 162000,
+      expenses: 98000,
+      profit: 64000,
+      collections: 156000,
+      target: 145000,
+    },
   ];
 
   const mockClaims: Claim[] = [
@@ -424,17 +497,20 @@ export default function FinancialIntelligence() {
       claimNumber: "CLM-2024-001236",
       serviceDate: "2024-06-24",
       submissionDate: "2024-06-25",
-      amount: 320.00,
+      amount: 320.0,
       status: "pending",
       procedures: [
-        { code: "99215", description: "Office visit, established patient", amount: 280.00 },
-        { code: "36415", description: "Venipuncture", amount: 40.00 }
-      ]
-    }
+        {
+          code: "99215",
+          description: "Office visit, established patient",
+          amount: 280.0,
+        },
+        { code: "36415", description: "Venipuncture", amount: 40.0 },
+      ],
+    },
   ];
 
-  const mockInsurances: Insurance[] = [
-  ];
+  const mockInsurances: Insurance[] = [];
 
   const mockForecasts: FinancialForecast[] = [
     {
@@ -444,7 +520,11 @@ export default function FinancialIntelligence() {
       variance: 6000,
       trend: "up",
       confidence: 85,
-      factors: ["Increased patient volume", "New insurance contracts", "Seasonal trend"]
+      factors: [
+        "Increased patient volume",
+        "New insurance contracts",
+        "Seasonal trend",
+      ],
     },
     {
       category: "Collection Rate",
@@ -453,7 +533,10 @@ export default function FinancialIntelligence() {
       variance: 1,
       trend: "up",
       confidence: 78,
-      factors: ["Improved prior authorization process", "Better claim submission timing"]
+      factors: [
+        "Improved prior authorization process",
+        "Better claim submission timing",
+      ],
     },
     {
       category: "Operating Expenses",
@@ -462,41 +545,85 @@ export default function FinancialIntelligence() {
       variance: 4000,
       trend: "up",
       confidence: 92,
-      factors: ["Staff salary increases", "Equipment maintenance", "Inflation"]
-    }
+      factors: ["Staff salary increases", "Equipment maintenance", "Inflation"],
+    },
   ];
 
   const profitabilityData = [
-    { service: "Primary Care", revenue: 45000, cost: 28000, profit: 17000, margin: 37.8 },
-    { service: "Preventive Care", revenue: 32000, cost: 18000, profit: 14000, margin: 43.8 },
-    { service: "Chronic Care Management", revenue: 28000, cost: 15000, profit: 13000, margin: 46.4 },
-    { service: "Diagnostic Testing", revenue: 25000, cost: 12000, profit: 13000, margin: 52.0 },
-    { service: "Procedures", revenue: 32000, cost: 25000, profit: 7000, margin: 21.9 }
+    {
+      service: "Primary Care",
+      revenue: 45000,
+      cost: 28000,
+      profit: 17000,
+      margin: 37.8,
+    },
+    {
+      service: "Preventive Care",
+      revenue: 32000,
+      cost: 18000,
+      profit: 14000,
+      margin: 43.8,
+    },
+    {
+      service: "Chronic Care Management",
+      revenue: 28000,
+      cost: 15000,
+      profit: 13000,
+      margin: 46.4,
+    },
+    {
+      service: "Diagnostic Testing",
+      revenue: 25000,
+      cost: 12000,
+      profit: 13000,
+      margin: 52.0,
+    },
+    {
+      service: "Procedures",
+      revenue: 32000,
+      cost: 25000,
+      profit: 7000,
+      margin: 21.9,
+    },
   ];
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "approved": case "paid": case "active": case "verified": return "bg-green-100 text-green-800";
-      case "pending": return "bg-yellow-100 text-yellow-800";
-      case "denied": case "inactive": case "expired": return "bg-red-100 text-red-800";
-      case "submitted": return "bg-blue-100 text-blue-800";
-      default: return "bg-gray-100 text-gray-800";
+      case "approved":
+      case "paid":
+      case "active":
+      case "verified":
+        return "bg-green-100 text-green-800";
+      case "pending":
+        return "bg-yellow-100 text-yellow-800";
+      case "denied":
+      case "inactive":
+      case "expired":
+        return "bg-red-100 text-red-800";
+      case "submitted":
+        return "bg-blue-100 text-blue-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   const getTrendColor = (trend: string) => {
     switch (trend) {
-      case "up": return "text-green-600";
-      case "down": return "text-red-600";
-      case "stable": return "text-gray-600";
-      default: return "text-gray-600";
+      case "up":
+        return "text-green-600";
+      case "down":
+        return "text-red-600";
+      case "stable":
+        return "text-gray-600";
+      default:
+        return "text-gray-600";
     }
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
     }).format(amount);
   };
 
@@ -504,8 +631,8 @@ export default function FinancialIntelligence() {
     <div className="p-6 space-y-6">
       {/* Back Button */}
       <div className="mb-6">
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           onClick={() => setLocation("/")}
           className="flex items-center gap-2"
         >
@@ -528,8 +655,12 @@ export default function FinancialIntelligence() {
 
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Financial Intelligence</h1>
-          <p className="text-gray-600 mt-1">Revenue cycle management and financial analytics</p>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Financial Intelligence
+          </h1>
+          <p className="text-gray-600 mt-1">
+            Revenue cycle management and financial analytics
+          </p>
         </div>
         <div className="flex gap-3">
           <Select value={dateRange} onValueChange={setDateRange}>
@@ -543,73 +674,84 @@ export default function FinancialIntelligence() {
               <SelectItem value="last_year">Last Year</SelectItem>
             </SelectContent>
           </Select>
-          <Button onClick={() => {
-            // Generate comprehensive financial report data
-            const reportData = [
-              ['Financial Intelligence Report', `Generated on ${format(new Date(), 'PPP')}`],
-              ['Date Range', dateRange.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())],
-              [''],
-              ['REVENUE OVERVIEW'],
-              ['Monthly Revenue', '$162,000.00'],
-              ['Collection Rate', '94%'],
-              ['Outstanding Claims', '23'],
-              ['Net Profit', '$84,000.00'],
-              [''],
-              ['MONTHLY BREAKDOWN'],
-              ['Month', 'Revenue', 'Collections', 'Outstanding', 'Profit'],
-              ['January', '$152,000', '$142,800', '$9,200', '$78,000'],
-              ['February', '$158,000', '$149,000', '$9,000', '$82,000'],
-              ['March', '$162,000', '$152,280', '$9,720', '$84,000'],
-              [''],
-              ['CLAIMS ANALYSIS'],
-              ['Total Claims Processed', '1,247'],
-              ['Approved Claims', '1,173 (94%)'],
-              ['Denied Claims', '51 (4%)'],
-              ['Pending Claims', '23 (2%)'],
-              ['Average Processing Time', '3.2 days'],
-              [''],
-              ['PAYER BREAKDOWN'],
-              ['NHS', '45%', '$72,900'],
-              ['Private Insurance', '35%', '$56,700'],
-              ['Self-Pay', '20%', '$32,400'],
-              [''],
-              ['FINANCIAL FORECASTING'],
-              ['Next Month Projection', '$168,000'],
-              ['Growth Rate', '+3.7%'],
-              ['Confidence Level', '89%'],
-              [''],
-              ['KEY PERFORMANCE INDICATORS'],
-              ['Days in A/R', '28 days'],
-              ['Net Collection Rate', '96%'],
-              ['Cost per Collection', '£12.50'],
-              ['Revenue per Patient', '£340'],
-              [''],
-              ['RECOMMENDATIONS'],
-              ['1. Focus on reducing outstanding claims to under 20'],
-              ['2. Improve collection rate to 96% target'],
-              ['3. Consider expanding private insurance partnerships'],
-              ['4. Implement automated follow-up for claims over 30 days']
-            ];
+          <Button
+            onClick={() => {
+              // Generate comprehensive financial report data
+              const reportData = [
+                [
+                  "Financial Intelligence Report",
+                  `Generated on ${format(new Date(), "PPP")}`,
+                ],
+                [
+                  "Date Range",
+                  dateRange
+                    .replace("_", " ")
+                    .replace(/\b\w/g, (l) => l.toUpperCase()),
+                ],
+                [""],
+                ["REVENUE OVERVIEW"],
+                ["Monthly Revenue", "$162,000.00"],
+                ["Collection Rate", "94%"],
+                ["Outstanding Claims", "23"],
+                ["Net Profit", "$84,000.00"],
+                [""],
+                ["MONTHLY BREAKDOWN"],
+                ["Month", "Revenue", "Collections", "Outstanding", "Profit"],
+                ["January", "$152,000", "$142,800", "$9,200", "$78,000"],
+                ["February", "$158,000", "$149,000", "$9,000", "$82,000"],
+                ["March", "$162,000", "$152,280", "$9,720", "$84,000"],
+                [""],
+                ["CLAIMS ANALYSIS"],
+                ["Total Claims Processed", "1,247"],
+                ["Approved Claims", "1,173 (94%)"],
+                ["Denied Claims", "51 (4%)"],
+                ["Pending Claims", "23 (2%)"],
+                ["Average Processing Time", "3.2 days"],
+                [""],
+                ["PAYER BREAKDOWN"],
+                ["NHS", "45%", "$72,900"],
+                ["Private Insurance", "35%", "$56,700"],
+                ["Self-Pay", "20%", "$32,400"],
+                [""],
+                ["FINANCIAL FORECASTING"],
+                ["Next Month Projection", "$168,000"],
+                ["Growth Rate", "+3.7%"],
+                ["Confidence Level", "89%"],
+                [""],
+                ["KEY PERFORMANCE INDICATORS"],
+                ["Days in A/R", "28 days"],
+                ["Net Collection Rate", "96%"],
+                ["Cost per Collection", "£12.50"],
+                ["Revenue per Patient", "£340"],
+                [""],
+                ["RECOMMENDATIONS"],
+                ["1. Focus on reducing outstanding claims to under 20"],
+                ["2. Improve collection rate to 96% target"],
+                ["3. Consider expanding private insurance partnerships"],
+                ["4. Implement automated follow-up for claims over 30 days"],
+              ];
 
-            const csvContent = reportData.map(row => 
-              Array.isArray(row) ? row.join(',') : row
-            ).join('\n');
-            
-            const blob = new Blob([csvContent], { type: 'text/csv' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `financial-intelligence-report-${format(new Date(), 'yyyy-MM-dd')}.csv`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-            
-            toast({
-              title: "Report Exported",
-              description: "Financial intelligence report has been downloaded as CSV file."
-            });
-          }}>
+              const csvContent = reportData
+                .map((row) => (Array.isArray(row) ? row.join(",") : row))
+                .join("\n");
+
+              const blob = new Blob([csvContent], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const link = document.createElement("a");
+              link.href = url;
+              link.download = `financial-intelligence-report-${format(new Date(), "yyyy-MM-dd")}.csv`;
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              URL.revokeObjectURL(url);
+
+              toast({
+                title: "Report Exported",
+                description:
+                  "Financial intelligence report has been downloaded as CSV file.",
+              });
+            }}
+          >
             <Download className="w-4 h-4 mr-2" />
             Export Report
           </Button>
@@ -622,7 +764,9 @@ export default function FinancialIntelligence() {
           <TabsTrigger value="claims">Claims Management</TabsTrigger>
           <TabsTrigger value="insurance">Insurance Verification</TabsTrigger>
           <TabsTrigger value="forecasting">Financial Forecasting</TabsTrigger>
-          <TabsTrigger value="profitability">Profitability Analysis</TabsTrigger>
+          <TabsTrigger value="profitability">
+            Profitability Analysis
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -632,8 +776,12 @@ export default function FinancialIntelligence() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Monthly Revenue</p>
-                    <p className="text-2xl font-bold">{formatCurrency(162000)}</p>
+                    <p className="text-sm font-medium text-gray-600">
+                      Monthly Revenue
+                    </p>
+                    <p className="text-2xl font-bold">
+                      {formatCurrency(162000)}
+                    </p>
                   </div>
                   <DollarSign className="w-8 h-8 text-green-500" />
                 </div>
@@ -648,7 +796,9 @@ export default function FinancialIntelligence() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Collection Rate</p>
+                    <p className="text-sm font-medium text-gray-600">
+                      Collection Rate
+                    </p>
                     <p className="text-2xl font-bold">94%</p>
                   </div>
                   <Target className="w-8 h-8 text-blue-500" />
@@ -664,7 +814,9 @@ export default function FinancialIntelligence() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Outstanding Claims</p>
+                    <p className="text-sm font-medium text-gray-600">
+                      Outstanding Claims
+                    </p>
                     <p className="text-2xl font-bold">23</p>
                   </div>
                   <FileText className="w-8 h-8 text-orange-500" />
@@ -680,8 +832,12 @@ export default function FinancialIntelligence() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Net Profit</p>
-                    <p className="text-2xl font-bold">{formatCurrency(64000)}</p>
+                    <p className="text-sm font-medium text-gray-600">
+                      Net Profit
+                    </p>
+                    <p className="text-2xl font-bold">
+                      {formatCurrency(64000)}
+                    </p>
                   </div>
                   <Calculator className="w-8 h-8 text-purple-500" />
                 </div>
@@ -705,9 +861,23 @@ export default function FinancialIntelligence() {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" />
                     <YAxis />
-                    <Tooltip formatter={(value) => formatCurrency(Number(value))} />
-                    <Area type="monotone" dataKey="revenue" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.3} />
-                    <Area type="monotone" dataKey="collections" stroke="#10b981" fill="#10b981" fillOpacity={0.3} />
+                    <Tooltip
+                      formatter={(value) => formatCurrency(Number(value))}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="revenue"
+                      stroke="#3b82f6"
+                      fill="#3b82f6"
+                      fillOpacity={0.3}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="collections"
+                      stroke="#10b981"
+                      fill="#10b981"
+                      fillOpacity={0.3}
+                    />
                   </AreaChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -723,7 +893,9 @@ export default function FinancialIntelligence() {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" />
                     <YAxis />
-                    <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+                    <Tooltip
+                      formatter={(value) => formatCurrency(Number(value))}
+                    />
                     <Bar dataKey="revenue" fill="#3b82f6" />
                     <Bar dataKey="expenses" fill="#ef4444" />
                     <Bar dataKey="profit" fill="#10b981" />
@@ -736,7 +908,9 @@ export default function FinancialIntelligence() {
 
         <TabsContent value="claims" className="space-y-4">
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Claims Management</h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+              Claims Management
+            </h3>
             <Dialog open={submitClaimOpen} onOpenChange={setSubmitClaimOpen}>
               <DialogTrigger asChild>
                 <Button onClick={() => setSubmitClaimOpen(true)}>
@@ -750,8 +924,13 @@ export default function FinancialIntelligence() {
                 </DialogHeader>
                 <div className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium text-gray-900 dark:text-gray-100">Patient</label>
-                    <Popover open={patientDropdownOpen} onOpenChange={setPatientDropdownOpen}>
+                    <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                      Patient
+                    </label>
+                    <Popover
+                      open={patientDropdownOpen}
+                      onOpenChange={setPatientDropdownOpen}
+                    >
                       <PopoverTrigger asChild>
                         <Button
                           variant="outline"
@@ -760,7 +939,11 @@ export default function FinancialIntelligence() {
                           className="w-full justify-between"
                         >
                           {claimFormData.patient
-                            ? patients?.find((patient: any) => patient.id.toString() === claimFormData.patient)
+                            ? patients?.find(
+                                (patient: any) =>
+                                  patient.id.toString() ===
+                                  claimFormData.patient,
+                              )
                               ? `${patients.find((patient: any) => patient.id.toString() === claimFormData.patient).firstName} ${patients.find((patient: any) => patient.id.toString() === claimFormData.patient).lastName}`
                               : "Select patient..."
                             : "Select patient..."}
@@ -772,7 +955,9 @@ export default function FinancialIntelligence() {
                           <CommandInput placeholder="Search patients..." />
                           <CommandList>
                             <CommandEmpty>
-                              {patientsLoading ? "Loading patients..." : "No patients found."}
+                              {patientsLoading
+                                ? "Loading patients..."
+                                : "No patients found."}
                             </CommandEmpty>
                             <CommandGroup>
                               {patients?.map((patient: any) => (
@@ -780,16 +965,17 @@ export default function FinancialIntelligence() {
                                   key={patient.id}
                                   value={`${patient.firstName} ${patient.lastName}`}
                                   onSelect={() => {
-                                    setClaimFormData(prev => ({
+                                    setClaimFormData((prev) => ({
                                       ...prev,
-                                      patient: patient.id.toString()
+                                      patient: patient.id.toString(),
                                     }));
                                     setPatientDropdownOpen(false);
                                   }}
                                 >
                                   <Check
                                     className={`mr-2 h-4 w-4 ${
-                                      claimFormData.patient === patient.id.toString()
+                                      claimFormData.patient ===
+                                      patient.id.toString()
                                         ? "opacity-100"
                                         : "opacity-0"
                                     }`}
@@ -804,56 +990,85 @@ export default function FinancialIntelligence() {
                     </Popover>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-900 dark:text-gray-100">Service Date</label>
-                    <Input 
-                      type="date" 
+                    <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                      Service Date
+                    </label>
+                    <Input
+                      type="date"
                       value={claimFormData.serviceDate}
-                      onChange={(e) => setClaimFormData(prev => ({ ...prev, serviceDate: e.target.value }))}
+                      onChange={(e) =>
+                        setClaimFormData((prev) => ({
+                          ...prev,
+                          serviceDate: e.target.value,
+                        }))
+                      }
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-900 dark:text-gray-100">Total Amount</label>
-                    <Input 
-                      placeholder="0.00" 
+                    <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                      Total Amount
+                    </label>
+                    <Input
+                      placeholder="0.00"
                       value={claimFormData.totalAmount}
-                      onChange={(e) => setClaimFormData(prev => ({ ...prev, totalAmount: e.target.value }))}
+                      onChange={(e) =>
+                        setClaimFormData((prev) => ({
+                          ...prev,
+                          totalAmount: e.target.value,
+                        }))
+                      }
                     />
                   </div>
-                  <Button 
-                    className="w-full" 
+                  <Button
+                    className="w-full"
                     onClick={() => {
-                      if (!claimFormData.patient || !claimFormData.serviceDate || !claimFormData.totalAmount) {
+                      if (
+                        !claimFormData.patient ||
+                        !claimFormData.serviceDate ||
+                        !claimFormData.totalAmount
+                      ) {
                         toast({
                           title: "Missing Information",
                           description: "Please fill in all required fields",
-                          variant: "destructive"
+                          variant: "destructive",
                         });
                         return;
                       }
 
-                      const selectedPatient = patients?.find((patient: any) => patient.id.toString() === claimFormData.patient);
-                      const patientName = selectedPatient ? `${selectedPatient.firstName} ${selectedPatient.lastName}` : '';
+                      const selectedPatient = patients?.find(
+                        (patient: any) =>
+                          patient.id.toString() === claimFormData.patient,
+                      );
+                      const patientName = selectedPatient
+                        ? `${selectedPatient.firstName} ${selectedPatient.lastName}`
+                        : "";
 
                       // Submit the claim using the mutation
                       submitClaimMutation.mutate({
                         patientName: patientName,
                         amount: parseFloat(claimFormData.totalAmount),
-                        status: 'pending',
-                        serviceDate: claimFormData.serviceDate
+                        status: "pending",
+                        serviceDate: claimFormData.serviceDate,
                       });
 
                       // Reset form and close dialog
-                      setClaimFormData({ patient: '', serviceDate: '', totalAmount: '' });
+                      setClaimFormData({
+                        patient: "",
+                        serviceDate: "",
+                        totalAmount: "",
+                      });
                       setSubmitClaimOpen(false);
-                      
+
                       toast({
                         title: "Claim Submitted",
-                        description: `Insurance claim for ${patientName} has been submitted successfully`
+                        description: `Insurance claim for ${patientName} has been submitted successfully`,
                       });
                     }}
                     disabled={submitClaimMutation.isPending}
                   >
-                    {submitClaimMutation.isPending ? 'Submitting...' : 'Submit Claim'}
+                    {submitClaimMutation.isPending
+                      ? "Submitting..."
+                      : "Submit Claim"}
                   </Button>
                 </div>
               </DialogContent>
@@ -863,146 +1078,219 @@ export default function FinancialIntelligence() {
           <div className="grid gap-4">
             {claimsLoading ? (
               <div className="text-center py-8">
-                <div className="text-gray-500 dark:text-gray-400">Loading claims...</div>
+                <div className="text-gray-500 dark:text-gray-400">
+                  Loading claims...
+                </div>
               </div>
             ) : claims && claims.length > 0 ? (
               claims
-                .sort((a: any, b: any) => new Date(b.submissionDate || b.serviceDate).getTime() - new Date(a.submissionDate || a.serviceDate).getTime())
+                .sort(
+                  (a: any, b: any) =>
+                    new Date(b.submissionDate || b.serviceDate).getTime() -
+                    new Date(a.submissionDate || a.serviceDate).getTime(),
+                )
                 .map((claim: any) => (
-                <Card key={claim.id} className={claim.status === 'denied' ? 'border-red-200 dark:border-red-800' : 'dark:border-slate-700'}>
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <CardTitle className="text-lg text-gray-900 dark:text-gray-100">{claim.patientName}</CardTitle>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Badge className={getStatusColor(claim.status)}>{claim.status}</Badge>
-                          <span className="text-sm text-gray-500 dark:text-gray-400">{claim.claimNumber || `CLM-${new Date().getFullYear()}-${String(claim.id).padStart(6, '0')}`}</span>
+                  <Card
+                    key={claim.id}
+                    className={
+                      claim.status === "denied"
+                        ? "border-red-200 dark:border-red-800"
+                        : "dark:border-slate-700"
+                    }
+                  >
+                    <CardHeader>
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <CardTitle className="text-lg text-gray-900 dark:text-gray-100">
+                            {claim.patientName}
+                          </CardTitle>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Badge className={getStatusColor(claim.status)}>
+                              {claim.status}
+                            </Badge>
+                            <span className="text-sm text-gray-500 dark:text-gray-400">
+                              {claim.claimNumber ||
+                                `CLM-${new Date().getFullYear()}-${String(claim.id).padStart(6, "0")}`}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-2xl font-bold text-blue-600">
+                            {formatCurrency(claim.amount)}
+                          </div>
+                          {claim.paymentAmount && (
+                            <div className="text-sm text-green-600">
+                              Paid: {formatCurrency(claim.paymentAmount)}
+                            </div>
+                          )}
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="text-2xl font-bold text-blue-600">
-                          {formatCurrency(claim.amount)}
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                            Insurance
+                          </div>
+                          <div className="font-medium text-gray-900 dark:text-gray-100">
+                            {claim.insuranceProvider || "N/A"}
+                          </div>
                         </div>
-                        {claim.paymentAmount && (
-                          <div className="text-sm text-green-600">
-                            Paid: {formatCurrency(claim.paymentAmount)}
+                        <div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                            Service Date
+                          </div>
+                          <div className="font-medium text-gray-900 dark:text-gray-100">
+                            {format(
+                              new Date(claim.serviceDate),
+                              "MMM dd, yyyy",
+                            )}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                            Submitted
+                          </div>
+                          <div className="font-medium text-gray-900 dark:text-gray-100">
+                            {format(
+                              new Date(
+                                claim.submissionDate || claim.serviceDate,
+                              ),
+                              "MMM dd, yyyy",
+                            )}
+                          </div>
+                        </div>
+                        {claim.paymentDate && (
+                          <div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">
+                              Payment Date
+                            </div>
+                            <div className="font-medium text-gray-900 dark:text-gray-100">
+                              {format(
+                                new Date(claim.paymentDate),
+                                "MMM dd, yyyy",
+                              )}
+                            </div>
                           </div>
                         )}
                       </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">Insurance</div>
-                        <div className="font-medium text-gray-900 dark:text-gray-100">{claim.insuranceProvider || 'N/A'}</div>
-                      </div>
-                      <div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">Service Date</div>
-                        <div className="font-medium text-gray-900 dark:text-gray-100">
-                          {format(new Date(claim.serviceDate), 'MMM dd, yyyy')}
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">Submitted</div>
-                        <div className="font-medium text-gray-900 dark:text-gray-100">
-                          {format(new Date(claim.submissionDate || claim.serviceDate), 'MMM dd, yyyy')}
-                        </div>
-                      </div>
-                      {claim.paymentDate && (
-                        <div>
-                          <div className="text-sm text-gray-500 dark:text-gray-400">Payment Date</div>
-                          <div className="font-medium text-gray-900 dark:text-gray-100">
-                            {format(new Date(claim.paymentDate), 'MMM dd, yyyy')}
-                          </div>
-                        </div>
-                      )}
-                    </div>
 
-                    {claim.denialReason && (
-                      <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded">
-                        <div className="flex items-start gap-2">
-                          <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5" />
-                          <div>
-                            <div className="font-medium text-red-800 dark:text-red-200">Claim Denied</div>
-                            <div className="text-sm text-red-700 dark:text-red-300">{claim.denialReason}</div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {claim.procedures && claim.procedures.length > 0 && (
-                      <div>
-                        <h4 className="font-medium text-sm mb-2 text-gray-900 dark:text-gray-100">Procedures</h4>
-                        <div className="space-y-2">
-                          {claim.procedures.map((procedure: any, idx: number) => (
-                            <div key={idx} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-slate-800 rounded">
-                              <div>
-                                <div className="font-medium text-sm text-gray-900 dark:text-gray-100">{procedure.code}</div>
-                                <div className="text-xs text-gray-600 dark:text-gray-300">{procedure.description}</div>
+                      {claim.denialReason && (
+                        <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded">
+                          <div className="flex items-start gap-2">
+                            <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5" />
+                            <div>
+                              <div className="font-medium text-red-800 dark:text-red-200">
+                                Claim Denied
                               </div>
-                              <div className="font-medium text-gray-900 dark:text-gray-100">{formatCurrency(procedure.amount)}</div>
+                              <div className="text-sm text-red-700 dark:text-red-300">
+                                {claim.denialReason}
+                              </div>
                             </div>
-                          ))}
+                          </div>
                         </div>
-                      </div>
-                    )}
-
-                    <div className="flex gap-2">
-                      <Button size="sm" onClick={() => {
-                        setSelectedClaim(claim);
-                        setClaimDetailsOpen(true);
-                      }}>
-                        View Details
-                      </Button>
-                      {claim.status === 'denied' && (
-                        <Button size="sm" variant="outline" onClick={() => {
-                          toast({
-                            title: "Claim Resubmission",
-                            description: `Resubmitting claim ${claim.claimNumber || `CLM-${claim.id}`} for ${claim.patientName}`
-                          });
-                        }}>
-                          Resubmit
-                        </Button>
                       )}
-                      <Button size="sm" variant="outline" onClick={() => {
-                        setTrackingClaim(claim);
-                        setTrackStatusOpen(true);
-                      }}>
-                        Track Status
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
+
+                      {claim.procedures && claim.procedures.length > 0 && (
+                        <div>
+                          <h4 className="font-medium text-sm mb-2 text-gray-900 dark:text-gray-100">
+                            Procedures
+                          </h4>
+                          <div className="space-y-2">
+                            {claim.procedures.map(
+                              (procedure: any, idx: number) => (
+                                <div
+                                  key={idx}
+                                  className="flex items-center justify-between p-2 bg-gray-50 dark:bg-slate-800 rounded"
+                                >
+                                  <div>
+                                    <div className="font-medium text-sm text-gray-900 dark:text-gray-100">
+                                      {procedure.code}
+                                    </div>
+                                    <div className="text-xs text-gray-600 dark:text-gray-300">
+                                      {procedure.description}
+                                    </div>
+                                  </div>
+                                  <div className="font-medium text-gray-900 dark:text-gray-100">
+                                    {formatCurrency(procedure.amount)}
+                                  </div>
+                                </div>
+                              ),
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            setSelectedClaim(claim);
+                            setClaimDetailsOpen(true);
+                          }}
+                        >
+                          View Details
+                        </Button>
+                        {claim.status === "denied" && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              toast({
+                                title: "Claim Resubmission",
+                                description: `Resubmitting claim ${claim.claimNumber || `CLM-${claim.id}`} for ${claim.patientName}`,
+                              });
+                            }}
+                          >
+                            Resubmit
+                          </Button>
+                        )}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setTrackingClaim(claim);
+                            setTrackStatusOpen(true);
+                          }}
+                        >
+                          Track Status
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
             ) : (
               <div className="text-center py-8">
                 <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <div className="text-gray-500 dark:text-gray-400">No claims found</div>
-                <div className="text-sm text-gray-400 dark:text-gray-500 mt-1">Submit your first claim to get started</div>
+                <div className="text-gray-500 dark:text-gray-400">
+                  No claims found
+                </div>
+                <div className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+                  Submit your first claim to get started
+                </div>
               </div>
             )}
           </div>
         </TabsContent>
 
         <TabsContent value="insurance" className="space-y-4">
-          <div className="mb-4">
-            <Button 
+          <div className="mb-4 flex justify-end">
+            <Button
               onClick={() => {
                 setNewInsuranceFormData({
-                  patientName: '',
-                  provider: '',
-                  policyNumber: '',
-                  groupNumber: '',
-                  coverageType: 'primary',
-                  status: 'active',
-                  eligibilityStatus: 'pending',
-                  copay: '',
-                  deductible: '',
-                  deductibleMet: '',
-                  outOfPocketMax: '',
-                  outOfPocketMet: '',
-                  coinsurance: ''
+                  patientName: "",
+                  provider: "",
+                  policyNumber: "",
+                  groupNumber: "",
+                  coverageType: "primary",
+                  status: "active",
+                  eligibilityStatus: "pending",
+                  copay: "",
+                  deductible: "",
+                  deductibleMet: "",
+                  outOfPocketMax: "",
+                  outOfPocketMet: "",
+                  coinsurance: "",
                 });
                 setAddInsuranceOpen(true);
               }}
@@ -1012,23 +1300,43 @@ export default function FinancialIntelligence() {
               Add Insurance Info
             </Button>
           </div>
+
           <div className="grid gap-4">
-            {(insurances || mockInsurances).map((insurance) => (
+            {(insurances || mockInsurances)
+              .sort((a, b) => {
+                // Sort by createdAt in descending order (newest first)
+                // If createdAt doesn't exist, fallback to sorting by id (which contains timestamp)
+                const aDate = a.createdAt || a.id;
+                const bDate = b.createdAt || b.id;
+                return String(bDate).localeCompare(String(aDate));
+              })
+              .map((insurance) => (
               <Card key={insurance.id}>
                 <CardHeader>
                   <div className="flex justify-between items-start">
                     <div>
-                      <CardTitle className="text-lg">{insurance.patientName}</CardTitle>
+                      <CardTitle className="text-lg">
+                        {insurance.patientName}
+                      </CardTitle>
                       <div className="flex items-center gap-2 mt-1">
-                        <Badge className={getStatusColor(insurance.status)}>{insurance.status}</Badge>
-                        <Badge className={getStatusColor(insurance.eligibilityStatus)}>
+                        <Badge className={getStatusColor(insurance.status)}>
+                          {insurance.status}
+                        </Badge>
+                        <Badge
+                          className={getStatusColor(
+                            insurance.eligibilityStatus,
+                          )}
+                        >
                           {insurance.eligibilityStatus}
                         </Badge>
-                        <span className="text-sm text-gray-500">{insurance.provider}</span>
+                        <span className="text-sm text-gray-500">
+                          {insurance.provider}
+                        </span>
                       </div>
                     </div>
                     <div className="text-sm text-gray-500">
-                      Last verified: {format(new Date(insurance.lastVerified), 'MMM dd, yyyy')}
+                      Last verified:{" "}
+                      {format(new Date(insurance.lastVerified), "MMM dd, yyyy")}
                     </div>
                   </div>
                 </CardHeader>
@@ -1036,7 +1344,9 @@ export default function FinancialIntelligence() {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div>
                       <div className="text-sm text-gray-500">Policy Number</div>
-                      <div className="font-medium">{insurance.policyNumber}</div>
+                      <div className="font-medium">
+                        {insurance.policyNumber}
+                      </div>
                     </div>
                     <div>
                       <div className="text-sm text-gray-500">Group Number</div>
@@ -1044,46 +1354,72 @@ export default function FinancialIntelligence() {
                     </div>
                     <div>
                       <div className="text-sm text-gray-500">Coverage Type</div>
-                      <div className="font-medium capitalize">{insurance.coverageType}</div>
+                      <div className="font-medium capitalize">
+                        {insurance.coverageType}
+                      </div>
                     </div>
                     <div>
                       <div className="text-sm text-gray-500">Copay</div>
-                      <div className="font-medium">{formatCurrency(insurance.benefits.copay)}</div>
+                      <div className="font-medium">
+                        {formatCurrency(insurance.benefits.copay)}
+                      </div>
                     </div>
                   </div>
 
                   <div>
-                    <h4 className="font-medium text-sm mb-3">Benefits Summary</h4>
+                    <h4 className="font-medium text-sm mb-3">
+                      Benefits Summary
+                    </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <div className="text-sm text-gray-500 mb-1">
-                          Deductible ({formatCurrency(insurance.benefits.deductibleMet)} met)
+                          Deductible (
+                          {formatCurrency(insurance.benefits.deductibleMet)}{" "}
+                          met)
                         </div>
-                        <Progress 
-                          value={(insurance.benefits.deductibleMet / insurance.benefits.deductible) * 100} 
-                          className="h-2" 
+                        <Progress
+                          value={
+                            (insurance.benefits.deductibleMet /
+                              insurance.benefits.deductible) *
+                            100
+                          }
+                          className="h-2"
                         />
                         <div className="text-xs text-gray-500 mt-1">
-                          {formatCurrency(insurance.benefits.deductible - insurance.benefits.deductibleMet)} remaining
+                          {formatCurrency(
+                            insurance.benefits.deductible -
+                              insurance.benefits.deductibleMet,
+                          )}{" "}
+                          remaining
                         </div>
                       </div>
                       <div>
                         <div className="text-sm text-gray-500 mb-1">
-                          Out-of-Pocket Max ({formatCurrency(insurance.benefits.outOfPocketMet)} met)
+                          Out-of-Pocket Max (
+                          {formatCurrency(insurance.benefits.outOfPocketMet)}{" "}
+                          met)
                         </div>
-                        <Progress 
-                          value={(insurance.benefits.outOfPocketMet / insurance.benefits.outOfPocketMax) * 100} 
-                          className="h-2" 
+                        <Progress
+                          value={
+                            (insurance.benefits.outOfPocketMet /
+                              insurance.benefits.outOfPocketMax) *
+                            100
+                          }
+                          className="h-2"
                         />
                         <div className="text-xs text-gray-500 mt-1">
-                          {formatCurrency(insurance.benefits.outOfPocketMax - insurance.benefits.outOfPocketMet)} remaining
+                          {formatCurrency(
+                            insurance.benefits.outOfPocketMax -
+                              insurance.benefits.outOfPocketMet,
+                          )}{" "}
+                          remaining
                         </div>
                       </div>
                     </div>
                   </div>
 
                   <div className="flex gap-2">
-                    <Button 
+                    <Button
                       size="sm"
                       onClick={() => {
                         setSelectedInsurance(insurance);
@@ -1093,8 +1429,19 @@ export default function FinancialIntelligence() {
                           policyNumber: insurance.policyNumber,
                           groupNumber: insurance.groupNumber,
                           coverageType: insurance.coverageType,
-                          verificationStatus: insurance.status === 'verified' ? 'verified' : 'pending',
-                          verificationDate: insurance.status === 'verified' ? format(new Date(insurance.lastVerified || new Date()), 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd')
+                          verificationStatus:
+                            insurance.status === "verified"
+                              ? "verified"
+                              : "pending",
+                          verificationDate:
+                            insurance.status === "verified"
+                              ? format(
+                                  new Date(
+                                    insurance.lastVerified || new Date(),
+                                  ),
+                                  "yyyy-MM-dd",
+                                )
+                              : format(new Date(), "yyyy-MM-dd"),
                         });
                         setVerifyEligibilityOpen(true);
                       }}
@@ -1102,8 +1449,8 @@ export default function FinancialIntelligence() {
                       <Shield className="w-4 h-4 mr-1" />
                       Verify Eligibility
                     </Button>
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       variant="outline"
                       onClick={() => {
                         setSelectedInsurance(insurance);
@@ -1113,8 +1460,8 @@ export default function FinancialIntelligence() {
                     >
                       View Benefits
                     </Button>
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       variant="outline"
                       onClick={() => {
                         setSelectedInsurance(insurance);
@@ -1147,20 +1494,32 @@ export default function FinancialIntelligence() {
                   <div className="grid grid-cols-3 gap-4">
                     <div className="text-center">
                       <div className="text-2xl font-bold text-gray-900">
-                        {forecast.category.includes('Rate') ? `${forecast.currentMonth}%` : formatCurrency(forecast.currentMonth)}
+                        {forecast.category.includes("Rate")
+                          ? `${forecast.currentMonth}%`
+                          : formatCurrency(forecast.currentMonth)}
                       </div>
                       <div className="text-sm text-gray-500">Current</div>
                     </div>
                     <div className="text-center">
                       <div className="text-2xl font-bold text-blue-600">
-                        {forecast.category.includes('Rate') ? `${forecast.projectedNext}%` : formatCurrency(forecast.projectedNext)}
+                        {forecast.category.includes("Rate")
+                          ? `${forecast.projectedNext}%`
+                          : formatCurrency(forecast.projectedNext)}
                       </div>
                       <div className="text-sm text-gray-500">Projected</div>
                     </div>
                     <div className="text-center">
-                      <div className={`text-2xl font-bold ${getTrendColor(forecast.trend)}`}>
-                        {forecast.trend === 'up' ? '+' : forecast.trend === 'down' ? '-' : ''}
-                        {forecast.category.includes('Rate') ? `${Math.abs(forecast.variance)}%` : formatCurrency(Math.abs(forecast.variance))}
+                      <div
+                        className={`text-2xl font-bold ${getTrendColor(forecast.trend)}`}
+                      >
+                        {forecast.trend === "up"
+                          ? "+"
+                          : forecast.trend === "down"
+                            ? "-"
+                            : ""}
+                        {forecast.category.includes("Rate")
+                          ? `${Math.abs(forecast.variance)}%`
+                          : formatCurrency(Math.abs(forecast.variance))}
                       </div>
                       <div className="text-sm text-gray-500">Variance</div>
                     </div>
@@ -1170,7 +1529,10 @@ export default function FinancialIntelligence() {
                     <h4 className="font-medium text-sm mb-2">Key Factors</h4>
                     <ul className="space-y-1">
                       {forecast.factors.map((factor, factorIdx) => (
-                        <li key={factorIdx} className="flex items-center gap-2 text-sm">
+                        <li
+                          key={factorIdx}
+                          className="flex items-center gap-2 text-sm"
+                        >
                           <CheckCircle className="w-4 h-4 text-green-500" />
                           <span>{factor}</span>
                         </li>
@@ -1194,7 +1556,9 @@ export default function FinancialIntelligence() {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="service" />
                   <YAxis />
-                  <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+                  <Tooltip
+                    formatter={(value) => formatCurrency(Number(value))}
+                  />
                   <Bar dataKey="revenue" fill="#3b82f6" />
                   <Bar dataKey="cost" fill="#ef4444" />
                   <Bar dataKey="profit" fill="#10b981" />
@@ -1211,8 +1575,8 @@ export default function FinancialIntelligence() {
                     <div>
                       <h3 className="font-medium">{service.service}</h3>
                       <div className="text-sm text-gray-600">
-                        Revenue: {formatCurrency(service.revenue)} • 
-                        Cost: {formatCurrency(service.cost)}
+                        Revenue: {formatCurrency(service.revenue)} • Cost:{" "}
+                        {formatCurrency(service.cost)}
                       </div>
                     </div>
                     <div className="text-right">
@@ -1235,34 +1599,58 @@ export default function FinancialIntelligence() {
       <Dialog open={claimDetailsOpen} onOpenChange={setClaimDetailsOpen}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Claim Details - {selectedClaim?.claimNumber}</DialogTitle>
+            <DialogTitle>
+              Claim Details - {selectedClaim?.claimNumber}
+            </DialogTitle>
           </DialogHeader>
           {selectedClaim && (
             <div className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-500">Patient</label>
+                  <label className="text-sm font-medium text-gray-500">
+                    Patient
+                  </label>
                   <p className="font-medium">{selectedClaim.patientName}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-500">Status</label>
-                  <Badge className={getStatusColor(selectedClaim.status)}>{selectedClaim.status}</Badge>
+                  <label className="text-sm font-medium text-gray-500">
+                    Status
+                  </label>
+                  <Badge className={getStatusColor(selectedClaim.status)}>
+                    {selectedClaim.status}
+                  </Badge>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-500">Insurance Provider</label>
-                  <p className="font-medium">{selectedClaim.insuranceProvider}</p>
+                  <label className="text-sm font-medium text-gray-500">
+                    Insurance Provider
+                  </label>
+                  <p className="font-medium">
+                    {selectedClaim.insuranceProvider}
+                  </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-500">Total Amount</label>
-                  <p className="font-medium text-blue-600">{formatCurrency(selectedClaim.amount)}</p>
+                  <label className="text-sm font-medium text-gray-500">
+                    Total Amount
+                  </label>
+                  <p className="font-medium text-blue-600">
+                    {formatCurrency(selectedClaim.amount)}
+                  </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-500">Service Date</label>
-                  <p className="font-medium">{format(new Date(selectedClaim.serviceDate), 'PPP')}</p>
+                  <label className="text-sm font-medium text-gray-500">
+                    Service Date
+                  </label>
+                  <p className="font-medium">
+                    {format(new Date(selectedClaim.serviceDate), "PPP")}
+                  </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-500">Submitted Date</label>
-                  <p className="font-medium">{format(new Date(selectedClaim.submissionDate), 'PPP')}</p>
+                  <label className="text-sm font-medium text-gray-500">
+                    Submitted Date
+                  </label>
+                  <p className="font-medium">
+                    {format(new Date(selectedClaim.submissionDate), "PPP")}
+                  </p>
                 </div>
               </div>
 
@@ -1270,12 +1658,19 @@ export default function FinancialIntelligence() {
                 <h4 className="font-medium mb-3">Procedures</h4>
                 <div className="space-y-2">
                   {selectedClaim.procedures.map((procedure, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                    >
                       <div>
                         <div className="font-medium">{procedure.code}</div>
-                        <div className="text-sm text-gray-600">{procedure.description}</div>
+                        <div className="text-sm text-gray-600">
+                          {procedure.description}
+                        </div>
                       </div>
-                      <div className="font-medium">{formatCurrency(procedure.amount)}</div>
+                      <div className="font-medium">
+                        {formatCurrency(procedure.amount)}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -1284,20 +1679,28 @@ export default function FinancialIntelligence() {
               {selectedClaim.paymentAmount && (
                 <div className="p-4 bg-green-50 rounded-lg">
                   <div className="flex justify-between items-center">
-                    <span className="font-medium text-green-800">Payment Received</span>
-                    <span className="font-bold text-green-600">{formatCurrency(selectedClaim.paymentAmount)}</span>
+                    <span className="font-medium text-green-800">
+                      Payment Received
+                    </span>
+                    <span className="font-bold text-green-600">
+                      {formatCurrency(selectedClaim.paymentAmount)}
+                    </span>
                   </div>
                   <div className="text-sm text-green-600 mt-1">
-                    Paid on {format(new Date(selectedClaim.paymentDate!), 'PPP')}
+                    Paid on{" "}
+                    {format(new Date(selectedClaim.paymentDate!), "PPP")}
                   </div>
                 </div>
               )}
 
-              {selectedClaim.status === 'denied' && (
+              {selectedClaim.status === "denied" && (
                 <div className="p-4 bg-red-50 rounded-lg">
-                  <div className="font-medium text-red-800 mb-2">Denial Reason</div>
+                  <div className="font-medium text-red-800 mb-2">
+                    Denial Reason
+                  </div>
                   <p className="text-sm text-red-600">
-                    This claim was denied due to insufficient documentation. Please resubmit with required medical records.
+                    This claim was denied due to insufficient documentation.
+                    Please resubmit with required medical records.
                   </p>
                 </div>
               )}
@@ -1310,50 +1713,73 @@ export default function FinancialIntelligence() {
       <Dialog open={trackStatusOpen} onOpenChange={setTrackStatusOpen}>
         <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto z-50 pointer-events-auto">
           <DialogHeader>
-            <DialogTitle>Track Claim Status - {trackingClaim?.claimNumber}</DialogTitle>
+            <DialogTitle>
+              Track Claim Status - {trackingClaim?.claimNumber}
+            </DialogTitle>
           </DialogHeader>
           {trackingClaim && (
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <span className="font-medium">Current Status:</span>
-                <Badge className={getStatusColor(trackingClaim.status)}>{trackingClaim.status}</Badge>
+                <Badge className={getStatusColor(trackingClaim.status)}>
+                  {trackingClaim.status}
+                </Badge>
               </div>
-              
+
               <div className="space-y-3">
                 <h4 className="font-medium">Status History</h4>
                 <div className="space-y-2">
                   <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
                     <CheckCircle className="w-5 h-5 text-blue-500" />
                     <div>
-                      <div className="font-medium text-blue-800">Claim Submitted</div>
-                      <div className="text-sm text-blue-600">{format(new Date(trackingClaim.submissionDate), 'PPP')}</div>
+                      <div className="font-medium text-blue-800">
+                        Claim Submitted
+                      </div>
+                      <div className="text-sm text-blue-600">
+                        {format(new Date(trackingClaim.submissionDate), "PPP")}
+                      </div>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center gap-3 p-3 bg-yellow-50 rounded-lg">
                     <Clock className="w-5 h-5 text-yellow-500" />
                     <div>
-                      <div className="font-medium text-yellow-800">Under Review</div>
-                      <div className="text-sm text-yellow-600">Currently being processed by {trackingClaim.insuranceProvider}</div>
+                      <div className="font-medium text-yellow-800">
+                        Under Review
+                      </div>
+                      <div className="text-sm text-yellow-600">
+                        Currently being processed by{" "}
+                        {trackingClaim.insuranceProvider}
+                      </div>
                     </div>
                   </div>
-                  
-                  {trackingClaim.status === 'approved' && (
+
+                  {trackingClaim.status === "approved" && (
                     <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
                       <CheckCircle className="w-5 h-5 text-green-500" />
                       <div>
-                        <div className="font-medium text-green-800">Claim Approved</div>
-                        <div className="text-sm text-green-600">Payment of {formatCurrency(trackingClaim.paymentAmount!)} processed</div>
+                        <div className="font-medium text-green-800">
+                          Claim Approved
+                        </div>
+                        <div className="text-sm text-green-600">
+                          Payment of{" "}
+                          {formatCurrency(trackingClaim.paymentAmount!)}{" "}
+                          processed
+                        </div>
                       </div>
                     </div>
                   )}
-                  
-                  {trackingClaim.status === 'denied' && (
+
+                  {trackingClaim.status === "denied" && (
                     <div className="flex items-center gap-3 p-3 bg-red-50 rounded-lg">
                       <XCircle className="w-5 h-5 text-red-500" />
                       <div>
-                        <div className="font-medium text-red-800">Claim Denied</div>
-                        <div className="text-sm text-red-600">Requires additional documentation</div>
+                        <div className="font-medium text-red-800">
+                          Claim Denied
+                        </div>
+                        <div className="text-sm text-red-600">
+                          Requires additional documentation
+                        </div>
                       </div>
                     </div>
                   )}
@@ -1362,15 +1788,18 @@ export default function FinancialIntelligence() {
 
               <div className="p-3 bg-gray-50 rounded-lg">
                 <div className="text-sm text-gray-600">
-                  <strong>Estimated Processing Time:</strong> 5-7 business days<br/>
-                  <strong>Next Update:</strong> {format(new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), 'PPP')}
+                  <strong>Estimated Processing Time:</strong> 5-7 business days
+                  <br />
+                  <strong>Next Update:</strong>{" "}
+                  {format(
+                    new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
+                    "PPP",
+                  )}
                 </div>
               </div>
-              
+
               <div className="flex justify-end">
-                <Button onClick={() => setTrackStatusOpen(false)}>
-                  Close
-                </Button>
+                <Button onClick={() => setTrackStatusOpen(false)}>Close</Button>
               </div>
             </div>
           )}
@@ -1387,18 +1816,30 @@ export default function FinancialIntelligence() {
             {selectedInsurance && (
               <>
                 <div className="bg-blue-50 p-4 rounded-lg">
-                  <h4 className="font-medium text-blue-800 mb-2">{selectedInsurance.patientName}</h4>
+                  <h4 className="font-medium text-blue-800 mb-2">
+                    {selectedInsurance.patientName}
+                  </h4>
                   <div className="text-sm text-blue-700">
-                    <div><span className="font-medium">Provider:</span> {selectedInsurance.provider}</div>
-                    <div><span className="font-medium">Coverage:</span> {selectedInsurance.coverageType}</div>
+                    <div>
+                      <span className="font-medium">Provider:</span>{" "}
+                      {selectedInsurance.provider}
+                    </div>
+                    <div>
+                      <span className="font-medium">Coverage:</span>{" "}
+                      {selectedInsurance.coverageType}
+                    </div>
                   </div>
                 </div>
 
                 <div className="space-y-3">
                   <div className="border-l-4 border-green-400 bg-green-50 p-3">
                     <div className="flex justify-between items-center">
-                      <span className="font-medium text-green-800">Deductible</span>
-                      <span className="text-green-700">${selectedInsurance.benefits.deductible}</span>
+                      <span className="font-medium text-green-800">
+                        Deductible
+                      </span>
+                      <span className="text-green-700">
+                        ${selectedInsurance.benefits.deductible}
+                      </span>
                     </div>
                     <div className="text-sm text-green-600 mt-1">
                       Met: ${selectedInsurance.benefits.deductibleMet}
@@ -1407,8 +1848,12 @@ export default function FinancialIntelligence() {
 
                   <div className="border-l-4 border-blue-400 bg-blue-50 p-3">
                     <div className="flex justify-between items-center">
-                      <span className="font-medium text-blue-800">Out-of-Pocket Max</span>
-                      <span className="text-blue-700">${selectedInsurance.benefits.outOfPocketMax}</span>
+                      <span className="font-medium text-blue-800">
+                        Out-of-Pocket Max
+                      </span>
+                      <span className="text-blue-700">
+                        ${selectedInsurance.benefits.outOfPocketMax}
+                      </span>
                     </div>
                     <div className="text-sm text-blue-600 mt-1">
                       Met: ${selectedInsurance.benefits.outOfPocketMet}
@@ -1418,12 +1863,18 @@ export default function FinancialIntelligence() {
                   <div className="grid grid-cols-2 gap-3">
                     <div className="border-l-4 border-orange-400 bg-orange-50 p-3">
                       <div className="font-medium text-orange-800">Copay</div>
-                      <div className="text-orange-700">${selectedInsurance.benefits.copay}</div>
+                      <div className="text-orange-700">
+                        ${selectedInsurance.benefits.copay}
+                      </div>
                     </div>
 
                     <div className="border-l-4 border-purple-400 bg-purple-50 p-3">
-                      <div className="font-medium text-purple-800">Coinsurance</div>
-                      <div className="text-purple-700">{selectedInsurance.benefits.coinsurance}%</div>
+                      <div className="font-medium text-purple-800">
+                        Coinsurance
+                      </div>
+                      <div className="text-purple-700">
+                        {selectedInsurance.benefits.coinsurance}%
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1431,7 +1882,7 @@ export default function FinancialIntelligence() {
             )}
 
             <div className="flex justify-end pt-4">
-              <Button 
+              <Button
                 onClick={() => setViewBenefitsOpen(false)}
                 data-testid="button-close-benefits"
               >
@@ -1452,23 +1903,40 @@ export default function FinancialIntelligence() {
             {selectedInsurance && (
               <>
                 <div className="bg-blue-50 p-4 rounded-lg">
-                  <h4 className="font-medium text-blue-800 mb-2">Request Details</h4>
+                  <h4 className="font-medium text-blue-800 mb-2">
+                    Request Details
+                  </h4>
                   <div className="space-y-2 text-sm">
-                    <div><span className="font-medium">Patient:</span> {selectedInsurance.patientName}</div>
-                    <div><span className="font-medium">Insurance Provider:</span> {selectedInsurance.provider}</div>
-                    <div><span className="font-medium">Policy Number:</span> {selectedInsurance.policyNumber}</div>
-                    <div><span className="font-medium">Group Number:</span> {selectedInsurance.groupNumber}</div>
+                    <div>
+                      <span className="font-medium">Patient:</span>{" "}
+                      {selectedInsurance.patientName}
+                    </div>
+                    <div>
+                      <span className="font-medium">Insurance Provider:</span>{" "}
+                      {selectedInsurance.provider}
+                    </div>
+                    <div>
+                      <span className="font-medium">Policy Number:</span>{" "}
+                      {selectedInsurance.policyNumber}
+                    </div>
+                    <div>
+                      <span className="font-medium">Group Number:</span>{" "}
+                      {selectedInsurance.groupNumber}
+                    </div>
                   </div>
                 </div>
-                
+
                 <div className="border-l-4 border-green-400 bg-green-50 p-4">
                   <div className="flex">
                     <CheckCircle className="h-5 w-5 text-green-400 mr-2 mt-0.5" />
                     <div>
-                      <h4 className="font-medium text-green-800">Request Initiated</h4>
+                      <h4 className="font-medium text-green-800">
+                        Request Initiated
+                      </h4>
                       <p className="text-green-700 text-sm mt-1">
-                        Prior authorization request has been submitted to {selectedInsurance.provider}. 
-                        You will receive a response within 24-48 hours.
+                        Prior authorization request has been submitted to{" "}
+                        {selectedInsurance.provider}. You will receive a
+                        response within 24-48 hours.
                       </p>
                     </div>
                   </div>
@@ -1477,7 +1945,9 @@ export default function FinancialIntelligence() {
                 <div className="text-xs text-gray-500 bg-gray-50 p-3 rounded">
                   <strong>Next Steps:</strong>
                   <ul className="list-disc list-inside mt-1 space-y-1">
-                    <li>Authorization request sent to {selectedInsurance.provider}</li>
+                    <li>
+                      Authorization request sent to {selectedInsurance.provider}
+                    </li>
                     <li>Patient will be notified via phone/email</li>
                     <li>Follow up if no response within 48 hours</li>
                   </ul>
@@ -1486,7 +1956,7 @@ export default function FinancialIntelligence() {
             )}
 
             <div className="flex justify-end pt-4">
-              <Button 
+              <Button
                 onClick={() => setPriorAuthOpen(false)}
                 data-testid="button-close-prior-auth"
               >
@@ -1498,7 +1968,10 @@ export default function FinancialIntelligence() {
       </Dialog>
 
       {/* Verify Eligibility Modal */}
-      <Dialog open={verifyEligibilityOpen} onOpenChange={setVerifyEligibilityOpen}>
+      <Dialog
+        open={verifyEligibilityOpen}
+        onOpenChange={setVerifyEligibilityOpen}
+      >
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Verify Insurance Eligibility</DialogTitle>
@@ -1509,15 +1982,27 @@ export default function FinancialIntelligence() {
                 <label className="text-sm font-medium">Patient Name</label>
                 <Input
                   value={verificationFormData.patientName}
-                  onChange={(e) => setVerificationFormData(prev => ({ ...prev, patientName: e.target.value }))}
+                  onChange={(e) =>
+                    setVerificationFormData((prev) => ({
+                      ...prev,
+                      patientName: e.target.value,
+                    }))
+                  }
                   data-testid="input-patient-name"
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">Insurance Provider</label>
+                <label className="text-sm font-medium">
+                  Insurance Provider
+                </label>
                 <Input
                   value={verificationFormData.insuranceProvider}
-                  onChange={(e) => setVerificationFormData(prev => ({ ...prev, insuranceProvider: e.target.value }))}
+                  onChange={(e) =>
+                    setVerificationFormData((prev) => ({
+                      ...prev,
+                      insuranceProvider: e.target.value,
+                    }))
+                  }
                   data-testid="input-insurance-provider"
                 />
               </div>
@@ -1528,7 +2013,12 @@ export default function FinancialIntelligence() {
                 <label className="text-sm font-medium">Policy Number</label>
                 <Input
                   value={verificationFormData.policyNumber}
-                  onChange={(e) => setVerificationFormData(prev => ({ ...prev, policyNumber: e.target.value }))}
+                  onChange={(e) =>
+                    setVerificationFormData((prev) => ({
+                      ...prev,
+                      policyNumber: e.target.value,
+                    }))
+                  }
                   data-testid="input-policy-number"
                 />
               </div>
@@ -1536,7 +2026,12 @@ export default function FinancialIntelligence() {
                 <label className="text-sm font-medium">Group Number</label>
                 <Input
                   value={verificationFormData.groupNumber}
-                  onChange={(e) => setVerificationFormData(prev => ({ ...prev, groupNumber: e.target.value }))}
+                  onChange={(e) =>
+                    setVerificationFormData((prev) => ({
+                      ...prev,
+                      groupNumber: e.target.value,
+                    }))
+                  }
                   data-testid="input-group-number"
                 />
               </div>
@@ -1544,9 +2039,14 @@ export default function FinancialIntelligence() {
 
             <div>
               <label className="text-sm font-medium">Coverage Type</label>
-              <Select 
-                value={verificationFormData.coverageType} 
-                onValueChange={(value) => setVerificationFormData(prev => ({ ...prev, coverageType: value }))}
+              <Select
+                value={verificationFormData.coverageType}
+                onValueChange={(value) =>
+                  setVerificationFormData((prev) => ({
+                    ...prev,
+                    coverageType: value,
+                  }))
+                }
               >
                 <SelectTrigger data-testid="select-coverage-type">
                   <SelectValue placeholder="Select coverage type" />
@@ -1561,10 +2061,17 @@ export default function FinancialIntelligence() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium">Verification Status</label>
-                <Select 
-                  value={verificationFormData.verificationStatus} 
-                  onValueChange={(value) => setVerificationFormData(prev => ({ ...prev, verificationStatus: value }))}
+                <label className="text-sm font-medium">
+                  Verification Status
+                </label>
+                <Select
+                  value={verificationFormData.verificationStatus}
+                  onValueChange={(value) =>
+                    setVerificationFormData((prev) => ({
+                      ...prev,
+                      verificationStatus: value,
+                    }))
+                  }
                 >
                   <SelectTrigger data-testid="select-verification-status">
                     <SelectValue placeholder="Select status" />
@@ -1573,7 +2080,9 @@ export default function FinancialIntelligence() {
                     <SelectItem value="pending">Pending</SelectItem>
                     <SelectItem value="verified">Verified</SelectItem>
                     <SelectItem value="denied">Denied</SelectItem>
-                    <SelectItem value="requires_review">Requires Review</SelectItem>
+                    <SelectItem value="requires_review">
+                      Requires Review
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -1582,32 +2091,39 @@ export default function FinancialIntelligence() {
                 <Input
                   type="date"
                   value={verificationFormData.verificationDate}
-                  onChange={(e) => setVerificationFormData(prev => ({ ...prev, verificationDate: e.target.value }))}
+                  onChange={(e) =>
+                    setVerificationFormData((prev) => ({
+                      ...prev,
+                      verificationDate: e.target.value,
+                    }))
+                  }
                   data-testid="input-verification-date"
                 />
               </div>
             </div>
 
             <div className="flex justify-end gap-2 pt-4">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => setVerifyEligibilityOpen(false)}
                 data-testid="button-cancel-verification"
               >
                 Cancel
               </Button>
-              <Button 
+              <Button
                 onClick={async () => {
                   if (selectedInsurance) {
                     try {
                       await updateInsuranceMutation.mutateAsync({
                         insuranceId: selectedInsurance.id,
-                        data: verificationFormData
+                        data: verificationFormData,
                       });
                       // Invalidate and refetch the insurance data
-                      await queryClient.invalidateQueries({ queryKey: ["/api/financial/insurance"] });
+                      await queryClient.invalidateQueries({
+                        queryKey: ["/api/financial/insurance"],
+                      });
                       // Wait a brief moment to ensure the refetch completes
-                      await new Promise(resolve => setTimeout(resolve, 100));
+                      await new Promise((resolve) => setTimeout(resolve, 100));
                       setVerifyEligibilityOpen(false);
                     } catch (error) {
                       console.error("Failed to update insurance:", error);
@@ -1617,7 +2133,9 @@ export default function FinancialIntelligence() {
                 disabled={updateInsuranceMutation.isPending}
                 data-testid="button-save-verification"
               >
-                {updateInsuranceMutation.isPending ? "Saving..." : "Save Changes"}
+                {updateInsuranceMutation.isPending
+                  ? "Saving..."
+                  : "Save Changes"}
               </Button>
             </div>
           </div>
@@ -1634,7 +2152,10 @@ export default function FinancialIntelligence() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium">Patient Name</label>
-                <Popover open={patientSearchOpen} onOpenChange={setPatientSearchOpen}>
+                <Popover
+                  open={patientSearchOpen}
+                  onOpenChange={setPatientSearchOpen}
+                >
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
@@ -1658,9 +2179,9 @@ export default function FinancialIntelligence() {
                               key={patient.id}
                               value={`${patient.firstName} ${patient.lastName}`}
                               onSelect={() => {
-                                setNewInsuranceFormData(prev => ({ 
-                                  ...prev, 
-                                  patientName: `${patient.firstName} ${patient.lastName}` 
+                                setNewInsuranceFormData((prev) => ({
+                                  ...prev,
+                                  patientName: `${patient.firstName} ${patient.lastName}`,
                                 }));
                                 setPatientSearchOpen(false);
                               }}
@@ -1668,7 +2189,8 @@ export default function FinancialIntelligence() {
                             >
                               <Check
                                 className={`mr-2 h-4 w-4 ${
-                                  newInsuranceFormData.patientName === `${patient.firstName} ${patient.lastName}`
+                                  newInsuranceFormData.patientName ===
+                                  `${patient.firstName} ${patient.lastName}`
                                     ? "opacity-100"
                                     : "opacity-0"
                                 }`}
@@ -1683,10 +2205,17 @@ export default function FinancialIntelligence() {
                 </Popover>
               </div>
               <div>
-                <label className="text-sm font-medium">Insurance Provider</label>
+                <label className="text-sm font-medium">
+                  Insurance Provider
+                </label>
                 <Input
                   value={newInsuranceFormData.provider}
-                  onChange={(e) => setNewInsuranceFormData(prev => ({ ...prev, provider: e.target.value }))}
+                  onChange={(e) =>
+                    setNewInsuranceFormData((prev) => ({
+                      ...prev,
+                      provider: e.target.value,
+                    }))
+                  }
                   placeholder="Enter insurance provider"
                   data-testid="input-new-provider"
                 />
@@ -1698,7 +2227,12 @@ export default function FinancialIntelligence() {
                 <label className="text-sm font-medium">Policy Number</label>
                 <Input
                   value={newInsuranceFormData.policyNumber}
-                  onChange={(e) => setNewInsuranceFormData(prev => ({ ...prev, policyNumber: e.target.value }))}
+                  onChange={(e) =>
+                    setNewInsuranceFormData((prev) => ({
+                      ...prev,
+                      policyNumber: e.target.value,
+                    }))
+                  }
                   placeholder="Enter policy number"
                   data-testid="input-new-policy-number"
                 />
@@ -1707,7 +2241,12 @@ export default function FinancialIntelligence() {
                 <label className="text-sm font-medium">Group Number</label>
                 <Input
                   value={newInsuranceFormData.groupNumber}
-                  onChange={(e) => setNewInsuranceFormData(prev => ({ ...prev, groupNumber: e.target.value }))}
+                  onChange={(e) =>
+                    setNewInsuranceFormData((prev) => ({
+                      ...prev,
+                      groupNumber: e.target.value,
+                    }))
+                  }
                   placeholder="Enter group number"
                   data-testid="input-new-group-number"
                 />
@@ -1717,7 +2256,15 @@ export default function FinancialIntelligence() {
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className="text-sm font-medium">Coverage Type</label>
-                <Select value={newInsuranceFormData.coverageType} onValueChange={(value) => setNewInsuranceFormData(prev => ({ ...prev, coverageType: value }))}>
+                <Select
+                  value={newInsuranceFormData.coverageType}
+                  onValueChange={(value) =>
+                    setNewInsuranceFormData((prev) => ({
+                      ...prev,
+                      coverageType: value,
+                    }))
+                  }
+                >
                   <SelectTrigger data-testid="select-new-coverage-type">
                     <SelectValue />
                   </SelectTrigger>
@@ -1729,7 +2276,15 @@ export default function FinancialIntelligence() {
               </div>
               <div>
                 <label className="text-sm font-medium">Status</label>
-                <Select value={newInsuranceFormData.status} onValueChange={(value) => setNewInsuranceFormData(prev => ({ ...prev, status: value }))}>
+                <Select
+                  value={newInsuranceFormData.status}
+                  onValueChange={(value) =>
+                    setNewInsuranceFormData((prev) => ({
+                      ...prev,
+                      status: value,
+                    }))
+                  }
+                >
                   <SelectTrigger data-testid="select-new-status">
                     <SelectValue />
                   </SelectTrigger>
@@ -1741,8 +2296,18 @@ export default function FinancialIntelligence() {
                 </Select>
               </div>
               <div>
-                <label className="text-sm font-medium">Eligibility Status</label>
-                <Select value={newInsuranceFormData.eligibilityStatus} onValueChange={(value) => setNewInsuranceFormData(prev => ({ ...prev, eligibilityStatus: value }))}>
+                <label className="text-sm font-medium">
+                  Eligibility Status
+                </label>
+                <Select
+                  value={newInsuranceFormData.eligibilityStatus}
+                  onValueChange={(value) =>
+                    setNewInsuranceFormData((prev) => ({
+                      ...prev,
+                      eligibilityStatus: value,
+                    }))
+                  }
+                >
                   <SelectTrigger data-testid="select-new-eligibility-status">
                     <SelectValue />
                   </SelectTrigger>
@@ -1761,7 +2326,12 @@ export default function FinancialIntelligence() {
                 <Input
                   type="number"
                   value={newInsuranceFormData.copay}
-                  onChange={(e) => setNewInsuranceFormData(prev => ({ ...prev, copay: e.target.value }))}
+                  onChange={(e) =>
+                    setNewInsuranceFormData((prev) => ({
+                      ...prev,
+                      copay: e.target.value,
+                    }))
+                  }
                   placeholder="Enter copay amount"
                   data-testid="input-new-copay"
                 />
@@ -1771,7 +2341,12 @@ export default function FinancialIntelligence() {
                 <Input
                   type="number"
                   value={newInsuranceFormData.coinsurance}
-                  onChange={(e) => setNewInsuranceFormData(prev => ({ ...prev, coinsurance: e.target.value }))}
+                  onChange={(e) =>
+                    setNewInsuranceFormData((prev) => ({
+                      ...prev,
+                      coinsurance: e.target.value,
+                    }))
+                  }
                   placeholder="Enter coinsurance percentage"
                   data-testid="input-new-coinsurance"
                 />
@@ -1784,17 +2359,29 @@ export default function FinancialIntelligence() {
                 <Input
                   type="number"
                   value={newInsuranceFormData.deductible}
-                  onChange={(e) => setNewInsuranceFormData(prev => ({ ...prev, deductible: e.target.value }))}
+                  onChange={(e) =>
+                    setNewInsuranceFormData((prev) => ({
+                      ...prev,
+                      deductible: e.target.value,
+                    }))
+                  }
                   placeholder="Enter deductible amount"
                   data-testid="input-new-deductible"
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">Deductible Met ($)</label>
+                <label className="text-sm font-medium">
+                  Deductible Met ($)
+                </label>
                 <Input
                   type="number"
                   value={newInsuranceFormData.deductibleMet}
-                  onChange={(e) => setNewInsuranceFormData(prev => ({ ...prev, deductibleMet: e.target.value }))}
+                  onChange={(e) =>
+                    setNewInsuranceFormData((prev) => ({
+                      ...prev,
+                      deductibleMet: e.target.value,
+                    }))
+                  }
                   placeholder="Enter deductible met amount"
                   data-testid="input-new-deductible-met"
                 />
@@ -1803,21 +2390,35 @@ export default function FinancialIntelligence() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium">Out-of-Pocket Max ($)</label>
+                <label className="text-sm font-medium">
+                  Out-of-Pocket Max ($)
+                </label>
                 <Input
                   type="number"
                   value={newInsuranceFormData.outOfPocketMax}
-                  onChange={(e) => setNewInsuranceFormData(prev => ({ ...prev, outOfPocketMax: e.target.value }))}
+                  onChange={(e) =>
+                    setNewInsuranceFormData((prev) => ({
+                      ...prev,
+                      outOfPocketMax: e.target.value,
+                    }))
+                  }
                   placeholder="Enter out-of-pocket maximum"
                   data-testid="input-new-out-of-pocket-max"
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">Out-of-Pocket Met ($)</label>
+                <label className="text-sm font-medium">
+                  Out-of-Pocket Met ($)
+                </label>
                 <Input
                   type="number"
                   value={newInsuranceFormData.outOfPocketMet}
-                  onChange={(e) => setNewInsuranceFormData(prev => ({ ...prev, outOfPocketMet: e.target.value }))}
+                  onChange={(e) =>
+                    setNewInsuranceFormData((prev) => ({
+                      ...prev,
+                      outOfPocketMet: e.target.value,
+                    }))
+                  }
                   placeholder="Enter out-of-pocket met amount"
                   data-testid="input-new-out-of-pocket-met"
                 />
@@ -1825,21 +2426,23 @@ export default function FinancialIntelligence() {
             </div>
 
             <div className="flex justify-end gap-2 pt-4">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => setAddInsuranceOpen(false)}
                 data-testid="button-cancel-add-insurance"
               >
                 Cancel
               </Button>
-              <Button 
+              <Button
                 onClick={() => {
                   addInsuranceMutation.mutate(newInsuranceFormData);
                 }}
                 disabled={addInsuranceMutation.isPending}
                 data-testid="button-save-add-insurance"
               >
-                {addInsuranceMutation.isPending ? "Saving..." : "Save Insurance"}
+                {addInsuranceMutation.isPending
+                  ? "Saving..."
+                  : "Save Insurance"}
               </Button>
             </div>
           </div>
