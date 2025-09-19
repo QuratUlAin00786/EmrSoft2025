@@ -1500,8 +1500,10 @@ export default function FinancialIntelligence() {
                         insuranceId: selectedInsurance.id,
                         data: verificationFormData
                       });
-                      // Wait for the refetch to complete before closing modal
-                      await queryClient.refetchQueries({ queryKey: ["/api/financial/insurance"] });
+                      // Invalidate and refetch the insurance data
+                      await queryClient.invalidateQueries({ queryKey: ["/api/financial/insurance"] });
+                      // Wait a brief moment to ensure the refetch completes
+                      await new Promise(resolve => setTimeout(resolve, 100));
                       setVerifyEligibilityOpen(false);
                     } catch (error) {
                       console.error("Failed to update insurance:", error);
