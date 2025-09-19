@@ -161,6 +161,19 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -184,6 +197,8 @@ import {
   Trash2,
   FileText as Prescription,
   Printer,
+  ChevronsUpDown,
+  X,
 } from "lucide-react";
 
 interface DatabaseLabResult {
@@ -222,6 +237,20 @@ interface User {
   role?: string;
 }
 
+// Test types for lab orders
+const TEST_TYPES = [
+  "Complete Blood Count (CBC)",
+  "Basic Metabolic Panel", 
+  "Comprehensive Metabolic Panel",
+  "Lipid Panel",
+  "Liver Function Tests",
+  "Thyroid Function Tests",
+  "Hemoglobin A1C",
+  "Urinalysis",
+  "Vitamin D",
+  "Iron Studies"
+];
+
 // Database-driven lab results - no more mock data
 
 export default function LabResultsPage() {
@@ -251,7 +280,7 @@ export default function LabResultsPage() {
   const [orderFormData, setOrderFormData] = useState({
     patientId: "",
     patientName: "",
-    testType: "",
+    testType: [] as string[],
     priority: "routine",
     notes: "",
     doctorId: "",
@@ -259,6 +288,8 @@ export default function LabResultsPage() {
     mainSpecialty: "",
     subSpecialty: "",
   });
+  const [patientSearchOpen, setPatientSearchOpen] = useState(false);
+  const [testTypeOpen, setTestTypeOpen] = useState(false);
 
   const { data: labResults = [], isLoading } = useQuery({
     queryKey: ["/api/lab-results"],
@@ -352,7 +383,7 @@ export default function LabResultsPage() {
       setOrderFormData({
         patientId: "",
         patientName: "",
-        testType: "",
+        testType: [],
         priority: "routine",
         notes: "",
         doctorId: "",
@@ -1525,47 +1556,60 @@ Report generated from Cura EMR System`;
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="patient">Select Patient</Label>
-              <Select
-                value={orderFormData.patientId}
-                onValueChange={(value) => {
-                  const selectedPatient = Array.isArray(patients)
-                    ? patients.find((p: any) => p.id.toString() === value)
-                    : null;
-                  setOrderFormData((prev) => ({
-                    ...prev,
-                    patientId: value,
-                    patientName: selectedPatient
-                      ? `${selectedPatient.firstName} ${selectedPatient.lastName}`
-                      : "",
-                  }));
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a patient" />
-                </SelectTrigger>
-                <SelectContent>
-                  {patientsLoading ? (
-                    <SelectItem value="loading" disabled>
-                      Loading patients...
-                    </SelectItem>
-                  ) : patients &&
-                    Array.isArray(patients) &&
-                    patients.length > 0 ? (
-                    patients.map((patient: any) => (
-                      <SelectItem
-                        key={patient.id}
-                        value={patient.id.toString()}
-                      >
-                        {`${patient.firstName} ${patient.lastName} (${patient.patientId})`}
-                      </SelectItem>
-                    ))
-                  ) : (
-                    <SelectItem value="none" disabled>
-                      No patients available
-                    </SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
+              <Popover open={patientSearchOpen} onOpenChange={setPatientSearchOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={patientSearchOpen}
+                    className="w-full justify-between"
+                  >
+                    {orderFormData.patientId
+                      ? orderFormData.patientName
+                      : "Select a patient..."}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0">
+                  <Command>
+                    <CommandInput placeholder="Search patients..." />
+                    <CommandEmpty>No patient found.</CommandEmpty>
+                    <CommandGroup>
+                      {patientsLoading ? (
+                        <CommandItem disabled>Loading patients...</CommandItem>
+                      ) : patients &&
+                        Array.isArray(patients) &&
+                        patients.length > 0 ? (
+                        patients.map((patient: any) => (
+                          <CommandItem
+                            key={patient.id}
+                            value={`${patient.firstName} ${patient.lastName} ${patient.patientId}`}
+                            onSelect={() => {
+                              setOrderFormData((prev) => ({
+                                ...prev,
+                                patientId: patient.id.toString(),
+                                patientName: `${patient.firstName} ${patient.lastName}`,
+                              }));
+                              setPatientSearchOpen(false);
+                            }}
+                          >
+                            <Check
+                              className={`mr-2 h-4 w-4 ${
+                                orderFormData.patientId === patient.id.toString()
+                                  ? "opacity-100"
+                                  : "opacity-0"
+                              }`}
+                            />
+                            {`${patient.firstName} ${patient.lastName} (${patient.patientId})`}
+                          </CommandItem>
+                        ))
+                      ) : (
+                        <CommandItem disabled>No patients available</CommandItem>
+                      )}
+                    </CommandGroup>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
 
             <div className="space-y-2">
@@ -1678,38 +1722,95 @@ Report generated from Cura EMR System`;
             </div>
             <div className="space-y-2">
               <Label htmlFor="testType">Test Type</Label>
-              <Select
-                value={orderFormData.testType}
-                onValueChange={(value) =>
-                  setOrderFormData((prev) => ({ ...prev, testType: value }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select test type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Complete Blood Count (CBC)">
-                    Complete Blood Count (CBC)
-                  </SelectItem>
-                  <SelectItem value="Basic Metabolic Panel">
-                    Basic Metabolic Panel
-                  </SelectItem>
-                  <SelectItem value="Comprehensive Metabolic Panel">
-                    Comprehensive Metabolic Panel
-                  </SelectItem>
-                  <SelectItem value="Lipid Panel">Lipid Panel</SelectItem>
-                  <SelectItem value="Liver Function Tests">
-                    Liver Function Tests
-                  </SelectItem>
-                  <SelectItem value="Thyroid Function Tests">
-                    Thyroid Function Tests
-                  </SelectItem>
-                  <SelectItem value="Hemoglobin A1C">Hemoglobin A1C</SelectItem>
-                  <SelectItem value="Urinalysis">Urinalysis</SelectItem>
-                  <SelectItem value="Vitamin D">Vitamin D</SelectItem>
-                  <SelectItem value="Iron Studies">Iron Studies</SelectItem>
-                </SelectContent>
-              </Select>
+              <Popover open={testTypeOpen} onOpenChange={setTestTypeOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={testTypeOpen}
+                    className="w-full justify-between min-h-[40px] h-auto"
+                  >
+                    <div className="flex flex-wrap gap-1">
+                      {orderFormData.testType.length === 0 ? (
+                        <span className="text-muted-foreground">Select test types...</span>
+                      ) : orderFormData.testType.length === 1 ? (
+                        <span>{orderFormData.testType[0]}</span>
+                      ) : (
+                        <span>{orderFormData.testType.length} test types selected</span>
+                      )}
+                    </div>
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0">
+                  <Command>
+                    <CommandInput placeholder="Search test types..." />
+                    <CommandEmpty>No test type found.</CommandEmpty>
+                    <CommandGroup>
+                      {TEST_TYPES.map((testType) => (
+                        <CommandItem
+                          key={testType}
+                          value={testType}
+                          onSelect={() => {
+                            setOrderFormData((prev) => ({
+                              ...prev,
+                              testType: prev.testType.includes(testType)
+                                ? prev.testType.filter((t) => t !== testType)
+                                : [...prev.testType, testType],
+                            }));
+                          }}
+                        >
+                          <Checkbox
+                            checked={orderFormData.testType.includes(testType)}
+                            className="mr-2"
+                          />
+                          {testType}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </Command>
+                  {orderFormData.testType.length > 0 && (
+                    <div className="p-2 border-t">
+                      <div className="flex flex-wrap gap-1 mb-2">
+                        {orderFormData.testType.map((testType) => (
+                          <Badge
+                            key={testType}
+                            variant="secondary"
+                            className="text-xs"
+                          >
+                            {testType}
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setOrderFormData((prev) => ({
+                                  ...prev,
+                                  testType: prev.testType.filter((t) => t !== testType),
+                                }));
+                              }}
+                              className="ml-1 hover:text-red-500"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </Badge>
+                        ))}
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setOrderFormData((prev) => ({
+                            ...prev,
+                            testType: [],
+                          }));
+                        }}
+                        className="w-full text-xs"
+                      >
+                        Clear All
+                      </Button>
+                    </div>
+                  )}
+                </PopoverContent>
+              </Popover>
             </div>
             <div className="space-y-2">
               <Label htmlFor="priority">Priority</Label>
@@ -1755,7 +1856,7 @@ Report generated from Cura EMR System`;
                 onClick={() => {
                   createLabOrderMutation.mutate({
                     patientId: parseInt(orderFormData.patientId),
-                    testType: orderFormData.testType,
+                    testType: orderFormData.testType.join(", "),
                     priority: orderFormData.priority,
                     notes: orderFormData.notes,
                     doctorId: orderFormData.doctorId
@@ -1769,7 +1870,7 @@ Report generated from Cura EMR System`;
                 disabled={
                   createLabOrderMutation.isPending ||
                   !orderFormData.patientId ||
-                  !orderFormData.testType ||
+                  orderFormData.testType.length === 0 ||
                   !orderFormData.doctorId
                 }
                 className="flex-1 bg-medical-blue hover:bg-blue-700"
