@@ -295,7 +295,7 @@ function PatientDetailsModal({ open, onOpenChange, patient }: PatientDetailsModa
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-[946px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">
             Patient Details - {patient.firstName} {patient.lastName}
