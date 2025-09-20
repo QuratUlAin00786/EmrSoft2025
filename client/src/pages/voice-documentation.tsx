@@ -158,8 +158,26 @@ export default function VoiceDocumentation() {
   const [selectedPhotoPatient, setSelectedPhotoPatient] = useState<string>("");
   const [selectedPhotoType, setSelectedPhotoType] = useState<string>("");
   const [photoDescription, setPhotoDescription] = useState<string>("");
+  const [patientSearchTerm, setPatientSearchTerm] = useState<string>("");
+  const [photoTypeSearchTerm, setPhotoTypeSearchTerm] = useState<string>("");
+  const [showPatientDropdown, setShowPatientDropdown] = useState<boolean>(false);
+  const [showPhotoTypeDropdown, setShowPhotoTypeDropdown] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const { toast } = useToast();
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (!target.closest('.searchable-dropdown')) {
+        setShowPatientDropdown(false);
+        setShowPhotoTypeDropdown(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Fetch voice notes
   const { data: voiceNotes, isLoading: notesLoading } = useQuery({
@@ -1122,6 +1140,11 @@ export default function VoiceDocumentation() {
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Capture Clinical Photo</DialogTitle>
+                <DialogClose asChild>
+                  <Button variant="ghost" size="sm" className="absolute right-4 top-4">
+                    <X className="h-4 w-4" />
+                  </Button>
+                </DialogClose>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg mb-4">
@@ -1129,15 +1152,26 @@ export default function VoiceDocumentation() {
                     📝 <strong>Complete all fields below</strong> and upload/capture a photo to enable the Save Photo button.
                   </p>
                 </div>
-                <div>
+                <div className="relative searchable-dropdown">
                   <label className="text-sm font-medium">Patient *</label>
-                  <Select value={selectedPhotoPatient} onValueChange={setSelectedPhotoPatient}>
-                    <SelectTrigger>
-                      <SelectValue placeholder={patientsLoading ? "Loading patients..." : "Select patient"} />
-                    </SelectTrigger>
-                    <SelectContent>
+                  <div className="relative">
+                    <Input
+                      type="text"
+                      placeholder={patientsLoading ? "Loading patients..." : "Search patient..."}
+                      value={patientSearchTerm}
+                      onChange={(e) => {
+                        setPatientSearchTerm(e.target.value);
+                        setShowPatientDropdown(true);
+                      }}
+                      onFocus={() => setShowPatientDropdown(true)}
+                      className="pr-8"
+                    />
+                    <Search className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  </div>
+                  {showPatientDropdown && (
+                    <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg max-h-60 overflow-y-auto">
                       {patientsLoading ? (
-                        <SelectItem value="loading" disabled>Loading...</SelectItem>
+                        <div className="p-2 text-sm text-gray-500">Loading...</div>
                       ) : patients && patients.length > 0 ? (
                         (() => {
                           // Deduplicate patients by unique name combination
@@ -1146,31 +1180,88 @@ export default function VoiceDocumentation() {
                               `${p.firstName} ${p.lastName}` === `${patient.firstName} ${patient.lastName}`
                             ) === index
                           );
-                          return uniquePatients.map((patient: any) => (
-                            <SelectItem key={patient.id} value={patient.id.toString()}>
-                              {patient.firstName} {patient.lastName}
-                            </SelectItem>
-                          ));
+                          
+                          // Filter patients based on search term
+                          const filteredPatients = uniquePatients.filter((patient: any) => {
+                            const fullName = `${patient.firstName} ${patient.lastName}`.toLowerCase();
+                            return fullName.includes(patientSearchTerm.toLowerCase());
+                          });
+
+                          return filteredPatients.length > 0 ? (
+                            filteredPatients.map((patient: any) => (
+                              <div
+                                key={patient.id}
+                                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer text-sm"
+                                onClick={() => {
+                                  setSelectedPhotoPatient(patient.id.toString());
+                                  setPatientSearchTerm(`${patient.firstName} ${patient.lastName}`);
+                                  setShowPatientDropdown(false);
+                                }}
+                              >
+                                {patient.firstName} {patient.lastName}
+                              </div>
+                            ))
+                          ) : (
+                            <div className="p-2 text-sm text-gray-500">No patients found</div>
+                          );
                         })()
                       ) : (
-                        <SelectItem value="no-patients" disabled>No patients found</SelectItem>
+                        <div className="p-2 text-sm text-gray-500">No patients found</div>
                       )}
-                    </SelectContent>
-                  </Select>
+                    </div>
+                  )}
                 </div>
-                <div>
+                <div className="relative searchable-dropdown">
                   <label className="text-sm font-medium">Photo Type *</label>
-                  <Select value={selectedPhotoType} onValueChange={setSelectedPhotoType}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="wound">Wound</SelectItem>
-                      <SelectItem value="rash">Rash</SelectItem>
-                      <SelectItem value="procedure">Procedure</SelectItem>
-                      <SelectItem value="general">General</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="relative">
+                    <Input
+                      type="text"
+                      placeholder="Search photo type..."
+                      value={photoTypeSearchTerm}
+                      onChange={(e) => {
+                        setPhotoTypeSearchTerm(e.target.value);
+                        setShowPhotoTypeDropdown(true);
+                      }}
+                      onFocus={() => setShowPhotoTypeDropdown(true)}
+                      className="pr-8"
+                    />
+                    <Search className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  </div>
+                  {showPhotoTypeDropdown && (
+                    <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                      {(() => {
+                        const photoTypes = [
+                          { value: "wound", label: "Wound" },
+                          { value: "rash", label: "Rash" },
+                          { value: "procedure", label: "Procedure" },
+                          { value: "general", label: "General" }
+                        ];
+                        
+                        // Filter photo types based on search term
+                        const filteredTypes = photoTypes.filter((type) => {
+                          return type.label.toLowerCase().includes(photoTypeSearchTerm.toLowerCase());
+                        });
+
+                        return filteredTypes.length > 0 ? (
+                          filteredTypes.map((type) => (
+                            <div
+                              key={type.value}
+                              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer text-sm"
+                              onClick={() => {
+                                setSelectedPhotoType(type.value);
+                                setPhotoTypeSearchTerm(type.label);
+                                setShowPhotoTypeDropdown(false);
+                              }}
+                            >
+                              {type.label}
+                            </div>
+                          ))
+                        ) : (
+                          <div className="p-2 text-sm text-gray-500">No types found</div>
+                        );
+                      })()}
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label className="text-sm font-medium">Description *</label>
