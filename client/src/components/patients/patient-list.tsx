@@ -1613,23 +1613,31 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                   </div>
                 )}
 
+
                 {/* Display patient flags */}
                 {patient.flags && patient.flags.length > 0 && (
-                  <div className="p-3 bg-white dark:bg-white rounded-md border border-gray-200">
-                    <p className="text-xs font-medium text-gray-700 dark:text-black">Patient Flags</p>
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {patient.flags.map((flag: string, index: number) => {
-                        const [category, priority, description] = flag.split(':');
-                        const priorityColor = priority === 'urgent' || priority === 'critical' ? 'destructive' : 
-                                            priority === 'high' ? 'destructive' : 
-                                            priority === 'medium' ? 'default' : 'secondary';
-                        return (
-                          <Badge key={index} variant={priorityColor} className="text-xs">
-                            {priority?.toUpperCase()}: {description || flag}
-                          </Badge>
-                        );
-                      })}
-                    </div>
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {patient.flags.map((flag: string, index: number) => {
+                      const [category] = flag.split(':');
+                      const getFlagTypeDisplay = (type: string) => {
+                        const flagTypes: Record<string, string> = {
+                          'medical_alert': '🚩 Medical Alert',
+                          'allergy_warning': '🚩 Allergy Warning', 
+                          'medication_interaction': '🚩 Medication Interaction',
+                          'high_risk': '🚩 High Risk',
+                          'special_needs': '🚩 Special Needs',
+                          'insurance_issue': '🚩 Insurance Issue',
+                          'payment_overdue': '🚩 Payment Overdue',
+                          'follow_up_required': '🚩 Follow-up Required'
+                        };
+                        return flagTypes[type] || `🚩 ${type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}`;
+                      };
+                      return (
+                        <Badge key={index} variant="outline" className="text-xs">
+                          {getFlagTypeDisplay(category)}
+                        </Badge>
+                      );
+                    })}
                   </div>
                 )}
 
