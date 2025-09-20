@@ -5933,8 +5933,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Patient not found" });
       }
 
-      // Create the filename using patient ID and voicenote.png naming convention as requested
-      const filename = `${patientId}_voicenote.png`;
+      // Create the filename using patient ID and voicenote.mp4 naming convention as requested
+      const filename = `${patientId}_voicenote.mp4`;
       const filePath = path.join('uploads', 'VoiceNotes', filename);
       
       // Ensure the VoiceNotes directory exists

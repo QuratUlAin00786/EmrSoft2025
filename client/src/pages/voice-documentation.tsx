@@ -2017,7 +2017,7 @@ export default function VoiceDocumentation() {
                         variant="outline"
                         onClick={() => {
                           // Open saved voice note audio file
-                          const audioUrl = `/uploads/VoiceNotes/${note.patientId}_voicenote.png`;
+                          const audioUrl = `/uploads/VoiceNotes/${note.patientId}_voicenote.mp4`;
                           window.open(audioUrl, '_blank');
                           
                           toast({
