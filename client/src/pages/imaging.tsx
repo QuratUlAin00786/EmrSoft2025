@@ -1265,9 +1265,62 @@ export default function ImagingPage() {
                             {study.patientName}
                           </h3>
                         </div>
-                        <Badge className={getStatusColor(study.status)}>
-                          {study.status}
-                        </Badge>
+                        {/* Status Badge - Editable */}
+                        {selectedStudyId === study.id && editModes.status ? (
+                          <div className="flex items-center gap-2">
+                            <Select value={editingStatus} onValueChange={setEditingStatus}>
+                              <SelectTrigger className="w-32 h-8">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="ordered">Ordered</SelectItem>
+                                <SelectItem value="scheduled">Scheduled</SelectItem>
+                                <SelectItem value="in_progress">In Progress</SelectItem>
+                                <SelectItem value="completed">Completed</SelectItem>
+                                <SelectItem value="final">Final</SelectItem>
+                                <SelectItem value="preliminary">Preliminary</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleFieldSave("status")}
+                              disabled={saving.status}
+                              className="h-8 px-2 text-xs"
+                              data-testid="button-save-status-header"
+                            >
+                              {saving.status ? "..." : "Save"}
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleFieldCancel("status")}
+                              disabled={saving.status}
+                              className="h-8 px-2 text-xs"
+                              data-testid="button-cancel-status-header"
+                            >
+                              Cancel
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <Badge className={getStatusColor(study.status)}>
+                              {study.status}
+                            </Badge>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedStudyId(study.id);
+                                handleFieldEdit("status");
+                              }}
+                              className="h-6 w-6 p-0 hover:bg-gray-100 dark:hover:bg-slate-600"
+                              data-testid="button-edit-status-header"
+                            >
+                              <Edit2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        )}
                         <Badge className={getPriorityColor(study.priority)}>
                           {study.priority}
                         </Badge>
