@@ -372,10 +372,9 @@ export default function ImagingPage() {
     }) => {
       const response = await apiRequest(
         "PATCH",
-        `/api/imaging/studies/${studyId}/report-field`,
+        `/api/medical-images/${studyId}`,
         {
-          fieldName,
-          value,
+          [fieldName]: value,
         },
       );
       return response.json();
@@ -386,23 +385,16 @@ export default function ImagingPage() {
         ...prev,
         [variables.fieldName]: true,
       }));
-
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ["/api/medical-images"] });
-
-      // Snapshot the previous value
-      const previousImages = queryClient.getQueryData(["/api/medical-images"]);
-
-      // ✨ KEY: Immediately update local state (patients.tsx pattern)
-      queryClient.setQueryData(["/api/medical-images"], (old: any[] = []) =>
-        old.map((study: any) =>
-          study.id?.toString() === variables.studyId
-            ? { ...study, [variables.fieldName]: variables.value }
-            : study,
-        ),
-      );
-
-      // Update local form state
+    },
+    onError: (error, variables) => {
+      toast({
+        title: "Update Failed",
+        description: "Failed to update field. Please try again.",
+        variant: "destructive",
+      });
+    },
+    onSuccess: (data, variables) => {
+      // ✨ KEY: Update local form state immediately (patients.tsx pattern)
       if (variables.fieldName === "findings")
         setReportFindings(variables.value);
       if (variables.fieldName === "impression")
@@ -416,25 +408,9 @@ export default function ImagingPage() {
         [variables.fieldName]: false,
       }));
 
-      // Return context for rollback
-      return { previousImages };
-    },
-    onError: (error, variables, context) => {
-      // Rollback on error
-      if (context?.previousImages) {
-        queryClient.setQueryData(
-          ["/api/medical-images"],
-          context.previousImages,
-        );
-      }
+      // Invalidate and refetch - this triggers React re-render
+      queryClient.invalidateQueries({ queryKey: ["/api/medical-images"] });
 
-      toast({
-        title: "Update Failed",
-        description: "Failed to update field. Please try again.",
-        variant: "destructive",
-      });
-    },
-    onSuccess: (data, variables) => {
       toast({
         title: "Field Updated",
         description: `${variables.fieldName.charAt(0).toUpperCase() + variables.fieldName.slice(1)} saved successfully`,
@@ -446,9 +422,6 @@ export default function ImagingPage() {
         ...prev,
         [variables.fieldName]: false,
       }));
-
-      // Refetch to ensure data consistency
-      queryClient.invalidateQueries({ queryKey: ["/api/medical-images"] });
     },
   });
 
@@ -478,46 +451,8 @@ export default function ImagingPage() {
         ...prev,
         [variables.fieldName]: true,
       }));
-
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ["/api/medical-images"] });
-
-      // Snapshot the previous value
-      const previousImages = queryClient.getQueryData(["/api/medical-images"]);
-
-      // ✨ KEY: Immediately update local state (patients.tsx pattern)
-      queryClient.setQueryData(["/api/medical-images"], (old: any[] = []) =>
-        old.map((study: any) =>
-          study.id?.toString() === variables.studyId
-            ? { ...study, [variables.fieldName]: variables.value }
-            : study,
-        ),
-      );
-
-      // Exit edit mode immediately
-      setEditModes((prev) => ({
-        ...prev,
-        [variables.fieldName]: false,
-      }));
-
-      // Return context for rollback
-      return { previousImages };
     },
-    onError: (err, variables, context) => {
-      // Rollback on error
-      if (context?.previousImages) {
-        queryClient.setQueryData(
-          ["/api/medical-images"],
-          context.previousImages,
-        );
-      }
-
-      // Re-enter edit mode on error
-      setEditModes((prev) => ({
-        ...prev,
-        [variables.fieldName]: true,
-      }));
-
+    onError: (err, variables) => {
       toast({
         title: "Update Failed",
         description: "Failed to update field. Please try again.",
@@ -525,6 +460,15 @@ export default function ImagingPage() {
       });
     },
     onSuccess: (data, variables) => {
+      // ✨ KEY: Exit edit mode immediately (patients.tsx pattern)
+      setEditModes((prev) => ({
+        ...prev,
+        [variables.fieldName]: false,
+      }));
+
+      // Invalidate and refetch - this triggers React re-render
+      queryClient.invalidateQueries({ queryKey: ["/api/medical-images"] });
+
       // Create appropriate success message based on field type
       let title = "Field Updated";
       let description = "";
@@ -556,9 +500,6 @@ export default function ImagingPage() {
         ...prev,
         [variables.fieldName]: false,
       }));
-
-      // Refetch to ensure data consistency
-      queryClient.invalidateQueries({ queryKey: ["/api/medical-images"] });
     },
   });
 
