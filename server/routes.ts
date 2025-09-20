@@ -91,6 +91,28 @@ const upload = multer({
   }
 });
 
+// Configure disk storage specifically for photos
+const uploadPhoto = multer({
+  dest: 'uploads/temp/',
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    // Accept only image files for photos
+    const allowedTypes = [
+      'image/jpeg',
+      'image/jpg',
+      'image/png'
+    ];
+    
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only JPG, PNG files are allowed for photos.'));
+    }
+  }
+});
+
 export async function registerRoutes(app: Express): Promise<Server> {
   
   // DEPLOYMENT HEALTH CHECK - Absolute priority for deployment success
@@ -119,6 +141,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       timestamp: new Date().toISOString()
     });
   });
+
+  // Serve uploaded files (clinical photos, imaging reports, etc.)
+  app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
   
   // EMERGENCY PRODUCTION FIX - Absolute priority route BEFORE everything else
   // SECURITY: Only available in development environment
@@ -5789,31 +5814,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/voice-documentation/photos", authMiddleware, async (req: TenantRequest, res) => {
+  app.post("/api/voice-documentation/photos", uploadPhoto.single('photo'), authMiddleware, async (req: TenantRequest, res) => {
     try {
       if (!req.user) {
         return res.status(401).json({ error: "User not authenticated" });
       }
 
       const { patientId, type, description } = req.body;
+      const uploadedFile = req.file;
       
+      if (!uploadedFile) {
+        return res.status(400).json({ error: "No photo file provided" });
+      }
+
       const patient = await storage.getPatient(parseInt(patientId), req.tenant!.id);
       if (!patient) {
         return res.status(404).json({ error: "Patient not found" });
       }
 
+      // Create the filename using patient ID and wound.png naming convention
+      const filename = `${patientId}wound.png`;
+      const filePath = path.join('uploads', 'wound_assessment', filename);
+      
+      // Ensure the wound_assessment directory exists
+      const dir = path.join('uploads', 'wound_assessment');
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+      
+      // Move the uploaded file to the correct location with the proper name
+      fs.renameSync(uploadedFile.path, filePath);
+
       const newPhoto = {
         id: `photo_${Date.now()}`,
         patientId: patientId,
         patientName: `${patient.firstName} ${patient.lastName}`,
-        type: type || "general",
-        filename: `photo_${Date.now()}.jpg`,
+        type: type || "wound",
+        filename: filename,
         description: description || "Clinical photo",
-        url: `/api/photos/photo_${Date.now()}.jpg`,
+        url: `/uploads/wound_assessment/${filename}`,
         dateTaken: new Date().toISOString(),
         metadata: {
           camera: "Clinical Camera",
-          resolution: "1920x1080",
+          resolution: uploadedFile.mimetype === 'image/png' ? "Captured" : "1920x1080",
           lighting: "Clinical"
         },
         annotations: [],
@@ -5822,7 +5865,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Add photo to in-memory storage
       clinicalPhotosStorage.push(newPhoto);
-      console.log('📸 Clinical photo saved to memory storage:', newPhoto.id);
+      console.log(`📸 Clinical photo saved to filesystem: ${filePath}`);
       console.log('📊 Total photos in storage:', clinicalPhotosStorage.length);
 
       res.status(201).json(newPhoto);
