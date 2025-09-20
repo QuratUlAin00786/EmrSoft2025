@@ -1085,56 +1085,117 @@ export default function VoiceDocumentation() {
 
   const playAudio = async (note: any) => {
     if (currentlyPlayingId === note.id && isPlaying) {
-      // Stop current playback
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
+      // Stop current recording
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
+        mediaRecorderRef.current.stop();
       }
       setIsPlaying(false);
       setCurrentlyPlayingId(null);
-      toast({ title: "Playback Stopped" });
+      toast({ title: "Recording Stopped" });
       return;
     }
 
-    // Get stored audio URL for this note
+    try {
+      // Start recording audio when Play button is clicked
+      setIsPlaying(true);
+      setCurrentlyPlayingId(note.id);
+      
+      toast({
+        title: "Starting Recording",
+        description: `Recording audio for ${note.patientName}`,
+      });
+
+      // Request microphone access
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      // Create MediaRecorder
+      const recorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = recorder;
+      
+      const audioChunks: BlobPart[] = [];
+
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunks.push(event.data);
+        }
+      };
+
+      recorder.onstop = async () => {
+        // Stop all tracks to release microphone
+        stream.getTracks().forEach(track => track.stop());
+        
+        setIsPlaying(false);
+        setCurrentlyPlayingId(null);
+
+        if (audioChunks.length > 0) {
+          // Create audio blob from recorded chunks
+          const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          
+          try {
+            // Check if directory exists and create if needed
+            await fetch('/api/voice-documentation/check-directory', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-Tenant-Subdomain': 'demo',
+              },
+              credentials: 'include',
+            });
+
+            // Save recorded audio to server directory
+            const formData = new FormData();
+            formData.append('audio', audioBlob, 'voice_note.webm');
+            formData.append('patientId', note.patientId);
+            formData.append('noteId', note.id);
+
+            const saveResponse = await fetch('/api/voice-documentation/audio', {
+              method: 'POST',
+              headers: {
+                'X-Tenant-Subdomain': 'demo',
+              },
+              body: formData,
+              credentials: 'include',
+            });
+
+            if (saveResponse.ok) {
+              toast({
+                title: "Recording Saved",
+                description: `Audio recorded and saved for ${note.patientName}`,
+              });
+              console.log('Recorded audio saved to uploads/VoiceNotes directory');
+            } else {
+              throw new Error('Failed to save recording');
+            }
+          } catch (saveError) {
+            console.error('Error saving recorded audio:', saveError);
+            toast({
+              title: "Save Failed",
+              description: "Could not save recorded audio",
+              variant: "destructive",
+            });
+          }
+        }
+      };
+
+      // Start recording
+      recorder.start();
+      
+    } catch (error) {
+      console.error('Error starting audio recording:', error);
+      setIsPlaying(false);
+      setCurrentlyPlayingId(null);
+      toast({
+        title: "Recording Failed",
+        description: "Could not access microphone",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Keep the existing fallback logic for notes without recorded audio
     const audioUrl = audioStorage.get(note.id);
 
     if (audioUrl) {
-      // Save audio to server directory when Play is clicked
-      try {
-        // First, check if directory exists and create if needed
-        await fetch('/api/voice-documentation/check-directory', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Tenant-Subdomain': 'demo',
-          },
-          credentials: 'include',
-        });
-
-        // Convert the audio URL to a blob and save to server
-        const audioResponse = await fetch(audioUrl);
-        const audioBlob = await audioResponse.blob();
-        
-        // Create FormData to upload the audio file
-        const formData = new FormData();
-        formData.append('audio', audioBlob, 'voice_note.webm');
-        formData.append('patientId', note.patientId);
-        formData.append('noteId', note.id);
-
-        await fetch('/api/voice-documentation/audio', {
-          method: 'POST',
-          headers: {
-            'X-Tenant-Subdomain': 'demo',
-          },
-          body: formData,
-          credentials: 'include',
-        });
-
-        console.log('Audio saved to uploads/VoiceNotes directory');
-      } catch (saveError) {
-        console.warn('Error saving audio during play:', saveError);
-      }
       // Play actual recorded audio
       if (!audioRef.current) {
         audioRef.current = new Audio();
