@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
 import { apiRequest } from "@/lib/queryClient";
-import type { AiInsight } from "@/types";
+import type { AiInsight, Patient } from "@/types";
 
 const insightIcons = {
   risk_alert: Lightbulb,
@@ -43,6 +43,37 @@ export function AiInsightsPanel() {
   const queryClient = useQueryClient();
   const [selectedInsight, setSelectedInsight] = useState<AiInsight | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  
+  // Fetch patient data when selected insight has a patient ID
+  const { data: patientData, isLoading: isPatientLoading } = useQuery<Patient>({
+    queryKey: ['/api/patients', selectedInsight?.patientId],
+    queryFn: async () => {
+      if (!selectedInsight?.patientId) return null;
+      
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'X-Tenant-Subdomain': 'demo',
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch(`/api/patients/${selectedInsight.patientId}`, {
+        method: 'GET',
+        headers,
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch patient data: ${response.status}`);
+      }
+      
+      return response.json();
+    },
+    enabled: !!selectedInsight?.patientId && isDialogOpen,
+    retry: 2,
+  });
   
   const { data: insights, isLoading, error } = useQuery<AiInsight[]>({
     queryKey: ["/api/dashboard/ai-insights"],
@@ -285,7 +316,43 @@ export function AiInsightsPanel() {
                 {selectedInsight.patientId && (
                   <div>
                     <h4 className="font-medium text-gray-900 mb-2">Patient Information</h4>
-                    <p className="text-gray-600">Patient ID: {selectedInsight.patientId}</p>
+                    {isPatientLoading ? (
+                      <div className="flex items-center space-x-2">
+                        <LoadingSpinner />
+                        <span className="text-gray-500 text-sm">Loading patient details...</span>
+                      </div>
+                    ) : patientData ? (
+                      <div className="space-y-2">
+                        <p className="text-gray-600">
+                          <span className="font-medium">Patient ID:</span> {patientData.patientId}
+                        </p>
+                        <p className="text-gray-600">
+                          <span className="font-medium">Name:</span> {patientData.firstName} {patientData.lastName}
+                        </p>
+                        {patientData.dateOfBirth && (
+                          <p className="text-gray-600">
+                            <span className="font-medium">Date of Birth:</span> {new Date(patientData.dateOfBirth).toLocaleDateString()}
+                          </p>
+                        )}
+                        {patientData.email && (
+                          <p className="text-gray-600">
+                            <span className="font-medium">Email:</span> {patientData.email}
+                          </p>
+                        )}
+                        {patientData.phone && (
+                          <p className="text-gray-600">
+                            <span className="font-medium">Phone:</span> {patientData.phone}
+                          </p>
+                        )}
+                        {patientData.nhsNumber && (
+                          <p className="text-gray-600">
+                            <span className="font-medium">NHS Number:</span> {patientData.nhsNumber}
+                          </p>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-gray-600">Patient ID: {selectedInsight.patientId}</p>
+                    )}
                   </div>
                 )}
                 
