@@ -988,7 +988,7 @@ export default function ClinicalDecisionSupport() {
                   <div className="flex gap-2 pt-2">
                     <Button 
                       size="sm"
-                      disabled={buttonLoadingStates[`${insight.id}-reviewed`] !== null}
+                      disabled={!!buttonLoadingStates[`${insight.id}-reviewed`]}
                       onClick={() => updateInsightStatus(insight.id.toString(), "resolved", "reviewed")}
                     >
                       {buttonLoadingStates[`${insight.id}-reviewed`] ? "Updating..." : "Mark Reviewed"}
@@ -996,7 +996,7 @@ export default function ClinicalDecisionSupport() {
                     <Button 
                       size="sm" 
                       variant="outline"
-                      disabled={buttonLoadingStates[`${insight.id}-implemented`] !== null}
+                      disabled={!!buttonLoadingStates[`${insight.id}-implemented`]}
                       onClick={() => updateInsightStatus(insight.id.toString(), "implemented", "implemented")}
                     >
                       {buttonLoadingStates[`${insight.id}-implemented`] ? "Updating..." : "Mark Implemented"}
@@ -1004,7 +1004,7 @@ export default function ClinicalDecisionSupport() {
                     <Button 
                       size="sm" 
                       variant="ghost"
-                      disabled={buttonLoadingStates[`${insight.id}-dismissed`] !== null}
+                      disabled={!!buttonLoadingStates[`${insight.id}-dismissed`]}
                       onClick={() => updateInsightStatus(insight.id.toString(), "dismissed", "dismissed")}
                     >
                       {buttonLoadingStates[`${insight.id}-dismissed`] ? "Updating..." : "Dismiss"}
