@@ -1492,7 +1492,16 @@ export default function ImagingPage() {
                                   setTimeout(() => {
                                     URL.revokeObjectURL(url);
                                   }, 1000);
+                                } else if (response.status === 404) {
+                                  // File not found - show specific message
+                                  toast({
+                                    title: "File Not Available",
+                                    description:
+                                      "File is not available on the server — it may have been deleted or not yet created.",
+                                    variant: "destructive",
+                                  });
                                 } else {
+                                  // Other errors - show generic message
                                   throw new Error("Failed to view PDF report");
                                 }
                               } catch (error) {
