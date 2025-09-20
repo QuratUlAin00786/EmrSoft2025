@@ -1632,15 +1632,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Skip spam prevention check since communications table doesn't exist
 
-      // In a real implementation, this would send SMS/email
       console.log(`Sending ${reminderData.type} to patient ${patient.firstName} ${patient.lastName} via ${reminderData.method}`);
       console.log(`Message: ${reminderData.message || 'Default reminder message'}`);
 
+      // Actually send the message if SMS or WhatsApp is selected and patient has phone number
+      let messageSent = false;
+      let messageResult = null;
+      
+      if ((reminderData.method === 'sms' || reminderData.method === 'whatsapp') && patient.phone) {
+        try {
+          const messageText = reminderData.message || `Hi ${patient.firstName}, this is a reminder from your healthcare provider.`;
+          
+          messageResult = await messagingService.sendMessage({
+            to: patient.phone,
+            message: messageText,
+            type: reminderData.method as 'sms' | 'whatsapp'
+          });
+          
+          if (messageResult.success) {
+            messageSent = true;
+            console.log(`✅ ${reminderData.method.toUpperCase()} successfully sent to ${patient.phone}`);
+          } else {
+            console.error(`❌ Failed to send ${reminderData.method.toUpperCase()}: ${messageResult.error}`);
+          }
+        } catch (error) {
+          console.error(`❌ Error sending ${reminderData.method.toUpperCase()} to ${patient.phone}:`, error);
+        }
+      } else if (reminderData.method === 'email') {
+        // Email functionality could be implemented here
+        console.log(`📧 Email reminder would be sent to: ${patient.email}`);
+      }
+
       res.json({ 
         success: true, 
-        message: `Reminder sent to ${patient.firstName} ${patient.lastName}`,
+        message: messageSent ? 
+          `${reminderData.method.toUpperCase()} reminder successfully sent to ${patient.firstName} ${patient.lastName}` :
+          `Reminder logged for ${patient.firstName} ${patient.lastName} (${!patient.phone ? 'No phone number available' : 'System notification only'})`,
         patientId,
-        reminderType: reminderData.type
+        reminderType: reminderData.type,
+        messageSent,
+        messageDetails: messageResult
       });
     } catch (error) {
       console.error("Send reminder error:", error);
