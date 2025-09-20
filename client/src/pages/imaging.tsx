@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Header } from "@/components/layout/header";
@@ -215,7 +215,7 @@ export default function ImagingPage() {
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [showFileNotAvailableDialog, setShowFileNotAvailableDialog] = useState(false);
   const [modalityFilter, setModalityFilter] = useState<string>("all");
-  const [selectedStudy, setSelectedStudy] = useState<ImagingStudy | null>(null);
+  const [selectedStudyId, setSelectedStudyId] = useState<string | null>(null);
   const [shareFormData, setShareFormData] = useState({
     method: "",
     email: "",
@@ -301,6 +301,43 @@ export default function ImagingPage() {
     },
   });
 
+  // Derive selectedStudy from React Query cache (single source of truth)
+  const selectedStudy = useMemo(() => {
+    if (!selectedStudyId) return null;
+    const study = medicalImages.find((img: any) => img.id?.toString() === selectedStudyId);
+    if (!study) return null;
+    
+    return {
+      id: study.id.toString(),
+      patientId: study.patientId,
+      patientName: study.patientName,
+      studyType: study.studyType,
+      modality: study.modality,
+      bodyPart: study.bodyPart || "Not specified",
+      orderedBy: study.uploadedByName || "Unknown",
+      orderedAt: study.createdAt,
+      scheduledAt: study.scheduledAt,
+      performedAt: study.performedAt,
+      status: study.status === "uploaded" ? "completed" : study.status,
+      priority: study.priority || "routine",
+      indication: study.indication || "No indication provided",
+      findings: study.findings || `Medical image uploaded: ${study.fileName}`,
+      impression: study.impression || `File: ${study.fileName} (${(study.fileSize / (1024 * 1024)).toFixed(2)} MB)`,
+      radiologist: study.radiologist || study.uploadedByName || "Unknown",
+      reportFileName: study.reportFileName,
+      reportFilePath: study.reportFilePath,
+      images: [{
+        id: study.id.toString(),
+        type: study.mimeType?.includes("jpeg") ? "JPEG" : "DICOM",
+        seriesDescription: `${study.modality} ${study.bodyPart}`,
+        imageCount: 1,
+        size: `${(study.fileSize / (1024 * 1024)).toFixed(2)} MB`,
+        imageData: study.imageData,
+        mimeType: study.mimeType,
+      }],
+    };
+  }, [medicalImages, selectedStudyId]);
+
   // Individual field update mutations
   const updateFieldMutation = useMutation({
     mutationFn: async ({
@@ -369,7 +406,7 @@ export default function ImagingPage() {
     },
   });
 
-  // Date field update mutations
+  // Date field update mutations with optimistic updates
   const updateDateMutation = useMutation({
     mutationFn: async ({
       studyId,
@@ -389,81 +426,54 @@ export default function ImagingPage() {
       );
       return response.json();
     },
-    onSuccess: async (data, variables) => {
-      // Exit edit mode
-      setEditModes((prev) => ({
+    onMutate: async (variables) => {
+      // Set saving state
+      setSaving((prev) => ({
         ...prev,
-        [variables.fieldName]: false,
+        [variables.fieldName]: true,
       }));
 
-      // Get fresh data directly from the database for this specific study
-      if (selectedStudy) {
-        try {
-          const freshResponse = await apiRequest("GET", "/api/medical-images");
-          const freshData = await freshResponse.json();
-          
-          if (Array.isArray(freshData)) {
-            const updatedStudyData = freshData.find((img: any) => img.id.toString() === selectedStudy.id);
-            if (updatedStudyData) {
-              // Update selectedStudy with fresh database values
-              const freshStudy = {
-                id: updatedStudyData.id.toString(),
-                patientId: updatedStudyData.patientId,
-                patientName: updatedStudyData.patientName,
-                studyType: updatedStudyData.studyType,
-                modality: updatedStudyData.modality,
-                bodyPart: updatedStudyData.bodyPart || "Not specified",
-                orderedBy: updatedStudyData.uploadedByName || "Unknown",
-                orderedAt: updatedStudyData.createdAt,
-                scheduledAt: updatedStudyData.scheduledAt,
-                performedAt: updatedStudyData.performedAt,
-                status: updatedStudyData.status === "uploaded" ? "completed" : updatedStudyData.status,
-                priority: updatedStudyData.priority || "routine",
-                indication: updatedStudyData.indication || "No indication provided",
-                findings: updatedStudyData.findings || `Medical image uploaded: ${updatedStudyData.fileName}`,
-                impression: updatedStudyData.impression || `File: ${updatedStudyData.fileName} (${(updatedStudyData.fileSize / (1024 * 1024)).toFixed(2)} MB)`,
-                radiologist: updatedStudyData.radiologist || updatedStudyData.uploadedByName || "Unknown",
-                reportFileName: updatedStudyData.reportFileName,
-                reportFilePath: updatedStudyData.reportFilePath,
-                images: [{
-                  id: updatedStudyData.id.toString(),
-                  type: updatedStudyData.mimeType?.includes("jpeg") ? "JPEG" : "DICOM",
-                  seriesDescription: `${updatedStudyData.modality} ${updatedStudyData.bodyPart}`,
-                  imageCount: 1,
-                  size: `${(updatedStudyData.fileSize / (1024 * 1024)).toFixed(2)} MB`,
-                  imageData: updatedStudyData.imageData,
-                  mimeType: updatedStudyData.mimeType,
-                }],
-              };
-              setSelectedStudy(freshStudy);
-            }
-          }
-        } catch (error) {
-          console.error("Failed to fetch fresh study data:", error);
-        }
+      // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+      await queryClient.cancelQueries({ queryKey: ["/api/medical-images"] });
+
+      // Snapshot the previous value
+      const previousImages = queryClient.getQueryData(["/api/medical-images"]);
+
+      // Optimistically update the cache
+      queryClient.setQueryData(["/api/medical-images"], (old: any[] = []) =>
+        old.map((study: any) =>
+          study.id?.toString() === variables.studyId
+            ? { ...study, [variables.fieldName]: variables.value }
+            : study
+        )
+      );
+
+      // Return a context object with the snapshot value
+      return { previousImages };
+    },
+    onError: (err, variables, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      if (context?.previousImages) {
+        queryClient.setQueryData(["/api/medical-images"], context.previousImages);
       }
 
-      // Also invalidate cache for other components
-      queryClient.invalidateQueries({ queryKey: ["/api/medical-images"] });
-
-      toast({
-        title: "Date Updated",
-        description: `${variables.fieldName === "scheduledAt" ? "Scheduled" : "Performed"} date updated successfully`,
-      });
-    },
-    onError: (error) => {
       toast({
         title: "Update Failed",
         description: "Failed to update date. Please try again.",
         variant: "destructive",
       });
     },
-    onMutate: (variables) => {
-      // Set saving state
-      setSaving((prev) => ({
+    onSuccess: (data, variables) => {
+      // Exit edit mode
+      setEditModes((prev) => ({
         ...prev,
-        [variables.fieldName]: true,
+        [variables.fieldName]: false,
       }));
+
+      toast({
+        title: "Date Updated",
+        description: `${variables.fieldName === "scheduledAt" ? "Scheduled" : "Performed"} date updated successfully`,
+      });
     },
     onSettled: (data, error, variables) => {
       // Clear saving state
@@ -471,6 +481,9 @@ export default function ImagingPage() {
         ...prev,
         [variables.fieldName]: false,
       }));
+
+      // Always refetch after error or success to ensure we have the latest data
+      queryClient.invalidateQueries({ queryKey: ["/api/medical-images"] });
     },
   });
 
@@ -768,7 +781,7 @@ export default function ImagingPage() {
   };
 
   const handleViewStudy = (study: ImagingStudy) => {
-    setSelectedStudy(study);
+    setSelectedStudyId(study.id);
     setShowViewDialog(true);
   };
 
@@ -799,7 +812,7 @@ export default function ImagingPage() {
   };
 
   const handleShareStudy = (study: ImagingStudy) => {
-    setSelectedStudy(study);
+    setSelectedStudyId(study.id);
     setShowShareDialog(true);
     setShareFormData({
       method: "",
@@ -812,7 +825,7 @@ export default function ImagingPage() {
   const handleGenerateReport = (studyId: string) => {
     const study = ((studies as any) || []).find((s: any) => s.id === studyId);
     if (study) {
-      setSelectedStudy(study);
+      setSelectedStudyId(study.id);
       setReportFindings(study.findings || "");
       setReportImpression(study.impression || "");
       setReportRadiologist(study.radiologist || "Dr. Michael Chen");
@@ -1315,7 +1328,7 @@ export default function ImagingPage() {
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => {
-                                      setSelectedStudy(study);
+                                      setSelectedStudyId(study.id);
                                       handleFieldEdit("scheduledAt");
                                     }}
                                     className="h-6 w-6 p-0"
@@ -1389,7 +1402,7 @@ export default function ImagingPage() {
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => {
-                                      setSelectedStudy(study);
+                                      setSelectedStudyId(study.id);
                                       handleFieldEdit("performedAt");
                                     }}
                                     className="h-6 w-6 p-0"
@@ -2101,13 +2114,15 @@ export default function ImagingPage() {
                                     description: "Report deleted successfully",
                                   });
 
-                                  // Update the selectedStudy to remove reportFileName, hiding the "Saved Reports" box
-                                  if (selectedStudy) {
-                                    setSelectedStudy({
-                                      ...selectedStudy,
-                                      reportFileName: undefined,
-                                      reportFilePath: undefined,
-                                    });
+                                  // Update the cache to remove reportFileName, hiding the "Saved Reports" box
+                                  if (selectedStudyId) {
+                                    queryClient.setQueryData(["/api/medical-images"], (old: any[] = []) =>
+                                      old.map((study: any) =>
+                                        study.id?.toString() === selectedStudyId
+                                          ? { ...study, reportFileName: undefined, reportFilePath: undefined }
+                                          : study
+                                      )
+                                    );
                                   }
 
                                   // Refresh the studies data
@@ -2382,7 +2397,7 @@ export default function ImagingPage() {
               <div>
                 <h4 className="font-medium text-lg mb-3">Image Series</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {selectedStudy.images.map((image, index) => (
+                  {selectedStudy.images.map((image: any, index: number) => (
                     <div
                       key={index}
                       className="border border-gray-200 rounded-lg p-4"
