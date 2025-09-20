@@ -236,6 +236,7 @@ export default function ImagingPage() {
     radiologist: false,
     scheduledAt: false,
     performedAt: false,
+    status: false,
   });
 
   // Saving states for individual fields
@@ -245,7 +246,11 @@ export default function ImagingPage() {
     radiologist: false,
     scheduledAt: false,
     performedAt: false,
+    status: false,
   });
+
+  // Editing status state for dropdown
+  const [editingStatus, setEditingStatus] = useState<string>("");
 
   // Date states for editing
   const [scheduledDate, setScheduledDate] = useState<Date | undefined>(
@@ -508,7 +513,8 @@ export default function ImagingPage() {
       | "impression"
       | "radiologist"
       | "scheduledAt"
-      | "performedAt",
+      | "performedAt"
+      | "status",
   ) => {
     setEditModes((prev) => ({
       ...prev,
@@ -529,6 +535,8 @@ export default function ImagingPage() {
             ? new Date(selectedStudy.performedAt)
             : undefined,
         );
+      if (fieldName === "status")
+        setEditingStatus(selectedStudy.status || "ordered");
     }
   };
 
@@ -538,7 +546,8 @@ export default function ImagingPage() {
       | "impression"
       | "radiologist"
       | "scheduledAt"
-      | "performedAt",
+      | "performedAt"
+      | "status",
   ) => {
     setEditModes((prev) => ({
       ...prev,
@@ -565,6 +574,8 @@ export default function ImagingPage() {
             ? new Date(selectedStudy.performedAt)
             : undefined,
         );
+      if (fieldName === "status")
+        setEditingStatus(selectedStudy.status || "ordered");
     }
   };
 
@@ -574,7 +585,8 @@ export default function ImagingPage() {
       | "impression"
       | "radiologist"
       | "scheduledAt"
-      | "performedAt",
+      | "performedAt"
+      | "status",
   ) => {
     if (!selectedStudy) return;
 
@@ -584,8 +596,9 @@ export default function ImagingPage() {
     if (fieldName === "radiologist") value = reportRadiologist;
     if (fieldName === "scheduledAt") value = scheduledDate?.toISOString() || "";
     if (fieldName === "performedAt") value = performedDate?.toISOString() || "";
+    if (fieldName === "status") value = editingStatus;
 
-    if (fieldName === "scheduledAt" || fieldName === "performedAt") {
+    if (fieldName === "scheduledAt" || fieldName === "performedAt" || fieldName === "status") {
       updateDateMutation.mutate({
         studyId: selectedStudy.id,
         fieldName,
