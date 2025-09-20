@@ -5,6 +5,7 @@ import { Users, Calendar, Brain, CreditCard, Settings, UserCog, Crown, BarChart3
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import AppointmentCalendar from "../calendar/appointment-calendar";
+import { AiInsightsPanel } from "../dashboard/ai-insights-panel";
 
 // Recent Patients List Component
 function RecentPatientsList() {
@@ -198,20 +199,7 @@ export function AdminDashboard() {
           </Card>
           
           {/* AI Patient Insights */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-lg font-semibold">AI Patient Insights</CardTitle>
-              <div className="flex items-center gap-1 text-xs bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-300 px-2 py-1 rounded-full">
-                <Brain className="h-3 w-3" />
-                AI Powered
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
-                No AI insights available at the moment.
-              </p>
-            </CardContent>
-          </Card>
+          <AiInsightsPanel />
           
           {/* Subscription Info */}
           <Card>

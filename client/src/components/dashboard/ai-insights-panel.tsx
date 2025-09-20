@@ -44,7 +44,7 @@ export function AiInsightsPanel() {
   const { data: insights, isLoading, error } = useQuery<AiInsight[]>({
     queryKey: ["/api/dashboard/ai-insights"],
     queryFn: async () => {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
         'X-Tenant-Subdomain': 'demo',
