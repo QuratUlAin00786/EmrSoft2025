@@ -7126,19 +7126,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Invalid image ID" });
       }
 
-      // Validate update data - allow updating scheduledAt and performedAt
+      // Validate update data - allow updating scheduledAt, performedAt, status, and priority
       const validatedData = z.object({
         scheduledAt: z.string().optional(),
         performedAt: z.string().optional(),
+        status: z.string().optional(),
+        priority: z.string().optional(),
       }).parse(req.body);
 
-      // Convert ISO string dates to Date objects for database storage
+      // Convert ISO string dates to Date objects for database storage and handle other fields
       const updateData: any = {};
       if (validatedData.scheduledAt) {
         updateData.scheduledAt = new Date(validatedData.scheduledAt);
       }
       if (validatedData.performedAt) {
         updateData.performedAt = new Date(validatedData.performedAt);
+      }
+      if (validatedData.status) {
+        updateData.status = validatedData.status;
+      }
+      if (validatedData.priority) {
+        updateData.priority = validatedData.priority;
       }
 
       const success = await storage.updateMedicalImage(imageId, req.tenant!.id, updateData);
