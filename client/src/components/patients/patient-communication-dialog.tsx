@@ -58,6 +58,7 @@ export function PatientCommunicationDialog({ open, onOpenChange, patient, mode }
   const [message, setMessage] = useState("");
   const [flagType, setFlagType] = useState("");
   const [flagReason, setFlagReason] = useState("");
+  const [flagSeverity, setFlagSeverity] = useState<"low" | "medium" | "high" | "critical">("medium");
   const [scheduledFor, setScheduledFor] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -129,6 +130,7 @@ export function PatientCommunicationDialog({ open, onOpenChange, patient, mode }
     setMessage("");
     setFlagType("");
     setFlagReason("");
+    setFlagSeverity("medium");
     setScheduledFor("");
   };
 
@@ -170,7 +172,7 @@ export function PatientCommunicationDialog({ open, onOpenChange, patient, mode }
     createFlagMutation.mutate({
       type: flagType,
       reason: flagReason.trim(),
-      severity: getFlagSeverity(flagType),
+      severity: flagSeverity,
       isActive: true
     });
   };
@@ -207,6 +209,13 @@ export function PatientCommunicationDialog({ open, onOpenChange, patient, mode }
     // Prevent reminders within 24 hours for same type
     return hoursSinceLastReminder >= 24;
   };
+
+  // Auto-set severity based on flag type, but allow user to override
+  useEffect(() => {
+    if (flagType) {
+      setFlagSeverity(getFlagSeverity(flagType));
+    }
+  }, [flagType]);
 
   useEffect(() => {
     if (!open) {
@@ -341,19 +350,34 @@ export function PatientCommunicationDialog({ open, onOpenChange, patient, mode }
                   />
                 </div>
 
-                {flagType && (
-                  <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
-                    <p className="text-sm font-medium">Flag Severity:</p>
-                    <Badge variant={getFlagSeverity(flagType) === "critical" ? "destructive" : "secondary"}>
-                      {getFlagSeverity(flagType).toUpperCase()}
-                    </Badge>
-                  </div>
-                )}
+                <div className="space-y-2">
+                  <Label htmlFor="flag-severity">Flag Severity</Label>
+                  <Select value={flagSeverity} onValueChange={(value: "low" | "medium" | "high" | "critical") => setFlagSeverity(value)}>
+                    <SelectTrigger data-testid="select-flag-severity">
+                      <SelectValue placeholder="Select severity" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="critical" data-testid="option-critical">Critical</SelectItem>
+                      <SelectItem value="high" data-testid="option-high">High</SelectItem>
+                      <SelectItem value="medium" data-testid="option-medium">Medium</SelectItem>
+                      <SelectItem value="low" data-testid="option-low">Low</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {flagSeverity && (
+                    <div className="flex items-center gap-2">
+                      <Badge variant={flagSeverity === "critical" || flagSeverity === "high" ? "destructive" : flagSeverity === "medium" ? "default" : "secondary"}>
+                        {flagSeverity.toUpperCase()}
+                      </Badge>
+                      <span className="text-sm text-gray-500">Current selection</span>
+                    </div>
+                  )}
+                </div>
 
                 <Button 
                   onClick={handleCreateFlag} 
                   disabled={createFlagMutation.isPending}
                   className="w-full"
+                  data-testid="button-create-flag"
                 >
                   <Flag className="h-4 w-4 mr-2" />
                   {createFlagMutation.isPending ? "Creating..." : "Create Flag"}
