@@ -246,10 +246,12 @@ export default function FinancialIntelligence() {
     enabled: true,
   });
 
-  // Fetch claims using standard pattern like patient list
+  // Fetch claims with proper initial loading
   const { data: claimsResponse, isLoading: claimsLoading } = useQuery({
     queryKey: ["/api/financial/claims"],
     enabled: true,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
   });
 
   // Ensure claims is always an array
