@@ -1153,6 +1153,31 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
     },
   });
 
+  // Delete flag mutation
+  const deleteFlagMutation = useMutation({
+    mutationFn: async ({ patientId, flagIndex }: { patientId: number; flagIndex: number }) => {
+      return apiRequest('DELETE', `/api/patients/${patientId}/flags/${flagIndex}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/patients"] });
+      toast({
+        title: "Flag removed",
+        description: "Patient flag has been successfully removed.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error removing flag",
+        description: error.message || "Failed to remove flag. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDeleteFlag = (patient: any, flagIndex: number) => {
+    deleteFlagMutation.mutate({ patientId: patient.id, flagIndex });
+  };
+
   const handleDeletePatient = (patient: any) => {
     if (window.confirm(`Are you sure you want to delete ${patient.firstName} ${patient.lastName}? This action cannot be undone.`)) {
       deletePatientMutation.mutate(patient.id);
@@ -1452,28 +1477,76 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                       </Badge>
                     )}
                     {patient.flags && patient.flags.length > 0 && (
-                      <div className="flex flex-col items-end space-y-1 max-h-12 overflow-hidden">
-                        {patient.flags.slice(0, 1).map((flag: string, index: number) => {
+                      <div className="flex flex-wrap items-end gap-1 max-h-16 overflow-hidden">
+                        {patient.flags.slice(0, 3).map((flag: string, index: number) => {
                           const [type, priority, reason] = flag.split(':');
-                          const flagColor = priority === 'urgent' ? 'text-white' :
+                          
+                          // Map flag types to human-readable labels
+                          const flagLabels: { [key: string]: string } = {
+                            medical_alert: "Medical Alert",
+                            allergy_warning: "Allergy Warning",
+                            medication_interaction: "Medication Interaction",
+                            high_risk: "High Risk",
+                            special_needs: "Special Needs",
+                            insurance_issue: "Insurance Issue",
+                            payment_overdue: "Payment Overdue",
+                            follow_up_required: "Follow-up Required",
+                            urgent: "Urgent",
+                            follow_up: "Follow-up",
+                            billing: "Billing",
+                            general: "General"
+                          };
+                          
+                          const flagLabel = flagLabels[type] || type;
+                          
+                          const flagColor = priority === 'urgent' || priority === 'critical' ? 'text-white' :
                                           priority === 'high' ? 'text-white' :
                                           priority === 'medium' ? 'text-white' :
                                           'text-white';
-                          const flagBgColor = '#162B61';  // Midnight dark blue for all flags
+                          const flagBgColor = priority === 'urgent' || priority === 'critical' ? '#DC2626' :  // Red for urgent/critical
+                                            priority === 'high' ? '#EA580C' :  // Orange for high
+                                            priority === 'medium' ? '#CA8A04' :  // Yellow for medium
+                                            '#6B7280';  // Gray for low/default
+                          
                           return (
-                            <Badge 
-                              key={index} 
-                              className={`text-xs ${flagColor}`}
-                              style={{ backgroundColor: flagBgColor }}
-                              title={`${type}: ${reason}`}
-                            >
-                              🚩 {type}
-                            </Badge>
+                            <TooltipProvider key={index}>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <div className="relative group">
+                                    <Badge 
+                                      className={`text-xs ${flagColor} cursor-pointer hover:opacity-80 relative`}
+                                      style={{ backgroundColor: flagBgColor }}
+                                      data-testid={`badge-flag-${type}`}
+                                    >
+                                      🚩 {flagLabel}
+                                      <Button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleDeleteFlag(patient, index);
+                                        }}
+                                        className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 hover:bg-red-600 text-white p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                        size="sm"
+                                        data-testid={`button-delete-flag-${patient.id}-${index}`}
+                                      >
+                                        <X className="h-2 w-2" />
+                                      </Button>
+                                    </Badge>
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="max-w-xs">
+                                  <div className="text-sm">
+                                    <div className="font-semibold">{flagLabel}</div>
+                                    <div className="text-gray-600 dark:text-gray-300">Priority: {priority}</div>
+                                    <div className="text-gray-600 dark:text-gray-300">Reason: {reason}</div>
+                                  </div>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
                           );
                         })}
-                        {patient.flags.length > 1 && (
+                        {patient.flags.length > 3 && (
                           <Badge variant="outline" className="text-xs text-gray-600 dark:text-gray-300">
-                            +{patient.flags.length - 1} more
+                            +{patient.flags.length - 3} more
                           </Badge>
                         )}
                       </div>

@@ -1685,10 +1685,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const patientId = parseInt(req.params.id);
       
       const flagData = z.object({
-        flagType: z.enum(["urgent", "follow-up", "billing", "general"]).default("general"),
+        type: z.enum([
+          "medical_alert", "allergy_warning", "medication_interaction", 
+          "high_risk", "special_needs", "insurance_issue", 
+          "payment_overdue", "follow_up_required"
+        ]).optional(),
+        flagType: z.enum(["urgent", "follow-up", "billing", "general"]).optional(),
         reason: z.string().min(1),
-        priority: z.enum(["low", "medium", "high", "urgent"]).default("medium")
+        severity: z.enum(["low", "medium", "high", "critical"]).optional(),
+        priority: z.enum(["low", "medium", "high", "urgent"]).optional()
       }).parse(req.body);
+
+      // Use the new type field if provided, otherwise fall back to flagType
+      const finalFlagType = flagData.type || flagData.flagType || "general";
+      const finalPriority = flagData.severity || flagData.priority || "medium";
 
       const patient = await storage.getPatient(patientId, req.tenant!.id);
       
@@ -1697,7 +1707,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Create the flag string with type and priority
-      const flagString = `${flagData.flagType}:${flagData.priority}:${flagData.reason}`;
+      const flagString = `${finalFlagType}:${finalPriority}:${flagData.reason}`;
       
       // Get current flags array and add the new flag
       const currentFlags = patient.flags || [];
@@ -1715,10 +1725,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({ 
         success: true, 
-        message: `${flagData.flagType} flag (${flagData.priority} priority) added to ${patient.firstName} ${patient.lastName}`,
+        message: `${finalFlagType} flag (${finalPriority} priority) added to ${patient.firstName} ${patient.lastName}`,
         patientId,
-        flagType: flagData.flagType,
-        priority: flagData.priority,
+        flagType: finalFlagType,
+        priority: finalPriority,
         reason: flagData.reason,
         totalFlags: updatedPatient?.flags?.length || 0,
         flags: updatedPatient?.flags || []
@@ -1726,6 +1736,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Patient flag error:", error);
       res.status(500).json({ error: "Failed to create patient flag" });
+    }
+  });
+
+  // Delete patient flag endpoint
+  app.delete("/api/patients/:id/flags/:flagIndex", requireRole(["doctor", "nurse", "receptionist", "admin"]), async (req: TenantRequest, res) => {
+    try {
+      const patientId = parseInt(req.params.id);
+      const flagIndex = parseInt(req.params.flagIndex);
+      
+      const patient = await storage.getPatient(patientId, req.tenant!.id);
+      
+      if (!patient) {
+        return res.status(404).json({ error: "Patient not found" });
+      }
+
+      const currentFlags = patient.flags || [];
+      if (flagIndex < 0 || flagIndex >= currentFlags.length) {
+        return res.status(400).json({ error: "Invalid flag index" });
+      }
+
+      // Remove the flag at the specified index
+      const updatedFlags = currentFlags.filter((_, index) => index !== flagIndex);
+      
+      // Update patient with new flags array
+      await storage.updatePatient(patientId, req.tenant!.id, {
+        flags: updatedFlags
+      });
+
+      // Fetch updated patient to return current state
+      const updatedPatient = await storage.getPatient(patientId, req.tenant!.id);
+
+      res.json({ 
+        success: true, 
+        message: `Flag removed from ${patient.firstName} ${patient.lastName}`,
+        patientId,
+        totalFlags: updatedPatient?.flags?.length || 0,
+        flags: updatedPatient?.flags || []
+      });
+    } catch (error) {
+      console.error("Delete flag error:", error);
+      res.status(500).json({ error: "Failed to delete flag" });
     }
   });
 
