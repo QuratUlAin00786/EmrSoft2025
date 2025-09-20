@@ -445,9 +445,13 @@ export default function ClinicalDecisionSupport() {
       
       await apiRequest("PATCH", `/api/ai/insights/${insightId}`, { aiStatus });
       
-      // Force refresh all related queries immediately - match exact query key
-      await queryClient.invalidateQueries({ queryKey: ["/api/ai-insights", selectedPatient, filterSeverity, filterType] });
-      await queryClient.refetchQueries({ queryKey: ["/api/ai-insights", selectedPatient, filterSeverity, filterType] });
+      // Force refresh all ai-insights queries regardless of filter state
+      await queryClient.invalidateQueries({ 
+        predicate: (query) => query.queryKey[0] === "/api/ai-insights"
+      });
+      await queryClient.refetchQueries({ 
+        predicate: (query) => query.queryKey[0] === "/api/ai-insights"
+      });
       toast({ 
         title: "Status updated successfully", 
         description: `Status changed to ${aiStatus}` 
