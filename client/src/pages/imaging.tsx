@@ -44,7 +44,7 @@ import {
   Mail,
   MessageCircle,
   Trash2,
-  Edit2,
+  Edit,
   Check,
   X,
   Loader2,
@@ -1363,7 +1363,7 @@ export default function ImagingPage() {
                               className="h-6 w-6 p-0 hover:bg-gray-100 dark:hover:bg-slate-600"
                               data-testid="button-edit-status-header"
                             >
-                              <Edit2 className="h-3 w-3" />
+                              <Edit className="h-3 w-3" />
                             </Button>
                           </div>
                         )}
@@ -1416,7 +1416,7 @@ export default function ImagingPage() {
                               className="h-6 w-6 p-0 hover:bg-gray-100 dark:hover:bg-slate-600"
                               data-testid="button-edit-priority-header"
                             >
-                              <Edit2 className="h-3 w-3" />
+                              <Edit className="h-3 w-3" />
                             </Button>
                           </div>
                         )}
@@ -1535,7 +1535,7 @@ export default function ImagingPage() {
                                     className="h-6 w-6 p-0"
                                     data-testid="button-edit-scheduled-date"
                                   >
-                                    <Edit2 className="h-3 w-3" />
+                                    <Edit className="h-3 w-3" />
                                   </Button>
                                 </div>
                               )}
@@ -1617,7 +1617,7 @@ export default function ImagingPage() {
                                     className="h-6 w-6 p-0"
                                     data-testid="button-edit-performed-date"
                                   >
-                                    <Edit2 className="h-3 w-3" />
+                                    <Edit className="h-3 w-3" />
                                   </Button>
                                 </div>
                               )}
@@ -1720,7 +1720,7 @@ export default function ImagingPage() {
                         size="sm"
                         onClick={() => handleViewStudy(study)}
                       >
-                        <Edit2 className="h-4 w-4" />
+                        <Edit className="h-4 w-4" />
                       </Button>
 
                       {/* PDF Report Download and View Icons */}
@@ -2101,7 +2101,7 @@ export default function ImagingPage() {
                         className="h-6 w-6 p-0"
                         data-testid="button-edit-findings"
                       >
-                        <Edit2 className="h-3 w-3" />
+                        <Edit className="h-3 w-3" />
                       </Button>
                     ) : (
                       <div className="flex gap-1">
@@ -2166,7 +2166,7 @@ export default function ImagingPage() {
                         className="h-6 w-6 p-0"
                         data-testid="button-edit-impression"
                       >
-                        <Edit2 className="h-3 w-3" />
+                        <Edit className="h-3 w-3" />
                       </Button>
                     ) : (
                       <div className="flex gap-1">
@@ -2234,7 +2234,7 @@ export default function ImagingPage() {
                         className="h-6 w-6 p-0"
                         data-testid="button-edit-radiologist"
                       >
-                        <Edit2 className="h-3 w-3" />
+                        <Edit className="h-3 w-3" />
                       </Button>
                     ) : (
                       <div className="flex gap-1">
