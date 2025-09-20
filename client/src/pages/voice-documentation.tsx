@@ -1293,15 +1293,7 @@ export default function VoiceDocumentation() {
               <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Capture Clinical Photo</DialogTitle>
-                  <DialogClose asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="absolute right-4 top-4"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </DialogClose>
+               
                 </DialogHeader>
                 <div className="space-y-4">
                   <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg mb-4">
