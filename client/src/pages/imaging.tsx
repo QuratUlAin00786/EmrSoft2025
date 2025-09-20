@@ -380,8 +380,29 @@ export default function ImagingPage() {
       );
       return response.json();
     },
-    onSuccess: (data, variables) => {
-      // Update local state
+    onMutate: async (variables) => {
+      // Set saving state
+      setSaving((prev) => ({
+        ...prev,
+        [variables.fieldName]: true,
+      }));
+
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ["/api/medical-images"] });
+
+      // Snapshot the previous value
+      const previousImages = queryClient.getQueryData(["/api/medical-images"]);
+
+      // ✨ KEY: Immediately update local state (patients.tsx pattern)
+      queryClient.setQueryData(["/api/medical-images"], (old: any[] = []) =>
+        old.map((study: any) =>
+          study.id?.toString() === variables.studyId
+            ? { ...study, [variables.fieldName]: variables.value }
+            : study,
+        ),
+      );
+
+      // Update local form state
       if (variables.fieldName === "findings")
         setReportFindings(variables.value);
       if (variables.fieldName === "impression")
@@ -389,34 +410,35 @@ export default function ImagingPage() {
       if (variables.fieldName === "radiologist")
         setReportRadiologist(variables.value);
 
-      // Exit edit mode
+      // Exit edit mode immediately
       setEditModes((prev) => ({
         ...prev,
         [variables.fieldName]: false,
       }));
 
-      // Invalidate related queries
-      queryClient.invalidateQueries({ queryKey: ["/api/imaging/studies"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/medical-images"] });
-
-      toast({
-        title: "Field Updated",
-        description: `${variables.fieldName.charAt(0).toUpperCase() + variables.fieldName.slice(1)} saved successfully`,
-      });
+      // Return context for rollback
+      return { previousImages };
     },
-    onError: (error) => {
+    onError: (error, variables, context) => {
+      // Rollback on error
+      if (context?.previousImages) {
+        queryClient.setQueryData(
+          ["/api/medical-images"],
+          context.previousImages,
+        );
+      }
+
       toast({
         title: "Update Failed",
         description: "Failed to update field. Please try again.",
         variant: "destructive",
       });
     },
-    onMutate: (variables) => {
-      // Set saving state
-      setSaving((prev) => ({
-        ...prev,
-        [variables.fieldName]: true,
-      }));
+    onSuccess: (data, variables) => {
+      toast({
+        title: "Field Updated",
+        description: `${variables.fieldName.charAt(0).toUpperCase() + variables.fieldName.slice(1)} saved successfully`,
+      });
     },
     onSettled: (data, error, variables) => {
       // Clear saving state
@@ -424,6 +446,9 @@ export default function ImagingPage() {
         ...prev,
         [variables.fieldName]: false,
       }));
+
+      // Refetch to ensure data consistency
+      queryClient.invalidateQueries({ queryKey: ["/api/medical-images"] });
     },
   });
 
@@ -454,13 +479,13 @@ export default function ImagingPage() {
         [variables.fieldName]: true,
       }));
 
-      // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+      // Cancel any outgoing refetches
       await queryClient.cancelQueries({ queryKey: ["/api/medical-images"] });
 
       // Snapshot the previous value
       const previousImages = queryClient.getQueryData(["/api/medical-images"]);
 
-      // Optimistically update the cache
+      // ✨ KEY: Immediately update local state (patients.tsx pattern)
       queryClient.setQueryData(["/api/medical-images"], (old: any[] = []) =>
         old.map((study: any) =>
           study.id?.toString() === variables.studyId
@@ -469,11 +494,17 @@ export default function ImagingPage() {
         ),
       );
 
-      // Return a context object with the snapshot value
+      // Exit edit mode immediately
+      setEditModes((prev) => ({
+        ...prev,
+        [variables.fieldName]: false,
+      }));
+
+      // Return context for rollback
       return { previousImages };
     },
     onError: (err, variables, context) => {
-      // If the mutation fails, use the context returned from onMutate to roll back
+      // Rollback on error
       if (context?.previousImages) {
         queryClient.setQueryData(
           ["/api/medical-images"],
@@ -481,19 +512,19 @@ export default function ImagingPage() {
         );
       }
 
+      // Re-enter edit mode on error
+      setEditModes((prev) => ({
+        ...prev,
+        [variables.fieldName]: true,
+      }));
+
       toast({
         title: "Update Failed",
-        description: "Failed to update date. Please try again.",
+        description: "Failed to update field. Please try again.",
         variant: "destructive",
       });
     },
     onSuccess: (data, variables) => {
-      // Exit edit mode
-      setEditModes((prev) => ({
-        ...prev,
-        [variables.fieldName]: false,
-      }));
-
       // Create appropriate success message based on field type
       let title = "Field Updated";
       let description = "";
@@ -526,7 +557,7 @@ export default function ImagingPage() {
         [variables.fieldName]: false,
       }));
 
-      // Always refetch after error or success to ensure we have the latest data
+      // Refetch to ensure data consistency
       queryClient.invalidateQueries({ queryKey: ["/api/medical-images"] });
     },
   });
