@@ -389,15 +389,31 @@ export default function ImagingPage() {
       );
       return response.json();
     },
-    onSuccess: (data, variables) => {
+    onSuccess: async (data, variables) => {
       // Exit edit mode
       setEditModes((prev) => ({
         ...prev,
         [variables.fieldName]: false,
       }));
 
-      // Invalidate related queries to refresh the data
-      queryClient.invalidateQueries({ queryKey: ["/api/medical-images"] });
+      // Refetch the data and update selectedStudy with fresh data
+      await queryClient.refetchQueries({ queryKey: ["/api/medical-images"] });
+      
+      // Update selectedStudy with fresh data if it's currently selected
+      if (selectedStudy) {
+        const updatedImages = queryClient.getQueryData(["/api/medical-images"]) as any[];
+        if (updatedImages && Array.isArray(updatedImages)) {
+          const updatedStudyData = updatedImages.find((img: any) => img.id.toString() === selectedStudy.id);
+          if (updatedStudyData) {
+            const freshStudy = {
+              ...selectedStudy,
+              scheduledAt: updatedStudyData.scheduledAt,
+              performedAt: updatedStudyData.performedAt,
+            };
+            setSelectedStudy(freshStudy);
+          }
+        }
+      }
 
       toast({
         title: "Date Updated",
