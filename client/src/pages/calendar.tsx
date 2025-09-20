@@ -602,42 +602,79 @@ export default function CalendarPage() {
       />
       
       <div className="flex-1 overflow-auto p-6">
+        {/* Header Section */}
         <div className="mb-6 flex justify-between items-center">
-          <div>
+          <div className="flex items-center gap-4">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
               <Calendar className="h-5 w-5 text-gray-900 dark:text-white" />
-              Calendar & Scheduling
+              Appointment Calendar
+            </h3>
+            
+            {/* View Toggle Buttons */}
+            <div className="flex items-center gap-2">
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
                 onClick={() => {
-                  setShowFilterPanel(!showFilterPanel);
-                  if (showFilterPanel) {
-                    // Reset filter when closing
-                    setFilterSpecialty("");
-                    setFilterSubSpecialty("");
-                    setFilterDoctor("");
-                    setFilterDate(undefined);
-                    setFilteredAppointments([]);
-                  }
+                  // Add refresh functionality
+                  queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
+                  toast({
+                    title: "Refreshed",
+                    description: "Calendar data has been refreshed.",
+                  });
                 }}
-                className="ml-2"
-                data-testid="button-filter-appointments"
+                data-testid="button-refresh"
               >
-                {showFilterPanel ? (
-                  <FilterX className="h-4 w-4" />
-                ) : (
-                  <Filter className="h-4 w-4" />
-                )}
+                Refresh
               </Button>
-            </h3>
-            <p className="text-sm text-neutral-600 dark:text-neutral-300">
-              {showFilterPanel 
-                ? "Use filters to find specific appointments by doctor, specialty, or date."
-                : "View appointments, manage schedules, and book new consultations."
-              }
-            </p>
+              <Button
+                variant="default"
+                size="sm"
+                data-testid="button-month"
+              >
+                Month
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                data-testid="button-week"
+              >
+                Week
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                data-testid="button-day"
+              >
+                Day
+              </Button>
+            </div>
+            
+            {/* Filter Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setShowFilterPanel(!showFilterPanel);
+                if (showFilterPanel) {
+                  // Reset filter when closing
+                  setFilterSpecialty("");
+                  setFilterSubSpecialty("");
+                  setFilterDoctor("");
+                  setFilterDate(undefined);
+                  setFilteredAppointments([]);
+                }
+              }}
+              data-testid="button-filter-appointments"
+            >
+              {showFilterPanel ? (
+                <FilterX className="h-4 w-4" />
+              ) : (
+                <Filter className="h-4 w-4" />
+              )}
+            </Button>
           </div>
+          
           <Button 
             onClick={() => setShowNewAppointmentModal(true)}
             className="flex items-center gap-2"
@@ -646,6 +683,16 @@ export default function CalendarPage() {
             <Plus className="h-4 w-4" />
             New Appointment
           </Button>
+        </div>
+
+        {/* Subtitle */}
+        <div className="mb-6">
+          <p className="text-sm text-neutral-600 dark:text-neutral-300">
+            {showFilterPanel 
+              ? "Use filters to find specific appointments by doctor, specialty, or date."
+              : "View appointments, manage schedules, and book new consultations."
+            }
+          </p>
         </div>
 
         {/* Filter Panel */}
