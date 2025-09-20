@@ -6874,6 +6874,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/medical-images/:id", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const imageId = parseInt(req.params.id);
+      if (isNaN(imageId)) {
+        return res.status(400).json({ error: "Invalid image ID" });
+      }
+
+      // Validate update data - allow updating scheduledAt and performedAt
+      const updateData = z.object({
+        scheduledAt: z.string().optional(),
+        performedAt: z.string().optional(),
+      }).parse(req.body);
+
+      const success = await storage.updateMedicalImage(imageId, req.tenant!.id, updateData);
+      if (!success) {
+        return res.status(404).json({ error: "Medical image not found" });
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error updating medical image:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: error.errors.map(e => `${e.path.join('.')}: ${e.message}`)
+        });
+      }
+      res.status(500).json({ error: "Failed to update medical image" });
+    }
+  });
+
   // Lab Results API endpoints (Database-driven)
   app.get("/api/lab-results", authMiddleware, async (req: TenantRequest, res) => {
     try {
