@@ -5785,19 +5785,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get photos from database with proper tenant filtering
       const photos = await storage.getClinicalPhotosByOrganization(req.tenant!.id);
       
-      // Transform database format to frontend format
-      const transformedPhotos = photos.map(photo => ({
-        id: photo.id.toString(),
-        patientId: photo.patientId.toString(),
-        patientName: 'Patient', // We'll need to fetch patient name separately if needed
-        type: photo.type,
-        filename: photo.fileName,
-        description: photo.description || 'Clinical photo',
-        url: `/uploads/wound_assessment/${photo.fileName}`,
-        dateTaken: photo.createdAt.toISOString(),
-        metadata: photo.metadata || {},
-        annotations: [],
-        createdAt: photo.createdAt.toISOString()
+      // Transform database format to frontend format with patient names
+      const transformedPhotos = await Promise.all(photos.map(async photo => {
+        // Look up patient name using patientId
+        const patient = await storage.getPatient(photo.patientId, req.tenant!.id);
+        const patientName = patient ? `${patient.firstName} ${patient.lastName}` : 'Unknown Patient';
+        
+        return {
+          id: photo.id.toString(),
+          patientId: photo.patientId.toString(),
+          patientName: patientName,
+          type: photo.type,
+          filename: photo.fileName,
+          description: photo.description || 'Clinical photo',
+          url: `/uploads/wound_assessment/${photo.fileName}`,
+          dateTaken: photo.createdAt.toISOString(),
+          metadata: photo.metadata || {},
+          annotations: [],
+          createdAt: photo.createdAt.toISOString()
+        };
       }));
 
       res.json(transformedPhotos);
