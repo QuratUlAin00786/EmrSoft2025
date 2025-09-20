@@ -1363,7 +1363,7 @@ export default function ImagingPage() {
                               className="h-6 w-6 p-0 hover:bg-gray-100 dark:hover:bg-slate-600"
                               data-testid="button-edit-status-header"
                             >
-                              <Edit className="h-3 w-3" />
+                              <Edit className="h-3 w-3 text-gray-400" />
                             </Button>
                           </div>
                         )}
@@ -1416,7 +1416,7 @@ export default function ImagingPage() {
                               className="h-6 w-6 p-0 hover:bg-gray-100 dark:hover:bg-slate-600"
                               data-testid="button-edit-priority-header"
                             >
-                              <Edit className="h-3 w-3" />
+                              <Edit className="h-3 w-3 text-gray-400" />
                             </Button>
                           </div>
                         )}
@@ -1535,7 +1535,7 @@ export default function ImagingPage() {
                                     className="h-6 w-6 p-0"
                                     data-testid="button-edit-scheduled-date"
                                   >
-                                    <Edit className="h-3 w-3" />
+                                    <Edit className="h-3 w-3 text-gray-400" />
                                   </Button>
                                 </div>
                               )}
@@ -1617,7 +1617,7 @@ export default function ImagingPage() {
                                     className="h-6 w-6 p-0"
                                     data-testid="button-edit-performed-date"
                                   >
-                                    <Edit className="h-3 w-3" />
+                                    <Edit className="h-3 w-3 text-gray-400" />
                                   </Button>
                                 </div>
                               )}
