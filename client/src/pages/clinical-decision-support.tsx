@@ -42,6 +42,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { useAiInsightsEvents } from "@/hooks/use-ai-insights-events";
 
 // Use the actual database schema for form validation, excluding server-managed fields
 const createInsightSchema = insertAiInsightSchema.omit({
@@ -84,6 +85,9 @@ export default function ClinicalDecisionSupport() {
   const [buttonLoadingStates, setButtonLoadingStates] = useState<Record<string, string | null>>({});
   const { toast } = useToast();
   const [location, setLocation] = useLocation();
+
+  // Connect to SSE for real-time AI insight updates
+  const { connected: sseConnected } = useAiInsightsEvents();
 
   // Form for creating insights
   const form = useForm<CreateInsightForm>({
