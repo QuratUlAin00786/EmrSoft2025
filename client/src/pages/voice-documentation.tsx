@@ -186,6 +186,8 @@ export default function VoiceDocumentation() {
     useState<boolean>(false);
   const [showPhotoTypeDropdown, setShowPhotoTypeDropdown] =
     useState<boolean>(false);
+  const [deleteConfirmDialogOpen, setDeleteConfirmDialogOpen] = useState(false);
+  const [photoToDelete, setPhotoToDelete] = useState<any>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const { toast } = useToast();
 
@@ -1361,7 +1363,7 @@ export default function VoiceDocumentation() {
                               filteredPatients.map((patient: any) => (
                                 <div
                                   key={patient.id}
-                                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer text-sm"
+                                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer text-lg"
                                   onClick={() => {
                                     setSelectedPhotoPatient(
                                       patient.id.toString(),
@@ -2837,14 +2839,8 @@ export default function VoiceDocumentation() {
                           size="sm"
                           variant="destructive"
                           onClick={() => {
-                            // Confirm deletion
-                            if (
-                              window.confirm(
-                                `Are you sure you want to delete this photo for ${photo.patientName}? This action cannot be undone.`,
-                              )
-                            ) {
-                              deletePhotoMutation.mutate(photo.id);
-                            }
+                            setPhotoToDelete(photo);
+                            setDeleteConfirmDialogOpen(true);
                           }}
                           disabled={deletePhotoMutation.isPending}
                         >
@@ -3756,6 +3752,46 @@ export default function VoiceDocumentation() {
                 </Button>
               </div>
             </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={deleteConfirmDialogOpen} onOpenChange={setDeleteConfirmDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Confirm Deletion</DialogTitle>
+            </DialogHeader>
+            {photoToDelete && (
+              <div className="space-y-4">
+                <p className="text-sm text-gray-600">
+                  Are you sure you want to delete this photo for <strong>{photoToDelete.patientName}</strong>? This action cannot be undone.
+                </p>
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setDeleteConfirmDialogOpen(false);
+                      setPhotoToDelete(null);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={() => {
+                      if (photoToDelete) {
+                        deletePhotoMutation.mutate(photoToDelete.id);
+                        setDeleteConfirmDialogOpen(false);
+                        setPhotoToDelete(null);
+                      }
+                    }}
+                    disabled={deletePhotoMutation.isPending}
+                  >
+                    OK
+                  </Button>
+                </div>
+              </div>
+            )}
           </DialogContent>
         </Dialog>
       </div>
