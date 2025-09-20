@@ -1619,7 +1619,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const patientId = parseInt(req.params.id);
       
       const reminderData = z.object({
-        type: z.enum(["appointment_reminder", "medication_reminder", "follow_up_reminder"]).default("appointment_reminder"),
+        type: z.enum(["appointment_reminder", "medication_reminder", "follow_up_reminder", "emergency_alert", "preventive_care"]).default("appointment_reminder"),
         message: z.string().optional(),
         method: z.enum(["email", "sms", "whatsapp", "system"]).default("system")
       }).parse(req.body);
@@ -1658,16 +1658,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } catch (error) {
           console.error(`❌ Error sending ${reminderData.method.toUpperCase()} to ${patient.phone}:`, error);
         }
-      } else if (reminderData.method === 'email') {
-        // Email functionality could be implemented here
-        console.log(`📧 Email reminder would be sent to: ${patient.email}`);
+      } else if (reminderData.method === 'email' && patient.email) {
+        try {
+          const messageText = reminderData.message || `Hi ${patient.firstName}, this is a reminder from your healthcare provider.`;
+          
+          const emailResult = await emailService.sendGeneralReminder(
+            patient.email,
+            `${patient.firstName} ${patient.lastName}`,
+            reminderData.type,
+            messageText
+          );
+          
+          if (emailResult) {
+            messageSent = true;
+            console.log(`✅ EMAIL successfully sent to ${patient.email}`);
+          } else {
+            console.error(`❌ Failed to send EMAIL to ${patient.email}`);
+          }
+        } catch (error) {
+          console.error(`❌ Error sending EMAIL to ${patient.email}:`, error);
+        }
       }
 
       res.json({ 
         success: true, 
         message: messageSent ? 
           `${reminderData.method.toUpperCase()} reminder successfully sent to ${patient.firstName} ${patient.lastName}` :
-          `Reminder logged for ${patient.firstName} ${patient.lastName} (${!patient.phone ? 'No phone number available' : 'System notification only'})`,
+          `Reminder logged for ${patient.firstName} ${patient.lastName} (${reminderData.method === 'email' && !patient.email ? 'No email address available' : !patient.phone ? 'No phone number available' : 'System notification only'})`,
         patientId,
         reminderType: reminderData.type,
         messageSent,

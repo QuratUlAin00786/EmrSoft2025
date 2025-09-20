@@ -440,6 +440,83 @@ Cura EMR Team
     });
   }
 
+  // Template for general reminders (medication, follow-up, etc.)
+  generateGeneralReminderEmail(patientName: string, reminderType: string, message: string): EmailTemplate {
+    const typeLabels: Record<string, string> = {
+      'appointment_reminder': 'Appointment Reminder',
+      'medication_reminder': 'Medication Reminder', 
+      'follow_up_reminder': 'Follow-up Reminder',
+      'emergency_alert': 'Emergency Alert',
+      'preventive_care': 'Preventive Care Reminder'
+    };
+    
+    const subject = `${typeLabels[reminderType] || 'Healthcare Reminder'} - Cura EMR`;
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background-color: #4F46E5; color: white; padding: 20px; text-align: center; }
+          .content { padding: 20px; background-color: #f9f9f9; }
+          .reminder-details { background-color: white; padding: 15px; border-radius: 5px; margin: 20px 0; }
+          .footer { text-align: center; color: #666; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Cura EMR</h1>
+            <h2>${typeLabels[reminderType] || 'Healthcare Reminder'}</h2>
+          </div>
+          <div class="content">
+            <p>Dear ${patientName},</p>
+            
+            <div class="reminder-details">
+              <h3>Reminder Message</h3>
+              <p>${message}</p>
+            </div>
+            
+            <p>If you have any questions or need to reschedule, please contact your healthcare provider.</p>
+            
+            <p>Best regards,<br>Cura EMR Team</p>
+          </div>
+          <div class="footer">
+            <p>© 2025 Cura EMR by Halo Group. All rights reserved.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+    
+    const text = `
+Dear ${patientName},
+
+${typeLabels[reminderType] || 'Healthcare Reminder'}
+
+${message}
+
+If you have any questions or need to reschedule, please contact your healthcare provider.
+
+Best regards,
+Cura EMR Team
+    `;
+
+    return { subject, html, text };
+  }
+
+  // Send general reminder
+  async sendGeneralReminder(patientEmail: string, patientName: string, reminderType: string, message: string): Promise<boolean> {
+    const template = this.generateGeneralReminderEmail(patientName, reminderType, message);
+    return this.sendEmail({
+      to: patientEmail,
+      subject: template.subject,
+      html: template.html,
+      text: template.text
+    });
+  }
+
   // Template for prescription PDF emails with clinic logo in header and Cura logo in footer
   generatePrescriptionEmail(
     patientName: string, 
