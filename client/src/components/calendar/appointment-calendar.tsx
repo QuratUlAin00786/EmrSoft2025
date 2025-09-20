@@ -507,6 +507,14 @@ Medical License: [License Number]
             >
               Next
             </Button>
+            <Button 
+              onClick={() => setShowNewAppointmentModal(true)}
+              className="flex items-center gap-2"
+              data-testid="button-new-appointment"
+            >
+              <Plus className="h-3 w-3" />
+              New Appointment
+            </Button>
           </div>
         </div>
       </div>
