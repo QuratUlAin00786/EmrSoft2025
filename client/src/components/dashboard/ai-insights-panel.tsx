@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
 import { apiRequest } from "@/lib/queryClient";
+import { useLocation } from "wouter";
 import type { AiInsight, Patient } from "@/types";
 
 const insightIcons = {
@@ -41,6 +42,7 @@ const insightColors = {
 
 export function AiInsightsPanel() {
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
   const [selectedInsight, setSelectedInsight] = useState<AiInsight | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
@@ -131,7 +133,7 @@ export function AiInsightsPanel() {
             </Badge>
           </CardTitle>
         </CardHeader>
-        <CardContent className="flex items-center justify-center h-48">
+        <CardContent className="flex items-center justify-center h-[300px]">
           <LoadingSpinner />
         </CardContent>
       </Card>
@@ -147,7 +149,7 @@ export function AiInsightsPanel() {
             <Badge variant="secondary">Unavailable</Badge>
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="h-[300px] flex items-center justify-center">
           <p className="text-neutral-600 text-center py-8">
             Unable to load AI insights. Please try again later.
           </p>
@@ -168,7 +170,7 @@ export function AiInsightsPanel() {
             </Badge>
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="h-[300px] flex items-center justify-center">
           <p className="text-neutral-600 text-center py-8">
             No AI insights available at the moment.
           </p>
@@ -188,7 +190,7 @@ export function AiInsightsPanel() {
           </Badge>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 h-[300px] overflow-y-auto">
         {insights.slice(0, 3).map((insight) => {
           const IconComponent = insightIcons[insight.type] || Lightbulb;
           const colors = insightColors[insight.type] || insightColors.risk_alert;
@@ -241,19 +243,18 @@ export function AiInsightsPanel() {
           );
         })}
         
-        {insights.length > 3 && (
-          <div className="text-center pt-4">
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => {
-                window.location.href = "/ai-insights";
-              }}
-            >
-              View All Insights ({insights.length})
-            </Button>
-          </div>
-        )}
+        <div className="text-center pt-4">
+          <Button 
+            variant="link" 
+            size="sm"
+            className="text-medical-blue hover:text-blue-700"
+            onClick={() => {
+              setLocation("/clinical-decision-support");
+            }}
+          >
+            View More
+          </Button>
+        </div>
       </CardContent>
       
       {/* Details Dialog */}
