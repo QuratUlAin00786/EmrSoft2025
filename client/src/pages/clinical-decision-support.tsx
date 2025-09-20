@@ -443,17 +443,30 @@ export default function ClinicalDecisionSupport() {
     try {
       setButtonLoadingStates(prev => ({ ...prev, [buttonKey]: buttonType }));
       
+      // Optimistic update - immediately update the UI
+      queryClient.setQueryData(["/api/ai-insights"], (oldData: any) => {
+        if (!oldData) return oldData;
+        return oldData.map((insight: any) => 
+          insight.id.toString() === insightId 
+            ? { ...insight, aiStatus }
+            : insight
+        );
+      });
+      
       await apiRequest("PATCH", `/api/ai/insights/${insightId}`, { aiStatus });
       
+      // Refresh the data to ensure consistency
       queryClient.invalidateQueries({ queryKey: ["/api/ai-insights"] });
       toast({ 
-        title: "Insight updated successfully", 
-        description: `AI Status changed to ${aiStatus}` 
+        title: "Status updated successfully", 
+        description: `Status changed to ${aiStatus}` 
       });
     } catch (error: any) {
+      // Revert optimistic update on error
+      queryClient.invalidateQueries({ queryKey: ["/api/ai-insights"] });
       toast({
         title: "Update Failed",
-        description: error.message || "Failed to update insight",
+        description: error.message || "Failed to update status",
         variant: "destructive"
       });
     } finally {
@@ -987,7 +1000,7 @@ export default function ClinicalDecisionSupport() {
 
                   <div className="flex justify-between items-center pt-2">
                     <div>
-                      <h4 className="font-medium text-sm mb-1">AI Status</h4>
+                      <h4 className="font-medium text-sm mb-1">Status</h4>
                       <Badge 
                         variant={insight.aiStatus === 'reviewed' ? 'default' : insight.aiStatus === 'implemented' ? 'secondary' : insight.aiStatus === 'dismissed' ? 'outline' : 'destructive'}
                         className="text-xs"
