@@ -28,6 +28,84 @@ import * as fs from 'fs-extra';
 // In-memory storage for voice notes - persistent across server restarts
 let voiceNotes: any[] = [];
 
+// Server-Sent Events broadcaster for real-time AI insight updates
+interface AiInsightSSEEvent {
+  type: 'ai_insight.status_updated';
+  id: string;
+  patientId: string;
+  status: string;
+  previousStatus?: string;
+  updatedAt: string;
+  organizationId: number;
+}
+
+class AiInsightSSEBroadcaster {
+  private connections: Map<number, Set<express.Response>> = new Map();
+
+  addConnection(organizationId: number, res: express.Response) {
+    if (!this.connections.has(organizationId)) {
+      this.connections.set(organizationId, new Set());
+    }
+    this.connections.get(organizationId)!.add(res);
+    
+    console.log(`[SSE] Added connection for organization ${organizationId}. Total connections: ${this.connections.get(organizationId)!.size}`);
+    
+    // Remove connection on close
+    res.on('close', () => {
+      this.removeConnection(organizationId, res);
+    });
+  }
+
+  removeConnection(organizationId: number, res: express.Response) {
+    const orgConnections = this.connections.get(organizationId);
+    if (orgConnections) {
+      orgConnections.delete(res);
+      if (orgConnections.size === 0) {
+        this.connections.delete(organizationId);
+      }
+      console.log(`[SSE] Removed connection for organization ${organizationId}. Remaining connections: ${orgConnections.size}`);
+    }
+  }
+
+  broadcast(organizationId: number, event: AiInsightSSEEvent) {
+    const orgConnections = this.connections.get(organizationId);
+    if (!orgConnections || orgConnections.size === 0) {
+      console.log(`[SSE] No connections for organization ${organizationId}, skipping broadcast`);
+      return;
+    }
+
+    const eventId = uuidv4();
+    const eventData = JSON.stringify(event);
+    const sseData = `id: ${eventId}\nevent: ai_insight.status_updated\ndata: ${eventData}\n\n`;
+
+    const deadConnections: express.Response[] = [];
+    
+    orgConnections.forEach((res) => {
+      try {
+        if (!res.headersSent && !res.destroyed) {
+          res.write(sseData);
+          console.log(`[SSE] Broadcasted event to organization ${organizationId}:`, event.type);
+        } else {
+          deadConnections.push(res);
+        }
+      } catch (error) {
+        console.error(`[SSE] Error broadcasting to connection:`, error);
+        deadConnections.push(res);
+      }
+    });
+
+    // Clean up dead connections
+    deadConnections.forEach(res => this.removeConnection(organizationId, res));
+  }
+
+  getConnectionCount(organizationId: number): number {
+    return this.connections.get(organizationId)?.size || 0;
+  }
+}
+
+// Global SSE broadcaster instance
+const aiInsightBroadcaster = new AiInsightSSEBroadcaster();
+
 // Enhanced error handling helper to distinguish different error types
 function handleRouteError(error: any, operation: string, res: express.Response) {
   // Handle Zod validation errors (return 400)
@@ -3143,16 +3221,95 @@ export async function registerRoutes(app: Express): Promise<Server> {
         aiStatus: z.enum(["pending", "reviewed", "implemented", "dismissed"]).optional()
       }).parse(req.body);
 
+      // Get the current insight to track status changes
+      const currentInsight = await storage.getAiInsight(insightId, req.tenant!.id);
+      if (!currentInsight) {
+        return res.status(404).json({ error: "AI insight not found" });
+      }
+
       const insight = await storage.updateAiInsight(insightId, req.tenant!.id, updateData);
       
       if (!insight) {
         return res.status(404).json({ error: "AI insight not found" });
       }
 
+      // Emit SSE event if aiStatus was updated
+      if (updateData.aiStatus && updateData.aiStatus !== currentInsight.aiStatus) {
+        const sseEvent: AiInsightSSEEvent = {
+          type: 'ai_insight.status_updated',
+          id: insight.id.toString(),
+          patientId: insight.patientId.toString(),
+          status: updateData.aiStatus,
+          previousStatus: currentInsight.aiStatus || 'pending',
+          updatedAt: new Date().toISOString(),
+          organizationId: req.tenant!.id
+        };
+
+        aiInsightBroadcaster.broadcast(req.tenant!.id, sseEvent);
+        console.log(`[SSE] Emitted status update event for insight ${insight.id}: ${currentInsight.aiStatus} -> ${updateData.aiStatus}`);
+      }
+
       res.json(insight);
     } catch (error) {
       console.error("AI insight update error:", error);
       res.status(500).json({ error: "Failed to update AI insight" });
+    }
+  });
+
+  // Server-Sent Events endpoint for real-time AI insight updates
+  app.get("/api/ai-insights/events", requireRole(["doctor", "nurse", "admin"]), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = req.tenant!.id;
+      
+      // Set SSE headers
+      res.writeHead(200, {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Cache-Control',
+        'X-Accel-Buffering': 'no' // Disable nginx buffering for SSE
+      });
+
+      // Add connection to broadcaster
+      aiInsightBroadcaster.addConnection(organizationId, res);
+
+      // Send initial connection event
+      const connectEventId = uuidv4();
+      res.write(`id: ${connectEventId}\nevent: connected\ndata: {"message":"Connected to AI insights updates"}\n\n`);
+
+      // Send heartbeat every 30 seconds to keep connection alive
+      const heartbeatInterval = setInterval(() => {
+        if (!res.destroyed && !res.headersSent) {
+          try {
+            res.write(`: heartbeat ${Date.now()}\n\n`);
+          } catch (error) {
+            console.error('[SSE] Heartbeat error:', error);
+            clearInterval(heartbeatInterval);
+          }
+        } else {
+          clearInterval(heartbeatInterval);
+        }
+      }, 30000);
+
+      // Clean up on client disconnect
+      req.on('close', () => {
+        clearInterval(heartbeatInterval);
+        aiInsightBroadcaster.removeConnection(organizationId, res);
+        console.log(`[SSE] Client disconnected from organization ${organizationId}`);
+      });
+
+      req.on('aborted', () => {
+        clearInterval(heartbeatInterval);
+        aiInsightBroadcaster.removeConnection(organizationId, res);
+        console.log(`[SSE] Client aborted connection from organization ${organizationId}`);
+      });
+
+      console.log(`[SSE] Client connected to AI insights events for organization ${organizationId}`);
+      
+    } catch (error) {
+      console.error('[SSE] Error setting up SSE connection:', error);
+      res.status(500).json({ error: 'Failed to establish SSE connection' });
     }
   });
 
