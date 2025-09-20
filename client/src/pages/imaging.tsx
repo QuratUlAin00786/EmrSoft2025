@@ -213,7 +213,8 @@ export default function ImagingPage() {
   const [showViewDialog, setShowViewDialog] = useState(false);
   const [showFinalReportDialog, setShowFinalReportDialog] = useState(false);
   const [showUploadDialog, setShowUploadDialog] = useState(false);
-  const [showFileNotAvailableDialog, setShowFileNotAvailableDialog] = useState(false);
+  const [showFileNotAvailableDialog, setShowFileNotAvailableDialog] =
+    useState(false);
   const [modalityFilter, setModalityFilter] = useState<string>("all");
   const [selectedStudyId, setSelectedStudyId] = useState<string | null>(null);
   const [shareFormData, setShareFormData] = useState({
@@ -235,6 +236,7 @@ export default function ImagingPage() {
     radiologist: false,
     scheduledAt: false,
     performedAt: false,
+    status: false,
   });
 
   // Saving states for individual fields
@@ -244,11 +246,19 @@ export default function ImagingPage() {
     radiologist: false,
     scheduledAt: false,
     performedAt: false,
+    status: false,
   });
 
   // Date states for editing
-  const [scheduledDate, setScheduledDate] = useState<Date | undefined>(undefined);
-  const [performedDate, setPerformedDate] = useState<Date | undefined>(undefined);
+  const [scheduledDate, setScheduledDate] = useState<Date | undefined>(
+    undefined,
+  );
+  const [performedDate, setPerformedDate] = useState<Date | undefined>(
+    undefined,
+  );
+
+  // Status state for editing
+  const [editingStatus, setEditingStatus] = useState<string>("");
 
   const [generatedReportId, setGeneratedReportId] = useState<string | null>(
     null,
@@ -304,9 +314,11 @@ export default function ImagingPage() {
   // Derive selectedStudy from React Query cache (single source of truth)
   const selectedStudy = useMemo(() => {
     if (!selectedStudyId) return null;
-    const study = medicalImages.find((img: any) => img.id?.toString() === selectedStudyId);
+    const study = medicalImages.find(
+      (img: any) => img.id?.toString() === selectedStudyId,
+    );
     if (!study) return null;
-    
+
     return {
       id: study.id.toString(),
       patientId: study.patientId,
@@ -322,19 +334,23 @@ export default function ImagingPage() {
       priority: study.priority || "routine",
       indication: study.indication || "No indication provided",
       findings: study.findings || `Medical image uploaded: ${study.fileName}`,
-      impression: study.impression || `File: ${study.fileName} (${(study.fileSize / (1024 * 1024)).toFixed(2)} MB)`,
+      impression:
+        study.impression ||
+        `File: ${study.fileName} (${(study.fileSize / (1024 * 1024)).toFixed(2)} MB)`,
       radiologist: study.radiologist || study.uploadedByName || "Unknown",
       reportFileName: study.reportFileName,
       reportFilePath: study.reportFilePath,
-      images: [{
-        id: study.id.toString(),
-        type: study.mimeType?.includes("jpeg") ? "JPEG" : "DICOM",
-        seriesDescription: `${study.modality} ${study.bodyPart}`,
-        imageCount: 1,
-        size: `${(study.fileSize / (1024 * 1024)).toFixed(2)} MB`,
-        imageData: study.imageData,
-        mimeType: study.mimeType,
-      }],
+      images: [
+        {
+          id: study.id.toString(),
+          type: study.mimeType?.includes("jpeg") ? "JPEG" : "DICOM",
+          seriesDescription: `${study.modality} ${study.bodyPart}`,
+          imageCount: 1,
+          size: `${(study.fileSize / (1024 * 1024)).toFixed(2)} MB`,
+          imageData: study.imageData,
+          mimeType: study.mimeType,
+        },
+      ],
     };
   }, [medicalImages, selectedStudyId]);
 
@@ -444,8 +460,8 @@ export default function ImagingPage() {
         old.map((study: any) =>
           study.id?.toString() === variables.studyId
             ? { ...study, [variables.fieldName]: variables.value }
-            : study
-        )
+            : study,
+        ),
       );
 
       // Return a context object with the snapshot value
@@ -454,7 +470,10 @@ export default function ImagingPage() {
     onError: (err, variables, context) => {
       // If the mutation fails, use the context returned from onMutate to roll back
       if (context?.previousImages) {
-        queryClient.setQueryData(["/api/medical-images"], context.previousImages);
+        queryClient.setQueryData(
+          ["/api/medical-images"],
+          context.previousImages,
+        );
       }
 
       toast({
@@ -489,24 +508,46 @@ export default function ImagingPage() {
 
   // Helper functions for individual field editing
   const handleFieldEdit = (
-    fieldName: "findings" | "impression" | "radiologist" | "scheduledAt" | "performedAt",
+    fieldName:
+      | "findings"
+      | "impression"
+      | "radiologist"
+      | "scheduledAt"
+      | "performedAt"
+      | "status",
   ) => {
     setEditModes((prev) => ({
       ...prev,
       [fieldName]: true,
     }));
-    
-    // Initialize date states when entering edit mode
+
+    // Initialize date and status states when entering edit mode
     if (selectedStudy) {
       if (fieldName === "scheduledAt")
-        setScheduledDate(selectedStudy.scheduledAt ? new Date(selectedStudy.scheduledAt) : undefined);
+        setScheduledDate(
+          selectedStudy.scheduledAt
+            ? new Date(selectedStudy.scheduledAt)
+            : undefined,
+        );
       if (fieldName === "performedAt")
-        setPerformedDate(selectedStudy.performedAt ? new Date(selectedStudy.performedAt) : undefined);
+        setPerformedDate(
+          selectedStudy.performedAt
+            ? new Date(selectedStudy.performedAt)
+            : undefined,
+        );
+      if (fieldName === "status")
+        setEditingStatus(selectedStudy.status || "ordered");
     }
   };
 
   const handleFieldCancel = (
-    fieldName: "findings" | "impression" | "radiologist" | "scheduledAt" | "performedAt",
+    fieldName:
+      | "findings"
+      | "impression"
+      | "radiologist"
+      | "scheduledAt"
+      | "performedAt"
+      | "status",
   ) => {
     setEditModes((prev) => ({
       ...prev,
@@ -522,14 +563,30 @@ export default function ImagingPage() {
       if (fieldName === "radiologist")
         setReportRadiologist(selectedStudy.radiologist || "Dr. Michael Chen");
       if (fieldName === "scheduledAt")
-        setScheduledDate(selectedStudy.scheduledAt ? new Date(selectedStudy.scheduledAt) : undefined);
+        setScheduledDate(
+          selectedStudy.scheduledAt
+            ? new Date(selectedStudy.scheduledAt)
+            : undefined,
+        );
       if (fieldName === "performedAt")
-        setPerformedDate(selectedStudy.performedAt ? new Date(selectedStudy.performedAt) : undefined);
+        setPerformedDate(
+          selectedStudy.performedAt
+            ? new Date(selectedStudy.performedAt)
+            : undefined,
+        );
+      if (fieldName === "status")
+        setEditingStatus(selectedStudy.status || "ordered");
     }
   };
 
   const handleFieldSave = (
-    fieldName: "findings" | "impression" | "radiologist" | "scheduledAt" | "performedAt",
+    fieldName:
+      | "findings"
+      | "impression"
+      | "radiologist"
+      | "scheduledAt"
+      | "performedAt"
+      | "status",
   ) => {
     if (!selectedStudy) return;
 
@@ -539,8 +596,9 @@ export default function ImagingPage() {
     if (fieldName === "radiologist") value = reportRadiologist;
     if (fieldName === "scheduledAt") value = scheduledDate?.toISOString() || "";
     if (fieldName === "performedAt") value = performedDate?.toISOString() || "";
+    if (fieldName === "status") value = editingStatus;
 
-    if (fieldName === "scheduledAt" || fieldName === "performedAt") {
+    if (fieldName === "scheduledAt" || fieldName === "performedAt" || fieldName === "status") {
       updateDateMutation.mutate({
         studyId: selectedStudy.id,
         fieldName,
@@ -1105,7 +1163,6 @@ export default function ImagingPage() {
                       8
                     </p>
                   </div>
-                 
                 </div>
               </CardContent>
             </Card>
@@ -1217,7 +1274,7 @@ export default function ImagingPage() {
                       <div className="flex items-center gap-3 mb-3">
                         <div className="flex items-center gap-2">
                           {getModalityIcon(study.modality)}
-                          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                          <h3 className="text-md font-semibold text-gray-900 dark:text-gray-100">
                             {study.patientName}
                           </h3>
                         </div>
@@ -1231,7 +1288,7 @@ export default function ImagingPage() {
 
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
                         <div>
-                          <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">
+                          <h4 className="font-medium text-md text-gray-700 dark:text-gray-300 mb-2">
                             Study Information
                           </h4>
                           <div className="space-y-1 text-sm text-gray-800 dark:text-gray-200">
@@ -1254,7 +1311,7 @@ export default function ImagingPage() {
                         </div>
 
                         <div>
-                          <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">
+                          <h4 className="font-medium text-md text-gray-700 dark:text-gray-300 mb-2">
                             Timeline
                           </h4>
                           <div className="space-y-1 text-sm text-gray-800 dark:text-gray-200">
@@ -1265,11 +1322,14 @@ export default function ImagingPage() {
                                 "MMM d, yyyy HH:mm",
                               )}
                             </div>
-                            
+
                             {/* Scheduled Date - Editable */}
                             <div className="flex items-center gap-2">
-                              <span><strong>Scheduled:</strong></span>
-                              {selectedStudy?.id === study.id && editModes.scheduledAt ? (
+                              <span>
+                                <strong>Scheduled:</strong>
+                              </span>
+                              {selectedStudy?.id === study.id &&
+                              editModes.scheduledAt ? (
                                 <div className="flex items-center gap-2">
                                   <Popover>
                                     <PopoverTrigger asChild>
@@ -1277,7 +1337,8 @@ export default function ImagingPage() {
                                         variant="outline"
                                         size="sm"
                                         className={`w-auto justify-start text-left font-normal ${
-                                          !scheduledDate && "text-muted-foreground"
+                                          !scheduledDate &&
+                                          "text-muted-foreground"
                                         }`}
                                       >
                                         {scheduledDate ? (
@@ -1298,7 +1359,9 @@ export default function ImagingPage() {
                                   </Popover>
                                   <Button
                                     size="sm"
-                                    onClick={() => handleFieldSave("scheduledAt")}
+                                    onClick={() =>
+                                      handleFieldSave("scheduledAt")
+                                    }
                                     disabled={saving.scheduledAt}
                                     data-testid="button-save-scheduled-date"
                                   >
@@ -1307,7 +1370,9 @@ export default function ImagingPage() {
                                   <Button
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => handleFieldCancel("scheduledAt")}
+                                    onClick={() =>
+                                      handleFieldCancel("scheduledAt")
+                                    }
                                     disabled={saving.scheduledAt}
                                     data-testid="button-cancel-scheduled-date"
                                   >
@@ -1342,8 +1407,11 @@ export default function ImagingPage() {
 
                             {/* Performed Date - Editable */}
                             <div className="flex items-center gap-2">
-                              <span><strong>Performed:</strong></span>
-                              {selectedStudy?.id === study.id && editModes.performedAt ? (
+                              <span>
+                                <strong>Performed:</strong>
+                              </span>
+                              {selectedStudy?.id === study.id &&
+                              editModes.performedAt ? (
                                 <div className="flex items-center gap-2">
                                   <Popover>
                                     <PopoverTrigger asChild>
@@ -1351,7 +1419,8 @@ export default function ImagingPage() {
                                         variant="outline"
                                         size="sm"
                                         className={`w-auto justify-start text-left font-normal ${
-                                          !performedDate && "text-muted-foreground"
+                                          !performedDate &&
+                                          "text-muted-foreground"
                                         }`}
                                       >
                                         {performedDate ? (
@@ -1372,7 +1441,9 @@ export default function ImagingPage() {
                                   </Popover>
                                   <Button
                                     size="sm"
-                                    onClick={() => handleFieldSave("performedAt")}
+                                    onClick={() =>
+                                      handleFieldSave("performedAt")
+                                    }
                                     disabled={saving.performedAt}
                                     data-testid="button-save-performed-date"
                                   >
@@ -1381,7 +1452,9 @@ export default function ImagingPage() {
                                   <Button
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => handleFieldCancel("performedAt")}
+                                    onClick={() =>
+                                      handleFieldCancel("performedAt")
+                                    }
                                     disabled={saving.performedAt}
                                     data-testid="button-cancel-performed-date"
                                   >
@@ -1449,8 +1522,8 @@ export default function ImagingPage() {
                       )}
 
                       {study.findings && (
-                        <div className="bg-blue-50 dark:bg-slate-700 border-l-4 border-blue-400 dark:border-blue-500 p-3 mb-4">
-                          <h4 className="font-medium text-blue-800 dark:text-blue-300 text-sm mb-1">
+                        <div className=" bg-blue-50 dark:bg-slate-700 border-l-4 border-blue-400 dark:border-blue-500 p-5 pr-5  mb-4">
+                          <h4 className="font-medium text-blue-700 dark:text-blue-300 text-md mb-1">
                             Findings
                           </h4>
                           <p className="text-sm text-blue-700 dark:text-blue-200">
@@ -1458,7 +1531,7 @@ export default function ImagingPage() {
                           </p>
                           {study.impression && (
                             <>
-                              <h4 className="font-medium text-blue-800 dark:text-blue-300 text-sm mb-1 mt-2">
+                              <h4 className="font-medium text-blue-00 dark:text-blue-300 text-md mb-1 mt-2">
                                 Impression
                               </h4>
                               <p className="text-sm text-blue-700 dark:text-blue-200">
@@ -1534,9 +1607,13 @@ export default function ImagingPage() {
                                 }
 
                                 // Safely extract report ID with case-insensitive PDF removal
-                                const reportId = study.reportFileName.replace(/\.pdf$/i, "");
-                                
-                                const token = localStorage.getItem("auth_token");
+                                const reportId = study.reportFileName.replace(
+                                  /\.pdf$/i,
+                                  "",
+                                );
+
+                                const token =
+                                  localStorage.getItem("auth_token");
                                 const headers: Record<string, string> = {
                                   "X-Tenant-Subdomain": "demo",
                                 };
@@ -1561,8 +1638,12 @@ export default function ImagingPage() {
                                   return;
                                 } else if (!checkResponse.ok) {
                                   // Other errors during check
-                                  console.error(`Report check failed: Status ${checkResponse.status} for study ${study.id}`);
-                                  throw new Error("Failed to check PDF report availability");
+                                  console.error(
+                                    `Report check failed: Status ${checkResponse.status} for study ${study.id}`,
+                                  );
+                                  throw new Error(
+                                    "Failed to check PDF report availability",
+                                  );
                                 }
 
                                 // File exists, now open it
@@ -1573,7 +1654,10 @@ export default function ImagingPage() {
                                   "width=800,height=600,scrollbars=yes,resizable=yes",
                                 );
                               } catch (error) {
-                                console.error(`Failed to view PDF for study ${study.id}:`, error);
+                                console.error(
+                                  `Failed to view PDF for study ${study.id}:`,
+                                  error,
+                                );
                                 toast({
                                   title: "View Failed",
                                   description:
@@ -2116,12 +2200,19 @@ export default function ImagingPage() {
 
                                   // Update the cache to remove reportFileName, hiding the "Saved Reports" box
                                   if (selectedStudyId) {
-                                    queryClient.setQueryData(["/api/medical-images"], (old: any[] = []) =>
-                                      old.map((study: any) =>
-                                        study.id?.toString() === selectedStudyId
-                                          ? { ...study, reportFileName: undefined, reportFilePath: undefined }
-                                          : study
-                                      )
+                                    queryClient.setQueryData(
+                                      ["/api/medical-images"],
+                                      (old: any[] = []) =>
+                                        old.map((study: any) =>
+                                          study.id?.toString() ===
+                                          selectedStudyId
+                                            ? {
+                                                ...study,
+                                                reportFileName: undefined,
+                                                reportFilePath: undefined,
+                                              }
+                                            : study,
+                                        ),
                                     );
                                   }
 
@@ -2299,21 +2390,76 @@ export default function ImagingPage() {
                     </p>
                   </div>
                   <div className="ml-auto">
-                    <span
-                      className={`px-3 py-1 rounded-full text-sm font-medium ${
-                        selectedStudy.status === "completed"
-                          ? "bg-green-100 text-green-800"
-                          : selectedStudy.status === "in_progress"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : selectedStudy.status === "scheduled"
-                              ? "bg-blue-100 text-blue-800"
-                              : "bg-gray-100 text-gray-800"
-                      }`}
-                    >
-                      {selectedStudy.status?.charAt(0).toUpperCase() +
-                        selectedStudy.status?.slice(1).replace("_", " ") ||
-                        "Unknown"}
-                    </span>
+                    {/* Status - Editable */}
+                    {selectedStudy?.id && editModes.status ? (
+                      <div className="flex items-center gap-2">
+                        <Select value={editingStatus} onValueChange={setEditingStatus}>
+                          <SelectTrigger className="w-40">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="ordered">Ordered</SelectItem>
+                            <SelectItem value="scheduled">Scheduled</SelectItem>
+                            <SelectItem value="in_progress">In Progress</SelectItem>
+                            <SelectItem value="completed">Completed</SelectItem>
+                            <SelectItem value="final">Final</SelectItem>
+                            <SelectItem value="preliminary">Preliminary</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleFieldSave("status")}
+                          disabled={saving.status}
+                          data-testid="button-save-status"
+                        >
+                          {saving.status ? "Saving..." : "Save"}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleFieldCancel("status")}
+                          disabled={saving.status}
+                          data-testid="button-cancel-status"
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`px-3 py-1 rounded-full text-sm font-medium ${
+                            selectedStudy.status === "completed"
+                              ? "bg-green-100 text-green-800"
+                              : selectedStudy.status === "in_progress"
+                                ? "bg-yellow-100 text-yellow-800"
+                                : selectedStudy.status === "scheduled"
+                                  ? "bg-blue-100 text-blue-800"
+                                  : selectedStudy.status === "final"
+                                    ? "bg-green-100 text-green-800"
+                                    : selectedStudy.status === "preliminary"
+                                      ? "bg-yellow-100 text-yellow-800"
+                                      : "bg-gray-100 text-gray-800"
+                          }`}
+                        >
+                          {selectedStudy.status?.charAt(0).toUpperCase() +
+                            selectedStudy.status?.slice(1).replace("_", " ") ||
+                            "Unknown"}
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedStudyId(selectedStudy.id);
+                            handleFieldEdit("status");
+                          }}
+                          className="h-6 w-6 p-0"
+                          data-testid="button-edit-status"
+                        >
+                          <Edit2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -3285,18 +3431,22 @@ export default function ImagingPage() {
       </Dialog>
 
       {/* File Not Available Dialog */}
-      <Dialog open={showFileNotAvailableDialog} onOpenChange={setShowFileNotAvailableDialog}>
+      <Dialog
+        open={showFileNotAvailableDialog}
+        onOpenChange={setShowFileNotAvailableDialog}
+      >
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>File Not Available</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <p className="text-sm text-gray-600 dark:text-gray-300">
-              File is not available on the server — it may have been deleted or not yet created.
+              File is not available on the server — it may have been deleted or
+              not yet created.
             </p>
             <div className="flex justify-end">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => setShowFileNotAvailableDialog(false)}
               >
                 Close
