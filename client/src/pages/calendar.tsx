@@ -173,6 +173,11 @@ export default function CalendarPage() {
   const [filterDoctor, setFilterDoctor] = useState("");
   const [filterDate, setFilterDate] = useState<Date | undefined>(undefined);
   const [filteredAppointments, setFilteredAppointments] = useState<any[]>([]);
+  
+  // Calendar view state
+  const [viewMode, setViewMode] = useState<"month" | "week" | "day">("month");
+  const [currentDate, setCurrentDate] = useState(new Date());
+  
   const [bookingForm, setBookingForm] = useState({
     patientId: "",
     title: "",
@@ -602,51 +607,111 @@ export default function CalendarPage() {
       />
       
       <div className="flex-1 overflow-auto p-6">
-        {/* Header Section */}
-        <div className="mb-6 flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-gray-900 dark:text-white" />
+        {/* First Header Row - Title and View Toggle Buttons */}
+        <div className="mb-4 flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <Calendar className="h-5 w-5 text-gray-900 dark:text-white" />
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
               Appointment Calendar
             </h3>
-            
-            {/* View Toggle Buttons */}
-            <div className="flex items-center gap-2">
+          </div>
+          
+          {/* View Toggle Buttons */}
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                // Add refresh functionality
+                queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
+                toast({
+                  title: "Refreshed",
+                  description: "Calendar data has been refreshed.",
+                });
+              }}
+              data-testid="button-refresh"
+            >
+              Refresh
+            </Button>
+            <Button
+              variant={viewMode === "month" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setViewMode("month")}
+              data-testid="button-month"
+            >
+              Month
+            </Button>
+            <Button
+              variant={viewMode === "week" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setViewMode("week")}
+              data-testid="button-week"
+            >
+              Week
+            </Button>
+            <Button
+              variant={viewMode === "day" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setViewMode("day")}
+              data-testid="button-day"
+            >
+              Day
+            </Button>
+          </div>
+        </div>
+
+        {/* Second Header Row - Calendar Navigation and New Appointment */}
+        <div className="mb-6 flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            <h2 className="text-2xl font-bold text-blue-800">
+              {format(currentDate, "MMMM yyyy")}
+            </h2>
+            <div className="flex space-x-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  // Add refresh functionality
-                  queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
-                  toast({
-                    title: "Refreshed",
-                    description: "Calendar data has been refreshed.",
-                  });
+                  const prevMonth = new Date(currentDate);
+                  if (viewMode === "month") {
+                    prevMonth.setMonth(prevMonth.getMonth() - 1);
+                  } else if (viewMode === "week") {
+                    prevMonth.setDate(prevMonth.getDate() - 7);
+                  } else if (viewMode === "day") {
+                    prevMonth.setDate(prevMonth.getDate() - 1);
+                  }
+                  setCurrentDate(prevMonth);
                 }}
-                data-testid="button-refresh"
+                data-testid="button-previous"
               >
-                Refresh
-              </Button>
-              <Button
-                variant="default"
-                size="sm"
-                data-testid="button-month"
-              >
-                Month
+                Previous
               </Button>
               <Button
                 variant="outline"
                 size="sm"
-                data-testid="button-week"
+                onClick={() => {
+                  setCurrentDate(new Date());
+                }}
+                data-testid="button-today"
               >
-                Week
+                Today
               </Button>
               <Button
                 variant="outline"
                 size="sm"
-                data-testid="button-day"
+                onClick={() => {
+                  const nextMonth = new Date(currentDate);
+                  if (viewMode === "month") {
+                    nextMonth.setMonth(nextMonth.getMonth() + 1);
+                  } else if (viewMode === "week") {
+                    nextMonth.setDate(nextMonth.getDate() + 7);
+                  } else if (viewMode === "day") {
+                    nextMonth.setDate(nextMonth.getDate() + 1);
+                  }
+                  setCurrentDate(nextMonth);
+                }}
+                data-testid="button-next"
               >
-                Day
+                Next
               </Button>
             </div>
             
