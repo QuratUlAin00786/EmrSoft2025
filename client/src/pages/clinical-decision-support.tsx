@@ -445,8 +445,9 @@ export default function ClinicalDecisionSupport() {
       
       await apiRequest("PATCH", `/api/ai/insights/${insightId}`, { aiStatus });
       
-      // Immediately refresh the data to show updates
+      // Force refresh all related queries immediately
       await queryClient.invalidateQueries({ queryKey: ["/api/ai-insights"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/ai-insights"] });
       toast({ 
         title: "Status updated successfully", 
         description: `Status changed to ${aiStatus}` 
