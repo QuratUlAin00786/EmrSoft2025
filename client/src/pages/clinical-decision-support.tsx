@@ -419,8 +419,16 @@ export default function ClinicalDecisionSupport() {
       if (!response.ok) throw new Error("Failed to generate insight");
       return response.json();
     },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/ai-insights"] });
+    onSuccess: async (data) => {
+      // Use comprehensive cache invalidation that matches all AI insights queries
+      await queryClient.invalidateQueries({ 
+        predicate: (query) => Array.isArray(query.queryKey) && query.queryKey[0] === "/api/ai-insights" 
+      });
+      
+      // Force immediate refetch to ensure data displays
+      await queryClient.refetchQueries({ 
+        predicate: (query) => Array.isArray(query.queryKey) && query.queryKey[0] === "/api/ai-insights" 
+      });
       
       if (data.success && data.insights && data.insights.length > 0) {
         const fallbackMessage = data.usingFallbackData ? " (using fallback data)" : "";
