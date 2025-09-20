@@ -393,21 +393,30 @@ export default function VoiceDocumentation() {
         },
         body: JSON.stringify({ transcript }),
       });
+      
       if (!response.ok) {
-        throw new Error("Failed to update voice note");
+        const errorText = await response.text();
+        throw new Error(`Failed to update voice note: ${response.status} ${errorText}`);
       }
-      return response.json();
+      
+      return await response.json();
     },
-    onSuccess: async (data, { noteId }) => {
+    onSuccess: async (data, variables) => {
       toast({ title: "Changes saved successfully!" });
-      console.log("Voice note updated:", noteId);
 
       // Trigger UI refresh by updating the refresh trigger
       setRefreshTrigger((prev) => prev + 1);
       setEditDialogOpen(false);
     },
-    onError: (err, { noteId }) => {
-      toast({ title: "Failed to save changes", variant: "destructive" });
+    onError: (err, variables) => {
+      console.error("Voice note update failed:", err);
+      console.error("Error details:", err.message);
+      console.error("Error stack:", err.stack);
+      toast({ 
+        title: "Failed to save changes", 
+        description: `Error: ${err.message}`,
+        variant: "destructive" 
+      });
     },
   });
 
