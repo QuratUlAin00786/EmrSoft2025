@@ -1613,6 +1613,26 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                   </div>
                 )}
 
+                {/* Display patient flags */}
+                {patient.flags && patient.flags.length > 0 && (
+                  <div className="p-3 bg-white dark:bg-white rounded-md border border-gray-200">
+                    <p className="text-xs font-medium text-gray-700 dark:text-black">Patient Flags</p>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {patient.flags.map((flag: string, index: number) => {
+                        const [category, priority, description] = flag.split(':');
+                        const priorityColor = priority === 'urgent' || priority === 'critical' ? 'destructive' : 
+                                            priority === 'high' ? 'destructive' : 
+                                            priority === 'medium' ? 'default' : 'secondary';
+                        return (
+                          <Badge key={index} variant={priorityColor} className="text-xs">
+                            {priority?.toUpperCase()}: {description || flag}
+                          </Badge>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
                 <div className="space-y-2 mt-4">
                   {/* Primary action buttons - Medical Records prominently featured */}
                   <div className="flex gap-2">
