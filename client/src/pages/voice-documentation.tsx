@@ -2716,7 +2716,7 @@ export default function VoiceDocumentation() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div>
-                        <h4 className="font-medium text-sm mb-2">
+                        <h4 className="font-medium text-md mb-2">
                           Description
                         </h4>
                         <p className="text-sm text-gray-700">
