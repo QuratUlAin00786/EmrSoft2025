@@ -86,6 +86,7 @@ import {
   Check,
   ChevronsUpDown,
   Plus,
+  Edit,
 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -205,6 +206,11 @@ export default function FinancialIntelligence() {
     outOfPocketMet: "",
     coinsurance: "",
   });
+
+  // Edit mode and saving state for claim status updates (like imaging.tsx pattern)
+  const [editModes, setEditModes] = useState<{ [key: string]: boolean }>({});
+  const [saving, setSaving] = useState<{ [key: string]: boolean }>({});
+
   const { toast } = useToast();
 
   // Scroll functionality
