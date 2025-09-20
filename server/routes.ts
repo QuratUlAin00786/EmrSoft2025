@@ -5838,12 +5838,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Ensure the wound_assessment directory exists
       const dir = path.join('uploads', 'wound_assessment');
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-      }
+      await fs.ensureDir(dir);
       
       // Move the uploaded file to the correct location with the proper name
-      fs.renameSync(uploadedFile.path, filePath);
+      await fs.move(uploadedFile.path, filePath, { overwrite: true });
 
       const newPhoto = {
         id: `photo_${Date.now()}`,

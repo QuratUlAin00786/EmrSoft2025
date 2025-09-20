@@ -2121,15 +2121,15 @@ export default function VoiceDocumentation() {
                   {photo.aiAnalysis && (
                     <div>
                       <h4 className="font-medium text-sm mb-2">
-                        AI Analysis ({photo.aiAnalysis.confidence}% confidence)
+                        AI Analysis ({photo.aiAnalysis?.confidence || 0}% confidence)
                       </h4>
                       <div className="space-y-2">
                         <div>
                           <strong className="text-xs">Findings:</strong>
                           <ul className="text-sm list-disc list-inside mt-1">
-                            {photo.aiAnalysis.findings.map((finding, idx) => (
+                            {photo.aiAnalysis?.findings?.map((finding, idx) => (
                               <li key={idx}>{finding}</li>
-                            ))}
+                            )) || <li className="text-gray-500">No findings available</li>}
                           </ul>
                         </div>
                         <div>
@@ -2483,7 +2483,7 @@ export default function VoiceDocumentation() {
                 </div>
                 <div>
                   <div className="text-sm text-gray-500 dark:text-gray-400">AI Analysis</div>
-                  <div className="font-medium text-gray-900 dark:text-gray-100">{selectedPhoto.aiAnalysis.findings.join(', ')}</div>
+                  <div className="font-medium text-gray-900 dark:text-gray-100">{selectedPhoto.aiAnalysis?.findings?.join(', ') || 'No findings available'}</div>
                 </div>
               </div>
               <div className="flex justify-end gap-2">
