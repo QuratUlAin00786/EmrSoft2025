@@ -246,9 +246,16 @@ export default function FinancialIntelligence() {
     enabled: true,
   });
 
-  // Fetch claims with forced refetch
-  const { data: claimsResponse, isLoading: claimsLoading, refetch: refetchClaims } = useQuery({
+  // Fetch claims with explicit queryFn to ensure it works
+  const { data: claimsResponse, isLoading: claimsLoading, refetch: refetchClaims, error: claimsError } = useQuery({
     queryKey: ["/api/financial/claims"],
+    queryFn: async () => {
+      console.log("Making claims API request...");
+      const response = await apiRequest("GET", "/api/financial/claims");
+      const data = await response.json();
+      console.log("Claims API response:", data);
+      return data;
+    },
     enabled: true,
     staleTime: 0,
     cacheTime: 0,
