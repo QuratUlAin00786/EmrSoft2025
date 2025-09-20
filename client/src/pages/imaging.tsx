@@ -396,24 +396,55 @@ export default function ImagingPage() {
         [variables.fieldName]: false,
       }));
 
-      // Refetch the data and update selectedStudy with fresh data
-      await queryClient.refetchQueries({ queryKey: ["/api/medical-images"] });
-      
-      // Update selectedStudy with fresh data if it's currently selected
+      // Get fresh data directly from the database for this specific study
       if (selectedStudy) {
-        const updatedImages = queryClient.getQueryData(["/api/medical-images"]) as any[];
-        if (updatedImages && Array.isArray(updatedImages)) {
-          const updatedStudyData = updatedImages.find((img: any) => img.id.toString() === selectedStudy.id);
-          if (updatedStudyData) {
-            const freshStudy = {
-              ...selectedStudy,
-              scheduledAt: updatedStudyData.scheduledAt,
-              performedAt: updatedStudyData.performedAt,
-            };
-            setSelectedStudy(freshStudy);
+        try {
+          const freshResponse = await apiRequest("GET", "/api/medical-images");
+          const freshData = await freshResponse.json();
+          
+          if (Array.isArray(freshData)) {
+            const updatedStudyData = freshData.find((img: any) => img.id.toString() === selectedStudy.id);
+            if (updatedStudyData) {
+              // Update selectedStudy with fresh database values
+              const freshStudy = {
+                id: updatedStudyData.id.toString(),
+                patientId: updatedStudyData.patientId,
+                patientName: updatedStudyData.patientName,
+                studyType: updatedStudyData.studyType,
+                modality: updatedStudyData.modality,
+                bodyPart: updatedStudyData.bodyPart || "Not specified",
+                orderedBy: updatedStudyData.uploadedByName || "Unknown",
+                orderedAt: updatedStudyData.createdAt,
+                scheduledAt: updatedStudyData.scheduledAt,
+                performedAt: updatedStudyData.performedAt,
+                status: updatedStudyData.status === "uploaded" ? "completed" : updatedStudyData.status,
+                priority: updatedStudyData.priority || "routine",
+                indication: updatedStudyData.indication || "No indication provided",
+                findings: updatedStudyData.findings || `Medical image uploaded: ${updatedStudyData.fileName}`,
+                impression: updatedStudyData.impression || `File: ${updatedStudyData.fileName} (${(updatedStudyData.fileSize / (1024 * 1024)).toFixed(2)} MB)`,
+                radiologist: updatedStudyData.radiologist || updatedStudyData.uploadedByName || "Unknown",
+                reportFileName: updatedStudyData.reportFileName,
+                reportFilePath: updatedStudyData.reportFilePath,
+                images: [{
+                  id: updatedStudyData.id.toString(),
+                  type: updatedStudyData.mimeType?.includes("jpeg") ? "JPEG" : "DICOM",
+                  seriesDescription: `${updatedStudyData.modality} ${updatedStudyData.bodyPart}`,
+                  imageCount: 1,
+                  size: `${(updatedStudyData.fileSize / (1024 * 1024)).toFixed(2)} MB`,
+                  imageData: updatedStudyData.imageData,
+                  mimeType: updatedStudyData.mimeType,
+                }],
+              };
+              setSelectedStudy(freshStudy);
+            }
           }
+        } catch (error) {
+          console.error("Failed to fetch fresh study data:", error);
         }
       }
+
+      // Also invalidate cache for other components
+      queryClient.invalidateQueries({ queryKey: ["/api/medical-images"] });
 
       toast({
         title: "Date Updated",
