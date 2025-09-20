@@ -1541,29 +1541,52 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
 
                 {/* Display patient flags */}
                 {patient.flags && patient.flags.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {patient.flags.map((flag: string, index: number) => {
-                      const [category] = flag.split(':');
-                      const getFlagTypeDisplay = (type: string) => {
-                        const flagTypes: Record<string, string> = {
-                          'medical_alert': '🚩 Medical Alert',
-                          'allergy_warning': '🚩 Allergy Warning', 
-                          'medication_interaction': '🚩 Medication Interaction',
-                          'high_risk': '🚩 High Risk',
-                          'special_needs': '🚩 Special Needs',
-                          'insurance_issue': '🚩 Insurance Issue',
-                          'payment_overdue': '🚩 Payment Overdue',
-                          'follow_up_required': '🚩 Follow-up Required'
+                  <TooltipProvider>
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {patient.flags.map((flag: string, index: number) => {
+                        const flagParts = flag.split(':');
+                        const [category, , reason] = flagParts;
+                        const getFlagTypeDisplay = (type: string) => {
+                          const flagTypes: Record<string, string> = {
+                            'medical_alert': '🚩 Medical Alert',
+                            'allergy_warning': '🚩 Allergy Warning', 
+                            'medication_interaction': '🚩 Medication Interaction',
+                            'high_risk': '🚩 High Risk',
+                            'special_needs': '🚩 Special Needs',
+                            'insurance_issue': '🚩 Insurance Issue',
+                            'payment_overdue': '🚩 Payment Overdue',
+                            'follow_up_required': '🚩 Follow-up Required'
+                          };
+                          return flagTypes[type] || `🚩 ${type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}`;
                         };
-                        return flagTypes[type] || `🚩 ${type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}`;
-                      };
-                      return (
-                        <Badge key={index} variant="outline" className="text-xs">
-                          {getFlagTypeDisplay(category)}
-                        </Badge>
-                      );
-                    })}
-                  </div>
+                        return (
+                          <Tooltip key={index}>
+                            <TooltipTrigger asChild>
+                              <div className="relative group">
+                                <Badge variant="outline" className="text-xs pr-6 cursor-pointer">
+                                  {getFlagTypeDisplay(category)}
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="absolute right-0 top-0 h-full w-6 p-0 hover:bg-red-100 dark:hover:bg-red-900 rounded-r-md"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      deleteFlagMutation.mutate({ patientId: patient.id, flagIndex: index });
+                                    }}
+                                  >
+                                    <X className="h-2 w-2 text-red-500" />
+                                  </Button>
+                                </Badge>
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Reason for Flag: {reason || 'No reason specified'}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        );
+                      })}
+                    </div>
+                  </TooltipProvider>
                 )}
 
                 <div className="space-y-2 mt-4">
