@@ -2799,7 +2799,10 @@ export default function VoiceDocumentation() {
                             // Create a download link for the photo
                             const link = document.createElement("a");
                             link.href = photo.url;
-                            link.download = `${photo.filename}_${photo.patientName.replace(" ", "_")}.jpg`;
+                            // Extract the correct file extension from the original filename
+                            const fileExtension = photo.filename.split('.').pop() || 'png';
+                            const cleanPatientName = photo.patientName.replace(/\s+/g, '_');
+                            link.download = `${cleanPatientName}_${photo.type}_${photo.filename}`;
                             document.body.appendChild(link);
                             link.click();
                             document.body.removeChild(link);
