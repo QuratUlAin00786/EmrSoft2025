@@ -2,7 +2,7 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { Users, Calendar, Brain, CreditCard, Settings, UserCog, Crown, BarChart3, Plus, UserPlus, ClipboardPlus, Pill } from "lucide-react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import AppointmentCalendar from "../calendar/appointment-calendar";
 
@@ -79,6 +79,7 @@ function RecentPatientsList() {
 }
 
 export function AdminDashboard() {
+  const [, setLocation] = useLocation();
   const { data: stats, isLoading, error } = useQuery({
     queryKey: ["/api/dashboard/stats"],
     queryFn: async () => {
@@ -175,7 +176,7 @@ export function AdminDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Appointment Calendar */}
         <div className="lg:col-span-2">
-          <AppointmentCalendar />
+          <AppointmentCalendar onNewAppointment={() => setLocation("/appointments")} />
         </div>
 
         {/* Quick Actions */}

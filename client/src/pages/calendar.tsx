@@ -638,14 +638,7 @@ export default function CalendarPage() {
               }
             </p>
           </div>
-          <Button 
-            onClick={() => setShowNewAppointmentModal(true)}
-            className="flex items-center gap-2"
-            data-testid="button-new-appointment"
-          >
-            <Plus className="h-4 w-4" />
-            New Appointment
-          </Button>
+       
         </div>
 
         {/* Filter Panel */}
