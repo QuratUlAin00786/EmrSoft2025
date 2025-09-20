@@ -1,0 +1,398 @@
+
+
+
+CuraEMR-UK-Backup 1 Sep 25
+Files
+Commands
+Search
+Add a
+or
+Packager files
+Config files
+/patients
+1
+
+
+SQL console
+
+Database studio
+
+schema:
+public
+Search...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Powered by
+
+
+
+
+
+
+
+Filters
+
+
+Columns
+
+
+Add record
+
+1 row•756ms
+
+
+50
+0
+
+
+
+11m
+ • 
+12 minutes ago
+Selection deleted
+                                    onClick={() => {
+                                      setSelectedStudyId(study.id);
+                                      handleFieldEdit("performedAt");
+                                    }}
+                                    className="h-6 w-6 p-0"
+                                    data-testid="button-edit-performed-date"
+                                  >
+                                    <Edit2 className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+
+                            {study.radiologist && (
+                              <div>
+                                <strong>Radiologist:</strong>{" "}
+                                {study.radiologist}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {study.images && study.images.length > 0 && (
+                        <div className="mb-4">
+                          <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">
+                            Image Series
+                          </h4>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                            {study.images.map((series: any) => (
+                              <div
+                                key={series.id}
+                                className="bg-gray-50 dark:bg-slate-600 p-3 rounded-lg border dark:border-slate-500"
+                              >
+                                <div className="font-medium text-sm text-gray-900 dark:text-gray-100">
+                                  {series.seriesDescription}
+                                </div>
+                                <div className="text-xs text-gray-600 dark:text-gray-300">
+                                  {series.imageCount} images • {series.size} •{" "}
+                                  {series.type}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {study.findings && (
+                        <div className="w-screen bg-blue-50 dark:bg-slate-700 border-l-4 border-blue-400 dark:border-blue-500 p-5 pr-5  mb-4 mr-16">
+                          <h4 className="font-medium text-blue-700 dark:text-blue-300 text-md mb-1">
+                            Findings
+                          </h4>
+                          <p className="text-sm text-blue-700 dark:text-blue-200">
+                            {study.findings}
+                          </p>
+                          {study.impression && (
+                            <>
+                              <h4 className="font-medium text-blue-00 dark:text-blue-300 text-md mb-1 mt-2">
+                                Impression
+                              </h4>
+                              <p className="text-sm text-blue-700 dark:text-blue-200">
+                                {study.impression}
+                              </p>
+                            </>
+                          )}
+                        </div>
+                      )}
+
+                      {study.report && (
+                        <div className="bg-green-50 dark:bg-slate-700 border-l-4 border-green-400 dark:border-green-500 p-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="font-medium text-green-800 dark:text-green-300 text-sm">
+                              Report
+                            </h4>
+                            <Badge
+                              className={
+                                study.report.status === "final"
+                                  ? "bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100"
+                                  : "bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100"
+                              }
+                            >
+                              {study.report.status}
+                            </Badge>
+                          </div>
+                          <div className="text-sm text-green-700 dark:text-green-200">
+                            <strong>Dictated:</strong>{" "}
+                            {format(
+                              new Date(study.report.dictatedAt),
+                              "MMM d, yyyy HH:mm",
+                            )}
+                            {study.report.signedAt && (
+                              <span className="ml-4">
+                                <strong>Signed:</strong>{" "}
+                                {format(
+                                  new Date(study.report.signedAt),
+export function PlayStoreBadge({ className = "h-12 w-auto" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 135 40" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="playstore-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#000000" />
+          <stop offset="100%" stopColor="#333333" />
+        </linearGradient>
+      </defs>
+      <rect width="135" height="40" rx="6" ry="6" fill="url(#playstore-gradient)" stroke="#a6a6a6" strokeWidth="0.5"/>
+      
+      {/* Google Play Logo */}
+      <g transform="translate(8, 8)">
+        <defs>
+          <linearGradient id="play-blue" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#00A4DC" />
+            <stop offset="100%" stopColor="#00D4FF" />
+          </linearGradient>
+          <linearGradient id="play-green" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#00D4AA" />
+            <stop offset="100%" stopColor="#00BF63" />
+          </linearGradient>
+          <linearGradient id="play-yellow" x1="100%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#FFD500" />
+            <stop offset="100%" stopColor="#FFAA00" />
+          </linearGradient>
+          <linearGradient id="play-red" x1="100%" y1="100%" x2="0%" y2="0%">
+            <stop offset="0%" stopColor="#FF5500" />
+            <stop offset="100%" stopColor="#DD0031" />
+          </linearGradient>
+        </defs>
+        
+        <path d="M1.5 1.5L1.5 22.5L11.5 12L1.5 1.5Z" fill="url(#play-blue)"/>
+        <path d="M1.5 22.5L11.5 12L19 15.5L1.5 22.5Z" fill="url(#play-green)"/>
+        <path d="M11.5 12L19 8.5L19 15.5L11.5 12Z" fill="url(#play-yellow)"/>
+        <path d="M1.5 1.5L19 8.5L11.5 12L1.5 1.5Z" fill="url(#play-red)"/>
+      </g>
+      
+      {/* Text */}
+      <text x="32" y="13" fontSize="8" fill="white" fontFamily="Roboto, sans-serif">GET IT ON</text>
+      <text x="32" y="27" fontSize="13" fill="white" fontFamily="Roboto, sans-serif" fontWeight="500">Google Play</text>
+    </svg>
+  );
+}
+low
+1 / 40
+current match. switch (riskLevel?.toLowerCase()) { on line 52.
+    : (Array.isArray(patients) ? patients : []);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Patients</h2>
+        <div className="text-sm text-gray-500 dark:text-gray-400">
+          {displayPatients.length} patient{displayPatients.length !== 1 ? 's' : ''} found
+        </div>
+      </div>
+
+      <PatientSearch onSearch={handleSearch} onClear={handleClearSearch} />
+
+      {displayPatients.length === 0 ? (
+        <div className="text-center py-12">
+          <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No patients found</h3>
+          <p className="text-gray-500 dark:text-gray-400">
+            {searchQuery ? "Try adjusting your search criteria" : "No patients have been added yet"}
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-auto">
+          {displayPatients.map((patient: any) => {
+
+            
+            return (
+              <Card key={patient.id} className="hover:shadow-md transition-shadow h-[400px] flex flex-col">
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center space-x-3">
+                      <Avatar className="h-12 w-12">
+                        <AvatarFallback className="text-white font-semibold" style={{ backgroundColor: '#4A7DFF' }}>
+                          {getPatientInitials(patient.firstName, patient.lastName)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <span className="patient-name">{patient.firstName} {patient.lastName}</span>
+                          <TooltipProvider>
+                            {patient.medicalHistory?.allergies && patient.medicalHistory.allergies.length > 0 && (
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <AlertTriangle className="h-4 w-4 text-red-500" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Allergies: {patient.medicalHistory.allergies.join(', ')}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            )}
+                            {patient.medicalHistory?.chronicConditions && patient.medicalHistory.chronicConditions.length > 0 && (
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <Clock className="h-4 w-4 text-orange-500" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Conditions: {patient.medicalHistory.chronicConditions.join(', ')}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            )}
+                          </TooltipProvider>
+                        </CardTitle>
+                      <p className="text-sm patient-info">
+                        {patient.dateOfBirth ? 
+                          (() => {
+                            const birthDate = new Date(patient.dateOfBirth);
+                            const today = new Date();
+                            const age = today.getFullYear() - birthDate.getFullYear() - 
+                              (today.getMonth() < birthDate.getMonth() || 
+                               (today.getMonth() === birthDate.getMonth() && today.getDate() < birthDate.getDate()) ? 1 : 0);
+                            return `Age ${age}y`;
+                          })() : 
+                          "Age Not Available"
+                        } • {patient.patientId}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end space-y-1 h-20 overflow-hidden">
+                    {patient.riskLevel && (
+                      <Badge 
+                        className={`text-xs ${getRiskLevelColor(patient.riskLevel)}`}
+                        style={{ backgroundColor: getRiskLevelBgColor(patient.riskLevel) }}
+                      >
+                        {patient.riskLevel}
+                      </Badge>
+                    )}
+                    {patient.insuranceInfo?.provider && (
+                      <Badge variant="outline" className="text-xs dark:text-gray-200 dark:border-gray-600">
+                        {patient.insuranceInfo.provider.toUpperCase()}
+                      </Badge>
+                    )}
+                    {patient.flags && patient.flags.length > 0 && (
+                      <div className="flex flex-wrap items-end gap-1 max-h-16 overflow-hidden">
+                        {patient.flags.slice(0, 3).map((flag: string, index: number) => {
+Saved your changes before starting work
+Check flag changes update patient risk correctly.
+9 / 10
+
+1 message & 3 actions
+Perfect! I can see the page is now loading without the React errors. The fixes for the optional `aiAnalysis` property have resolved the JavaScript issues. Now let me test if the photo capture functionality is working correctly:
+Checkpoint made
+51 minutes ago
+Improve how wound assessment photos and their AI analysis are displayed
+Can you try capturing a photo now? Please go to Voice Documentation, click Capture Photo, fill in all the form fields (Patient, Type, Description), take a photo, and try to save it. Let me know if it saves successfully and if you can see it in the Clinical Photos tab.
+
+3 minutes of work
+from where it is getting data
+wound_assessment_001.jpg
+
+46 minutes ago
+
+3 messages & 9 actions
+I can see the Clinical Photos tab is showing a photo. Let me check the logs and the source of this data.
+Checkpoint made
+44 minutes ago
+Add ability to edit imaging study dates and statuses
+2 minutes of work
+Checkpoint made
+43 minutes ago
+Add image asset for wound assessment documentation
+In the file voice-documentation.tsx, when image save in /uploads/wound_assessment directory, then also save file path on database table as well save other fields details (Patient *Photo Type *
+,Description *) if functionality not existing then create otherwise fix it. if table not exist in database, then create it and save this into database and without refreshing page display it in tab "Clinical Photos". also image display . get and set both need here. do not change anything while doing this.
+
+38 minutes ago
+
+1 message & 123 actions
+I'll help you create a complete database-driven clinical photos system. Let me examine the current implementation and create the necessary database table and functionality.
+The clinical photos feature is now working with database storage. Can you test taking a photo in the Voice Documentation page to confirm it saves and displays correctly?
+
+Checkpoint made
+15 minutes ago
+Improve the system for tracking and managing patient imaging studies
+23 minutes of work
+in the patient.tsx file, 

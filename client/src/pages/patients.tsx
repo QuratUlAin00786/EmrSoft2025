@@ -181,7 +181,7 @@ export default function Patients() {
                 
                 {/* Display patient flags */}
                 {patient.flags && patient.flags.length > 0 && (
-                  <div>
+                  <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
                     <p className="text-sm font-medium text-gray-700 dark:text-white">Patient Flags</p>
                     <div className="flex flex-wrap gap-1 mt-1">
                       {patient.flags.map((flag: string, index: number) => {
