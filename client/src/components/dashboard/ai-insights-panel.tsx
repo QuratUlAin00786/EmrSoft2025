@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Lightbulb, CheckCircle, AlertTriangle, Sparkles } from "lucide-react";
+import { Lightbulb, CheckCircle, AlertTriangle, Sparkles, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
 import { apiRequest } from "@/lib/queryClient";
 import type { AiInsight } from "@/types";
@@ -40,6 +41,8 @@ const insightColors = {
 
 export function AiInsightsPanel() {
   const queryClient = useQueryClient();
+  const [selectedInsight, setSelectedInsight] = useState<AiInsight | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   
   const { data: insights, isLoading, error } = useQuery<AiInsight[]>({
     queryKey: ["/api/dashboard/ai-insights"],
@@ -180,6 +183,11 @@ export function AiInsightsPanel() {
                     variant="link"
                     size="sm"
                     className="p-0 h-auto text-medical-blue hover:text-blue-700"
+                    onClick={() => {
+                      setSelectedInsight(insight);
+                      setIsDialogOpen(true);
+                    }}
+                    data-testid="button-view-details"
                   >
                     View Details
                   </Button>
@@ -192,8 +200,9 @@ export function AiInsightsPanel() {
                       status: 'dismissed' 
                     })}
                     disabled={updateInsightMutation.isPending}
+                    data-testid="button-dismiss"
                   >
-                    Dismiss
+                    {updateInsightMutation.isPending ? 'Dismissing...' : 'Dismiss'}
                   </Button>
                 </div>
               </div>
@@ -215,6 +224,121 @@ export function AiInsightsPanel() {
           </div>
         )}
       </CardContent>
+      
+      {/* Details Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          {selectedInsight && (
+            <>
+              <DialogHeader>
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center space-x-3">
+                    {(() => {
+                      const IconComponent = insightIcons[selectedInsight.type] || Lightbulb;
+                      const colors = insightColors[selectedInsight.type] || insightColors.risk_alert;
+                      return (
+                        <div className={`w-10 h-10 ${colors.icon} bg-white rounded-full flex items-center justify-center flex-shrink-0 border-2 ${colors.border}`}>
+                          <IconComponent className="w-5 h-5" />
+                        </div>
+                      );
+                    })()}
+                    <div>
+                      <DialogTitle className="text-xl font-semibold text-gray-900">
+                        {selectedInsight.title}
+                      </DialogTitle>
+                      <Badge 
+                        variant="outline" 
+                        className={`mt-1 capitalize ${insightColors[selectedInsight.type]?.icon || 'text-blue-500'}`}
+                      >
+                        {selectedInsight.type.replace('_', ' ')}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+              </DialogHeader>
+              
+              <div className="space-y-6">
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-2">Description</h4>
+                  <DialogDescription className="text-gray-600 leading-relaxed">
+                    {selectedInsight.description}
+                  </DialogDescription>
+                </div>
+                
+                {selectedInsight.confidence && (
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-2">Confidence Level</h4>
+                    <div className="flex items-center space-x-3">
+                      <div className="flex-1 bg-gray-200 rounded-full h-2">
+                        <div 
+                          className="bg-blue-500 h-2 rounded-full transition-all duration-300" 
+                          style={{ width: `${Math.round(selectedInsight.confidence * 100)}%` }}
+                        ></div>
+                      </div>
+                      <span className="text-sm font-medium text-gray-700">
+                        {Math.round(selectedInsight.confidence * 100)}%
+                      </span>
+                    </div>
+                  </div>
+                )}
+                
+                {selectedInsight.patientId && (
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-2">Patient Information</h4>
+                    <p className="text-gray-600">Patient ID: {selectedInsight.patientId}</p>
+                  </div>
+                )}
+                
+                {selectedInsight.severity && (
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-2">Severity</h4>
+                    <Badge 
+                      variant={selectedInsight.severity === 'high' ? 'destructive' : 
+                              selectedInsight.severity === 'medium' ? 'default' : 'secondary'}
+                      className="capitalize"
+                    >
+                      {selectedInsight.severity}
+                    </Badge>
+                  </div>
+                )}
+                
+                {selectedInsight.actionRequired !== undefined && (
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-2">Action Required</h4>
+                    <Badge variant={selectedInsight.actionRequired ? 'destructive' : 'secondary'}>
+                      {selectedInsight.actionRequired ? 'Yes' : 'No'}
+                    </Badge>
+                  </div>
+                )}
+                
+                <div className="flex justify-end space-x-3 pt-4 border-t">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setIsDialogOpen(false)}
+                    data-testid="button-close-dialog"
+                  >
+                    Close
+                  </Button>
+                  <Button 
+                    variant="destructive"
+                    onClick={() => {
+                      updateInsightMutation.mutate({ 
+                        id: selectedInsight.id, 
+                        status: 'dismissed' 
+                      });
+                      setIsDialogOpen(false);
+                    }}
+                    disabled={updateInsightMutation.isPending}
+                    data-testid="button-dismiss-from-dialog"
+                  >
+                    {updateInsightMutation.isPending ? 'Dismissing...' : 'Dismiss Insight'}
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
