@@ -236,7 +236,6 @@ export default function ImagingPage() {
     radiologist: false,
     scheduledAt: false,
     performedAt: false,
-    status: false,
   });
 
   // Saving states for individual fields
@@ -246,7 +245,6 @@ export default function ImagingPage() {
     radiologist: false,
     scheduledAt: false,
     performedAt: false,
-    status: false,
   });
 
   // Date states for editing
@@ -256,9 +254,6 @@ export default function ImagingPage() {
   const [performedDate, setPerformedDate] = useState<Date | undefined>(
     undefined,
   );
-
-  // Status state for editing
-  const [editingStatus, setEditingStatus] = useState<string>("");
 
   const [generatedReportId, setGeneratedReportId] = useState<string | null>(
     null,
@@ -513,15 +508,14 @@ export default function ImagingPage() {
       | "impression"
       | "radiologist"
       | "scheduledAt"
-      | "performedAt"
-      | "status",
+      | "performedAt",
   ) => {
     setEditModes((prev) => ({
       ...prev,
       [fieldName]: true,
     }));
 
-    // Initialize date and status states when entering edit mode
+    // Initialize date states when entering edit mode
     if (selectedStudy) {
       if (fieldName === "scheduledAt")
         setScheduledDate(
@@ -535,8 +529,6 @@ export default function ImagingPage() {
             ? new Date(selectedStudy.performedAt)
             : undefined,
         );
-      if (fieldName === "status")
-        setEditingStatus(selectedStudy.status || "ordered");
     }
   };
 
@@ -546,8 +538,7 @@ export default function ImagingPage() {
       | "impression"
       | "radiologist"
       | "scheduledAt"
-      | "performedAt"
-      | "status",
+      | "performedAt",
   ) => {
     setEditModes((prev) => ({
       ...prev,
@@ -574,8 +565,6 @@ export default function ImagingPage() {
             ? new Date(selectedStudy.performedAt)
             : undefined,
         );
-      if (fieldName === "status")
-        setEditingStatus(selectedStudy.status || "ordered");
     }
   };
 
@@ -585,8 +574,7 @@ export default function ImagingPage() {
       | "impression"
       | "radiologist"
       | "scheduledAt"
-      | "performedAt"
-      | "status",
+      | "performedAt",
   ) => {
     if (!selectedStudy) return;
 
@@ -596,9 +584,8 @@ export default function ImagingPage() {
     if (fieldName === "radiologist") value = reportRadiologist;
     if (fieldName === "scheduledAt") value = scheduledDate?.toISOString() || "";
     if (fieldName === "performedAt") value = performedDate?.toISOString() || "";
-    if (fieldName === "status") value = editingStatus;
 
-    if (fieldName === "scheduledAt" || fieldName === "performedAt" || fieldName === "status") {
+    if (fieldName === "scheduledAt" || fieldName === "performedAt") {
       updateDateMutation.mutate({
         studyId: selectedStudy.id,
         fieldName,
@@ -1522,7 +1509,7 @@ export default function ImagingPage() {
                       )}
 
                       {study.findings && (
-                        <div className=" bg-blue-50 dark:bg-slate-700 border-l-4 border-blue-400 dark:border-blue-500 p-5 pr-5  mb-4">
+                        <div className="w-screen bg-blue-50 dark:bg-slate-700 border-l-4 border-blue-400 dark:border-blue-500 p-5 pr-5  mb-4 mr-16">
                           <h4 className="font-medium text-blue-700 dark:text-blue-300 text-md mb-1">
                             Findings
                           </h4>
@@ -2390,76 +2377,21 @@ export default function ImagingPage() {
                     </p>
                   </div>
                   <div className="ml-auto">
-                    {/* Status - Editable */}
-                    {selectedStudy?.id && editModes.status ? (
-                      <div className="flex items-center gap-2">
-                        <Select value={editingStatus} onValueChange={setEditingStatus}>
-                          <SelectTrigger className="w-40">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="ordered">Ordered</SelectItem>
-                            <SelectItem value="scheduled">Scheduled</SelectItem>
-                            <SelectItem value="in_progress">In Progress</SelectItem>
-                            <SelectItem value="completed">Completed</SelectItem>
-                            <SelectItem value="final">Final</SelectItem>
-                            <SelectItem value="preliminary">Preliminary</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleFieldSave("status")}
-                          disabled={saving.status}
-                          data-testid="button-save-status"
-                        >
-                          {saving.status ? "Saving..." : "Save"}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleFieldCancel("status")}
-                          disabled={saving.status}
-                          data-testid="button-cancel-status"
-                        >
-                          Cancel
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`px-3 py-1 rounded-full text-sm font-medium ${
-                            selectedStudy.status === "completed"
-                              ? "bg-green-100 text-green-800"
-                              : selectedStudy.status === "in_progress"
-                                ? "bg-yellow-100 text-yellow-800"
-                                : selectedStudy.status === "scheduled"
-                                  ? "bg-blue-100 text-blue-800"
-                                  : selectedStudy.status === "final"
-                                    ? "bg-green-100 text-green-800"
-                                    : selectedStudy.status === "preliminary"
-                                      ? "bg-yellow-100 text-yellow-800"
-                                      : "bg-gray-100 text-gray-800"
-                          }`}
-                        >
-                          {selectedStudy.status?.charAt(0).toUpperCase() +
-                            selectedStudy.status?.slice(1).replace("_", " ") ||
-                            "Unknown"}
-                        </span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedStudyId(selectedStudy.id);
-                            handleFieldEdit("status");
-                          }}
-                          className="h-6 w-6 p-0"
-                          data-testid="button-edit-status"
-                        >
-                          <Edit2 className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    )}
+                    <span
+                      className={`px-3 py-1 rounded-full text-sm font-medium ${
+                        selectedStudy.status === "completed"
+                          ? "bg-green-100 text-green-800"
+                          : selectedStudy.status === "in_progress"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : selectedStudy.status === "scheduled"
+                              ? "bg-blue-100 text-blue-800"
+                              : "bg-gray-100 text-gray-800"
+                      }`}
+                    >
+                      {selectedStudy.status?.charAt(0).toUpperCase() +
+                        selectedStudy.status?.slice(1).replace("_", " ") ||
+                        "Unknown"}
+                    </span>
                   </div>
                 </div>
 
