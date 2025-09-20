@@ -494,9 +494,29 @@ export default function ImagingPage() {
         [variables.fieldName]: false,
       }));
 
+      // Create appropriate success message based on field type
+      let title = "Field Updated";
+      let description = "";
+      
+      if (variables.fieldName === "scheduledAt") {
+        title = "Scheduled Date Updated";
+        description = "Scheduled date updated successfully";
+      } else if (variables.fieldName === "performedAt") {
+        title = "Performed Date Updated";
+        description = "Performed date updated successfully";
+      } else if (variables.fieldName === "status") {
+        title = "Status Updated";
+        description = "Status updated successfully";
+      } else if (variables.fieldName === "priority") {
+        title = "Priority Updated";
+        description = "Priority updated successfully";
+      } else {
+        description = `${variables.fieldName.charAt(0).toUpperCase() + variables.fieldName.slice(1)} updated successfully`;
+      }
+
       toast({
-        title: "Date Updated",
-        description: `${variables.fieldName === "scheduledAt" ? "Scheduled" : "Performed"} date updated successfully`,
+        title,
+        description,
       });
     },
     onSettled: (data, error, variables) => {
