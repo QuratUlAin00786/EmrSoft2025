@@ -37,8 +37,9 @@ export function useAiInsightsEvents() {
   const maxReconnectAttempts = 5;
 
   const connectToSSE = () => {
-    if (!tenant?.subdomain) {
-      console.log('[SSE] No tenant subdomain available, skipping SSE connection');
+    // Only skip if we explicitly know there's no tenant, but try anyway if undefined (loading state)
+    if (tenant?.subdomain === null) {
+      console.log('[SSE] No tenant available, skipping SSE connection');
       return;
     }
 
@@ -68,13 +69,15 @@ export function useAiInsightsEvents() {
       eventSource.addEventListener('ai_insight.status_updated', (event) => {
         try {
           const eventData: AiInsightSSEEvent = JSON.parse(event.data);
-          console.log('[SSE] AI insight status updated:', eventData);
+          console.log('[SSE] 🎯 AI insight status updated received:', eventData);
 
           // Update React Query cache for all AI insights queries
           queryClient.setQueriesData(
             { predicate: (query) => Array.isArray(query.queryKey) && query.queryKey[0] === '/api/ai-insights' },
             (old?: ClinicalInsight[]) => {
               if (!old) return old;
+              
+              console.log('[SSE] 📝 Updating cache with new status:', eventData.status);
               
               return old.map(insight => 
                 insight.id.toString() === eventData.id 
@@ -102,10 +105,10 @@ export function useAiInsightsEvents() {
             }
           );
 
-          console.log(`[SSE] Updated cache for insight ${eventData.id}: ${eventData.previousStatus} -> ${eventData.status}`);
+          console.log(`[SSE] ✅ Updated cache for insight ${eventData.id}: ${eventData.previousStatus} -> ${eventData.status}`);
           
         } catch (error) {
-          console.error('[SSE] Error processing ai_insight.status_updated event:', error);
+          console.error('[SSE] ❌ Error processing ai_insight.status_updated event:', error);
         }
       });
 
@@ -120,7 +123,9 @@ export function useAiInsightsEvents() {
 
       eventSource.onerror = (error) => {
         console.error('[SSE] EventSource error:', error);
+        console.error('[SSE] EventSource readyState:', eventSource.readyState);
         
+        // Don't immediately reconnect on error - let it try to recover
         if (eventSource.readyState === EventSource.CLOSED) {
           console.log('[SSE] Connection closed, attempting to reconnect...');
           
