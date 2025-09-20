@@ -186,8 +186,9 @@ export default function Patients() {
                     <div className="flex flex-wrap gap-1 mt-1">
                       {patient.flags.map((flag: string, index: number) => {
                         const [category, priority, description] = flag.split(':');
-                        const priorityColor = priority === 'urgent' ? 'destructive' : 
-                                            priority === 'high' ? 'default' : 'secondary';
+                        const priorityColor = priority === 'urgent' || priority === 'critical' ? 'destructive' : 
+                                            priority === 'high' ? 'destructive' : 
+                                            priority === 'medium' ? 'default' : 'secondary';
                         return (
                           <Badge key={index} variant={priorityColor} className="text-xs">
                             {priority?.toUpperCase()}: {description || flag}
