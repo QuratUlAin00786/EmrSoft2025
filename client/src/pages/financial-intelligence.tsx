@@ -246,9 +246,13 @@ export default function FinancialIntelligence() {
     enabled: true,
   });
 
-  // Fetch claims with proper initial loading
+  // Fetch claims with explicit queryFn to ensure API call
   const { data: claimsResponse, isLoading: claimsLoading } = useQuery({
     queryKey: ["/api/financial/claims"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/financial/claims");
+      return response.json();
+    },
     enabled: true,
     refetchOnMount: true,
     refetchOnWindowFocus: false,
