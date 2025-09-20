@@ -5742,6 +5742,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.put("/api/voice-documentation/notes/:id", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const { id } = req.params;
+      const { transcript } = req.body;
+
+      if (!id) {
+        return res.status(400).json({ error: "Voice note ID is required" });
+      }
+
+      if (!transcript) {
+        return res.status(400).json({ error: "Transcript is required" });
+      }
+
+      // Update the voice note transcript in the database
+      const updatedNote = await storage.updateVoiceNote(id, req.tenant!.id, {
+        transcript: transcript
+      });
+
+      if (!updatedNote) {
+        return res.status(404).json({ error: "Voice note not found" });
+      }
+
+      console.log(`📝 Voice note updated: ${id} for organization ${req.tenant!.id}`);
+      res.status(200).json(updatedNote);
+    } catch (error) {
+      console.error("Error updating voice note:", error);
+      res.status(500).json({ error: "Failed to update voice note" });
+    }
+  });
+
   app.delete("/api/voice-documentation/notes/:id", authMiddleware, async (req: TenantRequest, res) => {
     try {
       if (!req.user) {

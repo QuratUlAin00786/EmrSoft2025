@@ -380,6 +380,37 @@ export default function VoiceDocumentation() {
     },
   });
 
+  // Update voice note mutation
+  const updateVoiceNoteMutation = useMutation({
+    mutationFn: async ({ noteId, transcript }: { noteId: string; transcript: string }) => {
+      const token = localStorage.getItem("auth_token");
+      const response = await fetch(`/api/voice-documentation/notes/${noteId}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+          "X-Tenant-Subdomain": "demo",
+        },
+        body: JSON.stringify({ transcript }),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to update voice note");
+      }
+      return response.json();
+    },
+    onSuccess: async (data, { noteId }) => {
+      toast({ title: "Changes saved successfully!" });
+      console.log("Voice note updated:", noteId);
+
+      // Trigger UI refresh by updating the refresh trigger
+      setRefreshTrigger((prev) => prev + 1);
+      setEditDialogOpen(false);
+    },
+    onError: (err, { noteId }) => {
+      toast({ title: "Failed to save changes", variant: "destructive" });
+    },
+  });
+
   // Upload photo mutation
   const uploadPhotoMutation = useMutation({
     mutationFn: async (data: {
@@ -3115,12 +3146,20 @@ export default function VoiceDocumentation() {
                     </Button>
                     <Button
                       onClick={() => {
-                        toast({
-                          title: "Changes Saved",
-                          description: `Voice note updated for ${editingNote.patientName}`,
-                        });
-                        setEditDialogOpen(false);
+                        if (editingNote && editedTranscript.trim()) {
+                          updateVoiceNoteMutation.mutate({
+                            noteId: editingNote.id,
+                            transcript: editedTranscript.trim()
+                          });
+                        } else {
+                          toast({
+                            title: "Invalid Input",
+                            description: "Please enter a valid transcript",
+                            variant: "destructive",
+                          });
+                        }
                       }}
+                      disabled={updateVoiceNoteMutation.isPending}
                     >
                       <Save className="w-4 h-4 mr-1" />
                       Save Changes
