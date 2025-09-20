@@ -1045,7 +1045,7 @@ export default function ImagingPage() {
                       8
                     </p>
                   </div>
-                  <Calendar className="h-8 w-8 text-blue-600" />
+                 
                 </div>
               </CardContent>
             </Card>

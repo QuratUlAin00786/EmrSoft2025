@@ -6882,10 +6882,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Validate update data - allow updating scheduledAt and performedAt
-      const updateData = z.object({
+      const validatedData = z.object({
         scheduledAt: z.string().optional(),
         performedAt: z.string().optional(),
       }).parse(req.body);
+
+      // Convert ISO string dates to Date objects for database storage
+      const updateData: any = {};
+      if (validatedData.scheduledAt) {
+        updateData.scheduledAt = new Date(validatedData.scheduledAt);
+      }
+      if (validatedData.performedAt) {
+        updateData.performedAt = new Date(validatedData.performedAt);
+      }
 
       const success = await storage.updateMedicalImage(imageId, req.tenant!.id, updateData);
       if (!success) {
