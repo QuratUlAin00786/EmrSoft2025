@@ -1358,9 +1358,56 @@ export default function FinancialIntelligence() {
                             {claim.patientName}
                           </CardTitle>
                           <div className="flex items-center gap-2 mt-1">
-                            <Badge className={getStatusColor(claim.status)}>
-                              {claim.status}
-                            </Badge>
+                            <div className="flex items-center gap-1">
+                              {editModes[`claim-${claim.id}-status`] ? (
+                                <Select
+                                  value={claim.status}
+                                  onValueChange={(value) => {
+                                    updateClaimStatusMutation.mutate({
+                                      claimId: claim.id.toString(),
+                                      status: value,
+                                    });
+                                  }}
+                                  data-testid={`select-claim-status-${claim.id}`}
+                                >
+                                  <SelectTrigger className="w-32 h-7 text-xs">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="pending">pending</SelectItem>
+                                    <SelectItem value="submitted">submitted</SelectItem>
+                                    <SelectItem value="approved">approved</SelectItem>
+                                    <SelectItem value="denied">denied</SelectItem>
+                                    <SelectItem value="paid">paid</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              ) : (
+                                <>
+                                  <Badge className={getStatusColor(claim.status)}>
+                                    {claim.status}
+                                  </Badge>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 w-6 p-0 hover:bg-gray-100 dark:hover:bg-gray-800"
+                                    onClick={() => {
+                                      setEditModes(prev => ({
+                                        ...prev,
+                                        [`claim-${claim.id}-status`]: true
+                                      }));
+                                    }}
+                                    disabled={saving[`claim-${claim.id}-status`]}
+                                    data-testid={`button-edit-claim-status-${claim.id}`}
+                                  >
+                                    {saving[`claim-${claim.id}-status`] ? (
+                                      <div className="w-3 h-3 border border-gray-400 border-t-transparent rounded-full animate-spin" />
+                                    ) : (
+                                      <Edit className="w-3 h-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200" />
+                                    )}
+                                  </Button>
+                                </>
+                              )}
+                            </div>
                             <span className="text-sm text-gray-500 dark:text-gray-400">
                               {claim.claimNumber ||
                                 `CLM-${new Date().getFullYear()}-${String(claim.id).padStart(6, "0")}`}
