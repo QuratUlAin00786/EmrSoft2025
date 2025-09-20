@@ -842,7 +842,7 @@ export default function CalendarPage() {
           <div className="grid gap-6 lg:grid-cols-3">
             {/* Main Calendar - 2 columns */}
             <div className="lg:col-span-2">
-              <AppointmentCalendar />
+              <AppointmentCalendar onNewAppointment={() => setShowNewAppointmentModal(true)} />
             </div>
             
             {/* Doctor List - 1 column */}

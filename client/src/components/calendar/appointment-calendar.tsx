@@ -69,7 +69,7 @@ function FullConsultationWrapper({ patientId, show, onOpenChange }: { patientId:
   );
 }
 
-export default function AppointmentCalendar() {
+export default function AppointmentCalendar({ onNewAppointment }: { onNewAppointment?: () => void }) {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<"month" | "week" | "day">("month");
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
@@ -508,7 +508,7 @@ Medical License: [License Number]
               Next
             </Button>
             <Button 
-              onClick={() => setShowNewAppointmentModal(true)}
+              onClick={() => onNewAppointment?.()}
               className="flex items-center gap-2"
               data-testid="button-new-appointment"
             >
