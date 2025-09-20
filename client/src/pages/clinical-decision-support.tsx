@@ -1011,24 +1011,27 @@ export default function ClinicalDecisionSupport() {
                       size="sm"
                       disabled={!!buttonLoadingStates[`${insight.id}-reviewed`]}
                       onClick={() => updateInsightStatus(insight.id.toString(), "reviewed", "reviewed")}
+                      data-testid={`button-reviewed-${insight.id}`}
                     >
-                      {buttonLoadingStates[`${insight.id}-reviewed`] ? "Updating..." : "Mark Reviewed"}
+                      {buttonLoadingStates[`${insight.id}-reviewed`] ? "Updating..." : "Reviewed"}
                     </Button>
                     <Button 
                       size="sm" 
                       variant="outline"
                       disabled={!!buttonLoadingStates[`${insight.id}-implemented`]}
                       onClick={() => updateInsightStatus(insight.id.toString(), "implemented", "implemented")}
+                      data-testid={`button-implemented-${insight.id}`}
                     >
-                      {buttonLoadingStates[`${insight.id}-implemented`] ? "Updating..." : "Mark Implemented"}
+                      {buttonLoadingStates[`${insight.id}-implemented`] ? "Updating..." : "Implemented"}
                     </Button>
                     <Button 
                       size="sm" 
                       variant="ghost"
                       disabled={!!buttonLoadingStates[`${insight.id}-dismissed`]}
                       onClick={() => updateInsightStatus(insight.id.toString(), "dismissed", "dismissed")}
+                      data-testid={`button-closed-${insight.id}`}
                     >
-                      {buttonLoadingStates[`${insight.id}-dismissed`] ? "Updating..." : "Dismiss"}
+                      {buttonLoadingStates[`${insight.id}-dismissed`] ? "Updating..." : "Closed"}
                     </Button>
                   </div>
                 </CardContent>
