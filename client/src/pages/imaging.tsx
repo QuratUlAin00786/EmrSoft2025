@@ -237,6 +237,7 @@ export default function ImagingPage() {
     scheduledAt: false,
     performedAt: false,
     status: false,
+    priority: false,
   });
 
   // Saving states for individual fields
@@ -247,10 +248,14 @@ export default function ImagingPage() {
     scheduledAt: false,
     performedAt: false,
     status: false,
+    priority: false,
   });
 
   // Editing status state for dropdown
   const [editingStatus, setEditingStatus] = useState<string>("");
+
+  // Editing priority state for dropdown
+  const [editingPriority, setEditingPriority] = useState<string>("");
 
   // Date states for editing
   const [scheduledDate, setScheduledDate] = useState<Date | undefined>(
@@ -514,7 +519,8 @@ export default function ImagingPage() {
       | "radiologist"
       | "scheduledAt"
       | "performedAt"
-      | "status",
+      | "status"
+      | "priority",
   ) => {
     setEditModes((prev) => ({
       ...prev,
@@ -537,6 +543,8 @@ export default function ImagingPage() {
         );
       if (fieldName === "status")
         setEditingStatus(selectedStudy.status || "ordered");
+      if (fieldName === "priority")
+        setEditingPriority(selectedStudy.priority || "routine");
     }
   };
 
@@ -547,7 +555,8 @@ export default function ImagingPage() {
       | "radiologist"
       | "scheduledAt"
       | "performedAt"
-      | "status",
+      | "status"
+      | "priority",
   ) => {
     setEditModes((prev) => ({
       ...prev,
@@ -576,6 +585,8 @@ export default function ImagingPage() {
         );
       if (fieldName === "status")
         setEditingStatus(selectedStudy.status || "ordered");
+      if (fieldName === "priority")
+        setEditingPriority(selectedStudy.priority || "routine");
     }
   };
 
@@ -586,7 +597,8 @@ export default function ImagingPage() {
       | "radiologist"
       | "scheduledAt"
       | "performedAt"
-      | "status",
+      | "status"
+      | "priority",
   ) => {
     if (!selectedStudy) return;
 
@@ -597,8 +609,9 @@ export default function ImagingPage() {
     if (fieldName === "scheduledAt") value = scheduledDate?.toISOString() || "";
     if (fieldName === "performedAt") value = performedDate?.toISOString() || "";
     if (fieldName === "status") value = editingStatus;
+    if (fieldName === "priority") value = editingPriority;
 
-    if (fieldName === "scheduledAt" || fieldName === "performedAt" || fieldName === "status") {
+    if (fieldName === "scheduledAt" || fieldName === "performedAt" || fieldName === "status" || fieldName === "priority") {
       updateDateMutation.mutate({
         studyId: selectedStudy.id,
         fieldName,
@@ -1334,9 +1347,59 @@ export default function ImagingPage() {
                             </Button>
                           </div>
                         )}
-                        <Badge className={getPriorityColor(study.priority)}>
-                          {study.priority}
-                        </Badge>
+                        {/* Priority Badge - Editable */}
+                        {selectedStudyId === study.id && editModes.priority ? (
+                          <div className="flex items-center gap-2">
+                            <Select value={editingPriority} onValueChange={setEditingPriority}>
+                              <SelectTrigger className="w-32 h-8">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="routine">Routine</SelectItem>
+                                <SelectItem value="urgent">Urgent</SelectItem>
+                                <SelectItem value="stat">Stat</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleFieldSave("priority")}
+                              disabled={saving.priority}
+                              className="h-8 px-2 text-xs"
+                              data-testid="button-save-priority-header"
+                            >
+                              {saving.priority ? "..." : "Save"}
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleFieldCancel("priority")}
+                              disabled={saving.priority}
+                              className="h-8 px-2 text-xs"
+                              data-testid="button-cancel-priority-header"
+                            >
+                              Cancel
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <Badge className={getPriorityColor(study.priority)}>
+                              {study.priority}
+                            </Badge>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedStudyId(study.id);
+                                handleFieldEdit("priority");
+                              }}
+                              className="h-6 w-6 p-0 hover:bg-gray-100 dark:hover:bg-slate-600"
+                              data-testid="button-edit-priority-header"
+                            >
+                              <Edit2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        )}
                       </div>
 
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
@@ -1575,7 +1638,7 @@ export default function ImagingPage() {
                       )}
 
                       {study.findings && (
-                        <div className="w-screen bg-blue-50 dark:bg-slate-700 border-l-4 border-blue-400 dark:border-blue-500 p-5 pr-5  mb-4 mr-16">
+                        <div className="w-900 bg-blue-50 dark:bg-slate-700 border-l-4 border-blue-400 dark:border-blue-500 p-5 pr-5  mb-4 mr-16">
                           <h4 className="font-medium text-blue-700 dark:text-blue-300 text-md mb-1">
                             Findings
                           </h4>
