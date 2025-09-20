@@ -133,7 +133,7 @@ export function AiInsightsPanel() {
             </Badge>
           </CardTitle>
         </CardHeader>
-        <CardContent className="flex items-center justify-center h-[450px]">
+        <CardContent className="flex items-center justify-center h-[600px]">
           <LoadingSpinner />
         </CardContent>
       </Card>
@@ -149,7 +149,7 @@ export function AiInsightsPanel() {
             <Badge variant="secondary">Unavailable</Badge>
           </CardTitle>
         </CardHeader>
-        <CardContent className="h-[450px] flex items-center justify-center">
+        <CardContent className="h-[600px] flex items-center justify-center">
           <p className="text-neutral-600 text-center py-8">
             Unable to load AI insights. Please try again later.
           </p>
@@ -170,7 +170,7 @@ export function AiInsightsPanel() {
             </Badge>
           </CardTitle>
         </CardHeader>
-        <CardContent className="h-[450px] flex items-center justify-center">
+        <CardContent className="h-[600px] flex items-center justify-center">
           <p className="text-neutral-600 text-center py-8">
             No AI insights available at the moment.
           </p>
@@ -190,7 +190,7 @@ export function AiInsightsPanel() {
           </Badge>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4 h-[450px]">
+      <CardContent className="space-y-4 h-[600px]">
         {insights.slice(0, 2).map((insight) => {
           const IconComponent = insightIcons[insight.type] || Lightbulb;
           const colors = insightColors[insight.type] || insightColors.risk_alert;

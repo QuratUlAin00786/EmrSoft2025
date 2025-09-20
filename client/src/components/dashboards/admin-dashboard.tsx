@@ -175,13 +175,13 @@ export function AdminDashboard() {
 
       {/* Main Content Area with Calendar and Quick Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Appointment Calendar */}
+        {/* First Row - Appointment Calendar */}
         <div className="lg:col-span-2">
           <AppointmentCalendar onNewAppointment={() => setLocation("/appointments")} />
         </div>
 
-        {/* Quick Actions */}
-        <div className="space-y-4">
+        {/* Right Column - Quick Actions, AI Insights, and Subscription */}
+        <div className="space-y-4 lg:row-span-2">
           <Card>
             <CardHeader>
               <CardTitle className="text-lg font-semibold">Quick Actions</CardTitle>
@@ -211,21 +211,21 @@ export function AdminDashboard() {
             </CardContent>
           </Card>
         </div>
-      </div>
-      
-      {/* Recent Patients List */}
-      <div className="mt-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg font-semibold">Recent Patients</CardTitle>
-            <Link href="/patients">
-              <Button variant="outline" size="sm">View All</Button>
-            </Link>
-          </CardHeader>
-          <CardContent>
-            <RecentPatientsList />
-          </CardContent>
-        </Card>
+
+        {/* Second Row - Recent Patients List (same width as appointments) */}
+        <div className="lg:col-span-2">
+          <Card className="h-full">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-lg font-semibold">Recent Patients</CardTitle>
+              <Link href="/patients">
+                <Button variant="outline" size="sm">View All</Button>
+              </Link>
+            </CardHeader>
+            <CardContent>
+              <RecentPatientsList />
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
