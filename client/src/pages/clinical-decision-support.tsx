@@ -322,6 +322,7 @@ export default function ClinicalDecisionSupport() {
           id: insight.id.toString(),
           patientId: insight.patientId?.toString() || "",
           patientName: patientData ? `${patientData.firstName} ${patientData.lastName}` : `Patient ${insight.patientId}`,
+          aiStatus: insight.aiStatus || insight.ai_status || "pending", // Map snake_case to camelCase
         };
       });
     },
@@ -447,19 +448,27 @@ export default function ClinicalDecisionSupport() {
     try {
       setButtonLoadingStates(prev => ({ ...prev, [buttonKey]: buttonType }));
       
+      // Optimistic update - immediately update the UI
+      queryClient.setQueriesData(
+        { predicate: (query) => Array.isArray(query.queryKey) && query.queryKey[0] === "/api/ai-insights" },
+        (old?: ClinicalInsight[]) => 
+          old?.map(insight => 
+            insight.id === insightId ? { ...insight, aiStatus } : insight
+          ) ?? old
+      );
+      
       await apiRequest("PATCH", `/api/ai/insights/${insightId}`, { aiStatus });
       
-      // Force refresh - invalidate both exact query and all ai-insights queries
-      await queryClient.invalidateQueries({ queryKey: ["/api/ai-insights", selectedPatient, filterSeverity, filterType, patients?.length] });
+      // Invalidate cache to ensure data consistency
       await queryClient.invalidateQueries({ predicate: (query) => Array.isArray(query.queryKey) && query.queryKey[0] === "/api/ai-insights" });
-      await queryClient.refetchQueries({ predicate: (query) => Array.isArray(query.queryKey) && query.queryKey[0] === "/api/ai-insights" });
+      
       toast({ 
         title: "Status updated successfully", 
         description: `Status changed to ${aiStatus}` 
       });
     } catch (error: any) {
       // Revert optimistic update on error
-      queryClient.invalidateQueries({ queryKey: ["/api/ai-insights"] });
+      queryClient.invalidateQueries({ predicate: (query) => Array.isArray(query.queryKey) && query.queryKey[0] === "/api/ai-insights" });
       toast({
         title: "Update Failed",
         description: error.message || "Failed to update status",
