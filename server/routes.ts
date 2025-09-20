@@ -7126,6 +7126,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Invalid image ID" });
       }
 
+      console.log(`🔄 PATCH medical-images/${imageId} - Request body:`, req.body);
+
       // Validate update data - allow updating scheduledAt, performedAt, status, and priority
       const validatedData = z.object({
         scheduledAt: z.string().optional(),
@@ -7133,6 +7135,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: z.string().optional(),
         priority: z.string().optional(),
       }).parse(req.body);
+
+      console.log(`🔍 Validated data:`, validatedData);
 
       // Convert ISO string dates to Date objects for database storage and handle other fields
       const updateData: any = {};
@@ -7149,7 +7153,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         updateData.priority = validatedData.priority;
       }
 
+      console.log(`📝 Update data being sent to storage:`, updateData);
+
       const success = await storage.updateMedicalImage(imageId, req.tenant!.id, updateData);
+      
+      console.log(`💾 Storage update result:`, success);
+      
       if (!success) {
         return res.status(404).json({ error: "Medical image not found" });
       }
