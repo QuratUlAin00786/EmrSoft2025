@@ -562,6 +562,9 @@ export const medicalImages = pgTable("medical_images", {
     resolution?: string;
     acquisitionDate?: string;
   }>().default({}),
+  // Study scheduling and performance dates
+  scheduledAt: timestamp("scheduled_at"),
+  performedAt: timestamp("performed_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
