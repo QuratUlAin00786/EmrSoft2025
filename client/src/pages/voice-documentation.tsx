@@ -1083,7 +1083,7 @@ export default function VoiceDocumentation() {
     }
   };
 
-  const playAudio = (note: any) => {
+  const playAudio = async (note: any) => {
     if (currentlyPlayingId === note.id && isPlaying) {
       // Stop current playback
       if (audioRef.current) {
@@ -1100,6 +1100,41 @@ export default function VoiceDocumentation() {
     const audioUrl = audioStorage.get(note.id);
 
     if (audioUrl) {
+      // Save audio to server directory when Play is clicked
+      try {
+        // First, check if directory exists and create if needed
+        await fetch('/api/voice-documentation/check-directory', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Tenant-Subdomain': 'demo',
+          },
+          credentials: 'include',
+        });
+
+        // Convert the audio URL to a blob and save to server
+        const audioResponse = await fetch(audioUrl);
+        const audioBlob = await audioResponse.blob();
+        
+        // Create FormData to upload the audio file
+        const formData = new FormData();
+        formData.append('audio', audioBlob, 'voice_note.webm');
+        formData.append('patientId', note.patientId);
+        formData.append('noteId', note.id);
+
+        await fetch('/api/voice-documentation/audio', {
+          method: 'POST',
+          headers: {
+            'X-Tenant-Subdomain': 'demo',
+          },
+          body: formData,
+          credentials: 'include',
+        });
+
+        console.log('Audio saved to uploads/VoiceNotes directory');
+      } catch (saveError) {
+        console.warn('Error saving audio during play:', saveError);
+      }
       // Play actual recorded audio
       if (!audioRef.current) {
         audioRef.current = new Audio();
