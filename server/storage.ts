@@ -1,5 +1,5 @@
 import { 
-  organizations, users, patients, medicalRecords, appointments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages, labResults, claims, revenueRecords, clinicalProcedures, emergencyProtocols, medicationsDatabase, roles, staffShifts, gdprConsents, gdprDataRequests, gdprAuditTrail, gdprProcessingActivities, conversations as conversationsTable, messages, voiceNotes, saasOwners, saasPackages, saasSubscriptions, saasPayments, saasInvoices, saasSettings, chatbotConfigs, chatbotSessions, chatbotMessages, chatbotAnalytics, musclePositions,
+  organizations, users, patients, medicalRecords, appointments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages, clinicalPhotos, labResults, claims, revenueRecords, clinicalProcedures, emergencyProtocols, medicationsDatabase, roles, staffShifts, gdprConsents, gdprDataRequests, gdprAuditTrail, gdprProcessingActivities, conversations as conversationsTable, messages, voiceNotes, saasOwners, saasPackages, saasSubscriptions, saasPayments, saasInvoices, saasSettings, chatbotConfigs, chatbotSessions, chatbotMessages, chatbotAnalytics, musclePositions,
   type Organization, type InsertOrganization,
   type User, type InsertUser,
   type Role, type InsertRole,
@@ -14,6 +14,7 @@ import {
   type Prescription, type InsertPrescription,
   type Document, type InsertDocument,
   type MedicalImage, type InsertMedicalImage, type UpdateMedicalImageReportField,
+  type ClinicalPhoto, type InsertClinicalPhoto,
   type LabResult, type InsertLabResult,
   type Claim, type InsertClaim,
   type RevenueRecord, type InsertRevenueRecord,
@@ -279,6 +280,14 @@ export interface IStorage {
   updateMedicalImageReportField(id: number, organizationId: number, fieldName: string, value: string): Promise<MedicalImage | undefined>;
   updateMedicalImageReport(id: number, organizationId: number, reportData: { reportFileName?: string; reportFilePath?: string; findings?: string | null; impression?: string | null; radiologist?: string | null }): Promise<MedicalImage | undefined>;
   deleteMedicalImage(id: number, organizationId: number): Promise<boolean>;
+
+  // Clinical Photos
+  getClinicalPhoto(id: number, organizationId: number): Promise<ClinicalPhoto | undefined>;
+  getClinicalPhotosByPatient(patientId: number, organizationId: number): Promise<ClinicalPhoto[]>;
+  getClinicalPhotosByOrganization(organizationId: number, limit?: number): Promise<ClinicalPhoto[]>;
+  createClinicalPhoto(photo: InsertClinicalPhoto): Promise<ClinicalPhoto>;
+  updateClinicalPhoto(id: number, organizationId: number, updates: Partial<InsertClinicalPhoto>): Promise<ClinicalPhoto | undefined>;
+  deleteClinicalPhoto(id: number, organizationId: number): Promise<boolean>;
 
   // Muscle Positions - For facial muscle analysis
   saveMusclePosition(musclePosition: InsertMusclePosition): Promise<MusclePosition>;
