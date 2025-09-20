@@ -395,6 +395,7 @@ export const aiInsights = pgTable("ai_insights", {
     references?: string[];
   }>().default({}),
   status: varchar("status", { length: 20 }).notNull().default("active"), // active, dismissed, resolved
+  aiStatus: varchar("ai_status", { length: 20 }).default("pending"), // pending, reviewed, implemented, dismissed
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

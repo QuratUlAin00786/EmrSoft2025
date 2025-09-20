@@ -436,19 +436,19 @@ export default function ClinicalDecisionSupport() {
     }
   });
 
-  // Update insight status with individual button loading states
-  const updateInsightStatus = async (insightId: string, status: string, buttonType: string) => {
+  // Update insight AI status with individual button loading states
+  const updateInsightStatus = async (insightId: string, aiStatus: string, buttonType: string) => {
     const buttonKey = `${insightId}-${buttonType}`;
     
     try {
       setButtonLoadingStates(prev => ({ ...prev, [buttonKey]: buttonType }));
       
-      await apiRequest("PATCH", `/api/ai/insights/${insightId}`, { status });
+      await apiRequest("PATCH", `/api/ai/insights/${insightId}`, { aiStatus });
       
       queryClient.invalidateQueries({ queryKey: ["/api/ai-insights"] });
       toast({ 
         title: "Insight updated successfully", 
-        description: `Status changed to ${status}` 
+        description: `AI Status changed to ${aiStatus}` 
       });
     } catch (error: any) {
       toast({
@@ -985,11 +985,23 @@ export default function ClinicalDecisionSupport() {
                     </div>
                   )}
 
+                  <div className="flex justify-between items-center pt-2">
+                    <div>
+                      <h4 className="font-medium text-sm mb-1">AI Status</h4>
+                      <Badge 
+                        variant={insight.aiStatus === 'reviewed' ? 'default' : insight.aiStatus === 'implemented' ? 'secondary' : insight.aiStatus === 'dismissed' ? 'outline' : 'destructive'}
+                        className="text-xs"
+                      >
+                        {insight.aiStatus ? insight.aiStatus.charAt(0).toUpperCase() + insight.aiStatus.slice(1) : 'Pending'}
+                      </Badge>
+                    </div>
+                  </div>
+
                   <div className="flex gap-2 pt-2">
                     <Button 
                       size="sm"
                       disabled={!!buttonLoadingStates[`${insight.id}-reviewed`]}
-                      onClick={() => updateInsightStatus(insight.id.toString(), "resolved", "reviewed")}
+                      onClick={() => updateInsightStatus(insight.id.toString(), "reviewed", "reviewed")}
                     >
                       {buttonLoadingStates[`${insight.id}-reviewed`] ? "Updating..." : "Mark Reviewed"}
                     </Button>
@@ -997,7 +1009,7 @@ export default function ClinicalDecisionSupport() {
                       size="sm" 
                       variant="outline"
                       disabled={!!buttonLoadingStates[`${insight.id}-implemented`]}
-                      onClick={() => updateInsightStatus(insight.id.toString(), "resolved", "implemented")}
+                      onClick={() => updateInsightStatus(insight.id.toString(), "implemented", "implemented")}
                     >
                       {buttonLoadingStates[`${insight.id}-implemented`] ? "Updating..." : "Mark Implemented"}
                     </Button>

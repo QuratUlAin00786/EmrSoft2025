@@ -2989,7 +2989,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const insightId = parseInt(req.params.id);
       
       const updateData = z.object({
-        status: z.enum(["active", "dismissed", "resolved"]).optional()
+        status: z.enum(["active", "dismissed", "resolved"]).optional(),
+        aiStatus: z.enum(["pending", "reviewed", "implemented", "dismissed"]).optional()
       }).parse(req.body);
 
       const insight = await storage.updateAiInsight(insightId, req.tenant!.id, updateData);
