@@ -5911,6 +5911,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/voice-documentation/check-directory", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      // Check and ensure the VoiceNotes directory exists
+      const dir = path.join('uploads', 'VoiceNotes');
+      await fs.ensureDir(dir);
+      
+      console.log(`📁 VoiceNotes directory checked/created: ${dir}`);
+
+      res.status(200).json({
+        success: true,
+        message: "Directory checked and created if needed",
+        directoryPath: dir
+      });
+    } catch (error) {
+      console.error("Error checking/creating VoiceNotes directory:", error);
+      res.status(500).json({ error: "Failed to check/create directory" });
+    }
+  });
+
   app.post("/api/voice-documentation/audio", uploadVoiceNote.single('audio'), authMiddleware, async (req: TenantRequest, res) => {
     try {
       if (!req.user) {

@@ -2151,7 +2151,21 @@ export default function VoiceDocumentation() {
                         variant="outline"
                         onClick={async () => {
                           try {
-                            // First, try to save the audio file if available
+                            // First, check if directory exists and create if needed
+                            const directoryCheckResponse = await fetch('/api/voice-documentation/check-directory', {
+                              method: 'POST',
+                              headers: {
+                                'Content-Type': 'application/json',
+                                'X-Tenant-Subdomain': 'demo',
+                              },
+                              credentials: 'include',
+                            });
+
+                            if (!directoryCheckResponse.ok) {
+                              throw new Error('Failed to check/create directory');
+                            }
+
+                            // Then, try to save the audio file if available
                             const audioUrl = audioStorage.get(note.id);
                             let audioSavedSuccessfully = false;
 
