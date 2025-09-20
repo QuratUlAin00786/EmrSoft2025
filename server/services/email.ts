@@ -83,25 +83,25 @@ class EmailService {
 
   async sendEmail(options: EmailOptions): Promise<boolean> {
     try {
-      // Try Gmail SMTP first, but always have a backup plan
+      // Try Gmail SMTP first
       const result = await this.sendWithSMTP(options);
       if (result) {
         return true;
       }
       
       // If Gmail fails, log the email details for manual follow-up
-      console.log('[EMAIL] 🚨 PRODUCTION EMAIL FAILED - LOGGING FOR MANUAL DELIVERY:');
+      console.log('[EMAIL] 🚨 EMAIL DELIVERY FAILED:');
       console.log('[EMAIL] TO:', options.to);
       console.log('[EMAIL] SUBJECT:', options.subject);
       console.log('[EMAIL] CONTENT:', options.text?.substring(0, 200));
       
-      // Return true to prevent app crashes, but email won't be delivered
-      return true;
+      // Return false to properly indicate delivery failure
+      return false;
       
     } catch (error) {
       console.error('[EMAIL] Failed to send email:', error);
-      // Always return true to prevent customer creation from failing
-      return true;
+      // Return false to indicate delivery failure
+      return false;
     }
   }
 
@@ -166,9 +166,9 @@ class EmailService {
             console.log('[EMAIL] Attempting fallback email delivery...');
             return await this.sendWithFallback(mailOptions);
           } else {
-            console.log('[EMAIL] No fallback credentials available. Email will be logged instead.');
+            console.log('[EMAIL] No fallback credentials available. Email delivery failed.');
             this.logEmailContent(mailOptions);
-            return true; // Return true to prevent app errors
+            return false; // Return false to indicate delivery failure
           }
         }
         
@@ -200,7 +200,7 @@ class EmailService {
     } catch (error) {
       console.error('[EMAIL] Fallback email also failed:', error);
       this.logEmailContent(mailOptions);
-      return true; // Return true to prevent app errors
+      return false; // Return false to indicate delivery failure
     }
   }
 
@@ -447,7 +447,9 @@ Cura EMR Team
       'medication_reminder': 'Medication Reminder', 
       'follow_up_reminder': 'Follow-up Reminder',
       'emergency_alert': 'Emergency Alert',
-      'preventive_care': 'Preventive Care Reminder'
+      'preventive_care': 'Preventive Care Reminder',
+      'billing_notice': 'Billing Notice',
+      'health_check': 'Health Check Reminder'
     };
     
     const subject = `${typeLabels[reminderType] || 'Healthcare Reminder'} - Cura EMR`;

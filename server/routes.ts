@@ -1619,7 +1619,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const patientId = parseInt(req.params.id);
       
       const reminderData = z.object({
-        type: z.enum(["appointment_reminder", "medication_reminder", "follow_up_reminder", "emergency_alert", "preventive_care"]).default("appointment_reminder"),
+        type: z.enum(["appointment_reminder", "medication_reminder", "follow_up_reminder", "emergency_alert", "preventive_care", "billing_notice", "health_check"]).default("appointment_reminder"),
         message: z.string().optional(),
         method: z.enum(["email", "sms", "whatsapp", "system"]).default("system")
       }).parse(req.body);
