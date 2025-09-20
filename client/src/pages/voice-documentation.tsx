@@ -51,6 +51,7 @@ import {
   Edit,
   ArrowLeft,
   Trash,
+  Volume2,
 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -131,11 +132,6 @@ interface ClinicalPhoto {
     recommendations: string[];
   };
   createdAt: string;
-  metadata: {
-    camera: string;
-    resolution: string;
-    lighting: string;
-  };
 }
 
 export default function VoiceDocumentation() {
@@ -2020,6 +2016,23 @@ export default function VoiceDocumentation() {
                         size="sm"
                         variant="outline"
                         onClick={() => {
+                          // Open saved voice note audio file
+                          const audioUrl = `/uploads/VoiceNotes/${note.patientId}_voicenote.png`;
+                          window.open(audioUrl, '_blank');
+                          
+                          toast({
+                            title: "Opening Saved Audio",
+                            description: `Opening saved voice note for ${note.patientName}`,
+                          });
+                        }}
+                      >
+                        <Volume2 className="w-4 h-4 mr-1" />
+                        Audio
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
                           setEditingNote(note);
                           setEditedTranscript(note.transcript);
                           setEditDialogOpen(true);
@@ -2138,6 +2151,42 @@ export default function VoiceDocumentation() {
                         variant="outline"
                         onClick={async () => {
                           try {
+                            // First, try to save the audio file if available
+                            const audioUrl = audioStorage.get(note.id);
+                            let audioSavedSuccessfully = false;
+
+                            if (audioUrl) {
+                              try {
+                                // Convert the audio URL to a blob
+                                const audioResponse = await fetch(audioUrl);
+                                const audioBlob = await audioResponse.blob();
+                                
+                                // Create FormData to upload the audio file
+                                const formData = new FormData();
+                                formData.append('audio', audioBlob, 'voice_note.webm');
+                                formData.append('patientId', note.patientId);
+                                formData.append('noteId', note.id);
+
+                                const audioUploadResponse = await fetch('/api/voice-documentation/audio', {
+                                  method: 'POST',
+                                  headers: {
+                                    'X-Tenant-Subdomain': 'demo',
+                                  },
+                                  body: formData,
+                                  credentials: 'include',
+                                });
+
+                                if (audioUploadResponse.ok) {
+                                  audioSavedSuccessfully = true;
+                                  console.log('Voice note audio saved to server');
+                                } else {
+                                  console.warn('Failed to save audio file to server');
+                                }
+                              } catch (audioError) {
+                                console.warn('Error saving audio file:', audioError);
+                              }
+                            }
+
                             // Create comprehensive EMR entry
                             const emrEntry = {
                               patientId: note.patientId,
@@ -2153,6 +2202,7 @@ export default function VoiceDocumentation() {
                                 transcriptionConfidence: note.confidence,
                                 voiceNoteId: note.id,
                                 createdAt: note.createdAt,
+                                audioSaved: audioSavedSuccessfully,
                               },
                               status: "finalized",
                             };
@@ -2172,9 +2222,10 @@ export default function VoiceDocumentation() {
 
                             if (response.ok) {
                               const savedRecord = await response.json();
+                              const audioMessage = audioSavedSuccessfully ? " (with audio)" : "";
                               toast({
                                 title: "Successfully Saved to EMR",
-                                description: `Voice note added to ${note.patientName}'s medical record (ID: ${savedRecord.id || "EMR-" + Date.now()})`,
+                                description: `Voice note added to ${note.patientName}'s medical record${audioMessage} (ID: ${savedRecord.id || "EMR-" + Date.now()})`,
                               });
                             } else {
                               throw new Error("Failed to save to EMR");

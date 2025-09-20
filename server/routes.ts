@@ -113,6 +113,31 @@ const uploadPhoto = multer({
   }
 });
 
+// Configure disk storage specifically for voice notes
+const uploadVoiceNote = multer({
+  dest: 'uploads/temp/',
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50MB limit for audio files
+  },
+  fileFilter: (req, file, cb) => {
+    // Accept audio files
+    const allowedTypes = [
+      'audio/mpeg',
+      'audio/mp3',
+      'audio/wav',
+      'audio/webm',
+      'audio/ogg',
+      'application/octet-stream' // For blob uploads
+    ];
+    
+    if (allowedTypes.includes(file.mimetype) || file.originalname.endsWith('.webm') || file.originalname.endsWith('.wav') || file.originalname.endsWith('.mp3')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only audio files are allowed for voice notes.'));
+    }
+  }
+});
+
 export async function registerRoutes(app: Express): Promise<Server> {
   
   // DEPLOYMENT HEALTH CHECK - Absolute priority for deployment success
@@ -5883,6 +5908,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error uploading photo:", error);
       res.status(500).json({ error: "Failed to upload photo" });
+    }
+  });
+
+  app.post("/api/voice-documentation/audio", uploadVoiceNote.single('audio'), authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const { patientId, noteId } = req.body;
+      const uploadedFile = req.file;
+      
+      if (!uploadedFile) {
+        return res.status(400).json({ error: "No audio file provided" });
+      }
+
+      if (!patientId) {
+        return res.status(400).json({ error: "Patient ID is required" });
+      }
+
+      const patient = await storage.getPatient(parseInt(patientId), req.tenant!.id);
+      if (!patient) {
+        return res.status(404).json({ error: "Patient not found" });
+      }
+
+      // Create the filename using patient ID and voicenote.png naming convention as requested
+      const filename = `${patientId}_voicenote.png`;
+      const filePath = path.join('uploads', 'VoiceNotes', filename);
+      
+      // Ensure the VoiceNotes directory exists
+      const dir = path.join('uploads', 'VoiceNotes');
+      await fs.ensureDir(dir);
+      
+      // Move the uploaded file to the correct location with the proper name
+      await fs.move(uploadedFile.path, filePath, { overwrite: true });
+
+      console.log(`🎵 Voice note saved to filesystem: ${filePath}`);
+
+      // Return success response with the file path
+      res.status(201).json({
+        success: true,
+        message: "Voice note audio saved successfully",
+        audioUrl: `/uploads/VoiceNotes/${filename}`,
+        filename: filename,
+        patientId: patientId,
+        patientName: `${patient.firstName} ${patient.lastName}`
+      });
+    } catch (error) {
+      console.error("Error uploading voice note audio:", error);
+      res.status(500).json({ error: "Failed to upload voice note audio" });
     }
   });
 
