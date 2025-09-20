@@ -22,6 +22,12 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   FileImage,
   Plus,
@@ -227,6 +233,8 @@ export default function ImagingPage() {
     findings: false,
     impression: false,
     radiologist: false,
+    scheduledAt: false,
+    performedAt: false,
   });
 
   // Saving states for individual fields
@@ -234,7 +242,13 @@ export default function ImagingPage() {
     findings: false,
     impression: false,
     radiologist: false,
+    scheduledAt: false,
+    performedAt: false,
   });
+
+  // Date states for editing
+  const [scheduledDate, setScheduledDate] = useState<Date | undefined>(undefined);
+  const [performedDate, setPerformedDate] = useState<Date | undefined>(undefined);
 
   const [generatedReportId, setGeneratedReportId] = useState<string | null>(
     null,
@@ -325,6 +339,7 @@ export default function ImagingPage() {
 
       // Invalidate related queries
       queryClient.invalidateQueries({ queryKey: ["/api/imaging/studies"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/medical-images"] });
 
       toast({
         title: "Field Updated",
@@ -354,18 +369,84 @@ export default function ImagingPage() {
     },
   });
 
+  // Date field update mutations
+  const updateDateMutation = useMutation({
+    mutationFn: async ({
+      studyId,
+      fieldName,
+      value,
+    }: {
+      studyId: string;
+      fieldName: string;
+      value: string;
+    }) => {
+      const response = await apiRequest(
+        "PATCH",
+        `/api/medical-images/${studyId}`,
+        {
+          [fieldName]: value,
+        },
+      );
+      return response.json();
+    },
+    onSuccess: (data, variables) => {
+      // Exit edit mode
+      setEditModes((prev) => ({
+        ...prev,
+        [variables.fieldName]: false,
+      }));
+
+      // Invalidate related queries to refresh the data
+      queryClient.invalidateQueries({ queryKey: ["/api/medical-images"] });
+
+      toast({
+        title: "Date Updated",
+        description: `${variables.fieldName === "scheduledAt" ? "Scheduled" : "Performed"} date updated successfully`,
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Update Failed",
+        description: "Failed to update date. Please try again.",
+        variant: "destructive",
+      });
+    },
+    onMutate: (variables) => {
+      // Set saving state
+      setSaving((prev) => ({
+        ...prev,
+        [variables.fieldName]: true,
+      }));
+    },
+    onSettled: (data, error, variables) => {
+      // Clear saving state
+      setSaving((prev) => ({
+        ...prev,
+        [variables.fieldName]: false,
+      }));
+    },
+  });
+
   // Helper functions for individual field editing
   const handleFieldEdit = (
-    fieldName: "findings" | "impression" | "radiologist",
+    fieldName: "findings" | "impression" | "radiologist" | "scheduledAt" | "performedAt",
   ) => {
     setEditModes((prev) => ({
       ...prev,
       [fieldName]: true,
     }));
+    
+    // Initialize date states when entering edit mode
+    if (selectedStudy) {
+      if (fieldName === "scheduledAt")
+        setScheduledDate(selectedStudy.scheduledAt ? new Date(selectedStudy.scheduledAt) : undefined);
+      if (fieldName === "performedAt")
+        setPerformedDate(selectedStudy.performedAt ? new Date(selectedStudy.performedAt) : undefined);
+    }
   };
 
   const handleFieldCancel = (
-    fieldName: "findings" | "impression" | "radiologist",
+    fieldName: "findings" | "impression" | "radiologist" | "scheduledAt" | "performedAt",
   ) => {
     setEditModes((prev) => ({
       ...prev,
@@ -380,11 +461,15 @@ export default function ImagingPage() {
         setReportImpression(selectedStudy.impression || "");
       if (fieldName === "radiologist")
         setReportRadiologist(selectedStudy.radiologist || "Dr. Michael Chen");
+      if (fieldName === "scheduledAt")
+        setScheduledDate(selectedStudy.scheduledAt ? new Date(selectedStudy.scheduledAt) : undefined);
+      if (fieldName === "performedAt")
+        setPerformedDate(selectedStudy.performedAt ? new Date(selectedStudy.performedAt) : undefined);
     }
   };
 
   const handleFieldSave = (
-    fieldName: "findings" | "impression" | "radiologist",
+    fieldName: "findings" | "impression" | "radiologist" | "scheduledAt" | "performedAt",
   ) => {
     if (!selectedStudy) return;
 
@@ -392,12 +477,22 @@ export default function ImagingPage() {
     if (fieldName === "findings") value = reportFindings;
     if (fieldName === "impression") value = reportImpression;
     if (fieldName === "radiologist") value = reportRadiologist;
+    if (fieldName === "scheduledAt") value = scheduledDate?.toISOString() || "";
+    if (fieldName === "performedAt") value = performedDate?.toISOString() || "";
 
-    updateFieldMutation.mutate({
-      studyId: selectedStudy.id,
-      fieldName,
-      value,
-    });
+    if (fieldName === "scheduledAt" || fieldName === "performedAt") {
+      updateDateMutation.mutate({
+        studyId: selectedStudy.id,
+        fieldName,
+        value,
+      });
+    } else {
+      updateFieldMutation.mutate({
+        studyId: selectedStudy.id,
+        fieldName,
+        value,
+      });
+    }
   };
 
   // Fetch patients using the exact working pattern from prescriptions
