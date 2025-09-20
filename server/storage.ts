@@ -3478,6 +3478,69 @@ export class DatabaseStorage implements IStorage {
     return (result.rowCount ?? 0) > 0;
   }
 
+  // Clinical Photos implementation
+  async getClinicalPhoto(id: number, organizationId: number): Promise<ClinicalPhoto | undefined> {
+    const [photo] = await db
+      .select()
+      .from(clinicalPhotos)
+      .where(and(eq(clinicalPhotos.id, id), eq(clinicalPhotos.organizationId, organizationId)));
+    return photo;
+  }
+
+  async getClinicalPhotosByPatient(patientId: number, organizationId: number): Promise<ClinicalPhoto[]> {
+    return await db
+      .select()
+      .from(clinicalPhotos)
+      .where(and(eq(clinicalPhotos.patientId, patientId), eq(clinicalPhotos.organizationId, organizationId)))
+      .orderBy(desc(clinicalPhotos.createdAt));
+  }
+
+  async getClinicalPhotosByOrganization(organizationId: number, limit: number = 50): Promise<ClinicalPhoto[]> {
+    return await db
+      .select()
+      .from(clinicalPhotos)
+      .where(eq(clinicalPhotos.organizationId, organizationId))
+      .orderBy(desc(clinicalPhotos.createdAt))
+      .limit(limit);
+  }
+
+  async createClinicalPhoto(photo: InsertClinicalPhoto): Promise<ClinicalPhoto> {
+    const cleanPhoto = {
+      ...photo,
+      metadata: typeof photo.metadata === 'object' ? photo.metadata : {},
+      aiAnalysis: typeof photo.aiAnalysis === 'object' ? photo.aiAnalysis : undefined,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    const [newPhoto] = await db
+      .insert(clinicalPhotos)
+      .values(cleanPhoto as any)
+      .returning();
+    return newPhoto;
+  }
+
+  async updateClinicalPhoto(id: number, organizationId: number, updates: Partial<InsertClinicalPhoto>): Promise<ClinicalPhoto | undefined> {
+    const cleanUpdates = {
+      ...updates,
+      ...(updates.metadata && typeof updates.metadata === 'object' ? { metadata: updates.metadata } : {}),
+      ...(updates.aiAnalysis && typeof updates.aiAnalysis === 'object' ? { aiAnalysis: updates.aiAnalysis } : {}),
+      updatedAt: new Date(),
+    };
+    const [updatedPhoto] = await db
+      .update(clinicalPhotos)
+      .set(cleanUpdates as any)
+      .where(and(eq(clinicalPhotos.id, id), eq(clinicalPhotos.organizationId, organizationId)))
+      .returning();
+    return updatedPhoto;
+  }
+
+  async deleteClinicalPhoto(id: number, organizationId: number): Promise<boolean> {
+    const result = await db
+      .delete(clinicalPhotos)
+      .where(and(eq(clinicalPhotos.id, id), eq(clinicalPhotos.organizationId, organizationId)));
+    return (result.rowCount ?? 0) > 0;
+  }
+
   // Muscle Positions - For facial muscle analysis
   async saveMusclePosition(musclePosition: InsertMusclePosition): Promise<MusclePosition> {
     const cleanMusclePosition = {
