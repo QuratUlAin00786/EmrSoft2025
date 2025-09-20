@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { queryClient } from "@/lib/queryClient";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -249,34 +249,12 @@ export default function FinancialIntelligence() {
   // Fetch claims
   const { data: claims, isLoading: claimsLoading } = useQuery({
     queryKey: ["/api/financial/claims"],
-    queryFn: async () => {
-      const response = await fetch("/api/financial/claims", {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-          "X-Tenant-Subdomain": "demo",
-        },
-        credentials: "include",
-      });
-      if (!response.ok) throw new Error("Failed to fetch claims");
-      return response.json();
-    },
     enabled: true,
   });
 
   // Fetch insurance verifications
   const { data: insurances, isLoading: insuranceLoading } = useQuery({
     queryKey: ["/api/financial/insurance"],
-    queryFn: async () => {
-      const response = await fetch("/api/financial/insurance", {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-          "X-Tenant-Subdomain": "demo",
-        },
-        credentials: "include",
-      });
-      if (!response.ok) throw new Error("Failed to fetch insurance data");
-      return response.json();
-    },
     enabled: true,
   });
 
@@ -553,17 +531,11 @@ export default function FinancialIntelligence() {
       claimId: string;
       status: string;
     }) => {
-      const response = await fetch(`/api/financial/claims/${claimId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-          "X-Tenant-Subdomain": "demo",
-        },
-        credentials: "include",
-        body: JSON.stringify({ status }),
-      });
-      if (!response.ok) throw new Error("Failed to update claim status");
+      const response = await apiRequest(
+        "PATCH",
+        `/api/financial/claims/${claimId}`,
+        { status }
+      );
       return response.json();
     },
     onMutate: async (variables) => {
