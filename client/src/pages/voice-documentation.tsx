@@ -2136,7 +2136,16 @@ export default function VoiceDocumentation() {
                       <CardTitle className="text-lg">{photo.patientName}</CardTitle>
                       <div className="flex items-center gap-2 mt-1">
                         <Badge variant="outline">{photo.type}</Badge>
-                        <span className="text-sm text-gray-500">{photo.filename}</span>
+                        <button 
+                          className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline cursor-pointer"
+                          onClick={() => {
+                            setSelectedPhoto(photo);
+                            setViewFullDialogOpen(true);
+                          }}
+                          data-testid={`button-view-photo-${photo.id}`}
+                        >
+                          {photo.filename}
+                        </button>
                       </div>
                     </div>
                     <div className="text-sm text-gray-500">
