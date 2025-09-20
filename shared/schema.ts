@@ -569,6 +569,36 @@ export const medicalImages = pgTable("medical_images", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Clinical Photos - Voice Documentation Photos
+export const clinicalPhotos = pgTable("clinical_photos", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
+  patientId: integer("patient_id").notNull().references(() => patients.id),
+  capturedBy: integer("captured_by").notNull().references(() => users.id),
+  type: varchar("type", { length: 50 }).notNull(), // wound, rash, surgical_site, dermatological, dental, etc.
+  description: text("description").notNull(),
+  fileName: text("file_name").notNull(),
+  filePath: text("file_path").notNull(), // Filesystem path where image is stored
+  fileSize: integer("file_size").notNull(), // in bytes
+  mimeType: varchar("mime_type", { length: 100 }).notNull().default("image/png"),
+  metadata: jsonb("metadata").$type<{
+    camera?: string;
+    resolution?: string;
+    lighting?: string;
+    location?: string; // body part or location where photo was taken
+    tags?: string[];
+  }>().default({}),
+  aiAnalysis: jsonb("ai_analysis").$type<{
+    findings?: string[];
+    recommendations?: string[];
+    confidence?: number;
+    severity?: string;
+  }>(),
+  status: varchar("status", { length: 20 }).notNull().default("active"), // active, archived, deleted
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Patient Communications Tracking
 export const patientCommunications = pgTable("patient_communications", {
   id: serial("id").primaryKey(),
@@ -1154,6 +1184,7 @@ export const patientsRelations = relations(patients, ({ one, many }) => ({
   communications: many(patientCommunications),
   prescriptions: many(prescriptions),
   medicalImages: many(medicalImages),
+  clinicalPhotos: many(clinicalPhotos),
 }));
 
 export const notificationsRelations = relations(notifications, ({ one }) => ({
@@ -1290,6 +1321,21 @@ export const medicalImagesRelations = relations(medicalImages, ({ one }) => ({
   }),
   uploadedByUser: one(users, {
     fields: [medicalImages.uploadedBy],
+    references: [users.id],
+  }),
+}));
+
+export const clinicalPhotosRelations = relations(clinicalPhotos, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [clinicalPhotos.organizationId],
+    references: [organizations.id],
+  }),
+  patient: one(patients, {
+    fields: [clinicalPhotos.patientId],
+    references: [patients.id],
+  }),
+  capturedByUser: one(users, {
+    fields: [clinicalPhotos.capturedBy],
     references: [users.id],
   }),
 }));
@@ -1758,6 +1804,12 @@ export const insertMedicalImageSchema = createInsertSchema(medicalImages).omit({
   updatedAt: true,
 });
 
+export const insertClinicalPhotoSchema = createInsertSchema(clinicalPhotos).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Schema for updating individual report fields
 export const updateMedicalImageReportFieldSchema = z.object({
   fieldName: z.enum(['findings', 'impression', 'radiologist']),
@@ -2032,6 +2084,9 @@ export type InsertPrescription = z.infer<typeof insertPrescriptionSchema>;
 
 export type MedicalImage = typeof medicalImages.$inferSelect;
 export type InsertMedicalImage = z.infer<typeof insertMedicalImageSchema>;
+
+export type ClinicalPhoto = typeof clinicalPhotos.$inferSelect;
+export type InsertClinicalPhoto = z.infer<typeof insertClinicalPhotoSchema>;
 
 export type LabResult = typeof labResults.$inferSelect;
 export type InsertLabResult = z.infer<typeof insertLabResultSchema>;
