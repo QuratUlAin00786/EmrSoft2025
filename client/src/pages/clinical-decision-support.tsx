@@ -460,26 +460,25 @@ export default function ClinicalDecisionSupport() {
     try {
       setButtonLoadingStates(prev => ({ ...prev, [buttonKey]: buttonType }));
       
-      // Optimistic update - immediately update the UI
-      queryClient.setQueriesData(
-        { predicate: (query) => Array.isArray(query.queryKey) && query.queryKey[0] === "/api/ai-insights" },
-        (old?: ClinicalInsight[]) => 
-          old?.map(insight => 
-            insight.id === insightId ? { ...insight, aiStatus } : insight
-          ) ?? old
-      );
+      // **REMOVE OPTIMISTIC UPDATE** - Let SSE handle the real-time update instead
+      console.log(`[UPDATE] Starting status update for insight ${insightId}: -> ${aiStatus}`);
       
       await apiRequest("PATCH", `/api/ai/insights/${insightId}`, { aiStatus });
       
-      // Invalidate cache to ensure data consistency
-      await queryClient.invalidateQueries({ predicate: (query) => Array.isArray(query.queryKey) && query.queryKey[0] === "/api/ai-insights" });
+      console.log(`[UPDATE] ✅ Status update completed for insight ${insightId}`);
+      
+      // Don't immediately invalidate - let SSE update the cache
+      // Only invalidate after a delay to ensure SSE has time to update
+      setTimeout(() => {
+        queryClient.invalidateQueries({ predicate: (query) => Array.isArray(query.queryKey) && query.queryKey[0] === "/api/ai-insights" });
+      }, 500);
       
       toast({ 
         title: "Status updated successfully", 
         description: `Status changed to ${aiStatus}` 
       });
     } catch (error: any) {
-      // Revert optimistic update on error
+      // On error, invalidate to refresh from server
       queryClient.invalidateQueries({ predicate: (query) => Array.isArray(query.queryKey) && query.queryKey[0] === "/api/ai-insights" });
       toast({
         title: "Update Failed",

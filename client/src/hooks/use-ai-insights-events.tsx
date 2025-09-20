@@ -169,6 +169,19 @@ export function useAiInsightsEvents() {
     };
   }, [tenant?.subdomain]);
 
+  // Keep connection alive during component lifecycle
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      // Don't disconnect on page navigation - let the browser handle it
+    };
+    
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
+
   return {
     connected: eventSourceRef.current?.readyState === EventSource.OPEN,
     disconnect
