@@ -2237,6 +2237,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update claim status
+  app.patch("/api/financial/claims/:id", authMiddleware, requireRole(["admin", "finance", "doctor", "nurse"]), async (req: TenantRequest, res) => {
+    try {
+      const claimId = parseInt(req.params.id);
+      const organizationId = req.organizationId;
+      
+      if (isNaN(claimId)) {
+        return res.status(400).json({ error: "Invalid claim ID" });
+      }
+
+      // Validate status field
+      const { status } = req.body;
+      const validStatuses = ["pending", "submitted", "approved", "denied", "paid"];
+      
+      if (!status || !validStatuses.includes(status)) {
+        return res.status(400).json({ 
+          error: "Invalid status. Must be one of: " + validStatuses.join(", ") 
+        });
+      }
+
+      // Check if claim exists and belongs to this organization
+      const existingClaim = await storage.getClaimById(claimId);
+      if (!existingClaim || existingClaim.organizationId !== organizationId) {
+        return res.status(404).json({ error: "Claim not found" });
+      }
+
+      // Update the claim status
+      const updatedClaim = await storage.updateClaim(claimId, organizationId, { status });
+      
+      res.json({ 
+        success: true,
+        message: "Claim status updated successfully",
+        claim: updatedClaim
+      });
+    } catch (error) {
+      handleRouteError(error, "update claim status", res);
+    }
+  });
+
   // Delete claim
   app.delete("/api/financial/claims/:id", authMiddleware, requireRole(["admin", "finance", "doctor", "nurse"]), async (req: TenantRequest, res) => {
     try {
