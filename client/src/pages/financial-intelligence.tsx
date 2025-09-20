@@ -246,11 +246,31 @@ export default function FinancialIntelligence() {
     enabled: true,
   });
 
-  // Fetch claims
-  const { data: claims, isLoading: claimsLoading } = useQuery({
+  // Fetch claims with forced refetch
+  const { data: claimsResponse, isLoading: claimsLoading, refetch: refetchClaims } = useQuery({
     queryKey: ["/api/financial/claims"],
     enabled: true,
+    staleTime: 0,
+    cacheTime: 0,
   });
+
+  // Force refetch when component mounts or when switching to Claims tab
+  useEffect(() => {
+    if (activeTab === "claims") {
+      console.log("Claims tab active - forcing refetch");
+      queryClient.invalidateQueries({ queryKey: ["/api/financial/claims"] });
+      refetchClaims();
+    }
+  }, [activeTab, refetchClaims]);
+
+  // Ensure claims is always an array
+  const claims = Array.isArray(claimsResponse) ? claimsResponse : [];
+  
+  // Debug logging
+  console.log("Claims query response:", claimsResponse);
+  console.log("Claims array:", claims);
+  console.log("Claims loading:", claimsLoading);
+  console.log("Active tab:", activeTab);
 
   // Fetch insurance verifications
   const { data: insurances, isLoading: insuranceLoading } = useQuery({
