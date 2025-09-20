@@ -1756,9 +1756,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!currentFlags.includes(flagString)) {
         currentFlags.push(flagString);
         
-        // Update patient with new flag
+        // Update patient with new flag and risk level based on flag severity
         await storage.updatePatient(patientId, req.tenant!.id, {
-          flags: currentFlags
+          flags: currentFlags,
+          riskLevel: finalPriority // Update risk level to match flag severity
         });
       }
 
