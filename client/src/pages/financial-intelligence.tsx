@@ -544,6 +544,66 @@ export default function FinancialIntelligence() {
     },
   });
 
+  // Update claim status mutation with auto-update pattern (like imaging.tsx)
+  const updateClaimStatusMutation = useMutation({
+    mutationFn: async ({
+      claimId,
+      status,
+    }: {
+      claimId: string;
+      status: string;
+    }) => {
+      const response = await fetch(`/api/financial/claims/${claimId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+          "X-Tenant-Subdomain": "demo",
+        },
+        credentials: "include",
+        body: JSON.stringify({ status }),
+      });
+      if (!response.ok) throw new Error("Failed to update claim status");
+      return response.json();
+    },
+    onMutate: async (variables) => {
+      // Set saving state
+      setSaving((prev) => ({
+        ...prev,
+        [`claim-${variables.claimId}-status`]: true,
+      }));
+    },
+    onError: (error, variables) => {
+      toast({
+        title: "Update Failed",
+        description: "Failed to update claim status. Please try again.",
+        variant: "destructive",
+      });
+    },
+    onSuccess: (data, variables) => {
+      // ✨ KEY: Exit edit mode immediately (patients.tsx pattern)
+      setEditModes((prev) => ({
+        ...prev,
+        [`claim-${variables.claimId}-status`]: false,
+      }));
+
+      // Invalidate and refetch - this triggers React re-render
+      queryClient.invalidateQueries({ queryKey: ["/api/financial/claims"] });
+
+      toast({
+        title: "Status Updated",
+        description: `Claim status updated to ${variables.status} successfully`,
+      });
+    },
+    onSettled: (data, error, variables) => {
+      // Clear saving state
+      setSaving((prev) => ({
+        ...prev,
+        [`claim-${variables.claimId}-status`]: false,
+      }));
+    },
+  });
+
   // Mock data
   const mockRevenueData: RevenueData[] = [
     {
