@@ -292,7 +292,7 @@ export default function ClinicalDecisionSupport() {
 
   // Fetch AI insights with real data
   const { data: insights = [], isLoading: insightsLoading } = useQuery<ClinicalInsight[]>({
-    queryKey: ["/api/ai-insights", selectedPatient, filterSeverity, filterType],
+    queryKey: ["/api/ai-insights", selectedPatient, filterSeverity, filterType, patients?.length],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (selectedPatient && selectedPatient !== "") {
@@ -314,12 +314,16 @@ export default function ClinicalDecisionSupport() {
       return data.filter((insight: any) => 
         (filterSeverity === 'all' || insight.severity === filterSeverity) &&
         (filterType === 'all' || insight.type === filterType)
-      ).map((insight: any) => ({
-        ...insight,
-        id: insight.id.toString(),
-        patientId: insight.patientId?.toString() || "",
-        patientName: selectedPatientData ? `${selectedPatientData.firstName} ${selectedPatientData.lastName}` : `Patient ${insight.patientId}`,
-      }));
+      ).map((insight: any) => {
+        // Find the patient data for this insight
+        const patientData = patients.find((p: any) => p.id === insight.patientId);
+        return {
+          ...insight,
+          id: insight.id.toString(),
+          patientId: insight.patientId?.toString() || "",
+          patientName: patientData ? `${patientData.firstName} ${patientData.lastName}` : `Patient ${insight.patientId}`,
+        };
+      });
     },
     retry: false,
     staleTime: 30000,
@@ -445,13 +449,10 @@ export default function ClinicalDecisionSupport() {
       
       await apiRequest("PATCH", `/api/ai/insights/${insightId}`, { aiStatus });
       
-      // Force refresh all ai-insights queries regardless of filter state
-      await queryClient.invalidateQueries({ 
-        predicate: (query) => query.queryKey[0] === "/api/ai-insights"
-      });
-      await queryClient.refetchQueries({ 
-        predicate: (query) => query.queryKey[0] === "/api/ai-insights"
-      });
+      // Force refresh - invalidate both exact query and all ai-insights queries
+      await queryClient.invalidateQueries({ queryKey: ["/api/ai-insights", selectedPatient, filterSeverity, filterType, patients?.length] });
+      await queryClient.invalidateQueries({ predicate: (query) => Array.isArray(query.queryKey) && query.queryKey[0] === "/api/ai-insights" });
+      await queryClient.refetchQueries({ predicate: (query) => Array.isArray(query.queryKey) && query.queryKey[0] === "/api/ai-insights" });
       toast({ 
         title: "Status updated successfully", 
         description: `Status changed to ${aiStatus}` 
