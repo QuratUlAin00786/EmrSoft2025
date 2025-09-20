@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-,  // Fetch logic with proper headers and authentication
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -247,38 +246,14 @@ export default function FinancialIntelligence() {
     enabled: true,
   });
 
-  // Fetch claims with explicit queryFn to ensure it works
-  const { data: claimsResponse, isLoading: claimsLoading, refetch: refetchClaims, error: claimsError } = useQuery({
+  // Fetch claims using standard pattern like patient list
+  const { data: claimsResponse, isLoading: claimsLoading } = useQuery({
     queryKey: ["/api/financial/claims"],
-    queryFn: async () => {
-      console.log("Making claims API request...");
-      const response = await apiRequest("GET", "/api/financial/claims");
-      const data = await response.json();
-      console.log("Claims API response:", data);
-      return data;
-    },
     enabled: true,
-    staleTime: 0,
-    cacheTime: 0,
   });
-
-  // Force refetch when component mounts or when switching to Claims tab
-  useEffect(() => {
-    if (activeTab === "claims") {
-      console.log("Claims tab active - forcing refetch");
-      queryClient.invalidateQueries({ queryKey: ["/api/financial/claims"] });
-      refetchClaims();
-    }
-  }, [activeTab, refetchClaims]);
 
   // Ensure claims is always an array
   const claims = Array.isArray(claimsResponse) ? claimsResponse : [];
-  
-  // Debug logging
-  console.log("Claims query response:", claimsResponse);
-  console.log("Claims array:", claims);
-  console.log("Claims loading:", claimsLoading);
-  console.log("Active tab:", activeTab);
 
   // Fetch insurance verifications
   const { data: insurances, isLoading: insuranceLoading } = useQuery({
