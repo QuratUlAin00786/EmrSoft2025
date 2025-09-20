@@ -1461,8 +1461,21 @@ export default function ImagingPage() {
                             size="sm"
                             onClick={async () => {
                               try {
-                                const token =
-                                  localStorage.getItem("auth_token");
+                                // Check if report file name exists
+                                if (!study.reportFileName) {
+                                  toast({
+                                    title: "No Report Available",
+                                    description:
+                                      "No report is available for this study yet.",
+                                    variant: "destructive",
+                                  });
+                                  return;
+                                }
+
+                                // Safely extract report ID with case-insensitive PDF removal
+                                const reportId = study.reportFileName.replace(/\.pdf$/i, "");
+                                
+                                const token = localStorage.getItem("auth_token");
                                 const headers: Record<string, string> = {
                                   "X-Tenant-Subdomain": "demo",
                                 };
@@ -1471,28 +1484,17 @@ export default function ImagingPage() {
                                   headers["Authorization"] = `Bearer ${token}`;
                                 }
 
-                                const response = await fetch(
-                                  `/api/imaging/reports/${study.reportFileName.replace(".pdf", "")}`,
+                                // First, check if file exists with HEAD request
+                                const checkResponse = await fetch(
+                                  `/api/imaging/reports/${reportId}`,
                                   {
+                                    method: "HEAD",
                                     headers,
                                     credentials: "include",
                                   },
                                 );
 
-                                if (response.ok) {
-                                  const blob = await response.blob();
-                                  const url = URL.createObjectURL(blob);
-                                  window.open(
-                                    url,
-                                    "_blank",
-                                    "width=800,height=600,scrollbars=yes,resizable=yes",
-                                  );
-
-                                  // Clean up the blob URL after a delay to allow the window to load
-                                  setTimeout(() => {
-                                    URL.revokeObjectURL(url);
-                                  }, 1000);
-                                } else if (response.status === 404) {
+                                if (checkResponse.status === 404) {
                                   // File not found - show specific message
                                   toast({
                                     title: "File Not Available",
@@ -1500,11 +1502,22 @@ export default function ImagingPage() {
                                       "File is not available on the server — it may have been deleted or not yet created.",
                                     variant: "destructive",
                                   });
-                                } else {
-                                  // Other errors - show generic message
-                                  throw new Error("Failed to view PDF report");
+                                  return;
+                                } else if (!checkResponse.ok) {
+                                  // Other errors during check
+                                  console.error(`Report check failed: Status ${checkResponse.status} for study ${study.id}`);
+                                  throw new Error("Failed to check PDF report availability");
                                 }
+
+                                // File exists, now open it
+                                const viewUrl = `/api/imaging/reports/${reportId}`;
+                                window.open(
+                                  viewUrl,
+                                  "_blank",
+                                  "width=800,height=600,scrollbars=yes,resizable=yes",
+                                );
                               } catch (error) {
+                                console.error(`Failed to view PDF for study ${study.id}:`, error);
                                 toast({
                                   title: "View Failed",
                                   description:
