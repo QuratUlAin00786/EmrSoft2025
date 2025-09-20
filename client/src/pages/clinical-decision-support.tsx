@@ -81,6 +81,7 @@ export default function ClinicalDecisionSupport() {
   const [createInsightOpen, setCreateInsightOpen] = useState(false);
   const [symptoms, setSymptoms] = useState<string>("");
   const [history, setHistory] = useState<string>("");
+  const [buttonLoadingStates, setButtonLoadingStates] = useState<Record<string, string | null>>({});
   const { toast } = useToast();
   const [location, setLocation] = useLocation();
 
@@ -435,7 +436,32 @@ export default function ClinicalDecisionSupport() {
     }
   });
 
-  // Update insight status mutation
+  // Update insight status with individual button loading states
+  const updateInsightStatus = async (insightId: string, status: string, buttonType: string) => {
+    const buttonKey = `${insightId}-${buttonType}`;
+    
+    try {
+      setButtonLoadingStates(prev => ({ ...prev, [buttonKey]: buttonType }));
+      
+      await apiRequest("PATCH", `/api/ai/insights/${insightId}`, { status });
+      
+      queryClient.invalidateQueries({ queryKey: ["/api/ai-insights"] });
+      toast({ 
+        title: "Insight updated successfully", 
+        description: `Status changed to ${status}` 
+      });
+    } catch (error: any) {
+      toast({
+        title: "Update Failed",
+        description: error.message || "Failed to update insight",
+        variant: "destructive"
+      });
+    } finally {
+      setButtonLoadingStates(prev => ({ ...prev, [buttonKey]: null }));
+    }
+  };
+
+  // Keep the original mutation for backward compatibility
   const updateInsightMutation = useMutation({
     mutationFn: async (data: { insightId: string; status: string; notes?: string }) => {
       return apiRequest("PATCH", `/api/ai/insights/${data.insightId}`, { status: data.status, notes: data.notes });
@@ -962,35 +988,26 @@ export default function ClinicalDecisionSupport() {
                   <div className="flex gap-2 pt-2">
                     <Button 
                       size="sm"
-                      disabled={updateInsightMutation.isPending}
-                      onClick={() => updateInsightMutation.mutate({ 
-                        insightId: insight.id.toString(), 
-                        status: "resolved" 
-                      })}
+                      disabled={buttonLoadingStates[`${insight.id}-reviewed`] !== null}
+                      onClick={() => updateInsightStatus(insight.id.toString(), "resolved", "reviewed")}
                     >
-                      {updateInsightMutation.isPending ? "Updating..." : "Mark Reviewed"}
+                      {buttonLoadingStates[`${insight.id}-reviewed`] ? "Updating..." : "Mark Reviewed"}
                     </Button>
                     <Button 
                       size="sm" 
                       variant="outline"
-                      disabled={updateInsightMutation.isPending}
-                      onClick={() => updateInsightMutation.mutate({ 
-                        insightId: insight.id.toString(), 
-                        status: "resolved" 
-                      })}
+                      disabled={buttonLoadingStates[`${insight.id}-implemented`] !== null}
+                      onClick={() => updateInsightStatus(insight.id.toString(), "implemented", "implemented")}
                     >
-                      {updateInsightMutation.isPending ? "Updating..." : "Mark Implemented"}
+                      {buttonLoadingStates[`${insight.id}-implemented`] ? "Updating..." : "Mark Implemented"}
                     </Button>
                     <Button 
                       size="sm" 
                       variant="ghost"
-                      disabled={updateInsightMutation.isPending}
-                      onClick={() => updateInsightMutation.mutate({ 
-                        insightId: insight.id.toString(), 
-                        status: "dismissed" 
-                      })}
+                      disabled={buttonLoadingStates[`${insight.id}-dismissed`] !== null}
+                      onClick={() => updateInsightStatus(insight.id.toString(), "dismissed", "dismissed")}
                     >
-                      {updateInsightMutation.isPending ? "Updating..." : "Dismiss"}
+                      {buttonLoadingStates[`${insight.id}-dismissed`] ? "Updating..." : "Dismiss"}
                     </Button>
                   </div>
                 </CardContent>
