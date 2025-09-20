@@ -443,20 +443,10 @@ export default function ClinicalDecisionSupport() {
     try {
       setButtonLoadingStates(prev => ({ ...prev, [buttonKey]: buttonType }));
       
-      // Optimistic update - immediately update the UI
-      queryClient.setQueryData(["/api/ai-insights"], (oldData: any) => {
-        if (!oldData) return oldData;
-        return oldData.map((insight: any) => 
-          insight.id.toString() === insightId 
-            ? { ...insight, aiStatus }
-            : insight
-        );
-      });
-      
       await apiRequest("PATCH", `/api/ai/insights/${insightId}`, { aiStatus });
       
-      // Refresh the data to ensure consistency
-      queryClient.invalidateQueries({ queryKey: ["/api/ai-insights"] });
+      // Immediately refresh the data to show updates
+      await queryClient.invalidateQueries({ queryKey: ["/api/ai-insights"] });
       toast({ 
         title: "Status updated successfully", 
         description: `Status changed to ${aiStatus}` 
