@@ -213,6 +213,7 @@ export default function ImagingPage() {
   const [showViewDialog, setShowViewDialog] = useState(false);
   const [showFinalReportDialog, setShowFinalReportDialog] = useState(false);
   const [showUploadDialog, setShowUploadDialog] = useState(false);
+  const [showFileNotAvailableDialog, setShowFileNotAvailableDialog] = useState(false);
   const [modalityFilter, setModalityFilter] = useState<string>("all");
   const [selectedStudy, setSelectedStudy] = useState<ImagingStudy | null>(null);
   const [shareFormData, setShareFormData] = useState({
@@ -1495,13 +1496,8 @@ export default function ImagingPage() {
                                 );
 
                                 if (checkResponse.status === 404) {
-                                  // File not found - show specific message
-                                  toast({
-                                    title: "File Not Available",
-                                    description:
-                                      "File is not available on the server — it may have been deleted or not yet created.",
-                                    variant: "destructive",
-                                  });
+                                  // File not found - show modal popup
+                                  setShowFileNotAvailableDialog(true);
                                   return;
                                 } else if (!checkResponse.ok) {
                                   // Other errors during check
@@ -3222,6 +3218,28 @@ export default function ImagingPage() {
             <Button variant="outline" onClick={() => setShowImageViewer(false)}>
               Close Viewer
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* File Not Available Dialog */}
+      <Dialog open={showFileNotAvailableDialog} onOpenChange={setShowFileNotAvailableDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>File Not Available</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              File is not available on the server — it may have been deleted or not yet created.
+            </p>
+            <div className="flex justify-end">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowFileNotAvailableDialog(false)}
+              >
+                Close
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
