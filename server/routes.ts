@@ -5880,6 +5880,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/voice-documentation/photos/:id", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const photoId = parseInt(req.params.id);
+      
+      if (isNaN(photoId)) {
+        return res.status(400).json({ error: "Invalid photo ID" });
+      }
+
+      // Get the photo first to check if it exists and belongs to the organization
+      const photos = await storage.getClinicalPhotosByOrganization(req.tenant!.id);
+      const photo = photos.find(p => p.id === photoId);
+      
+      if (!photo) {
+        return res.status(404).json({ error: "Photo not found" });
+      }
+
+      // Delete the photo from database
+      const deleted = await storage.deleteClinicalPhoto(photoId, req.tenant!.id);
+      
+      if (!deleted) {
+        return res.status(500).json({ error: "Failed to delete photo from database" });
+      }
+
+      // Try to delete the file from filesystem (optional - don't fail if file doesn't exist)
+      try {
+        const filePath = path.join('uploads', 'wound_assessment', photo.fileName);
+        await fs.remove(filePath);
+        console.log(`🗑️ Photo file deleted from filesystem: ${filePath}`);
+      } catch (fileError) {
+        console.warn(`⚠️ Could not delete photo file from filesystem: ${fileError}`);
+        // Don't fail the request if file deletion fails
+      }
+
+      console.log(`🗑️ Clinical photo deleted with ID: ${photoId}`);
+      res.json({ success: true, message: "Photo deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting photo:", error);
+      res.status(500).json({ error: "Failed to delete photo" });
+    }
+  });
+
   // ======================
   // TWILIO WEBHOOK HANDLERS & MESSAGE STATUS TRACKING
   // ======================

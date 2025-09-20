@@ -347,6 +347,38 @@ export default function VoiceDocumentation() {
     }
   });
 
+  // Delete photo mutation
+  const deletePhotoMutation = useMutation({
+    mutationFn: async (photoId: string) => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`/api/voice-documentation/photos/${photoId}`, {
+        method: "DELETE",
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo'
+        }
+      });
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error("404: Photo not found");
+        }
+        throw new Error("Failed to delete photo");
+      }
+      return response.json();
+    },
+    onSuccess: async (data, photoId) => {
+      // Invalidate photos cache to refresh the list
+      queryClient.invalidateQueries({ queryKey: ["/api/voice-documentation/photos"] });
+      
+      toast({ title: "Photo deleted successfully!" });
+      console.log("Photo deleted from backend:", photoId);
+    },
+    onError: (err, photoId) => {
+      toast({ title: "Failed to delete photo", variant: "destructive" });
+      console.error("Error deleting photo:", err);
+    }
+  });
+
   // Mock data
   const mockVoiceNotes: VoiceNote[] = [
     {
@@ -2219,15 +2251,10 @@ export default function VoiceDocumentation() {
                       onClick={() => {
                         // Confirm deletion
                         if (window.confirm(`Are you sure you want to delete this photo for ${photo.patientName}? This action cannot be undone.`)) {
-                          // TODO: Implement actual deletion API call
-                          toast({
-                            title: "Photo Deleted",
-                            description: `Clinical photo for ${photo.patientName} has been deleted.`,
-                          });
-                          // For now, just show the success message
-                          // In a real implementation, you would call a delete mutation here
+                          deletePhotoMutation.mutate(photo.id);
                         }
                       }}
+                      disabled={deletePhotoMutation.isPending}
                     >
                       <Trash className="w-4 h-4 mr-1" />
                       Delete
