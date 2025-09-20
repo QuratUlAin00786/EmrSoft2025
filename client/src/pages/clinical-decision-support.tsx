@@ -997,7 +997,7 @@ export default function ClinicalDecisionSupport() {
                       size="sm" 
                       variant="outline"
                       disabled={!!buttonLoadingStates[`${insight.id}-implemented`]}
-                      onClick={() => updateInsightStatus(insight.id.toString(), "implemented", "implemented")}
+                      onClick={() => updateInsightStatus(insight.id.toString(), "resolved", "implemented")}
                     >
                       {buttonLoadingStates[`${insight.id}-implemented`] ? "Updating..." : "Mark Implemented"}
                     </Button>
