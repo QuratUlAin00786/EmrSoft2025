@@ -5777,37 +5777,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // In-memory storage for clinical photos (simple temporary solution)
-  const clinicalPhotosStorage: any[] = [
-    {
-      id: "photo_1",
-      patientId: "158",
-      patientName: "Imran Mubashir",
-      type: "wound",
-      filename: "wound_assessment_001.jpg",
-      description: "Post-surgical wound assessment",
-      url: "/api/photos/wound_assessment_001.jpg",
-      dateTaken: new Date().toISOString(),
-      metadata: {
-        camera: "iPhone 14 Pro",
-        resolution: "4032x3024",
-        lighting: "Natural"
-      },
-      annotations: [],
-      createdAt: new Date().toISOString()
-    }
-  ];
+  // Clinical photos now use database storage instead of in-memory storage
 
   app.get("/api/voice-documentation/photos", authMiddleware, async (req: TenantRequest, res) => {
     try {
-      // Filter photos by tenant organization
-      const tenantPhotos = clinicalPhotosStorage.filter(photo => {
-        // For now, return all photos as we don't have organizationId in photos
-        // In production, this would be filtered by tenant
-        return true;
-      });
+      // Get photos from database with proper tenant filtering
+      const photos = await storage.getClinicalPhotosByOrganization(req.tenant!.id);
+      
+      // Transform database format to frontend format
+      const transformedPhotos = photos.map(photo => ({
+        id: photo.id.toString(),
+        patientId: photo.patientId.toString(),
+        patientName: 'Patient', // We'll need to fetch patient name separately if needed
+        type: photo.type,
+        filename: photo.fileName,
+        description: photo.description || 'Clinical photo',
+        url: `/uploads/wound_assessment/${photo.fileName}`,
+        dateTaken: photo.createdAt.toISOString(),
+        metadata: photo.metadata || {},
+        annotations: [],
+        createdAt: photo.createdAt.toISOString()
+      }));
 
-      res.json(tenantPhotos);
+      res.json(transformedPhotos);
     } catch (error) {
       console.error("Error fetching photos:", error);
       res.status(500).json({ error: "Failed to fetch photos" });
@@ -5843,30 +5835,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Move the uploaded file to the correct location with the proper name
       await fs.move(uploadedFile.path, filePath, { overwrite: true });
 
-      const newPhoto = {
-        id: `photo_${Date.now()}`,
-        patientId: patientId,
-        patientName: `${patient.firstName} ${patient.lastName}`,
+      // Save photo metadata to database
+      const clinicalPhotoData = {
+        organizationId: req.tenant!.id,
+        patientId: parseInt(patientId),
+        capturedBy: req.user.id,
         type: type || "wound",
-        filename: filename,
         description: description || "Clinical photo",
-        url: `/uploads/wound_assessment/${filename}`,
-        dateTaken: new Date().toISOString(),
+        fileName: filename,
+        filePath: filePath,
+        fileSize: uploadedFile.size,
+        mimeType: uploadedFile.mimetype,
         metadata: {
           camera: "Clinical Camera",
           resolution: uploadedFile.mimetype === 'image/png' ? "Captured" : "1920x1080",
           lighting: "Clinical"
-        },
-        annotations: [],
-        createdAt: new Date().toISOString()
+        }
       };
 
-      // Add photo to in-memory storage
-      clinicalPhotosStorage.push(newPhoto);
+      const savedPhoto = await storage.createClinicalPhoto(clinicalPhotoData);
       console.log(`📸 Clinical photo saved to filesystem: ${filePath}`);
-      console.log('📊 Total photos in storage:', clinicalPhotosStorage.length);
+      console.log(`💾 Clinical photo saved to database with ID: ${savedPhoto.id}`);
 
-      res.status(201).json(newPhoto);
+      // Return photo in expected format for frontend
+      const responsePhoto = {
+        id: savedPhoto.id.toString(),
+        patientId: patientId,
+        patientName: `${patient.firstName} ${patient.lastName}`,
+        type: savedPhoto.type,
+        filename: savedPhoto.fileName,
+        description: savedPhoto.description,
+        url: `/uploads/wound_assessment/${filename}`,
+        dateTaken: savedPhoto.createdAt.toISOString(),
+        metadata: savedPhoto.metadata || {},
+        annotations: [],
+        createdAt: savedPhoto.createdAt.toISOString()
+      };
+
+      res.status(201).json(responsePhoto);
     } catch (error) {
       console.error("Error uploading photo:", error);
       res.status(500).json({ error: "Failed to upload photo" });
