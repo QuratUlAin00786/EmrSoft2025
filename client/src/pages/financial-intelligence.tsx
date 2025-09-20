@@ -1346,6 +1346,30 @@ export default function FinancialIntelligence() {
                         return;
                       }
 
+                      // Validate amount sizes (database limit: 99,999,999.99)
+                      const totalAmount = parseFloat(claimFormData.totalAmount || "0");
+                      const maxAmount = 99999999.99;
+                      
+                      if (totalAmount > maxAmount) {
+                        toast({
+                          title: "Amount Too Large",
+                          description: `Total amount cannot exceed $${maxAmount.toLocaleString()}`,
+                          variant: "destructive",
+                        });
+                        return;
+                      }
+
+                      // Check individual procedure amounts
+                      const invalidProcedure = claimFormData.procedures.find(proc => parseFloat(proc.amount) > maxAmount);
+                      if (invalidProcedure) {
+                        toast({
+                          title: "Procedure Amount Too Large",
+                          description: `Individual procedure amounts cannot exceed $${maxAmount.toLocaleString()}`,
+                          variant: "destructive",
+                        });
+                        return;
+                      }
+
                       const selectedPatient = patients?.find(
                         (patient: any) =>
                           patient.id.toString() === claimFormData.patient,
