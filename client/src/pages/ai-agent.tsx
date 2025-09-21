@@ -378,49 +378,16 @@ export default function AIAgentPage() {
       timestamp: new Date(),
     };
 
-    setIsLoading(true);
+    // Directly prompt for patient information without availability check
+    const registrationMessage: Message = {
+      id: (Date.now() + 1).toString(),
+      type: 'assistant',
+      content: `Great! Now please enter your Patient Name or Patient Registration Number/NHS Number to proceed with the booking:`,
+      timestamp: new Date(),
+      showRegistrationInput: true
+    };
 
-    try {
-      // Check for conflicts first
-      const conflictCheckResponse = await apiRequest("GET", `/api/appointments/check-availability?doctorId=${bookingState.selectedDoctor.id}&datetime=${timeSlot.datetime}`);
-      const conflictData = await conflictCheckResponse.json();
-      
-      if (!conflictData.available) {
-        const conflictMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          type: 'assistant',
-          content: `❌ I'm sorry, that time slot is already booked. Please select another available time slot.`,
-          timestamp: new Date(),
-          showTimeSlotSelector: true,
-          availableTimeSlots: bookingState.availableTimeSlots.filter(slot => slot.datetime !== timeSlot.datetime)
-        };
-        setMessages(prev => [...prev, userMessage, conflictMessage]);
-        return;
-      }
-
-      // Prompt for patient name or registration number
-      const registrationMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        type: 'assistant',
-        content: `Great! Now please enter your Patient Name or Patient Registration Number/NHS Number to proceed with the booking:`,
-        timestamp: new Date(),
-        showRegistrationInput: true
-      };
-
-      setMessages(prev => [...prev, userMessage, registrationMessage]);
-
-    } catch (error) {
-      console.error('Error checking time slot availability:', error);
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        type: 'assistant',
-        content: 'I encountered an error while checking availability. Please try again or contact support.',
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, userMessage, errorMessage]);
-    } finally {
-      setIsLoading(false);
-    }
+    setMessages(prev => [...prev, userMessage, registrationMessage]);
   };
 
   // Handler for patient name or registration number submission
