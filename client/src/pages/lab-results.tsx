@@ -1525,7 +1525,7 @@ Report generated from Cura EMR System`;
                         size="sm"
                         onClick={() => handleViewResult(result)}
                       >
-                        <Eye className="h-4 w-4 mr-2" />
+                        <Edit className="h-4 w-4 mr-2" />
                         Edit
                       </Button>
                       <Button
