@@ -348,6 +348,14 @@ export default function FinancialIntelligence() {
         title: "Claim submitted successfully",
         description: `New claim ${data.claimNumber} has been added and will appear at the top of the list`
       });
+
+      // Set flag to auto-click Claims Management tab after reload
+      localStorage.setItem("autoClickClaimsTab", "true");
+      
+      // Reload page after showing the toast message to get latest rows from database
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
     },
   });
 
