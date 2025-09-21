@@ -1026,10 +1026,10 @@ Medical License: [License Number]
 
       {/* Edit Appointment Dialog */}
       <Dialog open={showEditAppointment} onOpenChange={setShowEditAppointment}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
           {editingAppointment && (
-            <div>
-              <DialogHeader>
+            <div className="p-2">
+              <DialogHeader className="mb-6">
                 <DialogTitle className="text-xl font-bold text-blue-800">
                   Edit Appointment
                 </DialogTitle>
@@ -1038,8 +1038,9 @@ Medical License: [License Number]
                 </DialogDescription>
               </DialogHeader>
               
-              <div className="space-y-4 mt-6">
-                <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-6">
+                {/* Title and Type Row */}
+                <div className="grid grid-cols-2 gap-6">
                   <div>
                     <Label className="text-sm font-medium text-gray-600">Title</Label>
                     <Input 
@@ -1070,11 +1071,12 @@ Medical License: [License Number]
                   </div>
                 </div>
 
-                {/* Date Selection */}
-                <div className="space-y-4">
+                {/* Date and Time Selection - Side by Side Layout */}
+                <div className="grid grid-cols-2 gap-8">
+                  {/* Date Selection */}
                   <div>
                     <Label className="text-lg font-semibold text-gray-800 mb-3 block">Select Date</Label>
-                    <div className="border rounded-lg p-4">
+                    <div className="border rounded-lg p-4 bg-gray-50">
                       <CalendarComponent
                         mode="single"
                         selected={editAppointmentDate || new Date(editingAppointment.scheduledAt)}
@@ -1086,7 +1088,7 @@ Medical License: [License Number]
                             setEditingAppointment({ ...editingAppointment, scheduledAt: newDateTime.toISOString() });
                           }
                         }}
-                        className="rounded-md border"
+                        className="rounded-md"
                         initialFocus
                       />
                     </div>
@@ -1095,8 +1097,8 @@ Medical License: [License Number]
                   {/* Time Slot Selection */}
                   <div>
                     <Label className="text-lg font-semibold text-gray-800 mb-3 block">Select Time Slot</Label>
-                    <div className="border rounded-lg p-4 max-h-60 overflow-y-auto">
-                      <div className="grid grid-cols-3 gap-2">
+                    <div className="border rounded-lg p-4 bg-gray-50 h-[300px] overflow-y-auto">
+                      <div className="grid grid-cols-2 gap-2">
                         {timeSlots.map((slot) => {
                           const isAvailable = isTimeSlotAvailable(editAppointmentDate || new Date(editingAppointment.scheduledAt), slot);
                           const isSelected = editSelectedTimeSlot === slot || 
@@ -1106,12 +1108,12 @@ Medical License: [License Number]
                             <Button
                               key={slot}
                               variant={isSelected ? "default" : "outline"}
-                              className={`h-10 text-sm ${
+                              className={`h-12 text-sm font-medium ${
                                 !isAvailable 
                                   ? "bg-gray-200 text-gray-400 cursor-not-allowed" 
                                   : isSelected 
-                                    ? "bg-green-500 hover:bg-green-600 text-white" 
-                                    : "hover:bg-green-50 hover:border-green-300"
+                                    ? "bg-green-500 hover:bg-green-600 text-white border-green-500" 
+                                    : "hover:bg-green-50 hover:border-green-300 bg-white"
                               }`}
                               disabled={!isAvailable}
                               onClick={() => {
@@ -1132,37 +1134,39 @@ Medical License: [License Number]
                   </div>
                 </div>
 
-                <div>
-                  <Label className="text-sm font-medium text-gray-600">Status</Label>
-                  <Select 
-                    defaultValue={editingAppointment.status}
-                    onValueChange={(value) => {
-                      setEditingAppointment({ ...editingAppointment, status: value });
-                    }}
-                  >
-                    <SelectTrigger className="mt-1">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="scheduled">Scheduled</SelectItem>
-                      <SelectItem value="completed">Completed</SelectItem>
-                      <SelectItem value="cancelled">Cancelled</SelectItem>
-                      <SelectItem value="no_show">No Show</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label className="text-sm font-medium text-gray-600">Description</Label>
-                  <Textarea 
-                    defaultValue={editingAppointment.description || ''}
-                    onChange={(e) => {
-                      setEditingAppointment({ ...editingAppointment, description: e.target.value });
-                    }}
-                    className="mt-1"
-                    rows={3}
-                    placeholder="Add appointment notes or description..."
-                  />
+                {/* Status and Description Row */}
+                <div className="grid grid-cols-2 gap-6">
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Status</Label>
+                    <Select 
+                      defaultValue={editingAppointment.status}
+                      onValueChange={(value) => {
+                        setEditingAppointment({ ...editingAppointment, status: value });
+                      }}
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="scheduled">Scheduled</SelectItem>
+                        <SelectItem value="completed">Completed</SelectItem>
+                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                        <SelectItem value="no_show">No Show</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Description</Label>
+                    <Textarea 
+                      defaultValue={editingAppointment.description || ''}
+                      onChange={(e) => {
+                        setEditingAppointment({ ...editingAppointment, description: e.target.value });
+                      }}
+                      className="mt-1"
+                      rows={3}
+                      placeholder="Add appointment notes or description..."
+                    />
+                  </div>
                 </div>
 
                 <div className="flex justify-end space-x-2 pt-4">
