@@ -565,15 +565,15 @@ export default function FinancialIntelligence() {
     onSuccess: async (data) => {
       console.log("Insurance update success:", data);
       
-      // Close edit dialog after successful update
-      setEditInsuranceDialogOpen(false);
-      
       // 🚀 IMMEDIATE AUTO-REFRESH: Force refresh insurance data immediately (following imaging.tsx pattern)
       await refetchInsurance();
       
       // 🔄 COMPREHENSIVE INVALIDATION: Refresh all related queries to ensure data consistency
       await queryClient.invalidateQueries({ queryKey: ["/api/financial/insurance"] });
       await queryClient.invalidateQueries({ queryKey: ["/api/patients"] });
+      
+      // Close edit dialog after successful update and data refresh
+      setEditInsuranceDialogOpen(false);
       
       toast({
         title: "Insurance updated successfully",
