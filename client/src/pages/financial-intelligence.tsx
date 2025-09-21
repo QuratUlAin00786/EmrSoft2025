@@ -315,18 +315,8 @@ export default function FinancialIntelligence() {
       if (!response.ok) throw new Error("Failed to submit claim");
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       console.log("Mutation success - updating cache with new claim");
-      
-      // Immediately update the cache by adding the new claim
-      queryClient.setQueryData(["/api/financial/claims"], (oldData: any) => {
-        if (!oldData) return [data];
-        console.log("Adding new claim to cache:", data);
-        return [data, ...oldData]; // Add new claim at the beginning
-      });
-      
-      // Also invalidate to ensure fresh data
-      queryClient.invalidateQueries({ queryKey: ["/api/financial/claims"] });
       
       // Close dialog and reset form only after successful submission
       setSubmitClaimOpen(false);
@@ -344,18 +334,19 @@ export default function FinancialIntelligence() {
         ],
       });
       
-      toast({ 
-        title: "Claim submitted successfully",
-        description: `New claim ${data.claimNumber} has been added and will appear at the top of the list`
-      });
-
-      // Set flag to auto-click Claims Management tab after reload
-      localStorage.setItem("autoClickClaimsTab", "true");
+      // 🚀 IMMEDIATE AUTO-REFRESH: Force refresh claims data immediately
+      await refetchClaims();
       
-      // Reload page after showing the toast message to get latest rows from database
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
+      // 🔄 COMPREHENSIVE INVALIDATION: Refresh all related queries to ensure data consistency
+      await queryClient.invalidateQueries({ queryKey: ["/api/financial/claims"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/financial/revenue"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/financial/insurance"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/patients"] });
+      
+      toast({ 
+        title: "Claim Submitted",
+        description: `New claim ${data.claimNumber} has been successfully added to the system`
+      });
     },
   });
 
