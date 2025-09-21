@@ -25,6 +25,17 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
   Mic,
   MicOff,
   Play,
@@ -184,6 +195,8 @@ export default function VoiceDocumentation() {
     useState<boolean>(false);
   const [deleteConfirmDialogOpen, setDeleteConfirmDialogOpen] = useState(false);
   const [photoToDelete, setPhotoToDelete] = useState<any>(null);
+  const [voiceNoteDeleteDialogOpen, setVoiceNoteDeleteDialogOpen] = useState(false);
+  const [voiceNoteToDelete, setVoiceNoteToDelete] = useState<VoiceNote | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const { toast } = useToast();
 
@@ -2269,13 +2282,8 @@ export default function VoiceDocumentation() {
                         size="sm"
                         variant="destructive"
                         onClick={() => {
-                          if (
-                            window.confirm(
-                              `Are you sure you want to delete this voice note for ${note.patientName}?`,
-                            )
-                          ) {
-                            deleteVoiceNoteMutation.mutate(note.id);
-                          }
+                          setVoiceNoteToDelete(note);
+                          setVoiceNoteDeleteDialogOpen(true);
                         }}
                         disabled={deleteVoiceNoteMutation.isPending}
                       >
@@ -3850,6 +3858,45 @@ export default function VoiceDocumentation() {
             )}
           </DialogContent>
         </Dialog>
+
+        {/* Voice Note Delete Confirmation AlertDialog */}
+        <AlertDialog open={voiceNoteDeleteDialogOpen} onOpenChange={setVoiceNoteDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogDescription>
+                {voiceNoteToDelete && (
+                  <>
+                    Are you sure you want to delete this voice note for{" "}
+                    <strong>{voiceNoteToDelete.patientName}</strong>?
+                  </>
+                )}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel 
+                onClick={() => {
+                  setVoiceNoteDeleteDialogOpen(false);
+                  setVoiceNoteToDelete(null);
+                }}
+              >
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  if (voiceNoteToDelete) {
+                    deleteVoiceNoteMutation.mutate(voiceNoteToDelete.id);
+                    setVoiceNoteDeleteDialogOpen(false);
+                    setVoiceNoteToDelete(null);
+                  }
+                }}
+                disabled={deleteVoiceNoteMutation.isPending}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                OK
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );

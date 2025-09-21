@@ -1498,7 +1498,7 @@ export default function ImagingPage() {
                         )}
 
                         <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                          <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">
+                          <h4 className="font-semibold text-blue-900">
                             Timeline
                           </h4>
                           <div className="space-y-1 text-sm text-gray-800 dark:text-gray-200">
@@ -1741,7 +1741,7 @@ export default function ImagingPage() {
                       )}
                     </div>
 
-                    <div className="flex items-center gap-2 justify-end">
+                    <div className="flex items-center gap-2 justify-center">
                       <Button
                         variant="outline"
                         size="sm"
