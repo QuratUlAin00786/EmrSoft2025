@@ -1182,7 +1182,7 @@ export default function AIAgentPage() {
         </div>
       </div>
 
-      <Card className="h-[600px] flex flex-col">
+      <Card className="h-[700px] flex flex-col">
         <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/30 dark:to-purple-900/30 border-b">
           <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
             <MessageCircle className="h-5 w-5" />
