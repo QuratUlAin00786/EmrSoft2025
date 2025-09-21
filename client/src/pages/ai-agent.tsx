@@ -1191,7 +1191,7 @@ export default function AIAgentPage() {
         </CardHeader>
 
         <CardContent className="flex-1 flex flex-col p-0">
-          <ScrollArea className="flex-1 p-4">
+          <ScrollArea className="flex-1 p-4 overflow-y-auto max-h-full">
             <div className="space-y-4">
               {messages.map((message) => (
                 <div
