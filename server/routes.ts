@@ -2082,6 +2082,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/appointments/:id", requireRole(["doctor", "nurse", "receptionist", "admin"]), async (req: TenantRequest, res) => {
+    try {
+      const appointmentId = parseInt(req.params.id);
+      
+      if (isNaN(appointmentId)) {
+        return res.status(400).json({ error: "Invalid appointment ID" });
+      }
+
+      const updateData = z.object({
+        title: z.string().optional(),
+        type: z.enum(["consultation", "follow_up", "procedure"]).optional(),
+        status: z.enum(["scheduled", "completed", "cancelled", "no_show"]).optional(),
+        scheduledAt: z.string().optional(),
+        description: z.string().optional(),
+        duration: z.number().optional(),
+        location: z.string().optional(),
+        isVirtual: z.boolean().optional()
+      }).parse(req.body);
+
+      console.log(`Updating appointment ${appointmentId} with data:`, updateData);
+
+      // Convert scheduledAt to Date if provided
+      const updatePayload: any = { ...updateData };
+      if (updateData.scheduledAt) {
+        updatePayload.scheduledAt = new Date(updateData.scheduledAt);
+        
+        // Validate future scheduling
+        const now = new Date();
+        if (updatePayload.scheduledAt <= now) {
+          return res.status(400).json({ 
+            error: "Cannot schedule appointments for past times. Please select a future date and time.",
+            type: "past_time_error"
+          });
+        }
+      }
+
+      const updated = await storage.updateAppointment(appointmentId, req.tenant!.id, updatePayload);
+      
+      if (!updated) {
+        return res.status(404).json({ error: "Appointment not found" });
+      }
+
+      console.log(`Appointment ${appointmentId} updated successfully`);
+      res.json(updated);
+    } catch (error) {
+      console.error("Appointment update error:", error);
+      handleRouteError(error, "Update appointment", res);
+    }
+  });
+
   app.delete("/api/appointments/:id", requireRole(["doctor", "nurse", "receptionist", "admin"]), async (req: TenantRequest, res) => {
     try {
       console.log(`📞 DELETE REQUEST - Appointment ID: ${req.params.id}, User: ${req.user?.email}, Tenant: ${req.tenant?.id}`);
