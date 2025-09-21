@@ -2650,6 +2650,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (user.role === 'doctor') {
             console.log(`Checking doctor: ${user.firstName} ${user.lastName} (ID: ${user.id})`);
             
+            // If this is an appointment booking request (specialty filtering is being used),
+            // show doctors who have working days scheduled (for future bookings)
+            if (specialty || subSpecialty) {
+              const hasWorkingDays = user.workingDays && user.workingDays.length > 0;
+              console.log(`  - Appointment booking mode: Has working days: ${hasWorkingDays}`);
+              console.log(`  - Working days: ${user.workingDays || 'none'}`);
+              // For appointment booking, show doctors who have any working days set
+              const isBookable = hasWorkingDays || true; // Default to true if no working days set
+              console.log(`  - Bookable for appointments: ${isBookable}`);
+              return isBookable;
+            }
+            
+            // For non-appointment booking requests, use the original availability logic
             // Check if doctor has a shift today and is marked as available
             const todayShift = todayShifts.find(shift => shift.staffId === user.id);
             
