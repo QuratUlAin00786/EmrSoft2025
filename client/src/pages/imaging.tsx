@@ -389,7 +389,8 @@ export default function ImagingPage() {
     onError: (error, variables) => {
       toast({
         title: "Error updating record",
-        description: error.message || "Failed to update record. Please try again.",
+        description:
+          error.message || "Failed to update record. Please try again.",
         variant: "destructive",
       });
     },
@@ -410,15 +411,21 @@ export default function ImagingPage() {
 
       // Force refresh medical images data immediately
       await refetchImages();
-      
+
       // Invalidate all related queries to refresh data across the app
-      await queryClient.invalidateQueries({ queryKey: ["/api/medical-images"] });
-      
+      await queryClient.invalidateQueries({
+        queryKey: ["/api/medical-images"],
+      });
+
       // Auto-refresh patient records when medical images are updated
       if (selectedStudy?.patientId) {
-        await queryClient.invalidateQueries({ queryKey: ['/api/patients', selectedStudy.patientId, 'records'] });
-        await queryClient.invalidateQueries({ queryKey: ['/api/patients'] }); // Main patient list
-        await queryClient.invalidateQueries({ queryKey: ['/api/patients', selectedStudy.patientId, 'history'] });
+        await queryClient.invalidateQueries({
+          queryKey: ["/api/patients", selectedStudy.patientId, "records"],
+        });
+        await queryClient.invalidateQueries({ queryKey: ["/api/patients"] }); // Main patient list
+        await queryClient.invalidateQueries({
+          queryKey: ["/api/patients", selectedStudy.patientId, "history"],
+        });
       }
 
       toast({
@@ -465,7 +472,8 @@ export default function ImagingPage() {
     onError: (error, variables) => {
       toast({
         title: "Error updating record",
-        description: error.message || "Failed to update record. Please try again.",
+        description:
+          error.message || "Failed to update record. Please try again.",
         variant: "destructive",
       });
     },
@@ -478,21 +486,27 @@ export default function ImagingPage() {
 
       // Force refresh medical images data immediately
       await refetchImages();
-      
+
       // Invalidate all related queries to refresh data across the app
-      await queryClient.invalidateQueries({ queryKey: ["/api/medical-images"] });
-      
+      await queryClient.invalidateQueries({
+        queryKey: ["/api/medical-images"],
+      });
+
       // Auto-refresh patient records when medical images are updated
       if (selectedStudy?.patientId) {
-        await queryClient.invalidateQueries({ queryKey: ['/api/patients', selectedStudy.patientId, 'records'] });
-        await queryClient.invalidateQueries({ queryKey: ['/api/patients'] }); // Main patient list
-        await queryClient.invalidateQueries({ queryKey: ['/api/patients', selectedStudy.patientId, 'history'] });
+        await queryClient.invalidateQueries({
+          queryKey: ["/api/patients", selectedStudy.patientId, "records"],
+        });
+        await queryClient.invalidateQueries({ queryKey: ["/api/patients"] }); // Main patient list
+        await queryClient.invalidateQueries({
+          queryKey: ["/api/patients", selectedStudy.patientId, "history"],
+        });
       }
 
       // Create appropriate success message based on field type
       let title = "Record Updated";
       let description = "";
-      
+
       if (variables.fieldName === "scheduledAt") {
         title = "Scheduled Date Updated";
         description = "Scheduled date has been successfully updated.";
@@ -623,7 +637,12 @@ export default function ImagingPage() {
     if (fieldName === "status") value = editingStatus;
     if (fieldName === "priority") value = editingPriority;
 
-    if (fieldName === "scheduledAt" || fieldName === "performedAt" || fieldName === "status" || fieldName === "priority") {
+    if (
+      fieldName === "scheduledAt" ||
+      fieldName === "performedAt" ||
+      fieldName === "status" ||
+      fieldName === "priority"
+    ) {
       updateDateMutation.mutate({
         studyId: selectedStudy.id,
         fieldName,
@@ -1294,7 +1313,7 @@ export default function ImagingPage() {
                 className="hover:shadow-md transition-shadow bg-white dark:bg-slate-800 border dark:border-slate-600"
               >
                 <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
+                  <div className="">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-3">
                         <div className="flex items-center gap-2">
@@ -1306,17 +1325,28 @@ export default function ImagingPage() {
                         {/* Status Badge - Editable */}
                         {selectedStudyId === study.id && editModes.status ? (
                           <div className="flex items-center gap-2">
-                            <Select value={editingStatus} onValueChange={setEditingStatus}>
+                            <Select
+                              value={editingStatus}
+                              onValueChange={setEditingStatus}
+                            >
                               <SelectTrigger className="w-32 h-8">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="ordered">Ordered</SelectItem>
-                                <SelectItem value="scheduled">Scheduled</SelectItem>
-                                <SelectItem value="in_progress">In Progress</SelectItem>
-                                <SelectItem value="completed">Completed</SelectItem>
+                                <SelectItem value="scheduled">
+                                  Scheduled
+                                </SelectItem>
+                                <SelectItem value="in_progress">
+                                  In Progress
+                                </SelectItem>
+                                <SelectItem value="completed">
+                                  Completed
+                                </SelectItem>
                                 <SelectItem value="final">Final</SelectItem>
-                                <SelectItem value="preliminary">Preliminary</SelectItem>
+                                <SelectItem value="preliminary">
+                                  Preliminary
+                                </SelectItem>
                               </SelectContent>
                             </Select>
                             <Button
@@ -1362,7 +1392,10 @@ export default function ImagingPage() {
                         {/* Priority Badge - Editable */}
                         {selectedStudyId === study.id && editModes.priority ? (
                           <div className="flex items-center gap-2">
-                            <Select value={editingPriority} onValueChange={setEditingPriority}>
+                            <Select
+                              value={editingPriority}
+                              onValueChange={setEditingPriority}
+                            >
                               <SelectTrigger className="w-32 h-8">
                                 <SelectValue />
                               </SelectTrigger>
@@ -1414,9 +1447,9 @@ export default function ImagingPage() {
                         )}
                       </div>
 
-                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+                      <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
                         <div>
-                          <h4 className="font-medium text-md text-gray-700 dark:text-gray-300 mb-2">
+                          <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">
                             Study Information
                           </h4>
                           <div className="space-y-1 text-sm text-gray-800 dark:text-gray-200">
@@ -1440,7 +1473,7 @@ export default function ImagingPage() {
 
                         {study.images && study.images.length > 0 && (
                           <div>
-                            <h4 className="font-medium text-md text-gray-700 dark:text-gray-300 mb-2">
+                            <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">
                               Image Series
                             </h4>
                             <div className="grid grid-cols-1 gap-2">
@@ -1463,7 +1496,7 @@ export default function ImagingPage() {
                         )}
 
                         <div>
-                          <h4 className="font-medium text-md text-gray-700 dark:text-gray-300 mb-2">
+                          <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">
                             Timeline
                           </h4>
                           <div className="space-y-1 text-sm text-gray-800 dark:text-gray-200">
@@ -1706,7 +1739,7 @@ export default function ImagingPage() {
                       )}
                     </div>
 
-                    <div className="flex items-center gap-2 ml-4">
+                    <div className="flex items-center gap-2 justify-end">
                       <Button
                         variant="outline"
                         size="sm"

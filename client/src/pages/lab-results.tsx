@@ -241,7 +241,7 @@ interface User {
 // Test types for lab orders
 const TEST_TYPES = [
   "Complete Blood Count (CBC)",
-  "Basic Metabolic Panel", 
+  "Basic Metabolic Panel",
   "Comprehensive Metabolic Panel",
   "Lipid Panel",
   "Liver Function Tests",
@@ -249,7 +249,7 @@ const TEST_TYPES = [
   "Hemoglobin A1C",
   "Urinalysis",
   "Vitamin D",
-  "Iron Studies"
+  "Iron Studies",
 ];
 
 // Database-driven lab results - no more mock data
@@ -1341,7 +1341,7 @@ Report generated from Cura EMR System`;
                 >
                   <CardContent className="p-6 relative">
                     {/* Doctor information - Top Right Position */}
-                    <div className="absolute top-6 right-6 w-64">
+                    <div className="absolute top-6 right-6 w-70>
                       <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                         <div className="flex items-center gap-2 mb-3">
                           <User className="h-4 w-4 text-blue-600" />
@@ -1391,7 +1391,7 @@ Report generated from Cura EMR System`;
                             onValueChange={(newStatus) => {
                               updateLabResultMutation.mutate({
                                 id: result.id,
-                                data: { status: newStatus }
+                                data: { status: newStatus },
                               });
                               setEditingStatusId(null);
                             }}
@@ -1401,10 +1401,18 @@ Report generated from Cura EMR System`;
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="pending">pending</SelectItem>
-                              <SelectItem value="collected">collected</SelectItem>
-                              <SelectItem value="processing">processing</SelectItem>
-                              <SelectItem value="completed">completed</SelectItem>
-                              <SelectItem value="cancelled">cancelled</SelectItem>
+                              <SelectItem value="collected">
+                                collected
+                              </SelectItem>
+                              <SelectItem value="processing">
+                                processing
+                              </SelectItem>
+                              <SelectItem value="completed">
+                                completed
+                              </SelectItem>
+                              <SelectItem value="cancelled">
+                                cancelled
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                         ) : (
@@ -1595,7 +1603,10 @@ Report generated from Cura EMR System`;
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="patient">Select Patient</Label>
-              <Popover open={patientSearchOpen} onOpenChange={setPatientSearchOpen}>
+              <Popover
+                open={patientSearchOpen}
+                onOpenChange={setPatientSearchOpen}
+              >
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
@@ -1634,7 +1645,8 @@ Report generated from Cura EMR System`;
                           >
                             <Check
                               className={`mr-2 h-4 w-4 ${
-                                orderFormData.patientId === patient.id.toString()
+                                orderFormData.patientId ===
+                                patient.id.toString()
                                   ? "opacity-100"
                                   : "opacity-0"
                               }`}
@@ -1643,7 +1655,9 @@ Report generated from Cura EMR System`;
                           </CommandItem>
                         ))
                       ) : (
-                        <CommandItem disabled>No patients available</CommandItem>
+                        <CommandItem disabled>
+                          No patients available
+                        </CommandItem>
                       )}
                     </CommandGroup>
                   </Command>
@@ -1771,11 +1785,15 @@ Report generated from Cura EMR System`;
                   >
                     <div className="flex flex-wrap gap-1">
                       {orderFormData.testType.length === 0 ? (
-                        <span className="text-muted-foreground">Select test types...</span>
+                        <span className="text-muted-foreground">
+                          Select test types...
+                        </span>
                       ) : orderFormData.testType.length === 1 ? (
                         <span>{orderFormData.testType[0]}</span>
                       ) : (
-                        <span>{orderFormData.testType.length} test types selected</span>
+                        <span>
+                          {orderFormData.testType.length} test types selected
+                        </span>
                       )}
                     </div>
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -1823,7 +1841,9 @@ Report generated from Cura EMR System`;
                                 e.preventDefault();
                                 setOrderFormData((prev) => ({
                                   ...prev,
-                                  testType: prev.testType.filter((t) => t !== testType),
+                                  testType: prev.testType.filter(
+                                    (t) => t !== testType,
+                                  ),
                                 }));
                               }}
                               className="ml-1 hover:text-red-500"
