@@ -158,6 +158,241 @@ export default function AIAgentPage() {
     scrollToBottom();
   }, [messages]);
 
+  // Helper function to generate time slots
+  const generateAvailableTimeSlots = (doctor: any) => {
+    const slots = [];
+    const today = new Date();
+    
+    // Generate slots for the next 7 days
+    for (let day = 1; day <= 7; day++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + day);
+      
+      // Skip weekends if doctor doesn't work weekends
+      const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+      if (doctor.workingDays && doctor.workingDays.length > 0 && !doctor.workingDays.includes(dayName)) {
+        continue;
+      }
+      
+      // Generate hourly slots during working hours
+      const startHour = doctor.workingHours?.start ? parseInt(doctor.workingHours.start.split(':')[0]) : 9;
+      const endHour = doctor.workingHours?.end ? parseInt(doctor.workingHours.end.split(':')[0]) : 17;
+      
+      for (let hour = startHour; hour < endHour; hour++) {
+        const slotTime = new Date(date);
+        slotTime.setHours(hour, 0, 0, 0);
+        
+        slots.push({
+          datetime: slotTime.toISOString(),
+          display: format(slotTime, 'EEE, MMM d - h:mm a'),
+          available: true
+        });
+      }
+    }
+    
+    return slots;
+  };
+
+  // Handler functions for appointment booking flow
+  const handleCategorySelection = async (category: string) => {
+    setBookingState(prev => ({ ...prev, selectedCategory: category, step: 'subspecialty' }));
+    
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      type: 'user',
+      content: `Selected category: ${category}`,
+      timestamp: new Date(),
+    };
+
+    const assistantMessage: Message = {
+      id: (Date.now() + 1).toString(),
+      type: 'assistant',
+      content: `Great! You selected "${category}". Now please select a sub-specialty:`,
+      timestamp: new Date(),
+      showSubSpecialtySelector: true,
+      selectedCategory: category
+    };
+
+    setMessages(prev => [...prev, userMessage, assistantMessage]);
+  };
+
+  const handleSubSpecialtySelection = async (subSpecialty: string) => {
+    setBookingState(prev => ({ ...prev, selectedSubSpecialty: subSpecialty, step: 'doctor' }));
+    
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      type: 'user',
+      content: `Selected sub-specialty: ${subSpecialty}`,
+      timestamp: new Date(),
+    };
+
+    setIsLoading(true);
+
+    try {
+      // Fetch doctors with the selected specialty
+      const response = await apiRequest("GET", `/api/medical-staff?specialty=${encodeURIComponent(bookingState.selectedCategory)}&subSpecialty=${encodeURIComponent(subSpecialty)}`);
+      const data = await response.json();
+      const doctors = data?.staff || [];
+      
+      // Filter for doctors only
+      const filteredDoctors = doctors.filter((doctor: any) => doctor.role === 'doctor');
+      
+      setBookingState(prev => ({ ...prev, availableDoctors: filteredDoctors }));
+
+      const assistantMessage: Message = {
+        id: (Date.now() + 2).toString(),
+        type: 'assistant',
+        content: filteredDoctors.length > 0 
+          ? `Perfect! I found ${filteredDoctors.length} available doctor(s) for "${subSpecialty}". Please select a doctor:`
+          : `I'm sorry, there are no doctors available for "${subSpecialty}" at the moment. Please try a different specialty.`,
+        timestamp: new Date(),
+        showDoctorSelector: filteredDoctors.length > 0,
+        availableDoctors: filteredDoctors
+      };
+
+      setMessages(prev => [...prev, userMessage, assistantMessage]);
+    } catch (error) {
+      console.error('Error fetching doctors:', error);
+      const errorMessage: Message = {
+        id: (Date.now() + 2).toString(),
+        type: 'assistant',
+        content: 'I encountered an error while fetching available doctors. Please try again.',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, userMessage, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDoctorSelection = async (doctor: any) => {
+    setBookingState(prev => ({ ...prev, selectedDoctor: doctor, step: 'timeslot' }));
+    
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      type: 'user',
+      content: `Selected doctor: Dr. ${doctor.firstName} ${doctor.lastName}`,
+      timestamp: new Date(),
+    };
+
+    setIsLoading(true);
+
+    try {
+      // Generate time slots for the next 7 days
+      const timeSlots = generateAvailableTimeSlots(doctor);
+      setBookingState(prev => ({ ...prev, availableTimeSlots: timeSlots }));
+
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: `Excellent choice! Dr. ${doctor.firstName} ${doctor.lastName} is available. Please select a date and time:`,
+        timestamp: new Date(),
+        showTimeSlotSelector: true,
+        availableTimeSlots: timeSlots
+      };
+
+      setMessages(prev => [...prev, userMessage, assistantMessage]);
+    } catch (error) {
+      console.error('Error generating time slots:', error);
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: 'I encountered an error while fetching available time slots. Please try again.',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, userMessage, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleTimeSlotSelection = async (timeSlot: any) => {
+    setBookingState(prev => ({ ...prev, selectedTimeSlot: timeSlot, step: 'confirmation' }));
+    
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      type: 'user',
+      content: `Selected time: ${format(new Date(timeSlot.datetime), 'PPp')}`,
+      timestamp: new Date(),
+    };
+
+    setIsLoading(true);
+
+    try {
+      // Check for conflicts first
+      const conflictCheckResponse = await apiRequest("GET", `/api/appointments/check-availability?doctorId=${bookingState.selectedDoctor.id}&datetime=${timeSlot.datetime}`);
+      const conflictData = await conflictCheckResponse.json();
+      
+      if (!conflictData.available) {
+        const conflictMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          type: 'assistant',
+          content: `❌ I'm sorry, that time slot is already booked. Please select another available time slot.`,
+          timestamp: new Date(),
+          showTimeSlotSelector: true,
+          availableTimeSlots: bookingState.availableTimeSlots.filter(slot => slot.datetime !== timeSlot.datetime)
+        };
+        setMessages(prev => [...prev, userMessage, conflictMessage]);
+        return;
+      }
+
+      // Book the appointment
+      const appointmentData = {
+        patientId: "12", // Using a known patient ID from the database
+        providerId: bookingState.selectedDoctor.id,
+        title: `${bookingState.selectedSubSpecialty} Consultation`,
+        description: `Appointment with Dr. ${bookingState.selectedDoctor.firstName} ${bookingState.selectedDoctor.lastName}`,
+        date: format(new Date(timeSlot.datetime), 'yyyy-MM-dd'),
+        time: format(new Date(timeSlot.datetime), 'HH:mm'),
+        duration: "30",
+        type: "consultation",
+        department: bookingState.selectedCategory,
+        isVirtual: false
+      };
+
+      const bookingResponse = await apiRequest("POST", "/api/appointments", appointmentData);
+      const bookingResult = await bookingResponse.json();
+
+      const successMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: `✅ **Appointment Successfully Booked!**\n\n**Doctor:** Dr. ${bookingState.selectedDoctor.firstName} ${bookingState.selectedDoctor.lastName}\n**Specialty:** ${bookingState.selectedSubSpecialty}\n**Date & Time:** ${format(new Date(timeSlot.datetime), 'PPp')}\n**Department:** ${bookingState.selectedCategory}\n\nYour appointment has been confirmed. You will receive a confirmation message shortly.`,
+        timestamp: new Date(),
+        data: bookingResult
+      };
+
+      setMessages(prev => [...prev, userMessage, successMessage]);
+      
+      // Reset booking state
+      setBookingState({
+        step: 'idle',
+        selectedCategory: '',
+        selectedSubSpecialty: '',
+        selectedDoctor: null,
+        selectedTimeSlot: null,
+        availableDoctors: [],
+        availableTimeSlots: []
+      });
+
+      toast({
+        title: "Appointment Booked",
+        description: `Successfully booked with Dr. ${bookingState.selectedDoctor.firstName} ${bookingState.selectedDoctor.lastName}`,
+      });
+
+    } catch (error) {
+      console.error('Error booking appointment:', error);
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: 'I encountered an error while booking your appointment. Please try again or contact support.',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, userMessage, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSendMessage = async () => {
     if (!input.trim() || isLoading) return;
 
