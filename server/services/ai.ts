@@ -64,6 +64,17 @@ export interface ConversationContext {
       overall: 'positive' | 'neutral' | 'negative' | 'anxious' | 'urgent';
       confidence: number;
     };
+    // Slot-filling state machine for appointment booking
+    pendingSlots?: {
+      patient_name?: string;
+      date?: string;
+      time?: string;
+      appointment_type?: string;
+      doctor_preference?: string;
+      reason?: string;
+    };
+    lastIntent?: string;
+    slotPromptHistory?: string[]; // Track what slots we've asked for
   };
 }
 
@@ -80,10 +91,13 @@ export class AiService {
     nextActions: string[];
     contextUpdate: Partial<ConversationContext>;
   }> {
-    // Simple intent classification based on keywords and conversation history
-    const intent = this.classifyIntent(userMessage, context.conversationHistory);
+    // Enhanced intent classification with slot-filling context
+    const lastIntent = context.contextualKnowledge.lastIntent;
+    const intent = this.classifyIntent(userMessage, context.conversationHistory, lastIntent);
     const entities = this.extractEntities(userMessage);
     const confidence = 0.8; // Default confidence for local processing
+    
+    console.log('[AI_SERVICE] Intent classification:', { userMessage, lastIntent, newIntent: intent });
     
     let response = "I understand your request. ";
     let nextActions: string[] = [];
@@ -91,80 +105,55 @@ export class AiService {
     // Generate appropriate response based on intent
     switch (intent) {
       case 'appointment_booking':
-        // Try to extract appointment details from the current message
-        const appointmentDetails = this.extractAppointmentDetails(userMessage);
-        console.log('Current message appointment details:', appointmentDetails);
+        // Enhanced slot-filling state machine for appointment booking
+        const currentSlots = this.extractAppointmentDetails(userMessage);
+        console.log('[SLOT_FILLING] Current message slots:', currentSlots);
         
-        // Check conversation history for previously mentioned details
-        const conversationHistory = context.conversationHistory || [];
+        // Get existing pending slots from context or initialize
+        const existingSlots = context.contextualKnowledge.pendingSlots || {};
+        console.log('[SLOT_FILLING] Existing slots:', existingSlots);
         
-        // Extract details from each message in history and merge them
-        let historicalDetails = {
-          patient_name: "",
-          doctor_preference: "",
-          date: "",
-          time: "",
-          appointment_type: "",
-          reason: ""
+        // Merge slots with priority to current message
+        const mergedSlots = {
+          patient_name: currentSlots.patient_name || existingSlots.patient_name || "",
+          date: currentSlots.date || existingSlots.date || "", 
+          time: currentSlots.time || existingSlots.time || "",
+          appointment_type: currentSlots.appointment_type || existingSlots.appointment_type || "",
+          doctor_preference: currentSlots.doctor_preference || existingSlots.doctor_preference || "",
+          reason: currentSlots.reason || existingSlots.reason || ""
         };
+        console.log('[SLOT_FILLING] Merged slots:', mergedSlots);
         
-        // Process conversation history to find appointment details
-        for (const msg of conversationHistory) {
-          if (msg.role === 'user') {
-            console.log('Processing historical message:', msg.content);
-            const msgDetails = this.extractAppointmentDetails(msg.content);
-            console.log('Extracted from history:', msgDetails);
-            
-            // Merge details, keeping first non-empty value found
-            if (!historicalDetails.patient_name && msgDetails.patient_name) {
-              historicalDetails.patient_name = msgDetails.patient_name;
-              console.log('Found patient name in history:', msgDetails.patient_name);
-            }
-            if (!historicalDetails.date && msgDetails.date) {
-              historicalDetails.date = msgDetails.date;
-            }
-            if (!historicalDetails.time && msgDetails.time) {
-              historicalDetails.time = msgDetails.time;
-            }
-            if (!historicalDetails.appointment_type && msgDetails.appointment_type) {
-              historicalDetails.appointment_type = msgDetails.appointment_type;
-            }
-            if (!historicalDetails.doctor_preference && msgDetails.doctor_preference) {
-              historicalDetails.doctor_preference = msgDetails.doctor_preference;
-            }
-            if (!historicalDetails.reason && msgDetails.reason) {
-              historicalDetails.reason = msgDetails.reason;
-            }
-          }
-        }
-        console.log('Historical appointment details:', historicalDetails);
+        // Identify filled and missing slots
+        const filledSlots = Object.entries(mergedSlots)
+          .filter(([key, value]) => value && value.trim().length > 0)
+          .map(([key]) => key);
         
-        // Merge current and historical details with priority to current message
-        const combinedDetails = {
-          patient_name: appointmentDetails.patient_name || historicalDetails.patient_name,
-          date: appointmentDetails.date || historicalDetails.date,
-          time: appointmentDetails.time || historicalDetails.time,
-          appointment_type: appointmentDetails.appointment_type || historicalDetails.appointment_type,
-          doctor_preference: appointmentDetails.doctor_preference || historicalDetails.doctor_preference,
-          reason: appointmentDetails.reason || historicalDetails.reason
-        };
+        const requiredSlots = ['patient_name', 'date', 'time'];
+        const missingSlots = requiredSlots.filter(slot => 
+          !mergedSlots[slot as keyof typeof mergedSlots] || 
+          mergedSlots[slot as keyof typeof mergedSlots].trim().length === 0
+        );
         
-        // Enhanced appointment booking logic with better validation
-        const hasPatientName = !!(combinedDetails.patient_name && combinedDetails.patient_name.length > 0);
-        const hasDateTime = !!(combinedDetails.date || combinedDetails.time);
+        console.log('[SLOT_FILLING] Status:', { filledSlots, missingSlots });
         
-        console.log('Combined appointment details:', combinedDetails);
-        console.log('Has patient name:', hasPatientName, 'Has date/time:', hasDateTime);
+        // Identify newly filled slots in this turn  
+        const newlyFilledSlots = Object.entries(currentSlots)
+          .filter(([key, value]) => value && value.trim().length > 0 && 
+                   (!existingSlots[key as keyof typeof existingSlots] || 
+                    existingSlots[key as keyof typeof existingSlots].trim().length === 0))
+          .map(([key]) => key);
         
-        if (hasPatientName && hasDateTime) {
+        console.log('[SLOT_FILLING] Newly filled slots:', newlyFilledSlots);
+        
+        // Try to book appointment if all required slots are filled
+        if (missingSlots.length === 0) {
           try {
-            await this.createAutomaticAppointment(combinedDetails, context.organizationId || 1);
-            response = `✅ Appointment Successfully Booked!\n\nPatient: ${combinedDetails.patient_name}\nDate: ${combinedDetails.date || 'Tomorrow'}\nTime: ${combinedDetails.time || '9:00 AM'}\nType: ${combinedDetails.appointment_type || 'General Consultation'}\n\nThe appointment has been created in your system.`;
+            await this.createAutomaticAppointment(mergedSlots, context.organizationId || 1);
+            response = `✅ **Appointment Successfully Booked!**\n\n**Patient:** ${mergedSlots.patient_name}\n**Date:** ${mergedSlots.date}\n**Time:** ${mergedSlots.time}\n**Type:** ${mergedSlots.appointment_type || 'General Consultation'}\n\nThe appointment has been created in your system.`;
             nextActions = ['appointment_confirmation'];
           } catch (error) {
-            console.error('Local appointment creation failed:', error);
-            
-            // Provide specific error messages based on the error type
+            console.error('[SLOT_FILLING] Appointment creation failed:', error);
             const errorMessage = (error as Error).message;
             
             if (errorMessage.startsWith('PATIENT_NOT_FOUND:')) {
@@ -178,31 +167,48 @@ export class AiService {
             } else {
               response = "I found the appointment details but couldn't create it automatically. Please try booking through the appointment calendar.";
             }
-            
             nextActions = ['manual_booking_required'];
           }
         } else {
-          // Progressive information gathering with better context awareness
-          const missingInfo = [];
-          if (!hasPatientName) missingInfo.push('patient name');
-          if (!hasDateTime) missingInfo.push('preferred date and time');
+          // Slot-filling conversation - acknowledge filled slots and request missing ones
+          const acknowledgments = [];
+          if (newlyFilledSlots.includes('patient_name')) {
+            acknowledgments.push(`✓ Patient name: **${mergedSlots.patient_name}**`);
+          }
+          if (newlyFilledSlots.includes('date')) {
+            acknowledgments.push(`✓ Date: **${mergedSlots.date}**`);  
+          }
+          if (newlyFilledSlots.includes('time')) {
+            acknowledgments.push(`✓ Time: **${mergedSlots.time}**`);
+          }
           
-          // Check if we just received a patient name
-          if (hasPatientName && !hasDateTime) {
-            response = `Perfect! I have the patient name (${combinedDetails.patient_name}). Now I just need the preferred date and time for the appointment.`;
-          } 
-          // Check if we just received date/time but missing patient name
-          else if (hasDateTime && !hasPatientName) {
-            response = `Great! I have the date and time details. I just need the patient name to complete the booking.`;
+          let responseText = "";
+          if (acknowledgments.length > 0) {
+            responseText = `Perfect! I have:\n${acknowledgments.join('\n')}\n\n`;
           }
-          // Initial appointment booking request
-          else if (missingInfo.length === 2) {
-            response = "I can help you book an appointment. Please provide the patient name and preferred date/time.";
+          
+          // Request missing information
+          if (missingSlots.length === 1) {
+            const missingSlot = missingSlots[0];
+            const slotLabels = {
+              patient_name: 'patient name',
+              date: 'preferred date',
+              time: 'preferred time'
+            };
+            responseText += `I just need the **${slotLabels[missingSlot as keyof typeof slotLabels]}** to complete the booking.`;
+          } else {
+            const slotLabels = missingSlots.map(slot => {
+              const labels = {
+                patient_name: 'patient name', 
+                date: 'preferred date',
+                time: 'preferred time'
+              };
+              return labels[slot as keyof typeof labels];
+            });
+            responseText += `I still need the **${slotLabels.join(' and ')}** to complete the booking.`;
           }
-          // Fallback
-          else {
-            response = `I need ${missingInfo.join(' and ')} to complete the appointment booking.`;
-          }
+          
+          response = responseText;
           nextActions = ['collect_appointment_details'];
         }
         break;
@@ -296,21 +302,45 @@ export class AiService {
           sentimentAnalysis: {
             overall: 'neutral',
             confidence: 0.7
-          }
+          },
+          lastIntent: intent,
+          // Persist slot state for appointment booking
+          pendingSlots: intent === 'appointment_booking' && response.includes('I just need') || response.includes('I still need') 
+            ? (context.contextualKnowledge.pendingSlots || {})
+            : intent === 'appointment_booking' 
+              ? { ...(context.contextualKnowledge.pendingSlots || {}), ...entities } 
+              : context.contextualKnowledge.pendingSlots
         }
       }
     };
   }
 
-  private classifyIntent(message: string, conversationHistory?: any[]): string {
+  private classifyIntent(message: string, conversationHistory?: any[], lastIntent?: string): string {
     const lowerMessage = message.toLowerCase();
     
-    // PRIORITY 1: Direct prescription keywords - always classify as prescription inquiry
+    // PRIORITY 1: Check for slot-filling continuation - if last intent was appointment_booking
+    // and current message contains slot information, maintain appointment booking intent
+    if (lastIntent === 'appointment_booking') {
+      const hasNameKeywords = /\b(patient\s*name|name\s*(is|:)?|told\s*you)\b/i.test(message);
+      const hasAppointmentSlots = this.looksLikePatientName(message) ||
+                                 this.looksLikeDateTime(message) ||
+                                 /\b(tomorrow|today|monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/.test(lowerMessage) ||
+                                 /\b\d{1,2}(:\d{2})?\s*(am|pm)\b/.test(lowerMessage) ||
+                                 /\b(morning|afternoon|evening)\b/.test(lowerMessage) ||
+                                 /\b\d{1,2}\s+(january|february|march|april|may|june|july|august|september|october|november|december)\s+\d{4}\b/i.test(message);
+      
+      if (hasNameKeywords || hasAppointmentSlots) {
+        console.log('[INTENT] Maintaining appointment_booking context due to slot information');
+        return 'appointment_booking';
+      }
+    }
+    
+    // PRIORITY 2: Direct prescription keywords - always classify as prescription inquiry
     if (/\b(prescription|medication|medicine|drug|pills|refill|pharmacy|find.*prescription|show.*prescription|get.*prescription)\b/.test(lowerMessage)) {
       return 'prescription_inquiry';
     }
     
-    // PRIORITY 2: Direct appointment keywords
+    // PRIORITY 3: Direct appointment keywords
     if (/\b(book|schedule|appointment|reserve|set up)\b/.test(lowerMessage)) {
       return 'appointment_booking';
     }
