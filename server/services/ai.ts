@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
+import * as chrono from "chrono-node";
 import type { Patient, MedicalRecord } from "@shared/schema";
 import { storage } from "../storage";
 
@@ -468,6 +469,60 @@ export class AiService {
       return true;
     }
     return false;
+  }
+
+  private looksLikePatientNameImproved(name: string): boolean {
+    // Enhanced patient name validation - case insensitive and more flexible
+    const trimmedName = name.trim();
+    
+    // Skip if empty or too short
+    if (!trimmedName || trimmedName.length < 2) {
+      return false;
+    }
+    
+    // Skip common non-name phrases
+    const nonNamePhrases = [
+      'book appointment', 'new appointment', 'schedule appointment',
+      'tomorrow today', 'next week', 'doctor appointment', 'medical checkup',
+      'general consultation', 'follow up', 'checkup appointment', 'urgent care',
+      'preferred date', 'preferred time', 'and preferred', 'date time'
+    ];
+    
+    if (nonNamePhrases.some(phrase => trimmedName.toLowerCase().includes(phrase))) {
+      return false;
+    }
+    
+    // Check for valid name patterns - case insensitive
+    const words = trimmedName.split(/\s+/).filter(word => word.length > 0);
+    
+    // Handle 2-3 word names (most common)
+    if (words.length >= 2 && words.length <= 3) {
+      // Each word should contain only letters, apostrophes, or hyphens
+      const isValidName = words.every(word => 
+        /^[a-zA-Z'\-]+$/.test(word) && 
+        word.length >= 2 &&
+        !/^\d/.test(word) // Don't start with numbers
+      );
+      return isValidName;
+    }
+    
+    // Handle single names (less common but valid)
+    if (words.length === 1) {
+      const word = words[0];
+      return /^[a-zA-Z'\-]+$/.test(word) && 
+             word.length >= 2 && 
+             !/^\d/.test(word);
+    }
+    
+    return false;
+  }
+
+  private formatPatientName(name: string): string {
+    // Format patient name with proper capitalization
+    return name.trim()
+      .split(/\s+/)
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
   }
 
   private looksLikeDoctorName(name: string): boolean {
@@ -1618,150 +1673,109 @@ Return JSON with this structure:
       reason: ""
     };
 
-    // Split message by lines to handle multi-line appointment data
-    const lines = message.split('\n').map(line => line.trim()).filter(line => line.length > 0);
-    console.log('[EXTRACT] Processing lines:', lines);
+    console.log('[EXTRACT] Processing message:', message);
 
-    // Enhanced patient name extraction with line-by-line processing
+    // Enhanced patient name extraction with robust patterns
     const patientNamePatterns = [
-      // Explicit patterns with "for" keyword
-      /(?:for|appointment for)\s+([A-Z][a-z]+\s+[A-Z][a-z]+)/i,
-      /book.*?for\s+([A-Z][a-z]+\s+[A-Z][a-z]+)/i,
-      /patient\s+(?:is\s+)?([A-Z][a-z]+\s+[A-Z][a-z]+)/i,
-      // Standalone patient name patterns
-      /^([A-Z][a-z]+\s+[A-Z][a-z]+)$/i,
-      /^([A-Z][a-z]{2,})$/i, // Single name like "Salman"
-      // Names within sentences
-      /\b([A-Z][a-z]+\s+[A-Z][a-z]+)\b/i
+      // Labeled patterns - case insensitive and flexible
+      /(patient\s*name\s*(is|:)?\s*)([a-zA-Z][a-zA-Z\s'\-]+?)(?=,|\band\b|$)/i,
+      /(name\s*(is|:)?\s*)([a-zA-Z][a-zA-Z\s'\-]+?)(?=,|\band\b|$)/i,
+      /patient\s+([a-zA-Z][a-zA-Z\s'\-]+?)(?=,|\band\b|$)/i,
+      // Context patterns
+      /(?:for|appointment for)\s+([a-zA-Z][a-zA-Z\s'\-]+?)(?=,|\band\b|$)/i,
+      /book.*?for\s+([a-zA-Z][a-zA-Z\s'\-]+?)(?=,|\band\b|$)/i,
+      // Free text patterns - match 2-3 word names
+      /\b([a-zA-Z]{2,}\s+[a-zA-Z]{2,}(?:\s+[a-zA-Z]{2,})?)\b/i
     ];
     
-    // First check each line individually for potential patient names
-    for (const line of lines) {
-      if (!details.patient_name && this.looksLikePatientName(line)) {
-        details.patient_name = line;
-        console.log('[EXTRACT] Found patient name in line:', line);
+    // Try each pattern to extract patient name
+    for (const pattern of patientNamePatterns) {
+      const match = message.match(pattern);
+      if (match) {
+        // Get the captured group that contains the name
+        let potentialName = "";
+        if (pattern.source.includes("patient\\s*name") || pattern.source.includes("name\\s*")) {
+          potentialName = match[3] || match[2] || match[1]; // Get the name part from labeled patterns
+        } else {
+          potentialName = match[1]; // Get the name from other patterns
+        }
+        
+        if (potentialName) {
+          potentialName = potentialName.trim();
+          // Clean up the name - remove trailing punctuation and normalize
+          potentialName = potentialName.replace(/[,\.:;]$/, '').trim();
+          
+          if (this.looksLikePatientNameImproved(potentialName)) {
+            details.patient_name = this.formatPatientName(potentialName);
+            console.log('[EXTRACT] Found patient name with pattern:', details.patient_name);
+            break;
+          }
+        }
+      }
+    }
+
+    // Extract doctor preferences with improved patterns
+    const doctorPatterns = [
+      /(?:dr\.?|doctor)\s+([a-zA-Z][a-zA-Z\s'\-]+?)(?=,|\band\b|$)/i,
+      /with\s+([a-zA-Z][a-zA-Z\s'\-]+?)(?=\s+(?:tomorrow|today|at|on|,)|$)/i
+    ];
+    
+    for (const pattern of doctorPatterns) {
+      const match = message.match(pattern);
+      if (match && match[1]) {
+        details.doctor_preference = match[1].trim();
+        console.log('[EXTRACT] Found doctor name:', details.doctor_preference);
         break;
       }
     }
-    
-    // If no patient name found in lines, try pattern matching on full message
-    if (!details.patient_name) {
-      for (const pattern of patientNamePatterns) {
-        const match = message.match(pattern);
-        if (match && match[1]) {
-          const potentialName = match[1].trim();
-          if (this.looksLikePatientName(potentialName)) {
-            details.patient_name = potentialName;
-            console.log('[EXTRACT] Found patient name with pattern:', potentialName);
-            break;
-          }
-        }
-      }
-    }
-    
-    // If still no patient name found, check if the entire message is just a name
-    if (!details.patient_name) {
-      const trimmedMessage = message.trim();
-      if (this.looksLikePatientName(trimmedMessage)) {
-        details.patient_name = trimmedMessage;
-        console.log('[EXTRACT] Using entire message as patient name:', trimmedMessage);
-      }
-    }
 
-    // Extract doctor preferences - check lines first
-    for (const line of lines) {
-      if (!details.doctor_preference && this.looksLikeDoctorName(line)) {
-        details.doctor_preference = line.replace(/^(?:dr\.?|doctor)\s+/i, '').trim();
-        console.log('[EXTRACT] Found doctor name in line:', line);
-        break;
-      }
-    }
-    
-    // If no doctor found in lines, try pattern matching
-    if (!details.doctor_preference) {
-      const doctorPatterns = [
-        /(?:dr\.?|doctor)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/gi,
-        /with\s+([A-Z][a-z]+\s+[A-Z][a-z]+)(?:\s+(?:tomorrow|today|at))/gi
-      ];
-      
-      for (const pattern of doctorPatterns) {
-        const matches = message.match(pattern);
-        if (matches && matches[0]) {
-          details.doctor_preference = matches[0].replace(/^(?:dr\.?|doctor|with)\s+/i, '').trim();
-          console.log('[EXTRACT] Found doctor name with pattern:', details.doctor_preference);
-          break;
-        }
-      }
-    }
-
-    // Extract dates and times - check each line for date/time information
-    for (const line of lines) {
-      // Extract dates from individual lines
-      if (!details.date) {
-        const datePatterns = [
-          /\b(?:tomorrow|today)\b/gi,
-          /\b(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/gi,
-          /\b\d{1,2}[-\/]\d{1,2}(?:[-\/]\d{2,4})?\b/gi
-        ];
+    // Extract dates and times using chrono-node for robust parsing
+    try {
+      const parsedDates = chrono.parse(message, new Date(), { forwardDate: true });
+      if (parsedDates.length > 0) {
+        const firstDate = parsedDates[0];
         
-        for (const pattern of datePatterns) {
-          const match = line.match(pattern);
-          if (match) {
-            details.date = match[0].toLowerCase();
-            console.log('[EXTRACT] Found date in line:', line, '-> date:', details.date);
-            break;
+        if (firstDate.start) {
+          // Extract date component
+          const year = firstDate.start.get('year');
+          const month = firstDate.start.get('month');
+          const day = firstDate.start.get('day');
+          
+          if (year && month && day) {
+            const date = new Date(year, month - 1, day); // month is 0-indexed
+            details.date = date.toISOString().split('T')[0]; // YYYY-MM-DD format
+            console.log('[EXTRACT] Found date with chrono:', details.date);
+          }
+          
+          // Extract time component
+          const hour = firstDate.start.get('hour');
+          if (hour !== null && hour !== undefined) {
+            const minute = firstDate.start.get('minute') || 0;
+            details.time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+            console.log('[EXTRACT] Found time with chrono:', details.time);
           }
         }
       }
+    } catch (error) {
+      console.warn('[EXTRACT] Chrono parsing failed, using fallback:', error);
       
-      // Extract times from individual lines
-      if (!details.time) {
-        const timePatterns = [
-          /\b\d{1,2}(?::\d{2})?\s*(?:am|pm)\b/gi,
-          /\bat\s+(\d{1,2}(?::\d{2})?)\b/gi
-        ];
-        
-        for (const pattern of timePatterns) {
-          const match = line.match(pattern);
-          if (match) {
-            details.time = match[0].replace(/^at\s+/i, '').trim();
-            console.log('[EXTRACT] Found time in line:', line, '-> time:', details.time);
-            break;
-          }
-        }
+      // Fallback to basic regex patterns
+      const timePattern = /\b(\d{1,2}(?::\d{2})?\s*(?:am|pm))\b/i;
+      const timeMatch = message.match(timePattern);
+      if (timeMatch) {
+        details.time = timeMatch[1];
+        console.log('[EXTRACT] Found time with fallback:', details.time);
       }
-    }
-    
-    // If date/time not found in individual lines, try full message
-    if (!details.date) {
-      const datePatterns = [
-        /\b(?:tomorrow|today)\b/gi,
-        /\b(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/gi,
-        /\b\d{1,2}[-\/]\d{1,2}(?:[-\/]\d{2,4})?\b/gi
-      ];
       
-      for (const pattern of datePatterns) {
-        const match = message.match(pattern);
-        if (match) {
-          details.date = match[0].toLowerCase();
-          console.log('[EXTRACT] Found date in full message:', details.date);
-          break;
-        }
-      }
-    }
-
-    if (!details.time) {
-      const timePatterns = [
-        /\b\d{1,2}(?::\d{2})?\s*(?:am|pm)\b/gi,
-        /\bat\s+(\d{1,2}(?::\d{2})?)\b/gi
-      ];
-      
-      for (const pattern of timePatterns) {
-        const match = message.match(pattern);
-        if (match) {
-          details.time = match[0].replace(/^at\s+/i, '').trim();
-          console.log('[EXTRACT] Found time in full message:', details.time);
-          break;
+      const datePattern = /\b(\d{1,2}\s+(?:january|february|march|april|may|june|july|august|september|october|november|december)\s+\d{4})\b/i;
+      const dateMatch = message.match(datePattern);
+      if (dateMatch) {
+        try {
+          const parsedDate = new Date(dateMatch[1]);
+          details.date = parsedDate.toISOString().split('T')[0];
+          console.log('[EXTRACT] Found date with fallback:', details.date);
+        } catch (e) {
+          console.warn('[EXTRACT] Date parsing failed:', e);
         }
       }
     }
