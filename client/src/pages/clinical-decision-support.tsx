@@ -295,7 +295,7 @@ export default function ClinicalDecisionSupport() {
   ];
 
   // Fetch AI insights with real data
-  const { data: insights = [], isLoading: insightsLoading } = useQuery<ClinicalInsight[]>({
+  const { data: insights = [], isLoading: insightsLoading, refetch: refetchInsights } = useQuery<ClinicalInsight[]>({
     queryKey: ["/api/ai-insights", selectedPatient, filterSeverity, filterType, patients?.length],
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -460,26 +460,27 @@ export default function ClinicalDecisionSupport() {
     try {
       setButtonLoadingStates(prev => ({ ...prev, [buttonKey]: buttonType }));
       
-      // **REMOVE OPTIMISTIC UPDATE** - Let SSE handle the real-time update instead
       console.log(`[UPDATE] Starting status update for insight ${insightId}: -> ${aiStatus}`);
       
       await apiRequest("PATCH", `/api/ai/insights/${insightId}`, { aiStatus });
       
       console.log(`[UPDATE] ✅ Status update completed for insight ${insightId}`);
       
-      // Don't immediately invalidate - let SSE update the cache
-      // Only invalidate after a delay to ensure SSE has time to update
-      setTimeout(() => {
-        queryClient.invalidateQueries({ predicate: (query) => Array.isArray(query.queryKey) && query.queryKey[0] === "/api/ai-insights" });
-      }, 500);
+      // 🚀 IMMEDIATE AUTO-REFRESH: Force refresh insights data immediately
+      await refetchInsights();
+      
+      // 🔄 COMPREHENSIVE INVALIDATION: Refresh all related queries to ensure data consistency
+      await queryClient.invalidateQueries({ queryKey: ["/api/ai-insights"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/clinical/risk-assessments"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/patients"] });
       
       toast({ 
-        title: "Status updated successfully", 
-        description: `Status changed to ${aiStatus}` 
+        title: "Status Updated", 
+        description: `Status has been successfully changed to ${aiStatus}` 
       });
     } catch (error: any) {
       // On error, invalidate to refresh from server
-      queryClient.invalidateQueries({ predicate: (query) => Array.isArray(query.queryKey) && query.queryKey[0] === "/api/ai-insights" });
+      await queryClient.invalidateQueries({ queryKey: ["/api/ai-insights"] });
       toast({
         title: "Update Failed",
         description: error.message || "Failed to update status",
