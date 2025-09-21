@@ -560,9 +560,19 @@ export default function FinancialIntelligence() {
       if (!response.ok) throw new Error("Failed to update insurance");
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       console.log("Insurance update success:", data);
-      queryClient.invalidateQueries({ queryKey: ["/api/financial/insurance"] });
+      
+      // Close edit dialog after successful update
+      setEditInsuranceDialogOpen(false);
+      
+      // 🚀 IMMEDIATE AUTO-REFRESH: Force refresh insurance data immediately (following imaging.tsx pattern)
+      await refetchInsurance();
+      
+      // 🔄 COMPREHENSIVE INVALIDATION: Refresh all related queries to ensure data consistency
+      await queryClient.invalidateQueries({ queryKey: ["/api/financial/insurance"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/patients"] });
+      
       toast({
         title: "Insurance updated successfully",
         description: data.message || "Insurance verification data updated",
@@ -1938,16 +1948,120 @@ export default function FinancialIntelligence() {
                         {insurance.patientName}
                       </CardTitle>
                       <div className="flex items-center gap-2 mt-1">
-                        <Badge className={getStatusColor(insurance.status)}>
-                          {insurance.status}
-                        </Badge>
-                        <Badge
-                          className={getStatusColor(
-                            insurance.eligibilityStatus,
+                        <div className="flex items-center gap-1">
+                          {editModes[`${insurance.id}-status`] ? (
+                            <div className="flex items-center gap-1">
+                              <Select
+                                value={editingInsuranceStatus}
+                                onValueChange={setEditingInsuranceStatus}
+                              >
+                                <SelectTrigger className="h-6 w-24 text-xs">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="active">Active</SelectItem>
+                                  <SelectItem value="inactive">Inactive</SelectItem>
+                                  <SelectItem value="expired">Expired</SelectItem>
+                                  <SelectItem value="verified">Verified</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 w-6 p-0"
+                                onClick={() => handleInsuranceFieldSave(insurance.id, "status")}
+                                disabled={saving[`${insurance.id}-status`]}
+                                data-testid={`button-save-status-${insurance.id}`}
+                              >
+                                <Check className="w-3 h-3" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 w-6 p-0"
+                                onClick={() => handleInsuranceFieldCancel(insurance.id, "status")}
+                                data-testid={`button-cancel-status-${insurance.id}`}
+                              >
+                                <XCircle className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1">
+                              <Badge className={getStatusColor(insurance.status)}>
+                                {insurance.status}
+                              </Badge>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 w-6 p-0 opacity-50 hover:opacity-100"
+                                onClick={() => handleInsuranceFieldEdit(insurance.id, "status")}
+                                data-testid={`button-edit-status-${insurance.id}`}
+                              >
+                                <Edit className="w-3 h-3" />
+                              </Button>
+                            </div>
                           )}
-                        >
-                          {insurance.eligibilityStatus}
-                        </Badge>
+                        </div>
+                        
+                        <div className="flex items-center gap-1">
+                          {editModes[`${insurance.id}-eligibilityStatus`] ? (
+                            <div className="flex items-center gap-1">
+                              <Select
+                                value={editingEligibilityStatus}
+                                onValueChange={setEditingEligibilityStatus}
+                              >
+                                <SelectTrigger className="h-6 w-24 text-xs">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="pending">Pending</SelectItem>
+                                  <SelectItem value="verified">Verified</SelectItem>
+                                  <SelectItem value="denied">Denied</SelectItem>
+                                  <SelectItem value="expired">Expired</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 w-6 p-0"
+                                onClick={() => handleInsuranceFieldSave(insurance.id, "eligibilityStatus")}
+                                disabled={saving[`${insurance.id}-eligibilityStatus`]}
+                                data-testid={`button-save-eligibility-${insurance.id}`}
+                              >
+                                <Check className="w-3 h-3" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 w-6 p-0"
+                                onClick={() => handleInsuranceFieldCancel(insurance.id, "eligibilityStatus")}
+                                data-testid={`button-cancel-eligibility-${insurance.id}`}
+                              >
+                                <XCircle className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1">
+                              <Badge
+                                className={getStatusColor(
+                                  insurance.eligibilityStatus,
+                                )}
+                              >
+                                {insurance.eligibilityStatus}
+                              </Badge>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 w-6 p-0 opacity-50 hover:opacity-100"
+                                onClick={() => handleInsuranceFieldEdit(insurance.id, "eligibilityStatus")}
+                                data-testid={`button-edit-eligibility-${insurance.id}`}
+                              >
+                                <Edit className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                        
                         <span className="text-sm text-gray-500">
                           {insurance.provider}
                         </span>
@@ -2037,7 +2151,7 @@ export default function FinancialIntelligence() {
                     </div>
                   </div>
 
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-wrap">
                     <Button
                       size="sm"
                       onClick={() => {
@@ -2089,6 +2203,24 @@ export default function FinancialIntelligence() {
                       data-testid="button-prior-authorization"
                     >
                       Prior Authorization
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleEditInsurance(insurance)}
+                      data-testid={`button-edit-${insurance.id}`}
+                    >
+                      <Edit className="w-4 h-4 mr-1" />
+                      Edit
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => handleDeleteInsurance(insurance.id)}
+                      data-testid={`button-delete-${insurance.id}`}
+                    >
+                      <Trash2 className="w-4 h-4 mr-1" />
+                      Delete
                     </Button>
                   </div>
                 </CardContent>
@@ -3073,6 +3205,271 @@ export default function FinancialIntelligence() {
                 {addInsuranceMutation.isPending
                   ? "Saving..."
                   : "Save Insurance"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Insurance Dialog */}
+      <Dialog open={editInsuranceDialogOpen} onOpenChange={setEditInsuranceDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Insurance Information</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Patient Name</label>
+                <Input
+                  value={newInsuranceFormData.patientName}
+                  onChange={(e) =>
+                    setNewInsuranceFormData((prev) => ({
+                      ...prev,
+                      patientName: e.target.value,
+                    }))
+                  }
+                  disabled
+                  data-testid="input-edit-patient-name"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Insurance Provider</label>
+                <Input
+                  value={newInsuranceFormData.provider}
+                  onChange={(e) =>
+                    setNewInsuranceFormData((prev) => ({
+                      ...prev,
+                      provider: e.target.value,
+                    }))
+                  }
+                  data-testid="input-edit-provider"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Policy Number</label>
+                <Input
+                  value={newInsuranceFormData.policyNumber}
+                  onChange={(e) =>
+                    setNewInsuranceFormData((prev) => ({
+                      ...prev,
+                      policyNumber: e.target.value,
+                    }))
+                  }
+                  data-testid="input-edit-policy-number"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Group Number</label>
+                <Input
+                  value={newInsuranceFormData.groupNumber}
+                  onChange={(e) =>
+                    setNewInsuranceFormData((prev) => ({
+                      ...prev,
+                      groupNumber: e.target.value,
+                    }))
+                  }
+                  data-testid="input-edit-group-number"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <label className="text-sm font-medium">Coverage Type</label>
+                <Select
+                  value={newInsuranceFormData.coverageType}
+                  onValueChange={(value) =>
+                    setNewInsuranceFormData((prev) => ({
+                      ...prev,
+                      coverageType: value,
+                    }))
+                  }
+                >
+                  <SelectTrigger data-testid="select-edit-coverage-type">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="primary">Primary</SelectItem>
+                    <SelectItem value="secondary">Secondary</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Status</label>
+                <Select
+                  value={newInsuranceFormData.status}
+                  onValueChange={(value) =>
+                    setNewInsuranceFormData((prev) => ({
+                      ...prev,
+                      status: value,
+                    }))
+                  }
+                >
+                  <SelectTrigger data-testid="select-edit-status">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                    <SelectItem value="expired">Expired</SelectItem>
+                    <SelectItem value="verified">Verified</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Eligibility Status</label>
+                <Select
+                  value={newInsuranceFormData.eligibilityStatus}
+                  onValueChange={(value) =>
+                    setNewInsuranceFormData((prev) => ({
+                      ...prev,
+                      eligibilityStatus: value,
+                    }))
+                  }
+                >
+                  <SelectTrigger data-testid="select-edit-eligibility-status">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="verified">Verified</SelectItem>
+                    <SelectItem value="denied">Denied</SelectItem>
+                    <SelectItem value="expired">Expired</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Copay ($)</label>
+                <Input
+                  type="number"
+                  value={newInsuranceFormData.copay}
+                  onChange={(e) =>
+                    setNewInsuranceFormData((prev) => ({
+                      ...prev,
+                      copay: e.target.value,
+                    }))
+                  }
+                  data-testid="input-edit-copay"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Coinsurance (%)</label>
+                <Input
+                  type="number"
+                  value={newInsuranceFormData.coinsurance}
+                  onChange={(e) =>
+                    setNewInsuranceFormData((prev) => ({
+                      ...prev,
+                      coinsurance: e.target.value,
+                    }))
+                  }
+                  data-testid="input-edit-coinsurance"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Deductible ($)</label>
+                <Input
+                  type="number"
+                  value={newInsuranceFormData.deductible}
+                  onChange={(e) =>
+                    setNewInsuranceFormData((prev) => ({
+                      ...prev,
+                      deductible: e.target.value,
+                    }))
+                  }
+                  data-testid="input-edit-deductible"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Deductible Met ($)</label>
+                <Input
+                  type="number"
+                  value={newInsuranceFormData.deductibleMet}
+                  onChange={(e) =>
+                    setNewInsuranceFormData((prev) => ({
+                      ...prev,
+                      deductibleMet: e.target.value,
+                    }))
+                  }
+                  data-testid="input-edit-deductible-met"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Out-of-Pocket Max ($)</label>
+                <Input
+                  type="number"
+                  value={newInsuranceFormData.outOfPocketMax}
+                  onChange={(e) =>
+                    setNewInsuranceFormData((prev) => ({
+                      ...prev,
+                      outOfPocketMax: e.target.value,
+                    }))
+                  }
+                  data-testid="input-edit-out-of-pocket-max"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Out-of-Pocket Met ($)</label>
+                <Input
+                  type="number"
+                  value={newInsuranceFormData.outOfPocketMet}
+                  onChange={(e) =>
+                    setNewInsuranceFormData((prev) => ({
+                      ...prev,
+                      outOfPocketMet: e.target.value,
+                    }))
+                  }
+                  data-testid="input-edit-out-of-pocket-met"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-between pt-4">
+              <Button 
+                variant="outline" 
+                onClick={() => setEditInsuranceDialogOpen(false)}
+                data-testid="button-cancel-edit-insurance"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  if (insuranceToEdit) {
+                    updateInsuranceMutation.mutate({
+                      insuranceId: insuranceToEdit.id,
+                      data: {
+                        ...newInsuranceFormData,
+                        lastVerified: new Date().toISOString(),
+                        benefits: {
+                          deductible: parseFloat(newInsuranceFormData.deductible) || 0,
+                          deductibleMet: parseFloat(newInsuranceFormData.deductibleMet) || 0,
+                          outOfPocketMax: parseFloat(newInsuranceFormData.outOfPocketMax) || 0,
+                          outOfPocketMet: parseFloat(newInsuranceFormData.outOfPocketMet) || 0,
+                          copay: parseFloat(newInsuranceFormData.copay) || 0,
+                          coinsurance: parseFloat(newInsuranceFormData.coinsurance) || 0,
+                        },
+                      },
+                    });
+                    setEditInsuranceDialogOpen(false);
+                  }
+                }}
+                disabled={updateInsuranceMutation.isPending}
+                data-testid="button-save-edit-insurance"
+              >
+                {updateInsuranceMutation.isPending ? "Saving..." : "Save Changes"}
               </Button>
             </div>
           </div>
