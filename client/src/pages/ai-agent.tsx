@@ -98,6 +98,8 @@ interface Message {
   showSubSpecialtySelector?: boolean;
   showDoctorSelector?: boolean;
   showTimeSlotSelector?: boolean;
+  showRegistrationInput?: boolean;
+  showRegistrationOptions?: boolean;
   selectedCategory?: string;
   selectedSubSpecialty?: string;
   selectedDoctor?: any;
@@ -139,15 +141,17 @@ export default function AIAgentPage() {
     }
   ]);
   const [bookingState, setBookingState] = useState({
-    step: 'idle', // idle, category, subspecialty, doctor, timeslot, confirmation
+    step: 'idle', // idle, category, subspecialty, doctor, timeslot, registration, confirmation
     selectedCategory: '',
     selectedSubSpecialty: '',
     selectedDoctor: null as any,
     selectedTimeSlot: null as any,
+    patientRegistrationNumber: '',
     availableDoctors: [] as any[],
     availableTimeSlots: [] as any[]
   });
   const [input, setInput] = useState("");
+  const [registrationInput, setRegistrationInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -365,7 +369,7 @@ export default function AIAgentPage() {
   };
 
   const handleTimeSlotSelection = async (timeSlot: any) => {
-    setBookingState(prev => ({ ...prev, selectedTimeSlot: timeSlot, step: 'confirmation' }));
+    setBookingState(prev => ({ ...prev, selectedTimeSlot: timeSlot, step: 'registration' }));
     
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -394,15 +398,152 @@ export default function AIAgentPage() {
         return;
       }
 
+      // Prompt for patient registration number
+      const registrationMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: `Great! Now please enter your Patient Registration Number or NHS Number to proceed with the booking:`,
+        timestamp: new Date(),
+        showRegistrationInput: true
+      };
+
+      setMessages(prev => [...prev, userMessage, registrationMessage]);
+
+    } catch (error) {
+      console.error('Error checking time slot availability:', error);
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: 'I encountered an error while checking availability. Please try again or contact support.',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, userMessage, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handler for patient registration number submission
+  const handleRegistrationSubmission = async (registrationNumber: string) => {
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      type: 'user',
+      content: `Registration Number: ${registrationNumber}`,
+      timestamp: new Date(),
+    };
+
+    setIsLoading(true);
+    setBookingState(prev => ({ ...prev, patientRegistrationNumber: registrationNumber }));
+
+    try {
+      // Check if patient exists in database
+      const response = await apiRequest("GET", `/api/patients?search=${encodeURIComponent(registrationNumber)}`);
+      const data = await response.json();
+      
+      // Look for patient with matching patientId or nhsNumber
+      const matchedPatient = data.find((patient: any) => 
+        patient.patientId === registrationNumber || 
+        patient.nhsNumber === registrationNumber
+      );
+
+      if (matchedPatient) {
+        // Patient found - proceed with booking
+        await proceedWithBooking(matchedPatient);
+        setMessages(prev => [...prev, userMessage]);
+      } else {
+        // Patient not found - show options
+        const notFoundMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          type: 'assistant',
+          content: `❌ The entered registration number was not found. Would you like to:`,
+          timestamp: new Date(),
+          showRegistrationOptions: true
+        };
+        setMessages(prev => [...prev, userMessage, notFoundMessage]);
+      }
+
+    } catch (error) {
+      console.error('Error validating registration number:', error);
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: 'I encountered an error while validating your registration number. Please try again.',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, userMessage, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handler for registration options (re-enter, exit, go back)
+  const handleRegistrationOptions = async (option: 'reenter' | 'exit' | 'goback') => {
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      type: 'user',
+      content: option === 'reenter' ? 'Enter it again' : option === 'exit' ? 'Exit' : 'Go Back',
+      timestamp: new Date(),
+    };
+
+    if (option === 'reenter') {
+      // Show registration input again
+      const reenterMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: `Please enter your Patient Registration Number or NHS Number again:`,
+        timestamp: new Date(),
+        showRegistrationInput: true
+      };
+      setMessages(prev => [...prev, userMessage, reenterMessage]);
+      
+    } else if (option === 'exit') {
+      // Return to start (doctor specialty selection)
+      const exitMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: `I'll help you book an appointment. Let's start by selecting the medical specialty category.`,
+        timestamp: new Date(),
+        showSpecialtySelector: true
+      };
+      setMessages(prev => [...prev, userMessage, exitMessage]);
+      setBookingState({
+        step: 'category',
+        selectedCategory: '',
+        selectedSubSpecialty: '',
+        selectedDoctor: null,
+        selectedTimeSlot: null,
+        patientRegistrationNumber: '',
+        availableDoctors: [],
+        availableTimeSlots: []
+      });
+      
+    } else if (option === 'goback') {
+      // Return to time slot selection
+      const goBackMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: `Please select a date and time for your appointment with Dr. ${bookingState.selectedDoctor.firstName} ${bookingState.selectedDoctor.lastName}:`,
+        timestamp: new Date(),
+        showTimeSlotSelector: true,
+        availableTimeSlots: bookingState.availableTimeSlots
+      };
+      setMessages(prev => [...prev, userMessage, goBackMessage]);
+      setBookingState(prev => ({ ...prev, step: 'timeslot', patientRegistrationNumber: '' }));
+    }
+  };
+
+  // Function to proceed with booking after patient validation
+  const proceedWithBooking = async (patient: any) => {
+    try {
       // Book the appointment
       const appointmentData = {
-        patientId: 12, // Convert to number - using a known patient ID from the database
-        providerId: parseInt(bookingState.selectedDoctor.id), // Ensure it's a number
+        patientId: patient.id, // Use the actual patient ID from database
+        providerId: parseInt(bookingState.selectedDoctor.id),
         title: `${bookingState.selectedSubSpecialty} Consultation`,
         description: `Appointment with Dr. ${bookingState.selectedDoctor.firstName} ${bookingState.selectedDoctor.lastName}`,
-        appointmentDate: format(new Date(timeSlot.datetime), 'yyyy-MM-dd'), // Use correct field name
-        scheduledAt: timeSlot.datetime, // Full datetime string as expected by backend
-        duration: 30, // Convert to number
+        appointmentDate: format(new Date(bookingState.selectedTimeSlot.datetime), 'yyyy-MM-dd'),
+        scheduledAt: bookingState.selectedTimeSlot.datetime,
+        duration: 30,
         type: "consultation",
         department: bookingState.selectedCategory,
         isVirtual: false
@@ -414,12 +555,12 @@ export default function AIAgentPage() {
       const successMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'assistant',
-        content: `✅ **Appointment Successfully Booked!**\n\n**Doctor:** Dr. ${bookingState.selectedDoctor.firstName} ${bookingState.selectedDoctor.lastName}\n**Specialty:** ${bookingState.selectedSubSpecialty}\n**Date & Time:** ${format(new Date(timeSlot.datetime), 'PPp')}\n**Department:** ${bookingState.selectedCategory}\n\nYour appointment has been confirmed. You will receive a confirmation message shortly.`,
+        content: `✅ **Appointment Successfully Booked!**\n\n**Patient:** ${patient.firstName} ${patient.lastName}\n**Registration:** ${bookingState.patientRegistrationNumber}\n**Doctor:** Dr. ${bookingState.selectedDoctor.firstName} ${bookingState.selectedDoctor.lastName}\n**Specialty:** ${bookingState.selectedSubSpecialty}\n**Date & Time:** ${format(new Date(bookingState.selectedTimeSlot.datetime), 'PPp')}\n**Department:** ${bookingState.selectedCategory}\n\nYour appointment has been confirmed. You will receive a confirmation message shortly.`,
         timestamp: new Date(),
         data: bookingResult
       };
 
-      setMessages(prev => [...prev, userMessage, successMessage]);
+      setMessages(prev => [...prev, successMessage]);
       
       // Reset booking state
       setBookingState({
@@ -428,13 +569,14 @@ export default function AIAgentPage() {
         selectedSubSpecialty: '',
         selectedDoctor: null,
         selectedTimeSlot: null,
+        patientRegistrationNumber: '',
         availableDoctors: [],
         availableTimeSlots: []
       });
 
       toast({
         title: "Appointment Booked",
-        description: `Successfully booked with Dr. ${bookingState.selectedDoctor.firstName} ${bookingState.selectedDoctor.lastName}`,
+        description: `Successfully booked for ${patient.firstName} ${patient.lastName}`,
       });
 
     } catch (error) {
@@ -445,9 +587,7 @@ export default function AIAgentPage() {
         content: 'I encountered an error while booking your appointment. Please try again or contact support.',
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, userMessage, errorMessage]);
-    } finally {
-      setIsLoading(false);
+      setMessages(prev => [...prev, errorMessage]);
     }
   };
 
@@ -744,6 +884,65 @@ export default function AIAgentPage() {
     );
   };
 
+  const renderRegistrationInput = () => {
+    return (
+      <div className="mt-3 space-y-3">
+        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Patient Registration Number or NHS Number:</p>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={registrationInput}
+            onChange={(e) => setRegistrationInput(e.target.value)}
+            placeholder="Enter Patient ID or NHS Number"
+            className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+            data-testid="input-registration-number"
+          />
+          <Button
+            onClick={() => {
+              if (registrationInput.trim()) {
+                handleRegistrationSubmission(registrationInput.trim());
+                setRegistrationInput("");
+              }
+            }}
+            disabled={!registrationInput.trim() || isLoading}
+            className="bg-primary hover:bg-primary/90 text-white"
+            data-testid="button-submit-registration"
+          >
+            Submit
+          </Button>
+        </div>
+      </div>
+    );
+  };
+
+  const renderRegistrationOptions = () => {
+    return (
+      <div className="mt-3 space-y-2">
+        <Button
+          onClick={() => handleRegistrationOptions('reenter')}
+          className="w-full bg-primary hover:bg-primary/90 text-white text-left justify-start"
+          data-testid="button-reenter-registration"
+        >
+          🔄 Enter it again
+        </Button>
+        <Button
+          onClick={() => handleRegistrationOptions('exit')}
+          className="w-full bg-red-500 hover:bg-red-600 text-white text-left justify-start"
+          data-testid="button-exit-booking"
+        >
+          ❌ Exit
+        </Button>
+        <Button
+          onClick={() => handleRegistrationOptions('goback')}
+          className="w-full bg-gray-500 hover:bg-gray-600 text-white text-left justify-start"
+          data-testid="button-go-back"
+        >
+          ⬅️ Go Back
+        </Button>
+      </div>
+    );
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="mb-6">
@@ -855,6 +1054,20 @@ export default function AIAgentPage() {
                       {message.showTimeSlotSelector && (
                         <div className="mt-2">
                           {renderTimeSlotSelector(message)}
+                        </div>
+                      )}
+
+                      {/* Render registration input */}
+                      {message.showRegistrationInput && (
+                        <div className="mt-4">
+                          {renderRegistrationInput()}
+                        </div>
+                      )}
+
+                      {/* Render registration options */}
+                      {message.showRegistrationOptions && (
+                        <div className="mt-4">
+                          {renderRegistrationOptions()}
                         </div>
                       )}
 
