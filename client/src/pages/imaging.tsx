@@ -1414,7 +1414,7 @@ export default function ImagingPage() {
                         )}
                       </div>
 
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
                         <div>
                           <h4 className="font-medium text-md text-gray-700 dark:text-gray-300 mb-2">
                             Study Information
@@ -1437,6 +1437,30 @@ export default function ImagingPage() {
                             </div>
                           </div>
                         </div>
+
+                        {study.images && study.images.length > 0 && (
+                          <div>
+                            <h4 className="font-medium text-md text-gray-700 dark:text-gray-300 mb-2">
+                              Image Series
+                            </h4>
+                            <div className="grid grid-cols-1 gap-2">
+                              {study.images.map((series: any) => (
+                                <div
+                                  key={series.id}
+                                  className="bg-gray-50 dark:bg-slate-600 p-3 rounded-lg border dark:border-slate-500"
+                                >
+                                  <div className="font-medium text-sm text-gray-900 dark:text-gray-100">
+                                    {series.seriesDescription}
+                                  </div>
+                                  <div className="text-xs text-gray-600 dark:text-gray-300">
+                                    {series.imageCount} images • {series.size} •{" "}
+                                    {series.type}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
 
                         <div>
                           <h4 className="font-medium text-md text-gray-700 dark:text-gray-300 mb-2">
@@ -1625,32 +1649,8 @@ export default function ImagingPage() {
                         </div>
                       </div>
 
-                      {study.images && study.images.length > 0 && (
-                        <div className="mb-4">
-                          <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">
-                            Image Series
-                          </h4>
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                            {study.images.map((series: any) => (
-                              <div
-                                key={series.id}
-                                className="bg-gray-50 dark:bg-slate-600 p-3 rounded-lg border dark:border-slate-500"
-                              >
-                                <div className="font-medium text-sm text-gray-900 dark:text-gray-100">
-                                  {series.seriesDescription}
-                                </div>
-                                <div className="text-xs text-gray-600 dark:text-gray-300">
-                                  {series.imageCount} images • {series.size} •{" "}
-                                  {series.type}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
                       {study.findings && (
-                        <div className="w-900 bg-blue-50 dark:bg-slate-700 border-l-4 border-blue-400 dark:border-blue-500 p-5 pr-5  mb-4 mr-16">
+                        <div className="bg-blue-50 dark:bg-slate-700 border-l-4 border-blue-400 dark:border-blue-500 p-5 pr-5 mb-4">
                           <h4 className="font-medium text-blue-700 dark:text-blue-300 text-md mb-1">
                             Findings
                           </h4>
