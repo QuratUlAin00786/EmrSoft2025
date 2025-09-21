@@ -2159,36 +2159,6 @@ export default function FinancialIntelligence() {
                   <div className="flex gap-2 flex-wrap">
                     <Button
                       size="sm"
-                      onClick={() => {
-                        setSelectedInsurance(insurance);
-                        setVerificationFormData({
-                          patientName: insurance.patientName,
-                          insuranceProvider: insurance.provider,
-                          policyNumber: insurance.policyNumber,
-                          groupNumber: insurance.groupNumber,
-                          coverageType: insurance.coverageType,
-                          verificationStatus:
-                            insurance.status === "verified"
-                              ? "verified"
-                              : "pending",
-                          verificationDate:
-                            insurance.status === "verified"
-                              ? format(
-                                  new Date(
-                                    insurance.lastVerified || new Date(),
-                                  ),
-                                  "yyyy-MM-dd",
-                                )
-                              : format(new Date(), "yyyy-MM-dd"),
-                        });
-                        setVerifyEligibilityOpen(true);
-                      }}
-                    >
-                      <Shield className="w-4 h-4 mr-1" />
-                      Verify Eligibility
-                    </Button>
-                    <Button
-                      size="sm"
                       variant="outline"
                       onClick={() => {
                         setSelectedInsurance(insurance);
