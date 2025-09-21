@@ -859,6 +859,98 @@ export default function FinancialIntelligence() {
     },
   ];
 
+  // Helper functions for insurance field editing (following imaging.tsx pattern)
+  const handleInsuranceFieldEdit = (insuranceId: string, fieldName: string) => {
+    setEditModes((prev) => ({
+      ...prev,
+      [`${insuranceId}-${fieldName}`]: true,
+    }));
+
+    // Initialize editing states for status fields
+    const insurance = insurances?.find((ins: any) => ins.id === insuranceId);
+    if (insurance) {
+      if (fieldName === "status") {
+        setEditingInsuranceStatus(insurance.status || "active");
+      }
+      if (fieldName === "eligibilityStatus") {
+        setEditingEligibilityStatus(insurance.eligibilityStatus || "pending");
+      }
+    }
+  };
+
+  const handleInsuranceFieldCancel = (insuranceId: string, fieldName: string) => {
+    setEditModes((prev) => ({
+      ...prev,
+      [`${insuranceId}-${fieldName}`]: false,
+    }));
+
+    // Reset editing states to original values
+    const insurance = insurances?.find((ins: any) => ins.id === insuranceId);
+    if (insurance) {
+      if (fieldName === "status") {
+        setEditingInsuranceStatus(insurance.status || "active");
+      }
+      if (fieldName === "eligibilityStatus") {
+        setEditingEligibilityStatus(insurance.eligibilityStatus || "pending");
+      }
+    }
+  };
+
+  const handleInsuranceFieldSave = (
+    insuranceId: string,
+    fieldName: string,
+    value?: string,
+  ) => {
+    let finalValue = value;
+    
+    if (fieldName === "status") {
+      finalValue = editingInsuranceStatus;
+    } else if (fieldName === "eligibilityStatus") {
+      finalValue = editingEligibilityStatus;
+    }
+
+    if (!finalValue) return;
+
+    updateInsuranceFieldMutation.mutate({
+      insuranceId,
+      fieldName,
+      value: finalValue,
+    });
+  };
+
+  const handleDeleteInsurance = async (insuranceId: string) => {
+    const insurance = insurances?.find((ins: any) => ins.id === insuranceId);
+    if (!insurance) return;
+
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete the insurance record for ${insurance.patientName}? This action cannot be undone.`,
+    );
+
+    if (!confirmDelete) return;
+
+    deleteInsuranceMutation.mutate(insuranceId);
+  };
+
+  const handleEditInsurance = (insurance: any) => {
+    setInsuranceToEdit(insurance);
+    setNewInsuranceFormData({
+      patientName: insurance.patientName || "",
+      provider: insurance.provider || "",
+      policyNumber: insurance.policyNumber || "",
+      groupNumber: insurance.groupNumber || "",
+      coverageType: insurance.coverageType || "primary",
+      status: insurance.status || "active",
+      eligibilityStatus: insurance.eligibilityStatus || "pending",
+      copay: insurance.benefits?.copay?.toString() || "",
+      deductible: insurance.benefits?.deductible?.toString() || "",
+      deductibleMet: insurance.benefits?.deductibleMet?.toString() || "",
+      outOfPocketMax: insurance.benefits?.outOfPocketMax?.toString() || "",
+      outOfPocketMet: insurance.benefits?.outOfPocketMet?.toString() || "",
+      coinsurance: insurance.benefits?.coinsurance?.toString() || "",
+    });
+    setEditInsuranceDialogOpen(true);
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "approved":
