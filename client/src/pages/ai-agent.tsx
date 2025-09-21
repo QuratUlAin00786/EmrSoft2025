@@ -338,13 +338,13 @@ export default function AIAgentPage() {
 
       // Book the appointment
       const appointmentData = {
-        patientId: "12", // Using a known patient ID from the database
-        providerId: bookingState.selectedDoctor.id,
+        patientId: 12, // Convert to number - using a known patient ID from the database
+        providerId: parseInt(bookingState.selectedDoctor.id), // Ensure it's a number
         title: `${bookingState.selectedSubSpecialty} Consultation`,
         description: `Appointment with Dr. ${bookingState.selectedDoctor.firstName} ${bookingState.selectedDoctor.lastName}`,
-        date: format(new Date(timeSlot.datetime), 'yyyy-MM-dd'),
-        time: format(new Date(timeSlot.datetime), 'HH:mm'),
-        duration: "30",
+        appointmentDate: format(new Date(timeSlot.datetime), 'yyyy-MM-dd'), // Use correct field name
+        scheduledAt: timeSlot.datetime, // Full datetime string as expected by backend
+        duration: 30, // Convert to number
         type: "consultation",
         department: bookingState.selectedCategory,
         isVirtual: false
