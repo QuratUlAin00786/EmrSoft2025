@@ -270,10 +270,16 @@ export default function FinancialIntelligence() {
   // Ensure claims is always an array
   const claims = Array.isArray(claimsResponse) ? claimsResponse : [];
 
-  // Fetch insurance verifications
+  // Fetch insurance verifications with explicit queryFn to ensure API call
   const { data: insurances, isLoading: insuranceLoading, refetch: refetchInsurance } = useQuery({
     queryKey: ["/api/financial/insurance"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/financial/insurance");
+      return response.json();
+    },
     enabled: true,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
   });
 
   // Fetch financial forecasts
