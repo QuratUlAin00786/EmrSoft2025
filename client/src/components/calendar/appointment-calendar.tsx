@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Calendar, Clock, MapPin, User, Video, Stethoscope, FileText, Plus, Save, X, Mic, Square, Edit, Trash2 } from "lucide-react";
 import anatomicalDiagramImage from "@assets/2_1754469563272.png";
 import facialDiagramImage from "@assets/1_1754469776185.png";
@@ -94,6 +95,46 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
   // State for edit appointment modal
   const [showEditAppointment, setShowEditAppointment] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<any>(null);
+  const [editAppointmentDate, setEditAppointmentDate] = useState<Date | undefined>(undefined);
+  const [editSelectedTimeSlot, setEditSelectedTimeSlot] = useState<string>("");
+
+  // Time slots for appointment booking
+  const timeSlots = [
+    "9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM",
+    "12:00 PM", "12:30 PM", "1:00 PM", "1:30 PM", "2:00 PM", "2:30 PM",
+    "3:00 PM", "3:30 PM", "4:00 PM", "4:30 PM", "5:00 PM"
+  ];
+
+  // Function to check if a time slot is available
+  const isTimeSlotAvailable = (date: Date, timeSlot: string) => {
+    if (!date || !timeSlot || !appointments) return true;
+    
+    const selectedDateString = format(date, 'yyyy-MM-dd');
+    const appointmentDateTime = new Date(`${selectedDateString} ${timeSlot}`);
+    
+    // Check if this slot is already taken (excluding the current appointment being edited)
+    return !appointments.some((apt: any) => {
+      if (editingAppointment && apt.id === editingAppointment.id) return false; // Exclude current appointment
+      const aptDate = new Date(apt.scheduledAt);
+      const aptTime = format(aptDate, 'h:mm a');
+      const aptDateString = format(aptDate, 'yyyy-MM-dd');
+      
+      return aptDateString === selectedDateString && aptTime === timeSlot;
+    });
+  };
+
+  // Initialize edit appointment calendar state when editing starts
+  useEffect(() => {
+    if (editingAppointment && showEditAppointment) {
+      const appointmentDate = new Date(editingAppointment.scheduledAt);
+      setEditAppointmentDate(appointmentDate);
+      setEditSelectedTimeSlot(format(appointmentDate, 'h:mm a'));
+    } else if (!showEditAppointment) {
+      // Reset when dialog closes
+      setEditAppointmentDate(undefined);
+      setEditSelectedTimeSlot("");
+    }
+  }, [editingAppointment, showEditAppointment]);
 
   // Define muscle coordinates for interactive highlighting
   const muscleCoordinates = {
@@ -1029,32 +1070,65 @@ Medical License: [License Number]
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                {/* Date Selection */}
+                <div className="space-y-4">
                   <div>
-                    <Label className="text-sm font-medium text-gray-600">Date</Label>
-                    <Input 
-                      type="date"
-                      defaultValue={format(new Date(editingAppointment.scheduledAt), 'yyyy-MM-dd')}
-                      onChange={(e) => {
-                        const currentTime = format(new Date(editingAppointment.scheduledAt), 'HH:mm');
-                        const newDateTime = new Date(`${e.target.value}T${currentTime}:00`);
-                        setEditingAppointment({ ...editingAppointment, scheduledAt: newDateTime.toISOString() });
-                      }}
-                      className="mt-1"
-                    />
+                    <Label className="text-lg font-semibold text-gray-800 mb-3 block">Select Date</Label>
+                    <div className="border rounded-lg p-4">
+                      <CalendarComponent
+                        mode="single"
+                        selected={editAppointmentDate || new Date(editingAppointment.scheduledAt)}
+                        onSelect={(date) => {
+                          setEditAppointmentDate(date);
+                          if (date && editSelectedTimeSlot) {
+                            const timeSlot = editSelectedTimeSlot;
+                            const newDateTime = new Date(`${format(date, 'yyyy-MM-dd')} ${timeSlot}`);
+                            setEditingAppointment({ ...editingAppointment, scheduledAt: newDateTime.toISOString() });
+                          }
+                        }}
+                        className="rounded-md border"
+                        initialFocus
+                      />
+                    </div>
                   </div>
+
+                  {/* Time Slot Selection */}
                   <div>
-                    <Label className="text-sm font-medium text-gray-600">Time</Label>
-                    <Input 
-                      type="time"
-                      defaultValue={format(new Date(editingAppointment.scheduledAt), 'HH:mm')}
-                      onChange={(e) => {
-                        const currentDate = format(new Date(editingAppointment.scheduledAt), 'yyyy-MM-dd');
-                        const newDateTime = new Date(`${currentDate}T${e.target.value}:00`);
-                        setEditingAppointment({ ...editingAppointment, scheduledAt: newDateTime.toISOString() });
-                      }}
-                      className="mt-1"
-                    />
+                    <Label className="text-lg font-semibold text-gray-800 mb-3 block">Select Time Slot</Label>
+                    <div className="border rounded-lg p-4 max-h-60 overflow-y-auto">
+                      <div className="grid grid-cols-3 gap-2">
+                        {timeSlots.map((slot) => {
+                          const isAvailable = isTimeSlotAvailable(editAppointmentDate || new Date(editingAppointment.scheduledAt), slot);
+                          const isSelected = editSelectedTimeSlot === slot || 
+                            (editSelectedTimeSlot === "" && format(new Date(editingAppointment.scheduledAt), 'h:mm a') === slot);
+                          
+                          return (
+                            <Button
+                              key={slot}
+                              variant={isSelected ? "default" : "outline"}
+                              className={`h-10 text-sm ${
+                                !isAvailable 
+                                  ? "bg-gray-200 text-gray-400 cursor-not-allowed" 
+                                  : isSelected 
+                                    ? "bg-green-500 hover:bg-green-600 text-white" 
+                                    : "hover:bg-green-50 hover:border-green-300"
+                              }`}
+                              disabled={!isAvailable}
+                              onClick={() => {
+                                setEditSelectedTimeSlot(slot);
+                                if (editAppointmentDate || editingAppointment.scheduledAt) {
+                                  const date = editAppointmentDate || new Date(editingAppointment.scheduledAt);
+                                  const newDateTime = new Date(`${format(date, 'yyyy-MM-dd')} ${slot}`);
+                                  setEditingAppointment({ ...editingAppointment, scheduledAt: newDateTime.toISOString() });
+                                }
+                              }}
+                            >
+                              {slot}
+                            </Button>
+                          );
+                        })}
+                      </div>
+                    </div>
                   </div>
                 </div>
 
