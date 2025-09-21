@@ -568,19 +568,25 @@ export default function FinancialIntelligence() {
         variant: "destructive",
       });
     },
-    onSuccess: (data, variables) => {
+    onSuccess: async (data, variables) => {
       // ✨ KEY: Exit edit mode immediately (patients.tsx pattern)
       setEditModes((prev) => ({
         ...prev,
         [`claim-${variables.claimId}-status`]: false,
       }));
 
-      // Invalidate and refetch - this triggers React re-render
-      queryClient.invalidateQueries({ queryKey: ["/api/financial/claims"] });
+      // 🚀 IMMEDIATE AUTO-REFRESH: Force refresh claims data immediately
+      await refetchClaims();
+
+      // 🔄 COMPREHENSIVE INVALIDATION: Refresh all related queries to ensure data consistency
+      await queryClient.invalidateQueries({ queryKey: ["/api/financial/claims"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/financial/revenue"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/financial/insurance"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/patients"] });
 
       toast({
         title: "Status Updated",
-        description: `Claim status updated to ${variables.status} successfully`,
+        description: `Claim status has been successfully updated to ${variables.status}`,
       });
     },
     onSettled: (data, error, variables) => {
