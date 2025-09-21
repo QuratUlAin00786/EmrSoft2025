@@ -388,8 +388,8 @@ export default function ImagingPage() {
     },
     onError: (error, variables) => {
       toast({
-        title: "Update Failed",
-        description: "Failed to update field. Please try again.",
+        title: "Error updating record",
+        description: error.message || "Failed to update record. Please try again.",
         variant: "destructive",
       });
     },
@@ -408,12 +408,19 @@ export default function ImagingPage() {
         [variables.fieldName]: false,
       }));
 
-      // Invalidate and refetch - this triggers React re-render
+      // Invalidate all related queries to refresh data
       queryClient.invalidateQueries({ queryKey: ["/api/medical-images"] });
+      
+      // Auto-refresh patient records when medical images are updated
+      if (selectedStudy?.patientId) {
+        queryClient.invalidateQueries({ queryKey: ['/api/patients', selectedStudy.patientId, 'records'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/patients'] }); // Main patient list
+        queryClient.invalidateQueries({ queryKey: ['/api/patients', selectedStudy.patientId, 'history'] });
+      }
 
       toast({
-        title: "Field Updated",
-        description: `${variables.fieldName.charAt(0).toUpperCase() + variables.fieldName.slice(1)} saved successfully`,
+        title: "Record Updated",
+        description: `${variables.fieldName.charAt(0).toUpperCase() + variables.fieldName.slice(1)} has been successfully updated.`,
       });
     },
     onSettled: (data, error, variables) => {
@@ -452,10 +459,10 @@ export default function ImagingPage() {
         [variables.fieldName]: true,
       }));
     },
-    onError: (err, variables) => {
+    onError: (error, variables) => {
       toast({
-        title: "Update Failed",
-        description: "Failed to update field. Please try again.",
+        title: "Error updating record",
+        description: error.message || "Failed to update record. Please try again.",
         variant: "destructive",
       });
     },
@@ -466,27 +473,34 @@ export default function ImagingPage() {
         [variables.fieldName]: false,
       }));
 
-      // Invalidate and refetch - this triggers React re-render
+      // Invalidate all related queries to refresh data
       queryClient.invalidateQueries({ queryKey: ["/api/medical-images"] });
+      
+      // Auto-refresh patient records when medical images are updated
+      if (selectedStudy?.patientId) {
+        queryClient.invalidateQueries({ queryKey: ['/api/patients', selectedStudy.patientId, 'records'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/patients'] }); // Main patient list
+        queryClient.invalidateQueries({ queryKey: ['/api/patients', selectedStudy.patientId, 'history'] });
+      }
 
       // Create appropriate success message based on field type
-      let title = "Field Updated";
+      let title = "Record Updated";
       let description = "";
       
       if (variables.fieldName === "scheduledAt") {
         title = "Scheduled Date Updated";
-        description = "Scheduled date updated successfully";
+        description = "Scheduled date has been successfully updated.";
       } else if (variables.fieldName === "performedAt") {
         title = "Performed Date Updated";
-        description = "Performed date updated successfully";
+        description = "Performed date has been successfully updated.";
       } else if (variables.fieldName === "status") {
         title = "Status Updated";
-        description = "Status updated successfully";
+        description = "Status has been successfully updated.";
       } else if (variables.fieldName === "priority") {
         title = "Priority Updated";
-        description = "Priority updated successfully";
+        description = "Priority has been successfully updated.";
       } else {
-        description = `${variables.fieldName.charAt(0).toUpperCase() + variables.fieldName.slice(1)} updated successfully`;
+        description = `${variables.fieldName.charAt(0).toUpperCase() + variables.fieldName.slice(1)} has been successfully updated.`;
       }
 
       toast({
