@@ -622,9 +622,10 @@ export default function MessagingPage() {
       refetchConversations();
     }, 5000); // Check every 5 seconds instead of 2
     
-    // Also attempt WebSocket as primary method
-    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = `${protocol}//${window.location.host}/ws`;
+    // Also attempt WebSocket as primary method with robust URL construction
+    const url = new URL('/ws', window.location.href);
+    url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = url.toString();
     console.log('🔗 WebSocket: URL:', wsUrl);
     
     const socket = new WebSocket(wsUrl);

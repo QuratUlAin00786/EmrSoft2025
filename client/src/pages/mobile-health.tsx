@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Smartphone,
@@ -585,6 +585,9 @@ export default function MobileHealth() {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Connect Wearable Device</DialogTitle>
+                <DialogDescription>
+                  Connect a new wearable device to track patient health metrics and sync data automatically.
+                </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="text-center p-6">
@@ -1229,6 +1232,9 @@ export default function MobileHealth() {
               <DialogTitle>
                 {selectedDevice.brand} {selectedDevice.model} - {selectedDevice.patientName}
               </DialogTitle>
+              <DialogDescription>
+                View detailed information and health metrics from this wearable device.
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -1290,6 +1296,9 @@ export default function MobileHealth() {
         <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Configure Device - {deviceToConfig?.brand} {deviceToConfig?.model}</DialogTitle>
+            <DialogDescription>
+              Adjust device settings, sync preferences, and notification options.
+            </DialogDescription>
           </DialogHeader>
           {deviceToConfig && (
             <div className="space-y-4">
@@ -1454,6 +1463,9 @@ export default function MobileHealth() {
         <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Send Push Notification</DialogTitle>
+            <DialogDescription>
+              Send a push notification to the connected mobile device or wearable.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -1582,6 +1594,9 @@ export default function MobileHealth() {
         <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Install Progressive Web App</DialogTitle>
+            <DialogDescription>
+              Install the mobile health app on your device for offline access and push notifications.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="flex items-center justify-center p-6 bg-blue-50 rounded-lg">
@@ -1666,6 +1681,9 @@ export default function MobileHealth() {
         <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Configure Offline Settings</DialogTitle>
+            <DialogDescription>
+              Set up offline data storage and sync preferences for when internet connectivity is limited.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="p-3 bg-blue-50 rounded-lg">
@@ -1813,6 +1831,9 @@ export default function MobileHealth() {
         <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>App Preview - {selectedApp?.name}</DialogTitle>
+            <DialogDescription>
+              Preview how this health application will look and function on mobile devices.
+            </DialogDescription>
           </DialogHeader>
           {selectedApp && (
             <div className="space-y-4">
@@ -1922,6 +1943,9 @@ export default function MobileHealth() {
         <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Share App Link - {selectedApp?.name}</DialogTitle>
+            <DialogDescription>
+              Share the download link for this mobile health application with patients or staff.
+            </DialogDescription>
           </DialogHeader>
           {selectedApp && (
             <div className="space-y-4">
@@ -2036,6 +2060,9 @@ Download link: https://apps.averox.com/${selectedApp.id}`}
             <DialogTitle>
               Device Settings - {settingsDevice?.brand} {settingsDevice?.model}
             </DialogTitle>
+            <DialogDescription>
+              Configure advanced settings, calibration options, and data collection preferences for this device.
+            </DialogDescription>
           </DialogHeader>
           {settingsDevice && (
             <div className="space-y-6">
