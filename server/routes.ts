@@ -2312,12 +2312,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const organizationId = req.organizationId;
       console.log(`[FINANCIAL] Fetching insurance data for organization: ${organizationId}`);
 
-      // Get all patients for this organization to check their insurance info
+      // First, get insurance verifications from the dedicated table
+      const dbInsuranceVerifications = await storage.getInsuranceVerificationsByOrganization(organizationId);
+      console.log(`[FINANCIAL] Found ${dbInsuranceVerifications.length} insurance verifications from database`);
+
+      // Transform database insurance verifications to match frontend format
+      const dbInsuranceData = dbInsuranceVerifications.map(insurance => ({
+        id: insurance.id,
+        patientName: insurance.patientName,
+        provider: insurance.provider,
+        policyNumber: insurance.policyNumber,
+        groupNumber: insurance.groupNumber || 'N/A',
+        memberNumber: insurance.memberNumber || 'N/A',
+        planType: insurance.planType || 'Standard',
+        effectiveDate: insurance.effectiveDate,
+        expirationDate: insurance.expirationDate,
+        copay: insurance.benefits?.copay || 0,
+        deductible: insurance.benefits?.deductible || 0,
+        isActive: insurance.status === 'active',
+        eligibilityStatus: insurance.eligibilityStatus,
+        lastVerified: insurance.lastVerified,
+        coverageType: insurance.coverageType,
+        status: insurance.status,
+        coinsurance: `${insurance.benefits?.coinsurance || 20}%`,
+        outOfPocketMax: `$${insurance.benefits?.outOfPocketMax || 5000}`,
+        outOfPocketMet: `$${insurance.benefits?.outOfPocketMet || 0}`,
+        deductibleMet: `$${insurance.benefits?.deductibleMet || 0}`,
+        createdAt: insurance.createdAt,
+      }));
+
+      // Get all patients for this organization to check their insurance info (legacy support)
       const allPatients = await storage.getPatientsByOrganization(organizationId);
       console.log(`[FINANCIAL] Found ${allPatients.length} patients in organization ${organizationId}`);
 
       // Transform patients with insurance information
-      const insuranceVerifications = allPatients
+      const patientInsuranceVerifications = allPatients
         .filter(patient => {
           const insurance = patient.insuranceInfo as any;
           const hasInsurance = insurance && (insurance.provider || insurance.policyNumber);
@@ -2353,10 +2382,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           };
         });
 
-      // Also include any manually added insurance records from mock data
-      const allInsuranceData = [...insuranceVerifications, ...mockInsurances];
+      // Combine all insurance data sources: DB verifications + patient insurance + mock data
+      const allInsuranceData = [...dbInsuranceData, ...patientInsuranceVerifications, ...mockInsurances];
 
-      console.log(`[FINANCIAL] Total insurance verifications: ${allInsuranceData.length} (${insuranceVerifications.length} from patients, ${mockInsurances.length} manual)`);
+      console.log(`[FINANCIAL] Total insurance verifications: ${allInsuranceData.length} (${dbInsuranceData.length} from DB, ${patientInsuranceVerifications.length} from patients, ${mockInsurances.length} manual)`);
       res.json(allInsuranceData);
     } catch (error) {
       console.error(`[FINANCIAL] Error fetching insurance data:`, error);
