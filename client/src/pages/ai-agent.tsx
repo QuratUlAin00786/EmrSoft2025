@@ -17,10 +17,75 @@ import {
   FileText,
   Sparkles,
   MessageCircle,
-  Loader2
+  Loader2,
+  ChevronRight,
+  CheckCircle
 } from "lucide-react";
 import { format } from "date-fns";
 import { apiRequest } from "@/lib/queryClient";
+
+// Medical Specialties Data Structure
+const medicalSpecialties = {
+  "General & Primary Care": {
+    "General Practitioner (GP) / Family Physician": ["Common illnesses", "Preventive care"],
+    "Internal Medicine Specialist": ["Adult health", "Chronic diseases (diabetes, hypertension)"]
+  },
+  "Surgical Specialties": {
+    "General Surgeon": [
+      "Abdominal Surgery",
+      "Hernia Repair", 
+      "Gallbladder & Appendix Surgery",
+      "Colorectal Surgery",
+      "Breast Surgery"
+    ],
+    "Orthopedic Surgeon": [
+      "Joint Replacement (hip, knee, shoulder)",
+      "Spine Surgery",
+      "Sports Orthopedics (ACL tears, ligament reconstruction)",
+      "Pediatric Orthopedics",
+      "Arthroscopy (keyhole joint surgery)"
+    ],
+    "Neurosurgeon": [
+      "Brain Tumor Surgery",
+      "Spinal Surgery", 
+      "Cerebrovascular Surgery (stroke, aneurysm)",
+      "Pediatric Neurosurgery"
+    ]
+  },
+  "Heart & Circulation": {
+    "Cardiologist": ["Heart diseases", "ECG", "Angiography"],
+    "Vascular Surgeon": ["Arteries", "Veins", "Blood vessels"]
+  },
+  "Women's Health": {
+    "Gynecologist": ["Female reproductive system"],
+    "Obstetrician": ["Pregnancy & childbirth"],
+    "Fertility Specialist (IVF Expert)": ["Infertility treatment"]
+  },
+  "Children's Health": {
+    "Pediatrician": ["General child health"],
+    "Pediatric Surgeon": ["Infant & child surgeries"],
+    "Neonatologist": ["Newborn intensive care"]
+  },
+  "Brain & Nervous System": {
+    "Neurologist": ["Stroke", "Epilepsy", "Parkinson's"],
+    "Psychiatrist": ["Mental health (depression, anxiety)"],
+    "Psychologist (Clinical)": ["Therapy & counseling"]
+  },
+  "Skin, Hair & Appearance": {
+    "Dermatologist": ["Skin", "Hair", "Nails"],
+    "Cosmetologist": ["Non-surgical cosmetic treatments"],
+    "Aesthetic / Cosmetic Surgeon": ["Surgical enhancements"]
+  },
+  "Eye & Vision": {
+    "Ophthalmologist": ["Cataracts", "Glaucoma", "Surgeries"],
+    "Optometrist": ["Vision correction (glasses, lenses)"]
+  },
+  "Teeth & Mouth": {
+    "Dentist (General)": ["Oral health", "Fillings"],
+    "Orthodontist": ["Braces", "Alignment"],
+    "Oral & Maxillofacial Surgeon": ["Jaw surgery", "Implants"]
+  }
+} as const;
 
 interface Message {
   id: string;
@@ -28,6 +93,15 @@ interface Message {
   content: string;
   timestamp: Date;
   data?: any;
+  showSpecialtySelector?: boolean;
+  showSubSpecialtySelector?: boolean;
+  showDoctorSelector?: boolean;
+  showTimeSlotSelector?: boolean;
+  selectedCategory?: string;
+  selectedSubSpecialty?: string;
+  selectedDoctor?: any;
+  availableDoctors?: any[];
+  availableTimeSlots?: any[];
 }
 
 interface Prescription {
@@ -62,6 +136,15 @@ export default function AIAgentPage() {
       timestamp: new Date(),
     }
   ]);
+  const [bookingState, setBookingState] = useState({
+    step: 'idle', // idle, category, subspecialty, doctor, timeslot, confirmation
+    selectedCategory: '',
+    selectedSubSpecialty: '',
+    selectedDoctor: null as any,
+    selectedTimeSlot: null as any,
+    availableDoctors: [] as any[],
+    availableTimeSlots: [] as any[]
+  });
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -90,7 +173,26 @@ export default function AIAgentPage() {
     setIsLoading(true);
 
     try {
-      // Send to AI agent endpoint
+      // Check if user is requesting appointment booking
+      const lowerInput = input.toLowerCase();
+      if ((lowerInput.includes('book') && lowerInput.includes('appointment')) || 
+          lowerInput.includes('schedule') ||
+          lowerInput.includes('appointment')) {
+        
+        const assistantMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          type: 'assistant',
+          content: "I'll help you book an appointment. Let's start by selecting the medical specialty category.",
+          timestamp: new Date(),
+          showSpecialtySelector: true
+        };
+
+        setMessages(prev => [...prev, assistantMessage]);
+        setBookingState(prev => ({ ...prev, step: 'category' }));
+        return;
+      }
+
+      // Send to AI agent endpoint for other requests
       const response = await apiRequest("POST", "/api/ai-agent/chat", {
         message: input,
         conversationHistory: messages.slice(-5) // Send last 5 messages for context
@@ -212,6 +314,142 @@ export default function AIAgentPage() {
     </Card>
   );
 
+  const renderSpecialtySelector = (message: Message) => {
+    const categories = Object.keys(medicalSpecialties);
+    
+    return (
+      <div className="mt-3 space-y-2">
+        <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select a Medical Specialty Category:</p>
+        <div className="grid grid-cols-1 gap-2">
+          {categories.map((category) => (
+            <Button
+              key={category}
+              variant="outline"
+              onClick={() => handleCategorySelection(category)}
+              className="justify-start text-left h-auto py-3 px-4 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+              data-testid={`category-${category.replace(/\s+/g, '-').toLowerCase()}`}
+            >
+              <div className="flex items-center gap-2">
+                <Stethoscope className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <span>{category}</span>
+                <ChevronRight className="h-4 w-4 ml-auto" />
+              </div>
+            </Button>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const renderSubSpecialtySelector = (message: Message) => {
+    const category = message.selectedCategory;
+    if (!category || !medicalSpecialties[category as keyof typeof medicalSpecialties]) return null;
+    
+    const subSpecialties = Object.keys(medicalSpecialties[category as keyof typeof medicalSpecialties]);
+    
+    return (
+      <div className="mt-3 space-y-2">
+        <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select a Sub-Specialty in {category}:</p>
+        <div className="grid grid-cols-1 gap-2">
+          {subSpecialties.map((subSpecialty) => (
+            <Button
+              key={subSpecialty}
+              variant="outline"
+              onClick={() => handleSubSpecialtySelection(subSpecialty)}
+              className="justify-start text-left h-auto py-3 px-4 hover:bg-green-50 dark:hover:bg-green-900/20"
+              data-testid={`subspecialty-${subSpecialty.replace(/\s+/g, '-').toLowerCase()}`}
+            >
+              <div className="flex items-center gap-2">
+                <FileText className="h-4 w-4 text-green-600 dark:text-green-400" />
+                <span>{subSpecialty}</span>
+                <ChevronRight className="h-4 w-4 ml-auto" />
+              </div>
+            </Button>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const renderDoctorSelector = (message: Message) => {
+    const doctors = message.availableDoctors || [];
+    
+    if (doctors.length === 0) {
+      return (
+        <div className="mt-3 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg">
+          <p className="text-sm text-yellow-800 dark:text-yellow-200">No doctors available for this specialty.</p>
+        </div>
+      );
+    }
+    
+    return (
+      <div className="mt-3 space-y-2">
+        <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select a Doctor:</p>
+        <div className="grid grid-cols-1 gap-2">
+          {doctors.map((doctor: any) => (
+            <Button
+              key={doctor.id}
+              variant="outline"
+              onClick={() => handleDoctorSelection(doctor)}
+              className="justify-start text-left h-auto py-3 px-4 hover:bg-purple-50 dark:hover:bg-purple-900/20"
+              data-testid={`doctor-${doctor.id}`}
+            >
+              <div className="flex items-center gap-2 w-full">
+                <User className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                <div className="flex-1">
+                  <div className="font-medium">Dr. {doctor.firstName} {doctor.lastName}</div>
+                  {doctor.department && (
+                    <div className="text-xs text-gray-500 dark:text-gray-400">{doctor.department}</div>
+                  )}
+                  {doctor.workingHours?.start && doctor.workingHours?.end && (
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      Available: {doctor.workingHours.start} - {doctor.workingHours.end}
+                    </div>
+                  )}
+                </div>
+                <ChevronRight className="h-4 w-4" />
+              </div>
+            </Button>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const renderTimeSlotSelector = (message: Message) => {
+    const timeSlots = message.availableTimeSlots || [];
+    
+    if (timeSlots.length === 0) {
+      return (
+        <div className="mt-3 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg">
+          <p className="text-sm text-yellow-800 dark:text-yellow-200">No available time slots found.</p>
+        </div>
+      );
+    }
+    
+    return (
+      <div className="mt-3 space-y-2">
+        <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select a Date & Time:</p>
+        <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto">
+          {timeSlots.map((slot: any, index: number) => (
+            <Button
+              key={index}
+              variant="outline"
+              onClick={() => handleTimeSlotSelection(slot)}
+              className="justify-start text-left h-auto py-2 px-3 hover:bg-orange-50 dark:hover:bg-orange-900/20 text-sm"
+              data-testid={`timeslot-${index}`}
+            >
+              <div className="flex items-center gap-2">
+                <Clock className="h-3 w-3 text-orange-600 dark:text-orange-400" />
+                <span>{slot.display}</span>
+              </div>
+            </Button>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="mb-6">
@@ -277,6 +515,34 @@ export default function AIAgentPage() {
                           }}
                         />
                       </div>
+
+                      {/* Render specialty selector */}
+                      {message.showSpecialtySelector && (
+                        <div className="mt-2">
+                          {renderSpecialtySelector(message)}
+                        </div>
+                      )}
+                      
+                      {/* Render sub-specialty selector */}
+                      {message.showSubSpecialtySelector && (
+                        <div className="mt-2">
+                          {renderSubSpecialtySelector(message)}
+                        </div>
+                      )}
+                      
+                      {/* Render doctor selector */}
+                      {message.showDoctorSelector && (
+                        <div className="mt-2">
+                          {renderDoctorSelector(message)}
+                        </div>
+                      )}
+                      
+                      {/* Render time slot selector */}
+                      {message.showTimeSlotSelector && (
+                        <div className="mt-2">
+                          {renderTimeSlotSelector(message)}
+                        </div>
+                      )}
 
                       {/* Render data cards if present */}
                       {message.data && (
