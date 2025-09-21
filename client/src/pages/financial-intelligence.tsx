@@ -256,7 +256,7 @@ export default function FinancialIntelligence() {
   });
 
   // Fetch claims with explicit queryFn to ensure API call
-  const { data: claimsResponse, isLoading: claimsLoading } = useQuery({
+  const { data: claimsResponse, isLoading: claimsLoading, refetch: refetchClaims } = useQuery({
     queryKey: ["/api/financial/claims"],
     queryFn: async () => {
       const response = await apiRequest("GET", "/api/financial/claims");
@@ -381,31 +381,22 @@ export default function FinancialIntelligence() {
       console.log("🗑️ DELETE: Success response:", result);
       return result;
     },
-    onSuccess: (data, claimId) => {
+    onSuccess: async (data, claimId) => {
       console.log("🗑️ DELETE: Mutation success - updating cache");
       
-      // Immediately update the cache by removing the deleted claim
-      queryClient.setQueryData(["/api/financial/claims"], (oldData: any) => {
-        if (!oldData) return oldData;
-        console.log("🗑️ DELETE: Updating cache - removing claim ID:", claimId);
-        return oldData.filter((claim: any) => claim.id.toString() !== claimId);
-      });
+      // 🚀 IMMEDIATE AUTO-REFRESH: Force refresh claims data immediately
+      await refetchClaims();
       
-      // Also invalidate to ensure fresh data
-      queryClient.invalidateQueries({ queryKey: ["/api/financial/claims"] });
+      // 🔄 COMPREHENSIVE INVALIDATION: Refresh all related queries to ensure data consistency
+      await queryClient.invalidateQueries({ queryKey: ["/api/financial/claims"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/financial/revenue"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/financial/insurance"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/patients"] });
       
       toast({ 
-        title: "Claim deleted successfully",
-        description: "The claim has been removed from the system"
+        title: "Claim Deleted",
+        description: "The claim has been successfully removed from the system"
       });
-
-      // Set flag to auto-click Claims Management tab after reload
-      localStorage.setItem("autoClickClaimsTab", "true");
-      
-      // Reload page after showing the toast message
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
     },
     onError: (error) => {
       console.error("🗑️ DELETE: Mutation error:", error);
