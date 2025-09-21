@@ -393,7 +393,7 @@ export default function ImagingPage() {
         variant: "destructive",
       });
     },
-    onSuccess: (data, variables) => {
+    onSuccess: async (data, variables) => {
       // ✨ KEY: Update local form state immediately (patients.tsx pattern)
       if (variables.fieldName === "findings")
         setReportFindings(variables.value);
@@ -408,14 +408,17 @@ export default function ImagingPage() {
         [variables.fieldName]: false,
       }));
 
-      // Invalidate all related queries to refresh data
-      queryClient.invalidateQueries({ queryKey: ["/api/medical-images"] });
+      // Force refresh medical images data immediately
+      await refetchImages();
+      
+      // Invalidate all related queries to refresh data across the app
+      await queryClient.invalidateQueries({ queryKey: ["/api/medical-images"] });
       
       // Auto-refresh patient records when medical images are updated
       if (selectedStudy?.patientId) {
-        queryClient.invalidateQueries({ queryKey: ['/api/patients', selectedStudy.patientId, 'records'] });
-        queryClient.invalidateQueries({ queryKey: ['/api/patients'] }); // Main patient list
-        queryClient.invalidateQueries({ queryKey: ['/api/patients', selectedStudy.patientId, 'history'] });
+        await queryClient.invalidateQueries({ queryKey: ['/api/patients', selectedStudy.patientId, 'records'] });
+        await queryClient.invalidateQueries({ queryKey: ['/api/patients'] }); // Main patient list
+        await queryClient.invalidateQueries({ queryKey: ['/api/patients', selectedStudy.patientId, 'history'] });
       }
 
       toast({
@@ -466,21 +469,24 @@ export default function ImagingPage() {
         variant: "destructive",
       });
     },
-    onSuccess: (data, variables) => {
+    onSuccess: async (data, variables) => {
       // ✨ KEY: Exit edit mode immediately (patients.tsx pattern)
       setEditModes((prev) => ({
         ...prev,
         [variables.fieldName]: false,
       }));
 
-      // Invalidate all related queries to refresh data
-      queryClient.invalidateQueries({ queryKey: ["/api/medical-images"] });
+      // Force refresh medical images data immediately
+      await refetchImages();
+      
+      // Invalidate all related queries to refresh data across the app
+      await queryClient.invalidateQueries({ queryKey: ["/api/medical-images"] });
       
       // Auto-refresh patient records when medical images are updated
       if (selectedStudy?.patientId) {
-        queryClient.invalidateQueries({ queryKey: ['/api/patients', selectedStudy.patientId, 'records'] });
-        queryClient.invalidateQueries({ queryKey: ['/api/patients'] }); // Main patient list
-        queryClient.invalidateQueries({ queryKey: ['/api/patients', selectedStudy.patientId, 'history'] });
+        await queryClient.invalidateQueries({ queryKey: ['/api/patients', selectedStudy.patientId, 'records'] });
+        await queryClient.invalidateQueries({ queryKey: ['/api/patients'] }); // Main patient list
+        await queryClient.invalidateQueries({ queryKey: ['/api/patients', selectedStudy.patientId, 'history'] });
       }
 
       // Create appropriate success message based on field type
