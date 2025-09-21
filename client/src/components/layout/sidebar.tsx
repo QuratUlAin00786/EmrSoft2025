@@ -163,7 +163,7 @@ export function Sidebar() {
           <img 
             src={curaLogoPath} 
             alt="Cura" 
-            className="h-32 w-auto mb-2"
+            className="h-30 w-auto mb-2"
           />
         </div>
       </div>

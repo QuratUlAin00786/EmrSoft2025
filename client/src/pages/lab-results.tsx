@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import curaIcon from "@/assets/cura-icon.png";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -913,68 +914,91 @@ Report generated from Cura EMR System`;
         <body>
           <div class="prescription-content">
             <!-- Print Header -->
-            <div class="print-header">
-              <span style="font-size:25px;color:darkblue;">CURA EMR SYSTEM</span>
-              <h2>Laboratory Test Prescription</h2>
-            </div>
-            
-            <!-- Physician Information -->
-            <div class="info-section">
-              <h5 class="section-title">Physician Information</h5>
-              <div class="info-item">
-                <span class="info-label">Name:</span>
-                <span class="info-value">${selectedResult.doctorName || "Doctor"}</span>
+      <div style="display: grid; grid-template-columns: auto 1fr auto; align-items: center; border-bottom: 1px solid #ccc; padding: 1rem 0; position: relative;">
+  
+  <!-- Left Icon -->
+
+  <!-- Centered Text Content -->
+  <div style="grid-column: 2 / 3; text-align: center;margin-left:-100;">
+    <span style="font-size: 25px; color: darkblue; font-weight: 700;">CURA EMR SYSTEM</span>
+    <h2 style="margin: 4px 0;">Laboratory Test Prescription</h2>
+    <p>Halo Health Clinic</p>
+    <p>Unit 2 Drayton Court, Solihull</p>
+    <p>B90 4NG, UK</p>
+    <p>+44(0)121 827 5531</p>
+  </div>
+
+  <!-- Placeholder Right Column (empty for spacing symmetry) -->
+  <div></div>
+</div>
+
+            <div style="display: flex; justify-content: space-between; gap: 2rem; margin-top: 1rem;">
+              <!-- Physician Information -->
+              <div style="flex: 1;">
+                <h5 style="font-size: 16px; font-weight: bold; margin-bottom: 0.5rem;">Physician Information</h5>
+
+                <div style="margin-bottom: 0.25rem;">
+                  <strong>Name:</strong>
+                  <span style="margin-left: 0.5rem;">${selectedResult.doctorName || "Doctor"}</span>
+                </div>
+
+                ${
+                  selectedResult.mainSpecialty
+                    ? `
+                <div style="margin-bottom: 0.25rem;">
+                  <strong>Main Specialization:</strong>
+                  <span style="margin-left: 0.5rem;">${selectedResult.mainSpecialty}</span>
+                </div>
+                `
+                    : ""
+                }
+
+                ${
+                  selectedResult.subSpecialty
+                    ? `
+                <div style="margin-bottom: 0.25rem;">
+                  <strong>Sub-Specialization:</strong>
+                  <span style="margin-left: 0.5rem;">${selectedResult.subSpecialty}</span>
+                </div>
+                `
+                    : ""
+                }
+
+                ${
+                  selectedResult.priority
+                    ? `
+                <div style="margin-bottom: 0.25rem;">
+                  <strong>Priority:</strong>
+                  <span style="margin-left: 0.5rem;">${selectedResult.priority.toUpperCase()}</span>
+                </div>
+                `
+                    : ""
+                }
               </div>
-              ${
-                selectedResult.mainSpecialty
-                  ? `
-              <div class="info-item">
-                <span class="info-label">Main Specialization:</span>
-                <span class="info-value">${selectedResult.mainSpecialty}</span>
-              </div>
-              `
-                  : ""
-              }
-              ${
-                selectedResult.subSpecialty
-                  ? `
-              <div class="info-item">
-                <span class="info-label">Sub-Specialization:</span>
-                <span class="info-value">${selectedResult.subSpecialty}</span>
-              </div>
-              `
-                  : ""
-              }
-              ${
-                selectedResult.priority
-                  ? `
-              <div class="info-item">
-                <span class="info-label">Priority:</span>
-                <span class="info-value">${selectedResult.priority.toUpperCase()}</span>
-              </div>
-              `
-                  : ""
-              }
-            </div>
-<div class="row">
-            <!-- Patient Information -->
-            <div class="info-section">
-              <h5 class="section-title">Patient Information</h5>
-              <div class="info-item">
-                <span class="info-label">Name:</span>
-                <span class="info-value">${getPatientName(selectedResult.patientId)}</span>
-              </div>
-              <div class="info-item">
-                <span class="info-label">Patient ID:</span>
-                <span class="info-value">${selectedResult.patientId}</span>
-              </div>
-              <div class="info-item">
-                <span class="info-label">Date:</span>
-                <span class="info-value">${format(new Date(), "MMM dd, yyyy")}</span>
-              </div>
-              <div class="info-item">
-                <span class="info-label">Time:</span>v
-                <span class="info-value">${format(new Date(), "HH:mm")}</span>
+
+              <!-- Patient Information -->
+              <div style="flex: 1;">
+                <h5 style="font-size: 16px; font-weight: bold; margin-bottom: 0.5rem;">Patient Information</h5>
+
+                <div style="margin-bottom: 0.25rem;">
+                  <strong>Name:</strong>
+                  <span style="margin-left: 0.5rem;">${getPatientName(selectedResult.patientId)}</span>
+                </div>
+
+                <div style="margin-bottom: 0.25rem;">
+                  <strong>Patient ID:</strong>
+                  <span style="margin-left: 0.5rem;">${selectedResult.patientId}</span>
+                </div>
+
+                <div style="margin-bottom: 0.25rem;">
+                  <strong>Date:</strong>
+                  <span style="margin-left: 0.5rem;">${format(new Date(), "MMM dd, yyyy")}</span>
+                </div>
+
+                <div style="margin-bottom: 0.25rem;">
+                  <strong>Time:</strong>
+                  <span style="margin-left: 0.5rem;">${format(new Date(), "HH:mm")}</span>
+                </div>
               </div>
             </div>
 
@@ -2760,13 +2784,40 @@ Report generated from Cura EMR System`;
               id="prescription-print"
             >
               {/* Header */}
-              <div className="text-center border-b pb-4">
-                <span className="text-2xl font-bold text-medical-blue fs-1">
-                  CURA EMR SYSTEM
-                </span>
-                <p className="text-sm text-gray-600">
-                  Laboratory Test Prescription
-                </p>
+              <div className="border-b pb-4 pt-6">
+                <div className="flex items-center">
+                  {/* Left Side: Image */}
+                  <img
+                    src={curaIcon}
+                    alt="icon"
+                    style={{
+                      height: "100px",
+                      width: "100px",
+                      marginRight: "1.5rem",
+                      marginLeft: "1rem",
+                    }}
+                  />
+
+                  {/* Right Side: Text Content */}
+                  <div
+                    className="flex-1 text-center"
+                    style={{ marginLeft: "-120px" }}
+                  >
+                    <h1 className="text-3xl font-bold text-medical-blue mb-2">
+                      CURA EMR SYSTEM
+                    </h1>
+                    <p className="text-sm text-gray-600 font-medium">
+                      Laboratory Test Prescription (RESIDENT PHYSICIAN M.D)
+                    </p>
+
+                    <div className="text-sm text-gray-700 mt-2 leading-5">
+                      <p>Halo Health Clinic</p>
+                      <p>Unit 2 Drayton Court, Solihull</p>
+                      <p>B90 4NG, UK</p>
+                      <p>+44(0)121 827 5531</p>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Doctor and Patient Information */}
