@@ -100,6 +100,7 @@ interface Message {
   showTimeSlotSelector?: boolean;
   showRegistrationInput?: boolean;
   showRegistrationOptions?: boolean;
+  showRebookingOptions?: boolean;
   selectedCategory?: string;
   selectedSubSpecialty?: string;
   selectedDoctor?: any;
@@ -377,8 +378,6 @@ export default function AIAgentPage() {
   };
 
   const handleTimeSlotSelection = async (timeSlot: any) => {
-    setBookingState(prev => ({ ...prev, selectedTimeSlot: timeSlot, step: 'registration' }));
-    
     const userMessage: Message = {
       id: Date.now().toString(),
       type: 'user',
@@ -386,16 +385,65 @@ export default function AIAgentPage() {
       timestamp: new Date(),
     };
 
-    // Directly prompt for patient information without availability check
-    const registrationMessage: Message = {
-      id: (Date.now() + 1).toString(),
-      type: 'assistant',
-      content: `Great! Now please enter your Patient Name or Patient Registration Number/NHS Number to proceed with the booking:`,
-      timestamp: new Date(),
-      showRegistrationInput: true
-    };
+    setIsLoading(true);
 
-    setMessages(prev => [...prev, userMessage, registrationMessage]);
+    try {
+      // Check if time slot is already booked
+      const response = await apiRequest("GET", `/api/appointments?providerId=${bookingState.selectedDoctor.id}&date=${format(new Date(timeSlot.datetime), 'yyyy-MM-dd')}`);
+      const existingAppointments = await response.json();
+      
+      // Check if the selected time slot conflicts with existing appointments
+      const isSlotBooked = existingAppointments.some((appointment: any) => {
+        const existingTime = appointment.scheduledAt || appointment.scheduled_at;
+        if (!existingTime) return false;
+        
+        const existingDateTime = new Date(existingTime);
+        const selectedDateTime = new Date(timeSlot.datetime);
+        
+        // Check if times match (same hour and minute)
+        return existingDateTime.getHours() === selectedDateTime.getHours() &&
+               existingDateTime.getMinutes() === selectedDateTime.getMinutes();
+      });
+
+      if (isSlotBooked) {
+        // Time slot is already booked - show error and redisplay time slots
+        const conflictMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          type: 'assistant',
+          content: `❌ This time slot is already booked. Please select another available time.`,
+          timestamp: new Date(),
+          showTimeSlotSelector: true,
+          availableTimeSlots: bookingState.availableTimeSlots
+        };
+        
+        setMessages(prev => [...prev, userMessage, conflictMessage]);
+        setBookingState(prev => ({ ...prev, step: 'timeslot' }));
+      } else {
+        // Time slot is available - proceed to patient verification
+        setBookingState(prev => ({ ...prev, selectedTimeSlot: timeSlot, step: 'registration' }));
+        
+        const registrationMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          type: 'assistant',
+          content: `Great! Now please enter your Patient Name or Patient Registration Number/NHS Number to proceed with the booking:`,
+          timestamp: new Date(),
+          showRegistrationInput: true
+        };
+
+        setMessages(prev => [...prev, userMessage, registrationMessage]);
+      }
+    } catch (error) {
+      console.error('Error checking time slot availability:', error);
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: 'I encountered an error while checking time slot availability. Please try again.',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, userMessage, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Handler for patient name or registration number submission
@@ -451,6 +499,60 @@ export default function AIAgentPage() {
       setMessages(prev => [...prev, userMessage, errorMessage]);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Handler for rebooking options (yes or no)
+  const handleRebookingOptions = async (option: 'yes' | 'no') => {
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      type: 'user',
+      content: option === 'yes' ? 'Yes, book another appointment' : 'No, I\'m done',
+      timestamp: new Date(),
+    };
+
+    if (option === 'yes') {
+      // Restart the booking process from the beginning
+      const restartMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: "I'll help you book another appointment. Let's start by selecting the medical specialty category.",
+        timestamp: new Date(),
+        showSpecialtySelector: true
+      };
+      
+      setMessages(prev => [...prev, userMessage, restartMessage]);
+      setBookingState({
+        step: 'category',
+        selectedCategory: '',
+        selectedSubSpecialty: '',
+        selectedDoctor: null,
+        selectedTimeSlot: null,
+        patientRegistrationNumber: '',
+        availableDoctors: [],
+        availableTimeSlots: []
+      });
+    } else {
+      // Thank the user and complete the process
+      const completionMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: "✅ Thank you for using Cura AI Assistant! Your appointment booking process is complete. If you need any further assistance, feel free to ask.",
+        timestamp: new Date(),
+        showMainOptions: true
+      };
+      
+      setMessages(prev => [...prev, userMessage, completionMessage]);
+      setBookingState({
+        step: 'idle',
+        selectedCategory: '',
+        selectedSubSpecialty: '',
+        selectedDoctor: null,
+        selectedTimeSlot: null,
+        patientRegistrationNumber: '',
+        availableDoctors: [],
+        availableTimeSlots: []
+      });
     }
   };
 
@@ -533,9 +635,10 @@ export default function AIAgentPage() {
       const successMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'assistant',
-        content: `✅ **Appointment Successfully Booked!**\n\n**Patient:** ${patient.firstName} ${patient.lastName}\n**Registration:** ${bookingState.patientRegistrationNumber}\n**Doctor:** Dr. ${bookingState.selectedDoctor.firstName} ${bookingState.selectedDoctor.lastName}\n**Specialty:** ${bookingState.selectedSubSpecialty}\n**Date & Time:** ${format(new Date(bookingState.selectedTimeSlot.datetime), 'PPp')}\n**Department:** ${bookingState.selectedCategory}\n\nYour appointment has been confirmed. You will receive a confirmation message shortly.`,
+        content: `✅ **Appointment Successfully Booked!**\n\n**Patient:** ${patient.firstName} ${patient.lastName}\n**Registration:** ${bookingState.patientRegistrationNumber}\n**Doctor:** Dr. ${bookingState.selectedDoctor.firstName} ${bookingState.selectedDoctor.lastName}\n**Specialty:** ${bookingState.selectedSubSpecialty}\n**Date & Time:** ${format(new Date(bookingState.selectedTimeSlot.datetime), 'PPp')}\n**Department:** ${bookingState.selectedCategory}\n\nYour appointment has been confirmed. You will receive a confirmation message shortly.\n\nDo you want to book another appointment?`,
         timestamp: new Date(),
-        data: bookingResult
+        data: bookingResult,
+        showRebookingOptions: true
       };
 
       setMessages(prev => [...prev, successMessage]);
@@ -921,6 +1024,27 @@ export default function AIAgentPage() {
     );
   };
 
+  const renderRebookingOptions = () => {
+    return (
+      <div className="mt-3 space-y-2">
+        <Button
+          onClick={() => handleRebookingOptions('yes')}
+          className="w-full bg-green-600 hover:bg-green-700 text-white text-left justify-start"
+          data-testid="button-book-another-yes"
+        >
+          ✅ Yes, book another appointment
+        </Button>
+        <Button
+          onClick={() => handleRebookingOptions('no')}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white text-left justify-start"
+          data-testid="button-book-another-no"
+        >
+          ❌ No, I'm done
+        </Button>
+      </div>
+    );
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="mb-6">
@@ -1046,6 +1170,13 @@ export default function AIAgentPage() {
                       {message.showRegistrationOptions && (
                         <div className="mt-4">
                           {renderRegistrationOptions()}
+                        </div>
+                      )}
+
+                      {/* Render rebooking options */}
+                      {message.showRebookingOptions && (
+                        <div className="mt-4">
+                          {renderRebookingOptions()}
                         </div>
                       )}
 
