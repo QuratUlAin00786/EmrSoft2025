@@ -317,37 +317,37 @@ export default function ImagingPage() {
   });
 
   // Derive selectedStudy from React Query cache (single source of truth)
-  const selectedStudy = useMemo(() => {
+  const selectedStudy = useMemo<ImagingStudy | null>(() => {
     if (!selectedStudyId) return null;
     const study = medicalImages.find(
       (img: any) => img.id?.toString() === selectedStudyId,
     );
     if (!study) return null;
 
-    return {
-      id: study.id.toString(),
-      patientId: study.patientId,
-      patientName: study.patientName,
-      studyType: study.studyType,
-      modality: study.modality,
-      bodyPart: study.bodyPart || "Not specified",
-      orderedBy: study.uploadedByName || "Unknown",
+    const mapped: ImagingStudy = {
+      id: String(study.id),
+      patientId: String(study.patientId),
+      patientName: study.patientName ?? "Unknown",
+      studyType: study.studyType ?? study.imageType ?? "Unknown",
+      modality: (study.modality ?? "X-Ray") as ImagingStudy["modality"],
+      bodyPart: study.bodyPart ?? "Not specified",
+      orderedBy: study.uploadedByName ?? "Unknown",
       orderedAt: study.createdAt,
       scheduledAt: study.scheduledAt,
       performedAt: study.performedAt,
-      status: study.status === "uploaded" ? "completed" : study.status,
-      priority: study.priority || "routine",
-      indication: study.indication || "No indication provided",
-      findings: study.findings || `Medical image uploaded: ${study.fileName}`,
+      status: study.status === "uploaded" ? "completed" : (study.status as ImagingStudy["status"]),
+      priority: (study.priority ?? "routine") as ImagingStudy["priority"],
+      indication: study.indication ?? "No indication provided",
+      findings: study.findings ?? `Medical image uploaded: ${study.fileName}`,
       impression:
-        study.impression ||
+        study.impression ??
         `File: ${study.fileName} (${(study.fileSize / (1024 * 1024)).toFixed(2)} MB)`,
-      radiologist: study.radiologist || study.uploadedByName || "Unknown",
+      radiologist: study.radiologist ?? study.uploadedByName ?? "Unknown",
       reportFileName: study.reportFileName,
       reportFilePath: study.reportFilePath,
       images: [
         {
-          id: study.id.toString(),
+          id: String(study.id),
           type: study.mimeType?.includes("jpeg") ? "JPEG" : "DICOM",
           seriesDescription: `${study.modality} ${study.bodyPart}`,
           imageCount: 1,
@@ -356,7 +356,9 @@ export default function ImagingPage() {
           mimeType: study.mimeType,
         },
       ],
+      ...(study.report && { report: study.report }),
     };
+    return mapped;
   }, [medicalImages, selectedStudyId]);
 
   // Individual field update mutations
@@ -2422,7 +2424,7 @@ export default function ImagingPage() {
                     </div>
                   )}
 
-                {selectedStudy.report && (
+                {selectedStudy?.report && (
                   <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                     <h4 className="font-medium text-green-800 mb-2">
                       Existing Report
@@ -2693,7 +2695,7 @@ export default function ImagingPage() {
                 </div>
               </div>
 
-              {selectedStudy.report && (
+              {selectedStudy?.report && (
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                   <h4 className="font-medium text-green-800 mb-3">
                     Report Status
@@ -3037,7 +3039,7 @@ export default function ImagingPage() {
                   </div>
                 )}
 
-                {selectedStudy.report && (
+                {selectedStudy?.report && (
                   <div>
                     <h4 className="font-medium mb-2">FULL REPORT:</h4>
                     <div className="bg-gray-50 p-4 rounded border text-sm whitespace-pre-wrap">

@@ -1341,7 +1341,7 @@ Report generated from Cura EMR System`;
                 >
                   <CardContent className="p-6 relative">
                     {/* Doctor information - Top Right Position */}
-                    <div className="absolute top-6 right-6 w->
+                    <div className="absolute top-6 right-6 w-70">
                       <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                         <div className="flex items-center gap-2 mb-3">
                           <User className="h-4 w-4 text-blue-600" />
