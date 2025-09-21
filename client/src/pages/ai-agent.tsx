@@ -188,8 +188,16 @@ export default function AIAgentPage() {
         const slotTime = new Date(date);
         slotTime.setHours(hour, 0, 0, 0);
         
+        // Create a consistent datetime string without timezone conversion
+        const year = slotTime.getFullYear();
+        const month = String(slotTime.getMonth() + 1).padStart(2, '0');
+        const day = String(slotTime.getDate()).padStart(2, '0');
+        const hours = String(slotTime.getHours()).padStart(2, '0');
+        const minutes = String(slotTime.getMinutes()).padStart(2, '0');
+        const consistentDatetime = `${year}-${month}-${day}T${hours}:${minutes}:00`;
+        
         slots.push({
-          datetime: slotTime.toString(),
+          datetime: consistentDatetime,
           display: format(slotTime, 'EEE, MMM d - h:mm a'),
           available: true
         });
