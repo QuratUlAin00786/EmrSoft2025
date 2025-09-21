@@ -96,21 +96,23 @@ export default function AIAgentPage() {
         conversationHistory: messages.slice(-5) // Send last 5 messages for context
       });
 
+      const responseData = await response.json();
+
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'assistant',
-        content: response.message,
+        content: responseData.message || "I apologize, but I couldn't process your request properly.",
         timestamp: new Date(),
-        data: response.data
+        data: responseData.data
       };
 
       setMessages(prev => [...prev, assistantMessage]);
 
       // Show success toast if action was performed
-      if (response.action) {
+      if (responseData.action) {
         toast({
           title: "Action Completed",
-          description: response.actionDescription,
+          description: responseData.actionDescription || "Action completed successfully",
         });
       }
 
