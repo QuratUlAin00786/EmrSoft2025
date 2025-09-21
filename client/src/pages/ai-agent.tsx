@@ -189,7 +189,7 @@ export default function AIAgentPage() {
         slotTime.setHours(hour, 0, 0, 0);
         
         slots.push({
-          datetime: slotTime.toISOString(),
+          datetime: slotTime.toString(),
           display: format(slotTime, 'EEE, MMM d - h:mm a'),
           available: true
         });
