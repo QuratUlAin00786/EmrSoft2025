@@ -398,11 +398,11 @@ export default function AIAgentPage() {
         return;
       }
 
-      // Prompt for patient registration number
+      // Prompt for patient name or registration number
       const registrationMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'assistant',
-        content: `Great! Now please enter your Patient Registration Number or NHS Number to proceed with the booking:`,
+        content: `Great! Now please enter your Patient Name or Patient Registration Number/NHS Number to proceed with the booking:`,
         timestamp: new Date(),
         showRegistrationInput: true
       };
@@ -423,28 +423,31 @@ export default function AIAgentPage() {
     }
   };
 
-  // Handler for patient registration number submission
-  const handleRegistrationSubmission = async (registrationNumber: string) => {
+  // Handler for patient name or registration number submission
+  const handleRegistrationSubmission = async (patientInput: string) => {
     const userMessage: Message = {
       id: Date.now().toString(),
       type: 'user',
-      content: `Registration Number: ${registrationNumber}`,
+      content: `Patient Info: ${patientInput}`,
       timestamp: new Date(),
     };
 
     setIsLoading(true);
-    setBookingState(prev => ({ ...prev, patientRegistrationNumber: registrationNumber }));
+    setBookingState(prev => ({ ...prev, patientRegistrationNumber: patientInput }));
 
     try {
-      // Check if patient exists in database
-      const response = await apiRequest("GET", `/api/patients?search=${encodeURIComponent(registrationNumber)}`);
+      // Check if patient exists in database by name or registration
+      const response = await apiRequest("GET", `/api/patients?search=${encodeURIComponent(patientInput)}`);
       const data = await response.json();
       
-      // Look for patient with matching patientId or nhsNumber
-      const matchedPatient = data.find((patient: any) => 
-        patient.patientId === registrationNumber || 
-        patient.nhsNumber === registrationNumber
-      );
+      // Look for patient with matching name, patientId or nhsNumber
+      const matchedPatient = data.find((patient: any) => {
+        const fullName = `${patient.firstName} ${patient.lastName}`.toLowerCase();
+        const searchInput = patientInput.toLowerCase();
+        return fullName.includes(searchInput) || 
+               patient.patientId === patientInput || 
+               patient.nhsNumber === patientInput;
+      });
 
       if (matchedPatient) {
         // Patient found - proceed with booking
@@ -455,7 +458,7 @@ export default function AIAgentPage() {
         const notFoundMessage: Message = {
           id: (Date.now() + 1).toString(),
           type: 'assistant',
-          content: `❌ The entered registration number was not found. Would you like to:`,
+          content: `❌ No patient found with the name or registration number you entered. Would you like to:`,
           timestamp: new Date(),
           showRegistrationOptions: true
         };
@@ -463,11 +466,11 @@ export default function AIAgentPage() {
       }
 
     } catch (error) {
-      console.error('Error validating registration number:', error);
+      console.error('Error validating patient information:', error);
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'assistant',
-        content: 'I encountered an error while validating your registration number. Please try again.',
+        content: 'I encountered an error while validating your patient information. Please try again.',
         timestamp: new Date()
       };
       setMessages(prev => [...prev, userMessage, errorMessage]);
@@ -490,7 +493,7 @@ export default function AIAgentPage() {
       const reenterMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'assistant',
-        content: `Please enter your Patient Registration Number or NHS Number again:`,
+        content: `Please enter your Patient Name or Patient Registration Number/NHS Number again:`,
         timestamp: new Date(),
         showRegistrationInput: true
       };
@@ -887,15 +890,15 @@ export default function AIAgentPage() {
   const renderRegistrationInput = () => {
     return (
       <div className="mt-3 space-y-3">
-        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Patient Registration Number or NHS Number:</p>
+        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Patient Name or Registration Number/NHS Number:</p>
         <div className="flex gap-2">
           <input
             type="text"
             value={registrationInput}
             onChange={(e) => setRegistrationInput(e.target.value)}
-            placeholder="Enter Patient ID or NHS Number"
+            placeholder="Enter Patient Name or ID/NHS Number"
             className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-            data-testid="input-registration-number"
+            data-testid="input-patient-info"
           />
           <Button
             onClick={() => {
