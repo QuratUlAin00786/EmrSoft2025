@@ -8,13 +8,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { Calendar, Clock, MapPin, User, Video, Stethoscope, FileText, Plus, Save, X, Mic, Square, Edit, Trash2, Check, ChevronsUpDown, Phone, Mail } from "lucide-react";
+import { Calendar, Clock, MapPin, User, Video, Stethoscope, FileText, Plus, Save, X, Mic, Square, Edit, Trash2 } from "lucide-react";
 import anatomicalDiagramImage from "@assets/2_1754469563272.png";
 import facialDiagramImage from "@assets/1_1754469776185.png";
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, isBefore, startOfDay } from "date-fns";
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -52,52 +49,6 @@ const typeBgColors = {
   procedure: "#4A7DFF"      // Bluewave
 };
 
-// Medical Specialties Data Structure
-const medicalSpecialties = {
-  "General & Primary Care": {
-    "General Practitioner (GP) / Family Physician": ["Common illnesses", "Preventive care"],
-    "Internal Medicine Specialist": ["Adult health", "Chronic diseases (diabetes, hypertension)"]
-  },
-  "Surgical Specialties": {
-    "General Surgeon": ["Abdominal Surgery", "Hernia Repair", "Gallbladder & Appendix Surgery"],
-    "Orthopedic Surgeon": ["Joint Replacement", "Spine Surgery", "Sports Orthopedics"],
-    "Neurosurgeon": ["Brain Tumor Surgery", "Spinal Surgery", "Cerebrovascular Surgery"]
-  },
-  "Heart & Circulation": {
-    "Cardiologist": ["Heart diseases", "ECG", "Angiography"],
-    "Vascular Surgeon": ["Arteries", "Veins", "Blood vessels"]
-  },
-  "Women's Health": {
-    "Gynecologist": ["Female reproductive system"],
-    "Obstetrician": ["Pregnancy & childbirth"]
-  },
-  "Children's Health": {
-    "Pediatrician": ["General child health"],
-    "Pediatric Surgeon": ["Infant & child surgeries"]
-  },
-  "Brain & Nervous System": {
-    "Neurologist": ["Stroke", "Epilepsy", "Parkinson's"],
-    "Psychiatrist": ["Mental health (depression, anxiety)"]
-  },
-  "Skin, Hair & Appearance": {
-    "Dermatologist": ["Skin", "Hair", "Nails"]
-  },
-  "Eye & Vision": {
-    "Ophthalmologist": ["Cataracts", "Glaucoma", "Surgeries"]
-  },
-  "Teeth & Mouth": {
-    "Dentist (General)": ["Oral health", "Fillings"],
-    "Orthodontist": ["Braces", "Alignment"]
-  }
-};
-
-// Predefined time slots from 9:00 AM to 5:00 PM in 30-minute intervals
-const PREDEFINED_TIME_SLOTS = [
-  '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
-  '12:00', '12:30', '13:00', '13:30', '14:00', '14:30',
-  '15:00', '15:30', '16:00', '16:30', '17:00'
-];
-
 // Wrapper component to fetch patient data and pass to FullConsultationInterface
 function FullConsultationWrapper({ patientId, show, onOpenChange }: { patientId: number; show: boolean; onOpenChange: (open: boolean) => void }) {
   const { data: patient, isLoading } = useQuery({
@@ -119,142 +70,6 @@ function FullConsultationWrapper({ patientId, show, onOpenChange }: { patientId:
 }
 
 export default function AppointmentCalendar({ onNewAppointment }: { onNewAppointment?: () => void }) {
-  
-  // Fetch patients and users for the edit form
-  const { data: patients = [] } = useQuery<any[]>({
-    queryKey: ["/api/patients"],
-    retry: false,
-  });
-  
-  const { data: allUsers = [] } = useQuery<any[]>({
-    queryKey: ["/api/users"],
-    retry: false,
-  });
-  
-  // Filter to get all doctors
-  const allDoctors = allUsers.filter((user: any) => user.role === 'doctor');
-  
-  // Helper functions for specialty filtering
-  const getUniqueSpecialties = (): string[] => {
-    return Object.keys(medicalSpecialties);
-  };
-  
-  const getSubSpecialties = (specialty?: string): string[] => {
-    if (!specialty) {
-      const allSubSpecialties: string[] = [];
-      Object.values(medicalSpecialties).forEach(specialtyData => {
-        allSubSpecialties.push(...Object.keys(specialtyData));
-      });
-      return allSubSpecialties;
-    }
-    
-    const specialtyData = medicalSpecialties[specialty as keyof typeof medicalSpecialties];
-    return specialtyData ? Object.keys(specialtyData) : [];
-  };
-  
-  // Filter doctors by specialty for edit form
-  const filterEditDoctorsBySpecialty = () => {
-    if (!Array.isArray(allDoctors)) {
-      setEditFilteredDoctors([]);
-      return [];
-    }
-    
-    if (!editSelectedSpecialty) {
-      setEditFilteredDoctors(allDoctors);
-      return allDoctors;
-    }
-    
-    const filtered = allDoctors.filter((doctor: any) => {
-      const hasSpecialty = doctor.medicalSpecialtyCategory === editSelectedSpecialty;
-      const hasSubSpecialty = !editSelectedSubSpecialty || doctor.subSpecialty === editSelectedSubSpecialty;
-      return hasSpecialty && hasSubSpecialty;
-    });
-    
-    setEditFilteredDoctors(filtered);
-    return filtered;
-  };
-  
-  // Check time slot availability for edit form
-  const checkEditTimeSlotAvailability = async () => {
-    if (!editSelectedDate || !editSelectedDoctor) {
-      setEditTimeSlotAvailability({});
-      return;
-    }
-    
-    try {
-      const bookedSlots = await fetchAppointmentsForDateAndDoctor(editSelectedDoctor.id, editSelectedDate);
-      const availability: Record<string, boolean> = {};
-      
-      PREDEFINED_TIME_SLOTS.forEach(slot => {
-        // Slot is available if it's not booked OR if it's the current appointment's slot
-        const isCurrentAppointmentSlot = editingAppointment && 
-          format(new Date(editingAppointment.scheduledAt), 'HH:mm') === slot;
-        availability[slot] = !bookedSlots.includes(slot) || isCurrentAppointmentSlot;
-      });
-      
-      setEditTimeSlotAvailability(availability);
-    } catch (error) {
-      console.error('Error checking time slot availability:', error);
-      // If there's an error, assume all slots are available
-      const availability: Record<string, boolean> = {};
-      PREDEFINED_TIME_SLOTS.forEach(slot => {
-        availability[slot] = true;
-      });
-      setEditTimeSlotAvailability(availability);
-    }
-  };
-  
-  // Fetch appointments for date and doctor (shared function)
-  const fetchAppointmentsForDateAndDoctor = async (doctorId: number, date: Date): Promise<string[]> => {
-    try {
-      const token = localStorage.getItem('auth_token');
-      const headers: Record<string, string> = {
-        'X-Tenant-Subdomain': 'demo'
-      };
-      
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-
-      const response = await fetch('/api/appointments', {
-        headers,
-        credentials: 'include'
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-
-      const appointments = await response.json();
-      
-      const dateStr = format(date, 'yyyy-MM-dd');
-      const doctorAppointments = appointments.filter((apt: any) => {
-        const scheduledTime = apt.scheduledAt ?? apt.scheduled_at;
-        if (!apt || !apt.providerId || !scheduledTime) {
-          return false;
-        }
-        
-        const matchesDoctor = Number(apt.providerId) === Number(doctorId);
-        const appointmentDateStr = scheduledTime.split('T')[0];
-        const matchesDate = appointmentDateStr === dateStr;
-        
-        return matchesDoctor && matchesDate;
-      });
-
-      const bookedTimes = doctorAppointments.map((apt: any) => {
-        const scheduledTime = apt.scheduledAt ?? apt.scheduled_at;
-        const timeSlot = scheduledTime.split('T')[1]?.substring(0, 5);
-        return timeSlot;
-      }).filter(Boolean);
-
-      return bookedTimes;
-      
-    } catch (error) {
-      console.error('Error fetching appointments:', error);
-      return [];
-    }
-  };
-  
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<"month" | "week" | "day">("month");
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
@@ -279,42 +94,6 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
   // State for edit appointment modal
   const [showEditAppointment, setShowEditAppointment] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<any>(null);
-  
-  // Edit appointment form state
-  const [editSelectedSpecialty, setEditSelectedSpecialty] = useState("");
-  const [editSelectedSubSpecialty, setEditSelectedSubSpecialty] = useState("");
-  const [editSelectedDoctor, setEditSelectedDoctor] = useState<any>(null);
-  const [editSelectedDate, setEditSelectedDate] = useState<Date | undefined>(undefined);
-  const [editSelectedTimeSlot, setEditSelectedTimeSlot] = useState("");
-  const [editSelectedPatient, setEditSelectedPatient] = useState<any>(null);
-  const [editFilteredDoctors, setEditFilteredDoctors] = useState<any[]>([]);
-  const [editSpecialtyComboboxOpen, setEditSpecialtyComboboxOpen] = useState(false);
-  const [editPatientComboboxOpen, setEditPatientComboboxOpen] = useState(false);
-  const [editTimeSlotAvailability, setEditTimeSlotAvailability] = useState<Record<string, boolean>>({});
-  const [editBookingForm, setEditBookingForm] = useState({
-    patientId: "",
-    title: "",
-    description: "",
-    scheduledAt: "",
-    duration: "30",
-    type: "consultation",
-    location: "",
-    isVirtual: false
-  });
-  
-  // Effect to filter doctors when specialty changes in edit form
-  useEffect(() => {
-    if (editSelectedSpecialty || editSelectedSubSpecialty) {
-      filterEditDoctorsBySpecialty();
-    }
-  }, [editSelectedSpecialty, editSelectedSubSpecialty]);
-  
-  // Effect to check time slot availability when doctor or date changes in edit form
-  useEffect(() => {
-    if (editSelectedDoctor && editSelectedDate) {
-      checkEditTimeSlotAvailability();
-    }
-  }, [editSelectedDoctor, editSelectedDate, editingAppointment]);
 
   // Define muscle coordinates for interactive highlighting
   const muscleCoordinates = {
@@ -367,28 +146,8 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
-      
-      // Reset all edit form state
       setShowEditAppointment(false);
       setEditingAppointment(null);
-      setEditSelectedSpecialty("");
-      setEditSelectedSubSpecialty("");
-      setEditSelectedDoctor(null);
-      setEditSelectedDate(undefined);
-      setEditSelectedTimeSlot("");
-      setEditSelectedPatient(null);
-      setEditFilteredDoctors([]);
-      setEditBookingForm({
-        patientId: "",
-        title: "",
-        description: "",
-        scheduledAt: "",
-        duration: "30",
-        type: "consultation",
-        location: "",
-        isVirtual: false
-      });
-      
       toast({
         title: "Appointment Updated",
         description: "The appointment has been successfully updated.",
@@ -414,50 +173,6 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
   // Handle edit appointment
   const handleEditAppointment = (appointment: any) => {
     setEditingAppointment(appointment);
-    
-    // Find the patient
-    const patient = patients.find((p: any) => p.id === appointment.patientId);
-    
-    // Find the doctor/provider
-    const doctor = allDoctors.find((d: any) => d.id === appointment.providerId);
-    
-    // Set form state based on current appointment
-    if (doctor) {
-      setEditSelectedSpecialty(doctor.medicalSpecialtyCategory || "");
-      setEditSelectedSubSpecialty(doctor.subSpecialty || "");
-      setEditSelectedDoctor(doctor);
-      
-      // Filter doctors based on the doctor's specialty
-      if (doctor.medicalSpecialtyCategory) {
-        const filtered = allDoctors.filter((d: any) => {
-          const hasSpecialty = d.medicalSpecialtyCategory === doctor.medicalSpecialtyCategory;
-          const hasSubSpecialty = !doctor.subSpecialty || d.subSpecialty === doctor.subSpecialty;
-          return hasSpecialty && hasSubSpecialty;
-        });
-        setEditFilteredDoctors(filtered);
-      }
-    }
-    
-    if (patient) {
-      setEditSelectedPatient(patient);
-      setEditBookingForm(prev => ({
-        ...prev,
-        patientId: patient.patientId || patient.id.toString()
-      }));
-    }
-    
-    // Set date and time from appointment
-    const appointmentDate = new Date(appointment.scheduledAt);
-    setEditSelectedDate(appointmentDate);
-    setEditSelectedTimeSlot(format(appointmentDate, 'HH:mm'));
-    
-    setEditBookingForm(prev => ({
-      ...prev,
-      title: appointment.title || '',
-      description: appointment.description || '',
-      type: appointment.type || 'consultation'
-    }));
-    
     setShowEditAppointment(true);
   };
 
@@ -1270,7 +985,7 @@ Medical License: [License Number]
 
       {/* Edit Appointment Dialog */}
       <Dialog open={showEditAppointment} onOpenChange={setShowEditAppointment}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl">
           {editingAppointment && (
             <div>
               <DialogHeader>
@@ -1282,412 +997,128 @@ Medical License: [License Number]
                 </DialogDescription>
               </DialogHeader>
               
-              <div className="grid gap-6 lg:grid-cols-2 mt-6">
-                {/* Left Column - Filters and Doctor Selection */}
-                <div className="space-y-6">
-                  {/* Step 1: Select Medical Specialty Category */}
+              <div className="space-y-4 mt-6">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-sm font-medium text-gray-900 dark:text-white">
-                      Select Medical Specialty Category
-                    </Label>
-                    <Popover open={editSpecialtyComboboxOpen} onOpenChange={setEditSpecialtyComboboxOpen}>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          aria-expanded={editSpecialtyComboboxOpen}
-                          className="mt-2 w-full justify-between"
-                          data-testid="edit-trigger-specialty-combobox"
-                        >
-                          {editSelectedSpecialty || "Select Specialty"}
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-full p-0">
-                        <Command>
-                          <CommandInput 
-                            placeholder="Search specialties..." 
-                            data-testid="edit-input-search-specialty"
-                          />
-                          <CommandList>
-                            <CommandEmpty>No specialty found.</CommandEmpty>
-                            <CommandGroup>
-                              {getUniqueSpecialties().map((specialty) => (
-                                <CommandItem
-                                  key={specialty}
-                                  value={specialty}
-                                  onSelect={(currentValue) => {
-                                    setEditSelectedSpecialty(currentValue === editSelectedSpecialty ? "" : currentValue);
-                                    setEditSpecialtyComboboxOpen(false);
-                                    setEditSelectedSubSpecialty("");
-                                    setEditSelectedDoctor(null);
-                                  }}
-                                  data-testid={`edit-item-specialty-${specialty.replace(/\s+/g, '-').toLowerCase()}`}
-                                >
-                                  <Check
-                                    className={`mr-2 h-4 w-4 ${
-                                      specialty === editSelectedSpecialty ? "opacity-100" : "opacity-0"
-                                    }`}
-                                  />
-                                  {specialty}
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-
-                  {/* Step 2: Select Sub-Specialty */}
-                  <div>
-                    <Label className="text-sm font-medium text-gray-900 dark:text-white">
-                      Select Sub-Specialty
-                    </Label>
-                    <Select 
-                      value={editSelectedSubSpecialty} 
-                      onValueChange={(value) => {
-                        setEditSelectedSubSpecialty(value);
-                        setEditSelectedDoctor(null);
+                    <Label className="text-sm font-medium text-gray-600">Title</Label>
+                    <Input 
+                      defaultValue={editingAppointment.title}
+                      onChange={(e) => {
+                        setEditingAppointment({ ...editingAppointment, title: e.target.value });
                       }}
-                      data-testid="edit-select-subspecialty"
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Type</Label>
+                    <Select 
+                      defaultValue={editingAppointment.type}
+                      onValueChange={(value) => {
+                        setEditingAppointment({ ...editingAppointment, type: value });
+                      }}
                     >
-                      <SelectTrigger className="mt-2">
-                        <SelectValue placeholder="Select Sub-Specialty" />
+                      <SelectTrigger className="mt-1">
+                        <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {getSubSpecialties(editSelectedSpecialty).map((subSpecialty) => (
-                          <SelectItem key={subSpecialty} value={subSpecialty}>
-                            {subSpecialty}
-                          </SelectItem>
-                        ))}
+                        <SelectItem value="consultation">Consultation</SelectItem>
+                        <SelectItem value="follow_up">Follow-up</SelectItem>
+                        <SelectItem value="procedure">Procedure</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-
-                  {/* Step 3: Select Doctor */}
-                  <div>
-                    <Label className="text-sm font-medium text-gray-900 dark:text-white">
-                      Select Doctor
-                    </Label>
-                    {editFilteredDoctors.length > 0 ? (
-                      <Select 
-                        value={editSelectedDoctor?.id?.toString() || ""} 
-                        onValueChange={(value) => {
-                          const doctor = editFilteredDoctors.find(d => d.id.toString() === value);
-                          setEditSelectedDoctor(doctor);
-                        }}
-                        data-testid="edit-select-doctor"
-                      >
-                        <SelectTrigger className="mt-2">
-                          <SelectValue placeholder="Select Doctor" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {editFilteredDoctors.map((doctor) => (
-                            <SelectItem key={doctor.id} value={doctor.id.toString()}>
-                              Dr. {doctor.firstName} {doctor.lastName} 
-                              {doctor.department && ` (${doctor.department})`}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    ) : (
-                      <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-                        <p className="text-sm text-yellow-800">
-                          {editSelectedSpecialty ? 
-                            "No doctors found for the selected specialty combination. Please try a different selection." :
-                            "Loading doctors..."}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Patient Selection */}
-                  <div>
-                    <Label className="text-sm font-medium text-gray-900 dark:text-white">
-                      Select Patient
-                    </Label>
-                    <Popover open={editPatientComboboxOpen} onOpenChange={setEditPatientComboboxOpen}>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          aria-expanded={editPatientComboboxOpen}
-                          className="mt-2 w-full justify-between"
-                          data-testid="edit-trigger-patient-combobox"
-                        >
-                          {editBookingForm.patientId 
-                            ? (() => {
-                                const selectedPatient = patients.find((patient: any) => {
-                                  const pId = patient.patientId || patient.id.toString();
-                                  return pId === editBookingForm.patientId;
-                                });
-                                
-                                if (!selectedPatient) {
-                                  return "Select patient...";
-                                }
-                                
-                                const displayName = `${selectedPatient.firstName} ${selectedPatient.lastName}`;
-                                const patientId = selectedPatient.patientId || `P${selectedPatient.id.toString().padStart(6, '0')}`;
-                                return `${displayName} (${patientId})`;
-                              })()
-                            : "Select patient..."}
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-full p-0">
-                        <Command>
-                          <CommandInput 
-                            placeholder="Search patients..." 
-                            data-testid="edit-input-search-patient"
-                          />
-                          <CommandList>
-                            <CommandEmpty>No patient found.</CommandEmpty>
-                            <CommandGroup>
-                              {patients.map((patient: any) => {
-                                const patientValue = patient.patientId || patient.id.toString();
-                                const patientDisplayName = `${patient.firstName} ${patient.lastName}`;
-                                const patientWithId = `${patientDisplayName} (${patient.patientId || `P${patient.id.toString().padStart(6, '0')}`})`;
-                                
-                                return (
-                                  <CommandItem
-                                    key={patient.id}
-                                    value={patientWithId}
-                                    onSelect={(currentValue) => {
-                                      setEditBookingForm(prev => ({ ...prev, patientId: patientValue }));
-                                      setEditSelectedPatient(patient);
-                                      setEditPatientComboboxOpen(false);
-                                    }}
-                                    data-testid={`edit-item-patient-${patient.id}`}
-                                  >
-                                    <Check
-                                      className={`mr-2 h-4 w-4 ${
-                                        patientValue === editBookingForm.patientId ? "opacity-100" : "opacity-0"
-                                      }`}
-                                    />
-                                    {patientWithId}
-                                  </CommandItem>
-                                );
-                              })}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
-                  </div>
                 </div>
 
-                {/* Right Column - Calendar and Time Slots */}
-                <div className="space-y-6">
-                  {/* Step 4: Select Date */}
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-sm font-medium text-gray-900 dark:text-white mb-2 block">
-                      Select Date
-                    </Label>
-                    <CalendarComponent
-                      mode="single"
-                      selected={editSelectedDate}
-                      onSelect={setEditSelectedDate}
-                      disabled={(date) => {
-                        // Disable past dates (but allow today)
-                        if (isBefore(startOfDay(date), startOfDay(new Date()))) return true;
-                        
-                        // Disable days not in doctor's working days (if doctor is selected)
-                        if (editSelectedDoctor?.workingDays?.length > 0) {
-                          const dayName = format(date, 'EEEE');
-                          return !editSelectedDoctor.workingDays.includes(dayName);
-                        }
-                        
-                        return false;
+                    <Label className="text-sm font-medium text-gray-600">Date</Label>
+                    <Input 
+                      type="date"
+                      defaultValue={format(new Date(editingAppointment.scheduledAt), 'yyyy-MM-dd')}
+                      onChange={(e) => {
+                        const currentTime = format(new Date(editingAppointment.scheduledAt), 'HH:mm');
+                        const newDateTime = new Date(`${e.target.value}T${currentTime}:00`);
+                        setEditingAppointment({ ...editingAppointment, scheduledAt: newDateTime.toISOString() });
                       }}
-                      className="rounded-md border"
-                      data-testid="edit-calendar-date-picker"
+                      className="mt-1"
                     />
                   </div>
-
-                  {/* Step 5: Select Time Slot */}
                   <div>
-                    <Label className="text-sm font-medium text-gray-900 dark:text-white mb-3 block">
-                      Select Time Slot
-                    </Label>
-                    {editSelectedDoctor && editSelectedDate ? (
-                      <div 
-                        key={`${editSelectedDoctor.id}-${format(editSelectedDate, 'yyyy-MM-dd')}`}
-                        className="grid grid-cols-3 gap-2 max-h-60 overflow-y-auto"
-                      >
-                        {PREDEFINED_TIME_SLOTS.map((timeSlot) => {
-                          const isAvailable = editTimeSlotAvailability[timeSlot] ?? true;
-                          const isSelected = editSelectedTimeSlot === timeSlot;
-                          
-                          return (
-                            <Button
-                              key={timeSlot}
-                              variant={isSelected ? "default" : "outline"}
-                              size="sm"
-                              className={`
-                                ${isAvailable && !isSelected 
-                                  ? "bg-green-500 hover:bg-green-600 text-white border-green-600" 
-                                  : ""
-                                }
-                                ${!isAvailable 
-                                  ? "bg-gray-300 text-gray-500 cursor-not-allowed opacity-50" 
-                                  : ""
-                                }
-                                ${isSelected 
-                                  ? "bg-blue-600 text-white" 
-                                  : ""
-                                }
-                              `}
-                              onClick={() => isAvailable && setEditSelectedTimeSlot(timeSlot)}
-                              disabled={!isAvailable}
-                              data-testid={`edit-time-slot-${timeSlot.replace(':', '-')}`}
-                            >
-                              {format(new Date(`2000-01-01T${timeSlot}:00`), 'h:mm a')}
-                            </Button>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <div className="mt-2 p-3 bg-gray-50 border border-gray-200 rounded-md">
-                        <p className="text-sm text-gray-600">
-                          Please select a doctor and date to view available time slots.
-                        </p>
-                      </div>
-                    )}
+                    <Label className="text-sm font-medium text-gray-600">Time</Label>
+                    <Input 
+                      type="time"
+                      defaultValue={format(new Date(editingAppointment.scheduledAt), 'HH:mm')}
+                      onChange={(e) => {
+                        const currentDate = format(new Date(editingAppointment.scheduledAt), 'yyyy-MM-dd');
+                        const newDateTime = new Date(`${currentDate}T${e.target.value}:00`);
+                        setEditingAppointment({ ...editingAppointment, scheduledAt: newDateTime.toISOString() });
+                      }}
+                      className="mt-1"
+                    />
                   </div>
                 </div>
-              </div>
 
-              {/* Booking Summary */}
-              <div className="mt-6 pt-6 border-t">
-                <Label className="text-lg font-medium text-gray-900 dark:text-white mb-4 block">
-                  Booking Summary
-                </Label>
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <Label className="text-gray-600 dark:text-gray-400">Medical Specialty</Label>
-                        <p className="font-medium" data-testid="edit-text-summary-specialty">
-                          {editSelectedSpecialty || "Not selected"}
-                        </p>
-                      </div>
-                      <div>
-                        <Label className="text-gray-600 dark:text-gray-400">Sub-Specialty</Label>
-                        <p className="font-medium" data-testid="edit-text-summary-subspecialty">
-                          {editSelectedSubSpecialty || "Not selected"}
-                        </p>
-                      </div>
-                      <div>
-                        <Label className="text-gray-600 dark:text-gray-400">Patient</Label>
-                        <p className="font-medium" data-testid="edit-text-summary-patient">
-                          {editBookingForm.patientId 
-                            ? (() => {
-                                const patient = patients.find((p: any) => 
-                                  (p.patientId || p.id.toString()) === editBookingForm.patientId
-                                );
-                                return patient ? `${patient.firstName} ${patient.lastName}` : "Not found";
-                              })()
-                            : "Not selected"}
-                        </p>
-                      </div>
-                      <div>
-                        <Label className="text-gray-600 dark:text-gray-400">Doctor</Label>
-                        <p className="font-medium" data-testid="edit-text-summary-doctor">
-                          {editSelectedDoctor 
-                            ? `Dr. ${editSelectedDoctor.firstName} ${editSelectedDoctor.lastName}`
-                            : "Not selected"}
-                        </p>
-                      </div>
-                      <div>
-                        <Label className="text-gray-600 dark:text-gray-400">Date</Label>
-                        <p className="font-medium" data-testid="edit-text-summary-date">
-                          {editSelectedDate 
-                            ? format(editSelectedDate, 'EEEE, MMMM dd, yyyy')
-                            : "Not selected"}
-                        </p>
-                      </div>
-                      <div>
-                        <Label className="text-gray-600 dark:text-gray-400">Time</Label>
-                        <p className="font-medium" data-testid="edit-text-summary-time">
-                          {editSelectedTimeSlot 
-                            ? format(new Date(`2000-01-01T${editSelectedTimeSlot}:00`), 'h:mm a')
-                            : "Not selected"}
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Status</Label>
+                  <Select 
+                    defaultValue={editingAppointment.status}
+                    onValueChange={(value) => {
+                      setEditingAppointment({ ...editingAppointment, status: value });
+                    }}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="scheduled">Scheduled</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
+                      <SelectItem value="cancelled">Cancelled</SelectItem>
+                      <SelectItem value="no_show">No Show</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              {/* Action Buttons */}
-              <div className="flex justify-end gap-2 mt-6 pt-6 border-t">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    // Reset all edit form state
-                    setShowEditAppointment(false);
-                    setEditingAppointment(null);
-                    setEditSelectedSpecialty("");
-                    setEditSelectedSubSpecialty("");
-                    setEditSelectedDoctor(null);
-                    setEditSelectedDate(undefined);
-                    setEditSelectedTimeSlot("");
-                    setEditSelectedPatient(null);
-                    setEditFilteredDoctors([]);
-                    setEditBookingForm({
-                      patientId: "",
-                      title: "",
-                      description: "",
-                      scheduledAt: "",
-                      duration: "30",
-                      type: "consultation",
-                      location: "",
-                      isVirtual: false
-                    });
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={() => {
-                    // Validate required fields
-                    if (!editSelectedDoctor || !editSelectedDate || !editSelectedTimeSlot || !editBookingForm.patientId) {
-                      toast({
-                        title: "Missing Information",
-                        description: "Please select all required fields: doctor, patient, date, and time.",
-                        variant: "destructive",
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Description</Label>
+                  <Textarea 
+                    defaultValue={editingAppointment.description || ''}
+                    onChange={(e) => {
+                      setEditingAppointment({ ...editingAppointment, description: e.target.value });
+                    }}
+                    className="mt-1"
+                    rows={3}
+                    placeholder="Add appointment notes or description..."
+                  />
+                </div>
+
+                <div className="flex justify-end space-x-2 pt-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowEditAppointment(false);
+                      setEditingAppointment(null);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      editAppointmentMutation.mutate({
+                        id: editingAppointment.id,
+                        data: {
+                          title: editingAppointment.title,
+                          type: editingAppointment.type,
+                          status: editingAppointment.status,
+                          scheduledAt: editingAppointment.scheduledAt,
+                          description: editingAppointment.description,
+                        }
                       });
-                      return;
-                    }
-                    
-                    // Create the scheduled date and time
-                    const scheduledDateTime = new Date(editSelectedDate);
-                    const [hours, minutes] = editSelectedTimeSlot.split(':').map(Number);
-                    scheduledDateTime.setHours(hours, minutes, 0, 0);
-                    
-                    // Update the appointment with new data
-                    editAppointmentMutation.mutate({
-                      id: editingAppointment.id,
-                      data: {
-                        title: editBookingForm.title || `Consultation - ${editSelectedSpecialty || 'General'}`,
-                        type: editBookingForm.type || 'consultation',
-                        status: editingAppointment.status || 'scheduled', // Keep current status unless changed
-                        scheduledAt: scheduledDateTime.toISOString(),
-                        description: editBookingForm.description || `Updated appointment via reschedule`,
-                        patientId: parseInt(editBookingForm.patientId),
-                        providerId: editSelectedDoctor.id,
-                        duration: parseInt(editBookingForm.duration) || 30,
-                        location: editBookingForm.location || '',
-                        isVirtual: editBookingForm.isVirtual || false
-                      }
-                    });
-                  }}
-                  disabled={editAppointmentMutation.isPending || !editSelectedDoctor || !editSelectedDate || !editSelectedTimeSlot || !editBookingForm.patientId}
-                  data-testid="button-save-appointment"
-                >
-                  {editAppointmentMutation.isPending ? "Saving..." : "Save Changes"}
-                </Button>
+                    }}
+                    disabled={editAppointmentMutation.isPending}
+                  >
+                    {editAppointmentMutation.isPending ? "Saving..." : "Save Changes"}
+                  </Button>
+                </div>
               </div>
             </div>
           )}
