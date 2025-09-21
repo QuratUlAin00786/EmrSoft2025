@@ -213,6 +213,15 @@ export default function FinancialIntelligence() {
 
   const { toast } = useToast();
 
+  // Auto-click Claims Management tab after delete and reload
+  useEffect(() => {
+    const shouldAutoClick = localStorage.getItem("autoClickClaimsTab");
+    if (shouldAutoClick === "true") {
+      setActiveTab("claims");
+      localStorage.removeItem("autoClickClaimsTab");
+    }
+  }, []);
+
   // Scroll functionality
   const handleScrollDown = () => {
     window.scrollBy({
@@ -381,6 +390,14 @@ export default function FinancialIntelligence() {
         title: "Claim deleted successfully",
         description: "The claim has been removed from the system"
       });
+
+      // Set flag to auto-click Claims Management tab after reload
+      localStorage.setItem("autoClickClaimsTab", "true");
+      
+      // Reload page after showing the toast message
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
     },
     onError: (error) => {
       console.error("🗑️ DELETE: Mutation error:", error);
