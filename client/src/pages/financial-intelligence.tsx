@@ -217,6 +217,8 @@ export default function FinancialIntelligence() {
   const [editingEligibilityStatus, setEditingEligibilityStatus] = useState<string>("");
   const [editInsuranceDialogOpen, setEditInsuranceDialogOpen] = useState(false);
   const [insuranceToEdit, setInsuranceToEdit] = useState<any>(null);
+  const [deleteConfirmDialogOpen, setDeleteConfirmDialogOpen] = useState(false);
+  const [insuranceToDelete, setInsuranceToDelete] = useState<any>(null);
 
   const { toast } = useToast();
 
@@ -932,13 +934,16 @@ export default function FinancialIntelligence() {
     const insurance = insurances?.find((ins: any) => ins.id === insuranceId);
     if (!insurance) return;
 
-    const confirmDelete = window.confirm(
-      `Are you sure you want to delete the insurance record for ${insurance.patientName}? This action cannot be undone.`,
-    );
+    setInsuranceToDelete(insurance);
+    setDeleteConfirmDialogOpen(true);
+  };
 
-    if (!confirmDelete) return;
-
-    deleteInsuranceMutation.mutate(insuranceId);
+  const confirmDeleteInsurance = () => {
+    if (insuranceToDelete) {
+      deleteInsuranceMutation.mutate(insuranceToDelete.id);
+      setDeleteConfirmDialogOpen(false);
+      setInsuranceToDelete(null);
+    }
   };
 
   const handleEditInsurance = (insurance: any) => {
@@ -3470,6 +3475,41 @@ export default function FinancialIntelligence() {
                 data-testid="button-save-edit-insurance"
               >
                 {updateInsuranceMutation.isPending ? "Saving..." : "Save Changes"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteConfirmDialogOpen} onOpenChange={setDeleteConfirmDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirm Delete</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-gray-600">
+              Are you sure you want to delete the insurance record for{" "}
+              <strong>{insuranceToDelete?.patientName}</strong>? This action cannot be undone.
+            </p>
+            <div className="flex justify-between pt-4">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setDeleteConfirmDialogOpen(false);
+                  setInsuranceToDelete(null);
+                }}
+                data-testid="button-cancel-delete"
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={confirmDeleteInsurance}
+                disabled={deleteInsuranceMutation.isPending}
+                data-testid="button-confirm-delete"
+              >
+                {deleteInsuranceMutation.isPending ? "Deleting..." : "Delete"}
               </Button>
             </div>
           </div>
