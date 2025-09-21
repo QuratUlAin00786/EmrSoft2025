@@ -1497,7 +1497,7 @@ export default function ImagingPage() {
                           </div>
                         )}
 
-                        <div>
+                        <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                           <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">
                             Timeline
                           </h4>
