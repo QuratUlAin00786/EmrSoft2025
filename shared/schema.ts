@@ -840,6 +840,35 @@ export const revenueRecords = pgTable("revenue_records", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Insurance Verifications
+export const insuranceVerifications = pgTable("insurance_verifications", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
+  patientId: integer("patient_id").notNull().references(() => patients.id),
+  patientName: text("patient_name").notNull(),
+  provider: text("provider").notNull(),
+  policyNumber: text("policy_number").notNull(),
+  groupNumber: text("group_number"),
+  memberNumber: text("member_number"),
+  planType: text("plan_type"),
+  coverageType: varchar("coverage_type", { length: 20 }).notNull().default("primary"), // primary, secondary
+  status: varchar("status", { length: 20 }).notNull().default("active"), // active, inactive, pending, expired
+  eligibilityStatus: varchar("eligibility_status", { length: 20 }).notNull().default("pending"), // verified, pending, invalid
+  effectiveDate: date("effective_date"),
+  expirationDate: date("expiration_date"),
+  lastVerified: date("last_verified"),
+  benefits: jsonb("benefits").$type<{
+    deductible?: number;
+    deductibleMet?: number;
+    copay?: number;
+    coinsurance?: number;
+    outOfPocketMax?: number;
+    outOfPocketMet?: number;
+  }>().default({}),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Clinical Procedures
 export const clinicalProcedures = pgTable("clinical_procedures", {
   id: serial("id").primaryKey(),
@@ -1833,6 +1862,12 @@ export const insertRevenueRecordSchema = createInsertSchema(revenueRecords).omit
   createdAt: true,
 });
 
+export const insertInsuranceVerificationSchema = createInsertSchema(insuranceVerifications).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertClinicalProcedureSchema = createInsertSchema(clinicalProcedures).omit({
   id: true,
   createdAt: true,
@@ -2096,6 +2131,9 @@ export type InsertClaim = z.infer<typeof insertClaimSchema>;
 
 export type RevenueRecord = typeof revenueRecords.$inferSelect;
 export type InsertRevenueRecord = z.infer<typeof insertRevenueRecordSchema>;
+
+export type InsuranceVerification = typeof insuranceVerifications.$inferSelect;
+export type InsertInsuranceVerification = z.infer<typeof insertInsuranceVerificationSchema>;
 
 export type ClinicalProcedure = typeof clinicalProcedures.$inferSelect;
 export type InsertClinicalProcedure = z.infer<typeof insertClinicalProcedureSchema>;

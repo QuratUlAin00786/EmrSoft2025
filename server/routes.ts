@@ -2367,14 +2367,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create new insurance record
   app.post("/api/financial/insurance", authMiddleware, requireRole(["admin", "finance", "doctor", "nurse"]), async (req: TenantRequest, res) => {
     try {
+      const organizationId = req.organizationId!;
       const insuranceData = req.body;
       
       console.log(`[FINANCIAL] New insurance record creation requested:`, insuranceData);
       
-      // Create new insurance record
-      const newInsurance = {
-        id: insuranceData.id,
-        patientId: `patient_${Date.now()}`,
+      // Find patient by name to get patientId
+      const patients = await storage.getPatientsByOrganization(organizationId);
+      const patient = patients.find(p => `${p.firstName} ${p.lastName}` === insuranceData.patientName);
+      
+      if (!patient) {
+        return res.status(400).json({
+          success: false,
+          message: "Patient not found"
+        });
+      }
+      
+      // Create insurance record for database
+      const insuranceRecord = {
+        organizationId,
+        patientId: patient.id,
         patientName: insuranceData.patientName,
         provider: insuranceData.provider,
         policyNumber: insuranceData.policyNumber,
@@ -2382,7 +2394,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: insuranceData.status || "active",
         coverageType: insuranceData.coverageType || "primary",
         eligibilityStatus: insuranceData.eligibilityStatus || "pending",
-        lastVerified: insuranceData.lastVerified || new Date().toISOString().split('T')[0],
+        lastVerified: insuranceData.lastVerified ? new Date(insuranceData.lastVerified) : undefined,
         benefits: insuranceData.benefits || {
           deductible: 0,
           deductibleMet: 0,
@@ -2390,13 +2402,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           coinsurance: 0,
           outOfPocketMax: 0,
           outOfPocketMet: 0
-        },
-        createdAt: new Date().toISOString(),
-        lastUpdated: new Date().toISOString()
+        }
       };
       
-      // Add to mock data
-      mockInsurances.push(newInsurance);
+      // Save to database
+      const newInsurance = await storage.createInsuranceVerification(insuranceRecord);
       
       console.log(`[FINANCIAL] New insurance record created:`, newInsurance);
       

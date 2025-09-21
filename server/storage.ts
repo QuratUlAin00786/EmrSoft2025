@@ -1,5 +1,5 @@
 import { 
-  organizations, users, patients, medicalRecords, appointments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages, clinicalPhotos, labResults, claims, revenueRecords, clinicalProcedures, emergencyProtocols, medicationsDatabase, roles, staffShifts, gdprConsents, gdprDataRequests, gdprAuditTrail, gdprProcessingActivities, conversations as conversationsTable, messages, voiceNotes, saasOwners, saasPackages, saasSubscriptions, saasPayments, saasInvoices, saasSettings, chatbotConfigs, chatbotSessions, chatbotMessages, chatbotAnalytics, musclePositions,
+  organizations, users, patients, medicalRecords, appointments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages, clinicalPhotos, labResults, claims, revenueRecords, insuranceVerifications, clinicalProcedures, emergencyProtocols, medicationsDatabase, roles, staffShifts, gdprConsents, gdprDataRequests, gdprAuditTrail, gdprProcessingActivities, conversations as conversationsTable, messages, voiceNotes, saasOwners, saasPackages, saasSubscriptions, saasPayments, saasInvoices, saasSettings, chatbotConfigs, chatbotSessions, chatbotMessages, chatbotAnalytics, musclePositions,
   type Organization, type InsertOrganization,
   type User, type InsertUser,
   type Role, type InsertRole,
@@ -18,6 +18,7 @@ import {
   type LabResult, type InsertLabResult,
   type Claim, type InsertClaim,
   type RevenueRecord, type InsertRevenueRecord,
+  type InsuranceVerification, type InsertInsuranceVerification,
   type ClinicalProcedure, type InsertClinicalProcedure,
   type EmergencyProtocol, type InsertEmergencyProtocol,
   type MedicationsDatabase, type InsertMedicationsDatabase,
@@ -315,6 +316,14 @@ export interface IStorage {
   getClaimsByPatient(patientId: number, organizationId: number): Promise<Claim[]>;
   createClaim(claim: InsertClaim): Promise<Claim>;
   updateClaim(id: number, organizationId: number, updates: Partial<InsertClaim>): Promise<Claim | undefined>;
+
+  // Insurance Verifications (Database-driven)
+  getInsuranceVerification(id: number, organizationId: number): Promise<InsuranceVerification | undefined>;
+  getInsuranceVerificationsByOrganization(organizationId: number, limit?: number): Promise<InsuranceVerification[]>;
+  getInsuranceVerificationsByPatient(patientId: number, organizationId: number): Promise<InsuranceVerification[]>;
+  createInsuranceVerification(insurance: InsertInsuranceVerification): Promise<InsuranceVerification>;
+  updateInsuranceVerification(id: number, organizationId: number, updates: Partial<InsertInsuranceVerification>): Promise<InsuranceVerification | undefined>;
+  deleteInsuranceVerification(id: number, organizationId: number): Promise<boolean>;
 
   // Revenue Records (Database-driven)
   getRevenueRecordsByOrganization(organizationId: number, limit?: number): Promise<RevenueRecord[]>;
@@ -3696,6 +3705,53 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(claims.id, id), eq(claims.organizationId, organizationId)))
       .returning();
     return claim || undefined;
+  }
+
+  // Insurance Verifications (Database-driven)
+  async getInsuranceVerification(id: number, organizationId: number): Promise<InsuranceVerification | undefined> {
+    const [insurance] = await db.select()
+      .from(insuranceVerifications)
+      .where(and(eq(insuranceVerifications.id, id), eq(insuranceVerifications.organizationId, organizationId)));
+    return insurance || undefined;
+  }
+
+  async getInsuranceVerificationsByOrganization(organizationId: number, limit: number = 50): Promise<InsuranceVerification[]> {
+    return await db.select()
+      .from(insuranceVerifications)
+      .where(eq(insuranceVerifications.organizationId, organizationId))
+      .orderBy(desc(insuranceVerifications.createdAt))
+      .limit(limit);
+  }
+
+  async getInsuranceVerificationsByPatient(patientId: number, organizationId: number): Promise<InsuranceVerification[]> {
+    return await db.select()
+      .from(insuranceVerifications)
+      .where(and(eq(insuranceVerifications.patientId, patientId), eq(insuranceVerifications.organizationId, organizationId)))
+      .orderBy(desc(insuranceVerifications.createdAt));
+  }
+
+  async createInsuranceVerification(insurance: InsertInsuranceVerification): Promise<InsuranceVerification> {
+    const cleanInsurance = {
+      ...insurance,
+      benefits: insurance.benefits || {}
+    };
+    const [result] = await db.insert(insuranceVerifications).values(cleanInsurance as any).returning();
+    return result;
+  }
+
+  async updateInsuranceVerification(id: number, organizationId: number, updates: Partial<InsertInsuranceVerification>): Promise<InsuranceVerification | undefined> {
+    const [insurance] = await db.update(insuranceVerifications)
+      .set(updates as any)
+      .where(and(eq(insuranceVerifications.id, id), eq(insuranceVerifications.organizationId, organizationId)))
+      .returning();
+    return insurance || undefined;
+  }
+
+  async deleteInsuranceVerification(id: number, organizationId: number): Promise<boolean> {
+    const result = await db
+      .delete(insuranceVerifications)
+      .where(and(eq(insuranceVerifications.id, id), eq(insuranceVerifications.organizationId, organizationId)));
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Revenue Records (Database-driven)
