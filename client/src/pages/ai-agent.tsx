@@ -101,6 +101,8 @@ interface Message {
   showRegistrationInput?: boolean;
   showRegistrationOptions?: boolean;
   showRebookingOptions?: boolean;
+  showPrescriptionSearchInput?: boolean;
+  showPrescriptionSearchAgainOptions?: boolean;
   selectedCategory?: string;
   selectedSubSpecialty?: string;
   selectedDoctor?: any;
@@ -153,6 +155,7 @@ export default function AIAgentPage() {
   });
   const [input, setInput] = useState("");
   const [registrationInput, setRegistrationInput] = useState("");
+  const [prescriptionSearchInput, setPrescriptionSearchInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -229,38 +232,16 @@ export default function AIAgentPage() {
       setMessages(prev => [...prev, userMessage, assistantMessage]);
       setBookingState(prev => ({ ...prev, step: 'category' }));
     } else {
-      // Handle prescription search
-      setIsLoading(true);
-      
-      try {
-        const response = await apiRequest("POST", "/api/ai-agent/chat", {
-          message: "Find prescriptions",
-          conversationHistory: []
-        });
+      // Handle prescription search - prompt for patient details
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: "Please enter Patient Name, NPI Number, or Registration Number.",
+        timestamp: new Date(),
+        showPrescriptionSearchInput: true
+      };
 
-        const responseData = await response.json();
-
-        const assistantMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          type: 'assistant',
-          content: responseData.message || "Here are the prescription results:",
-          timestamp: new Date(),
-          data: responseData.data
-        };
-
-        setMessages(prev => [...prev, userMessage, assistantMessage]);
-      } catch (error) {
-        console.error('Error fetching prescriptions:', error);
-        const errorMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          type: 'assistant',
-          content: 'I encountered an error while searching for prescriptions. Please try again.',
-          timestamp: new Date()
-        };
-        setMessages(prev => [...prev, userMessage, errorMessage]);
-      } finally {
-        setIsLoading(false);
-      }
+      setMessages(prev => [...prev, userMessage, assistantMessage]);
     }
   };
 
@@ -499,6 +480,92 @@ export default function AIAgentPage() {
       setMessages(prev => [...prev, userMessage, errorMessage]);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Handler for prescription search submission
+  const handlePrescriptionSearchSubmission = async (searchInput: string) => {
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      type: 'user',
+      content: `Search for: ${searchInput}`,
+      timestamp: new Date(),
+    };
+
+    setIsLoading(true);
+
+    try {
+      // Search prescriptions by patient name, NPI number, or registration number
+      const response = await apiRequest("GET", `/api/prescriptions?search=${encodeURIComponent(searchInput)}`);
+      const prescriptions = await response.json();
+
+      if (prescriptions && prescriptions.length > 0) {
+        // Prescriptions found - display results
+        const resultsMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          type: 'assistant',
+          content: `Found ${prescriptions.length} prescription(s):`,
+          timestamp: new Date(),
+          data: { prescriptions }
+        };
+        setMessages(prev => [...prev, userMessage, resultsMessage]);
+      } else {
+        // No prescriptions found - show search again options
+        const noResultsMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          type: 'assistant',
+          content: "No prescriptions found. Would you like to search for another prescription?",
+          timestamp: new Date(),
+          showPrescriptionSearchAgainOptions: true
+        };
+        setMessages(prev => [...prev, userMessage, noResultsMessage]);
+      }
+
+    } catch (error) {
+      console.error('Error searching prescriptions:', error);
+      // On error, show search again options
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: "No prescriptions found. Would you like to search for another prescription?",
+        timestamp: new Date(),
+        showPrescriptionSearchAgainOptions: true
+      };
+      setMessages(prev => [...prev, userMessage, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handler for prescription search again options (yes or no)
+  const handlePrescriptionSearchAgainOptions = async (option: 'yes' | 'no') => {
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      type: 'user',
+      content: option === 'yes' ? 'Yes, search again' : 'No, I\'m done',
+      timestamp: new Date(),
+    };
+
+    if (option === 'yes') {
+      // Return to prescription search input
+      const searchAgainMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: "Please enter Patient Name, NPI Number, or Registration Number.",
+        timestamp: new Date(),
+        showPrescriptionSearchInput: true
+      };
+      setMessages(prev => [...prev, userMessage, searchAgainMessage]);
+    } else {
+      // Thank the user and show main options
+      const completionMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: "Thank you for using Cura AI Assistant! If you need any further assistance, feel free to ask.",
+        timestamp: new Date(),
+        showMainOptions: true
+      };
+      setMessages(prev => [...prev, userMessage, completionMessage]);
     }
   };
 
@@ -1049,6 +1116,58 @@ export default function AIAgentPage() {
     );
   };
 
+  const renderPrescriptionSearchInput = () => {
+    return (
+      <div className="mt-3 space-y-3">
+        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Patient Name, NPI Number, or Registration Number:</p>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={prescriptionSearchInput}
+            onChange={(e) => setPrescriptionSearchInput(e.target.value)}
+            placeholder="Enter Patient Name, NPI Number, or Registration Number"
+            className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+            data-testid="input-prescription-search"
+          />
+          <Button
+            onClick={() => {
+              if (prescriptionSearchInput.trim()) {
+                handlePrescriptionSearchSubmission(prescriptionSearchInput.trim());
+                setPrescriptionSearchInput("");
+              }
+            }}
+            disabled={!prescriptionSearchInput.trim() || isLoading}
+            className="bg-primary hover:bg-primary/90 text-white"
+            data-testid="button-submit-prescription-search"
+          >
+            Search
+          </Button>
+        </div>
+      </div>
+    );
+  };
+
+  const renderPrescriptionSearchAgainOptions = () => {
+    return (
+      <div className="mt-3 space-y-2">
+        <Button
+          onClick={() => handlePrescriptionSearchAgainOptions('yes')}
+          className="w-full bg-green-600 hover:bg-green-700 text-white text-left justify-start"
+          data-testid="button-search-again-yes"
+        >
+          ✅ Yes, search again
+        </Button>
+        <Button
+          onClick={() => handlePrescriptionSearchAgainOptions('no')}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white text-left justify-start"
+          data-testid="button-search-again-no"
+        >
+          ❌ No, I'm done
+        </Button>
+      </div>
+    );
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="mb-6">
@@ -1181,6 +1300,20 @@ export default function AIAgentPage() {
                       {message.showRebookingOptions && (
                         <div className="mt-4">
                           {renderRebookingOptions()}
+                        </div>
+                      )}
+
+                      {/* Render prescription search input */}
+                      {message.showPrescriptionSearchInput && (
+                        <div className="mt-4">
+                          {renderPrescriptionSearchInput()}
+                        </div>
+                      )}
+
+                      {/* Render prescription search again options */}
+                      {message.showPrescriptionSearchAgainOptions && (
+                        <div className="mt-4">
+                          {renderPrescriptionSearchAgainOptions()}
                         </div>
                       )}
 
