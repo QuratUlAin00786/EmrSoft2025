@@ -1958,6 +1958,47 @@ Report generated from Cura EMR System`;
                   </Badge>
                 )}
               </div>
+              {/* Edit Icon Following imaging.tsx Pattern */}
+              <div className="flex items-center gap-2">
+                {!isEditMode ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleStartEdit}
+                    className="h-8 w-8 p-0"
+                    data-testid="button-edit-lab-result"
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                ) : (
+                  <div className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleSaveEdit}
+                      disabled={updateLabResultMutation.isPending}
+                      className="h-8 w-8 p-0 text-green-600 hover:text-green-700"
+                      data-testid="button-save-lab-result"
+                    >
+                      {updateLabResultMutation.isPending ? (
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-green-600"></div>
+                      ) : (
+                        <Check className="h-4 w-4" />
+                      )}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleCancelEdit}
+                      disabled={updateLabResultMutation.isPending}
+                      className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                      data-testid="button-cancel-lab-result"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
           </DialogHeader>
           {selectedResult && (
