@@ -93,6 +93,7 @@ interface Message {
   content: string;
   timestamp: Date;
   data?: any;
+  showMainOptions?: boolean;
   showSpecialtySelector?: boolean;
   showSubSpecialtySelector?: boolean;
   showDoctorSelector?: boolean;
@@ -132,8 +133,9 @@ export default function AIAgentPage() {
     {
       id: '1',
       type: 'assistant',
-      content: "Hello! I'm your Cura AI Assistant. I can help you:\n\n📅 **Book appointments** - Schedule consultations with doctors\n💊 **Find prescriptions** - Search and view patient medications\n\nHow can I assist you today?",
+      content: "Hello! I'm your Cura AI Assistant. Please select what you'd like to do:",
       timestamp: new Date(),
+      showMainOptions: true
     }
   ]);
   const [bookingState, setBookingState] = useState({
@@ -191,6 +193,62 @@ export default function AIAgentPage() {
     }
     
     return slots;
+  };
+
+  // Handler functions for main options
+  const handleMainOptionSelection = async (option: 'book_appointments' | 'find_prescriptions') => {
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      type: 'user',
+      content: option === 'book_appointments' ? 'Book appointments' : 'Find prescriptions',
+      timestamp: new Date(),
+    };
+
+    if (option === 'book_appointments') {
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: "I'll help you book an appointment. Let's start by selecting the medical specialty category.",
+        timestamp: new Date(),
+        showSpecialtySelector: true
+      };
+
+      setMessages(prev => [...prev, userMessage, assistantMessage]);
+      setBookingState(prev => ({ ...prev, step: 'category' }));
+    } else {
+      // Handle prescription search
+      setIsLoading(true);
+      
+      try {
+        const response = await apiRequest("POST", "/api/ai-agent/chat", {
+          message: "Find prescriptions",
+          conversationHistory: []
+        });
+
+        const responseData = await response.json();
+
+        const assistantMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          type: 'assistant',
+          content: responseData.message || "Here are the prescription results:",
+          timestamp: new Date(),
+          data: responseData.data
+        };
+
+        setMessages(prev => [...prev, userMessage, assistantMessage]);
+      } catch (error) {
+        console.error('Error fetching prescriptions:', error);
+        const errorMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          type: 'assistant',
+          content: 'I encountered an error while searching for prescriptions. Please try again.',
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, userMessage, errorMessage]);
+      } finally {
+        setIsLoading(false);
+      }
+    }
   };
 
   // Handler functions for appointment booking flow
@@ -751,6 +809,26 @@ export default function AIAgentPage() {
                           }}
                         />
                       </div>
+
+                      {/* Render main options */}
+                      {message.showMainOptions && (
+                        <div className="mt-4 space-y-2">
+                          <Button
+                            onClick={() => handleMainOptionSelection('book_appointments')}
+                            className="w-full bg-primary hover:bg-primary/90 text-white"
+                            data-testid="button-book-appointments"
+                          >
+                            📅 Book appointments
+                          </Button>
+                          <Button
+                            onClick={() => handleMainOptionSelection('find_prescriptions')}
+                            className="w-full bg-secondary hover:bg-secondary/90 text-white"
+                            data-testid="button-find-prescriptions"
+                          >
+                            💊 Find prescriptions
+                          </Button>
+                        </div>
+                      )}
 
                       {/* Render specialty selector */}
                       {message.showSpecialtySelector && (
