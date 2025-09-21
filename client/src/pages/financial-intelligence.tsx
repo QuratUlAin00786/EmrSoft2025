@@ -271,7 +271,7 @@ export default function FinancialIntelligence() {
   const claims = Array.isArray(claimsResponse) ? claimsResponse : [];
 
   // Fetch insurance verifications
-  const { data: insurances, isLoading: insuranceLoading } = useQuery({
+  const { data: insurances, isLoading: insuranceLoading, refetch: refetchInsurance } = useQuery({
     queryKey: ["/api/financial/insurance"],
     enabled: true,
   });
@@ -501,17 +501,7 @@ export default function FinancialIntelligence() {
       return response.json();
     },
     onSuccess: async (data) => {
-      // Invalidate and refetch the insurance data
-      await queryClient.invalidateQueries({ queryKey: ["/api/financial/insurance"] });
-      await queryClient.refetchQueries({ queryKey: ["/api/financial/insurance"] });
-      
-      // Add a small delay to ensure refetch completes
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      toast({
-        title: "Insurance added successfully",
-        description: "New insurance information has been added to the system",
-      });
+      // Close dialog and reset form first
       setAddInsuranceOpen(false);
       setNewInsuranceFormData({
         patientName: "",
@@ -527,6 +517,20 @@ export default function FinancialIntelligence() {
         outOfPocketMax: "",
         outOfPocketMet: "",
         coinsurance: "",
+      });
+
+      // 🚀 IMMEDIATE AUTO-REFRESH: Force refresh insurance data immediately
+      await refetchInsurance();
+      
+      // 🔄 COMPREHENSIVE INVALIDATION: Refresh all related queries to ensure data consistency
+      await queryClient.invalidateQueries({ queryKey: ["/api/financial/insurance"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/financial/claims"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/financial/revenue"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/patients"] });
+      
+      toast({
+        title: "Insurance Added",
+        description: "New insurance information has been successfully added to the system",
       });
     },
     onError: (error) => {
