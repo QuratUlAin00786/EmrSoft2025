@@ -1943,19 +1943,56 @@ Report generated from Cura EMR System`;
                   Lab Result Details
                 </DialogTitle>
                 {selectedResult && (
-                  <Badge
-                    variant={
-                      selectedResult.status === "completed"
-                        ? "default"
-                        : selectedResult.status === "pending"
-                          ? "secondary"
-                          : selectedResult.status === "processing"
-                            ? "outline"
-                            : "destructive"
-                    }
-                  >
-                    {selectedResult.status}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    {editingStatusId === selectedResult.id ? (
+                      <Select
+                        value={selectedResult.status}
+                        onValueChange={(value) => {
+                          updateLabResultMutation.mutate({
+                            id: selectedResult.id,
+                            data: { status: value },
+                          });
+                          setEditingStatusId(null);
+                        }}
+                      >
+                        <SelectTrigger className="w-32 h-6">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pending">pending</SelectItem>
+                          <SelectItem value="collected">collected</SelectItem>
+                          <SelectItem value="processing">processing</SelectItem>
+                          <SelectItem value="completed">completed</SelectItem>
+                          <SelectItem value="cancelled">cancelled</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <>
+                        <Badge
+                          variant={
+                            selectedResult.status === "completed"
+                              ? "default"
+                              : selectedResult.status === "pending"
+                                ? "secondary"
+                                : selectedResult.status === "processing"
+                                  ? "outline"
+                                  : "destructive"
+                          }
+                        >
+                          {selectedResult.status}
+                        </Badge>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setEditingStatusId(selectedResult.id)}
+                          className="h-6 w-6 p-0"
+                          data-testid="button-edit-status"
+                        >
+                          <Edit className="h-3 w-3" />
+                        </Button>
+                      </>
+                    )}
+                  </div>
                 )}
               </div>
               {/* Edit Icon Following imaging.tsx Pattern */}
