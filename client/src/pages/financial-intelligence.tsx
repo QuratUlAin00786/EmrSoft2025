@@ -87,6 +87,7 @@ import {
   ChevronsUpDown,
   Plus,
   Edit,
+  Trash2,
 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -210,6 +211,12 @@ export default function FinancialIntelligence() {
   // Edit mode and saving state for claim status updates (like imaging.tsx pattern)
   const [editModes, setEditModes] = useState<{ [key: string]: boolean }>({});
   const [saving, setSaving] = useState<{ [key: string]: boolean }>({});
+
+  // Insurance editing states (following imaging.tsx pattern)
+  const [editingInsuranceStatus, setEditingInsuranceStatus] = useState<string>("");
+  const [editingEligibilityStatus, setEditingEligibilityStatus] = useState<string>("");
+  const [editInsuranceDialogOpen, setEditInsuranceDialogOpen] = useState(false);
+  const [insuranceToEdit, setInsuranceToEdit] = useState<any>(null);
 
   const { toast } = useToast();
 
@@ -433,6 +440,99 @@ export default function FinancialIntelligence() {
       toast({
         title: "Insurance verification failed",
         description: error.message || "Failed to verify insurance eligibility",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Update insurance field mutation (following imaging.tsx pattern)
+  const updateInsuranceFieldMutation = useMutation({
+    mutationFn: async ({
+      insuranceId,
+      fieldName,
+      value,
+    }: {
+      insuranceId: string;
+      fieldName: string;
+      value: string;
+    }) => {
+      const response = await apiRequest(
+        "PATCH",
+        `/api/financial/insurance/${insuranceId}`,
+        {
+          [fieldName]: value,
+        },
+      );
+      return response.json();
+    },
+    onMutate: async (variables) => {
+      // Set saving state
+      setSaving((prev) => ({
+        ...prev,
+        [`${variables.insuranceId}-${variables.fieldName}`]: true,
+      }));
+    },
+    onError: (error, variables) => {
+      toast({
+        title: "Error updating insurance",
+        description: error.message || "Failed to update insurance. Please try again.",
+        variant: "destructive",
+      });
+    },
+    onSuccess: async (data, variables) => {
+      // Exit edit mode immediately
+      setEditModes((prev) => ({
+        ...prev,
+        [`${variables.insuranceId}-${variables.fieldName}`]: false,
+      }));
+
+      // Force refresh insurance data immediately
+      await refetchInsurance();
+      
+      // Invalidate all related queries to refresh data across the app
+      await queryClient.invalidateQueries({ queryKey: ["/api/financial/insurance"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/patients"] });
+
+      toast({
+        title: "Insurance Updated",
+        description: `${variables.fieldName.charAt(0).toUpperCase() + variables.fieldName.slice(1)} has been successfully updated.`,
+      });
+    },
+    onSettled: (data, error, variables) => {
+      // Clear saving state
+      setSaving((prev) => ({
+        ...prev,
+        [`${variables.insuranceId}-${variables.fieldName}`]: false,
+      }));
+    },
+  });
+
+  // Delete insurance mutation
+  const deleteInsuranceMutation = useMutation({
+    mutationFn: async (insuranceId: string) => {
+      const response = await apiRequest(
+        "DELETE",
+        `/api/financial/insurance/${insuranceId}`,
+      );
+      return response.json();
+    },
+    onSuccess: async () => {
+      // Force refresh insurance data immediately
+      await refetchInsurance();
+      
+      // Invalidate all related queries to refresh data across the app
+      await queryClient.invalidateQueries({ queryKey: ["/api/financial/insurance"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/patients"] });
+
+      toast({
+        title: "Insurance Deleted",
+        description: "Insurance record has been successfully deleted.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error deleting insurance",
+        description: error.message || "Failed to delete insurance. Please try again.",
         variant: "destructive",
       });
     },
