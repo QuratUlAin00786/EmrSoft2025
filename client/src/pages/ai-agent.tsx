@@ -103,6 +103,7 @@ interface Message {
   showRebookingOptions?: boolean;
   showPrescriptionSearchInput?: boolean;
   showPrescriptionSearchAgainOptions?: boolean;
+  showSelectAnotherDoctorOptions?: boolean;
   selectedCategory?: string;
   selectedSubSpecialty?: string;
   selectedDoctor?: any;
@@ -296,9 +297,10 @@ export default function AIAgentPage() {
         type: 'assistant',
         content: filteredDoctors.length > 0 
           ? `Perfect! I found ${filteredDoctors.length} available doctor(s) for "${subSpecialty}". Please select a doctor:`
-          : `I'm sorry, there are no doctors available for "${subSpecialty}" at the moment. Please try a different specialty.`,
+          : `I'm sorry, there are no doctors available for "${subSpecialty}" at the moment. Please try a different specialty.\n\nWould you like to select another doctor?`,
         timestamp: new Date(),
         showDoctorSelector: filteredDoctors.length > 0,
+        showSelectAnotherDoctorOptions: filteredDoctors.length === 0,
         availableDoctors: filteredDoctors
       };
 
@@ -534,6 +536,60 @@ export default function AIAgentPage() {
       setMessages(prev => [...prev, userMessage, errorMessage]);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Handler for select another doctor options (yes or no)
+  const handleSelectAnotherDoctorOptions = async (option: 'yes' | 'no') => {
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      type: 'user',
+      content: option === 'yes' ? 'Yes, select another doctor' : 'No, I\'m done',
+      timestamp: new Date(),
+    };
+
+    if (option === 'yes') {
+      // Return to the beginning of the booking flow (specialty selection)
+      const restartMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: "I'll help you book an appointment. Let's start by selecting the medical specialty category.",
+        timestamp: new Date(),
+        showSpecialtySelector: true
+      };
+      
+      setMessages(prev => [...prev, userMessage, restartMessage]);
+      setBookingState({
+        step: 'category',
+        selectedCategory: '',
+        selectedSubSpecialty: '',
+        selectedDoctor: null,
+        selectedTimeSlot: null,
+        patientRegistrationNumber: '',
+        availableDoctors: [],
+        availableTimeSlots: []
+      });
+    } else {
+      // Thank the user and show main options
+      const completionMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: "Thank you for using Cura AI Assistant! If you need any further assistance, feel free to ask.",
+        timestamp: new Date(),
+        showMainOptions: true
+      };
+      
+      setMessages(prev => [...prev, userMessage, completionMessage]);
+      setBookingState({
+        step: 'idle',
+        selectedCategory: '',
+        selectedSubSpecialty: '',
+        selectedDoctor: null,
+        selectedTimeSlot: null,
+        patientRegistrationNumber: '',
+        availableDoctors: [],
+        availableTimeSlots: []
+      });
     }
   };
 
@@ -1168,6 +1224,27 @@ export default function AIAgentPage() {
     );
   };
 
+  const renderSelectAnotherDoctorOptions = () => {
+    return (
+      <div className="mt-3 space-y-2">
+        <Button
+          onClick={() => handleSelectAnotherDoctorOptions('yes')}
+          className="w-full bg-green-600 hover:bg-green-700 text-white text-left justify-start"
+          data-testid="button-select-another-doctor-yes"
+        >
+          ✅ Yes, select another doctor
+        </Button>
+        <Button
+          onClick={() => handleSelectAnotherDoctorOptions('no')}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white text-left justify-start"
+          data-testid="button-select-another-doctor-no"
+        >
+          ❌ No, I'm done
+        </Button>
+      </div>
+    );
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="mb-6">
@@ -1314,6 +1391,13 @@ export default function AIAgentPage() {
                       {message.showPrescriptionSearchAgainOptions && (
                         <div className="mt-4">
                           {renderPrescriptionSearchAgainOptions()}
+                        </div>
+                      )}
+
+                      {/* Render select another doctor options */}
+                      {message.showSelectAnotherDoctorOptions && (
+                        <div className="mt-4">
+                          {renderSelectAnotherDoctorOptions()}
                         </div>
                       )}
 
