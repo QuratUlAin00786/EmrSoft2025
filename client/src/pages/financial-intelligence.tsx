@@ -1596,7 +1596,7 @@ export default function FinancialIntelligence() {
 
                       // Submit the claim using the mutation
                       submitClaimMutation.mutate({
-                        patientId: parseInt(claimFormData.patient),
+                        patientId: claimFormData.patient,
                         patientName: patientName,
                         claimNumber: claimNumber,
                         insuranceProvider: claimFormData.insuranceProvider,

@@ -2488,37 +2488,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update insurance verification data
   app.put("/api/financial/insurance/:id", authMiddleware, requireRole(["admin", "finance", "doctor", "nurse"]), async (req: TenantRequest, res) => {
     try {
-      const insuranceId = req.params.id;
+      const insuranceId = parseInt(req.params.id);
+      const organizationId = req.organizationId!;
       const updateData = req.body;
       
       console.log(`[FINANCIAL] Insurance update requested for: ${insuranceId}`, updateData);
       
-      // Find the insurance record to update
-      const insuranceIndex = mockInsurances.findIndex(ins => ins.id === insuranceId);
+      // Update the insurance record in the database
+      const updatedInsurance = await storage.updateInsuranceVerification(insuranceId, organizationId, updateData);
       
-      if (insuranceIndex === -1) {
+      if (!updatedInsurance) {
         return res.status(404).json({
           success: false,
           message: "Insurance record not found"
         });
       }
-      
-      // Update the insurance record
-      const originalInsurance = mockInsurances[insuranceIndex];
-      const updatedInsurance = {
-        ...originalInsurance,
-        patientName: updateData.patientName || originalInsurance.patientName,
-        provider: updateData.insuranceProvider || originalInsurance.provider,
-        policyNumber: updateData.policyNumber || originalInsurance.policyNumber,
-        groupNumber: updateData.groupNumber || originalInsurance.groupNumber,
-        coverageType: updateData.coverageType || originalInsurance.coverageType,
-        eligibilityStatus: updateData.verificationStatus || originalInsurance.eligibilityStatus,
-        lastVerified: updateData.verificationDate || new Date().toISOString().split('T')[0],
-        lastUpdated: new Date().toISOString()
-      };
-      
-      // Replace the record in the array
-      mockInsurances[insuranceIndex] = updatedInsurance;
       
       console.log(`[FINANCIAL] Insurance updated successfully:`, updatedInsurance);
       
@@ -2536,33 +2520,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Delete insurance record
   app.delete("/api/financial/insurance/:id", authMiddleware, requireRole(["admin", "finance", "doctor", "nurse"]), async (req: TenantRequest, res) => {
     try {
-      const insuranceId = req.params.id;
+      const insuranceId = parseInt(req.params.id);
+      const organizationId = req.organizationId!;
       
       console.log(`[FINANCIAL] Insurance deletion requested for: ${insuranceId}`);
       
-      // Find the insurance record to delete
-      const insuranceIndex = mockInsurances.findIndex(ins => ins.id === insuranceId);
+      // Delete the insurance record from the database
+      const deleted = await storage.deleteInsuranceVerification(insuranceId, organizationId);
       
-      if (insuranceIndex === -1) {
+      if (!deleted) {
         return res.status(404).json({
           success: false,
           message: "Insurance record not found"
         });
       }
       
-      // Remove the insurance record from the array
-      const deletedInsurance = mockInsurances.splice(insuranceIndex, 1)[0];
-      
-      console.log(`[FINANCIAL] Insurance deleted successfully:`, deletedInsurance);
+      console.log(`[FINANCIAL] Insurance deleted successfully:`, insuranceId);
       
       res.json({
         success: true,
         message: "Insurance record deleted successfully",
-        deletedRecord: deletedInsurance
+        deletedId: insuranceId
       });
     } catch (error) {
       console.error(`[FINANCIAL] Insurance deletion error:`, error);
       handleRouteError(error, "delete insurance record", res);
+    }
+  });
+
+  // PATCH insurance record - Update database records (inline field editing)
+  app.patch("/api/financial/insurance/:id", authMiddleware, requireRole(["admin", "finance", "doctor", "nurse"]), async (req: TenantRequest, res) => {
+    try {
+      const insuranceId = parseInt(req.params.id);
+      const organizationId = req.organizationId!;
+      const updateData = req.body;
+      
+      console.log(`[FINANCIAL] Insurance PATCH update requested for: ${insuranceId}`, updateData);
+      
+      // Update the insurance record in the database
+      const updatedInsurance = await storage.updateInsuranceVerification(insuranceId, organizationId, updateData);
+      
+      if (!updatedInsurance) {
+        return res.status(404).json({
+          success: false,
+          message: "Insurance record not found"
+        });
+      }
+      
+      console.log(`[FINANCIAL] Insurance PATCH updated successfully:`, updatedInsurance);
+      
+      res.json({
+        success: true,
+        data: updatedInsurance,
+        message: "Insurance verification data updated successfully"
+      });
+    } catch (error) {
+      console.error(`[FINANCIAL] Insurance PATCH update error:`, error);
+      handleRouteError(error, "update insurance verification data", res);
     }
   });
 
