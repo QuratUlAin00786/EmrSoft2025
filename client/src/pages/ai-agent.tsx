@@ -662,13 +662,17 @@ export default function AIAgentPage() {
 
     } catch (error) {
       console.error('Error booking appointment:', error);
-      const errorMessage: Message = {
+      // Return to time slot selection instead of showing generic error
+      const goBackMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'assistant',
-        content: 'I encountered an error while booking your appointment. Please try again or contact support.',
-        timestamp: new Date()
+        content: `Please select a date and time for your appointment with Dr. ${bookingState.selectedDoctor.firstName} ${bookingState.selectedDoctor.lastName}:`,
+        timestamp: new Date(),
+        showTimeSlotSelector: true,
+        availableTimeSlots: bookingState.availableTimeSlots
       };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages(prev => [...prev, goBackMessage]);
+      setBookingState(prev => ({ ...prev, step: 'timeslot', patientRegistrationNumber: '' }));
     }
   };
 
