@@ -176,8 +176,9 @@ export default function AIAgentPage() {
       // Check if user is requesting appointment booking
       const lowerInput = input.toLowerCase();
       if ((lowerInput.includes('book') && lowerInput.includes('appointment')) || 
-          lowerInput.includes('schedule') ||
-          lowerInput.includes('appointment')) {
+          (lowerInput.includes('schedule') && lowerInput.includes('appointment')) ||
+          lowerInput.includes('book appointment') ||
+          lowerInput.includes('schedule appointment')) {
         
         const assistantMessage: Message = {
           id: (Date.now() + 1).toString(),

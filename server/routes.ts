@@ -2581,6 +2581,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Medical staff endpoint for appointment booking - accessible to authenticated users
   app.get("/api/medical-staff", authMiddleware, async (req: TenantRequest, res) => {
     try {
+      // Get query parameters for specialty filtering
+      const { specialty, subSpecialty } = req.query as { specialty?: string; subSpecialty?: string };
+      
       const users = await storage.getUsersByOrganization(req.tenant!.id);
       
       // Get today's date for shift checking
@@ -2607,9 +2610,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`Day of week: ${dayOfWeek}`);
       
       // Filter for all staff roles needed for shift management and appointments
-      const medicalStaff = users
-        .filter(user => ['doctor', 'nurse', 'sample_taker', 'lab_technician', 'admin', 'receptionist'].includes(user.role) && user.isActive)
-        .filter(user => {
+      let medicalStaff = users
+        .filter(user => ['doctor', 'nurse', 'sample_taker', 'lab_technician', 'admin', 'receptionist'].includes(user.role) && user.isActive);
+      
+      // Apply specialty filtering if provided
+      if (specialty || subSpecialty) {
+        console.log(`Filtering doctors - Specialty: "${specialty}", Sub-specialty: "${subSpecialty}"`);
+        medicalStaff = medicalStaff.filter(user => {
+          // Only filter doctors by specialty
+          if (user.role !== 'doctor') return true;
+          
+          let matchesSpecialty = true;
+          let matchesSubSpecialty = true;
+          
+          if (specialty) {
+            matchesSpecialty = user.medicalSpecialtyCategory && 
+              user.medicalSpecialtyCategory.toLowerCase().trim() === specialty.toLowerCase().trim();
+          }
+          
+          if (subSpecialty) {
+            matchesSubSpecialty = user.subSpecialty && 
+              user.subSpecialty.toLowerCase().trim() === subSpecialty.toLowerCase().trim();
+          }
+          
+          const matches = matchesSpecialty && matchesSubSpecialty;
+          if (user.role === 'doctor') {
+            console.log(`  Doctor: ${user.firstName} ${user.lastName}`);
+            console.log(`    Category: "${user.medicalSpecialtyCategory}" matches "${specialty}": ${matchesSpecialty}`);
+            console.log(`    Sub-specialty: "${user.subSpecialty}" matches "${subSpecialty}": ${matchesSubSpecialty}`);
+            console.log(`    Overall match: ${matches}`);
+          }
+          
+          return matches;
+        });
+      }
+      
+      medicalStaff = medicalStaff.filter(user => {
           // For doctors specifically, check if they are available today
           if (user.role === 'doctor') {
             console.log(`Checking doctor: ${user.firstName} ${user.lastName} (ID: ${user.id})`);
