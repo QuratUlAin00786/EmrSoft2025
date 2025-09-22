@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
+import { Sidebar } from "@/components/layout/sidebar";
 import { 
   ArrowLeft, Bold, Italic, Underline, List, ListOrdered, 
   AlignLeft, AlignCenter, AlignRight, AlignJustify, Type,
@@ -2925,9 +2926,15 @@ export default function Forms() {
 
   return (
     <>
-    <div className="h-screen flex flex-col bg-gray-100 dark:bg-[hsl(var(--cura-midnight))]">
-      {/* Page Shell Container */}
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 flex-1 overflow-y-auto">
+      {/* Main Layout with Sidebar */}
+      <div className="flex h-screen bg-gray-50 dark:bg-[hsl(var(--cura-midnight))]">
+        {/* Sidebar */}
+        <Sidebar />
+        
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Page Shell Container */}
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 flex-1 overflow-y-auto">
         {/* Header Row */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
           {/* Left - Title and Navigation */}
@@ -5235,9 +5242,10 @@ export default function Forms() {
           </div>
         </DialogContent>
       </Dialog>
-      </div>
-
-      <Toaster />
+          
+          <Toaster />
+          </div>
+        </div>
     </>
   );
 }
