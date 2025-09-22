@@ -23,6 +23,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Appointment } from "@/types";
 import ConsultationNotes from "@/components/medical/consultation-notes";
 import { FullConsultationInterface } from "@/components/consultation/full-consultation-interface";
+import { useAuth } from "@/hooks/use-auth";
+import { useTenant } from "@/hooks/use-tenant";
 
 const statusColors = {
   scheduled: "text-white",
@@ -77,6 +79,54 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
   const [showAppointmentDetails, setShowAppointmentDetails] = useState(false);
   const [dialogStable, setDialogStable] = useState(true);
   const [activeTab, setActiveTab] = useState("basic");
+
+  const { user } = useAuth();
+  const { tenant } = useTenant();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Real-time appointment updates via Server-Sent Events
+  useEffect(() => {
+    if (!user || !tenant) return;
+
+    console.log("[Calendar SSE] Setting up real-time connection...");
+    const eventSource = new EventSource(`/api/appointments/stream`, {});
+
+    eventSource.onopen = () => {
+      console.log("[Calendar SSE] Connected to appointment stream");
+    };
+
+    eventSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        console.log("[Calendar SSE] Received appointment event:", data);
+
+        // Handle different appointment events
+        if (data.type === 'appointment.created' || data.type === 'appointment.updated' || data.type === 'appointment.deleted') {
+          // Invalidate appointments query to trigger refetch
+          queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
+          
+          // Show notification
+          const eventAction = data.type.split('.')[1];
+          toast({
+            title: "Appointment Updated",
+            description: `An appointment has been ${eventAction} in real-time.`,
+          });
+        }
+      } catch (error) {
+        console.error("[Calendar SSE] Error parsing event data:", error);
+      }
+    };
+
+    eventSource.onerror = (error) => {
+      console.error("[Calendar SSE] Connection error:", error);
+    };
+
+    return () => {
+      console.log("[Calendar SSE] Closing connection");
+      eventSource.close();
+    };
+  }, [user, tenant, queryClient, toast]);
   
   // Anatomical Analysis State
   const [showAnatomicalViewer, setShowAnatomicalViewer] = useState(false);
@@ -143,8 +193,6 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
     depressor_anguli: { x: 370, y: 400 },
     platysma: { x: 350, y: 450 }
   };
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
 
   // Delete appointment mutation
   const deleteAppointmentMutation = useMutation({
@@ -391,6 +439,31 @@ Medical License: [License Number]
     }
   };
 
+  // Role-based permissions helper
+  const canEditAppointments = () => {
+    if (!user) return false;
+    const allowedRoles = ['admin', 'doctor', 'nurse', 'receptionist'];
+    return allowedRoles.includes(user.role);
+  };
+
+  const canDeleteAppointments = () => {
+    if (!user) return false;
+    const allowedRoles = ['admin', 'doctor', 'nurse', 'receptionist'];
+    return allowedRoles.includes(user.role);
+  };
+
+  const canCreateAppointments = () => {
+    if (!user) return false;
+    // Patients can create appointments for themselves, staff can create for anyone
+    return true;
+  };
+
+  const canViewAppointmentDetails = () => {
+    if (!user) return false;
+    // Everyone can view appointment details (filtered by backend already)
+    return true;
+  };
+
   // Fetch appointments
   const { data: appointmentsData, isLoading, refetch, error } = useQuery({
     queryKey: ["/api/appointments"],
@@ -554,14 +627,16 @@ Medical License: [License Number]
             >
               Next
             </Button>
-            <Button 
-              onClick={() => onNewAppointment?.()}
-              className="flex items-center gap-2"
-              data-testid="button-new-appointment"
-            >
-              <Plus className="h-3 w-3" />
-              New Appointment
-            </Button>
+            {canCreateAppointments() && (
+              <Button 
+                onClick={() => onNewAppointment?.()}
+                className="flex items-center gap-2"
+                data-testid="button-new-appointment"
+              >
+                <Plus className="h-3 w-3" />
+                New Appointment
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -678,30 +753,34 @@ Medical License: [License Number]
                       <div className="text-sm text-gray-500">Dr. {appointment.providerName}</div>
                     </div>
                     <div className="flex items-center space-x-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEditAppointment(appointment);
-                        }}
-                        className="h-8 w-8 p-0 text-blue-600 hover:text-blue-800 hover:bg-blue-50"
-                        data-testid={`edit-appointment-${appointment.id}`}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteAppointment(appointment.id, appointment.title);
-                        }}
-                        className="h-8 w-8 p-0 text-red-600 hover:text-red-800 hover:bg-red-50"
-                        data-testid={`delete-appointment-${appointment.id}`}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      {canEditAppointments() && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditAppointment(appointment);
+                          }}
+                          className="h-8 w-8 p-0 text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                          data-testid={`edit-appointment-${appointment.id}`}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      )}
+                      {canDeleteAppointments() && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteAppointment(appointment.id, appointment.title);
+                          }}
+                          className="h-8 w-8 p-0 text-red-600 hover:text-red-800 hover:bg-red-50"
+                          data-testid={`delete-appointment-${appointment.id}`}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </div>
