@@ -3794,50 +3794,76 @@ export default function Forms() {
         </div>
       </div>
 
-      {/* Document Editor - medical theme colors */}
-      <div className="flex-1 bg-[hsl(var(--cura-mist))] dark:bg-[hsl(var(--cura-midnight))] overflow-y-auto min-h-0">
-        <div className="h-full flex items-start justify-center p-4">
-          <div className="bg-white dark:bg-[hsl(var(--cura-midnight))] shadow-sm border border-[hsl(var(--cura-steel))] dark:border-[hsl(var(--cura-steel))] min-h-[600px]" style={{ width: '700px', maxWidth: '700px' }}>
-            <div className="p-6">
-              <div
-                ref={(el) => {
-                  setTextareaRef(el as any);
-                  if (el && documentContent && el.innerHTML !== documentContent) {
-                    el.innerHTML = documentContent;
-                  }
-                }}
-                contentEditable
-                suppressContentEditableWarning={true}
-                data-placeholder={documentContent ? '' : 'Start typing your document here...'}
-                onInput={(e) => {
-                  const content = (e.target as HTMLDivElement).innerHTML;
-                  setDocumentContent(content);
-                }}
-                onClick={(e) => {
-                  // Handle link clicks
-                  const target = e.target as HTMLElement;
-                  if (target.tagName === 'A') {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const href = target.getAttribute('href');
-                    if (href) {
-                      window.open(href, '_blank');
-                    }
-                  }
-                }}
-                className="w-full border-none outline-none text-[hsl(var(--cura-midnight))] dark:text-white leading-normal bg-transparent focus:outline-none"
-                style={{ 
-                  fontSize: fontSize,
-                  lineHeight: '1.6',
-                  minHeight: '500px',
-                  maxWidth: '100%',
-                  fontFamily: fontFamily
-                }}
-              />
+            {/* Enhanced Document Editor Canvas */}
+            <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-[hsl(var(--cura-midnight))] dark:to-[hsl(var(--cura-steel))] overflow-y-auto min-h-0 rounded-lg" data-testid="editor-canvas-container">
+              <div className="max-w-4xl mx-auto p-6">
+                <div className="bg-white dark:bg-[hsl(var(--cura-midnight))] shadow-xl border border-gray-200 dark:border-[hsl(var(--cura-steel))] rounded-xl transition-all duration-300 hover:shadow-2xl focus-within:shadow-2xl focus-within:ring-2 focus-within:ring-[hsl(var(--cura-bluewave))]/20" 
+                     style={{ minHeight: '700px', maxWidth: '21cm', margin: '0 auto' }}
+                     data-testid="editor-canvas">
+                  
+                  {/* Editor Container with A4 Paper Simulation */}
+                  <div className="relative">
+                    {/* Paper Guidelines (subtle) */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-gray-50/30 to-transparent dark:via-[hsl(var(--cura-steel))]/20 pointer-events-none rounded-xl"></div>
+                    
+                    {/* Content Area */}
+                    <div className="relative p-8 sm:p-12" data-testid="editor-content-area">
+                      <div
+                        ref={(el) => {
+                          setTextareaRef(el as any);
+                          if (el && documentContent && el.innerHTML !== documentContent) {
+                            el.innerHTML = documentContent;
+                          }
+                        }}
+                        contentEditable
+                        suppressContentEditableWarning={true}
+                        data-placeholder={documentContent ? '' : 'Start typing your document here...'}
+                        onInput={(e) => {
+                          const content = (e.target as HTMLDivElement).innerHTML;
+                          setDocumentContent(content);
+                        }}
+                        onFocus={(e) => {
+                          e.currentTarget.style.outline = '2px solid hsl(var(--cura-bluewave))';
+                          e.currentTarget.style.outlineOffset = '4px';
+                        }}
+                        onBlur={(e) => {
+                          e.currentTarget.style.outline = 'none';
+                        }}
+                        onClick={(e) => {
+                          // Handle link clicks
+                          const target = e.target as HTMLElement;
+                          if (target.tagName === 'A') {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const href = target.getAttribute('href');
+                            if (href) {
+                              window.open(href, '_blank');
+                            }
+                          }
+                        }}
+                        className="w-full border-none outline-none text-[hsl(var(--cura-midnight))] dark:text-white leading-relaxed bg-transparent focus:outline-none transition-all duration-200 prose prose-lg dark:prose-invert max-w-none
+                                 empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400 empty:before:dark:text-gray-500 empty:before:italic empty:before:pointer-events-none"
+                        style={{ 
+                          fontSize: fontSize,
+                          lineHeight: '1.75',
+                          minHeight: '600px',
+                          maxWidth: '100%',
+                          fontFamily: fontFamily,
+                          wordBreak: 'break-word',
+                          overflowWrap: 'break-word'
+                        }}
+                        data-testid="editor-textarea"
+                      />
             </div>
           </div>
         </div>
-      </div>
+          </div>
+
+          {/* Right Sidebar Column - Will be implemented later */}
+          <div className="lg:col-span-4" data-testid="right-sidebar">
+            {/* Placeholder for sidebar content */}
+          </div>
+        </div>
       </div>
 
       {/* Insert Link Dialog */}
@@ -5136,6 +5162,7 @@ export default function Forms() {
           </div>
         </DialogContent>
       </Dialog>
+      </div>
 
       <Toaster />
     </div>
