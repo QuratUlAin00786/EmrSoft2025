@@ -2924,11 +2924,11 @@ export default function Forms() {
 
   return (
     <div className="h-screen flex flex-col bg-gray-100 dark:bg-[hsl(var(--cura-midnight))]">
-      {/* Scrollable Content Wrapper */}
-      <div className="flex-1 overflow-y-auto">
-        {/* Top Header - Professional Medical Theme */}
-        <div className="px-6 py-4 flex-shrink-0 bg-white dark:bg-[hsl(var(--cura-midnight))] border-b-2 border-gray-200 dark:border-[hsl(var(--cura-steel))]">
-        <div className="flex items-center justify-between gap-8">
+      {/* Page Shell Container */}
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 flex-1 overflow-y-auto">
+        {/* Header Row */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
+          {/* Left - Title and Navigation */}
           <div className="flex items-center gap-4">
             <Button 
               className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
@@ -2952,13 +2952,15 @@ export default function Forms() {
                 e.currentTarget.style.boxShadow = '0 4px 12px rgba(74,125,255,0.3)';
               }}
               onClick={() => toast({ title: "Letters", description: "Navigating back to letters list." })}
+              data-testid="button-back-letters"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               <span>Letters</span>
             </Button>
-            
-            <div className="h-8 w-px bg-white/30 mx-1"></div>
-            
+          </div>
+          
+          {/* Right - Primary Actions */}
+          <div className="flex items-center gap-4">
             <Button 
               className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
               style={{ 
@@ -2981,6 +2983,7 @@ export default function Forms() {
                 e.currentTarget.style.boxShadow = '0 4px 12px rgba(114,121,251,0.3)';
               }}
               onClick={handlePreview}
+              data-testid="button-save-preview"
             >
               Save and preview
             </Button>
@@ -3006,117 +3009,20 @@ export default function Forms() {
                 e.currentTarget.style.boxShadow = '0 4px 12px rgba(74,125,255,0.3)';
               }}
               onClick={handleSaveAsDraft}
+              data-testid="button-save-draft"
             >
               Save as draft
             </Button>
           </div>
-          
-          <div className="flex items-center gap-4">
-            <Button 
-              className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
-              style={{ 
-                backgroundColor: '#7279FB', 
-                color: 'white',
-                borderColor: '#7279FB',
-                borderRadius: '10px',
-                boxShadow: '0 4px 12px rgba(114,121,251,0.3)'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#4A7DFF';
-                e.currentTarget.style.borderColor = '#4A7DFF';
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 6px 16px rgba(74,125,255,0.4)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#7279FB';
-                e.currentTarget.style.borderColor = '#7279FB';
-                e.currentTarget.style.transform = 'translateY(0px)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(114,121,251,0.3)';
-              }}
-            >
-              Letter body
-            </Button>
-            
-            <div className="h-8 w-px bg-white/30 mx-1"></div>
-            
-            <Button 
-              className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
-              style={{ 
-                backgroundColor: '#4A7DFF', 
-                color: 'white',
-                borderColor: '#4A7DFF',
-                borderRadius: '10px',
-                boxShadow: '0 4px 12px rgba(74,125,255,0.3)'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#7279FB';
-                e.currentTarget.style.borderColor = '#7279FB';
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 6px 16px rgba(114,121,251,0.4)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#4A7DFF';
-                e.currentTarget.style.borderColor = '#4A7DFF';
-                e.currentTarget.style.transform = 'translateY(0px)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(74,125,255,0.3)';
-              }}
-            >
-              Select Patient...
-            </Button>
-            <Button 
-              className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
-              style={{ 
-                backgroundColor: '#7279FB', 
-                color: 'white',
-                borderColor: '#7279FB',
-                borderRadius: '10px',
-                boxShadow: '0 4px 12px rgba(114,121,251,0.3)'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#4A7DFF';
-                e.currentTarget.style.borderColor = '#4A7DFF';
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 6px 16px rgba(74,125,255,0.4)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#7279FB';
-                e.currentTarget.style.borderColor = '#7279FB';
-                e.currentTarget.style.transform = 'translateY(0px)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(114,121,251,0.3)';
-              }}
-            >
-              New Chris...
-            </Button>
-            <Button 
-              className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
-              style={{ 
-                backgroundColor: '#4A7DFF', 
-                color: 'white',
-                borderColor: '#4A7DFF',
-                borderRadius: '10px',
-                boxShadow: '0 4px 12px rgba(74,125,255,0.3)'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#7279FB';
-                e.currentTarget.style.borderColor = '#7279FB';
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 6px 16px rgba(114,121,251,0.4)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#4A7DFF';
-                e.currentTarget.style.borderColor = '#4A7DFF';
-                e.currentTarget.style.transform = 'translateY(0px)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(74,125,255,0.3)';
-              }}
-            >
-              Share this...
-            </Button>
-          </div>
         </div>
-      </div>
 
-      {/* Form Fields Section - Collapsible */}
-      <div className="bg-white dark:bg-[hsl(var(--cura-midnight))] border-b border-gray-200 dark:border-[hsl(var(--cura-steel))]">
+        {/* Main Grid Layout */}
+        <div className="lg:grid lg:grid-cols-12 lg:gap-6 gap-4">
+          {/* Editor Column */}
+          <div className="lg:col-span-8 space-y-4" data-testid="editor-column">
+            
+            {/* Form Fields Section - Collapsible */}
+            <div className="bg-white dark:bg-[hsl(var(--cura-midnight))] border border-gray-200 dark:border-[hsl(var(--cura-steel))] rounded-md" data-testid="form-fields-section">
         {/* Toggle Header */}
         <div className="px-4 py-2 flex items-center justify-between cursor-pointer" onClick={() => setShowFormFields(!showFormFields)}>
           <span className="text-sm font-medium text-gray-900 dark:text-white">Letter Details</span>
