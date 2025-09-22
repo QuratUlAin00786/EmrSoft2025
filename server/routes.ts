@@ -16,7 +16,7 @@ import { initializeMultiTenantPackage, getMultiTenantPackage } from "./packages/
 import { messagingService } from "./messaging-service";
 import { createPaypalOrder, capturePaypalOrder, loadPaypalDefault } from "./paypal";
 import { gdprComplianceService } from "./services/gdpr-compliance";
-import { insertGdprConsentSchema, insertGdprDataRequestSchema, updateMedicalImageReportFieldSchema, insertAiInsightSchema } from "../shared/schema";
+import { insertGdprConsentSchema, insertGdprDataRequestSchema, updateMedicalImageReportFieldSchema, insertAiInsightSchema, type Appointment } from "../shared/schema";
 import { processAppointmentBookingChat, generateAppointmentSummary } from "./anthropic";
 import { inventoryService } from "./services/inventory";
 import { emailService } from "./services/email";
@@ -27,6 +27,11 @@ import * as fs from 'fs-extra';
 
 // In-memory storage for voice notes - persistent across server restarts
 let voiceNotes: any[] = [];
+
+// Global storage for appointment SSE connections
+declare global {
+  var appointmentClients: Map<string, { res: express.Response, organizationId: number, userId: number }> | undefined;
+}
 
 // Server-Sent Events broadcaster for real-time AI insight updates
 interface AiInsightSSEEvent {
@@ -1973,17 +1978,151 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Appointments routes
-  app.get("/api/appointments", async (req: TenantRequest, res) => {
+  // Appointments routes - Enhanced with role-based access control
+  app.get("/api/appointments", authMiddleware, async (req: TenantRequest, res) => {
     try {
-      const date = req.query.date ? new Date(req.query.date as string) : undefined;
-      const appointments = await storage.getAppointmentsByOrganization(req.tenant!.id, date);
+      const { start, end, doctorId, patientId } = req.query;
+      const userRole = req.user!.role;
+      const userId = req.user!.id;
+      
+      let appointments: Appointment[] = [];
+      
+      // Role-based access control as per architect specifications
+      if (userRole === 'admin' || userRole === 'receptionist') {
+        // Admin/receptionist can see all appointments with optional filters
+        if (doctorId) {
+          appointments = await storage.getAppointmentsByProvider(
+            parseInt(doctorId as string), 
+            req.tenant!.id
+          );
+        } else if (patientId) {
+          appointments = await storage.getAppointmentsByPatient(
+            parseInt(patientId as string), 
+            req.tenant!.id
+          );
+        } else {
+          // Get all appointments for organization
+          appointments = await storage.getAppointmentsByOrganization(req.tenant!.id);
+        }
+      } else if (userRole === 'doctor') {
+        // Doctors can only see their own appointments unless they have read_all permission
+        const user = req.user! as any;
+        const hasReadAllPermission = user.permissions?.modules?.appointments?.view === true;
+        
+        if (hasReadAllPermission && doctorId) {
+          // Doctor with read_all permission can see other doctors' appointments
+          appointments = await storage.getAppointmentsByProvider(
+            parseInt(doctorId as string), 
+            req.tenant!.id
+          );
+        } else {
+          // Restrict to doctor's own appointments
+          appointments = await storage.getAppointmentsByProvider(userId, req.tenant!.id);
+        }
+      } else if (userRole === 'patient') {
+        // Patients can only see their own appointments
+        // First find the patient record for this user
+        const patient = await storage.getPatientByUserId(userId, req.tenant!.id);
+        if (patient) {
+          appointments = await storage.getAppointmentsByPatient(patient.id, req.tenant!.id);
+        } else {
+          appointments = [];
+        }
+      } else if (userRole === 'nurse') {
+        // Nurses can see all appointments for now - can be restricted further if needed
+        appointments = await storage.getAppointmentsByOrganization(req.tenant!.id);
+      } else {
+        // Default: no access for other roles
+        return res.status(403).json({ error: "Access denied" });
+      }
+      
+      // Apply date range filters if provided
+      if (start || end) {
+        const startDate = start ? new Date(start as string) : new Date(0);
+        const endDate = end ? new Date(end as string) : new Date('2099-12-31');
+        
+        appointments = appointments.filter(apt => {
+          const aptDate = new Date(apt.scheduledAt);
+          return aptDate >= startDate && aptDate <= endDate;
+        });
+      }
+      
       res.json(appointments);
     } catch (error) {
       console.error("Appointments fetch error:", error);
       res.status(500).json({ error: "Failed to fetch appointments" });
     }
   });
+
+  // Real-time appointment updates via Server-Sent Events
+  app.get("/api/appointments/stream", authMiddleware, async (req: TenantRequest, res) => {
+    console.log(`[SSE] New appointment stream connection for org ${req.tenant!.id}, user ${req.user!.id}`);
+    
+    // Set up SSE headers
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Headers': 'Authorization, Content-Type',
+    });
+
+    const organizationId = req.tenant!.id;
+    const userId = req.user!.id;
+    const clientId = `${organizationId}-${userId}-${Date.now()}`;
+    
+    // Store client connection for broadcasting
+    if (!global.appointmentClients) {
+      global.appointmentClients = new Map();
+    }
+    global.appointmentClients.set(clientId, { res, organizationId, userId });
+
+    // Send initial connection confirmation
+    res.write(`data: ${JSON.stringify({ type: 'connected', clientId })}\n\n`);
+
+    // Ping to keep connection alive
+    const pingInterval = setInterval(() => {
+      res.write(`data: ${JSON.stringify({ type: 'ping', timestamp: Date.now() })}\n\n`);
+    }, 30000);
+
+    // Handle client disconnect
+    req.on('close', () => {
+      console.log(`[SSE] Client ${clientId} disconnected`);
+      clearInterval(pingInterval);
+      global.appointmentClients?.delete(clientId);
+    });
+
+    req.on('error', () => {
+      console.log(`[SSE] Client ${clientId} error`);
+      clearInterval(pingInterval);
+      global.appointmentClients?.delete(clientId);
+    });
+  });
+
+  // Broadcast appointment events to all connected clients in the same organization
+  const broadcastAppointmentEvent = (organizationId: number, eventType: string, data: any) => {
+    if (!global.appointmentClients) return;
+    
+    const eventData = {
+      type: eventType,
+      data,
+      timestamp: Date.now(),
+      organizationId
+    };
+
+    console.log(`[SSE] Broadcasting ${eventType} to org ${organizationId}`);
+    
+    for (const [clientId, client] of global.appointmentClients.entries()) {
+      if (client.organizationId === organizationId) {
+        try {
+          client.res.write(`data: ${JSON.stringify(eventData)}\n\n`);
+        } catch (error) {
+          console.error(`[SSE] Error broadcasting to client ${clientId}:`, error);
+          global.appointmentClients.delete(clientId);
+        }
+      }
+    }
+  };
 
   app.post("/api/appointments", requireRole(["doctor", "nurse", "receptionist", "admin"]), async (req: TenantRequest, res) => {
     try {
@@ -2094,6 +2233,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const appointment = await storage.createAppointment(appointmentToCreate);
       
+      // Broadcast appointment creation to all connected clients in the same organization
+      broadcastAppointmentEvent(req.tenant!.id, 'appointment.created', appointment);
+      
       console.log("Appointment creation completed, returning:", appointment);
       res.status(201).json(appointment);
     } catch (error) {
@@ -2160,6 +2302,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Appointment not found" });
       }
 
+      // Broadcast appointment update to all connected clients in the same organization
+      broadcastAppointmentEvent(req.tenant!.id, 'appointment.updated', updated);
+
       console.log(`Appointment ${appointmentId} updated successfully`);
       res.json(updated);
     } catch (error) {
@@ -2187,6 +2332,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`❌ Appointment not found or not deleted`);
         return res.status(404).json({ error: "Appointment not found" });
       }
+
+      // Broadcast appointment deletion to all connected clients in the same organization
+      broadcastAppointmentEvent(req.tenant!.id, 'appointment.deleted', { id: appointmentId });
 
       console.log(`🎉 Appointment ${appointmentId} deleted successfully`);
       res.json({ success: true, message: "Appointment deleted successfully" });
