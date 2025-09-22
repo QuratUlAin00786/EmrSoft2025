@@ -307,6 +307,7 @@ export default function PermissionsReference() {
     
     const roleData: InsertRole = {
       name: newRole.name,
+      organizationId: tenant?.id || 0,
       displayName: newRole.displayName,
       description: newRole.description || "",
       permissions: {
