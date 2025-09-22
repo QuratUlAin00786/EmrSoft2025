@@ -1,0 +1,684 @@
+
+Administrator
+Full system access including user management, settings, and all clinical modules
+
+Module Access
+patients
+view
+create
+edit
+delete
+appointments
+view
+create
+edit
+delete
+medical Records
+view
+create
+edit
+delete
+prescriptions
+view
+create
+edit
+delete
+lab Results
+view
+create
+edit
+delete
+medical Imaging
+view
+create
+edit
+delete
+billing
+view
+create
+edit
+delete
+analytics
+view
+create
+edit
+delete
+user Management
+view
+create
+edit
+delete
+settings
+view
+create
+edit
+delete
+ai Insights
+view
+create
+edit
+delete
+messaging
+view
+create
+edit
+delete
+telemedicine
+view
+create
+edit
+delete
+population Health
+view
+create
+edit
+delete
+clinical Decision
+view
+create
+edit
+delete
+voice Documentation
+view
+create
+edit
+delete
+forms
+view
+create
+edit
+delete
+integrations
+view
+create
+edit
+delete
+automation
+view
+create
+edit
+delete
+mobile Health
+view
+create
+edit
+delete
+Data Field Access
+patient Sensitive Info
+financial Data
+medical History
+prescription Details
+lab Results
+imaging Results
+billing Information
+insurance Details
+Doctor
+Clinical access to patient records, appointments, prescriptions, and medical documentation
+
+Module Access
+patients
+view
+create
+edit
+delete
+appointments
+view
+create
+edit
+delete
+medical Records
+view
+create
+edit
+delete
+prescriptions
+view
+create
+edit
+delete
+lab Results
+view
+create
+edit
+delete
+medical Imaging
+view
+create
+edit
+delete
+billing
+view
+create
+edit
+delete
+analytics
+view
+create
+edit
+delete
+user Management
+view
+create
+edit
+delete
+settings
+view
+create
+edit
+delete
+ai Insights
+view
+create
+edit
+delete
+messaging
+view
+create
+edit
+delete
+telemedicine
+view
+create
+edit
+delete
+population Health
+view
+create
+edit
+delete
+clinical Decision
+view
+create
+edit
+delete
+voice Documentation
+view
+create
+edit
+delete
+forms
+view
+create
+edit
+delete
+integrations
+view
+create
+edit
+delete
+automation
+view
+create
+edit
+delete
+mobile Health
+view
+create
+edit
+delete
+Data Field Access
+patient Sensitive Info
+financial Data
+medical History
+prescription Details
+lab Results
+imaging Results
+billing Information
+insurance Details
+Nurse
+Patient care access including medical records, medications, and care coordination
+
+Module Access
+patients
+view
+create
+edit
+delete
+appointments
+view
+create
+edit
+delete
+medical Records
+view
+create
+edit
+delete
+prescriptions
+view
+create
+edit
+delete
+lab Results
+view
+create
+edit
+delete
+medical Imaging
+view
+create
+edit
+delete
+billing
+view
+create
+edit
+delete
+analytics
+view
+create
+edit
+delete
+user Management
+view
+create
+edit
+delete
+settings
+view
+create
+edit
+delete
+ai Insights
+view
+create
+edit
+delete
+messaging
+view
+create
+edit
+delete
+telemedicine
+view
+create
+edit
+delete
+population Health
+view
+create
+edit
+delete
+clinical Decision
+view
+create
+edit
+delete
+voice Documentation
+view
+create
+edit
+delete
+forms
+view
+create
+edit
+delete
+integrations
+view
+create
+edit
+delete
+automation
+view
+create
+edit
+delete
+mobile Health
+view
+create
+edit
+delete
+Data Field Access
+patient Sensitive Info
+financial Data
+medical History
+prescription Details
+lab Results
+imaging Results
+billing Information
+insurance Details
+Receptionist
+Limited access to patient information, appointments, and billing functions
+
+Module Access
+patients
+view
+create
+edit
+delete
+appointments
+view
+create
+edit
+delete
+medical Records
+view
+create
+edit
+delete
+prescriptions
+view
+create
+edit
+delete
+lab Results
+view
+create
+edit
+delete
+medical Imaging
+view
+create
+edit
+delete
+billing
+view
+create
+edit
+delete
+analytics
+view
+create
+edit
+delete
+user Management
+view
+create
+edit
+delete
+settings
+view
+create
+edit
+delete
+ai Insights
+view
+create
+edit
+delete
+messaging
+view
+create
+edit
+delete
+telemedicine
+view
+create
+edit
+delete
+population Health
+view
+create
+edit
+delete
+clinical Decision
+view
+create
+edit
+delete
+voice Documentation
+view
+create
+edit
+delete
+forms
+view
+create
+edit
+delete
+integrations
+view
+create
+edit
+delete
+automation
+view
+create
+edit
+delete
+mobile Health
+view
+create
+edit
+delete
+Data Field Access
+patient Sensitive Info
+financial Data
+medical History
+prescription Details
+lab Results
+imaging Results
+billing Information
+insurance Details
+Patient
+Personal health record access including appointments, prescriptions, and medical history
+
+Module Access
+patients
+view
+create
+edit
+delete
+appointments
+view
+create
+edit
+delete
+medical Records
+view
+create
+edit
+delete
+prescriptions
+view
+create
+edit
+delete
+lab Results
+view
+create
+edit
+delete
+medical Imaging
+view
+create
+edit
+delete
+billing
+view
+create
+edit
+delete
+analytics
+view
+create
+edit
+delete
+user Management
+view
+create
+edit
+delete
+settings
+view
+create
+edit
+delete
+ai Insights
+view
+create
+edit
+delete
+messaging
+view
+create
+edit
+delete
+telemedicine
+view
+create
+edit
+delete
+population Health
+view
+create
+edit
+delete
+clinical Decision
+view
+create
+edit
+delete
+voice Documentation
+view
+create
+edit
+delete
+forms
+view
+create
+edit
+delete
+integrations
+view
+create
+edit
+delete
+automation
+view
+create
+edit
+delete
+mobile Health
+view
+create
+edit
+delete
+Data Field Access
+patient Sensitive Info
+financial Data
+medical History
+prescription Details
+lab Results
+imaging Results
+billing Information
+insurance Details
+Lab Technician
+Lab-focused access for sample collection, lab results, and basic patient information
+
+Module Access
+patients
+view
+create
+edit
+delete
+appointments
+view
+create
+edit
+delete
+medical Records
+view
+create
+edit
+delete
+prescriptions
+view
+create
+edit
+delete
+lab Results
+view
+create
+edit
+delete
+medical Imaging
+view
+create
+edit
+delete
+billing
+view
+create
+edit
+delete
+analytics
+view
+create
+edit
+delete
+user Management
+view
+create
+edit
+delete
+settings
+view
+create
+edit
+delete
+ai Insights
+view
+create
+edit
+delete
+messaging
+view
+create
+edit
+delete
+telemedicine
+view
+create
+edit
+delete
+population Health
+view
+create
+edit
+delete
+clinical Decision
+view
+create
+edit
+delete
+voice Documentation
+view
+create
+edit
+delete
+forms
+view
+create
+edit
+delete
+integrations
+view
+create
+edit
+delete
+automation
+view
+create
+edit
+delete
+mobile Health
+view
+create
+edit
+delete
+Data Field Access
+patient Sensitive Info
+financial Data
+medical History
+prescription Details
+lab Results
+imaging Results
+billing Information
+insurance Details
+Permission Legend
+View - Can see the data
+Create - Can add new items
+Edit - Can modify existing items
+Delete - Can remove items
