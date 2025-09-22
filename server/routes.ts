@@ -1256,6 +1256,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         return {
           id: labResult.id,
+          testId: labResult.testId || 'Not specified',
           testName: labResult.testType || 'Lab Test',
           name: labResult.testType || 'Lab Test',
           testType: labResult.testType,
