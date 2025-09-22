@@ -3200,7 +3200,7 @@ export default function Forms() {
                       Edit Clinic Info
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="max-w-md">
+                  <DialogContent className="max-w-md w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]"
                     <DialogHeader>
                       <DialogTitle>Edit Clinic Information</DialogTitle>
                     </DialogHeader>
@@ -3938,7 +3938,7 @@ export default function Forms() {
 
       {/* Insert Link Dialog */}
       <Dialog open={showLinkDialog} onOpenChange={setShowLinkDialog}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]"
           <DialogHeader>
             <DialogTitle>Insert Link</DialogTitle>
           </DialogHeader>
@@ -3985,7 +3985,7 @@ export default function Forms() {
 
       {/* Template Selection Dialog */}
       <Dialog open={showTemplateDialog} onOpenChange={setShowTemplateDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-lg w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]"
           <DialogHeader>
             <DialogTitle>Insert Template</DialogTitle>
           </DialogHeader>
@@ -4164,7 +4164,7 @@ export default function Forms() {
 
       {/* Logo Selection Dialog */}
       <Dialog open={showLogoDialog} onOpenChange={setShowLogoDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-lg w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]"
           <DialogHeader>
             <DialogTitle>Insert Logo</DialogTitle>
           </DialogHeader>
@@ -4279,7 +4279,7 @@ export default function Forms() {
 
       {/* Clinic Information Dialog */}
       <Dialog open={showClinicDialog} onOpenChange={setShowClinicDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]"
           <DialogHeader>
             <DialogTitle>Insert Clinic Information</DialogTitle>
           </DialogHeader>
@@ -4384,7 +4384,7 @@ export default function Forms() {
 
       {/* Edit Clinic Information Dialog */}
       <Dialog open={showEditClinicDialog} onOpenChange={setShowEditClinicDialog}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]"
           <DialogHeader>
             <DialogTitle>Edit Clinic Information</DialogTitle>
           </DialogHeader>
@@ -4473,7 +4473,7 @@ export default function Forms() {
 
       {/* Patient Information Dialog */}
       <Dialog open={showPatientDialog} onOpenChange={setShowPatientDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]"
           <DialogHeader>
             <DialogTitle>Insert Patient Information</DialogTitle>
           </DialogHeader>
@@ -4567,7 +4567,7 @@ export default function Forms() {
 
       {/* Recipient Information Dialog */}
       <Dialog open={showRecipientDialog} onOpenChange={setShowRecipientDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]"
           <DialogHeader>
             <DialogTitle>Insert Recipient Information</DialogTitle>
           </DialogHeader>
@@ -4661,7 +4661,7 @@ export default function Forms() {
 
       {/* Appointments Information Dialog */}
       <Dialog open={showAppointmentsDialog} onOpenChange={setShowAppointmentsDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]"
           <DialogHeader>
             <DialogTitle>Insert Appointment Information</DialogTitle>
           </DialogHeader>
@@ -4755,7 +4755,7 @@ export default function Forms() {
 
       {/* Labs Information Dialog */}
       <Dialog open={showLabsDialog} onOpenChange={setShowLabsDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]"
           <DialogHeader>
             <DialogTitle>Insert Laboratory Information</DialogTitle>
           </DialogHeader>
@@ -4849,7 +4849,7 @@ export default function Forms() {
 
       {/* Patient Records Information Dialog */}
       <Dialog open={showPatientRecordsDialog} onOpenChange={setShowPatientRecordsDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]"
           <DialogHeader>
             <DialogTitle>Insert Patient Records Information</DialogTitle>
           </DialogHeader>
@@ -4943,7 +4943,7 @@ export default function Forms() {
 
       {/* Insert Product Dialog */}
       <Dialog open={showInsertProductDialog} onOpenChange={setShowInsertProductDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]"
           <DialogHeader>
             <DialogTitle>Insert Product Information</DialogTitle>
           </DialogHeader>
@@ -5037,7 +5037,7 @@ export default function Forms() {
 
       {/* More Options Dialog */}
       <Dialog open={showMoreOptionsDialog} onOpenChange={setShowMoreOptionsDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]"
           <DialogHeader>
             <DialogTitle>More Formatting Options</DialogTitle>
           </DialogHeader>
@@ -5142,7 +5142,7 @@ export default function Forms() {
 
       {/* View Saved Templates Dialog */}
       <Dialog open={showSavedTemplatesDialog} onOpenChange={setShowSavedTemplatesDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-3xl w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]"
           <DialogHeader>
             <DialogTitle>Saved Templates</DialogTitle>
           </DialogHeader>
