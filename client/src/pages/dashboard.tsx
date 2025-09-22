@@ -8,19 +8,21 @@ export default function Dashboard() {
 
   return (
     <>
-      <div className="flex items-center justify-between">
-        <Header 
-          title="Dashboard" 
+      <div className="">
+        <Header
+          title="Dashboard"
           subtitle="Welcome back, John. Here's your patient overview."
         />
         <div className="mr-6 mt-4">
           <div className="flex items-center gap-2">
-            <span className="text-sm text-neutral-600 dark:text-neutral-400">Theme:</span>
+            <span className="text-sm text-neutral-600 dark:text-neutral-400">
+              Theme:
+            </span>
             <ThemeToggle />
           </div>
         </div>
       </div>
-      
+
       <div className="flex-1 overflow-auto p-6">
         <RoleBasedDashboard />
       </div>
