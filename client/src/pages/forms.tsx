@@ -13,7 +13,7 @@ import {
   Table, Paperclip, Image, Link, MoreHorizontal, Clock,
   Palette, Highlighter, Minus, Plus, Eye, Download,
   Settings, FileText, Calculator, Search, ChevronDown, ChevronUp, Edit,
-  User, Package, Save, TestTube
+  User, Package, Save, TestTube, Calendar
 } from "lucide-react";
 
 export default function Forms() {
@@ -3859,9 +3859,104 @@ export default function Forms() {
         </div>
           </div>
 
-          {/* Right Sidebar Column - Will be implemented later */}
-          <div className="lg:col-span-4" data-testid="right-sidebar">
-            {/* Placeholder for sidebar content */}
+          {/* Right Sidebar - Insert Actions */}
+          <div className="lg:col-span-4 space-y-4" data-testid="right-sidebar">
+            <div className="bg-white dark:bg-[hsl(var(--cura-midnight))] border border-gray-200 dark:border-[hsl(var(--cura-steel))] rounded-lg overflow-hidden" data-testid="sidebar-container">
+              
+              {/* Quick Actions Header */}
+              <div className="p-4 border-b border-gray-200 dark:border-[hsl(var(--cura-steel))] bg-gray-50 dark:bg-[hsl(var(--cura-steel))]">
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Quick Insert</h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Add content to your letter</p>
+              </div>
+
+              {/* Patient Section */}
+              <div className="p-4 border-b border-gray-100 dark:border-[hsl(var(--cura-steel))]/50">
+                <h4 className="text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-3">Patient Info</h4>
+                <div className="space-y-2">
+                  <Button size="sm" variant="ghost" className="w-full justify-start h-8 text-xs hover:bg-gray-100 dark:hover:bg-[hsl(var(--cura-steel))]" 
+                    onClick={() => setShowPatientDialog(true)} data-testid="sidebar-patient">
+                    <User className="h-3 w-3 mr-2" />
+                    Patient Details
+                  </Button>
+                  <Button size="sm" variant="ghost" className="w-full justify-start h-8 text-xs hover:bg-gray-100 dark:hover:bg-[hsl(var(--cura-steel))]" 
+                    onClick={() => setShowRecipientDialog(true)} data-testid="sidebar-recipient">
+                    <User className="h-3 w-3 mr-2" />
+                    Recipient Info
+                  </Button>
+                </div>
+              </div>
+
+              {/* Medical Data Section */}
+              <div className="p-4 border-b border-gray-100 dark:border-[hsl(var(--cura-steel))]/50">
+                <h4 className="text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-3">Medical Data</h4>
+                <div className="space-y-2">
+                  <Button size="sm" variant="ghost" className="w-full justify-start h-8 text-xs hover:bg-gray-100 dark:hover:bg-[hsl(var(--cura-steel))]" 
+                    onClick={() => setShowAppointmentsDialog(true)} data-testid="sidebar-appointments">
+                    <Calendar className="h-3 w-3 mr-2" />
+                    Appointments
+                  </Button>
+                  <Button size="sm" variant="ghost" className="w-full justify-start h-8 text-xs hover:bg-gray-100 dark:hover:bg-[hsl(var(--cura-steel))]" 
+                    onClick={() => setShowLabsDialog(true)} data-testid="sidebar-labs">
+                    <TestTube className="h-3 w-3 mr-2" />
+                    Lab Results
+                  </Button>
+                  <Button size="sm" variant="ghost" className="w-full justify-start h-8 text-xs hover:bg-gray-100 dark:hover:bg-[hsl(var(--cura-steel))]" 
+                    onClick={() => setShowPatientRecordsDialog(true)} data-testid="sidebar-records">
+                    <FileText className="h-3 w-3 mr-2" />
+                    Medical Records
+                  </Button>
+                </div>
+              </div>
+
+              {/* Content Section */}
+              <div className="p-4 border-b border-gray-100 dark:border-[hsl(var(--cura-steel))]/50">
+                <h4 className="text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-3">Content</h4>
+                <div className="space-y-2">
+                  <Button size="sm" variant="ghost" className="w-full justify-start h-8 text-xs hover:bg-gray-100 dark:hover:bg-[hsl(var(--cura-steel))]" 
+                    onClick={() => setShowLinkDialog(true)} data-testid="sidebar-link">
+                    <Link className="h-3 w-3 mr-2" />
+                    Insert Link
+                  </Button>
+                  <Button size="sm" variant="ghost" className="w-full justify-start h-8 text-xs hover:bg-gray-100 dark:hover:bg-[hsl(var(--cura-steel))]" 
+                    onClick={() => setShowInsertProductDialog(true)} data-testid="sidebar-product">
+                    <Package className="h-3 w-3 mr-2" />
+                    Insert Product
+                  </Button>
+                  <Button size="sm" variant="ghost" className="w-full justify-start h-8 text-xs hover:bg-gray-100 dark:hover:bg-[hsl(var(--cura-steel))]" 
+                    onClick={() => setShowMoreOptionsDialog(true)} data-testid="sidebar-more">
+                    <MoreHorizontal className="h-3 w-3 mr-2" />
+                    More Options
+                  </Button>
+                </div>
+              </div>
+
+              {/* Templates Section */}
+              <div className="p-4">
+                <h4 className="text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-3">Templates</h4>
+                <div className="space-y-2">
+                  <Button size="sm" variant="ghost" className="w-full justify-start h-8 text-xs hover:bg-gray-100 dark:hover:bg-[hsl(var(--cura-steel))]" 
+                    onClick={() => setShowSavedTemplatesDialog(true)} data-testid="sidebar-load-template">
+                    <FileText className="h-3 w-3 mr-2" />
+                    Load Template
+                  </Button>
+                  <Button size="sm" variant="ghost" className="w-full justify-start h-8 text-xs hover:bg-gray-100 dark:hover:bg-[hsl(var(--cura-steel))]" 
+                    onClick={() => setShowTemplateDialog(true)} data-testid="sidebar-save-template">
+                    <Save className="h-3 w-3 mr-2" />
+                    Save Template
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Mobile Collapsible Sidebar - Shows as collapsed card on small screens */}
+            <div className="lg:hidden">
+              <div className="bg-white dark:bg-[hsl(var(--cura-midnight))] border border-gray-200 dark:border-[hsl(var(--cura-steel))] rounded-lg p-4" data-testid="mobile-sidebar-toggle">
+                <Button className="w-full justify-between text-sm" variant="ghost" onClick={() => setShowFormFields(!showFormFields)}>
+                  <span>Quick Actions</span>
+                  {showFormFields ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
