@@ -205,8 +205,9 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
   const handleEditAppointment = (appointment: any) => {
     setEditingAppointment(appointment);
     
-    // Initialize the date and time slot states properly
-    const appointmentDate = new Date(appointment.scheduledAt);
+    // Initialize the date and time slot states properly - avoid timezone conversion
+    const cleanTimeString = appointment.scheduledAt.replace('Z', '');
+    const appointmentDate = new Date(cleanTimeString);
     setEditAppointmentDate(appointmentDate);
     
     // Convert the time to the correct format to match timeSlots
