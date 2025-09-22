@@ -2960,34 +2960,8 @@ export default function Forms() {
             </Button>
           </div>
           
-          {/* Right - Primary Actions */}
+          {/* Right - Navigation Actions */}
           <div className="flex items-center gap-4">
-            <Button 
-              className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
-              style={{ 
-                backgroundColor: '#7279FB', 
-                color: 'white',
-                borderColor: '#7279FB',
-                borderRadius: '10px',
-                boxShadow: '0 4px 12px rgba(114,121,251,0.3)'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#4A7DFF';
-                e.currentTarget.style.borderColor = '#4A7DFF';
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 6px 16px rgba(74,125,255,0.4)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#7279FB';
-                e.currentTarget.style.borderColor = '#7279FB';
-                e.currentTarget.style.transform = 'translateY(0px)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(114,121,251,0.3)';
-              }}
-              onClick={handlePreview}
-              data-testid="button-save-preview"
-            >
-              Save and preview
-            </Button>
             <Button 
               className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
               style={{ 
@@ -3009,10 +2983,11 @@ export default function Forms() {
                 e.currentTarget.style.transform = 'translateY(0px)';
                 e.currentTarget.style.boxShadow = '0 4px 12px rgba(74,125,255,0.3)';
               }}
-              onClick={handleSaveAsDraft}
-              data-testid="button-save-draft"
+              onClick={() => toast({ title: "Letters", description: "Navigating back to letters list." })}
+              data-testid="button-back-to-letters"
             >
-              Save as draft
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              <span>Back to Letters</span>
             </Button>
           </div>
         </div>
@@ -5257,6 +5232,84 @@ export default function Forms() {
           </div>
         </DialogContent>
       </Dialog>
+      </div>
+
+      {/* Sticky Footer Action Bar */}
+      <div className="sticky bottom-0 left-0 right-0 z-50 bg-white dark:bg-[hsl(var(--cura-midnight))] border-t border-gray-200 dark:border-[hsl(var(--cura-steel))] shadow-lg" data-testid="footer-action-bar">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
+            
+            {/* Left Side - Status and Info */}
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-sm text-gray-600 dark:text-gray-300">Auto-saved</span>
+              </div>
+              <span className="text-xs text-gray-500 dark:text-gray-400 hidden sm:inline">
+                Last saved: Just now
+              </span>
+            </div>
+
+            {/* Right Side - Primary Actions */}
+            <div className="flex items-center space-x-3">
+              <Button 
+                className="h-10 px-6 text-sm font-medium shadow-lg transition-all duration-300 border-2"
+                style={{ 
+                  backgroundColor: '#6B7280', 
+                  color: 'white',
+                  borderColor: '#6B7280',
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 12px rgba(107,114,128,0.3)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#4B5563';
+                  e.currentTarget.style.borderColor = '#4B5563';
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(75,85,99,0.4)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#6B7280';
+                  e.currentTarget.style.borderColor = '#6B7280';
+                  e.currentTarget.style.transform = 'translateY(0px)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(107,114,128,0.3)';
+                }}
+                onClick={handleSaveAsDraft}
+                data-testid="footer-save-draft"
+              >
+                <Save className="h-4 w-4 mr-2" />
+                Save as Draft
+              </Button>
+              
+              <Button 
+                className="h-10 px-6 text-sm font-medium shadow-lg transition-all duration-300 border-2"
+                style={{ 
+                  backgroundColor: '#4A7DFF', 
+                  color: 'white',
+                  borderColor: '#4A7DFF',
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 12px rgba(74,125,255,0.4)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#7279FB';
+                  e.currentTarget.style.borderColor = '#7279FB';
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(114,121,251,0.5)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#4A7DFF';
+                  e.currentTarget.style.borderColor = '#4A7DFF';
+                  e.currentTarget.style.transform = 'translateY(0px)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(74,125,255,0.4)';
+                }}
+                onClick={handlePreview}
+                data-testid="footer-save-preview"
+              >
+                <Eye className="h-4 w-4 mr-2" />
+                Save & Preview
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <Toaster />
