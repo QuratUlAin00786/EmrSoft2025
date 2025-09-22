@@ -1084,20 +1084,8 @@ Medical License: [License Number]
                           setEditAppointmentDate(date);
                           if (date && editSelectedTimeSlot) {
                             const timeSlot = editSelectedTimeSlot;
-                            // Format without timezone conversion to preserve exact time
-                            const dateStr = format(date, 'yyyy-MM-dd');
-                            // Convert 12-hour format to 24-hour format manually
-                            let timeStr = timeSlot;
-                            if (timeSlot.includes('AM') || timeSlot.includes('PM')) {
-                              const [time, period] = timeSlot.split(' ');
-                              const [hours, minutes] = time.split(':');
-                              let hour24 = parseInt(hours);
-                              if (period === 'PM' && hour24 !== 12) hour24 += 12;
-                              if (period === 'AM' && hour24 === 12) hour24 = 0;
-                              timeStr = `${hour24.toString().padStart(2, '0')}:${minutes}:00.000`;
-                            }
-                            const scheduledAtValue = `${dateStr}T${timeStr}Z`;
-                            setEditingAppointment({ ...editingAppointment, scheduledAt: scheduledAtValue });
+                            const newDateTime = new Date(`${format(date, 'yyyy-MM-dd')} ${timeSlot}`);
+                            setEditingAppointment({ ...editingAppointment, scheduledAt: newDateTime.toISOString() });
                           }
                         }}
                         className="rounded-md"
@@ -1132,20 +1120,8 @@ Medical License: [License Number]
                                 setEditSelectedTimeSlot(slot);
                                 if (editAppointmentDate || editingAppointment.scheduledAt) {
                                   const date = editAppointmentDate || new Date(editingAppointment.scheduledAt);
-                                  // Format without timezone conversion to preserve exact time
-                                  const dateStr = format(date, 'yyyy-MM-dd');
-                                  // Convert 12-hour format to 24-hour format manually
-                                  let timeStr = slot;
-                                  if (slot.includes('AM') || slot.includes('PM')) {
-                                    const [time, period] = slot.split(' ');
-                                    const [hours, minutes] = time.split(':');
-                                    let hour24 = parseInt(hours);
-                                    if (period === 'PM' && hour24 !== 12) hour24 += 12;
-                                    if (period === 'AM' && hour24 === 12) hour24 = 0;
-                                    timeStr = `${hour24.toString().padStart(2, '0')}:${minutes}:00.000`;
-                                  }
-                                  const scheduledAtValue = `${dateStr}T${timeStr}Z`;
-                                  setEditingAppointment({ ...editingAppointment, scheduledAt: scheduledAtValue });
+                                  const newDateTime = new Date(`${format(date, 'yyyy-MM-dd')} ${slot}`);
+                                  setEditingAppointment({ ...editingAppointment, scheduledAt: newDateTime.toISOString() });
                                 }
                               }}
                             >
