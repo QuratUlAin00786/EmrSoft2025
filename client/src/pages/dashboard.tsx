@@ -7,8 +7,8 @@ export default function Dashboard() {
   const { user } = useAuth();
 
   return (
-    <>
-      <div className="flex items-center justify-between">
+    <div>
+      <div className="">
         <Header 
           title="Dashboard" 
           subtitle="Welcome back, John. Here's your patient overview."
@@ -24,6 +24,6 @@ export default function Dashboard() {
       <div className="flex-1 overflow-auto p-6">
         <RoleBasedDashboard />
       </div>
-    </>
+    </div>
   );
 }
