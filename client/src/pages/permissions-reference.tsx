@@ -7,8 +7,9 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Header } from "@/components/layout/header";
-import { Shield, Check, X, Eye, Plus, Edit, Trash2, Save, RotateCcw, AlertCircle } from "lucide-react";
+import { Shield, Check, X, Eye, Plus, Edit, Trash2, Save, RotateCcw, AlertCircle, UserPlus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { useTenant } from "@/hooks/use-tenant";
@@ -54,6 +55,14 @@ export default function PermissionsReference() {
   const [editingRoleId, setEditingRoleId] = useState<number | null>(null);
   const [editingRole, setEditingRole] = useState<Role | null>(null);
   
+  // State for creating new role
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [newRole, setNewRole] = useState<Partial<InsertRole>>({ name: "", displayName: "", description: "" });
+  
+  // State for deleting role
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [roleToDelete, setRoleToDelete] = useState<Role | null>(null);
+  
   // Fetch roles
   const { data: roles, isLoading, error } = useQuery({
     queryKey: ["/api/roles"],
@@ -80,6 +89,50 @@ export default function PermissionsReference() {
     },
   });
   
+  // Create role mutation
+  const createRoleMutation = useMutation({
+    mutationFn: async (roleData: InsertRole) => {
+      const token = localStorage.getItem("auth_token");
+      const headers: Record<string, string> = {
+        "X-Tenant-Subdomain": tenant?.subdomain || "demo",
+        "Content-Type": "application/json",
+      };
+
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const response = await fetch("/api/roles", {
+        method: "POST",
+        headers,
+        credentials: "include",
+        body: JSON.stringify(roleData),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to create role: ${response.status}`);
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/roles"] });
+      toast({
+        title: "Role Created",
+        description: "New role has been created successfully.",
+      });
+      setShowCreateDialog(false);
+      setNewRole({ name: "", displayName: "", description: "" });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: "Failed to create role. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Update role mutation
   const updateRoleMutation = useMutation({
     mutationFn: async ({ roleId, updates }: { roleId: number; updates: Partial<Role> }) => {
@@ -123,6 +176,48 @@ export default function PermissionsReference() {
       });
     },
   });
+
+  // Delete role mutation
+  const deleteRoleMutation = useMutation({
+    mutationFn: async (roleId: number) => {
+      const token = localStorage.getItem("auth_token");
+      const headers: Record<string, string> = {
+        "X-Tenant-Subdomain": tenant?.subdomain || "demo",
+      };
+
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`/api/roles/${roleId}`, {
+        method: "DELETE",
+        headers,
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to delete role: ${response.status}`);
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/roles"] });
+      toast({
+        title: "Role Deleted",
+        description: "Role has been deleted successfully.",
+      });
+      setShowDeleteDialog(false);
+      setRoleToDelete(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: "Failed to delete role. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
   
   // Helper functions
   const startEditing = (role: Role) => {
@@ -156,9 +251,9 @@ export default function PermissionsReference() {
       permissions: {
         ...editingRole.permissions,
         modules: {
-          ...editingRole.permissions.modules,
+          ...editingRole.permissions?.modules || {},
           [module]: {
-            ...editingRole.permissions.modules[module],
+            ...(editingRole.permissions?.modules?.[module] || {}),
             [action]: value
           }
         }
@@ -174,14 +269,59 @@ export default function PermissionsReference() {
       permissions: {
         ...editingRole.permissions,
         fields: {
-          ...editingRole.permissions.fields,
+          ...editingRole.permissions?.fields || {},
           [field]: {
-            ...editingRole.permissions.fields[field],
+            ...(editingRole.permissions?.fields?.[field] || {}),
             [permission]: value
           }
         }
       }
     });
+  };
+
+  // Helper function to normalize role name for color mapping
+  const getRoleColor = (roleName: string) => {
+    const normalizedName = roleName.trim().toLowerCase().replace(/\s+/g, '_');
+    return ROLE_COLORS[normalizedName as keyof typeof ROLE_COLORS] || "bg-gray-500";
+  };
+
+  // Helper function to get display name for role
+  const getDisplayName = (role: Role) => {
+    if (role.displayName) return role.displayName;
+    const trimmedName = role.name.trim();
+    // Normalize doctor to Physician
+    if (trimmedName.toLowerCase() === 'doctor') return 'Physician';
+    return trimmedName.charAt(0).toUpperCase() + trimmedName.slice(1);
+  };
+
+  // Helper functions for create/delete
+  const handleCreateRole = () => {
+    if (!newRole.name || !newRole.displayName) {
+      toast({
+        title: "Error",
+        description: "Role name and display name are required.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    const roleData: InsertRole = {
+      name: newRole.name,
+      displayName: newRole.displayName,
+      description: newRole.description || "",
+      permissions: {
+        modules: {},
+        fields: {}
+      }
+    };
+    
+    createRoleMutation.mutate(roleData);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (roleToDelete) {
+      deleteRoleMutation.mutate(roleToDelete.id);
+    }
   };
 
   const renderPermissionIcon = (hasPermission: boolean) => {
@@ -245,11 +385,114 @@ export default function PermissionsReference() {
         subtitle="Complete overview of access levels and permissions for each user role"
       />
 
+      {/* Create Role Button */}
+      {user?.role === "admin" && (
+        <div className="flex justify-end">
+          <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+            <DialogTrigger asChild>
+              <Button data-testid="button-create-role">
+                <UserPlus className="h-4 w-4 mr-2" />
+                Create Role
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Create New Role</DialogTitle>
+                <DialogDescription>
+                  Create a new role with custom permissions for your organization.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <label htmlFor="name" className="text-right">
+                    Name
+                  </label>
+                  <Input
+                    id="name"
+                    value={newRole.name || ""}
+                    onChange={(e) => setNewRole(prev => ({ ...prev, name: e.target.value }))}
+                    className="col-span-3"
+                    placeholder="e.g., nurse"
+                    data-testid="input-new-role-name"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <label htmlFor="displayName" className="text-right">
+                    Display Name
+                  </label>
+                  <Input
+                    id="displayName"
+                    value={newRole.displayName || ""}
+                    onChange={(e) => setNewRole(prev => ({ ...prev, displayName: e.target.value }))}
+                    className="col-span-3"
+                    placeholder="e.g., Nurse"
+                    data-testid="input-new-role-display-name"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <label htmlFor="description" className="text-right">
+                    Description
+                  </label>
+                  <Textarea
+                    id="description"
+                    value={newRole.description || ""}
+                    onChange={(e) => setNewRole(prev => ({ ...prev, description: e.target.value }))}
+                    className="col-span-3"
+                    placeholder="Role description..."
+                    rows={3}
+                    data-testid="textarea-new-role-description"
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button
+                  onClick={handleCreateRole}
+                  disabled={createRoleMutation.isPending}
+                  data-testid="button-confirm-create-role"
+                >
+                  {createRoleMutation.isPending ? "Creating..." : "Create Role"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+      )}
+
+      {/* Delete Role Confirmation Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Role</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete the role "{roleToDelete?.displayName || roleToDelete?.name}"? 
+              This action cannot be undone and will affect all users currently assigned to this role.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowDeleteDialog(false)}
+              data-testid="button-cancel-delete-role"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteConfirm}
+              disabled={deleteRoleMutation.isPending}
+              data-testid="button-confirm-delete-role"
+            >
+              {deleteRoleMutation.isPending ? "Deleting..." : "Delete Role"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <div className="grid gap-6">
         {roles?.map((role: Role) => {
           const isEditing = editingRoleId === role.id;
           const currentRole = isEditing ? editingRole : role;
-          const roleColor = ROLE_COLORS[role.name as keyof typeof ROLE_COLORS] || "bg-gray-500";
+          const roleColor = getRoleColor(role.name);
           
           return (
             <Card key={role.id} className="overflow-hidden">
@@ -276,7 +519,7 @@ export default function PermissionsReference() {
                         </div>
                       ) : (
                         <div>
-                          <CardTitle className="text-xl">{role.displayName}</CardTitle>
+                          <CardTitle className="text-xl">{getDisplayName(role)}</CardTitle>
                           <p className="text-sm text-gray-600 mt-1">{role.description}</p>
                         </div>
                       )}
@@ -309,15 +552,29 @@ export default function PermissionsReference() {
                           </Button>
                         </>
                       ) : (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => startEditing(role)}
-                          data-testid="button-edit-role"
-                        >
-                          <Edit className="h-4 w-4 mr-1" />
-                          Edit
-                        </Button>
+                        <>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => startEditing(role)}
+                            data-testid="button-edit-role"
+                          >
+                            <Edit className="h-4 w-4 mr-1" />
+                            Edit
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              setRoleToDelete(role);
+                              setShowDeleteDialog(true);
+                            }}
+                            data-testid="button-delete-role"
+                          >
+                            <Trash2 className="h-4 w-4 mr-1" />
+                            Delete
+                          </Button>
+                        </>
                       )}
                     </div>
                   )}
@@ -414,27 +671,111 @@ export default function PermissionsReference() {
         })}
       </div>
 
-      <Card>
+      {/* Enhanced Permission Legend */}
+      <Card data-testid="permission-legend">
         <CardHeader>
-          <CardTitle>Permission Legend</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="h-5 w-5" />
+            Permission Legend
+          </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="flex items-center gap-2">
-              <Eye className="h-4 w-4 text-gray-500" />
-              <span className="text-sm">View - Can see the data</span>
+        <CardContent className="space-y-6">
+          {/* Action Icons */}
+          <div>
+            <h4 className="font-semibold mb-3">Action Permissions</h4>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="flex items-center gap-2" data-testid="legend-view">
+                <Eye className="h-4 w-4 text-gray-500" />
+                <div>
+                  <span className="text-sm font-medium">View</span>
+                  <p className="text-xs text-gray-600">Can see and read data</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2" data-testid="legend-create">
+                <Plus className="h-4 w-4 text-gray-500" />
+                <div>
+                  <span className="text-sm font-medium">Create</span>
+                  <p className="text-xs text-gray-600">Can add new items</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2" data-testid="legend-edit">
+                <Edit className="h-4 w-4 text-gray-500" />
+                <div>
+                  <span className="text-sm font-medium">Edit</span>
+                  <p className="text-xs text-gray-600">Can modify existing items</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2" data-testid="legend-delete">
+                <Trash2 className="h-4 w-4 text-gray-500" />
+                <div>
+                  <span className="text-sm font-medium">Delete</span>
+                  <p className="text-xs text-gray-600">Can remove items</p>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Plus className="h-4 w-4 text-gray-500" />
-              <span className="text-sm">Create - Can add new items</span>
+          </div>
+
+          {/* Permission Status */}
+          <div>
+            <h4 className="font-semibold mb-3">Permission Status</h4>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex items-center gap-2" data-testid="legend-allowed">
+                <Check className="h-4 w-4 text-green-600" />
+                <div>
+                  <span className="text-sm font-medium text-green-700">Allowed</span>
+                  <p className="text-xs text-gray-600">Permission is granted</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2" data-testid="legend-denied">
+                <X className="h-4 w-4 text-red-400" />
+                <div>
+                  <span className="text-sm font-medium text-red-600">Denied</span>
+                  <p className="text-xs text-gray-600">Permission is not granted</p>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Edit className="h-4 w-4 text-gray-500" />
-              <span className="text-sm">Edit - Can modify existing items</span>
+          </div>
+
+          {/* Role Colors */}
+          <div>
+            <h4 className="font-semibold mb-3">Role Types</h4>
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+              <div className="flex items-center gap-2" data-testid="legend-admin">
+                <div className="w-3 h-3 rounded-full bg-red-500" />
+                <span className="text-sm">Administrator</span>
+              </div>
+              <div className="flex items-center gap-2" data-testid="legend-doctor">
+                <div className="w-3 h-3 rounded-full bg-blue-500" />
+                <span className="text-sm">Physician</span>
+              </div>
+              <div className="flex items-center gap-2" data-testid="legend-nurse">
+                <div className="w-3 h-3 rounded-full bg-green-500" />
+                <span className="text-sm">Nurse</span>
+              </div>
+              <div className="flex items-center gap-2" data-testid="legend-receptionist">
+                <div className="w-3 h-3 rounded-full bg-purple-500" />
+                <span className="text-sm">Receptionist</span>
+              </div>
+              <div className="flex items-center gap-2" data-testid="legend-patient">
+                <div className="w-3 h-3 rounded-full bg-orange-500" />
+                <span className="text-sm">Patient</span>
+              </div>
+              <div className="flex items-center gap-2" data-testid="legend-sample-taker">
+                <div className="w-3 h-3 rounded-full bg-teal-500" />
+                <span className="text-sm">Sample Taker</span>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Trash2 className="h-4 w-4 text-gray-500" />
-              <span className="text-sm">Delete - Can remove items</span>
+          </div>
+
+          {/* Module Types */}
+          <div>
+            <h4 className="font-semibold mb-3">Module Categories</h4>
+            <div className="text-sm text-gray-600 space-y-1">
+              <p><strong>Core Modules:</strong> Patients, Appointments, Medical Records, Prescriptions</p>
+              <p><strong>Clinical:</strong> Lab Results, Medical Imaging, AI Insights, Clinical Decision Support</p>
+              <p><strong>Administrative:</strong> Billing, User Management, Settings, Analytics</p>
+              <p><strong>Communication:</strong> Messaging, Telemedicine, Voice Documentation</p>
+              <p><strong>Advanced:</strong> Forms, Integrations, Automation, Mobile Health, Population Health</p>
             </div>
           </div>
         </CardContent>
