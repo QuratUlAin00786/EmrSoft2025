@@ -2924,6 +2924,7 @@ export default function Forms() {
   };
 
   return (
+    <>
     <div className="h-screen flex flex-col bg-gray-100 dark:bg-[hsl(var(--cura-midnight))]">
       {/* Page Shell Container */}
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 flex-1 overflow-y-auto">
@@ -3085,6 +3086,7 @@ export default function Forms() {
           </div>
         )}
             </div>
+          </div>
 
             {/* Sticky Grouped Toolbar */}
             <div className="sticky top-0 z-40 bg-white dark:bg-[hsl(var(--cura-midnight))] border-y border-gray-200 dark:border-[hsl(var(--cura-steel))] px-4 py-3 shadow-sm" data-testid="sticky-toolbar">
@@ -3200,7 +3202,7 @@ export default function Forms() {
                       Edit Clinic Info
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="max-w-md w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]"
+                  <DialogContent className="max-w-md w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]">
                     <DialogHeader>
                       <DialogTitle>Edit Clinic Information</DialogTitle>
                     </DialogHeader>
@@ -3829,10 +3831,10 @@ export default function Forms() {
                         }}
                         data-testid="editor-textarea"
                       />
-            </div>
-          </div>
-        </div>
-          </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
           {/* Right Sidebar - Insert Actions */}
           <div className="lg:col-span-4 space-y-4" data-testid="right-sidebar">
@@ -3935,10 +3937,11 @@ export default function Forms() {
           </div>
         </div>
       </div>
+      </div>
 
       {/* Insert Link Dialog */}
       <Dialog open={showLinkDialog} onOpenChange={setShowLinkDialog}>
-        <DialogContent className="max-w-md w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]"
+        <DialogContent className="max-w-md w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]">
           <DialogHeader>
             <DialogTitle>Insert Link</DialogTitle>
           </DialogHeader>
@@ -3985,7 +3988,7 @@ export default function Forms() {
 
       {/* Template Selection Dialog */}
       <Dialog open={showTemplateDialog} onOpenChange={setShowTemplateDialog}>
-        <DialogContent className="max-w-lg w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]"
+        <DialogContent className="max-w-lg w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]">
           <DialogHeader>
             <DialogTitle>Insert Template</DialogTitle>
           </DialogHeader>
@@ -4164,7 +4167,7 @@ export default function Forms() {
 
       {/* Logo Selection Dialog */}
       <Dialog open={showLogoDialog} onOpenChange={setShowLogoDialog}>
-        <DialogContent className="max-w-lg w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]"
+        <DialogContent className="max-w-lg w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]">
           <DialogHeader>
             <DialogTitle>Insert Logo</DialogTitle>
           </DialogHeader>
@@ -4279,7 +4282,7 @@ export default function Forms() {
 
       {/* Clinic Information Dialog */}
       <Dialog open={showClinicDialog} onOpenChange={setShowClinicDialog}>
-        <DialogContent className="max-w-2xl w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]"
+        <DialogContent className="max-w-2xl w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]">
           <DialogHeader>
             <DialogTitle>Insert Clinic Information</DialogTitle>
           </DialogHeader>
@@ -4384,7 +4387,7 @@ export default function Forms() {
 
       {/* Edit Clinic Information Dialog */}
       <Dialog open={showEditClinicDialog} onOpenChange={setShowEditClinicDialog}>
-        <DialogContent className="max-w-md w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]"
+        <DialogContent className="max-w-md w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]">
           <DialogHeader>
             <DialogTitle>Edit Clinic Information</DialogTitle>
           </DialogHeader>
@@ -4473,7 +4476,7 @@ export default function Forms() {
 
       {/* Patient Information Dialog */}
       <Dialog open={showPatientDialog} onOpenChange={setShowPatientDialog}>
-        <DialogContent className="max-w-2xl w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]"
+        <DialogContent className="max-w-2xl w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]">
           <DialogHeader>
             <DialogTitle>Insert Patient Information</DialogTitle>
           </DialogHeader>
@@ -4567,7 +4570,7 @@ export default function Forms() {
 
       {/* Recipient Information Dialog */}
       <Dialog open={showRecipientDialog} onOpenChange={setShowRecipientDialog}>
-        <DialogContent className="max-w-2xl w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]"
+        <DialogContent className="max-w-2xl w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]">
           <DialogHeader>
             <DialogTitle>Insert Recipient Information</DialogTitle>
           </DialogHeader>
@@ -4661,7 +4664,7 @@ export default function Forms() {
 
       {/* Appointments Information Dialog */}
       <Dialog open={showAppointmentsDialog} onOpenChange={setShowAppointmentsDialog}>
-        <DialogContent className="max-w-2xl w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]"
+        <DialogContent className="max-w-2xl w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]">
           <DialogHeader>
             <DialogTitle>Insert Appointment Information</DialogTitle>
           </DialogHeader>
@@ -4755,7 +4758,7 @@ export default function Forms() {
 
       {/* Labs Information Dialog */}
       <Dialog open={showLabsDialog} onOpenChange={setShowLabsDialog}>
-        <DialogContent className="max-w-2xl w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]"
+        <DialogContent className="max-w-2xl w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]">
           <DialogHeader>
             <DialogTitle>Insert Laboratory Information</DialogTitle>
           </DialogHeader>
@@ -4849,7 +4852,7 @@ export default function Forms() {
 
       {/* Patient Records Information Dialog */}
       <Dialog open={showPatientRecordsDialog} onOpenChange={setShowPatientRecordsDialog}>
-        <DialogContent className="max-w-2xl w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]"
+        <DialogContent className="max-w-2xl w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]">
           <DialogHeader>
             <DialogTitle>Insert Patient Records Information</DialogTitle>
           </DialogHeader>
@@ -4943,7 +4946,7 @@ export default function Forms() {
 
       {/* Insert Product Dialog */}
       <Dialog open={showInsertProductDialog} onOpenChange={setShowInsertProductDialog}>
-        <DialogContent className="max-w-2xl w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]"
+        <DialogContent className="max-w-2xl w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]">
           <DialogHeader>
             <DialogTitle>Insert Product Information</DialogTitle>
           </DialogHeader>
@@ -5037,7 +5040,7 @@ export default function Forms() {
 
       {/* More Options Dialog */}
       <Dialog open={showMoreOptionsDialog} onOpenChange={setShowMoreOptionsDialog}>
-        <DialogContent className="max-w-2xl w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]"
+        <DialogContent className="max-w-2xl w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]">
           <DialogHeader>
             <DialogTitle>More Formatting Options</DialogTitle>
           </DialogHeader>
@@ -5142,7 +5145,7 @@ export default function Forms() {
 
       {/* View Saved Templates Dialog */}
       <Dialog open={showSavedTemplatesDialog} onOpenChange={setShowSavedTemplatesDialog}>
-        <DialogContent className="max-w-3xl w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]"
+        <DialogContent className="max-w-3xl w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]">
           <DialogHeader>
             <DialogTitle>Saved Templates</DialogTitle>
           </DialogHeader>
@@ -5234,85 +5237,7 @@ export default function Forms() {
       </Dialog>
       </div>
 
-      {/* Sticky Footer Action Bar */}
-      <div className="sticky bottom-0 left-0 right-0 z-50 bg-white dark:bg-[hsl(var(--cura-midnight))] border-t border-gray-200 dark:border-[hsl(var(--cura-steel))] shadow-lg" data-testid="footer-action-bar">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            
-            {/* Left Side - Status and Info */}
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-sm text-gray-600 dark:text-gray-300">Auto-saved</span>
-              </div>
-              <span className="text-xs text-gray-500 dark:text-gray-400 hidden sm:inline">
-                Last saved: Just now
-              </span>
-            </div>
-
-            {/* Right Side - Primary Actions */}
-            <div className="flex items-center space-x-3">
-              <Button 
-                className="h-10 px-6 text-sm font-medium shadow-lg transition-all duration-300 border-2"
-                style={{ 
-                  backgroundColor: '#6B7280', 
-                  color: 'white',
-                  borderColor: '#6B7280',
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 12px rgba(107,114,128,0.3)'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#4B5563';
-                  e.currentTarget.style.borderColor = '#4B5563';
-                  e.currentTarget.style.transform = 'translateY(-1px)';
-                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(75,85,99,0.4)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = '#6B7280';
-                  e.currentTarget.style.borderColor = '#6B7280';
-                  e.currentTarget.style.transform = 'translateY(0px)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(107,114,128,0.3)';
-                }}
-                onClick={handleSaveAsDraft}
-                data-testid="footer-save-draft"
-              >
-                <Save className="h-4 w-4 mr-2" />
-                Save as Draft
-              </Button>
-              
-              <Button 
-                className="h-10 px-6 text-sm font-medium shadow-lg transition-all duration-300 border-2"
-                style={{ 
-                  backgroundColor: '#4A7DFF', 
-                  color: 'white',
-                  borderColor: '#4A7DFF',
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 12px rgba(74,125,255,0.4)'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#7279FB';
-                  e.currentTarget.style.borderColor = '#7279FB';
-                  e.currentTarget.style.transform = 'translateY(-1px)';
-                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(114,121,251,0.5)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = '#4A7DFF';
-                  e.currentTarget.style.borderColor = '#4A7DFF';
-                  e.currentTarget.style.transform = 'translateY(0px)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(74,125,255,0.4)';
-                }}
-                onClick={handlePreview}
-                data-testid="footer-save-preview"
-              >
-                <Eye className="h-4 w-4 mr-2" />
-                Save & Preview
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <Toaster />
-    </div>
+    </>
   );
 }
