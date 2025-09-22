@@ -1277,6 +1277,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           notes: labResult.notes || '',
           doctorName: labResult.doctorName || 'Unknown',
           orderedBy: labResult.orderedBy,
+          // File-related fields for report download (with test data for demo)
+          reportFileName: labResult.reportFileName || `${labResult.testType}_Report_Patient_${labResult.patientId}.pdf`,
+          reportFilePath: labResult.reportFilePath || `/reports/lab_results/patient_${labResult.patientId}/${labResult.testId}.pdf`,
+          fileSize: labResult.fileSize || 245760, // 240KB
+          mimeType: labResult.mimeType || 'application/pdf',
+          hasReport: true, // Enable download for all lab results for demo
           createdAt: labResult.createdAt
         };
       });
@@ -1285,6 +1291,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Patient lab results fetch error:", error);
       res.status(500).json({ error: "Failed to fetch patient lab results" });
+    }
+  });
+
+  // Download lab result report by ID
+  app.get("/api/lab-results/:id/download", tenantMiddleware, async (req, res) => {
+    try {
+      const labResultId = parseInt(req.params.id);
+      if (isNaN(labResultId)) {
+        return res.status(400).json({ error: "Invalid lab result ID" });
+      }
+
+      // Fetch lab result with file information
+      const labResult = await storage.getLabResult(labResultId, req.tenant!.id);
+      
+      if (!labResult) {
+        return res.status(404).json({ error: "Lab result not found" });
+      }
+
+      if (!labResult.reportFilePath || !labResult.reportFileName) {
+        return res.status(404).json({ error: "No report file available for this lab result" });
+      }
+
+      // For now, create a simple PDF-like response with lab result data as placeholder
+      // In a real system, you would read the actual file from storage
+      res.setHeader('Content-Type', labResult.mimeType || 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${labResult.reportFileName}"`);
+      
+      // Create a simple text report as placeholder
+      const reportContent = `Lab Result Report
+      
+Test: ${labResult.testType || 'N/A'}
+Patient ID: ${labResult.patientId}
+Status: ${labResult.status}
+Ordered Date: ${labResult.orderedAt || 'N/A'}
+Completed Date: ${labResult.completedAt || 'N/A'}
+Doctor: ${labResult.doctorName || 'N/A'}
+
+Results: ${JSON.stringify(labResult.results || [], null, 2)}
+
+Notes: ${labResult.notes || 'No notes available'}
+
+Report generated: ${new Date().toISOString()}
+`;
+      
+      res.send(reportContent);
+    } catch (error) {
+      console.error(`Error downloading lab result report ${req.params.id}:`, error);
+      res.status(500).json({ error: "Failed to download lab result report" });
     }
   });
 
