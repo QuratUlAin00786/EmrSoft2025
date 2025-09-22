@@ -3778,7 +3778,7 @@ export default function Forms() {
                 }, 100);
               }}
             >
-              <SelectTrigger data-bluewave="true" className="w-20 h-6 text-xs">
+              <SelectTrigger data-bluewave="true" className="w-90 h-6 p-3 text-xs">
                 <SelectValue placeholder="H2" />
               </SelectTrigger>
               <SelectContent>
@@ -3810,7 +3810,7 @@ export default function Forms() {
                 }
               }}
             >
-              <SelectTrigger data-bluewave="true" className="w-24 h-5 text-xs">
+              <SelectTrigger data-bluewave="true" className="w-150 h-5 p-3 text-xs">
                 <SelectValue placeholder="Verdana" />
               </SelectTrigger>
               <SelectContent>
@@ -3852,7 +3852,7 @@ export default function Forms() {
                 }
               }}
             >
-              <SelectTrigger data-bluewave="true" className="w-16 h-5 text-xs">
+              <SelectTrigger data-bluewave="true" className="w-90 p-3 h-5 text-xs">
                 <SelectValue placeholder="12pt" />
               </SelectTrigger>
               <SelectContent>
