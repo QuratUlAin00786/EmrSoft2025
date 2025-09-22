@@ -5,6 +5,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarContent, AvatarFallback } from "@/components/ui/avatar";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Calendar,
   Eye,
   User,
@@ -23,6 +30,7 @@ import {
   Pill,
   Activity,
   Camera,
+  Check,
 } from "lucide-react";
 import {
   Tooltip,
@@ -152,7 +160,77 @@ function PatientDetailsModal({
   patient,
 }: PatientDetailsModalProps) {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("basic");
+
+  // Risk level editing state
+  const [editingRiskLevel, setEditingRiskLevel] = useState(false);
+  const [tempRiskLevel, setTempRiskLevel] = useState("");
+
+  // Risk level update mutation
+  const riskLevelUpdateMutation = useMutation({
+    mutationFn: async ({ patientId, riskLevel }: { patientId: number; riskLevel: string }) => {
+      const token = localStorage.getItem("auth_token");
+      const headers: Record<string, string> = {
+        "X-Tenant-Subdomain": "demo",
+        "Content-Type": "application/json",
+      };
+
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`/api/patients/${patientId}`, {
+        method: "PATCH",
+        headers,
+        credentials: "include",
+        body: JSON.stringify({ riskLevel }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to update risk level: ${response.status}`);
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      // Auto refresh - invalidate and refetch patients
+      queryClient.invalidateQueries({ queryKey: ["/api/patients"] });
+      toast({
+        title: "Risk Level Updated",
+        description: "Patient risk level has been updated successfully.",
+      });
+      setEditingRiskLevel(false);
+      setTempRiskLevel("");
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to update risk level. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Helper functions for risk level editing
+  const handleStartEditingRiskLevel = (currentRiskLevel: string) => {
+    setEditingRiskLevel(true);
+    setTempRiskLevel(currentRiskLevel || "low");
+  };
+
+  const handleCancelEditingRiskLevel = () => {
+    setEditingRiskLevel(false);
+    setTempRiskLevel("");
+  };
+
+  const handleSaveRiskLevel = () => {
+    if (patient?.id && tempRiskLevel) {
+      riskLevelUpdateMutation.mutate({
+        patientId: patient.id,
+        riskLevel: tempRiskLevel,
+      });
+    }
+  };
 
   // Fetch medical records by patient ID
   const { data: medicalRecords = [], isLoading: recordsLoading } = useQuery({
@@ -444,14 +522,63 @@ function PatientDetailsModal({
                     <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
                       Risk Level
                     </p>
-                    <Badge
-                      className={getRiskLevelColor(patient.riskLevel)}
-                      style={{
-                        backgroundColor: getRiskLevelBgColor(patient.riskLevel),
-                      }}
-                    >
-                      {patient.riskLevel || "Not assessed"}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      {editingRiskLevel ? (
+                        <div className="flex items-center gap-2">
+                          <Select
+                            value={tempRiskLevel}
+                            onValueChange={setTempRiskLevel}
+                          >
+                            <SelectTrigger className="w-[120px] h-8">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="low">low</SelectItem>
+                              <SelectItem value="medium">medium</SelectItem>
+                              <SelectItem value="high">high</SelectItem>
+                              <SelectItem value="critical">critical</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <Button
+                            size="sm"
+                            onClick={handleSaveRiskLevel}
+                            disabled={riskLevelUpdateMutation.isPending}
+                            className="h-8 px-2"
+                          >
+                            <Check className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={handleCancelEditingRiskLevel}
+                            disabled={riskLevelUpdateMutation.isPending}
+                            className="h-8 px-2"
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <Badge
+                            className={getRiskLevelColor(patient.riskLevel)}
+                            style={{
+                              backgroundColor: getRiskLevelBgColor(patient.riskLevel),
+                            }}
+                          >
+                            {patient.riskLevel || "Not assessed"}
+                          </Badge>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleStartEditingRiskLevel(patient.riskLevel)}
+                            className="h-6 w-6 p-0 hover:bg-gray-100"
+                            data-testid="button-edit-risk-level"
+                          >
+                            <Edit className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
 
