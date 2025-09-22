@@ -918,7 +918,7 @@ function PatientDetailsModal({
                             Diagnosis
                           </p>
                           <p className="font-medium">
-                            {prescription.diagnosis || "e"}
+                            {prescription.diagnosis || "No diagnosis specified"}
                           </p>
                         </div>
                       </CardContent>
@@ -929,13 +929,47 @@ function PatientDetailsModal({
                       <CardHeader>
                         <CardTitle className="text-lg flex items-center gap-2">
                           <Pill className="h-5 w-5" />
-                          Medications (0)
+                          Medications ({prescription.medications?.length || 0})
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="text-center py-4 text-gray-500">
-                          <p>No detailed medication information available</p>
-                        </div>
+                        {prescription.medications && prescription.medications.length > 0 ? (
+                          <div className="space-y-3">
+                            {prescription.medications.map((medication: any, index: number) => (
+                              <div key={index} className="border rounded p-3 bg-white dark:bg-gray-700">
+                                <div className="font-semibold text-lg mb-2">{medication.name}</div>
+                                <div className="grid grid-cols-2 gap-3 text-sm">
+                                  <div>
+                                    <p className="font-medium text-gray-600 dark:text-gray-300">Dosage:</p>
+                                    <p>{medication.dosage}</p>
+                                  </div>
+                                  <div>
+                                    <p className="font-medium text-gray-600 dark:text-gray-300">Frequency:</p>
+                                    <p>{medication.frequency}</p>
+                                  </div>
+                                  <div>
+                                    <p className="font-medium text-gray-600 dark:text-gray-300">Duration:</p>
+                                    <p>{medication.duration}</p>
+                                  </div>
+                                  <div>
+                                    <p className="font-medium text-gray-600 dark:text-gray-300">Quantity:</p>
+                                    <p>{medication.quantity || 'Not specified'}</p>
+                                  </div>
+                                </div>
+                                {medication.instructions && (
+                                  <div className="mt-2">
+                                    <p className="font-medium text-gray-600 dark:text-gray-300">Instructions:</p>
+                                    <p className="text-sm">{medication.instructions}</p>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-center py-4 text-gray-500">
+                            <p>No medication information available</p>
+                          </div>
+                        )}
                       </CardContent>
                     </Card>
 

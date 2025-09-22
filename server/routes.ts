@@ -1214,24 +1214,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const patientId = parseInt(req.params.id);
       
-      // Get prescriptions for this patient from medical records
-      const records = await storage.getMedicalRecordsByPatient(patientId, req.tenant!.id);
-      const prescriptions = records
-        .filter(record => record.type === 'prescription' || record.prescription)
-        .map(record => ({
-          id: record.id,
-          medicationName: record.title,
-          dosage: record.prescription?.medications?.[0]?.dosage || 'Not specified',
-          frequency: record.prescription?.medications?.[0]?.frequency || 'Not specified',
-          duration: record.prescription?.medications?.[0]?.duration || 'Not specified',
-          instructions: record.notes || 'No instructions',
-          prescribedBy: 'Dr. ' + (record.providerId || 'Unknown'),
-          prescribedDate: record.createdAt,
-          status: 'Active',
-          createdAt: record.createdAt
-        }));
+      // Get prescriptions directly from prescriptions table
+      const prescriptions = await storage.getPrescriptionsByPatient(patientId, req.tenant!.id);
+      
+      // Format prescriptions for frontend
+      const formattedPrescriptions = prescriptions.map(prescription => ({
+        id: prescription.id,
+        medicationName: prescription.medicationName || 'Unknown medication',
+        dosage: prescription.dosage || 'Not specified',
+        frequency: prescription.frequency || 'Not specified',
+        duration: prescription.duration || 'Not specified',
+        instructions: prescription.instructions || 'No instructions',
+        prescribedBy: prescription.prescribedBy || 'Dr. Unknown',
+        prescribedDate: prescription.prescribedAt || prescription.createdAt,
+        status: prescription.status || 'active',
+        diagnosis: prescription.diagnosis || 'No diagnosis specified',
+        medications: prescription.medications || [],
+        providerId: prescription.doctorId,
+        createdAt: prescription.createdAt
+      }));
 
-      res.json(prescriptions);
+      res.json(formattedPrescriptions);
     } catch (error) {
       console.error("Patient prescriptions fetch error:", error);
       res.status(500).json({ error: "Failed to fetch patient prescriptions" });
