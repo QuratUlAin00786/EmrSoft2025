@@ -110,12 +110,14 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
     if (!date || !timeSlot || !appointments) return true;
     
     const selectedDateString = format(date, 'yyyy-MM-dd');
-    const appointmentDateTime = new Date(`${selectedDateString} ${timeSlot}`);
     
     // Check if this slot is already taken (excluding the current appointment being edited)
     return !appointments.some((apt: any) => {
       if (editingAppointment && apt.id === editingAppointment.id) return false; // Exclude current appointment
-      const aptDate = new Date(apt.scheduledAt);
+      
+      // Remove 'Z' to avoid timezone conversion
+      const cleanTimeString = apt.scheduledAt.replace('Z', '');
+      const aptDate = new Date(cleanTimeString);
       const aptTime = format(aptDate, 'h:mm a');
       const aptDateString = format(aptDate, 'yyyy-MM-dd');
       
@@ -1201,13 +1203,36 @@ Medical License: [License Number]
                   </Button>
                   <Button
                     onClick={() => {
+                      if (!editAppointmentDate || !editSelectedTimeSlot) {
+                        toast({
+                          title: "Missing Information",
+                          description: "Please select both date and time slot.",
+                          variant: "destructive",
+                        });
+                        return;
+                      }
+                      
+                      // Create new datetime without timezone conversion
+                      const selectedDate = format(editAppointmentDate, 'yyyy-MM-dd');
+                      const [time, period] = editSelectedTimeSlot.split(' ');
+                      const [hours, minutes] = time.split(':');
+                      let hour24 = parseInt(hours);
+                      
+                      if (period === 'PM' && hour24 !== 12) {
+                        hour24 += 12;
+                      } else if (period === 'AM' && hour24 === 12) {
+                        hour24 = 0;
+                      }
+                      
+                      const newScheduledAt = `${selectedDate}T${hour24.toString().padStart(2, '0')}:${minutes}:00.000Z`;
+                      
                       editAppointmentMutation.mutate({
                         id: editingAppointment.id,
                         data: {
                           title: editingAppointment.title,
                           type: editingAppointment.type,
                           status: editingAppointment.status,
-                          scheduledAt: editingAppointment.scheduledAt,
+                          scheduledAt: newScheduledAt,
                           description: editingAppointment.description,
                         }
                       });
