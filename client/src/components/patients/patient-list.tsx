@@ -154,58 +154,6 @@ function PatientDetailsModal({
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("basic");
 
-  // Handle lab report download
-  const handleDownloadReport = async (result: any) => {
-    if (!result.reportFilePath || !result.reportFileName) {
-      console.error("No report file available for download");
-      return;
-    }
-
-    try {
-      const token = localStorage.getItem("auth_token");
-      const headers: Record<string, string> = {
-        "X-Tenant-Subdomain": "demo",
-      };
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
-
-      // Create download request
-      const response = await fetch(`/api/lab-results/${result.id}/download`, {
-        headers,
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to download report: ${response.status}`);
-      }
-
-      // Create blob and download link
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = result.reportFileName;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-      
-      // Show success message
-      toast({
-        title: "Report downloaded",
-        description: `${result.reportFileName} has been downloaded successfully`,
-      });
-    } catch (error) {
-      console.error("Error downloading report:", error);
-      toast({
-        title: "Download failed",
-        description: "Failed to download lab report. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
   // Fetch medical records by patient ID
   const { data: medicalRecords = [], isLoading: recordsLoading } = useQuery({
     queryKey: ["/api/patients", patient?.id, "records"],
@@ -1090,27 +1038,14 @@ function PatientDetailsModal({
                             <h4 className="font-semibold">
                               {result.testName || result.name}
                             </h4>
-                            <div className="flex items-center gap-2">
-                              <Badge
-                                style={{
-                                  backgroundColor: "#6CFFEB",
-                                  color: "#162B61",
-                                }}
-                              >
-                                {result.status || "Completed"}
-                              </Badge>
-                              {result.hasReport && result.reportFileName && (
-                                <button
-                                  onClick={() => handleDownloadReport(result)}
-                                  className="flex items-center gap-1 px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
-                                  data-testid={`download-report-${result.id}`}
-                                  title={`Download ${result.reportFileName}`}
-                                >
-                                  <FileText className="h-3 w-3" />
-                                  Open Report
-                                </button>
-                              )}
-                            </div>
+                            <Badge
+                              style={{
+                                backgroundColor: "#6CFFEB",
+                                color: "#162B61",
+                              }}
+                            >
+                              {result.status || "Completed"}
+                            </Badge>
                           </div>
                           <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
                             Test Date:{" "}

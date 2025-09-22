@@ -802,11 +802,6 @@ export const labResults = pgTable("lab_results", {
   }>>().default([]),
   criticalValues: boolean("critical_values").notNull().default(false),
   notes: text("notes"),
-  // Lab report file storage
-  reportFileName: text("report_file_name"), // Generated lab report file name
-  reportFilePath: text("report_file_path"), // Generated lab report file path
-  fileSize: integer("file_size"), // Report file size in bytes
-  mimeType: varchar("mime_type", { length: 100 }), // Report file MIME type (usually application/pdf)
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
