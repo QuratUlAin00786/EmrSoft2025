@@ -990,28 +990,111 @@ export default function ImagingPage() {
     }
   };
 
-  const viewPDFReport = (reportId: string) => {
-    const reportUrl = `/api/imaging/reports/${reportId}`;
-    window.open(
-      reportUrl,
-      "_blank",
-      "width=800,height=600,scrollbars=yes,resizable=yes",
-    );
+  const viewPDFReport = async (reportId: string) => {
+    try {
+      // Prepare authentication headers
+      const headers: Record<string, string> = {
+        "X-Tenant-Subdomain": "demo",
+      };
+
+      // Add authorization token if available
+      const token = localStorage.getItem("token");
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      // Fetch PDF with authentication
+      const response = await fetch(`/api/imaging/reports/${reportId}`, {
+        method: "GET",
+        headers,
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to load PDF: ${response.status} ${response.statusText}`);
+      }
+
+      // Convert response to blob
+      const blob = await response.blob();
+      
+      // Create blob URL and open in new window
+      const blobUrl = URL.createObjectURL(blob);
+      const newWindow = window.open(
+        blobUrl,
+        "_blank",
+        "width=800,height=600,scrollbars=yes,resizable=yes",
+      );
+
+      // Clean up blob URL after window is loaded
+      if (newWindow) {
+        newWindow.addEventListener('load', () => {
+          URL.revokeObjectURL(blobUrl);
+        });
+      } else {
+        // Fallback cleanup if window didn't open
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
+      }
+    } catch (error) {
+      console.error("Error viewing PDF:", error);
+      toast({
+        title: "Error",
+        description: "Failed to open PDF report. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const downloadPDFReport = (reportId: string) => {
-    const reportUrl = `/api/imaging/reports/${reportId}`;
-    const a = document.createElement("a");
-    a.href = reportUrl;
-    a.download = `radiology-report-${reportId}.pdf`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+  const downloadPDFReport = async (reportId: string) => {
+    try {
+      // Prepare authentication headers
+      const headers: Record<string, string> = {
+        "X-Tenant-Subdomain": "demo",
+      };
 
-    toast({
-      title: "PDF Report Downloaded",
-      description: "Radiology report PDF has been downloaded successfully",
-    });
+      // Add authorization token if available
+      const token = localStorage.getItem("token");
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      // Fetch PDF with authentication
+      const response = await fetch(`/api/imaging/reports/${reportId}?download=true`, {
+        method: "GET", 
+        headers,
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to download PDF: ${response.status} ${response.statusText}`);
+      }
+
+      // Convert response to blob
+      const blob = await response.blob();
+      
+      // Create download link
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = `radiology-report-${reportId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      
+      // Clean up blob URL
+      URL.revokeObjectURL(blobUrl);
+
+      toast({
+        title: "PDF Report Downloaded",
+        description: "Radiology report PDF has been downloaded successfully",
+      });
+    } catch (error) {
+      console.error("Error downloading PDF:", error);
+      toast({
+        title: "Error",
+        description: "Failed to download PDF report. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleDeleteStudy = async (studyId: string) => {
@@ -1809,13 +1892,8 @@ export default function ImagingPage() {
                                   );
                                 }
 
-                                // File exists, now open it
-                                const viewUrl = `/api/imaging/reports/${reportId}`;
-                                window.open(
-                                  viewUrl,
-                                  "_blank",
-                                  "width=800,height=600,scrollbars=yes,resizable=yes",
-                                );
+                                // File exists, now open it with authentication
+                                await viewPDFReport(reportId);
                               } catch (error) {
                                 console.error(
                                   `Failed to view PDF for study ${study.id}:`,
@@ -2324,14 +2402,10 @@ export default function ImagingPage() {
                             <strong>Report File:</strong>
                             <Button
                               variant="link"
-                              onClick={() => {
+                              onClick={async () => {
                                 if (selectedStudy.reportFileName) {
-                                  const reportUrl = `/api/imaging/reports/${selectedStudy.reportFileName.replace(".pdf", "")}`;
-                                  window.open(
-                                    reportUrl,
-                                    "_blank",
-                                    "width=800,height=600,scrollbars=yes,resizable=yes",
-                                  );
+                                  const reportId = selectedStudy.reportFileName.replace(".pdf", "");
+                                  await viewPDFReport(reportId);
                                 }
                               }}
                               className="p-0 h-auto text-blue-600 hover:text-blue-800 underline"
