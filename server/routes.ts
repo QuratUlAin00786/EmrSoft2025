@@ -1249,7 +1249,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get lab results for this patient
       const labResults = await storage.getLabResultsByPatient(patientId, req.tenant!.id);
       
-      res.json(labResults || []);
+      // Format lab results for frontend display
+      const formattedLabResults = labResults.map(labResult => {
+        // If results array has data, use the first result for main display
+        const primaryResult = labResult.results && labResult.results.length > 0 ? labResult.results[0] : null;
+        
+        return {
+          id: labResult.id,
+          testName: labResult.testType || 'Lab Test',
+          name: labResult.testType || 'Lab Test',
+          testType: labResult.testType,
+          status: labResult.status || 'completed',
+          testDate: labResult.completedAt || labResult.collectedAt || labResult.orderedAt || labResult.createdAt,
+          orderedAt: labResult.orderedAt,
+          collectedAt: labResult.collectedAt,
+          completedAt: labResult.completedAt,
+          priority: labResult.priority || 'routine',
+          // Use primary result values or fallback
+          result: primaryResult?.value || 'N/A',
+          value: primaryResult?.value || 'N/A',
+          referenceRange: primaryResult?.referenceRange || 'Not specified',
+          units: primaryResult?.unit || 'Not specified',
+          unit: primaryResult?.unit || 'Not specified',
+          // Additional fields
+          results: labResult.results || [],
+          criticalValues: labResult.criticalValues || false,
+          notes: labResult.notes || '',
+          doctorName: labResult.doctorName || 'Unknown',
+          orderedBy: labResult.orderedBy,
+          createdAt: labResult.createdAt
+        };
+      });
+      
+      res.json(formattedLabResults);
     } catch (error) {
       console.error("Patient lab results fetch error:", error);
       res.status(500).json({ error: "Failed to fetch patient lab results" });
