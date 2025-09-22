@@ -1054,6 +1054,30 @@ function PatientDetailsModal({
                               "MMM d, yyyy",
                             )}
                           </p>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm mb-3">
+                            <div>
+                              <p className="font-medium">Test ID:</p>
+                              <p>{result.testId || "Not specified"}</p>
+                            </div>
+                            <div>
+                              <p className="font-medium">Doctor:</p>
+                              <p>{result.doctorName || "Not specified"}</p>
+                            </div>
+                            <div>
+                              <p className="font-medium">Priority:</p>
+                              <p className="capitalize">{result.priority || "routine"}</p>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mb-3">
+                            <div>
+                              <p className="font-medium">Main Specialization:</p>
+                              <p>{result.mainSpecialty || "Not specified"}</p>
+                            </div>
+                            <div>
+                              <p className="font-medium">Sub-Specialization:</p>
+                              <p>{result.subSpecialty || "Not specified"}</p>
+                            </div>
+                          </div>
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                             <div>
                               <p className="font-medium">Result:</p>
