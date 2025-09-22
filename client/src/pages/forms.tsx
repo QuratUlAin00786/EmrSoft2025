@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -2436,60 +2438,77 @@ export default function Forms() {
     }
   };
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     try {
       if (!documentContent || documentContent.trim() === "" || documentContent.replace(/<[^>]*>/g, '').trim() === "") {
         setShowEmptyContentDialog(true);
         return;
       }
 
-      // Create a complete HTML document with proper formatting
-      const htmlContent = `
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Medical Form Document</title>
-    <style>
-        body {
-            font-family: ${fontFamily};
-            font-size: ${fontSize};
-            line-height: 1.6;
-            margin: 40px;
-            color: #000;
-            background: white;
-        }
-        @media print {
-            body { margin: 20px; }
-        }
-    </style>
-</head>
-<body>
-    ${documentContent}
-</body>
-</html>`;
+      // Get the contentEditable div element
+      const element = document.getElementById('document-content-area');
+      if (!element) {
+        throw new Error('Content area not found');
+      }
 
-      // Create blob and download
-      const blob = new Blob([htmlContent], { type: 'text/html' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `Medical_Form_${new Date().toISOString().slice(0, 10)}.html`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      // Show loading toast
+      toast({
+        title: "⏳ Generating PDF...",
+        description: "Please wait while we convert your document to PDF",
+        duration: 2000,
+      });
+
+      // Use html2canvas to capture the content area
+      const canvas = await html2canvas(element, {
+        scale: 2, // Higher resolution
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        width: element.scrollWidth,
+        height: element.scrollHeight,
+      });
+
+      // Create PDF
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      });
+
+      // Calculate dimensions for PDF
+      const imgWidth = 210; // A4 width in mm
+      const pageHeight = 295; // A4 height in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      // Add image to PDF
+      const imgData = canvas.toDataURL('image/png');
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      // Add additional pages if content is longer than one page
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      // Download the PDF
+      const fileName = `Medical_Form_${new Date().toISOString().slice(0, 10)}.pdf`;
+      pdf.save(fileName);
 
       toast({
-        title: "✓ Download Started",
-        description: "Document download has started successfully",
+        title: "✓ PDF Download Started",
+        description: "Your document has been converted to PDF successfully",
         duration: 3000,
       });
     } catch (error) {
-      console.error("Download error:", error);
+      console.error("PDF Download error:", error);
       toast({
         title: "Error",
-        description: "Failed to download document. Please try again.",
+        description: "Failed to generate PDF. Please try again.",
         duration: 3000,
         variant: "destructive",
       });
@@ -4389,6 +4408,7 @@ export default function Forms() {
                       el.innerHTML = documentContent;
                     }
                   }}
+                  id="document-content-area"
                   contentEditable
                   suppressContentEditableWarning={true}
                   data-placeholder={
