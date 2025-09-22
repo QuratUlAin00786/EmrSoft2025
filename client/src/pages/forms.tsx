@@ -12,7 +12,8 @@ import {
   AlignLeft, AlignCenter, AlignRight, AlignJustify, Type,
   Table, Paperclip, Image, Link, MoreHorizontal, Clock,
   Palette, Highlighter, Minus, Plus, Eye, Download,
-  Settings, FileText, Calculator, Search, ChevronDown, ChevronUp, Edit
+  Settings, FileText, Calculator, Search, ChevronDown, ChevronUp, Edit,
+  User, Package, Save, TestTube
 } from "lucide-react";
 
 export default function Forms() {
@@ -3108,10 +3109,77 @@ export default function Forms() {
             </div>
           </div>
         )}
-      </div>
+            </div>
 
-      {/* Clinical Header Selection - Create the Letter */}
-      <div className="bg-white dark:bg-[hsl(var(--cura-midnight))] border-b border-[hsl(var(--cura-steel))] dark:border-[hsl(var(--cura-steel))] px-4 py-4">
+            {/* Sticky Grouped Toolbar */}
+            <div className="sticky top-0 z-40 bg-white dark:bg-[hsl(var(--cura-midnight))] border-y border-gray-200 dark:border-[hsl(var(--cura-steel))] px-4 py-3 shadow-sm" data-testid="sticky-toolbar">
+              <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
+                
+                {/* Formatting Group */}
+                <div className="flex items-center gap-1 border-r border-gray-200 dark:border-[hsl(var(--cura-steel))] pr-3 mr-3">
+                  <span className="text-xs font-medium text-gray-500 dark:text-gray-400 hidden sm:inline">Format:</span>
+                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0 hover:bg-gray-100 dark:hover:bg-[hsl(var(--cura-steel))]" data-testid="button-bold">
+                    <Bold className="h-4 w-4" />
+                  </Button>
+                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0 hover:bg-gray-100 dark:hover:bg-[hsl(var(--cura-steel))]" data-testid="button-italic">
+                    <Italic className="h-4 w-4" />
+                  </Button>
+                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0 hover:bg-gray-100 dark:hover:bg-[hsl(var(--cura-steel))]" data-testid="button-underline">
+                    <Underline className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                {/* Insert Group */}
+                <div className="flex items-center gap-1 border-r border-gray-200 dark:border-[hsl(var(--cura-steel))] pr-3 mr-3">
+                  <span className="text-xs font-medium text-gray-500 dark:text-gray-400 hidden sm:inline">Insert:</span>
+                  <Button size="sm" variant="ghost" className="h-8 px-2 text-xs hover:bg-gray-100 dark:hover:bg-[hsl(var(--cura-steel))]" data-testid="button-insert-patient" onClick={() => setShowPatientDialog(true)}>
+                    <User className="h-4 w-4 mr-1" />
+                    <span className="hidden sm:inline">Patient</span>
+                  </Button>
+                  <Button size="sm" variant="ghost" className="h-8 px-2 text-xs hover:bg-gray-100 dark:hover:bg-[hsl(var(--cura-steel))]" data-testid="button-insert-link" onClick={() => setShowLinkDialog(true)}>
+                    <Link className="h-4 w-4 mr-1" />
+                    <span className="hidden sm:inline">Link</span>
+                  </Button>
+                  <Button size="sm" variant="ghost" className="h-8 px-2 text-xs hover:bg-gray-100 dark:hover:bg-[hsl(var(--cura-steel))]" data-testid="button-insert-product" onClick={() => setShowInsertProductDialog(true)}>
+                    <Package className="h-4 w-4 mr-1" />
+                    <span className="hidden sm:inline">Product</span>
+                  </Button>
+                </div>
+
+                {/* Template Group */}
+                <div className="flex items-center gap-1 border-r border-gray-200 dark:border-[hsl(var(--cura-steel))] pr-3 mr-3">
+                  <span className="text-xs font-medium text-gray-500 dark:text-gray-400 hidden sm:inline">Template:</span>
+                  <Button size="sm" variant="ghost" className="h-8 px-2 text-xs hover:bg-gray-100 dark:hover:bg-[hsl(var(--cura-steel))]" data-testid="button-load-template" onClick={() => setShowSavedTemplatesDialog(true)}>
+                    <FileText className="h-4 w-4 mr-1" />
+                    <span className="hidden sm:inline">Load</span>
+                  </Button>
+                  <Button size="sm" variant="ghost" className="h-8 px-2 text-xs hover:bg-gray-100 dark:hover:bg-[hsl(var(--cura-steel))]" data-testid="button-save-template" onClick={() => setShowTemplateDialog(true)}>
+                    <Save className="h-4 w-4 mr-1" />
+                    <span className="hidden sm:inline">Save</span>
+                  </Button>
+                </div>
+
+                {/* Medical Group */}
+                <div className="flex items-center gap-1">
+                  <span className="text-xs font-medium text-gray-500 dark:text-gray-400 hidden sm:inline">Medical:</span>
+                  <Button size="sm" variant="ghost" className="h-8 px-2 text-xs hover:bg-gray-100 dark:hover:bg-[hsl(var(--cura-steel))]" data-testid="button-insert-labs" onClick={() => setShowLabsDialog(true)}>
+                    <TestTube className="h-4 w-4 mr-1" />
+                    <span className="hidden sm:inline">Labs</span>
+                  </Button>
+                  <Button size="sm" variant="ghost" className="h-8 px-2 text-xs hover:bg-gray-100 dark:hover:bg-[hsl(var(--cura-steel))]" data-testid="button-insert-records" onClick={() => setShowPatientRecordsDialog(true)}>
+                    <FileText className="h-4 w-4 mr-1" />
+                    <span className="hidden sm:inline">Records</span>
+                  </Button>
+                  <Button size="sm" variant="ghost" className="h-8 px-2 text-xs hover:bg-gray-100 dark:hover:bg-[hsl(var(--cura-steel))]" data-testid="button-more-options" onClick={() => setShowMoreOptionsDialog(true)}>
+                    <MoreHorizontal className="h-4 w-4 mr-1" />
+                    <span className="hidden sm:inline">More</span>
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Clinical Header Selection - Create the Letter */}
+            <div className="bg-white dark:bg-[hsl(var(--cura-midnight))] border-b border-[hsl(var(--cura-steel))] dark:border-[hsl(var(--cura-steel))] px-4 py-4" data-testid="clinical-header-section">
         <div className="flex flex-col items-center">
           <h3 className="text-sm font-medium text-[hsl(var(--cura-midnight))] dark:text-white mb-3">Create the Letter</h3>
           <div>
