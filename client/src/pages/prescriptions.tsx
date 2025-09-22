@@ -219,6 +219,75 @@ export default function PrescriptionsPage() {
   const [providers, setProviders] = useState<any[]>([]);
   const queryClient = useQueryClient();
 
+  // Status editing state
+  const [editingStatusId, setEditingStatusId] = useState<string | null>(null);
+  const [tempStatus, setTempStatus] = useState<string>("");
+
+  // Status update mutation
+  const statusUpdateMutation = useMutation({
+    mutationFn: async ({ prescriptionId, status }: { prescriptionId: string; status: string }) => {
+      const token = localStorage.getItem("auth_token");
+      const headers: Record<string, string> = {
+        "X-Tenant-Subdomain": "demo",
+        "Content-Type": "application/json",
+      };
+
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`/api/prescriptions/${prescriptionId}`, {
+        method: "PATCH",
+        headers,
+        credentials: "include",
+        body: JSON.stringify({ status }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to update status: ${response.status}`);
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      // Auto refresh - invalidate and refetch prescriptions
+      queryClient.invalidateQueries({ queryKey: ["/api/prescriptions"] });
+      toast({
+        title: "Status Updated",
+        description: "Prescription status has been updated successfully.",
+      });
+      setEditingStatusId(null);
+      setTempStatus("");
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to update prescription status. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Helper functions for status editing
+  const handleStartEditingStatus = (prescriptionId: string, currentStatus: string) => {
+    setEditingStatusId(prescriptionId);
+    setTempStatus(currentStatus);
+  };
+
+  const handleCancelEditingStatus = () => {
+    setEditingStatusId(null);
+    setTempStatus("");
+  };
+
+  const handleSaveStatus = () => {
+    if (editingStatusId && tempStatus) {
+      statusUpdateMutation.mutate({
+        prescriptionId: editingStatusId,
+        status: tempStatus,
+      });
+    }
+  };
+
   // E-signature state
   const [showESignDialog, setShowESignDialog] = useState(false);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -2019,16 +2088,66 @@ export default function PrescriptionsPage() {
                           </p>
                         </div>
                         <div>
-                          <Badge
-                            className={getStatusColor(prescription.status)}
-                          >
-                            {prescription.status}
-                          </Badge>
+                          <div className="flex items-center gap-2">
+                            {editingStatusId === prescription.id ? (
+                              <div className="flex items-center gap-2">
+                                <Select
+                                  value={tempStatus}
+                                  onValueChange={setTempStatus}
+                                >
+                                  <SelectTrigger className="w-[120px] h-8">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="pending">pending</SelectItem>
+                                    <SelectItem value="active">active</SelectItem>
+                                    <SelectItem value="completed">completed</SelectItem>
+                                    <SelectItem value="cancelled">cancelled</SelectItem>
+                                    <SelectItem value="signed">signed</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <Button
+                                  size="sm"
+                                  onClick={handleSaveStatus}
+                                  disabled={statusUpdateMutation.isPending}
+                                  className="h-8 px-2"
+                                >
+                                  <Check className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={handleCancelEditingStatus}
+                                  disabled={statusUpdateMutation.isPending}
+                                  className="h-8 px-2"
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2">
+                                <Badge
+                                  className={getStatusColor(prescription.status)}
+                                >
+                                  {prescription.status}
+                                </Badge>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleStartEditingStatus(prescription.id, prescription.status)}
+                                  className="h-6 w-6 p-0 hover:bg-gray-100"
+                                  data-testid="button-edit-status"
+                                >
+                                  <Edit className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            )}
+                          </div>
                           {prescription.interactions &&
                             prescription.interactions.length > 0 && (
                               <Badge
                                 variant="destructive"
-                                className="flex items-center gap-1 ml-2"
+                                className="flex items-center gap-1 ml-2 mt-1"
                               >
                                 <AlertTriangle className="h-3 w-3" />
                                 Drug Interactions
