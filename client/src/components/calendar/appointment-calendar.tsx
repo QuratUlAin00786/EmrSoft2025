@@ -189,6 +189,8 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
       queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
       setShowEditAppointment(false);
       setEditingAppointment(null);
+      setEditAppointmentDate(undefined);
+      setEditSelectedTimeSlot("");
       toast({
         title: "Appointment Updated",
         description: "The appointment has been successfully updated.",
@@ -214,6 +216,19 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
   // Handle edit appointment
   const handleEditAppointment = (appointment: any) => {
     setEditingAppointment(appointment);
+    
+    // Initialize the date and time slot states properly
+    const appointmentDate = new Date(appointment.scheduledAt);
+    setEditAppointmentDate(appointmentDate);
+    
+    // Convert the time to the correct format to match timeSlots
+    const hours = appointmentDate.getHours();
+    const minutes = appointmentDate.getMinutes();
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const displayHours = hours > 12 ? hours - 12 : (hours === 0 ? 12 : hours);
+    const timeString = `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+    setEditSelectedTimeSlot(timeString);
+    
     setShowEditAppointment(true);
   };
 
@@ -1189,6 +1204,8 @@ Medical License: [License Number]
                     onClick={() => {
                       setShowEditAppointment(false);
                       setEditingAppointment(null);
+                      setEditAppointmentDate(undefined);
+                      setEditSelectedTimeSlot("");
                     }}
                   >
                     Cancel
