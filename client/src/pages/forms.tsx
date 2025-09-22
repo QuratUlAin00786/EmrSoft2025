@@ -7,14 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
-import { Sidebar } from "@/components/layout/sidebar";
 import { 
   ArrowLeft, Bold, Italic, Underline, List, ListOrdered, 
   AlignLeft, AlignCenter, AlignRight, AlignJustify, Type,
   Table, Paperclip, Image, Link, MoreHorizontal, Clock,
   Palette, Highlighter, Minus, Plus, Eye, Download,
-  Settings, FileText, Calculator, Search, ChevronDown, ChevronUp, Edit,
-  User, Package, Save, TestTube, Calendar
+  Settings, FileText, Calculator, Search, ChevronDown, ChevronUp, Edit
 } from "lucide-react";
 
 export default function Forms() {
@@ -2925,19 +2923,12 @@ export default function Forms() {
   };
 
   return (
-    <>
-      {/* Main Layout with Sidebar */}
-      <div className="flex h-screen bg-gray-50 dark:bg-[hsl(var(--cura-midnight))]">
-        {/* Sidebar */}
-        <Sidebar />
-        
-        {/* Main Content */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Page Shell Container */}
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 flex-1 overflow-y-auto">
-        {/* Header Row */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
-          {/* Left - Title and Navigation */}
+    <div className="h-screen flex flex-col bg-gray-100 dark:bg-[hsl(var(--cura-midnight))]">
+      {/* Scrollable Content Wrapper */}
+      <div className="flex-1 overflow-y-auto">
+        {/* Top Header - Professional Medical Theme */}
+        <div className="px-6 py-4 flex-shrink-0 bg-white dark:bg-[hsl(var(--cura-midnight))] border-b-2 border-gray-200 dark:border-[hsl(var(--cura-steel))]">
+        <div className="flex items-center justify-between gap-8">
           <div className="flex items-center gap-4">
             <Button 
               className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
@@ -2961,15 +2952,38 @@ export default function Forms() {
                 e.currentTarget.style.boxShadow = '0 4px 12px rgba(74,125,255,0.3)';
               }}
               onClick={() => toast({ title: "Letters", description: "Navigating back to letters list." })}
-              data-testid="button-back-letters"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               <span>Letters</span>
             </Button>
-          </div>
-          
-          {/* Right - Navigation Actions */}
-          <div className="flex items-center gap-4">
+            
+            <div className="h-8 w-px bg-white/30 mx-1"></div>
+            
+            <Button 
+              className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
+              style={{ 
+                backgroundColor: '#7279FB', 
+                color: 'white',
+                borderColor: '#7279FB',
+                borderRadius: '10px',
+                boxShadow: '0 4px 12px rgba(114,121,251,0.3)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#4A7DFF';
+                e.currentTarget.style.borderColor = '#4A7DFF';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(74,125,255,0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#7279FB';
+                e.currentTarget.style.borderColor = '#7279FB';
+                e.currentTarget.style.transform = 'translateY(0px)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(114,121,251,0.3)';
+              }}
+              onClick={handlePreview}
+            >
+              Save and preview
+            </Button>
             <Button 
               className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
               style={{ 
@@ -2991,22 +3005,118 @@ export default function Forms() {
                 e.currentTarget.style.transform = 'translateY(0px)';
                 e.currentTarget.style.boxShadow = '0 4px 12px rgba(74,125,255,0.3)';
               }}
-              onClick={() => toast({ title: "Letters", description: "Navigating back to letters list." })}
-              data-testid="button-back-to-letters"
+              onClick={handleSaveAsDraft}
             >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              <span>Back to Letters</span>
+              Save as draft
+            </Button>
+          </div>
+          
+          <div className="flex items-center gap-4">
+            <Button 
+              className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
+              style={{ 
+                backgroundColor: '#7279FB', 
+                color: 'white',
+                borderColor: '#7279FB',
+                borderRadius: '10px',
+                boxShadow: '0 4px 12px rgba(114,121,251,0.3)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#4A7DFF';
+                e.currentTarget.style.borderColor = '#4A7DFF';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(74,125,255,0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#7279FB';
+                e.currentTarget.style.borderColor = '#7279FB';
+                e.currentTarget.style.transform = 'translateY(0px)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(114,121,251,0.3)';
+              }}
+            >
+              Letter body
+            </Button>
+            
+            <div className="h-8 w-px bg-white/30 mx-1"></div>
+            
+            <Button 
+              className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
+              style={{ 
+                backgroundColor: '#4A7DFF', 
+                color: 'white',
+                borderColor: '#4A7DFF',
+                borderRadius: '10px',
+                boxShadow: '0 4px 12px rgba(74,125,255,0.3)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#7279FB';
+                e.currentTarget.style.borderColor = '#7279FB';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(114,121,251,0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#4A7DFF';
+                e.currentTarget.style.borderColor = '#4A7DFF';
+                e.currentTarget.style.transform = 'translateY(0px)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(74,125,255,0.3)';
+              }}
+            >
+              Select Patient...
+            </Button>
+            <Button 
+              className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
+              style={{ 
+                backgroundColor: '#7279FB', 
+                color: 'white',
+                borderColor: '#7279FB',
+                borderRadius: '10px',
+                boxShadow: '0 4px 12px rgba(114,121,251,0.3)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#4A7DFF';
+                e.currentTarget.style.borderColor = '#4A7DFF';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(74,125,255,0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#7279FB';
+                e.currentTarget.style.borderColor = '#7279FB';
+                e.currentTarget.style.transform = 'translateY(0px)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(114,121,251,0.3)';
+              }}
+            >
+              New Chris...
+            </Button>
+            <Button 
+              className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
+              style={{ 
+                backgroundColor: '#4A7DFF', 
+                color: 'white',
+                borderColor: '#4A7DFF',
+                borderRadius: '10px',
+                boxShadow: '0 4px 12px rgba(74,125,255,0.3)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#7279FB';
+                e.currentTarget.style.borderColor = '#7279FB';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(114,121,251,0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#4A7DFF';
+                e.currentTarget.style.borderColor = '#4A7DFF';
+                e.currentTarget.style.transform = 'translateY(0px)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(74,125,255,0.3)';
+              }}
+            >
+              Share this...
             </Button>
           </div>
         </div>
+      </div>
 
-        {/* Main Grid Layout */}
-        <div className="lg:grid lg:grid-cols-12 lg:gap-6 gap-4">
-          {/* Editor Column */}
-          <div className="lg:col-span-8 space-y-4" data-testid="editor-column">
-            
-            {/* Form Fields Section - Collapsible */}
-            <div className="bg-white dark:bg-[hsl(var(--cura-midnight))] border border-gray-200 dark:border-[hsl(var(--cura-steel))] rounded-md" data-testid="form-fields-section">
+      {/* Form Fields Section - Collapsible */}
+      <div className="bg-white dark:bg-[hsl(var(--cura-midnight))] border-b border-gray-200 dark:border-[hsl(var(--cura-steel))]">
         {/* Toggle Header */}
         <div className="px-4 py-2 flex items-center justify-between cursor-pointer" onClick={() => setShowFormFields(!showFormFields)}>
           <span className="text-sm font-medium text-gray-900 dark:text-white">Letter Details</span>
@@ -3092,78 +3202,10 @@ export default function Forms() {
             </div>
           </div>
         )}
-            </div>
-          </div>
+      </div>
 
-            {/* Sticky Grouped Toolbar */}
-            <div className="sticky top-0 z-40 bg-white dark:bg-[hsl(var(--cura-midnight))] border-y border-gray-200 dark:border-[hsl(var(--cura-steel))] px-4 py-3 shadow-sm" data-testid="sticky-toolbar">
-              <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
-                
-                {/* Formatting Group */}
-                <div className="flex items-center gap-1 border-r border-gray-200 dark:border-[hsl(var(--cura-steel))] pr-3 mr-3">
-                  <span className="text-xs font-medium text-gray-500 dark:text-gray-400 hidden sm:inline">Format:</span>
-                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0 hover:bg-gray-100 dark:hover:bg-[hsl(var(--cura-steel))]" data-testid="button-bold">
-                    <Bold className="h-4 w-4" />
-                  </Button>
-                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0 hover:bg-gray-100 dark:hover:bg-[hsl(var(--cura-steel))]" data-testid="button-italic">
-                    <Italic className="h-4 w-4" />
-                  </Button>
-                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0 hover:bg-gray-100 dark:hover:bg-[hsl(var(--cura-steel))]" data-testid="button-underline">
-                    <Underline className="h-4 w-4" />
-                  </Button>
-                </div>
-
-                {/* Insert Group */}
-                <div className="flex items-center gap-1 border-r border-gray-200 dark:border-[hsl(var(--cura-steel))] pr-3 mr-3">
-                  <span className="text-xs font-medium text-gray-500 dark:text-gray-400 hidden sm:inline">Insert:</span>
-                  <Button size="sm" variant="ghost" className="h-8 px-2 text-xs hover:bg-gray-100 dark:hover:bg-[hsl(var(--cura-steel))]" data-testid="button-insert-patient" onClick={() => setShowPatientDialog(true)}>
-                    <User className="h-4 w-4 mr-1" />
-                    <span className="hidden sm:inline">Patient</span>
-                  </Button>
-                  <Button size="sm" variant="ghost" className="h-8 px-2 text-xs hover:bg-gray-100 dark:hover:bg-[hsl(var(--cura-steel))]" data-testid="button-insert-link" onClick={() => setShowLinkDialog(true)}>
-                    <Link className="h-4 w-4 mr-1" />
-                    <span className="hidden sm:inline">Link</span>
-                  </Button>
-                  <Button size="sm" variant="ghost" className="h-8 px-2 text-xs hover:bg-gray-100 dark:hover:bg-[hsl(var(--cura-steel))]" data-testid="button-insert-product" onClick={() => setShowInsertProductDialog(true)}>
-                    <Package className="h-4 w-4 mr-1" />
-                    <span className="hidden sm:inline">Product</span>
-                  </Button>
-                </div>
-
-                {/* Template Group */}
-                <div className="flex items-center gap-1 border-r border-gray-200 dark:border-[hsl(var(--cura-steel))] pr-3 mr-3">
-                  <span className="text-xs font-medium text-gray-500 dark:text-gray-400 hidden sm:inline">Template:</span>
-                  <Button size="sm" variant="ghost" className="h-8 px-2 text-xs hover:bg-gray-100 dark:hover:bg-[hsl(var(--cura-steel))]" data-testid="button-load-template" onClick={() => setShowSavedTemplatesDialog(true)}>
-                    <FileText className="h-4 w-4 mr-1" />
-                    <span className="hidden sm:inline">Load</span>
-                  </Button>
-                  <Button size="sm" variant="ghost" className="h-8 px-2 text-xs hover:bg-gray-100 dark:hover:bg-[hsl(var(--cura-steel))]" data-testid="button-save-template" onClick={() => setShowTemplateDialog(true)}>
-                    <Save className="h-4 w-4 mr-1" />
-                    <span className="hidden sm:inline">Save</span>
-                  </Button>
-                </div>
-
-                {/* Medical Group */}
-                <div className="flex items-center gap-1">
-                  <span className="text-xs font-medium text-gray-500 dark:text-gray-400 hidden sm:inline">Medical:</span>
-                  <Button size="sm" variant="ghost" className="h-8 px-2 text-xs hover:bg-gray-100 dark:hover:bg-[hsl(var(--cura-steel))]" data-testid="button-insert-labs" onClick={() => setShowLabsDialog(true)}>
-                    <TestTube className="h-4 w-4 mr-1" />
-                    <span className="hidden sm:inline">Labs</span>
-                  </Button>
-                  <Button size="sm" variant="ghost" className="h-8 px-2 text-xs hover:bg-gray-100 dark:hover:bg-[hsl(var(--cura-steel))]" data-testid="button-insert-records" onClick={() => setShowPatientRecordsDialog(true)}>
-                    <FileText className="h-4 w-4 mr-1" />
-                    <span className="hidden sm:inline">Records</span>
-                  </Button>
-                  <Button size="sm" variant="ghost" className="h-8 px-2 text-xs hover:bg-gray-100 dark:hover:bg-[hsl(var(--cura-steel))]" data-testid="button-more-options" onClick={() => setShowMoreOptionsDialog(true)}>
-                    <MoreHorizontal className="h-4 w-4 mr-1" />
-                    <span className="hidden sm:inline">More</span>
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            {/* Clinical Header Selection - Create the Letter */}
-            <div className="bg-white dark:bg-[hsl(var(--cura-midnight))] border-b border-[hsl(var(--cura-steel))] dark:border-[hsl(var(--cura-steel))] px-4 py-4" data-testid="clinical-header-section">
+      {/* Clinical Header Selection - Create the Letter */}
+      <div className="bg-white dark:bg-[hsl(var(--cura-midnight))] border-b border-[hsl(var(--cura-steel))] dark:border-[hsl(var(--cura-steel))] px-4 py-4">
         <div className="flex flex-col items-center">
           <h3 className="text-sm font-medium text-[hsl(var(--cura-midnight))] dark:text-white mb-3">Create the Letter</h3>
           <div>
@@ -3209,7 +3251,7 @@ export default function Forms() {
                       Edit Clinic Info
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="max-w-md w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]">
+                  <DialogContent className="max-w-md">
                     <DialogHeader>
                       <DialogTitle>Edit Clinic Information</DialogTitle>
                     </DialogHeader>
@@ -3778,168 +3820,46 @@ export default function Forms() {
         </div>
       </div>
 
-            {/* Enhanced Document Editor Canvas */}
-            <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-[hsl(var(--cura-midnight))] dark:to-[hsl(var(--cura-steel))] overflow-y-auto min-h-0 rounded-lg" data-testid="editor-canvas-container">
-              <div className="max-w-4xl mx-auto p-6">
-                <div className="bg-white dark:bg-[hsl(var(--cura-midnight))] shadow-xl border border-gray-200 dark:border-[hsl(var(--cura-steel))] rounded-xl transition-all duration-300 hover:shadow-2xl focus-within:shadow-2xl focus-within:ring-2 focus-within:ring-[hsl(var(--cura-bluewave))]/20" 
-                     style={{ minHeight: '700px', maxWidth: '21cm', margin: '0 auto' }}
-                     data-testid="editor-canvas">
-                  
-                  {/* Editor Container with A4 Paper Simulation */}
-                  <div className="relative">
-                    {/* Paper Guidelines (subtle) */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-gray-50/30 to-transparent dark:via-[hsl(var(--cura-steel))]/20 pointer-events-none rounded-xl"></div>
-                    
-                    {/* Content Area */}
-                    <div className="relative p-8 sm:p-12" data-testid="editor-content-area">
-                      <div
-                        ref={(el) => {
-                          setTextareaRef(el as any);
-                          if (el && documentContent && el.innerHTML !== documentContent) {
-                            el.innerHTML = documentContent;
-                          }
-                        }}
-                        contentEditable
-                        suppressContentEditableWarning={true}
-                        data-placeholder={documentContent ? '' : 'Start typing your document here...'}
-                        onInput={(e) => {
-                          const content = (e.target as HTMLDivElement).innerHTML;
-                          setDocumentContent(content);
-                        }}
-                        onFocus={(e) => {
-                          e.currentTarget.style.outline = '2px solid hsl(var(--cura-bluewave))';
-                          e.currentTarget.style.outlineOffset = '4px';
-                        }}
-                        onBlur={(e) => {
-                          e.currentTarget.style.outline = 'none';
-                        }}
-                        onClick={(e) => {
-                          // Handle link clicks
-                          const target = e.target as HTMLElement;
-                          if (target.tagName === 'A') {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            const href = target.getAttribute('href');
-                            if (href) {
-                              window.open(href, '_blank');
-                            }
-                          }
-                        }}
-                        className="w-full border-none outline-none text-[hsl(var(--cura-midnight))] dark:text-white leading-relaxed bg-transparent focus:outline-none transition-all duration-200 prose prose-lg dark:prose-invert max-w-none
-                                 empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400 empty:before:dark:text-gray-500 empty:before:italic empty:before:pointer-events-none"
-                        style={{ 
-                          fontSize: fontSize,
-                          lineHeight: '1.75',
-                          minHeight: '600px',
-                          maxWidth: '100%',
-                          fontFamily: fontFamily,
-                          wordBreak: 'break-word',
-                          overflowWrap: 'break-word'
-                        }}
-                        data-testid="editor-textarea"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-          {/* Right Sidebar - Insert Actions */}
-          <div className="lg:col-span-4 space-y-4" data-testid="right-sidebar">
-            <div className="bg-white dark:bg-[hsl(var(--cura-midnight))] border border-gray-200 dark:border-[hsl(var(--cura-steel))] rounded-lg overflow-hidden" data-testid="sidebar-container">
-              
-              {/* Quick Actions Header */}
-              <div className="p-4 border-b border-gray-200 dark:border-[hsl(var(--cura-steel))] bg-gray-50 dark:bg-[hsl(var(--cura-steel))]">
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Quick Insert</h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Add content to your letter</p>
-              </div>
-
-              {/* Patient Section */}
-              <div className="p-4 border-b border-gray-100 dark:border-[hsl(var(--cura-steel))]/50">
-                <h4 className="text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-3">Patient Info</h4>
-                <div className="space-y-2">
-                  <Button size="sm" variant="ghost" className="w-full justify-start h-8 text-xs hover:bg-gray-100 dark:hover:bg-[hsl(var(--cura-steel))]" 
-                    onClick={() => setShowPatientDialog(true)} data-testid="sidebar-patient">
-                    <User className="h-3 w-3 mr-2" />
-                    Patient Details
-                  </Button>
-                  <Button size="sm" variant="ghost" className="w-full justify-start h-8 text-xs hover:bg-gray-100 dark:hover:bg-[hsl(var(--cura-steel))]" 
-                    onClick={() => setShowRecipientDialog(true)} data-testid="sidebar-recipient">
-                    <User className="h-3 w-3 mr-2" />
-                    Recipient Info
-                  </Button>
-                </div>
-              </div>
-
-              {/* Medical Data Section */}
-              <div className="p-4 border-b border-gray-100 dark:border-[hsl(var(--cura-steel))]/50">
-                <h4 className="text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-3">Medical Data</h4>
-                <div className="space-y-2">
-                  <Button size="sm" variant="ghost" className="w-full justify-start h-8 text-xs hover:bg-gray-100 dark:hover:bg-[hsl(var(--cura-steel))]" 
-                    onClick={() => setShowAppointmentsDialog(true)} data-testid="sidebar-appointments">
-                    <Calendar className="h-3 w-3 mr-2" />
-                    Appointments
-                  </Button>
-                  <Button size="sm" variant="ghost" className="w-full justify-start h-8 text-xs hover:bg-gray-100 dark:hover:bg-[hsl(var(--cura-steel))]" 
-                    onClick={() => setShowLabsDialog(true)} data-testid="sidebar-labs">
-                    <TestTube className="h-3 w-3 mr-2" />
-                    Lab Results
-                  </Button>
-                  <Button size="sm" variant="ghost" className="w-full justify-start h-8 text-xs hover:bg-gray-100 dark:hover:bg-[hsl(var(--cura-steel))]" 
-                    onClick={() => setShowPatientRecordsDialog(true)} data-testid="sidebar-records">
-                    <FileText className="h-3 w-3 mr-2" />
-                    Medical Records
-                  </Button>
-                </div>
-              </div>
-
-              {/* Content Section */}
-              <div className="p-4 border-b border-gray-100 dark:border-[hsl(var(--cura-steel))]/50">
-                <h4 className="text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-3">Content</h4>
-                <div className="space-y-2">
-                  <Button size="sm" variant="ghost" className="w-full justify-start h-8 text-xs hover:bg-gray-100 dark:hover:bg-[hsl(var(--cura-steel))]" 
-                    onClick={() => setShowLinkDialog(true)} data-testid="sidebar-link">
-                    <Link className="h-3 w-3 mr-2" />
-                    Insert Link
-                  </Button>
-                  <Button size="sm" variant="ghost" className="w-full justify-start h-8 text-xs hover:bg-gray-100 dark:hover:bg-[hsl(var(--cura-steel))]" 
-                    onClick={() => setShowInsertProductDialog(true)} data-testid="sidebar-product">
-                    <Package className="h-3 w-3 mr-2" />
-                    Insert Product
-                  </Button>
-                  <Button size="sm" variant="ghost" className="w-full justify-start h-8 text-xs hover:bg-gray-100 dark:hover:bg-[hsl(var(--cura-steel))]" 
-                    onClick={() => setShowMoreOptionsDialog(true)} data-testid="sidebar-more">
-                    <MoreHorizontal className="h-3 w-3 mr-2" />
-                    More Options
-                  </Button>
-                </div>
-              </div>
-
-              {/* Templates Section */}
-              <div className="p-4">
-                <h4 className="text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-3">Templates</h4>
-                <div className="space-y-2">
-                  <Button size="sm" variant="ghost" className="w-full justify-start h-8 text-xs hover:bg-gray-100 dark:hover:bg-[hsl(var(--cura-steel))]" 
-                    onClick={() => setShowSavedTemplatesDialog(true)} data-testid="sidebar-load-template">
-                    <FileText className="h-3 w-3 mr-2" />
-                    Load Template
-                  </Button>
-                  <Button size="sm" variant="ghost" className="w-full justify-start h-8 text-xs hover:bg-gray-100 dark:hover:bg-[hsl(var(--cura-steel))]" 
-                    onClick={() => setShowTemplateDialog(true)} data-testid="sidebar-save-template">
-                    <Save className="h-3 w-3 mr-2" />
-                    Save Template
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            {/* Mobile Collapsible Sidebar - Shows as collapsed card on small screens */}
-            <div className="lg:hidden">
-              <div className="bg-white dark:bg-[hsl(var(--cura-midnight))] border border-gray-200 dark:border-[hsl(var(--cura-steel))] rounded-lg p-4" data-testid="mobile-sidebar-toggle">
-                <Button className="w-full justify-between text-sm" variant="ghost" onClick={() => setShowFormFields(!showFormFields)}>
-                  <span>Quick Actions</span>
-                  {showFormFields ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                </Button>
-              </div>
+      {/* Document Editor - medical theme colors */}
+      <div className="flex-1 bg-[hsl(var(--cura-mist))] dark:bg-[hsl(var(--cura-midnight))] overflow-y-auto min-h-0">
+        <div className="h-full flex items-start justify-center p-4">
+          <div className="bg-white dark:bg-[hsl(var(--cura-midnight))] shadow-sm border border-[hsl(var(--cura-steel))] dark:border-[hsl(var(--cura-steel))] min-h-[600px]" style={{ width: '700px', maxWidth: '700px' }}>
+            <div className="p-6">
+              <div
+                ref={(el) => {
+                  setTextareaRef(el as any);
+                  if (el && documentContent && el.innerHTML !== documentContent) {
+                    el.innerHTML = documentContent;
+                  }
+                }}
+                contentEditable
+                suppressContentEditableWarning={true}
+                data-placeholder={documentContent ? '' : 'Start typing your document here...'}
+                onInput={(e) => {
+                  const content = (e.target as HTMLDivElement).innerHTML;
+                  setDocumentContent(content);
+                }}
+                onClick={(e) => {
+                  // Handle link clicks
+                  const target = e.target as HTMLElement;
+                  if (target.tagName === 'A') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const href = target.getAttribute('href');
+                    if (href) {
+                      window.open(href, '_blank');
+                    }
+                  }
+                }}
+                className="w-full border-none outline-none text-[hsl(var(--cura-midnight))] dark:text-white leading-normal bg-transparent focus:outline-none"
+                style={{ 
+                  fontSize: fontSize,
+                  lineHeight: '1.6',
+                  minHeight: '500px',
+                  maxWidth: '100%',
+                  fontFamily: fontFamily
+                }}
+              />
             </div>
           </div>
         </div>
@@ -3948,7 +3868,7 @@ export default function Forms() {
 
       {/* Insert Link Dialog */}
       <Dialog open={showLinkDialog} onOpenChange={setShowLinkDialog}>
-        <DialogContent className="max-w-md w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Insert Link</DialogTitle>
           </DialogHeader>
@@ -3995,7 +3915,7 @@ export default function Forms() {
 
       {/* Template Selection Dialog */}
       <Dialog open={showTemplateDialog} onOpenChange={setShowTemplateDialog}>
-        <DialogContent className="max-w-lg w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Insert Template</DialogTitle>
           </DialogHeader>
@@ -4174,7 +4094,7 @@ export default function Forms() {
 
       {/* Logo Selection Dialog */}
       <Dialog open={showLogoDialog} onOpenChange={setShowLogoDialog}>
-        <DialogContent className="max-w-lg w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Insert Logo</DialogTitle>
           </DialogHeader>
@@ -4289,7 +4209,7 @@ export default function Forms() {
 
       {/* Clinic Information Dialog */}
       <Dialog open={showClinicDialog} onOpenChange={setShowClinicDialog}>
-        <DialogContent className="max-w-2xl w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Insert Clinic Information</DialogTitle>
           </DialogHeader>
@@ -4394,7 +4314,7 @@ export default function Forms() {
 
       {/* Edit Clinic Information Dialog */}
       <Dialog open={showEditClinicDialog} onOpenChange={setShowEditClinicDialog}>
-        <DialogContent className="max-w-md w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Edit Clinic Information</DialogTitle>
           </DialogHeader>
@@ -4483,7 +4403,7 @@ export default function Forms() {
 
       {/* Patient Information Dialog */}
       <Dialog open={showPatientDialog} onOpenChange={setShowPatientDialog}>
-        <DialogContent className="max-w-2xl w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Insert Patient Information</DialogTitle>
           </DialogHeader>
@@ -4577,7 +4497,7 @@ export default function Forms() {
 
       {/* Recipient Information Dialog */}
       <Dialog open={showRecipientDialog} onOpenChange={setShowRecipientDialog}>
-        <DialogContent className="max-w-2xl w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Insert Recipient Information</DialogTitle>
           </DialogHeader>
@@ -4671,7 +4591,7 @@ export default function Forms() {
 
       {/* Appointments Information Dialog */}
       <Dialog open={showAppointmentsDialog} onOpenChange={setShowAppointmentsDialog}>
-        <DialogContent className="max-w-2xl w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Insert Appointment Information</DialogTitle>
           </DialogHeader>
@@ -4765,7 +4685,7 @@ export default function Forms() {
 
       {/* Labs Information Dialog */}
       <Dialog open={showLabsDialog} onOpenChange={setShowLabsDialog}>
-        <DialogContent className="max-w-2xl w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Insert Laboratory Information</DialogTitle>
           </DialogHeader>
@@ -4859,7 +4779,7 @@ export default function Forms() {
 
       {/* Patient Records Information Dialog */}
       <Dialog open={showPatientRecordsDialog} onOpenChange={setShowPatientRecordsDialog}>
-        <DialogContent className="max-w-2xl w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Insert Patient Records Information</DialogTitle>
           </DialogHeader>
@@ -4953,7 +4873,7 @@ export default function Forms() {
 
       {/* Insert Product Dialog */}
       <Dialog open={showInsertProductDialog} onOpenChange={setShowInsertProductDialog}>
-        <DialogContent className="max-w-2xl w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Insert Product Information</DialogTitle>
           </DialogHeader>
@@ -5047,7 +4967,7 @@ export default function Forms() {
 
       {/* More Options Dialog */}
       <Dialog open={showMoreOptionsDialog} onOpenChange={setShowMoreOptionsDialog}>
-        <DialogContent className="max-w-2xl w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>More Formatting Options</DialogTitle>
           </DialogHeader>
@@ -5152,7 +5072,7 @@ export default function Forms() {
 
       {/* View Saved Templates Dialog */}
       <Dialog open={showSavedTemplatesDialog} onOpenChange={setShowSavedTemplatesDialog}>
-        <DialogContent className="max-w-3xl w-full mx-4 sm:mx-auto rounded-xl shadow-2xl border border-gray-200 dark:border-[hsl(var(--cura-steel))]">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Saved Templates</DialogTitle>
           </DialogHeader>
@@ -5242,10 +5162,8 @@ export default function Forms() {
           </div>
         </DialogContent>
       </Dialog>
-          
-          <Toaster />
-          </div>
-        </div>
-    </>
+
+      <Toaster />
+    </div>
   );
 }
