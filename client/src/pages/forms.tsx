@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
+import type { User } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -88,6 +89,16 @@ export default function Forms() {
   const [showSavedTemplatesDialog, setShowSavedTemplatesDialog] =
     useState(false);
   const [showEmptyContentDialog, setShowEmptyContentDialog] = useState(false);
+  const [selectedDoctorId, setSelectedDoctorId] = useState("");
+
+  // Fetch doctors from database
+  const { data: users = [], isLoading: usersLoading } = useQuery<User[]>({
+    queryKey: ["/api/users"],
+    enabled: true,
+  });
+
+  // Filter users to get only doctors
+  const doctors = users.filter((user) => user.role === 'doctor' && user.isActive);
   const [editingClinicInfo, setEditingClinicInfo] = useState({
     name: "",
     address: "",
@@ -2382,7 +2393,11 @@ export default function Forms() {
 
   const handleSave = async () => {
     try {
-      if (!documentContent || documentContent.trim() === "" || documentContent.replace(/<[^>]*>/g, '').trim() === "") {
+      if (
+        !documentContent ||
+        documentContent.trim() === "" ||
+        documentContent.replace(/<[^>]*>/g, "").trim() === ""
+      ) {
         setShowEmptyContentDialog(true);
         return;
       }
@@ -2440,15 +2455,19 @@ export default function Forms() {
 
   const handleDownload = async () => {
     try {
-      if (!documentContent || documentContent.trim() === "" || documentContent.replace(/<[^>]*>/g, '').trim() === "") {
+      if (
+        !documentContent ||
+        documentContent.trim() === "" ||
+        documentContent.replace(/<[^>]*>/g, "").trim() === ""
+      ) {
         setShowEmptyContentDialog(true);
         return;
       }
 
       // Get the contentEditable div element
-      const element = document.getElementById('document-content-area');
+      const element = document.getElementById("document-content-area");
       if (!element) {
-        throw new Error('Content area not found');
+        throw new Error("Content area not found");
       }
 
       // Show loading toast
@@ -2463,16 +2482,16 @@ export default function Forms() {
         scale: 2, // Higher resolution
         useCORS: true,
         allowTaint: true,
-        backgroundColor: '#ffffff',
+        backgroundColor: "#ffffff",
         width: element.scrollWidth,
         height: element.scrollHeight,
       });
 
       // Create PDF
       const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4',
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
       });
 
       // Calculate dimensions for PDF
@@ -2483,15 +2502,15 @@ export default function Forms() {
       let position = 0;
 
       // Add image to PDF
-      const imgData = canvas.toDataURL('image/png');
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      const imgData = canvas.toDataURL("image/png");
+      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
       heightLeft -= pageHeight;
 
       // Add additional pages if content is longer than one page
       while (heightLeft >= 0) {
         position = heightLeft - imgHeight;
         pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
         heightLeft -= pageHeight;
       }
 
@@ -2517,17 +2536,22 @@ export default function Forms() {
 
   const handlePrint = () => {
     try {
-      if (!documentContent || documentContent.trim() === "" || documentContent.replace(/<[^>]*>/g, '').trim() === "") {
+      if (
+        !documentContent ||
+        documentContent.trim() === "" ||
+        documentContent.replace(/<[^>]*>/g, "").trim() === ""
+      ) {
         setShowEmptyContentDialog(true);
         return;
       }
 
       // Create a new window for printing
-      const printWindow = window.open('', '_blank');
+      const printWindow = window.open("", "_blank");
       if (!printWindow) {
         toast({
           title: "Error",
-          description: "Unable to open print window. Please check popup settings.",
+          description:
+            "Unable to open print window. Please check popup settings.",
           duration: 3000,
           variant: "destructive",
         });
@@ -2563,7 +2587,7 @@ export default function Forms() {
 
       printWindow.document.write(printContent);
       printWindow.document.close();
-      
+
       // Wait for content to load then print
       printWindow.onload = () => {
         printWindow.print();
@@ -3468,16 +3492,24 @@ export default function Forms() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-[hsl(var(--cura-midnight))] dark:text-white mb-1">
-                    Practitioner (optional)
+                    Doctor (optional)
                   </label>
-                  <Select>
+                  <Select value={selectedDoctorId} onValueChange={setSelectedDoctorId}>
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select practitioner" />
+                      <SelectValue placeholder={usersLoading ? "Loading doctors..." : "Select doctor"} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="dr-smith">Dr. Smith</SelectItem>
-                      <SelectItem value="dr-johnson">Dr. Johnson</SelectItem>
-                      <SelectItem value="dr-brown">Dr. Brown</SelectItem>
+                      {usersLoading ? (
+                        <SelectItem value="loading" disabled>Loading doctors...</SelectItem>
+                      ) : doctors.length > 0 ? (
+                        doctors.map((doctor) => (
+                          <SelectItem key={doctor.id} value={doctor.id.toString()}>
+                            Dr. {doctor.firstName} {doctor.lastName}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="no-doctors" disabled>No doctors available</SelectItem>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -3507,7 +3539,7 @@ export default function Forms() {
         </div>
 
         {/* Clinical Header Selection - Create the Letter */}
-        <div className="bg-gray-100 px-4 py-4">
+        <div className="bg-white-100 px-4 py-4">
           <div className="flex flex-col items-center">
             <h3 className="text-sm font-medium text-[hsl(var(--cura-midnight))] dark:text-white mb-3">
               Create the Letter
@@ -4393,7 +4425,6 @@ export default function Forms() {
           <div className="h-full flex items-start justify-center p-4">
             <div
               className="bg-white dark:bg-[hsl(var(--cura-midnight))] shadow-sm border border-white dark:border-[hsl(var(--cura-steel))] min-h-[600px] w-full max-w-[1200px] mx-auto"
-
               style={{ width: "700px", maxWidth: "700px" }}
             >
               <div className="p-6">
@@ -4434,7 +4465,7 @@ export default function Forms() {
                   style={{
                     fontSize: fontSize,
                     lineHeight: "1.6",
-                    minHeight: "500px",
+                    minHeight: "770px",
                     maxWidth: "100%",
                     fontFamily: fontFamily,
                   }}
@@ -6213,7 +6244,10 @@ export default function Forms() {
       </Dialog>
 
       {/* Empty Content Warning Dialog */}
-      <Dialog open={showEmptyContentDialog} onOpenChange={setShowEmptyContentDialog}>
+      <Dialog
+        open={showEmptyContentDialog}
+        onOpenChange={setShowEmptyContentDialog}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -6223,7 +6257,8 @@ export default function Forms() {
           </DialogHeader>
           <div className="py-4">
             <p className="text-gray-600">
-              Please write something in the text area before saving, downloading, or printing the document.
+              Please write something in the text area before saving,
+              downloading, or printing the document.
             </p>
           </div>
           <div className="flex justify-end">
