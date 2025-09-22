@@ -1084,7 +1084,14 @@ Medical License: [License Number]
                           setEditAppointmentDate(date);
                           if (date && editSelectedTimeSlot) {
                             const timeSlot = editSelectedTimeSlot;
-                            const newDateTime = new Date(`${format(date, 'yyyy-MM-dd')} ${timeSlot}`);
+                            // Parse time slot to get hours and minutes
+                            const [time, period] = timeSlot.split(' ');
+                            const [hours, minutes] = time.split(':').map(Number);
+                            const hour24 = period === 'AM' ? (hours === 12 ? 0 : hours) : (hours === 12 ? 12 : hours + 12);
+                            
+                            // Create new date with correct local time (no timezone conversion)
+                            const newDateTime = new Date(date);
+                            newDateTime.setHours(hour24, minutes, 0, 0);
                             setEditingAppointment({ ...editingAppointment, scheduledAt: newDateTime.toISOString() });
                           }
                         }}
@@ -1120,7 +1127,14 @@ Medical License: [License Number]
                                 setEditSelectedTimeSlot(slot);
                                 if (editAppointmentDate || editingAppointment.scheduledAt) {
                                   const date = editAppointmentDate || new Date(editingAppointment.scheduledAt);
-                                  const newDateTime = new Date(`${format(date, 'yyyy-MM-dd')} ${slot}`);
+                                  // Parse time slot to get hours and minutes
+                                  const [time, period] = slot.split(' ');
+                                  const [hours, minutes] = time.split(':').map(Number);
+                                  const hour24 = period === 'AM' ? (hours === 12 ? 0 : hours) : (hours === 12 ? 12 : hours + 12);
+                                  
+                                  // Create new date with correct local time (no timezone conversion)
+                                  const newDateTime = new Date(date);
+                                  newDateTime.setHours(hour24, minutes, 0, 0);
                                   setEditingAppointment({ ...editingAppointment, scheduledAt: newDateTime.toISOString() });
                                 }
                               }}
