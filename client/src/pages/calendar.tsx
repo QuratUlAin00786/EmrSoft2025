@@ -73,7 +73,7 @@ const medicalSpecialties = {
       "Pediatric ENT (tonsils, adenoids, ear tubes)",
       "Facial Plastic Surgery (nose/ear correction)"
     ],
-    "Urologist": [
+    "Urological Surgeon": [
       "Endourology (kidney stones, minimally invasive)",
       "Uro-Oncology (prostate, bladder, kidney cancer)",
       "Pediatric Urology",
@@ -124,7 +124,7 @@ const medicalSpecialties = {
   },
   "Kidneys & Urinary Tract": {
     "Nephrologist": ["Kidney diseases", "Dialysis"],
-    "Urologist": ["Surgical urological procedures"]
+    "Urologist": ["Kidney diseases", "Bladder disorders", "General urological care"]
   },
   "Respiratory System": {
     "Pulmonologist": ["Asthma", "COPD", "Tuberculosis"],
@@ -250,8 +250,10 @@ export default function CalendarPage() {
     retry: false,
   });
   
-  // Extract doctors from medical staff data
-  const allDoctors = medicalStaffData?.staff || [];
+  // Extract doctors from medical staff data - memoized to prevent infinite re-renders
+  const allDoctors = useMemo(() => {
+    return medicalStaffData?.staff || [];
+  }, [medicalStaffData]);
   
   // Query for filtered appointments
   const { data: allAppointments = [] } = useQuery<any[]>({

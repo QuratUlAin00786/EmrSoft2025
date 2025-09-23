@@ -68,7 +68,7 @@ const medicalSpecialties = {
       "Pediatric ENT (tonsils, adenoids, ear tubes)",
       "Facial Plastic Surgery (nose/ear correction)",
     ],
-    Urologist: [
+    "Urological Surgeon": [
       "Endourology (kidney stones, minimally invasive)",
       "Uro-Oncology (prostate, bladder, kidney cancer)",
       "Pediatric Urology",
@@ -119,7 +119,7 @@ const medicalSpecialties = {
   },
   "Kidneys & Urinary Tract": {
     Nephrologist: ["Kidney diseases", "Dialysis"],
-    Urologist: ["Surgical urological procedures"],
+    "Urological Surgeon": ["Surgical urological procedures"],
   },
   "Respiratory System": {
     Pulmonologist: ["Asthma", "COPD", "Tuberculosis"],
