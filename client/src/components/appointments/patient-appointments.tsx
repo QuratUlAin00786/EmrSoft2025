@@ -107,7 +107,7 @@ export default function PatientAppointments({ onNewAppointment }: { onNewAppoint
   });
 
   // Fetch medical staff for doctor specialty data
-  const { data: medicalStaffData } = useQuery({
+  const { data: medicalStaffData, isLoading: medicalStaffLoading } = useQuery({
     queryKey: ["/api/medical-staff"],
     staleTime: 60000,
     retry: false,
@@ -291,7 +291,8 @@ export default function PatientAppointments({ onNewAppointment }: { onNewAppoint
     ? upcomingAppointments.sort((a: any, b: any) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())[0]
     : null;
 
-  if (isLoading) {
+  // Show loading state when either appointments or medical staff data is loading
+  if (isLoading || medicalStaffLoading) {
     return (
       <Card>
         <CardContent className="p-6">
