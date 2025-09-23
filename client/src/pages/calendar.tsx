@@ -1156,16 +1156,36 @@ export default function CalendarPage() {
                       <Label className="text-sm font-medium text-gray-900 dark:text-white">
                         {user?.role === 'patient' ? 'My Information' : 'Patient Information'}
                       </Label>
-                      {user?.role === 'patient' && bookingForm.patientId ? (
+                      {user?.role === 'patient' ? (
                         /* Show patient details directly when role is patient */
                         (() => {
-                          const selectedPatient = patients.find((patient: any) => 
-                            (patient.patientId || patient.id.toString()) === bookingForm.patientId
-                          );
+                          // Find patient by form patientId first, then by user info
+                          let selectedPatient = null;
+                          
+                          if (bookingForm.patientId) {
+                            selectedPatient = patients.find((patient: any) => 
+                              (patient.patientId || patient.id.toString()) === bookingForm.patientId
+                            );
+                          }
+                          
+                          // If not found by form patientId, find by user info
+                          if (!selectedPatient && user) {
+                            selectedPatient = patients.find((patient: any) => 
+                              patient.firstName === user.firstName && patient.lastName === user.lastName
+                            ) || patients.find((patient: any) => 
+                              patient.email === user.email
+                            );
+                            
+                            // Auto-populate form if we found the patient
+                            if (selectedPatient && !bookingForm.patientId) {
+                              const patientId = selectedPatient.patientId || selectedPatient.id.toString();
+                              setBookingForm(prev => ({ ...prev, patientId }));
+                            }
+                          }
                           
                           if (!selectedPatient) return (
                             <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-                              <p className="text-sm text-yellow-800">Patient information not found.</p>
+                              <p className="text-sm text-yellow-800">Loading your patient information...</p>
                             </div>
                           );
                           
