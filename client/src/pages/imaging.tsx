@@ -389,7 +389,10 @@ export default function ImagingPage() {
     
     // For patient users, filter by patient ID
     if (user?.role === "patient" && currentPatient) {
-      return medicalImagesRaw.filter((image: any) => image.patientId === currentPatient.id);
+      return medicalImagesRaw.filter((image: any) => {
+        // Use currentPatient.patientId to match with image.patientId
+        return String(image.patientId) === String(currentPatient.patientId);
+      });
     }
     
     // For non-patient users, show all images
