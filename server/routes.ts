@@ -225,8 +225,6 @@ const uploadVoiceNote = multer({
 const uploadMedicalImages = multer({
   storage: multer.diskStorage({
     destination: (req, file, cb) => {
-      const fs = require('fs');
-      const path = require('path');
       const uploadDir = path.join(process.cwd(), 'uploads', 'Imaging_Images');
       
       // Create directory if it doesn't exist
@@ -242,13 +240,13 @@ const uploadMedicalImages = multer({
         // Get numeric patient ID from request body
         const numericPatientId = req.body.patientId;
         if (!numericPatientId) {
-          return cb(new Error('Patient ID is required for file naming'));
+          return cb(new Error('Patient ID is required for file naming'), '');
         }
         
         // Get the tenant from middleware
         const tenantReq = req as any; // TenantRequest
         if (!tenantReq.tenant) {
-          return cb(new Error('Tenant information required for patient lookup'));
+          return cb(new Error('Tenant information required for patient lookup'), '');
         }
         
         // Import storage to lookup patient
@@ -257,7 +255,7 @@ const uploadMedicalImages = multer({
         // Get patient to find their string patientId (like "P001")
         const patient = await storage.getPatient(parseInt(numericPatientId), tenantReq.tenant.id);
         if (!patient) {
-          return cb(new Error('Patient not found for unique filename generation'));
+          return cb(new Error('Patient not found for unique filename generation'), '');
         }
         
         // Extract file extension
@@ -276,7 +274,7 @@ const uploadMedicalImages = multer({
         cb(null, uniqueFilename);
       } catch (error) {
         console.error('📷 SERVER: Error generating unique filename:', error);
-        cb(new Error('Failed to generate unique filename'));
+        cb(new Error('Failed to generate unique filename'), '');
       }
     }
   }),
