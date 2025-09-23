@@ -541,19 +541,40 @@ export default function PrescriptionsPage() {
 
       // Check if the current user role is Patient
       if (user.role === "patient") {
-        // Get the patient ID from session/auth
-        const currentPatient = patients.find((patient: any) => 
-          patient.email === user.email || 
-          (patient.firstName === user.firstName && patient.lastName === user.lastName)
+        // Get the patient ID from session/auth - match by email first for accuracy
+        console.log("🔍 PRESCRIPTIONS: Looking for patient matching user:", { 
+          userEmail: user.email, 
+          userName: `${user.firstName} ${user.lastName}`,
+          userId: user.id 
+        });
+        console.log("📋 PRESCRIPTIONS: Available patients:", patients.map(p => ({ 
+          id: p.id, 
+          email: p.email, 
+          name: `${p.firstName} ${p.lastName}` 
+        })));
+        
+        // Try email match first (most reliable)
+        let currentPatient = patients.find((patient: any) => 
+          patient.email && user.email && patient.email.toLowerCase() === user.email.toLowerCase()
         );
         
+        // If no email match, try exact name match
+        if (!currentPatient) {
+          currentPatient = patients.find((patient: any) => 
+            patient.firstName && user.firstName && patient.lastName && user.lastName &&
+            patient.firstName.toLowerCase() === user.firstName.toLowerCase() && 
+            patient.lastName.toLowerCase() === user.lastName.toLowerCase()
+          );
+        }
+        
         if (currentPatient) {
+          console.log("✅ PRESCRIPTIONS: Found matching patient:", currentPatient);
           // Fetch data from the database using that patient ID
           // Returns only the specific patient data (not all data)
           return await fetchPrescriptionsByPatientId(currentPatient.id);
         } else {
           // If patient doesn't exist, return empty array
-          console.log("Patient not found for user:", user.email);
+          console.log("❌ PRESCRIPTIONS: Patient not found for user:", user.email);
           return [];
         }
       } else if (user.role === "doctor") {
