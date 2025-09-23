@@ -108,8 +108,8 @@ export default function PatientAppointments({ onNewAppointment }: { onNewAppoint
   const appointments = React.useMemo(() => {
     if (!appointmentsData || !currentPatient) return [];
     
-    // Filter appointments by current patient ID for all user types
-    return appointmentsData.filter((apt: any) => apt.patientId === currentPatient.patientId);
+    // Filter appointments by current patient database ID - appointments store the numeric patient ID
+    return appointmentsData.filter((apt: any) => apt.patientId === currentPatient.id);
   }, [appointmentsData, currentPatient]);
 
   const getDoctorName = (providerId: number) => {
