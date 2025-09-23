@@ -104,17 +104,13 @@ export default function PatientAppointments({ onNewAppointment }: { onNewAppoint
     staleTime: 60000,
   });
 
-  // For patient users, backend automatically filters appointments - no need for frontend filtering
+  // Filter appointments to show only the current patient's appointments
   const appointments = React.useMemo(() => {
-    if (user?.role === "patient") {
-      // Backend already filtered appointments for patient users
-      return appointmentsData || [];
-    } else {
-      // For non-patient users, filter by current patient if available
-      if (!appointmentsData || !currentPatient) return [];
-      return appointmentsData.filter((apt: any) => apt.patientId === currentPatient.id);
-    }
-  }, [appointmentsData, currentPatient, user?.role]);
+    if (!appointmentsData || !currentPatient) return [];
+    
+    // Filter appointments by current patient ID for all user types
+    return appointmentsData.filter((apt: any) => apt.patientId === currentPatient.id);
+  }, [appointmentsData, currentPatient]);
 
   const getDoctorName = (providerId: number) => {
     if (!usersData || !Array.isArray(usersData)) return `Dr. Provider ${providerId}`;
