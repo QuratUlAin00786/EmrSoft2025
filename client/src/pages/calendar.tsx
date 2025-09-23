@@ -1279,7 +1279,7 @@ export default function CalendarPage() {
                     </div>
 
                     {/* Patient Information Card - Shows when patient is selected */}
-                    {bookingForm.patientId && user?.role !== 'patient' && (
+                    {bookingForm.patientId && (
                       <div>
                         <Label className="text-sm font-medium text-gray-900 dark:text-white mb-2 block">
                           Patient Information
