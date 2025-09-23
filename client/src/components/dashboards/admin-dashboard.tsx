@@ -112,11 +112,40 @@ export function AdminDashboard() {
     staleTime: 0,
   });
 
+  // Fetch all patients from the patients table to get total count
+  const { data: allPatients, isLoading: patientsLoading } = useQuery({
+    queryKey: ["/api/patients/all"],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'X-Tenant-Subdomain': 'demo'
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      // Fetch all patients without isActive filter
+      const response = await fetch('/api/patients', {
+        headers,
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
+      return response.json();
+    },
+    retry: false,
+    staleTime: 0,
+  });
+
   const dashboardCards = [
     {
       title: "Total Patients",
-      value: isLoading ? "--" : (stats?.totalPatients?.toString() || "0"),
-      description: isLoading ? "Loading..." : `${stats?.totalPatients || 0} active patients`,
+      value: patientsLoading ? "--" : (Array.isArray(allPatients) ? allPatients.length.toString() : "0"),
+      description: patientsLoading ? "Loading..." : `${Array.isArray(allPatients) ? allPatients.length : 0} total patients`,
       icon: Users,
       href: "/patients",
       color: "text-blue-500"

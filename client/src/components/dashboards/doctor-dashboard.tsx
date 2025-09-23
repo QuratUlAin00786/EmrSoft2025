@@ -22,6 +22,35 @@ export function DoctorDashboard() {
     }
   });
 
+  // Fetch all patients from the patients table to get total count
+  const { data: allPatients, isLoading: patientsLoading } = useQuery({
+    queryKey: ["/api/patients/all"],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'X-Tenant-Subdomain': 'demo'
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      // Fetch all patients without isActive filter
+      const response = await fetch('/api/patients', {
+        headers,
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
+      return response.json();
+    },
+    retry: false,
+    staleTime: 0,
+  });
+
   const doctorCards = [
     {
       title: "Today's Patients",
@@ -33,7 +62,7 @@ export function DoctorDashboard() {
     },
     {
       title: "Total Patients",
-      value: (stats && typeof stats === 'object' && 'totalPatients' in stats) ? String(stats.totalPatients) : "0",
+      value: patientsLoading ? "--" : (Array.isArray(allPatients) ? allPatients.length.toString() : "0"),
       description: "Under your care",
       icon: Users,
       href: "/patients",
