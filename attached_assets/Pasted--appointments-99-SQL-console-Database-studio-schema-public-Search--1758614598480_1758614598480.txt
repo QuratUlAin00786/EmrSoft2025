@@ -1,0 +1,470 @@
+
+/appointments
+99+
+
+
+SQL console
+
+Database studio
+
+schema:
+public
+Search...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Powered by
+
+
+
+
+
+
+
+
+
+Add record
+
+12 rows•745ms
+
+
+50
+0
+
+
+
+5m
+ • 
+5 minutes ago
+Production
+Status
+salman711 published 14 minutes ago
+Visibility
+Public
+Domain
+https://cura-emr-uk-backup-1-sep-25-salman711.replit.app
+https://curaemr.ai
+Type
+Autoscale
+(4 vCPU / 8 GiB RAM / 3 Max)
+See all usage
+Database
+Production database connected
+9121d994
+SA
+
+salman711
+salman711
+published about 16 hours ago
+3514e351
+SA
+
+salman711
+salman711
+published about 23 hours ago
+929d628d
+SA
+
+salman711
+salman711
+published 1 day ago
+38e7ac2a
+SA
+
+salman711
+salman711
+published 2 days ago
+620fab84
+SA
+
+salman711
+salman711
+published 2 days ago
+cecebb06
+SA
+
+salman711
+salman711
+published 4 days ago
+2d0bdefe
+SA
+
+salman711
+salman711
+published 4 days ago
+a9c21496
+SA
+
+salman711
+salman711
+published 5 days ago
+a6a671e8
+SA
+
+salman711
+salman711
+published 5 days ago
+6ebce0d9
+SA
+
+salman711
+salman711
+published 5 days ago
+508589dd
+SA
+
+salman711
+salman711
+published 5 days ago
+c0622571
+SA
+
+salman711
+salman711
+published 5 days ago
+902383dc
+SA
+
+salman711
+salman711
+published 5 days ago
+3c434ea2
+SA
+
+salman711
+salman711
+published 6 days ago
+e2b32a07
+SA
+
+salman711
+salman711
+failed to publish 6 days ago
+e2b32a07
+SA
+
+salman711
+salman711
+failed to publish 6 days ago
+a0e40e96
+SA
+
+salman711
+salman711
+published 6 days ago
+ee265d19
+SA
+
+salman711
+salman711
+published 7 days ago
+35247eed
+SA
+
+salman711
+salman711
+published 7 days ago
+274eb3bb
+SA
+
+salman711
+salman711
+published 7 days ago
+5c226e6d
+SA
+
+salman711
+salman711
+published 7 days ago
+bd4b98e5
+SA
+
+salman711
+salman711
+published 7 days ago
+eaff6759
+SA
+
+salman711
+salman711
+published 7 days ago
+251d957c
+SA
+
+salman711
+salman711
+published 7 days ago
+a4c6e5f4
+SA
+
+salman711
+salman711
+published 7 days ago
+5dab3cf9
+SA
+
+salman711
+salman711
+published 7 days ago
+04905e3f
+SA
+
+salman711
+salman711
+published 7 days ago
+00ae01dc
+SA
+
+salman711
+salman711
+published 7 days ago
+e885000e
+SA
+
+salman711
+salman711
+published 8 days ago
+cfbb21a7
+SA
+
+salman711
+salman711
+published 10 days ago
+63c8f450
+SA
+
+salman711
+salman711
+published 10 days ago
+0ceb76a7
+SA
+
+salman711
+salman711
+published 11 days ago
+3807215a
+SA
+
+salman711
+salman711
+published 13 days ago
+e1f91036
+SA
+
+salman711
+salman711
+published 15 days ago
+ec27a5ac
+SA
+
+salman711
+salman711
+published 15 days ago
+8615cd64
+SA
+
+salman711
+salman711
+published 15 days ago
+407e842c
+SA
+
+salman711
+salman711
+published 15 days ago
+4db23d2b
+SA
+
+salman711
+salman711
+failed to publish 15 days ago
+cf6bc03f
+SA
+
+salman711
+salman711
+published 15 days ago
+dfd7b0a5
+SA
+
+salman711
+salman711
+published 15 days ago
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarContent, AvatarFallback } from "@/components/ui/avatar";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Stethoscope, User, Calendar, Clock, MapPin, Edit } from "lucide-react";
+import { useLocation } from "wouter";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
+import type { User as Doctor } from "@shared/schema";
+
+interface DoctorListProps {
+  onSelectDoctor?: (doctor: Doctor) => void;
+  showAppointmentButton?: boolean;
+}
+
+const departmentColors = {
+  "Cardiology": "bg-red-100 text-red-800",
+  "General Medicine": "bg-blue-100 text-blue-800",
+  "Pediatrics": "bg-green-100 text-green-800",
+  "Orthopedics": "bg-purple-100 text-purple-800",
+  "Neurology": "bg-indigo-100 text-indigo-800",
+  "Dermatology": "bg-yellow-100 text-yellow-800",
+  "Psychiatry": "bg-pink-100 text-pink-800",
+  "Surgery": "bg-gray-100 text-gray-800",
+  "Emergency": "bg-orange-100 text-orange-800",
+  "Administration": "bg-slate-100 text-slate-800"
+};
+
+const roleColors = {
+  "doctor": "bg-blue-100 text-blue-800",
+  "nurse": "bg-green-100 text-green-800",
+  "admin": "bg-purple-100 text-purple-800",
+  "receptionist": "bg-orange-100 text-orange-800"
+};
+
+function getInitials(firstName: string, lastName: string): string {
+  return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+}
+
+export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: DoctorListProps) {
+  const [, setLocation] = useLocation();
+  const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
+  const [isScheduleOpen, setIsScheduleOpen] = useState(false);
+Update appointment booking for patient users to show their details
+43 minutes ago
+•
+Free
+Saved your changes before rolling back
+
+1 message & 1 action
+I've finished reverting, what should I do now?
+In the patient-appointments.tsx file, when the "Book Appointment" button is clicked, a popup titled "Schedule New Appointment" should open.
+If the current user's role is "Patient", then:
+• Hide the dropdown and heading "Patient Information"
+• Display the current patient's details with heading "My Information"(fetched from session/authentication) instead.
+
+Do not change anything else while implementing this.
+
+32 minutes ago
+
+4 messages & 14 actions
+I'll help you modify the patient-appointments.tsx file to implement role-based booking popup behavior. Let me first examine the current structure.
+Perfect! I've updated the appointment booking popup to show role-based behavior. For patients, it now hides the dropdown and shows "My Information" with their details instead of "Patient Information". Can you test this by logging in as a patient (patient@cura.com / patient123) and clicking "Book Appointment" to see the new behavior?
+
+29 minutes ago
+Update appointment booking for patient users to show their details
+2 minutes of work
+its still not changed
+
+25 minutes ago
+
+5 messages & 17 actions
+I can see from the image that the changes didn't take effect. This appears to be a different modal component than the one I edited. Let me search for the correct appointment booking modal that's being used in the patient appointments page.
+Perfect! I've fixed the appointment booking modal. Now when you log in as a patient (patient@cura.com / patient123) and click "Book Appointment", it should show "My Information" instead of "Patient Information" and display your details without a dropdown. Can you test this again?
+
+22 minutes ago
+Update calendar page to show patient information correctly
+2 minutes of work
+In the patient-appointments.tsx file, update the "Upcoming", "Past", and "All" buttons to fetch appointment data specifically for the logged-in patient user.
+
+The patient information should be fetched from session/authentication, and the data should be filtered accordingly to show only that patient's appointments.
+
+"Upcoming" → show future appointments for the logged-in patient
+
+"Past" → show past appointments for the logged-in patient
+
+"All" → show all appointments for the logged-in patient
+
+Do not change anything else while implementing this.
+
+20 minutes ago
+
+4 messages & 23 actions
+I'll help you update the patient-appointments.tsx file to filter appointment data specifically for the logged-in patient user. Let me first examine the current implementation to understand how the filtering works.
+Perfect! I've updated the patient appointments filtering to show only the logged-in patient's appointments. Now when you log in as a patient and use the "Upcoming", "Past", and "All" buttons, you should only see your own appointments. Can you test this by logging in as a patient (patient@cura.com / patient123) and checking the appointment filtering?
+
+17 minutes ago
+Filter appointment list to display only the logged-in patient's records
+3 minutes of work
+In the patient-appointments.tsx file or calendar.tsx, 

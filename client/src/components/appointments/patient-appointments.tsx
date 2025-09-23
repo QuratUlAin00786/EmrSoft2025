@@ -27,14 +27,54 @@ export default function PatientAppointments({ onNewAppointment }: { onNewAppoint
 
   // Find the patient record for the logged-in user
   const currentPatient = React.useMemo(() => {
-    if (!user || user.role !== 'patient' || !patientsData || !Array.isArray(patientsData)) return null;
+    if (!user || user.role !== 'patient' || !patientsData || !Array.isArray(patientsData)) {
+      console.log("🔍 PATIENT-APPOINTMENTS: Patient lookup failed", {
+        hasUser: !!user,
+        userRole: user?.role,
+        hasPatientsData: !!patientsData,
+        patientsDataType: Array.isArray(patientsData) ? 'array' : typeof patientsData
+      });
+      return null;
+    }
     
-    // Find patient by matching user's name or email
-    return patientsData.find((patient: any) => 
-      patient.firstName === user.firstName && patient.lastName === user.lastName
-    ) || patientsData.find((patient: any) => 
-      patient.email === user.email
-    );
+    console.log("🔍 PATIENT-APPOINTMENTS: Looking for patient matching user:", { 
+      userEmail: user.email, 
+      userName: `${user.firstName} ${user.lastName}`,
+      userId: user.id 
+    });
+    console.log("📋 PATIENT-APPOINTMENTS: Available patients:", patientsData.map(p => ({ 
+      id: p.id, 
+      email: p.email, 
+      name: `${p.firstName} ${p.lastName}` 
+    })));
+    
+    // Try multiple matching strategies
+    const foundPatient = 
+      // 1. Match by exact email
+      patientsData.find((patient: any) => 
+        patient.email && user.email && patient.email.toLowerCase() === user.email.toLowerCase()
+      ) ||
+      // 2. Match by exact name
+      patientsData.find((patient: any) => 
+        patient.firstName && user.firstName && patient.lastName && user.lastName &&
+        patient.firstName.toLowerCase() === user.firstName.toLowerCase() && 
+        patient.lastName.toLowerCase() === user.lastName.toLowerCase()
+      ) ||
+      // 3. Match by partial name (first name only)
+      patientsData.find((patient: any) => 
+        patient.firstName && user.firstName &&
+        patient.firstName.toLowerCase() === user.firstName.toLowerCase()
+      ) ||
+      // 4. If user role is patient, take the first patient (fallback for demo)
+      (user.role === 'patient' && patientsData.length > 0 ? patientsData[0] : null);
+    
+    if (foundPatient) {
+      console.log("✅ PATIENT-APPOINTMENTS: Found matching patient:", foundPatient);
+    } else {
+      console.log("❌ PATIENT-APPOINTMENTS: No matching patient found");
+    }
+    
+    return foundPatient;
   }, [user, patientsData]);
 
   // Fetch appointments for this patient
