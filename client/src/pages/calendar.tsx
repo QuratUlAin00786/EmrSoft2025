@@ -197,7 +197,22 @@ export default function CalendarPage() {
 
   // Auto-populate patient when user is a patient
   useEffect(() => {
+    console.log('🔍 Patient Auto-population Debug:', {
+      userRole: user?.role,
+      userName: user?.firstName + ' ' + user?.lastName,
+      userEmail: user?.email,
+      patientsCount: patients?.length || 0,
+      currentPatientId: bookingForm.patientId,
+      patients: patients?.map(p => ({ 
+        id: p.id, 
+        name: p.firstName + ' ' + p.lastName, 
+        email: p.email 
+      })) || []
+    });
+    
     if (user?.role === 'patient' && patients.length > 0 && !bookingForm.patientId) {
+      console.log('✅ Patient role detected, searching for matching patient record...');
+      
       // Find patient by matching user's name or email
       const currentPatient = patients.find((patient: any) => 
         patient.firstName === user.firstName && patient.lastName === user.lastName
@@ -207,8 +222,22 @@ export default function CalendarPage() {
       
       if (currentPatient) {
         const patientId = currentPatient.patientId || currentPatient.id.toString();
+        console.log('✅ Found matching patient record:', { 
+          patient: currentPatient, 
+          patientId 
+        });
         setBookingForm(prev => ({ ...prev, patientId }));
+      } else {
+        console.log('❌ No matching patient record found for user');
       }
+    } else {
+      console.log('⚠️ Patient auto-population skipped:', {
+        reason: {
+          isPatient: user?.role === 'patient',
+          hasPatientsData: patients.length > 0,
+          noExistingPatientId: !bookingForm.patientId
+        }
+      });
     }
   }, [user, patients, bookingForm.patientId]);
   
@@ -1156,7 +1185,14 @@ export default function CalendarPage() {
                       <Label className="text-sm font-medium text-gray-900 dark:text-white">
                         {user?.role === 'patient' ? 'Patient Information' : 'Select Patient'}
                       </Label>
-                      {user?.role === 'patient' && bookingForm.patientId ? (
+                      {(() => {
+                        console.log('🎯 Patient Info Display Logic:', {
+                          userRole: user?.role,
+                          patientId: bookingForm.patientId,
+                          shouldShow: user?.role === 'patient' && bookingForm.patientId
+                        });
+                        return user?.role === 'patient' && bookingForm.patientId;
+                      })() ? (
                         /* Show patient details directly when role is patient */
                         (() => {
                           const selectedPatient = patients.find((patient: any) => 
