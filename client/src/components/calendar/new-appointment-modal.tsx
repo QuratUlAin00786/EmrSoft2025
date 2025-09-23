@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar } from "lucide-react";
+import { Calendar, User, Mail, Phone } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
@@ -13,6 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { appointmentSchema, AppointmentFormData } from "./appointment-form-schema";
+import { useAuth } from "@/hooks/use-auth";
 
 interface NewAppointmentModalProps {
   isOpen: boolean;
@@ -22,7 +23,9 @@ interface NewAppointmentModalProps {
 
 export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: NewAppointmentModalProps) {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [patients, setPatients] = useState<any[]>([]);
+  const [currentPatientDetails, setCurrentPatientDetails] = useState<any>(null);
   const [allProviders, setAllProviders] = useState<any[]>([]);
   const [availableProviders, setAvailableProviders] = useState<any[]>([]);
 
@@ -130,6 +133,22 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
         index === self.findIndex((p: any) => p.id === patient.id)
       ) : [];
       setPatients(uniquePatients);
+
+      // If user is a patient, find their details and auto-populate
+      if (user?.role === 'patient' && uniquePatients.length > 0) {
+        // Find patient by matching user's name or email
+        const currentPatient = uniquePatients.find((patient: any) => 
+          patient.firstName === user.firstName && patient.lastName === user.lastName
+        ) || uniquePatients.find((patient: any) => 
+          patient.email === user.email
+        );
+        
+        if (currentPatient) {
+          setCurrentPatientDetails(currentPatient);
+          // Auto-populate the form with patient ID
+          form.setValue("patientId", currentPatient.id.toString());
+        }
+      }
     } catch (err) {
       console.error("Error fetching patients:", err);
       setPatients([]);
@@ -322,20 +341,50 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="required">Patient</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value} data-testid="select-patient">
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select patient..." />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {patients.map((patient: any) => (
-                          <SelectItem key={`patient-${patient.id}`} value={patient.id.toString()}>
-                            {patient.firstName} {patient.lastName}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    {user?.role === 'patient' && currentPatientDetails ? (
+                      <div className="border rounded-md p-3 bg-blue-50 dark:bg-blue-900 border-blue-200 dark:border-blue-700">
+                        <div className="flex items-center space-x-3">
+                          <User className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                          <div className="flex-1">
+                            <div className="font-medium text-blue-900 dark:text-blue-100">
+                              {currentPatientDetails.firstName} {currentPatientDetails.lastName}
+                            </div>
+                            <div className="space-y-1 text-sm text-blue-700 dark:text-blue-300">
+                              {currentPatientDetails.email && (
+                                <div className="flex items-center space-x-1">
+                                  <Mail className="h-3 w-3" />
+                                  <span>{currentPatientDetails.email}</span>
+                                </div>
+                              )}
+                              {currentPatientDetails.phone && (
+                                <div className="flex items-center space-x-1">
+                                  <Phone className="h-3 w-3" />
+                                  <span>{currentPatientDetails.phone}</span>
+                                </div>
+                              )}
+                              <div className="text-xs opacity-75">
+                                Patient ID: {currentPatientDetails.patientId || `P${currentPatientDetails.id?.toString().padStart(6, '0')}`}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <Select onValueChange={field.onChange} value={field.value} data-testid="select-patient">
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select patient..." />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {patients.map((patient: any) => (
+                            <SelectItem key={`patient-${patient.id}`} value={patient.id.toString()}>
+                              {patient.firstName} {patient.lastName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}
