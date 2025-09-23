@@ -169,7 +169,7 @@ const upload = multer({
     if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error('Invalid file type. Only PDF, DOC, DOCX, JPG, PNG files are allowed.'));
+      cb(null, false);
     }
   }
 });
@@ -191,7 +191,7 @@ const uploadPhoto = multer({
     if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error('Invalid file type. Only JPG, PNG files are allowed for photos.'));
+      cb(null, false);
     }
   }
 });
@@ -216,7 +216,7 @@ const uploadVoiceNote = multer({
     if (allowedTypes.includes(file.mimetype) || file.originalname.endsWith('.webm') || file.originalname.endsWith('.wav') || file.originalname.endsWith('.mp3')) {
       cb(null, true);
     } else {
-      cb(new Error('Invalid file type. Only audio files are allowed for voice notes.'));
+      cb(null, false);
     }
   }
 });
@@ -248,9 +248,6 @@ const uploadMedicalImages = multer({
         if (!tenantReq.tenant) {
           return cb(new Error('Tenant information required for patient lookup'), '');
         }
-        
-        // Import storage to lookup patient
-        const { storage } = await import('./storage.js');
         
         // Get patient to find their string patientId (like "P001")
         const patient = await storage.getPatient(parseInt(numericPatientId), tenantReq.tenant.id);
@@ -303,7 +300,7 @@ const uploadMedicalImages = multer({
         file.originalname.toLowerCase().endsWith('.dicom')) {
       cb(null, true);
     } else {
-      cb(new Error('Invalid file type. Only medical image formats are allowed.'));
+      cb(null, false);
     }
   }
 });
