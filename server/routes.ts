@@ -724,7 +724,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const tenantStorage = multiTenantPackage.getTenantStorage();
 
   // Secure admin endpoint for demo medical records bootstrapping  
-  app.post('/api/admin/demo-medical-records-bootstrap', authMiddleware, requireRole(["admin"]), withTenantIsolation, async (req: TenantRequest, res) => {
+  app.post('/api/admin/demo-medical-records-bootstrap', authMiddleware, requireRole(["admin"]), multiTenantEnforcer(), async (req: TenantRequest, res) => {
     try {
       // SECURITY: Strict production requirements
       if (process.env.NODE_ENV === 'production') {
