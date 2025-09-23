@@ -9230,8 +9230,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/mobile/patient/appointments", authMiddleware, requireRole(["patient"]), async (req: TenantRequest, res) => {
     try {
-      const patientId = req.user!.id;
-      const appointments = await storage.getAppointmentsByPatient(patientId, req.tenant!.id);
+      // Find the patient record by the authenticated user's email
+      const patients = await storage.getPatientsByOrganization(req.tenant!.id, 100);
+      const patient = patients.find(p => p.email === req.user!.email);
+      
+      if (!patient) {
+        return res.status(404).json({ error: "Patient record not found for authenticated user" });
+      }
+      
+      const appointments = await storage.getAppointmentsByPatient(patient.id, req.tenant!.id);
       res.json(appointments);
     } catch (error) {
       console.error("Error fetching patient appointments:", error);
@@ -9241,9 +9248,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/mobile/patient/appointments", authMiddleware, requireRole(["patient"]), async (req: TenantRequest, res) => {
     try {
+      // Find the patient record by the authenticated user's email
+      const patients = await storage.getPatientsByOrganization(req.tenant!.id, 100);
+      const patient = patients.find(p => p.email === req.user!.email);
+      
+      if (!patient) {
+        return res.status(404).json({ error: "Patient record not found for authenticated user" });
+      }
+      
       const appointmentData = {
         ...req.body,
-        patientId: req.user!.id,
+        patientId: patient.id, // Use the patient's database ID, not the user ID
         organizationId: req.tenant!.id,
         status: 'scheduled'
       };
@@ -9259,11 +9274,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/mobile/patient/appointments/:id", authMiddleware, requireRole(["patient"]), async (req: TenantRequest, res) => {
     try {
       const appointmentId = parseInt(req.params.id);
-      const patientId = req.user!.id;
+      
+      // Find the patient record by the authenticated user's email
+      const patients = await storage.getPatientsByOrganization(req.tenant!.id, 100);
+      const patient = patients.find(p => p.email === req.user!.email);
+      
+      if (!patient) {
+        return res.status(404).json({ error: "Patient record not found for authenticated user" });
+      }
       
       // Verify the appointment belongs to the patient
       const appointment = await storage.getAppointment(appointmentId, req.tenant!.id);
-      if (!appointment || appointment.patientId !== patientId) {
+      if (!appointment || appointment.patientId !== patient.id) {
         return res.status(404).json({ error: "Appointment not found" });
       }
       
