@@ -165,13 +165,23 @@ export default function PatientAppointments({ onNewAppointment }: { onNewAppoint
       const selectedDate = new Date(editingAppointment.scheduledAt);
       fetchAppointmentsForDate(selectedDate);
     }
-  }, [editingAppointment?.scheduledAt]);
+  }, [editingAppointment?.scheduledAt, editingAppointment?.id]);
 
   // Edit appointment mutation
   const editAppointmentMutation = useMutation({
     mutationFn: async (appointmentData: any) => {
       const response = await apiRequest("PUT", `/api/appointments/${appointmentData.id}`, appointmentData);
-      return response.json();
+      
+      if (!response.ok) {
+        throw new Error(`Failed to update appointment: ${response.status}`);
+      }
+      
+      try {
+        return await response.json();
+      } catch (jsonError) {
+        // If JSON parsing fails but response was successful, return a success indicator
+        return { success: true };
+      }
     },
     onSuccess: () => {
       toast({
