@@ -11202,24 +11202,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Medical Image Section (moved after radiologist report)
       let imageHeight = 0;
       
-      // Check for image data from either the study or the imageData parameter
+      // Check for image data from database fileName and filesystem
       let actualImageData = null;
       let actualMimeType = 'image/jpeg';
       
-      if (imageData) {
-        // Use imageData from request body (includes data:image prefix)
-        console.log("📷 SERVER: Using imageData from request body");
-        actualImageData = imageData.split(',')[1]; // Remove data:image/jpeg;base64, prefix
-        if (imageData.includes('image/png')) {
-          actualMimeType = 'image/png';
-        } else if (imageData.includes('image/jpeg') || imageData.includes('image/jpg')) {
-          actualMimeType = 'image/jpeg';
+      // Get fileName from the database study
+      const fileName = study.fileName;
+      
+      if (fileName && fileName.trim() !== '') {
+        try {
+          // Ensure the Imaging_Images directory exists
+          const imagingImagesDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Images');
+          await fse.ensureDir(imagingImagesDir);
+          console.log("📷 SERVER: Ensured directory exists:", imagingImagesDir);
+          
+          // Construct the full path to the image file
+          const imageFilePath = path.join(imagingImagesDir, fileName);
+          console.log("📷 SERVER: Checking for image file at:", imageFilePath);
+          
+          // Check if the image file exists on the server filesystem
+          if (await fse.pathExists(imageFilePath)) {
+            console.log("📷 SERVER: Image file exists, reading from filesystem:", fileName);
+            
+            // Read the image file from the filesystem
+            const imageBuffer = await fse.readFile(imageFilePath);
+            
+            // Convert to base64 for processing
+            actualImageData = imageBuffer.toString('base64');
+            
+            // Determine MIME type from file extension
+            const fileExtension = path.extname(fileName).toLowerCase();
+            if (fileExtension === '.png') {
+              actualMimeType = 'image/png';
+            } else if (fileExtension === '.jpg' || fileExtension === '.jpeg') {
+              actualMimeType = 'image/jpeg';
+            } else {
+              // Default to jpeg for unknown extensions
+              actualMimeType = 'image/jpeg';
+            }
+            
+            console.log("📷 SERVER: Successfully loaded image from filesystem, mimeType:", actualMimeType);
+          } else {
+            console.log("📷 SERVER: Image file not found at path:", imageFilePath);
+          }
+        } catch (error) {
+          console.error("📷 SERVER: Error accessing image file from filesystem:", error);
         }
-      } else if (study.images && study.images[0] && study.images[0].imageData) {
-        // Use imageData from study
-        console.log("📷 SERVER: Using imageData from study");
-        actualImageData = study.images[0].imageData;
-        actualMimeType = study.images[0].mimeType || 'image/jpeg';
+      }
+      
+      // Fallback to existing methods if filesystem image not found
+      if (!actualImageData) {
+        if (imageData) {
+          // Use imageData from request body (includes data:image prefix)
+          console.log("📷 SERVER: Fallback - Using imageData from request body");
+          actualImageData = imageData.split(',')[1]; // Remove data:image/jpeg;base64, prefix
+          if (imageData.includes('image/png')) {
+            actualMimeType = 'image/png';
+          } else if (imageData.includes('image/jpeg') || imageData.includes('image/jpg')) {
+            actualMimeType = 'image/jpeg';
+          }
+        } else if (study.images && study.images[0] && study.images[0].imageData) {
+          // Use imageData from study
+          console.log("📷 SERVER: Fallback - Using imageData from study");
+          actualImageData = study.images[0].imageData;
+          actualMimeType = study.images[0].mimeType || 'image/jpeg';
+        }
       }
       
       if (actualImageData) {
