@@ -1565,7 +1565,9 @@ export default function CalendarPage() {
                     </Button>
                     <Button
                       onClick={() => {
-                        const appointmentDateTime = `${format(selectedDate, 'yyyy-MM-dd')}T${selectedTimeSlot}:00`;
+                        // Create appointment datetime WITHOUT timezone conversion
+                        // Store exactly as selected: 09:30 AM stays 09:30, not converted to UTC
+                        const appointmentDateTime = `${format(selectedDate, 'yyyy-MM-dd')}T${selectedTimeSlot}:00.000Z`;
                         
                         // Handle both numeric and string patient IDs
                         let patientId: string | number = bookingForm.patientId;
