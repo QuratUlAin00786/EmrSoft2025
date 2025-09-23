@@ -2,11 +2,14 @@ import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, User, MapPin, Video, Plus, FileText } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Calendar, Clock, User, MapPin, Video, Plus, FileText, Edit, Trash2 } from "lucide-react";
 import { format, isSameDay, isToday, isFuture, isPast } from "date-fns";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
 
 const statusColors = {
   scheduled: "#4A7DFF",
@@ -15,9 +18,54 @@ const statusColors = {
   no_show: "#9B9EAF"
 };
 
+// Medical Specialties Data
+const medicalSpecialties = {
+  "General & Primary Care": {
+    "General Practitioner (GP) / Family Physician": ["Common illnesses", "Preventive care"],
+    "Internal Medicine Specialist": ["Adult health", "Chronic diseases (diabetes, hypertension)"]
+  },
+  "Surgical Specialties": {
+    "General Surgeon": ["Abdominal Surgery", "Hernia Repair", "Gallbladder & Appendix Surgery"],
+    "Orthopedic Surgeon": ["Joint Replacement", "Spine Surgery", "Sports Orthopedics"],
+    "Neurosurgeon": ["Brain Tumor Surgery", "Spinal Surgery", "Cerebrovascular Surgery"]
+  },
+  "Heart & Circulation": {
+    "Cardiologist": ["Heart diseases", "ECG", "Angiography"],
+    "Vascular Surgeon": ["Arteries", "Veins", "Blood vessels"]
+  },
+  "Women's Health": {
+    "Gynecologist": ["Female reproductive system"],
+    "Obstetrician": ["Pregnancy & childbirth"]
+  },
+  "Children's Health": {
+    "Pediatrician": ["General child health"],
+    "Pediatric Surgeon": ["Infant & child surgeries"]
+  },
+  "Brain & Nervous System": {
+    "Neurologist": ["Stroke", "Epilepsy", "Parkinson's"],
+    "Psychiatrist": ["Mental health (depression, anxiety)"]
+  },
+  "Skin, Hair & Appearance": {
+    "Dermatologist": ["Skin", "Hair", "Nails"],
+    "Cosmetologist": ["Non-surgical cosmetic treatments"]
+  },
+  "Eye & Vision": {
+    "Ophthalmologist": ["Cataracts", "Glaucoma", "Surgeries"]
+  },
+  "Teeth & Mouth": {
+    "Dentist (General)": ["Oral health", "Fillings"],
+    "Orthodontist": ["Braces", "Alignment"]
+  }
+};
+
 export default function PatientAppointments({ onNewAppointment }: { onNewAppointment?: () => void }) {
   const [selectedFilter, setSelectedFilter] = useState<"all" | "upcoming" | "past">("upcoming");
+  const [selectedSpecialty, setSelectedSpecialty] = useState("");
+  const [selectedSubSpecialty, setSelectedSubSpecialty] = useState("");
+  const [editingAppointment, setEditingAppointment] = useState<any>(null);
   const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Fetch patients to find the current user's patient record
   const { data: patientsData, isLoading: patientsLoading } = useQuery({
@@ -113,9 +161,84 @@ export default function PatientAppointments({ onNewAppointment }: { onNewAppoint
   }, [appointmentsData, currentPatient]);
 
   const getDoctorName = (providerId: number) => {
-    if (!usersData || !Array.isArray(usersData)) return `Dr. Provider ${providerId}`;
+    if (!usersData || !Array.isArray(usersData)) return "Doctor";
     const provider = usersData.find((u: any) => u.id === providerId);
-    return provider ? `Dr. ${provider.firstName} ${provider.lastName}` : `Dr. Provider ${providerId}`;
+    return provider ? `Dr. ${provider.firstName} ${provider.lastName}` : "Doctor";
+  };
+
+  // Helper functions for specialty filtering
+  const getUniqueSpecialties = (): string[] => {
+    return Object.keys(medicalSpecialties);
+  };
+
+  const getSubSpecialties = (specialty?: string): string[] => {
+    if (!specialty) return [];
+    const specialtyData = medicalSpecialties[specialty as keyof typeof medicalSpecialties];
+    return specialtyData ? Object.keys(specialtyData) : [];
+  };
+
+  // Edit appointment mutation
+  const editAppointmentMutation = useMutation({
+    mutationFn: async (appointmentData: any) => {
+      const response = await apiRequest("PUT", `/api/appointments/${appointmentData.id}`, appointmentData);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Appointment Updated",
+        description: "The appointment has been successfully updated.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
+      setEditingAppointment(null);
+    },
+    onError: (error) => {
+      toast({
+        title: "Update Failed",
+        description: "Failed to update appointment. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete appointment mutation
+  const deleteAppointmentMutation = useMutation({
+    mutationFn: async (appointmentId: number) => {
+      const response = await apiRequest("DELETE", `/api/appointments/${appointmentId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Appointment Deleted",
+        description: "The appointment has been successfully deleted.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Delete Failed",
+        description: "Failed to delete appointment. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleEditAppointment = (appointment: any) => {
+    setEditingAppointment(appointment);
+  };
+
+  const handleDeleteAppointment = (appointmentId: number) => {
+    if (window.confirm("Are you sure you want to delete this appointment?")) {
+      deleteAppointmentMutation.mutate(appointmentId);
+    }
+  };
+
+  const handleSaveEdit = () => {
+    if (editingAppointment) {
+      editAppointmentMutation.mutate({
+        ...editingAppointment,
+        patientId: currentPatient?.id
+      });
+    }
   };
 
   const formatTime = (timeString: string) => {
@@ -239,6 +362,47 @@ export default function PatientAppointments({ onNewAppointment }: { onNewAppoint
         </Card>
       )}
 
+      {/* Medical Specialty Selection */}
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        <div>
+          <Label htmlFor="specialty">Select Medical Specialty Category</Label>
+          <Select value={selectedSpecialty} onValueChange={(value) => {
+            setSelectedSpecialty(value);
+            setSelectedSubSpecialty("");
+          }}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select specialty category..." />
+            </SelectTrigger>
+            <SelectContent>
+              {getUniqueSpecialties().map((specialty) => (
+                <SelectItem key={specialty} value={specialty}>
+                  {specialty}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label htmlFor="subspecialty">Select Sub-Specialty</Label>
+          <Select 
+            value={selectedSubSpecialty} 
+            onValueChange={setSelectedSubSpecialty}
+            disabled={!selectedSpecialty}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select sub-specialty..." />
+            </SelectTrigger>
+            <SelectContent>
+              {getSubSpecialties(selectedSpecialty).map((subSpecialty) => (
+                <SelectItem key={subSpecialty} value={subSpecialty}>
+                  {subSpecialty}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
       {/* Filter Tabs */}
       <div className="flex space-x-2">
         <Button
@@ -304,12 +468,32 @@ export default function PatientAppointments({ onNewAppointment }: { onNewAppoint
                       <div className="space-y-3 flex-1">
                         <div className="flex items-center justify-between">
                           <h3 className="text-lg font-semibold">{appointment.title}</h3>
-                          <Badge 
-                            style={{ backgroundColor: statusColors[appointment.status as keyof typeof statusColors] }}
-                            className="text-white"
-                          >
-                            {appointment.status.toUpperCase()}
-                          </Badge>
+                          <div className="flex items-center space-x-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEditAppointment(appointment)}
+                              className="h-8 w-8 p-0"
+                              data-testid={`button-edit-appointment-${appointment.id}`}
+                            >
+                              <Edit className="h-4 w-4 text-blue-600" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteAppointment(appointment.id)}
+                              className="h-8 w-8 p-0"
+                              data-testid={`button-delete-appointment-${appointment.id}`}
+                            >
+                              <Trash2 className="h-4 w-4 text-red-600" />
+                            </Button>
+                            <Badge 
+                              style={{ backgroundColor: statusColors[appointment.status as keyof typeof statusColors] }}
+                              className="text-white"
+                            >
+                              {appointment.status.toUpperCase()}
+                            </Badge>
+                          </div>
                         </div>
                         
                         <div className="grid grid-cols-2 gap-4">
@@ -362,6 +546,76 @@ export default function PatientAppointments({ onNewAppointment }: { onNewAppoint
             })
         )}
       </div>
+
+      {/* Edit Appointment Modal */}
+      {editingAppointment && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-gray-900">Edit Appointment</h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setEditingAppointment(null)}
+                >
+                  ×
+                </Button>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="title">Title</Label>
+                  <input
+                    id="title"
+                    type="text"
+                    value={editingAppointment.title || ''}
+                    onChange={(e) => setEditingAppointment({...editingAppointment, title: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="description">Description</Label>
+                  <textarea
+                    id="description"
+                    value={editingAppointment.description || ''}
+                    onChange={(e) => setEditingAppointment({...editingAppointment, description: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    rows={3}
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="location">Location</Label>
+                  <input
+                    id="location"
+                    type="text"
+                    value={editingAppointment.location || ''}
+                    onChange={(e) => setEditingAppointment({...editingAppointment, location: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex justify-end space-x-2 mt-6">
+                <Button
+                  variant="outline"
+                  onClick={() => setEditingAppointment(null)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleSaveEdit}
+                  disabled={editAppointmentMutation.isPending}
+                >
+                  {editAppointmentMutation.isPending ? 'Saving...' : 'Save Changes'}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Appointment Stats */}
       <Card>
