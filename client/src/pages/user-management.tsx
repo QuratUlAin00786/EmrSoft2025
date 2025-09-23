@@ -56,6 +56,30 @@ const userSchema = z.object({
     end: z.string(),
   }).optional(),
   password: z.string().min(1, "Password is required"),
+  // Patient-specific fields
+  dateOfBirth: z.string().optional(),
+  phone: z.string().optional(),
+  nhsNumber: z.string().optional(),
+  address: z.object({
+    street: z.string().optional(),
+    city: z.string().optional(),
+    state: z.string().optional(),
+    postcode: z.string().optional(),
+    country: z.string().optional(),
+  }).optional(),
+  emergencyContact: z.object({
+    name: z.string().optional(),
+    relationship: z.string().optional(),
+    phone: z.string().optional(),
+    email: z.string().optional(),
+  }).optional(),
+  insuranceInfo: z.object({
+    provider: z.string().optional(),
+    policyNumber: z.string().optional(),
+    memberNumber: z.string().optional(),
+    planType: z.string().optional(),
+    effectiveDate: z.string().optional(),
+  }).optional(),
 });
 
 const roleSchema = z.object({
@@ -318,6 +342,30 @@ export default function UserManagement() {
       workingDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
       workingHours: { start: "09:00", end: "17:00" },
       password: "",
+      // Patient defaults
+      dateOfBirth: "",
+      phone: "",
+      nhsNumber: "",
+      address: {
+        street: "",
+        city: "",
+        state: "",
+        postcode: "",
+        country: "United Kingdom",
+      },
+      emergencyContact: {
+        name: "",
+        relationship: "",
+        phone: "",
+        email: "",
+      },
+      insuranceInfo: {
+        provider: "",
+        policyNumber: "",
+        memberNumber: "",
+        planType: "",
+        effectiveDate: "",
+      },
     },
   });
 
@@ -454,8 +502,7 @@ export default function UserManagement() {
     if (editingRole) {
       updateRoleMutation.mutate({ ...data, id: editingRole.id });
     } else {
-      // Ensure isSystem is false for custom roles
-      createRoleMutation.mutate({ ...data, isSystem: false });
+      createRoleMutation.mutate(data);
     }
   };
 
@@ -488,6 +535,37 @@ export default function UserManagement() {
       const response = await apiRequest("POST", "/api/users", payload);
       const result = await response.json();
       console.log("User creation response:", result);
+      
+      // If role is patient, also create patient record
+      if (userData.role === 'patient' && result.id) {
+        console.log("Creating patient record for user ID:", result.id);
+        const patientPayload = {
+          firstName: userData.firstName,
+          lastName: userData.lastName,
+          dateOfBirth: userData.dateOfBirth || '1990-01-01', // Default date if not provided
+          email: userData.email,
+          phone: userData.phone || '',
+          nhsNumber: userData.nhsNumber || '',
+          address: userData.address || {},
+          emergencyContact: userData.emergencyContact || {},
+          insuranceInfo: userData.insuranceInfo || {},
+          patientId: `P${String(result.id).padStart(6, '0')}`, // Generate patient ID like P000001
+        };
+        
+        try {
+          const patientResponse = await apiRequest("POST", "/api/patients", patientPayload);
+          const patientResult = await patientResponse.json();
+          console.log("Patient record created:", patientResult);
+        } catch (patientError) {
+          console.error("Error creating patient record:", patientError);
+          toast({
+            title: "Warning",
+            description: "User created but patient record failed. Please create patient record manually.",
+            variant: "destructive",
+          });
+        }
+      }
+      
       return result;
     },
     onSuccess: (newUser) => {
@@ -1013,6 +1091,197 @@ export default function UserManagement() {
                     )}
                   </>
                 )}
+
+                {/* Patient-specific fields */}
+                {selectedRole === 'patient' && (
+                  <>
+                    <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border border-green-200 dark:border-green-800">
+                      <h4 className="font-medium text-green-900 dark:text-green-100 mb-2">Patient Information</h4>
+                      <p className="text-sm text-green-700 dark:text-green-300">Additional fields required for patient accounts</p>
+                    </div>
+
+                    {/* Basic Information */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="dateOfBirth">Date of Birth</Label>
+                        <Input
+                          id="dateOfBirth"
+                          type="date"
+                          {...form.register("dateOfBirth")}
+                          data-testid="input-date-of-birth"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="phone">Phone Number</Label>
+                        <Input
+                          id="phone"
+                          {...form.register("phone")}
+                          placeholder="+44 123 456 7890"
+                          data-testid="input-phone"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="nhsNumber">NHS Number (Optional)</Label>
+                      <Input
+                        id="nhsNumber"
+                        {...form.register("nhsNumber")}
+                        placeholder="000 000 0000"
+                        data-testid="input-nhs-number"
+                      />
+                    </div>
+
+                    {/* Address Information */}
+                    <div className="space-y-4">
+                      <h5 className="font-medium text-gray-900 dark:text-gray-100">Address Information</h5>
+                      <div className="space-y-2">
+                        <Label htmlFor="street">Street Address</Label>
+                        <Input
+                          id="street"
+                          {...form.register("address.street")}
+                          placeholder="Enter street address"
+                          data-testid="input-street-address"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="city">City/Town</Label>
+                          <Input
+                            id="city"
+                            {...form.register("address.city")}
+                            placeholder="Enter city"
+                            data-testid="input-city"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="postcode">Postcode</Label>
+                          <Input
+                            id="postcode"
+                            {...form.register("address.postcode")}
+                            placeholder="SW1A 1AA"
+                            data-testid="input-postcode"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="country">Country</Label>
+                        <Select onValueChange={(value) => form.setValue("address.country", value)} defaultValue="United Kingdom">
+                          <SelectTrigger data-testid="select-country">
+                            <SelectValue placeholder="Select country" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="United Kingdom">United Kingdom</SelectItem>
+                            <SelectItem value="Ireland">Ireland</SelectItem>
+                            <SelectItem value="United States">United States</SelectItem>
+                            <SelectItem value="Canada">Canada</SelectItem>
+                            <SelectItem value="Australia">Australia</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    {/* Emergency Contact */}
+                    <div className="space-y-4">
+                      <h5 className="font-medium text-gray-900 dark:text-gray-100">Emergency Contact</h5>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="emergencyName">Name</Label>
+                          <Input
+                            id="emergencyName"
+                            {...form.register("emergencyContact.name")}
+                            placeholder="Enter name"
+                            data-testid="input-emergency-name"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="emergencyRelationship">Relationship</Label>
+                          <Input
+                            id="emergencyRelationship"
+                            {...form.register("emergencyContact.relationship")}
+                            placeholder="e.g., Spouse, Parent, Friend"
+                            data-testid="input-emergency-relationship"
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="emergencyPhone">Phone</Label>
+                          <Input
+                            id="emergencyPhone"
+                            {...form.register("emergencyContact.phone")}
+                            placeholder="+44 123 456 7890"
+                            data-testid="input-emergency-phone"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="emergencyEmail">Email (Optional)</Label>
+                          <Input
+                            id="emergencyEmail"
+                            type="email"
+                            {...form.register("emergencyContact.email")}
+                            placeholder="emergency@example.com"
+                            data-testid="input-emergency-email"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Health Insurance Information */}
+                    <div className="space-y-4">
+                      <h5 className="font-medium text-gray-900 dark:text-gray-100">Health Insurance Information (Optional)</h5>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="insuranceProvider">Insurance Provider</Label>
+                          <Input
+                            id="insuranceProvider"
+                            {...form.register("insuranceInfo.provider")}
+                            placeholder="Select insurance provider"
+                            data-testid="input-insurance-provider"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="planType">Plan Type</Label>
+                          <Input
+                            id="planType"
+                            {...form.register("insuranceInfo.planType")}
+                            placeholder="Select plan type"
+                            data-testid="input-plan-type"
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="policyNumber">Policy Number</Label>
+                          <Input
+                            id="policyNumber"
+                            {...form.register("insuranceInfo.policyNumber")}
+                            placeholder="Enter policy number"
+                            data-testid="input-policy-number"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="memberNumber">Member Number</Label>
+                          <Input
+                            id="memberNumber"
+                            {...form.register("insuranceInfo.memberNumber")}
+                            placeholder="Enter member number"
+                            data-testid="input-member-number"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="effectiveDate">Effective Date</Label>
+                        <Input
+                          id="effectiveDate"
+                          type="date"
+                          {...form.register("insuranceInfo.effectiveDate")}
+                          data-testid="input-effective-date"
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
                 
                 <div className="space-y-2">
                   <Label htmlFor="department">Department (Optional)</Label>
@@ -1371,7 +1640,7 @@ export default function UserManagement() {
                                   <div className="text-xs text-gray-500 dark:text-gray-400">{module.description}</div>
                                 </div>
                                 
-                                {['view', 'create', 'edit', 'delete'].map((action) => (
+                                {(['view', 'create', 'edit', 'delete'] as const).map((action) => (
                                   <div key={action} className="flex justify-center">
                                     <input
                                       type="checkbox"
