@@ -355,22 +355,31 @@ export default function CalendarPage() {
     console.log('Filtering doctors with specialty:', selectedSpecialty, 'sub-specialty:', selectedSubSpecialty);
     console.log('Available doctors:', allDoctors);
     
-    // If no specialty is selected, show all doctors
+    // If no specialty is selected, show all active doctors
     if (!selectedSpecialty) {
       console.log('No specialty selected, showing all doctors:', allDoctors);
-      setFilteredDoctors(allDoctors);
-      return allDoctors;
+      const activeDoctors = allDoctors.filter((doctor: any) => doctor.isActive !== false);
+      setFilteredDoctors(activeDoctors);
+      return activeDoctors;
     }
     
     const filtered = allDoctors.filter((doctor: any) => {
+      // Skip inactive doctors
+      if (doctor.isActive === false) {
+        return false;
+      }
+      
       const hasSpecialty = doctor.medicalSpecialtyCategory === selectedSpecialty;
       const hasSubSpecialty = !selectedSubSpecialty || doctor.subSpecialty === selectedSubSpecialty;
       
       console.log(`Checking ${doctor.firstName} ${doctor.lastName}:`, {
         specialty: doctor.medicalSpecialtyCategory,
+        selectedSpecialty,
         hasSpecialty,
         subSpecialty: doctor.subSpecialty,
-        hasSubSpecialty
+        selectedSubSpecialty,
+        hasSubSpecialty,
+        isActive: doctor.isActive
       });
       
       return hasSpecialty && hasSubSpecialty;
