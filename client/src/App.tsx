@@ -54,9 +54,6 @@ import FontTest from "@/pages/font-test";
 import NotFound from "@/pages/not-found";
 import Login from "@/pages/login";
 
-// Role-based appointments
-import { RoleBasedAppointments } from "@/components/appointments/role-based-appointments";
-
 // Landing Pages
 import LandingPage from "@/pages/landing/LandingPage";
 import AboutPage from "@/pages/landing/AboutPage";
@@ -214,7 +211,7 @@ function ProtectedApp() {
           <Route path="/patients/:id" component={Patients} />
           <Route path="/patients/:id/records" component={Patients} />
           <Route path="/calendar" component={CalendarPage} />
-          <Route path="/appointments" component={RoleBasedAppointments} />
+          <Route path="/appointments" component={CalendarPage} />
           <Route path="/prescriptions" component={PrescriptionsPage} />
           <Route path="/lab-results" component={LabResultsPage} />
           <Route path="/imaging" component={ImagingPage} />
