@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import {
   Calendar,
   Eye,
@@ -167,6 +168,9 @@ function PatientDetailsModal({
   const [editingRiskLevel, setEditingRiskLevel] = useState(false);
   const [tempRiskLevel, setTempRiskLevel] = useState("");
 
+  // Active status editing state
+  const [editingActiveStatusId, setEditingActiveStatusId] = useState<number | null>(null);
+
   // Risk level update mutation
   const riskLevelUpdateMutation = useMutation({
     mutationFn: async ({ patientId, riskLevel }: { patientId: number; riskLevel: string }) => {
@@ -212,6 +216,50 @@ function PatientDetailsModal({
     },
   });
 
+  // Active status update mutation
+  const activeStatusUpdateMutation = useMutation({
+    mutationFn: async ({ patientId, isActive }: { patientId: number; isActive: boolean }) => {
+      const token = localStorage.getItem("auth_token");
+      const headers: Record<string, string> = {
+        "X-Tenant-Subdomain": "demo",
+        "Content-Type": "application/json",
+      };
+
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`/api/patients/${patientId}`, {
+        method: "PATCH",
+        headers,
+        credentials: "include",
+        body: JSON.stringify({ isActive }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to update active status: ${response.status}`);
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      // Auto refresh - invalidate and refetch patients
+      queryClient.invalidateQueries({ queryKey: ["/api/patients"] });
+      toast({
+        title: "Status Updated",
+        description: "Patient active status has been updated successfully.",
+      });
+      setEditingActiveStatusId(null);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to update active status. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Helper functions for risk level editing
   const handleStartEditingRiskLevel = (currentRiskLevel: string) => {
     setEditingRiskLevel(true);
@@ -230,6 +278,14 @@ function PatientDetailsModal({
         riskLevel: tempRiskLevel,
       });
     }
+  };
+
+  // Helper functions for active status editing
+  const handleToggleActiveStatus = (patientId: number, currentStatus: boolean) => {
+    activeStatusUpdateMutation.mutate({
+      patientId,
+      isActive: !currentStatus,
+    });
   };
 
   // Fetch medical records by patient ID
@@ -1919,6 +1975,57 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
     }
   };
 
+  // Active status update mutation
+  const activeStatusUpdateMutation = useMutation({
+    mutationFn: async ({ patientId, isActive }: { patientId: number; isActive: boolean }) => {
+      const token = localStorage.getItem("auth_token");
+      const headers: Record<string, string> = {
+        "X-Tenant-Subdomain": tenant?.subdomain || "demo",
+        "Content-Type": "application/json",
+      };
+
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`/api/patients/${patientId}`, {
+        method: "PATCH",
+        headers,
+        credentials: "include",
+        body: JSON.stringify({ isActive }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to update active status: ${response.status}`);
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      // Auto refresh - invalidate and refetch patients
+      queryClient.invalidateQueries({ queryKey: ["/api/patients"] });
+      toast({
+        title: "Status Updated",
+        description: "Patient active status has been updated successfully.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to update active status. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Helper function for active status toggle
+  const handleToggleActiveStatus = (patientId: number, currentStatus: boolean) => {
+    activeStatusUpdateMutation.mutate({
+      patientId,
+      isActive: !currentStatus,
+    });
+  };
+
   const handleDeletePatient = (patient: any) => {
     if (
       window.confirm(
@@ -2360,6 +2467,27 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
                           {patient.insuranceInfo.provider.toUpperCase()}
                         </Badge>
                       )}
+                      {/* Active Status Badge with Toggle */}
+                      <div className="flex items-center gap-2">
+                        <Badge
+                          variant={patient.isActive ? "default" : "secondary"}
+                          className={`text-xs ${
+                            patient.isActive
+                              ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                              : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
+                          }`}
+                          data-testid={`badge-active-${patient.id}`}
+                        >
+                          {patient.isActive ? "Active" : "Inactive"}
+                        </Badge>
+                        <Switch
+                          checked={patient.isActive || false}
+                          onCheckedChange={() => handleToggleActiveStatus(patient.id, patient.isActive || false)}
+                          disabled={activeStatusUpdateMutation.isPending}
+                          className="h-4 w-8"
+                          data-testid={`toggle-active-${patient.id}`}
+                        />
+                      </div>
                     </div>
                   </div>
                 </CardHeader>
