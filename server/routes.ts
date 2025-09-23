@@ -8064,7 +8064,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           res.setHeader('Cache-Control', 'public, max-age=31536000'); // Cache for 1 year
           
           // Stream the file from filesystem
-          const fileStream = fse.createReadStream(imageFilePath);
+          const fileStream = fs.createReadStream(imageFilePath);
           fileStream.pipe(res);
           return;
         } else {
