@@ -168,13 +168,16 @@ export default function MessagingPage() {
   });
 
   // Fetch patients for searchable dropdown
-  const { data: patientsData } = useQuery({
+  const { data: patientsData, isLoading: patientsLoading, error: patientsError } = useQuery({
     queryKey: ['/api/patients'],
     queryFn: async () => {
+      console.log('📋 MESSAGING: Fetching patients data...');
       const response = await apiRequest('GET', '/api/patients');
       const data = await response.json();
+      console.log('📋 MESSAGING: Patients data received:', data?.length || 0, 'patients');
       return data;
-    }
+    },
+    enabled: true // Always fetch patients data
   });
 
   // Update current user when user data changes
