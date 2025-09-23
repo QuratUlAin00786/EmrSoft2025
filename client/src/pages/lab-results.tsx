@@ -296,7 +296,17 @@ export default function LabResultsPage() {
   const [testTypeOpen, setTestTypeOpen] = useState(false);
   const [editingStatusId, setEditingStatusId] = useState<number | null>(null);
 
-  // Role-based lab results fetching
+  // Real API data fetching for patients - MUST come first before lab results query
+  const { data: patients = [], isLoading: patientsLoading } = useQuery({
+    queryKey: ["/api/patients"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/patients");
+      const data = await response.json();
+      return data;
+    },
+  });
+
+  // Role-based lab results fetching - comes after patients query
   const { data: labResults = [], isLoading } = useQuery({
     queryKey: ["/api/lab-results", user?.role, user?.id],
     queryFn: async () => {
@@ -312,7 +322,7 @@ export default function LabResultsPage() {
           userName: `${user.firstName} ${user.lastName}`,
           userId: user.id 
         });
-        console.log("📋 LAB RESULTS: Available patients:", patients.map(p => ({ 
+        console.log("📋 LAB RESULTS: Available patients:", patients.map((p: any) => ({ 
           id: p.id, 
           email: p.email, 
           name: `${p.firstName} ${p.lastName}` 
@@ -349,16 +359,6 @@ export default function LabResultsPage() {
       }
     },
     enabled: !!user && patients.length > 0, // Wait for user and patients data to be loaded
-  });
-
-  // Real API data fetching for patients
-  const { data: patients = [], isLoading: patientsLoading } = useQuery({
-    queryKey: ["/api/patients"],
-    queryFn: async () => {
-      const response = await apiRequest("GET", "/api/patients");
-      const data = await response.json();
-      return data;
-    },
   });
 
   // Fetch medical staff for doctor selection
