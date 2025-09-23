@@ -746,8 +746,8 @@ export default function PatientAppointments({ onNewAppointment }: { onNewAppoint
                                 isSelected
                                   ? 'bg-blue-500 text-white border-blue-500'
                                   : isBooked
-                                  ? 'bg-gray-300 text-gray-500 border-gray-300 cursor-not-allowed'
-                                  : 'bg-green-100 text-green-800 border-green-300 hover:bg-green-200'
+                                  ? 'bg-gray-400 text-gray-600 border-gray-400 cursor-not-allowed'
+                                  : 'bg-green-500 text-white border-green-500 hover:bg-green-600'
                               }`}
                               title={isBooked ? 'Time slot already booked' : 'Available time slot'}
                             >
