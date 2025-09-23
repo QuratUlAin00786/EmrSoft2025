@@ -13,7 +13,7 @@ const plans = [
   {
     id: "starter",
     name: "Starter",
-    price: 29,
+    price:  49,
     userLimit: 5,
     features: [
       "Basic patient management",
