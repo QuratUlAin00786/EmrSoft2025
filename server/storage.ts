@@ -1238,11 +1238,11 @@ export class DatabaseStorage implements IStorage {
         lt(appointments.scheduledAt, tomorrow)
       ));
 
-    // Only count active AI insights
+    // Count all AI insights
     const [aiSuggestionsResult] = await db
       .select({ count: count() })
       .from(aiInsights)
-      .where(and(eq(aiInsights.organizationId, organizationId), eq(aiInsights.status, 'active')));
+      .where(eq(aiInsights.organizationId, organizationId));
 
     return {
       totalPatients: totalPatientsResult?.count || 0,
