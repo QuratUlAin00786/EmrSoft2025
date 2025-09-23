@@ -32,7 +32,7 @@ const plans = [
   {
     id: "professional",
     name: "Professional",
-    price: 79,
+    price: 99 ,
     userLimit: 25,
     popular: true,
     features: [

@@ -2062,6 +2062,95 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update appointment
+  app.put("/api/appointments/:id", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const appointmentId = parseInt(req.params.id);
+      const userRole = req.user!.role;
+      const userId = req.user!.id;
+
+      // Verify the appointment exists and user has permission to edit it
+      const existingAppointment = await storage.getAppointment(appointmentId, req.tenant!.id);
+      if (!existingAppointment) {
+        return res.status(404).json({ error: "Appointment not found" });
+      }
+
+      // Role-based access control for updating appointments
+      let canUpdate = false;
+      
+      if (userRole === 'admin' || userRole === 'receptionist') {
+        // Admin/receptionist can update any appointment
+        canUpdate = true;
+      } else if (userRole === 'doctor') {
+        // Doctors can only update their own appointments or with proper permissions
+        const hasEditPermission = (req.user as any)?.permissions?.modules?.appointments?.edit === true;
+        canUpdate = existingAppointment.providerId === userId || hasEditPermission;
+      } else if (userRole === 'patient') {
+        // Patients can update their own appointments
+        const patient = await storage.getPatientByUserId(userId, req.tenant!.id);
+        canUpdate = patient && existingAppointment.patientId === patient.id;
+      } else if (userRole === 'nurse') {
+        // Nurses can update appointments with proper permissions
+        const hasEditPermission = (req.user as any)?.permissions?.modules?.appointments?.edit === true;
+        canUpdate = hasEditPermission;
+      }
+
+      if (!canUpdate) {
+        return res.status(403).json({ error: "Access denied - cannot update this appointment" });
+      }
+
+      // Prepare update data (only allow updating certain fields)
+      const allowedUpdates: any = {};
+      const { title, description, scheduledAt, duration, status, type, location, isVirtual } = req.body;
+      
+      if (title !== undefined) allowedUpdates.title = title;
+      if (description !== undefined) allowedUpdates.description = description;
+      if (scheduledAt !== undefined) allowedUpdates.scheduledAt = scheduledAt;
+      if (duration !== undefined) allowedUpdates.duration = duration;
+      if (status !== undefined) allowedUpdates.status = status;
+      if (type !== undefined) allowedUpdates.type = type;
+      if (location !== undefined) allowedUpdates.location = location;
+      if (isVirtual !== undefined) allowedUpdates.isVirtual = isVirtual;
+
+      // Update the appointment
+      const updatedAppointment = await storage.updateAppointment(
+        appointmentId,
+        req.tenant!.id,
+        allowedUpdates
+      );
+
+      if (updatedAppointment) {
+        console.log(`✅ Appointment ${appointmentId} updated successfully by user ${userId} (${userRole})`);
+        
+        // Broadcast update to all connected clients
+        if (global.appointmentClients) {
+          const updateMessage = JSON.stringify({
+            type: 'appointment_updated',
+            appointment: updatedAppointment,
+            timestamp: Date.now()
+          });
+          
+          global.appointmentClients.forEach((client) => {
+            if (client.organizationId === req.tenant!.id) {
+              try {
+                client.res.write(`data: ${updateMessage}\n\n`);
+              } catch (error: any) {
+                console.log(`[SSE] Failed to send update to client:`, error.message);
+              }
+            }
+          });
+        }
+        
+        res.json(updatedAppointment);
+      } else {
+        res.status(400).json({ error: "Failed to update appointment" });
+      }
+    } catch (error) {
+      console.error("Appointment update error:", error);
+      res.status(500).json({ error: "Failed to update appointment. Please try again." });
+    }
+  });
+
   // Real-time appointment updates via Server-Sent Events
   app.get("/api/appointments/stream", authMiddleware, async (req: TenantRequest, res) => {
     console.log(`[SSE] New appointment stream connection for org ${req.tenant!.id}, user ${req.user!.id}`);
