@@ -360,6 +360,38 @@ export default function PatientAppointments({ onNewAppointment }: { onNewAppoint
         </Button>
       </div>
 
+      {/* Medical Specialties Display */}
+      {filteredAppointments.length > 0 && (
+        <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+          <h4 className="text-sm font-medium text-gray-700 mb-2">Available Specialties:</h4>
+          <div className="flex flex-wrap gap-2">
+            {(Array.from(new Set(filteredAppointments.map((apt: any) => {
+              const specialtyData = getDoctorSpecialtyData(apt.providerId);
+              return specialtyData.category;
+            }).filter(Boolean))) as string[]).map((category: string) => (
+              <span key={category} className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                {category}
+              </span>
+            ))}
+          </div>
+          {(Array.from(new Set(filteredAppointments.map((apt: any) => {
+            const specialtyData = getDoctorSpecialtyData(apt.providerId);
+            return specialtyData.subSpecialty;
+          }).filter(Boolean))) as string[]).length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-2">
+              {(Array.from(new Set(filteredAppointments.map((apt: any) => {
+                const specialtyData = getDoctorSpecialtyData(apt.providerId);
+                return specialtyData.subSpecialty;
+              }).filter(Boolean))) as string[]).map((subSpecialty: string) => (
+                <span key={subSpecialty} className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  {subSpecialty}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Appointments List */}
       <div className="space-y-4">
         {filteredAppointments.length === 0 ? (
