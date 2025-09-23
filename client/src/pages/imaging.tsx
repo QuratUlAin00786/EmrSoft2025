@@ -3,6 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Header } from "@/components/layout/header";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -205,6 +206,7 @@ const mockImagingStudies: ImagingStudy[] = [
 ];
 
 export default function ImagingPage() {
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [showNewOrder, setShowNewOrder] = useState(false);
@@ -297,13 +299,77 @@ export default function ImagingPage() {
   );
   const { toast } = useToast();
 
+  // Fetch patients to find the current user's patient record
+  const { data: patientsData, isLoading: patientsQueryLoading } = useQuery({
+    queryKey: ["/api/patients"],
+    staleTime: 60000,
+    retry: false,
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/patients');
+      const data = await response.json();
+      return data;
+    },
+  });
+
+  // Find the patient record for the logged-in user
+  const currentPatient = useMemo(() => {
+    if (!user || user.role !== 'patient' || !patientsData || !Array.isArray(patientsData)) {
+      console.log("🔍 IMAGING: Patient lookup failed", {
+        hasUser: !!user,
+        userRole: user?.role,
+        hasPatientsData: !!patientsData,
+        patientsDataType: Array.isArray(patientsData) ? 'array' : typeof patientsData
+      });
+      return null;
+    }
+    
+    console.log("🔍 IMAGING: Looking for patient matching user:", { 
+      userEmail: user.email, 
+      userName: `${user.firstName} ${user.lastName}`,
+      userId: user.id 
+    });
+    console.log("📋 IMAGING: Available patients:", patientsData.map(p => ({ 
+      id: p.id, 
+      email: p.email, 
+      name: `${p.firstName} ${p.lastName}` 
+    })));
+    
+    // Try multiple matching strategies
+    const foundPatient = 
+      // 1. Match by exact email
+      patientsData.find((patient: any) => 
+        patient.email && user.email && patient.email.toLowerCase() === user.email.toLowerCase()
+      ) ||
+      // 2. Match by exact name
+      patientsData.find((patient: any) => 
+        patient.firstName && user.firstName && patient.lastName && user.lastName &&
+        patient.firstName.toLowerCase() === user.firstName.toLowerCase() && 
+        patient.lastName.toLowerCase() === user.lastName.toLowerCase()
+      ) ||
+      // 3. Match by partial name (first name only)
+      patientsData.find((patient: any) => 
+        patient.firstName && user.firstName &&
+        patient.firstName.toLowerCase() === user.firstName.toLowerCase()
+      ) ||
+      // 4. If user role is patient, take the first patient (fallback for demo)
+      (user.role === 'patient' && patientsData.length > 0 ? patientsData[0] : null);
+    
+    if (foundPatient) {
+      console.log("✅ IMAGING: Found matching patient:", foundPatient);
+    } else {
+      console.log("❌ IMAGING: No matching patient found");
+    }
+    
+    return foundPatient;
+  }, [user, patientsData]);
+
   // Fetch medical images using React Query
   const {
-    data: medicalImages = [],
+    data: medicalImagesRaw = [],
     isLoading: imagesLoading,
     refetch: refetchImages,
   } = useQuery({
-    queryKey: ["/api/medical-images"],
+    queryKey: ["/api/medical-images", user?.role === "patient" ? "patient-filtered" : "all"],
     queryFn: async () => {
       try {
         const response = await apiRequest("GET", "/api/medical-images");
@@ -314,7 +380,21 @@ export default function ImagingPage() {
         return [];
       }
     },
+    enabled: !!user, // Only fetch when user is authenticated
   });
+
+  // Filter medical images for patient users to show only their own imaging
+  const medicalImages = useMemo(() => {
+    if (!medicalImagesRaw) return [];
+    
+    // For patient users, filter by patient ID
+    if (user?.role === "patient" && currentPatient) {
+      return medicalImagesRaw.filter((image: any) => image.patientId === currentPatient.id);
+    }
+    
+    // For non-patient users, show all images
+    return medicalImagesRaw;
+  }, [medicalImagesRaw, user?.role, currentPatient]);
 
   // Derive selectedStudy from React Query cache (single source of truth)
   const selectedStudy = useMemo<ImagingStudy | null>(() => {
@@ -701,8 +781,20 @@ export default function ImagingPage() {
   useEffect(() => {
     if (showNewOrder || showUploadDialog) {
       fetchPatients();
+      
+      // Pre-populate patient ID for patient users
+      if (user?.role === "patient" && currentPatient) {
+        setOrderFormData(prev => ({
+          ...prev,
+          patientId: currentPatient.id.toString()
+        }));
+        setUploadFormData(prev => ({
+          ...prev,
+          patientId: currentPatient.id.toString()
+        }));
+      }
     }
-  }, [showNewOrder, showUploadDialog]);
+  }, [showNewOrder, showUploadDialog, user?.role, currentPatient]);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -2837,43 +2929,55 @@ export default function ImagingPage() {
                 <Label htmlFor="patient" className="text-sm font-medium">
                   Patient
                 </Label>
-                <Select
-                  value={orderFormData.patientId}
-                  onValueChange={(value) =>
-                    setOrderFormData((prev) => ({ ...prev, patientId: value }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue
-                      placeholder={
-                        patientsLoading
-                          ? "Loading patients..."
-                          : "Select patient"
-                      }
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {patientsLoading ? (
-                      <SelectItem value="loading" disabled>
-                        Loading patients...
-                      </SelectItem>
-                    ) : patients.length > 0 ? (
-                      patients.map((patient: any) => (
-                        <SelectItem
-                          key={patient.id}
-                          value={patient.id.toString()}
-                        >
-                          {patient.firstName} {patient.lastName} (
-                          {patient.patientId})
+                {user?.role === "patient" && currentPatient ? (
+                  <div className="flex items-center gap-3 px-3 py-2 border rounded-md bg-gray-50 dark:bg-slate-700">
+                    <User className="h-4 w-4 text-blue-600" />
+                    <span className="font-medium text-gray-900 dark:text-gray-100">
+                      {currentPatient.firstName} {currentPatient.lastName}
+                    </span>
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                      ({currentPatient.patientId})
+                    </span>
+                  </div>
+                ) : (
+                  <Select
+                    value={orderFormData.patientId}
+                    onValueChange={(value) =>
+                      setOrderFormData((prev) => ({ ...prev, patientId: value }))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue
+                        placeholder={
+                          patientsLoading
+                            ? "Loading patients..."
+                            : "Select patient"
+                        }
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {patientsLoading ? (
+                        <SelectItem value="loading" disabled>
+                          Loading patients...
                         </SelectItem>
-                      ))
-                    ) : (
-                      <SelectItem value="no-patients" disabled>
-                        No patients found
-                      </SelectItem>
-                    )}
-                  </SelectContent>
-                </Select>
+                      ) : patients.length > 0 ? (
+                        patients.map((patient: any) => (
+                          <SelectItem
+                            key={patient.id}
+                            value={patient.id.toString()}
+                          >
+                            {patient.firstName} {patient.lastName} (
+                            {patient.patientId})
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="no-patients" disabled>
+                          No patients found
+                        </SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
 
               <div>
@@ -3222,35 +3326,47 @@ export default function ImagingPage() {
             {/* Patient Selection */}
             <div>
               <Label htmlFor="upload-patient">Patient *</Label>
-              <Select
-                value={uploadFormData.patientId}
-                onValueChange={(value) =>
-                  setUploadFormData({ ...uploadFormData, patientId: value })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select patient" />
-                </SelectTrigger>
-                <SelectContent>
-                  {patientsLoading ? (
-                    <SelectItem value="loading">Loading patients...</SelectItem>
-                  ) : patients.length === 0 ? (
-                    <SelectItem value="no-patients">
-                      No patients available
-                    </SelectItem>
-                  ) : (
-                    patients.map((patient) => (
-                      <SelectItem
-                        key={patient.id}
-                        value={patient.id.toString()}
-                      >
-                        {patient.firstName} {patient.lastName} (
-                        {patient.patientId})
+              {user?.role === "patient" && currentPatient ? (
+                <div className="flex items-center gap-3 px-3 py-2 border rounded-md bg-gray-50 dark:bg-slate-700">
+                  <User className="h-4 w-4 text-blue-600" />
+                  <span className="font-medium text-gray-900 dark:text-gray-100">
+                    {currentPatient.firstName} {currentPatient.lastName}
+                  </span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                    ({currentPatient.patientId})
+                  </span>
+                </div>
+              ) : (
+                <Select
+                  value={uploadFormData.patientId}
+                  onValueChange={(value) =>
+                    setUploadFormData({ ...uploadFormData, patientId: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select patient" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {patientsLoading ? (
+                      <SelectItem value="loading">Loading patients...</SelectItem>
+                    ) : patients.length === 0 ? (
+                      <SelectItem value="no-patients">
+                        No patients available
                       </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
+                    ) : (
+                      patients.map((patient) => (
+                        <SelectItem
+                          key={patient.id}
+                          value={patient.id.toString()}
+                        >
+                          {patient.firstName} {patient.lastName} (
+                          {patient.patientId})
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
 
             {/* Study Information */}
