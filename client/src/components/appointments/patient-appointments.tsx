@@ -83,16 +83,19 @@ export default function PatientAppointments({ onNewAppointment }: { onNewAppoint
     return foundPatient;
   }, [user, patientsData]);
 
-  // Fetch appointments for this patient
+  // Fetch appointments for this patient - backend automatically filters for patient role
   const { data: appointmentsData, isLoading } = useQuery({
-    queryKey: ["/api/appointments"],
+    queryKey: ["/api/appointments", user?.role === "patient" ? "patient-filtered" : "all"],
     staleTime: 30000,
     refetchInterval: 60000,
     queryFn: async () => {
+      // For patient users, the backend automatically filters by patient ID
+      // No need to pass patientId explicitly as backend uses the authenticated user's patient record
       const response = await apiRequest('GET', '/api/appointments');
       const data = await response.json();
       return data;
     },
+    enabled: !!user, // Only fetch when user is authenticated
   });
 
   // Fetch users for doctor names
@@ -101,14 +104,17 @@ export default function PatientAppointments({ onNewAppointment }: { onNewAppoint
     staleTime: 60000,
   });
 
-  // Filter appointments to show only the logged-in patient's appointments
-  const patientAppointments = React.useMemo(() => {
-    if (!appointmentsData || !currentPatient) return [];
-    
-    return appointmentsData.filter((apt: any) => apt.patientId === currentPatient.id);
-  }, [appointmentsData, currentPatient]);
-
-  const appointments = patientAppointments || [];
+  // For patient users, backend automatically filters appointments - no need for frontend filtering
+  const appointments = React.useMemo(() => {
+    if (user?.role === "patient") {
+      // Backend already filtered appointments for patient users
+      return appointmentsData || [];
+    } else {
+      // For non-patient users, filter by current patient if available
+      if (!appointmentsData || !currentPatient) return [];
+      return appointmentsData.filter((apt: any) => apt.patientId === currentPatient.id);
+    }
+  }, [appointmentsData, currentPatient, user?.role]);
 
   const getDoctorName = (providerId: number) => {
     if (!usersData || !Array.isArray(usersData)) return `Dr. Provider ${providerId}`;
