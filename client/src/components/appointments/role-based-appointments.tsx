@@ -1,5 +1,5 @@
 import { useRolePermissions } from "@/hooks/use-role-permissions";
-import { AdminAppointments } from "./admin-appointments";
+import { AdminAppointments } from "./appointment-calendar";
 import { DoctorAppointments } from "./doctor-appointments";
 import { NurseAppointments } from "./nurse-appointments";
 import { ReceptionistAppointments } from "./receptionist-appointments";
