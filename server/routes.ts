@@ -11257,6 +11257,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Get fileName from the database study
       const fileName = study.fileName;
+      console.log("📷 SERVER: Debug study object fileName:", fileName);
+      console.log("📷 SERVER: Debug full study object keys:", Object.keys(study));
       
       if (fileName && fileName.trim() !== '') {
         try {
