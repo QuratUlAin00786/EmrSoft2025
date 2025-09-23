@@ -4271,7 +4271,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "User not authenticated" });
       }
 
-      const labResults = await storage.getLabResultsByOrganization(req.tenant!.id);
+      // Check for role-based filtering via query parameters
+      const { patientId } = req.query;
+
+      let labResults;
+
+      if (patientId) {
+        // Filter by patient ID (for Patient role)
+        const patientIdNum = parseInt(patientId as string);
+        if (isNaN(patientIdNum)) {
+          return res.status(400).json({ error: "Invalid patient ID" });
+        }
+        console.log(`[LAB RESULTS API] Filtering by patientId: ${patientIdNum}`);
+        labResults = await storage.getLabResultsByPatient(patientIdNum, req.tenant!.id);
+      } else {
+        // Return all lab results (for Admin, Doctor, Nurse, etc.)
+        console.log(`[LAB RESULTS API] Returning all lab results for organization`);
+        labResults = await storage.getLabResultsByOrganization(req.tenant!.id);
+      }
+
       res.json(labResults);
     } catch (error) {
       console.error("Error fetching lab results:", error);

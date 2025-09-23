@@ -3,6 +3,7 @@ import curaIcon from "@/assets/cura-icon.png";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
 import { Header } from "@/components/layout/header";
 import jsPDF from "jspdf";
@@ -256,6 +257,7 @@ const TEST_TYPES = [
 // Database-driven lab results - no more mock data
 
 export default function LabResultsPage() {
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [showOrderDialog, setShowOrderDialog] = useState(false);
@@ -294,12 +296,59 @@ export default function LabResultsPage() {
   const [testTypeOpen, setTestTypeOpen] = useState(false);
   const [editingStatusId, setEditingStatusId] = useState<number | null>(null);
 
+  // Role-based lab results fetching
   const { data: labResults = [], isLoading } = useQuery({
-    queryKey: ["/api/lab-results"],
+    queryKey: ["/api/lab-results", user?.role, user?.id],
     queryFn: async () => {
-      const response = await apiRequest("GET", "/api/lab-results");
-      return await response.json();
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+
+      // Check if the current user role is Patient
+      if (user.role === "patient") {
+        // Get the patient ID from session/auth - match by email first for accuracy
+        console.log("🔍 LAB RESULTS: Looking for patient matching user:", { 
+          userEmail: user.email, 
+          userName: `${user.firstName} ${user.lastName}`,
+          userId: user.id 
+        });
+        console.log("📋 LAB RESULTS: Available patients:", patients.map(p => ({ 
+          id: p.id, 
+          email: p.email, 
+          name: `${p.firstName} ${p.lastName}` 
+        })));
+        
+        // Try email match first (most reliable)
+        let currentPatient = patients.find((patient: any) => 
+          patient.email && user.email && patient.email.toLowerCase() === user.email.toLowerCase()
+        );
+        
+        // If no email match, try exact name match
+        if (!currentPatient) {
+          currentPatient = patients.find((patient: any) => 
+            patient.firstName && user.firstName && patient.lastName && user.lastName &&
+            patient.firstName.toLowerCase() === user.firstName.toLowerCase() && 
+            patient.lastName.toLowerCase() === user.lastName.toLowerCase()
+          );
+        }
+        
+        if (currentPatient) {
+          console.log("✅ LAB RESULTS: Found matching patient:", currentPatient);
+          // Fetch lab results filtered by patient ID
+          const response = await apiRequest("GET", `/api/lab-results?patientId=${currentPatient.id}`);
+          return await response.json();
+        } else {
+          // If patient doesn't exist, return empty array
+          console.log("❌ LAB RESULTS: Patient not found for user:", user.email);
+          return [];
+        }
+      } else {
+        // For other roles (admin, doctor, nurse, etc.), show all lab results
+        const response = await apiRequest("GET", "/api/lab-results");
+        return await response.json();
+      }
     },
+    enabled: !!user && patients.length > 0, // Wait for user and patients data to be loaded
   });
 
   // Real API data fetching for patients
