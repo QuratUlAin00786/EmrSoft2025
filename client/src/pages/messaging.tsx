@@ -140,6 +140,10 @@ export default function MessagingPage() {
     scheduled: false,
     scheduledTime: ""
   });
+  const [selectedVideoCallPatient, setSelectedVideoCallPatient] = useState<string>("");
+  const [videoCallPatientSearch, setVideoCallPatientSearch] = useState<string>("");
+  const [selectedMessagePatient, setSelectedMessagePatient] = useState<string>("");
+  const [messagePatientSearch, setMessagePatientSearch] = useState<string>("");
   const { toast } = useToast();
 
   // Authentication token and headers
@@ -163,6 +167,16 @@ export default function MessagingPage() {
     }
   });
 
+  // Fetch patients for searchable dropdown
+  const { data: patientsData } = useQuery({
+    queryKey: ['/api/patients'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/patients');
+      const data = await response.json();
+      return data;
+    }
+  });
+
   // Update current user when user data changes
   useEffect(() => {
     if (user) {
@@ -172,6 +186,19 @@ export default function MessagingPage() {
       console.log('🔐 NO USER DATA - WebSocket cannot connect');
     }
   }, [user]);
+
+  // Filter patients based on search
+  const filteredVideoCallPatients = (patientsData || []).filter((patient: any) =>
+    `${patient.firstName} ${patient.lastName}`.toLowerCase().includes(videoCallPatientSearch.toLowerCase()) ||
+    patient.email?.toLowerCase().includes(videoCallPatientSearch.toLowerCase()) ||
+    patient.patientId?.toLowerCase().includes(videoCallPatientSearch.toLowerCase())
+  );
+
+  const filteredMessagePatients = (patientsData || []).filter((patient: any) =>
+    `${patient.firstName} ${patient.lastName}`.toLowerCase().includes(messagePatientSearch.toLowerCase()) ||
+    patient.email?.toLowerCase().includes(messagePatientSearch.toLowerCase()) ||
+    patient.patientId?.toLowerCase().includes(messagePatientSearch.toLowerCase())
+  );
 
   // Helper function to get the other participant (not the current user)
   const getOtherParticipant = (conversation: Conversation) => {
@@ -1206,13 +1233,33 @@ export default function MessagingPage() {
               </DialogHeader>
               <div className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="callParticipant">Participant *</Label>
-                  <Input
-                    id="callParticipant"
-                    placeholder="Enter participant name or ID"
-                    value={videoCall.participant}
-                    onChange={(e) => setVideoCall(prev => ({ ...prev, participant: e.target.value }))}
-                  />
+                  <Label htmlFor="callParticipant">Recipient *</Label>
+                  <div className="relative">
+                    <Input
+                      id="callParticipant"
+                      placeholder="Search patients..."
+                      value={videoCallPatientSearch}
+                      onChange={(e) => setVideoCallPatientSearch(e.target.value)}
+                    />
+                    {videoCallPatientSearch && filteredVideoCallPatients.length > 0 && (
+                      <div className="absolute z-10 w-full mt-1 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-md shadow-lg max-h-60 overflow-auto">
+                        {filteredVideoCallPatients.map((patient: any) => (
+                          <div
+                            key={patient.id}
+                            className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer"
+                            onClick={() => {
+                              setSelectedVideoCallPatient(`${patient.firstName} ${patient.lastName}`);
+                              setVideoCallPatientSearch(`${patient.firstName} ${patient.lastName}`);
+                              setVideoCall(prev => ({ ...prev, participant: `${patient.firstName} ${patient.lastName}` }));
+                            }}
+                          >
+                            <div className="font-medium">{patient.firstName} {patient.lastName}</div>
+                            <div className="text-sm text-gray-500">{patient.email} • {patient.patientId}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -1325,12 +1372,32 @@ export default function MessagingPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="messageRecipient">Recipient *</Label>
-                    <Input
-                      id="messageRecipient"
-                      placeholder="Enter recipient name or ID"
-                      value={newMessage.recipient}
-                      onChange={(e) => setNewMessage(prev => ({ ...prev, recipient: e.target.value }))}
-                    />
+                    <div className="relative">
+                      <Input
+                        id="messageRecipient"
+                        placeholder="Search patients..."
+                        value={messagePatientSearch}
+                        onChange={(e) => setMessagePatientSearch(e.target.value)}
+                      />
+                      {messagePatientSearch && filteredMessagePatients.length > 0 && (
+                        <div className="absolute z-10 w-full mt-1 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-md shadow-lg max-h-60 overflow-auto">
+                          {filteredMessagePatients.map((patient: any) => (
+                            <div
+                              key={patient.id}
+                              className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer"
+                              onClick={() => {
+                                setSelectedMessagePatient(`${patient.firstName} ${patient.lastName}`);
+                                setMessagePatientSearch(`${patient.firstName} ${patient.lastName}`);
+                                setNewMessage(prev => ({ ...prev, recipient: `${patient.firstName} ${patient.lastName}` }));
+                              }}
+                            >
+                              <div className="font-medium">{patient.firstName} {patient.lastName}</div>
+                              <div className="text-sm text-gray-500">{patient.email} • {patient.patientId}</div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="messageType">Message Type</Label>
