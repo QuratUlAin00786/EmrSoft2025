@@ -189,6 +189,7 @@ export default function PatientAppointments({ onNewAppointment }: { onNewAppoint
         description: "The appointment has been successfully updated.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
+      queryClient.refetchQueries({ queryKey: ["/api/appointments"] });
       setEditingAppointment(null);
     },
     onError: (error) => {
@@ -744,7 +745,7 @@ export default function PatientAppointments({ onNewAppointment }: { onNewAppoint
                               }}
                               className={`p-2 text-sm rounded border text-center ${
                                 isSelected
-                                  ? 'bg-blue-500 text-white border-blue-500'
+                                  ? 'bg-yellow-500 text-white border-yellow-500'
                                   : isBooked
                                   ? 'bg-gray-400 text-gray-600 border-gray-400 cursor-not-allowed'
                                   : 'bg-green-500 text-white border-green-500 hover:bg-green-600'
