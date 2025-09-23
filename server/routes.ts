@@ -2103,14 +2103,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const allowedUpdates: any = {};
       const { title, description, scheduledAt, duration, status, type, location, isVirtual } = req.body;
       
+      console.log('🔍 APPOINTMENT UPDATE DEBUG - Received data:', {
+        title, description, scheduledAt: scheduledAt ? { value: scheduledAt, type: typeof scheduledAt } : undefined, 
+        duration, status, type, location, isVirtual
+      });
+      
       if (title !== undefined) allowedUpdates.title = title;
       if (description !== undefined) allowedUpdates.description = description;
-      if (scheduledAt !== undefined) allowedUpdates.scheduledAt = scheduledAt;
+      if (scheduledAt !== undefined) {
+        // Convert scheduledAt string back to Date object for Drizzle ORM
+        const convertedDate = new Date(scheduledAt);
+        console.log('🔍 Date conversion:', { original: scheduledAt, converted: convertedDate, isValid: !isNaN(convertedDate.getTime()) });
+        allowedUpdates.scheduledAt = convertedDate;
+      }
       if (duration !== undefined) allowedUpdates.duration = duration;
       if (status !== undefined) allowedUpdates.status = status;
       if (type !== undefined) allowedUpdates.type = type;
       if (location !== undefined) allowedUpdates.location = location;
       if (isVirtual !== undefined) allowedUpdates.isVirtual = isVirtual;
+
+      console.log('🔍 Final allowedUpdates:', allowedUpdates);
 
       // Update the appointment
       const updatedAppointment = await storage.updateAppointment(
