@@ -1154,7 +1154,7 @@ export default function CalendarPage() {
                     {/* Patient Selection */}
                     <div>
                       <Label className="text-sm font-medium text-gray-900 dark:text-white">
-                        {user?.role === 'patient' ? 'Patient Information' : 'Select Patient'}
+                        {user?.role === 'patient' ? 'My Information' : 'Patient Information'}
                       </Label>
                       {user?.role === 'patient' && bookingForm.patientId ? (
                         /* Show patient details directly when role is patient */
