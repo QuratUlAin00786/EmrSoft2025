@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import type { User as Doctor, Appointment } from "@shared/schema";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
 interface DoctorListProps {
   onSelectDoctor?: (doctor: Doctor) => void;
@@ -55,8 +56,13 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
   // Booking dialog state
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [selectedBookingDoctor, setSelectedBookingDoctor] = useState<Doctor | null>(null);
-  const [selectedDate, setSelectedDate] = useState("");
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState("");
+  const [selectedPatient, setSelectedPatient] = useState("");
+  const [selectedDateTime, setSelectedDateTime] = useState("");
+  const [appointmentType, setAppointmentType] = useState("Consultation");
+  const [duration, setDuration] = useState("30");
+  const [appointmentTitle, setAppointmentTitle] = useState("");
+  const [appointmentDescription, setAppointmentDescription] = useState("");
+  const [appointmentLocation, setAppointmentLocation] = useState("");
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -75,16 +81,15 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
   const totalDoctors = medicalStaffResponse?.totalDoctors || 0;
   const availableDoctors = medicalStaffResponse?.availableDoctors || 0;
 
-  // Fetch appointments for the selected booking doctor
-  const { data: doctorAppointments } = useQuery({
-    queryKey: ["/api/appointments", selectedBookingDoctor?.id],
+  // Fetch patients for dropdown
+  const { data: patients } = useQuery({
+    queryKey: ["/api/patients"],
     queryFn: async () => {
-      if (!selectedBookingDoctor?.id) return [];
-      const response = await apiRequest("GET", `/api/appointments?providerId=${selectedBookingDoctor.id}`);
+      const response = await apiRequest("GET", "/api/patients");
       const data = await response.json();
       return data;
     },
-    enabled: !!selectedBookingDoctor?.id && isBookingOpen,
+    enabled: isBookingOpen,
   });
 
   const updateScheduleMutation = useMutation({
@@ -144,35 +149,16 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
 
   const openBookingDialog = (doctor: Doctor) => {
     setSelectedBookingDoctor(doctor);
-    setSelectedDate("");
-    setSelectedTimeSlot("");
+    setSelectedPatient("");
+    setSelectedDateTime("");
+    setAppointmentType("Consultation");
+    setDuration("30");
+    setAppointmentTitle("");
+    setAppointmentDescription("");
+    setAppointmentLocation("");
     setIsBookingOpen(true);
   };
 
-  const generateTimeSlots = () => {
-    const slots = [];
-    const startHour = 9; // 9 AM
-    const endHour = 17; // 5 PM
-    
-    for (let hour = startHour; hour < endHour; hour++) {
-      for (let minute = 0; minute < 60; minute += 30) {
-        const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-        slots.push(time);
-      }
-    }
-    return slots;
-  };
-
-  const isTimeSlotBooked = (date: string, time: string) => {
-    if (!doctorAppointments || !date || !time) return false;
-    
-    const targetDateTime = new Date(`${date}T${time}:00`);
-    
-    return doctorAppointments.some((appointment: Appointment) => {
-      const appointmentDate = new Date(appointment.scheduledAt);
-      return appointmentDate.getTime() === targetDateTime.getTime();
-    });
-  };
 
   const handleScheduleUpdate = () => {
     if (!selectedDoctor) return;
@@ -468,59 +454,124 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
 
       {/* Booking Dialog */}
       <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
               Book Appointment with {selectedBookingDoctor?.firstName} {selectedBookingDoctor?.lastName}
             </DialogTitle>
           </DialogHeader>
           
-          <div className="space-y-4">
-            {/* Date Selection */}
+          <div className="space-y-6">
+            {/* Top row - Patient and Date & Time */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* Patient Selection */}
+              <div>
+                <Label className="text-sm font-medium">
+                  Patient <span className="text-red-500">*</span>
+                </Label>
+                <Select value={selectedPatient} onValueChange={setSelectedPatient}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select patient..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {patients?.map((patient: any) => (
+                      <SelectItem key={patient.id} value={patient.id.toString()}>
+                        {patient.firstName} {patient.lastName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Date & Time */}
+              <div>
+                <Label className="text-sm font-medium">
+                  Date & Time <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  type="datetime-local"
+                  value={selectedDateTime}
+                  onChange={(e) => setSelectedDateTime(e.target.value)}
+                  placeholder="dd/mm/yyyy --:--"
+                  className="mt-1"
+                  min={new Date().toISOString().slice(0, 16)}
+                />
+              </div>
+            </div>
+
+            {/* Second row - Appointment Type and Duration */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* Appointment Type */}
+              <div>
+                <Label className="text-sm font-medium">Appointment Type</Label>
+                <Select value={appointmentType} onValueChange={setAppointmentType}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Consultation">Consultation</SelectItem>
+                    <SelectItem value="Follow-up">Follow-up</SelectItem>
+                    <SelectItem value="Emergency">Emergency</SelectItem>
+                    <SelectItem value="Check-up">Check-up</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Duration */}
+              <div>
+                <Label className="text-sm font-medium">Duration (minutes)</Label>
+                <Select value={duration} onValueChange={setDuration}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="15">15 minutes</SelectItem>
+                    <SelectItem value="30">30 minutes</SelectItem>
+                    <SelectItem value="45">45 minutes</SelectItem>
+                    <SelectItem value="60">60 minutes</SelectItem>
+                    <SelectItem value="90">90 minutes</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Title */}
             <div>
-              <Label className="text-base font-medium">Select Date</Label>
+              <Label className="text-sm font-medium">Title (optional)</Label>
               <Input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                min={new Date().toISOString().split('T')[0]}
-                className="mt-2"
+                type="text"
+                value={appointmentTitle}
+                onChange={(e) => setAppointmentTitle(e.target.value)}
+                placeholder="Enter appointment title"
+                className="mt-1"
               />
             </div>
 
-            {/* Time Slot Selection */}
-            {selectedDate && (
-              <div>
-                <Label className="text-base font-medium">Select Time Slot</Label>
-                <div className="grid grid-cols-4 gap-2 mt-2 max-h-64 overflow-y-auto">
-                  {generateTimeSlots().map((time) => {
-                    const isBooked = isTimeSlotBooked(selectedDate, time);
-                    return (
-                      <Button
-                        key={time}
-                        variant={isBooked ? "secondary" : selectedTimeSlot === time ? "default" : "outline"}
-                        size="sm"
-                        disabled={isBooked}
-                        onClick={() => setSelectedTimeSlot(time)}
-                        className={`
-                          ${isBooked 
-                            ? "bg-gray-300 text-gray-500 cursor-not-allowed" 
-                            : selectedTimeSlot === time
-                              ? "bg-primary text-primary-foreground"
-                              : "bg-green-100 text-green-800 hover:bg-green-200 border-green-300"
-                          }
-                        `}
-                      >
-                        {time}
-                      </Button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
+            {/* Description */}
+            <div>
+              <Label className="text-sm font-medium">Description</Label>
+              <Textarea
+                value={appointmentDescription}
+                onChange={(e) => setAppointmentDescription(e.target.value)}
+                placeholder="Enter appointment description or notes"
+                className="mt-1 min-h-24"
+              />
+            </div>
+
+            {/* Location */}
+            <div>
+              <Label className="text-sm font-medium">Location</Label>
+              <Input
+                type="text"
+                value={appointmentLocation}
+                onChange={(e) => setAppointmentLocation(e.target.value)}
+                placeholder="Room or department location"
+                className="mt-1"
+              />
+            </div>
 
             {/* Action Buttons */}
-            <div className="flex justify-end gap-2 pt-4">
+            <div className="flex justify-end gap-3 pt-4">
               <Button
                 variant="outline"
                 onClick={() => setIsBookingOpen(false)}
@@ -528,15 +579,15 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
                 Cancel
               </Button>
               <Button
-                disabled={!selectedDate || !selectedTimeSlot}
+                disabled={!selectedPatient || !selectedDateTime}
                 onClick={() => {
-                  // Here you would typically create the appointment
                   toast({
                     title: "Appointment Booked",
-                    description: `Appointment with Dr. ${selectedBookingDoctor?.firstName} ${selectedBookingDoctor?.lastName} scheduled for ${selectedDate} at ${selectedTimeSlot}`,
+                    description: `Appointment with Dr. ${selectedBookingDoctor?.firstName} ${selectedBookingDoctor?.lastName} has been scheduled successfully.`,
                   });
                   setIsBookingOpen(false);
                 }}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
               >
                 Book Appointment
               </Button>
