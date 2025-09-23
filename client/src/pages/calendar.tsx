@@ -1178,13 +1178,12 @@ export default function CalendarPage() {
                       )}
                     </div>
 
-                    {/* Patient Selection - Hidden for patients */}
-                    {user?.role !== 'patient' && (
+                    {/* Patient Selection */}
                     <div>
                       <Label className="text-sm font-medium text-gray-900 dark:text-white">
-                        Patient Information
+                        {user?.role === 'patient' ? 'My Information' : 'Patient Information'}
                       </Label>
-                      {false ? (
+                      {user?.role === 'patient' ? (
                         /* Show patient details directly when role is patient */
                         (() => {
                           // Find patient by form patientId
@@ -1308,10 +1307,9 @@ export default function CalendarPage() {
                         </Popover>
                       )}
                     </div>
-                    )}
 
-                    {/* Patient Information Card - Shows when patient is selected - Hidden for patients */}
-                    {bookingForm.patientId && user?.role !== 'patient' && (
+                    {/* Patient Information Card - Shows when patient is selected */}
+                    {bookingForm.patientId && (
                       <div>
                         <Label className="text-sm font-medium text-gray-900 dark:text-white mb-2 block">
                           Patient Information
