@@ -136,7 +136,7 @@ export default function PatientAppointments({ onNewAppointment }: { onNewAppoint
     }
   };
 
-  // Filter appointments by date for the logged-in patient
+  // Filter and sort appointments by date for the logged-in patient
   const filteredAppointments = appointments.filter((apt: any) => {
     const appointmentDate = new Date(apt.scheduledAt);
     
@@ -146,7 +146,7 @@ export default function PatientAppointments({ onNewAppointment }: { onNewAppoint
       return isPast(appointmentDate) && !isToday(appointmentDate);
     }
     return true;
-  });
+  }).sort((a: any, b: any) => new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime());
 
   // Get upcoming appointments for the logged-in patient
   const upcomingAppointments = appointments.filter((apt: any) => {
@@ -288,7 +288,6 @@ export default function PatientAppointments({ onNewAppointment }: { onNewAppoint
           </Card>
         ) : (
           filteredAppointments
-            .sort((a: any, b: any) => new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime())
             .map((appointment: any) => {
               const appointmentDate = new Date(appointment.scheduledAt);
               const isUpcoming = isFuture(appointmentDate) || isToday(appointmentDate);
