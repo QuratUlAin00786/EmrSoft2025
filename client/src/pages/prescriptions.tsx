@@ -539,17 +539,20 @@ export default function PrescriptionsPage() {
         throw new Error("User not authenticated");
       }
 
+      // Check if the current user role is Patient
       if (user.role === "patient") {
-        // Find patient ID by matching user information
+        // Get the patient ID from session/auth
         const currentPatient = patients.find((patient: any) => 
           patient.email === user.email || 
           (patient.firstName === user.firstName && patient.lastName === user.lastName)
         );
         
         if (currentPatient) {
+          // Fetch data from the database using that patient ID
+          // Returns only the specific patient data (not all data)
           return await fetchPrescriptionsByPatientId(currentPatient.id);
         } else {
-          // If patient doesn't exist, create new patient record or return empty array
+          // If patient doesn't exist, return empty array
           console.log("Patient not found for user:", user.email);
           return [];
         }
