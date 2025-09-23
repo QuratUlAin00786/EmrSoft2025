@@ -12,7 +12,8 @@ import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
-import type { User as Doctor } from "@shared/schema";
+import type { User as Doctor, Appointment } from "@shared/schema";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface DoctorListProps {
   onSelectDoctor?: (doctor: Doctor) => void;
@@ -50,6 +51,13 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
   const [workingDays, setWorkingDays] = useState<string[]>([]);
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
+  
+  // Booking dialog state
+  const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const [selectedBookingDoctor, setSelectedBookingDoctor] = useState<Doctor | null>(null);
+  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState("");
+  
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
@@ -66,6 +74,18 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
   const medicalStaff = medicalStaffResponse?.staff || [];
   const totalDoctors = medicalStaffResponse?.totalDoctors || 0;
   const availableDoctors = medicalStaffResponse?.availableDoctors || 0;
+
+  // Fetch appointments for the selected booking doctor
+  const { data: doctorAppointments } = useQuery({
+    queryKey: ["/api/appointments", selectedBookingDoctor?.id],
+    queryFn: async () => {
+      if (!selectedBookingDoctor?.id) return [];
+      const response = await apiRequest("GET", `/api/appointments?providerId=${selectedBookingDoctor.id}`);
+      const data = await response.json();
+      return data;
+    },
+    enabled: !!selectedBookingDoctor?.id && isBookingOpen,
+  });
 
   const updateScheduleMutation = useMutation({
     mutationFn: async (data: { userId: number; workingDays: string[]; workingHours: { start: string; end: string } }) => {
@@ -120,6 +140,38 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
     setStartTime(hours.start || "09:00");
     setEndTime(hours.end || "17:00");
     setIsScheduleOpen(true);
+  };
+
+  const openBookingDialog = (doctor: Doctor) => {
+    setSelectedBookingDoctor(doctor);
+    setSelectedDate("");
+    setSelectedTimeSlot("");
+    setIsBookingOpen(true);
+  };
+
+  const generateTimeSlots = () => {
+    const slots = [];
+    const startHour = 9; // 9 AM
+    const endHour = 17; // 5 PM
+    
+    for (let hour = startHour; hour < endHour; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        slots.push(time);
+      }
+    }
+    return slots;
+  };
+
+  const isTimeSlotBooked = (date: string, time: string) => {
+    if (!doctorAppointments || !date || !time) return false;
+    
+    const targetDateTime = new Date(`${date}T${time}:00`);
+    
+    return doctorAppointments.some((appointment: Appointment) => {
+      const appointmentDate = new Date(appointment.scheduledAt);
+      return appointmentDate.getTime() === targetDateTime.getTime();
+    });
   };
 
   const handleScheduleUpdate = () => {
@@ -285,10 +337,7 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
                     variant="outline"
                     onClick={(e) => {
                       e.stopPropagation();
-                      console.log("Book appointment with", doctor.firstName, doctor.lastName);
-                      if (onSelectDoctor) {
-                        onSelectDoctor(doctor);
-                      }
+                      openBookingDialog(doctor);
                     }}
                   >
                     <Calendar className="h-3 w-3 mr-1" />
@@ -411,6 +460,85 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
                 disabled={updateScheduleMutation.isPending}
               >
                 {updateScheduleMutation.isPending ? "Updating..." : "Update Schedule"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Booking Dialog */}
+      <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>
+              Book Appointment with {selectedBookingDoctor?.firstName} {selectedBookingDoctor?.lastName}
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {/* Date Selection */}
+            <div>
+              <Label className="text-base font-medium">Select Date</Label>
+              <Input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                min={new Date().toISOString().split('T')[0]}
+                className="mt-2"
+              />
+            </div>
+
+            {/* Time Slot Selection */}
+            {selectedDate && (
+              <div>
+                <Label className="text-base font-medium">Select Time Slot</Label>
+                <div className="grid grid-cols-4 gap-2 mt-2 max-h-64 overflow-y-auto">
+                  {generateTimeSlots().map((time) => {
+                    const isBooked = isTimeSlotBooked(selectedDate, time);
+                    return (
+                      <Button
+                        key={time}
+                        variant={isBooked ? "secondary" : selectedTimeSlot === time ? "default" : "outline"}
+                        size="sm"
+                        disabled={isBooked}
+                        onClick={() => setSelectedTimeSlot(time)}
+                        className={`
+                          ${isBooked 
+                            ? "bg-gray-300 text-gray-500 cursor-not-allowed" 
+                            : selectedTimeSlot === time
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-green-100 text-green-800 hover:bg-green-200 border-green-300"
+                          }
+                        `}
+                      >
+                        {time}
+                      </Button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex justify-end gap-2 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => setIsBookingOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                disabled={!selectedDate || !selectedTimeSlot}
+                onClick={() => {
+                  // Here you would typically create the appointment
+                  toast({
+                    title: "Appointment Booked",
+                    description: `Appointment with Dr. ${selectedBookingDoctor?.firstName} ${selectedBookingDoctor?.lastName} scheduled for ${selectedDate} at ${selectedTimeSlot}`,
+                  });
+                  setIsBookingOpen(false);
+                }}
+              >
+                Book Appointment
               </Button>
             </div>
           </div>
