@@ -109,7 +109,7 @@ export default function PatientAppointments({ onNewAppointment }: { onNewAppoint
     if (!appointmentsData || !currentPatient) return [];
     
     // Filter appointments by current patient ID for all user types
-    return appointmentsData.filter((apt: any) => apt.patientId === currentPatient.id);
+    return appointmentsData.filter((apt: any) => apt.patientId === currentPatient.patientId);
   }, [appointmentsData, currentPatient]);
 
   const getDoctorName = (providerId: number) => {
