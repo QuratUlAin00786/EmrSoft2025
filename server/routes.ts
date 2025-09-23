@@ -7844,6 +7844,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get medical image file
+  app.get("/api/medical-images/:id/image", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const imageId = parseInt(req.params.id);
+      if (isNaN(imageId)) {
+        return res.status(400).json({ error: "Invalid image ID" });
+      }
+
+      // Get the medical image from the database
+      const medicalImage = await storage.getMedicalImage(imageId, req.tenant!.id);
+      if (!medicalImage) {
+        return res.status(404).json({ error: "Medical image not found" });
+      }
+
+      // Check if the image has file data
+      if (!medicalImage.imageData) {
+        return res.status(404).json({ error: "Image data not available" });
+      }
+
+      // Set appropriate headers
+      const mimeType = medicalImage.mimeType || 'image/jpeg';
+      res.setHeader('Content-Type', mimeType);
+      res.setHeader('Content-Disposition', `inline; filename="${medicalImage.fileName}"`);
+      
+      // Convert base64 to buffer and send
+      const imageBuffer = Buffer.from(medicalImage.imageData, 'base64');
+      res.send(imageBuffer);
+    } catch (error) {
+      console.error("Error serving medical image:", error);
+      res.status(500).json({ error: "Failed to serve medical image" });
+    }
+  });
+
   // Lab Results API endpoints (Database-driven)
   app.get("/api/lab-results", authMiddleware, async (req: TenantRequest, res) => {
     try {
@@ -10708,7 +10741,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "User not authenticated" });
       }
 
-      const { study, reportFormData } = req.body;
+      const { study, reportFormData, imageData } = req.body;
       
       if (!study || !study.patientName) {
         return res.status(400).json({ error: "Study data is required" });
@@ -10997,20 +11030,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Medical Image Section (moved after radiologist report)
       let imageHeight = 0;
-      if (study.images && study.images[0] && study.images[0].imageData) {
+      
+      // Check for image data from either the study or the imageData parameter
+      let actualImageData = null;
+      let actualMimeType = 'image/jpeg';
+      
+      if (imageData) {
+        // Use imageData from request body (includes data:image prefix)
+        console.log("📷 SERVER: Using imageData from request body");
+        actualImageData = imageData.split(',')[1]; // Remove data:image/jpeg;base64, prefix
+        if (imageData.includes('image/png')) {
+          actualMimeType = 'image/png';
+        } else if (imageData.includes('image/jpeg') || imageData.includes('image/jpg')) {
+          actualMimeType = 'image/jpeg';
+        }
+      } else if (study.images && study.images[0] && study.images[0].imageData) {
+        // Use imageData from study
+        console.log("📷 SERVER: Using imageData from study");
+        actualImageData = study.images[0].imageData;
+        actualMimeType = study.images[0].mimeType || 'image/jpeg';
+      }
+      
+      if (actualImageData) {
         try {
-          // Extract base64 image data
-          const imageData = study.images[0].imageData;
-          const mimeType = study.images[0].mimeType || 'image/jpeg';
+          console.log("📷 SERVER: Processing image for PDF, mimeType:", actualMimeType);
           
           // Convert base64 to buffer
-          const imageBuffer = Buffer.from(imageData, 'base64');
+          const imageBuffer = Buffer.from(actualImageData, 'base64');
           
           // Embed image based on MIME type
           let image;
-          if (mimeType.includes('jpeg') || mimeType.includes('jpg')) {
+          if (actualMimeType.includes('jpeg') || actualMimeType.includes('jpg')) {
             image = await pdfDoc.embedJpg(imageBuffer);
-          } else if (mimeType.includes('png')) {
+          } else if (actualMimeType.includes('png')) {
             image = await pdfDoc.embedPng(imageBuffer);
           }
           

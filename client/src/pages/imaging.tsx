@@ -1037,6 +1037,40 @@ export default function ImagingPage() {
       setIsGeneratingPDF(true);
       setGeneratedReportId(null);
 
+      // Check if the medical image has a fileName and fetch image data
+      let imageData = null;
+      if (study.fileName && study.fileName.trim() !== '') {
+        console.log("📷 IMAGING: Found fileName for PDF generation:", study.fileName);
+        
+        // If imageData is already available in the study, use it
+        if (study.images && study.images.length > 0 && study.images[0].imageData) {
+          imageData = study.images[0].imageData;
+          console.log("📷 IMAGING: Using existing imageData from study");
+        } else {
+          // Fetch image data from server using the fileName
+          try {
+            console.log("📷 IMAGING: Fetching image from server for fileName:", study.fileName);
+            const imageResponse = await apiRequest('GET', `/api/medical-images/${study.id}/image`);
+            if (imageResponse.ok) {
+              const imageBlob = await imageResponse.blob();
+              // Convert blob to base64
+              const reader = new FileReader();
+              imageData = await new Promise((resolve) => {
+                reader.onloadend = () => resolve(reader.result);
+                reader.readAsDataURL(imageBlob);
+              });
+              console.log("📷 IMAGING: Successfully fetched image data from server");
+            } else {
+              console.warn("📷 IMAGING: Failed to fetch image from server:", imageResponse.status);
+            }
+          } catch (imageError) {
+            console.error("📷 IMAGING: Error fetching image:", imageError);
+          }
+        }
+      } else {
+        console.log("📷 IMAGING: No fileName found for study, generating PDF without image");
+      }
+
       // Call server-side PDF generation endpoint
       const response = await apiRequest(
         "POST",
@@ -1048,6 +1082,7 @@ export default function ImagingPage() {
             impression: reportImpression,
             radiologist: reportRadiologist,
           },
+          imageData: imageData, // Include image data for PDF generation
         },
       );
 
@@ -1062,7 +1097,7 @@ export default function ImagingPage() {
 
         toast({
           title: "PDF Report Generated Successfully",
-          description: `Report saved as: ${data.fileName || `${data.reportId}.pdf`}`,
+          description: `Report saved as: ${data.fileName || `${data.reportId}.pdf`}${imageData ? ' (with medical image)' : ''}`,
         });
 
         // Reset the button state after a brief delay to show "Generate Report" button again
