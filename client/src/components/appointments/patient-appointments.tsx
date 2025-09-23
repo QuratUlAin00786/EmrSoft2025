@@ -20,9 +20,19 @@ export default function PatientAppointments({ onNewAppointment }: { onNewAppoint
   const { user } = useAuth();
 
   // Fetch patients to find the current user's patient record
-  const { data: patientsData } = useQuery({
+  const { data: patientsData, isLoading: patientsLoading } = useQuery({
     queryKey: ["/api/patients"],
     staleTime: 60000,
+    retry: false,
+  });
+  
+  // Add debugging for patient data
+  console.log("🔍 PATIENT-APPOINTMENTS: Query state:", {
+    patientsData,
+    patientsLoading,
+    dataType: typeof patientsData,
+    isArray: Array.isArray(patientsData),
+    dataLength: Array.isArray(patientsData) ? patientsData.length : 'not-array'
   });
 
   // Find the patient record for the logged-in user

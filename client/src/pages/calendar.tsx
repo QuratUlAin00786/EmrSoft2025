@@ -190,9 +190,18 @@ export default function CalendarPage() {
   const queryClient = useQueryClient();
 
   // Fetch patients for the dropdown
-  const { data: patients = [] } = useQuery<any[]>({
+  const { data: patients = [], isLoading: patientsLoading } = useQuery<any[]>({
     queryKey: ["/api/patients"],
     retry: false,
+  });
+  
+  // Add debugging for calendar patient data
+  console.log("🔍 CALENDAR: Patients data:", {
+    patients,
+    patientsLoading,
+    dataType: typeof patients,
+    isArray: Array.isArray(patients),
+    dataLength: patients?.length
   });
 
   // Auto-populate patient when user is a patient (enhanced logic)
