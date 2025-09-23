@@ -25,6 +25,17 @@ import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs-extra';
 
+/**
+ * Helper to validate organizationId after multiTenantEnforcer middleware
+ * Throws if organizationId is missing after tenant validation
+ */
+function requireOrgId(req: TenantRequest): number {
+  if (!req.organizationId) {
+    throw new Error('Organization ID is required but missing after tenant validation');
+  }
+  return req.organizationId;
+}
+
 // In-memory storage for voice notes - persistent across server restarts
 let voiceNotes: any[] = [];
 
@@ -2556,7 +2567,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get claims data
   app.get("/api/financial/claims", authMiddleware, requireRole(["admin", "finance", "doctor", "nurse"]), async (req: TenantRequest, res) => {
     try {
-      const organizationId = req.organizationId;
+      const organizationId = requireOrgId(req);
       const claims = await storage.getClaimsByOrganization(organizationId);
       
       // Get all unique patient IDs to fetch patient names in one query
@@ -2617,7 +2628,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         submissionDate: z.string().optional()
       }).parse(req.body);
 
-      const organizationId = req.organizationId;
+      const organizationId = requireOrgId(req);
       
       // Create claim record for database
       const newClaimData = {
@@ -2659,7 +2670,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/financial/claims/:id", authMiddleware, requireRole(["admin", "finance", "doctor", "nurse"]), async (req: TenantRequest, res) => {
     try {
       const claimId = parseInt(req.params.id);
-      const organizationId = req.organizationId;
+      const organizationId = requireOrgId(req);
       
       if (isNaN(claimId)) {
         return res.status(400).json({ error: "Invalid claim ID" });
@@ -2698,7 +2709,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/financial/claims/:id", authMiddleware, requireRole(["admin", "finance", "doctor", "nurse"]), async (req: TenantRequest, res) => {
     try {
       const claimId = parseInt(req.params.id);
-      const organizationId = req.organizationId;
+      const organizationId = requireOrgId(req);
       
       if (isNaN(claimId)) {
         return res.status(400).json({ error: "Invalid claim ID" });
@@ -2727,7 +2738,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get insurance data
   app.get("/api/financial/insurance", authMiddleware, requireRole(["admin", "finance", "doctor", "nurse"]), async (req: TenantRequest, res) => {
     try {
-      const organizationId = req.organizationId;
+      const organizationId = requireOrgId(req);
       console.log(`[FINANCIAL] Fetching insurance data for organization: ${organizationId}`);
 
       // First, get insurance verifications from the dedicated table
@@ -2814,7 +2825,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create new insurance record
   app.post("/api/financial/insurance", authMiddleware, requireRole(["admin", "finance", "doctor", "nurse"]), async (req: TenantRequest, res) => {
     try {
-      const organizationId = req.organizationId!;
+      const organizationId = requireOrgId(req);
       const insuranceData = req.body;
       
       console.log(`[FINANCIAL] New insurance record creation requested:`, insuranceData);
@@ -2907,7 +2918,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/financial/insurance/:id", authMiddleware, requireRole(["admin", "finance", "doctor", "nurse"]), async (req: TenantRequest, res) => {
     try {
       const insuranceId = parseInt(req.params.id);
-      const organizationId = req.organizationId!;
+      const organizationId = requireOrgId(req);
       const updateData = req.body;
       
       console.log(`[FINANCIAL] Insurance update requested for: ${insuranceId}`, updateData);
@@ -2939,7 +2950,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/financial/insurance/:id", authMiddleware, requireRole(["admin", "finance", "doctor", "nurse"]), async (req: TenantRequest, res) => {
     try {
       const insuranceId = parseInt(req.params.id);
-      const organizationId = req.organizationId!;
+      const organizationId = requireOrgId(req);
       
       console.log(`[FINANCIAL] Insurance deletion requested for: ${insuranceId}`);
       
@@ -2970,7 +2981,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/financial/insurance/:id", authMiddleware, requireRole(["admin", "finance", "doctor", "nurse"]), async (req: TenantRequest, res) => {
     try {
       const insuranceId = parseInt(req.params.id);
-      const organizationId = req.organizationId!;
+      const organizationId = requireOrgId(req);
       const updateData = req.body;
       
       console.log(`[FINANCIAL] Insurance PATCH update requested for: ${insuranceId}`, updateData);
