@@ -3964,7 +3964,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "User not authenticated" });
       }
 
-      const prescriptions = await storage.getPrescriptionsByOrganization(req.tenant!.id);
+      // Check for role-based filtering via query parameters
+      const { patientId, providerId } = req.query;
+
+      let prescriptions;
+
+      if (patientId) {
+        // Filter by patient ID (for Patient role)
+        const patientIdNum = parseInt(patientId as string);
+        if (isNaN(patientIdNum)) {
+          return res.status(400).json({ error: "Invalid patient ID" });
+        }
+        console.log(`[PRESCRIPTIONS API] Filtering by patientId: ${patientIdNum}`);
+        prescriptions = await storage.getPrescriptionsByPatient(patientIdNum, req.tenant!.id);
+      } else if (providerId) {
+        // Filter by provider ID (for Doctor role)
+        const providerIdNum = parseInt(providerId as string);
+        if (isNaN(providerIdNum)) {
+          return res.status(400).json({ error: "Invalid provider ID" });
+        }
+        console.log(`[PRESCRIPTIONS API] Filtering by providerId: ${providerIdNum}`);
+        prescriptions = await storage.getPrescriptionsByProvider(providerIdNum, req.tenant!.id);
+      } else {
+        // Return all prescriptions (for Admin, Nurse, etc.)
+        console.log(`[PRESCRIPTIONS API] Returning all prescriptions for organization`);
+        prescriptions = await storage.getPrescriptionsByOrganization(req.tenant!.id);
+      }
+
       res.json(prescriptions);
     } catch (error) {
       console.error("Error fetching prescriptions:", error);
