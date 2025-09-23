@@ -360,10 +360,10 @@ export default function PatientAppointments({ onNewAppointment }: { onNewAppoint
         </Button>
       </div>
 
-      {/* Medical Specialties Display */}
-      {filteredAppointments.length > 0 && (
+      {/* Medical Specialties Display - Only show for Patient role users */}
+      {user?.role === 'patient' && filteredAppointments.length > 0 && (
         <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-          <h4 className="text-sm font-medium text-gray-700 mb-2">Available Specialties:</h4>
+          <h4 className="text-sm font-medium text-gray-700 mb-2">Medical Specialties:</h4>
           <div className="flex flex-wrap gap-2">
             {(Array.from(new Set(filteredAppointments.map((apt: any) => {
               const specialtyData = getDoctorSpecialtyData(apt.providerId);
@@ -379,6 +379,7 @@ export default function PatientAppointments({ onNewAppointment }: { onNewAppoint
             return specialtyData.subSpecialty;
           }).filter(Boolean))) as string[]).length > 0 && (
             <div className="flex flex-wrap gap-2 mt-2">
+              <h5 className="text-xs font-medium text-gray-600 w-full mb-1">Sub-Specialties:</h5>
               {(Array.from(new Set(filteredAppointments.map((apt: any) => {
                 const specialtyData = getDoctorSpecialtyData(apt.providerId);
                 return specialtyData.subSpecialty;

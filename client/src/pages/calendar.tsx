@@ -245,15 +245,23 @@ export default function CalendarPage() {
   }, [user, patients]);
   
   // Fetch medical staff for doctor selection - using the correct endpoint
-  const { data: medicalStaffData } = useQuery<any>({
+  const { data: medicalStaffData, isLoading: isLoadingStaff, error: staffError } = useQuery<any>({
     queryKey: ["/api/medical-staff"],
-    retry: false,
+    retry: 3,
+    staleTime: 60000,
+    enabled: true, // Ensure query is enabled
   });
   
   // Extract doctors from medical staff data - memoized to prevent infinite re-renders
   const allDoctors = useMemo(() => {
-    return medicalStaffData?.staff || [];
-  }, [medicalStaffData]);
+    console.log('🏥 Processing medical staff data:', medicalStaffData);
+    console.log('🏥 Staff error:', staffError);
+    console.log('🏥 Is loading staff:', isLoadingStaff);
+    
+    const doctors = medicalStaffData?.staff || [];
+    console.log('👨‍⚕️ Extracted doctors:', doctors.length, doctors);
+    return doctors;
+  }, [medicalStaffData, staffError, isLoadingStaff]);
   
   // Query for filtered appointments
   const { data: allAppointments = [] } = useQuery<any[]>({
@@ -347,7 +355,9 @@ export default function CalendarPage() {
   };
   
   const filterDoctorsBySpecialty = () => {
-    if (!Array.isArray(allDoctors)) {
+    if (!Array.isArray(allDoctors) || allDoctors.length === 0) {
+      console.log('⚠️ No doctors available for filtering. Array check:', Array.isArray(allDoctors), 'Length:', allDoctors?.length);
+      console.log('⚠️ Is loading staff:', isLoadingStaff, 'Staff error:', staffError);
       setFilteredDoctors([]);
       return [];
     }
