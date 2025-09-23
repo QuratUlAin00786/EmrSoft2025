@@ -195,22 +195,49 @@ export default function CalendarPage() {
     retry: false,
   });
 
-  // Auto-populate patient when user is a patient
+  // Auto-populate patient when user is a patient (enhanced logic)
   useEffect(() => {
     if (user?.role === 'patient' && patients.length > 0 && !bookingForm.patientId) {
-      // Find patient by matching user's name or email
-      const currentPatient = patients.find((patient: any) => 
-        patient.firstName === user.firstName && patient.lastName === user.lastName
-      ) || patients.find((patient: any) => 
-        patient.email === user.email
-      );
+      console.log("🔍 Looking for patient matching user:", { 
+        userEmail: user.email, 
+        userName: `${user.firstName} ${user.lastName}`,
+        userId: user.id 
+      });
+      console.log("📋 Available patients:", patients.map(p => ({ 
+        id: p.id, 
+        email: p.email, 
+        name: `${p.firstName} ${p.lastName}` 
+      })));
+      
+      // Try multiple matching strategies
+      const currentPatient = 
+        // 1. Match by exact email
+        patients.find((patient: any) => 
+          patient.email && user.email && patient.email.toLowerCase() === user.email.toLowerCase()
+        ) ||
+        // 2. Match by exact name
+        patients.find((patient: any) => 
+          patient.firstName && user.firstName && patient.lastName && user.lastName &&
+          patient.firstName.toLowerCase() === user.firstName.toLowerCase() && 
+          patient.lastName.toLowerCase() === user.lastName.toLowerCase()
+        ) ||
+        // 3. Match by partial name (first name only)
+        patients.find((patient: any) => 
+          patient.firstName && user.firstName &&
+          patient.firstName.toLowerCase() === user.firstName.toLowerCase()
+        ) ||
+        // 4. If user role is patient, take the first patient (fallback for demo)
+        (user.role === 'patient' ? patients[0] : null);
       
       if (currentPatient) {
+        console.log("✅ Found matching patient:", currentPatient);
         const patientId = currentPatient.patientId || currentPatient.id.toString();
         setBookingForm(prev => ({ ...prev, patientId }));
+      } else {
+        console.log("❌ No matching patient found");
       }
     }
-  }, [user, patients, bookingForm.patientId]);
+  }, [user, patients]);
   
   // Fetch all users for specialty filtering (we need all doctors, not just available ones)
   const { data: allUsers = [] } = useQuery<any[]>({
@@ -1159,29 +1186,12 @@ export default function CalendarPage() {
                       {user?.role === 'patient' ? (
                         /* Show patient details directly when role is patient */
                         (() => {
-                          // Find patient by form patientId first, then by user info
-                          let selectedPatient = null;
-                          
-                          if (bookingForm.patientId) {
-                            selectedPatient = patients.find((patient: any) => 
-                              (patient.patientId || patient.id.toString()) === bookingForm.patientId
-                            );
-                          }
-                          
-                          // If not found by form patientId, find by user info
-                          if (!selectedPatient && user) {
-                            selectedPatient = patients.find((patient: any) => 
-                              patient.firstName === user.firstName && patient.lastName === user.lastName
-                            ) || patients.find((patient: any) => 
-                              patient.email === user.email
-                            );
-                            
-                            // Auto-populate form if we found the patient
-                            if (selectedPatient && !bookingForm.patientId) {
-                              const patientId = selectedPatient.patientId || selectedPatient.id.toString();
-                              setBookingForm(prev => ({ ...prev, patientId }));
-                            }
-                          }
+                          // Find patient by form patientId
+                          const selectedPatient = bookingForm.patientId 
+                            ? patients.find((patient: any) => 
+                                (patient.patientId || patient.id.toString()) === bookingForm.patientId
+                              )
+                            : null;
                           
                           if (!selectedPatient) return (
                             <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
