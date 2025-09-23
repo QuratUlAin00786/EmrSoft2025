@@ -507,6 +507,26 @@ export default function LabResultsPage() {
   });
 
   const handleOrderTest = () => {
+    // For patient role users, automatically set their patient ID
+    if (user?.role === "patient") {
+      // Find the current patient based on user authentication data
+      const currentPatient = patients.find((patient: any) => 
+        patient.email && user.email && patient.email.toLowerCase() === user.email.toLowerCase()
+      ) || patients.find((patient: any) => 
+        patient.firstName && user.firstName && patient.lastName && user.lastName &&
+        patient.firstName.toLowerCase() === user.firstName.toLowerCase() && 
+        patient.lastName.toLowerCase() === user.lastName.toLowerCase()
+      );
+      
+      if (currentPatient) {
+        setOrderFormData((prev) => ({
+          ...prev,
+          patientId: currentPatient.id.toString(),
+          patientName: `${currentPatient.firstName} ${currentPatient.lastName}`,
+        }));
+      }
+    }
+    
     setShowOrderDialog(true);
   };
 
@@ -1676,66 +1696,77 @@ Report generated from Cura EMR System`;
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="patient">Select Patient</Label>
-              <Popover
-                open={patientSearchOpen}
-                onOpenChange={setPatientSearchOpen}
-              >
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    aria-expanded={patientSearchOpen}
-                    className="w-full justify-between"
-                  >
-                    {orderFormData.patientId
-                      ? orderFormData.patientName
-                      : "Select a patient..."}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-full p-0">
-                  <Command>
-                    <CommandInput placeholder="Search patients..." />
-                    <CommandEmpty>No patient found.</CommandEmpty>
-                    <CommandGroup>
-                      {patientsLoading ? (
-                        <CommandItem disabled>Loading patients...</CommandItem>
-                      ) : patients &&
-                        Array.isArray(patients) &&
-                        patients.length > 0 ? (
-                        patients.map((patient: any) => (
-                          <CommandItem
-                            key={patient.id}
-                            value={`${patient.firstName} ${patient.lastName} ${patient.patientId}`}
-                            onSelect={() => {
-                              setOrderFormData((prev) => ({
-                                ...prev,
-                                patientId: patient.id.toString(),
-                                patientName: `${patient.firstName} ${patient.lastName}`,
-                              }));
-                              setPatientSearchOpen(false);
-                            }}
-                          >
-                            <Check
-                              className={`mr-2 h-4 w-4 ${
-                                orderFormData.patientId ===
-                                patient.id.toString()
-                                  ? "opacity-100"
-                                  : "opacity-0"
-                              }`}
-                            />
-                            {`${patient.firstName} ${patient.lastName} (${patient.patientId})`}
+              {user?.role === "patient" ? (
+                // For patient role: Show logged-in patient name and hide dropdown
+                <div className="flex items-center h-10 px-3 py-2 border border-input bg-background rounded-md text-sm ring-offset-background">
+                  <User className="h-4 w-4 mr-2 text-muted-foreground" />
+                  <span data-testid="patient-name-display">
+                    {user.firstName} {user.lastName}
+                  </span>
+                </div>
+              ) : (
+                // For other roles: Show patient dropdown
+                <Popover
+                  open={patientSearchOpen}
+                  onOpenChange={setPatientSearchOpen}
+                >
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={patientSearchOpen}
+                      className="w-full justify-between"
+                    >
+                      {orderFormData.patientId
+                        ? orderFormData.patientName
+                        : "Select a patient..."}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0">
+                    <Command>
+                      <CommandInput placeholder="Search patients..." />
+                      <CommandEmpty>No patient found.</CommandEmpty>
+                      <CommandGroup>
+                        {patientsLoading ? (
+                          <CommandItem disabled>Loading patients...</CommandItem>
+                        ) : patients &&
+                          Array.isArray(patients) &&
+                          patients.length > 0 ? (
+                          patients.map((patient: any) => (
+                            <CommandItem
+                              key={patient.id}
+                              value={`${patient.firstName} ${patient.lastName} ${patient.patientId}`}
+                              onSelect={() => {
+                                setOrderFormData((prev) => ({
+                                  ...prev,
+                                  patientId: patient.id.toString(),
+                                  patientName: `${patient.firstName} ${patient.lastName}`,
+                                }));
+                                setPatientSearchOpen(false);
+                              }}
+                            >
+                              <Check
+                                className={`mr-2 h-4 w-4 ${
+                                  orderFormData.patientId ===
+                                  patient.id.toString()
+                                    ? "opacity-100"
+                                    : "opacity-0"
+                                }`}
+                              />
+                              {`${patient.firstName} ${patient.lastName} (${patient.patientId})`}
+                            </CommandItem>
+                          ))
+                        ) : (
+                          <CommandItem disabled>
+                            No patients available
                           </CommandItem>
-                        ))
-                      ) : (
-                        <CommandItem disabled>
-                          No patients available
-                        </CommandItem>
-                      )}
-                    </CommandGroup>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+                        )}
+                      </CommandGroup>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              )}
             </div>
 
             <div className="space-y-2">
