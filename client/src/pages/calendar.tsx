@@ -972,13 +972,74 @@ export default function CalendarPage() {
                   </div>
                   
                   <div>
-                    <Label htmlFor="scheduledAt">Date & Time *</Label>
-                    <Input
-                      id="scheduledAt"
-                      type="datetime-local"
-                      value={bookingForm.scheduledAt}
-                      onChange={(e) => setBookingForm(prev => ({ ...prev, scheduledAt: e.target.value }))}
-                    />
+                    <Label className="text-sm font-medium">Date & Time *</Label>
+                    
+                    {/* Select Date */}
+                    <div className="mt-2 space-y-4">
+                      <div>
+                        <Label className="text-sm font-medium">Select Date</Label>
+                        <CalendarComponent
+                          mode="single"
+                          selected={selectedDate}
+                          onSelect={(date) => {
+                            setSelectedDate(date);
+                            // Update form with selected date and current time slot
+                            if (date && selectedTimeSlot) {
+                              const dateTime = `${format(date, 'yyyy-MM-dd')}T${selectedTimeSlot}:00`;
+                              setBookingForm(prev => ({ ...prev, scheduledAt: dateTime }));
+                            }
+                          }}
+                          disabled={(date) => isBefore(date, startOfDay(new Date()))}
+                          className="rounded-md border mt-1"
+                        />
+                      </div>
+
+                      {/* Select Time Slot */}
+                      {selectedDate && (
+                        <div>
+                          <Label className="text-sm font-medium">Select Time Slot</Label>
+                          {timeSlotError && (
+                            <div className="mb-2 p-2 bg-red-50 border border-red-200 rounded-md">
+                              <p className="text-sm text-red-600">{timeSlotError}</p>
+                            </div>
+                          )}
+                          <div className="grid grid-cols-3 gap-2 mt-2 max-h-64 overflow-y-auto">
+                            {PREDEFINED_TIME_SLOTS.map((timeSlot) => {
+                              const isAvailable = timeSlotAvailability[timeSlot] !== false;
+                              const isSelected = selectedTimeSlot === timeSlot;
+                              
+                              return (
+                                <Button
+                                  key={timeSlot}
+                                  type="button"
+                                  variant={isSelected ? "default" : "outline"}
+                                  size="sm"
+                                  disabled={!isAvailable}
+                                  onClick={() => {
+                                    setSelectedTimeSlot(timeSlot);
+                                    // Update form with selected date and time
+                                    if (selectedDate) {
+                                      const dateTime = `${format(selectedDate, 'yyyy-MM-dd')}T${timeSlot}:00`;
+                                      setBookingForm(prev => ({ ...prev, scheduledAt: dateTime }));
+                                    }
+                                  }}
+                                  className={`
+                                    ${!isAvailable 
+                                      ? "bg-gray-300 text-gray-500 cursor-not-allowed" 
+                                      : isSelected
+                                        ? "bg-primary text-primary-foreground"
+                                        : "bg-green-100 text-green-800 hover:bg-green-200 border-green-300"
+                                    }
+                                  `}
+                                >
+                                  {format(new Date(`2000-01-01T${timeSlot}:00`), 'h:mm a')}
+                                </Button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   
                   <div>
