@@ -17,6 +17,7 @@ import { useLocation } from "wouter";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/use-auth";
 
 // Medical Specialties Data Structure - same as user-management.tsx
 const medicalSpecialties = {
@@ -156,6 +157,7 @@ const medicalSpecialties = {
 };
 
 export default function CalendarPage() {
+  const { user } = useAuth();
   const [selectedDoctor, setSelectedDoctor] = useState<any>(null);
   const [showNewAppointmentModal, setShowNewAppointmentModal] = useState(false);
   const [selectedSpecialty, setSelectedSpecialty] = useState("");
@@ -192,6 +194,23 @@ export default function CalendarPage() {
     queryKey: ["/api/patients"],
     retry: false,
   });
+
+  // Auto-populate patient when user is a patient
+  useEffect(() => {
+    if (user?.role === 'patient' && patients.length > 0 && !bookingForm.patientId) {
+      // Find patient by matching user's name or email
+      const currentPatient = patients.find((patient: any) => 
+        patient.firstName === user.firstName && patient.lastName === user.lastName
+      ) || patients.find((patient: any) => 
+        patient.email === user.email
+      );
+      
+      if (currentPatient) {
+        const patientId = currentPatient.patientId || currentPatient.id.toString();
+        setBookingForm(prev => ({ ...prev, patientId }));
+      }
+    }
+  }, [user, patients, bookingForm.patientId]);
   
   // Fetch all users for specialty filtering (we need all doctors, not just available ones)
   const { data: allUsers = [] } = useQuery<any[]>({
@@ -1135,74 +1154,128 @@ export default function CalendarPage() {
                     {/* Patient Selection */}
                     <div>
                       <Label className="text-sm font-medium text-gray-900 dark:text-white">
-                        Select Patient
+                        {user?.role === 'patient' ? 'Patient Information' : 'Select Patient'}
                       </Label>
-                      <Popover open={patientComboboxOpen} onOpenChange={setPatientComboboxOpen}>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            role="combobox"
-                            aria-expanded={patientComboboxOpen}
-                            className="mt-2 w-full justify-between"
-                            data-testid="trigger-patient-combobox"
-                          >
-                            {bookingForm.patientId 
-                              ? (() => {
-                                  const selectedPatient = patients.find((patient: any) => {
-                                    const pId = patient.patientId || patient.id.toString();
-                                    return pId === bookingForm.patientId;
-                                  });
-                                  
-                                  if (!selectedPatient) {
-                                    return "Select patient...";
-                                  }
-                                  
-                                  const displayName = `${selectedPatient.firstName} ${selectedPatient.lastName}`;
-                                  const patientId = selectedPatient.patientId || `P${selectedPatient.id.toString().padStart(6, '0')}`;
-                                  return `${displayName} (${patientId})`;
-                                })()
-                              : "Select patient..."}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-full p-0">
-                          <Command>
-                            <CommandInput 
-                              placeholder="Search patients..." 
-                              data-testid="input-search-patient"
-                            />
-                            <CommandList>
-                              <CommandEmpty>No patient found.</CommandEmpty>
-                              <CommandGroup>
-                                {patients.map((patient: any) => {
-                                  const patientValue = patient.patientId || patient.id.toString();
-                                  const patientDisplayName = `${patient.firstName} ${patient.lastName}`;
-                                  const patientWithId = `${patientDisplayName} (${patient.patientId || `P${patient.id.toString().padStart(6, '0')}`})`;
-                                  
-                                  return (
-                                    <CommandItem
-                                      key={patient.id}
-                                      value={patientWithId}
-                                      onSelect={(currentValue) => {
-                                        setBookingForm(prev => ({ ...prev, patientId: patientValue }));
-                                        setPatientComboboxOpen(false);
-                                      }}
-                                      data-testid={`item-patient-${patient.id}`}
-                                    >
-                                      <Check
-                                        className={`mr-2 h-4 w-4 ${
-                                          patientValue === bookingForm.patientId ? "opacity-100" : "opacity-0"
-                                        }`}
-                                      />
-                                      {patientWithId}
-                                    </CommandItem>
-                                  );
-                                })}
-                              </CommandGroup>
-                            </CommandList>
-                          </Command>
-                        </PopoverContent>
-                      </Popover>
+                      {user?.role === 'patient' && bookingForm.patientId ? (
+                        /* Show patient details directly when role is patient */
+                        (() => {
+                          const selectedPatient = patients.find((patient: any) => 
+                            (patient.patientId || patient.id.toString()) === bookingForm.patientId
+                          );
+                          
+                          if (!selectedPatient) return (
+                            <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                              <p className="text-sm text-yellow-800">Patient information not found.</p>
+                            </div>
+                          );
+                          
+                          // Calculate age from date of birth
+                          const age = selectedPatient.dateOfBirth 
+                            ? new Date().getFullYear() - new Date(selectedPatient.dateOfBirth).getFullYear()
+                            : null;
+                          
+                          // Get patient initials for avatar
+                          const initials = `${selectedPatient.firstName?.[0] || ''}${selectedPatient.lastName?.[0] || ''}`.toUpperCase();
+                          
+                          return (
+                            <div className="mt-2 border rounded-md p-3 bg-blue-50 dark:bg-blue-900 border-blue-200 dark:border-blue-700">
+                              <div className="flex items-center space-x-3">
+                                <User className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                                <div className="flex-1">
+                                  <div className="font-medium text-blue-900 dark:text-blue-100">
+                                    {selectedPatient.firstName} {selectedPatient.lastName}
+                                  </div>
+                                  <div className="space-y-1 text-sm text-blue-700 dark:text-blue-300">
+                                    {selectedPatient.email && (
+                                      <div className="flex items-center space-x-1">
+                                        <Mail className="h-3 w-3" />
+                                        <span>{selectedPatient.email}</span>
+                                      </div>
+                                    )}
+                                    {(selectedPatient.phone || selectedPatient.phoneNumber) && (
+                                      <div className="flex items-center space-x-1">
+                                        <Phone className="h-3 w-3" />
+                                        <span>{selectedPatient.phone || selectedPatient.phoneNumber}</span>
+                                      </div>
+                                    )}
+                                    <div className="text-xs opacity-75">
+                                      {age && `Age ${age} • `}Patient ID: {selectedPatient.patientId || `P${selectedPatient.id?.toString().padStart(6, '0')}`}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })()
+                      ) : (
+                        /* Show dropdown for other roles */
+                        <Popover open={patientComboboxOpen} onOpenChange={setPatientComboboxOpen}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              aria-expanded={patientComboboxOpen}
+                              className="mt-2 w-full justify-between"
+                              data-testid="trigger-patient-combobox"
+                            >
+                              {bookingForm.patientId 
+                                ? (() => {
+                                    const selectedPatient = patients.find((patient: any) => {
+                                      const pId = patient.patientId || patient.id.toString();
+                                      return pId === bookingForm.patientId;
+                                    });
+                                    
+                                    if (!selectedPatient) {
+                                      return "Select patient...";
+                                    }
+                                    
+                                    const displayName = `${selectedPatient.firstName} ${selectedPatient.lastName}`;
+                                    const patientId = selectedPatient.patientId || `P${selectedPatient.id.toString().padStart(6, '0')}`;
+                                    return `${displayName} (${patientId})`;
+                                  })()
+                                : "Select patient..."}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-full p-0">
+                            <Command>
+                              <CommandInput 
+                                placeholder="Search patients..." 
+                                data-testid="input-search-patient"
+                              />
+                              <CommandList>
+                                <CommandEmpty>No patient found.</CommandEmpty>
+                                <CommandGroup>
+                                  {patients.map((patient: any) => {
+                                    const patientValue = patient.patientId || patient.id.toString();
+                                    const patientDisplayName = `${patient.firstName} ${patient.lastName}`;
+                                    const patientWithId = `${patientDisplayName} (${patient.patientId || `P${patient.id.toString().padStart(6, '0')}`})`;
+                                    
+                                    return (
+                                      <CommandItem
+                                        key={patient.id}
+                                        value={patientWithId}
+                                        onSelect={(currentValue) => {
+                                          setBookingForm(prev => ({ ...prev, patientId: patientValue }));
+                                          setPatientComboboxOpen(false);
+                                        }}
+                                        data-testid={`item-patient-${patient.id}`}
+                                      >
+                                        <Check
+                                          className={`mr-2 h-4 w-4 ${
+                                            patientValue === bookingForm.patientId ? "opacity-100" : "opacity-0"
+                                          }`}
+                                        />
+                                        {patientWithId}
+                                      </CommandItem>
+                                    );
+                                  })}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                      )}
                     </div>
 
                     {/* Patient Information Card - Shows when patient is selected */}
