@@ -1,0 +1,649 @@
+Cura
+Dashboard
+Patients
+Appointments
+Prescriptions
+Lab Results
+Imaging
+Forms
+Messaging
+Integrations
+Analytics
+Automation
+AI Insights
+AI Agent
+AI Chatbot
+Clinical Decision Support
+Telemedicine
+Population Health
+Mobile Health
+Voice Documentation
+Financial Intelligence
+Billing
+QuickBooks
+Inventory
+GDPR Compliance
+ADMINISTRATION
+
+User Management
+Shift Management
+Subscription/Packages
+Settings
+Theme
+
+AU
+Admin User
+
+Admin
+
+
+Back
+Medical Imaging
+View and manage radiology studies and reports
+
+AI Active
+UK/GDPR
+
+Pending Reports
+
+5
+
+Today's Studies
+
+8
+
+Urgent Studies
+
+3
+
+This Month
+
+142
+
+Search imaging studies...
+
+All Status
+
+All Modalities
+Order Study
+Maryam Khan
+completed
+
+routine
+
+Study Information
+Study: x
+Modality: X-Ray
+Body Part: dcd
+Ordered by: Admin User
+Indication: No indication provided
+Image Series
+X-Ray dcd
+1 images • 0.48 MB • DICOM
+Timeline
+Ordered: Sep 24, 2025 01:30
+Scheduled:
+Not scheduled
+
+Performed:
+Not performed
+
+Radiologist: Admin User
+Findings
+Medical image uploaded: P000006_Images.png
+
+Impression
+File: P000006_Images.png (0.48 MB)
+
+
+
+
+
+
+
+Maryam Khan
+completed
+
+urgent
+
+Study Information
+Study: x
+Modality: MRI
+Body Part: dcd
+Ordered by: Admin User
+Indication: v
+Image Series
+MRI dcd
+1 images • 0.03 MB • DICOM
+Timeline
+Ordered: Sep 24, 2025 01:18
+Scheduled:
+Not scheduled
+
+Performed:
+Not performed
+
+Radiologist: Admin User
+Findings
+Medical image uploaded: P000006_Images.png
+
+Impression
+File: P000006_Images.png (0.03 MB)
+
+
+
+
+
+
+
+Mary Johnson
+completed
+
+routine
+
+Study Information
+Study: x
+Modality: X-Ray
+Body Part: dcd
+Ordered by: Admin User
+Indication: fvd
+Image Series
+X-Ray dcd
+1 images • 0.03 MB • DICOM
+Timeline
+Ordered: Sep 23, 2025 15:43
+Scheduled:
+Not scheduled
+
+Performed:
+Not performed
+
+Radiologist: Admin User
+Findings
+Medical image uploaded: Ethan_Brown_rash_23wound (1).png
+
+Impression
+File: Ethan_Brown_rash_23wound (1).png (0.03 MB)
+
+
+
+
+
+
+
+Mary Johnson
+completed
+
+routine
+
+Study Information
+Study: x
+Modality: X-Ray
+Body Part: dcd
+Ordered by: Admin User
+Indication: fvd
+Image Series
+X-Ray dcd
+1 images • 0.03 MB • DICOM
+Timeline
+Ordered: Sep 23, 2025 15:43
+Scheduled:
+Not scheduled
+
+Performed:
+Not performed
+
+Radiologist: Admin User
+Findings
+Medical image uploaded: Ethan_Brown_rash_23wound (1).png
+
+Impression
+File: Ethan_Brown_rash_23wound (1).png (0.03 MB)
+
+
+
+
+
+Mary Johnson
+completed
+
+routine
+
+Study Information
+Study: x
+Modality: X-Ray
+Body Part: dcd
+Ordered by: Admin User
+Indication: none
+Image Series
+X-Ray dcd
+1 images • 0.03 MB • DICOM
+Timeline
+Ordered: Sep 23, 2025 15:34
+Scheduled:
+Not scheduled
+
+Performed:
+Not performed
+
+Radiologist: Admin User
+Findings
+Medical image uploaded: Ethan_Brown_rash_23wound (1).png
+
+Impression
+File: Ethan_Brown_rash_23wound (1).png (0.03 MB)
+
+
+
+
+
+James Luke
+completed
+
+routine
+
+Study Information
+Study: x
+Modality: X-Ray
+Body Part: dcd
+Ordered by: Admin User
+Indication: szcz
+Image Series
+X-Ray dcd
+1 images • 0.48 MB • DICOM
+Timeline
+Ordered: Sep 21, 2025 20:51
+Scheduled:
+Not scheduled
+
+Performed:
+Not performed
+
+Radiologist: Admin User
+Findings
+Medical image uploaded: Updated_facial_muscle_diagram.png
+
+Impression
+File: Updated_facial_muscle_diagram.png (0.48 MB)
+
+
+
+
+
+
+
+Qurat Ul Ain
+preliminary
+
+stat
+
+Study Information
+Study: dcd
+Modality: X-Ray
+Body Part: dcd
+Ordered by: Admin User
+Indication: cc
+Image Series
+X-Ray dcd
+1 images • 0.03 MB • DICOM
+Timeline
+Ordered: Sep 21, 2025 01:27
+Scheduled:
+Sep 26, 2025 00:00
+
+Performed:
+Sep 30, 2025 00:00
+
+Radiologist: Admin User
+Findings
+Medical image uploaded: Rashida_Younus_procedure_4wound.png
+
+Impression
+File: Rashida_Younus_procedure_4wound.png (0.03 MB)
+
+
+
+
+
+
+
+Rashida Younus
+ordered
+
+stat
+
+Study Information
+Study: x-ray
+Modality: X-Ray
+Body Part: x
+Ordered by: Admin User
+Indication: x
+Image Series
+X-Ray x
+1 images • 0.14 MB • JPEG
+Timeline
+Ordered: Sep 16, 2025 22:04
+Scheduled:
+Sep 22, 2025 00:00
+
+Performed:
+Oct 1, 2025 00:00
+
+Radiologist: eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+Findings
+sdcs fdvfsv
+
+Impression
+sdfssssssssssssssssssssssssssssssssssss
+
+
+
+
+
+
+
+James Luke
+final
+
+urgent
+
+Study Information
+Study: x
+Modality: X-Ray
+Body Part: x
+Ordered by: Admin User
+Indication: dwd
+Image Series
+X-Ray x
+1 images • 0.14 MB • JPEG
+Timeline
+Ordered: Sep 16, 2025 16:03
+Scheduled:
+Sep 18, 2025 00:00
+
+Performed:
+Oct 16, 2025 00:00
+
+Radiologist: Admin User
+Findings
+Medical image uploaded: reportt.jfif
+
+Impression
+File: reportt.jfif (0.14 MB)
+
+
+
+
+
+
+
+Samuel David
+ordered
+
+stat
+
+Study Information
+Study: dxa
+Modality: MRI
+Body Part: x
+Ordered by: Admin User
+Indication: x
+Image Series
+MRI x
+1 images • 0.00 MB • DICOM
+Timeline
+Ordered: Sep 16, 2025 16:03
+Scheduled:
+Not scheduled
+
+Performed:
+Not performed
+
+Radiologist: Admin User
+Findings
+Medical image uploaded: dxa_1758020592895_order.dcm
+
+Impression
+File: dxa_1758020592895_order.dcm (0.00 MB)
+
+
+
+
+
+
+
+Noah Ethan
+completed
+
+routine
+
+Study Information
+Study: x
+Modality: X-Ray
+Body Part: x
+Ordered by: Admin User
+Indication: x
+Image Series
+X-Ray x
+1 images • 0.03 MB • JPEG
+Timeline
+Ordered: Sep 16, 2025 15:34
+Scheduled:
+Not scheduled
+
+Performed:
+Not performed
+
+Radiologist: Admin User
+Findings
+Medical image uploaded: images.jfif
+
+Impression
+File: images.jfif (0.03 MB)
+
+
+
+
+
+
+
+Qurat Ul Ain
+ordered
+
+urgent
+
+Study Information
+Study: head MRI
+Modality: MRI
+Body Part: head
+Ordered by: Admin User
+Indication: jycktkdu vgc
+Image Series
+MRI head
+1 images • 0.00 MB • DICOM
+Timeline
+Ordered: Sep 13, 2025 17:08
+Scheduled:
+Not scheduled
+
+Performed:
+Not performed
+
+Radiologist: Admin User
+Findings
+Medical image uploaded: head MRI_1757765337877_order.dcm
+
+Impression
+File: head MRI_1757765337877_order.dcm (0.00 MB)
+
+
+
+
+
+Qurat Ul Ain
+completed
+
+urgent
+
+Study Information
+Study: arm X-ray lateral
+Modality: X-Ray
+Body Part: chest
+Ordered by: Admin User
+Indication: esrdtf8gyhuipjok
+Image Series
+X-Ray chest
+1 images • 0.04 MB • DICOM
+Timeline
+Ordered: Sep 3, 2025 15:39
+Scheduled:
+Not scheduled
+
+Performed:
+Not performed
+
+Radiologist: Admin User
+Findings
+Medical image uploaded: xray_PNG4.png
+
+Impression
+File: xray_PNG4.png (0.04 MB)
+
+
+
+
+
+Qurat Ul Ain
+completed
+
+routine
+
+Study Information
+Study: arm X-ray lateral
+Modality: X-Ray
+Body Part: chest
+Ordered by: Admin User
+Indication: esrdtf8gyhuipjok
+Image Series
+X-Ray chest
+1 images • 0.04 MB • DICOM
+Timeline
+Ordered: Sep 3, 2025 15:38
+Scheduled:
+Not scheduled
+
+Performed:
+Not performed
+
+Radiologist: Admin User
+Findings
+Medical image uploaded: xray_PNG4.png
+
+Impression
+File: xray_PNG4.png (0.04 MB)
+
+
+
+
+
+Qurat Ul Ain
+completed
+
+stat
+
+Study Information
+Study: arm X-ray lateral
+Modality: X-Ray
+Body Part: chest
+Ordered by: Admin User
+Indication: esrdtf8gyhuipjok
+Image Series
+X-Ray chest
+1 images • 0.04 MB • DICOM
+Timeline
+Ordered: Sep 3, 2025 15:38
+Scheduled:
+Not scheduled
+
+Performed:
+Not performed
+
+Radiologist: Admin User
+Findings
+Medical image uploaded: xray_PNG4.png
+
+Impression
+File: xray_PNG4.png (0.04 MB)
+
+
+
+
+
+Qurat Ul Ain
+completed
+
+urgent
+
+Study Information
+Study: arm X-ray lateral
+Modality: X-Ray
+Body Part: chest
+Ordered by: Admin User
+Indication: esrdtf8gyhuipjok
+Image Series
+X-Ray chest
+1 images • 0.04 MB • DICOM
+Timeline
+Ordered: Sep 3, 2025 15:38
+Scheduled:
+Not scheduled
+
+Performed:
+Not performed
+
+Radiologist: Admin User
+Findings
+Medical image uploaded: xray_PNG4.png
+
+Impression
+File: xray_PNG4.png (0.04 MB)
+
+
+
+
+
+Maryam Khan
+ordered
+
+urgent
+
+Study Information
+Study: XYZ
+Modality: X-Ray
+Body Part: arm
+Ordered by: Admin User
+Indication: esrytdrykfutlgyih
+Image Series
+X-Ray arm
+1 images • 0.00 MB • DICOM
+Timeline
+Ordered: Sep 3, 2025 15:10
+Scheduled:
+Not scheduled
+
+Performed:
+Not performed
+
+Radiologist: Admin User
+Findings
+Medical image uploaded: XYZ_1756894256014_order.dcm
+
+Impression
+File: XYZ_1756894256014_order.dcm (0.00 MB)
+
+
+
+
+
+
+View Imaging Study

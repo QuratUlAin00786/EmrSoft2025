@@ -2922,14 +2922,16 @@ export default function ImagingPage() {
                           variant="outline"
                           size="sm"
                           onClick={() => {
-                            // Convert the uploaded medical image to the viewer format
+                            // Get image from filesystem using API endpoint
                             const imageForViewer = {
                               seriesDescription: image.seriesDescription,
                               type: image.type,
                               imageCount: image.imageCount,
                               size: image.size,
-                              imageData: image.imageData, // This should come from the database
+                              imageId: selectedStudy.id, // Use study ID for API endpoint
+                              imageUrl: `/api/medical-images/${selectedStudy.id}/image`, // API endpoint for filesystem image
                               mimeType: image.mimeType || "image/jpeg",
+                              fileName: selectedStudy.fileName || null, // Get fileName from study for logging
                             };
                             setSelectedImageSeries(imageForViewer);
                             setShowImageViewer(true);
@@ -3666,12 +3668,17 @@ export default function ImagingPage() {
 
                 {/* Image Display Area */}
                 <div className="bg-black rounded-lg p-4 min-h-[400px] flex items-center justify-center">
-                  {selectedImageSeries.imageData ? (
+                  {selectedImageSeries.imageUrl ? (
                     <div className="w-full h-full flex items-center justify-center">
                       <img
-                        src={`data:${selectedImageSeries.mimeType || "image/png"};base64,${selectedImageSeries.imageData}`}
+                        src={selectedImageSeries.imageUrl}
                         alt={`Medical Image - ${selectedImageSeries.seriesDescription}`}
                         className="max-w-full max-h-96 object-contain rounded-lg border border-gray-600"
+                        onLoad={() => console.log(`📷 CLIENT: Image loaded from filesystem: ${selectedImageSeries.fileName || 'Unknown'}`)}
+                        onError={(e) => {
+                          console.error(`📷 CLIENT: Failed to load image from filesystem: ${selectedImageSeries.fileName || 'Unknown'}`);
+                          // You could add fallback logic here if needed
+                        }}
                         style={{ maxHeight: "400px" }}
                       />
                     </div>
@@ -3767,23 +3774,23 @@ export default function ImagingPage() {
                               });
                             });
                         } else {
-                          // Fallback: copy image data URL to clipboard
-                          if (selectedImageSeries?.imageData) {
-                            const imageDataUrl = `data:${selectedImageSeries.mimeType || "image/jpeg"};base64,${selectedImageSeries.imageData}`;
+                          // Fallback: copy image URL to clipboard
+                          if (selectedImageSeries?.imageUrl) {
+                            const fullImageUrl = `${window.location.origin}${selectedImageSeries.imageUrl}`;
                             navigator.clipboard
-                              .writeText(imageDataUrl)
+                              .writeText(fullImageUrl)
                               .then(() => {
                                 toast({
-                                  title: "Image Data Copied",
+                                  title: "Image URL Copied",
                                   description:
-                                    "Image data URL copied to clipboard.",
+                                    "Image URL copied to clipboard.",
                                 });
                               })
                               .catch(() => {
                                 toast({
                                   title: "Share Failed",
                                   description:
-                                    "Unable to share or copy image data.",
+                                    "Unable to share or copy image URL.",
                                   variant: "destructive",
                                 });
                               });

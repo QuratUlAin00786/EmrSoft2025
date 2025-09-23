@@ -8029,19 +8029,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Medical image not found" });
       }
 
-      // Check if the image has file data
-      if (!medicalImage.imageData) {
-        return res.status(404).json({ error: "Image data not available" });
+      // Get fileName from database
+      const fileName = medicalImage.fileName;
+      if (!fileName || fileName.trim() === '') {
+        return res.status(404).json({ error: "Image file name not available" });
       }
 
-      // Set appropriate headers
-      const mimeType = medicalImage.mimeType || 'image/jpeg';
-      res.setHeader('Content-Type', mimeType);
-      res.setHeader('Content-Disposition', `inline; filename="${medicalImage.fileName}"`);
-      
-      // Convert base64 to buffer and send
-      const imageBuffer = Buffer.from(medicalImage.imageData, 'base64');
-      res.send(imageBuffer);
+      try {
+        // Ensure the Imaging_Images directory exists
+        const imagingImagesDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Images');
+        await fse.ensureDir(imagingImagesDir);
+        console.log("📷 SERVER: Ensured directory exists:", imagingImagesDir);
+        
+        // Construct the full path to the image file
+        const imageFilePath = path.join(imagingImagesDir, fileName);
+        console.log("📷 SERVER: Checking for image file at:", imageFilePath);
+        
+        // Check if the image file exists on the server filesystem
+        if (await fse.pathExists(imageFilePath)) {
+          console.log("📷 SERVER: Image file exists, serving from filesystem:", fileName);
+          
+          // Determine MIME type from file extension
+          const fileExtension = path.extname(fileName).toLowerCase();
+          let mimeType = medicalImage.mimeType || 'image/jpeg';
+          if (fileExtension === '.png') {
+            mimeType = 'image/png';
+          } else if (fileExtension === '.jpg' || fileExtension === '.jpeg') {
+            mimeType = 'image/jpeg';
+          }
+          
+          // Set appropriate headers
+          res.setHeader('Content-Type', mimeType);
+          res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
+          res.setHeader('Cache-Control', 'public, max-age=31536000'); // Cache for 1 year
+          
+          // Stream the file from filesystem
+          const fileStream = fse.createReadStream(imageFilePath);
+          fileStream.pipe(res);
+          return;
+        } else {
+          console.log("📷 SERVER: Image file not found at path, falling back to database:", imageFilePath);
+        }
+      } catch (filesystemError) {
+        console.error("📷 SERVER: Error accessing filesystem image:", filesystemError);
+      }
+
+      // Fallback: Check if the image has base64 data in database
+      if (medicalImage.imageData) {
+        console.log("📷 SERVER: Fallback - serving image from database base64 data");
+        
+        // Set appropriate headers
+        const mimeType = medicalImage.mimeType || 'image/jpeg';
+        res.setHeader('Content-Type', mimeType);
+        res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
+        
+        // Convert base64 to buffer and send
+        const imageBuffer = Buffer.from(medicalImage.imageData, 'base64');
+        res.send(imageBuffer);
+        return;
+      }
+
+      // No image data available
+      return res.status(404).json({ error: "Image data not available" });
     } catch (error) {
       console.error("Error serving medical image:", error);
       res.status(500).json({ error: "Failed to serve medical image" });
