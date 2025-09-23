@@ -45,6 +45,7 @@ import {
   X,
 } from "lucide-react";
 import { format } from "date-fns";
+import { useAuth } from "@/hooks/use-auth";
 
 interface Prescription {
   id: string;
@@ -203,6 +204,7 @@ const getSeverityColor = (severity: string) => {
 };
 
 export default function PrescriptionsPage() {
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedPrescription, setSelectedPrescription] =
@@ -454,38 +456,112 @@ export default function PrescriptionsPage() {
     }
   };
 
+  // Function to fetch prescriptions for patient role
+  const fetchPrescriptionsByPatientId = async (patientId: number) => {
+    const token = localStorage.getItem("auth_token");
+    const headers: Record<string, string> = {
+      "X-Tenant-Subdomain": "demo",
+    };
+
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`/api/prescriptions?patientId=${patientId}`, {
+      headers,
+      credentials: "include",
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to fetch patient prescriptions: ${response.status}`);
+    }
+    const data = await response.json();
+    return data;
+  };
+
+  // Function to fetch prescriptions for doctor role
+  const fetchPrescriptionsByDoctorId = async (doctorId: number) => {
+    const token = localStorage.getItem("auth_token");
+    const headers: Record<string, string> = {
+      "X-Tenant-Subdomain": "demo",
+    };
+
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`/api/prescriptions?providerId=${doctorId}`, {
+      headers,
+      credentials: "include",
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to fetch doctor prescriptions: ${response.status}`);
+    }
+    const data = await response.json();
+    return data;
+  };
+
+  // Function to fetch all prescriptions (for other roles)
+  const fetchAllPrescriptions = async () => {
+    const token = localStorage.getItem("auth_token");
+    const headers: Record<string, string> = {
+      "X-Tenant-Subdomain": "demo",
+    };
+
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    const response = await fetch("/api/prescriptions", {
+      headers,
+      credentials: "include",
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to fetch prescriptions: ${response.status}`);
+    }
+    const data = await response.json();
+    return data;
+  };
+
   useEffect(() => {
     fetchPatients();
     fetchProviders();
   }, []);
 
+  // Role-based prescription fetching
   const {
     data: rawPrescriptions = [],
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["/api/prescriptions"],
+    queryKey: ["/api/prescriptions", user?.role, user?.id],
     queryFn: async () => {
-      const token = localStorage.getItem("auth_token");
-      const headers: Record<string, string> = {
-        "X-Tenant-Subdomain": "demo",
-      };
-
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
+      if (!user) {
+        throw new Error("User not authenticated");
       }
 
-      const response = await fetch("/api/prescriptions", {
-        headers,
-        credentials: "include",
-      });
-      if (!response.ok) {
-        throw new Error(`Failed to fetch prescriptions: ${response.status}`);
+      if (user.role === "patient") {
+        // Find patient ID by matching user information
+        const currentPatient = patients.find((patient: any) => 
+          patient.email === user.email || 
+          (patient.firstName === user.firstName && patient.lastName === user.lastName)
+        );
+        
+        if (currentPatient) {
+          return await fetchPrescriptionsByPatientId(currentPatient.id);
+        } else {
+          // If patient doesn't exist, create new patient record or return empty array
+          console.log("Patient not found for user:", user.email);
+          return [];
+        }
+      } else if (user.role === "doctor") {
+        // Get prescriptions created by this doctor
+        return await fetchPrescriptionsByDoctorId(user.id);
+      } else {
+        // For other roles (admin, nurse, etc.), show all prescriptions
+        return await fetchAllPrescriptions();
       }
-      const data = await response.json();
-      return data;
     },
-    enabled: true,
+    enabled: !!user && patients.length > 0, // Wait for user and patients data to be loaded
   });
 
   // Create patient and provider name mappings from fetched data
