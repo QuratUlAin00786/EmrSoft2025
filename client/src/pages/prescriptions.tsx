@@ -1700,9 +1700,30 @@ export default function PrescriptionsPage() {
                       className="bg-medical-blue hover:bg-blue-700 flex justify-end ml-auto"
                       onClick={() => {
                         setSelectedPrescription(null);
+                        
+                        // For patient role users, automatically set their patient ID
+                        let patientId = "";
+                        let patientName = "";
+                        
+                        if (user?.role === "patient") {
+                          // Find the current patient based on user authentication data
+                          const currentPatient = patients.find((patient: any) => 
+                            patient.email && user.email && patient.email.toLowerCase() === user.email.toLowerCase()
+                          ) || patients.find((patient: any) => 
+                            patient.firstName && user.firstName && patient.lastName && user.lastName &&
+                            patient.firstName.toLowerCase() === user.firstName.toLowerCase() && 
+                            patient.lastName.toLowerCase() === user.lastName.toLowerCase()
+                          );
+                          
+                          if (currentPatient) {
+                            patientId = currentPatient.id.toString();
+                            patientName = `${currentPatient.firstName} ${currentPatient.lastName}`;
+                          }
+                        }
+                        
                         setFormData({
-                          patientId: "",
-                          patientName: "",
+                          patientId: patientId,
+                          patientName: patientName,
                           providerId: "",
                           diagnosis: "",
                           medications: [{
@@ -1737,30 +1758,41 @@ export default function PrescriptionsPage() {
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <Label htmlFor="patient">Patient</Label>
-                          <Select
-                            value={formData.patientId}
-                            onValueChange={(value) =>
-                              setFormData((prev) => ({
-                                ...prev,
-                                patientId: value,
-                              }))
-                            }
-                          >
-                            <SelectTrigger data-testid="select-patient">
-                              <SelectValue placeholder="Select patient" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {patients.map((patient: any) => (
-                                <SelectItem
-                                  key={patient.id}
-                                  value={patient.id.toString()}
-                                >
-                                  {patient.firstName} {patient.lastName} (
-                                  {patient.patientId})
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          {user?.role === "patient" ? (
+                            // For patient role: Show logged-in patient name and hide dropdown
+                            <div className="flex items-center h-10 px-3 py-2 border border-input bg-background rounded-md text-sm ring-offset-background">
+                              <User className="h-4 w-4 mr-2 text-muted-foreground" />
+                              <span data-testid="patient-name-display">
+                                {user.firstName} {user.lastName}
+                              </span>
+                            </div>
+                          ) : (
+                            // For other roles: Show patient dropdown
+                            <Select
+                              value={formData.patientId}
+                              onValueChange={(value) =>
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  patientId: value,
+                                }))
+                              }
+                            >
+                              <SelectTrigger data-testid="select-patient">
+                                <SelectValue placeholder="Select patient" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {patients.map((patient: any) => (
+                                  <SelectItem
+                                    key={patient.id}
+                                    value={patient.id.toString()}
+                                  >
+                                    {patient.firstName} {patient.lastName} (
+                                    {patient.patientId})
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          )}
                         </div>
                         <div>
                           <Label htmlFor="provider">Prescribing Doctor</Label>
