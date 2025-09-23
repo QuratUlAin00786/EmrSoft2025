@@ -18,51 +18,10 @@ const statusColors = {
   no_show: "#9B9EAF"
 };
 
-// Medical Specialties Data
-const medicalSpecialties = {
-  "General & Primary Care": {
-    "General Practitioner (GP) / Family Physician": ["Common illnesses", "Preventive care"],
-    "Internal Medicine Specialist": ["Adult health", "Chronic diseases (diabetes, hypertension)"]
-  },
-  "Surgical Specialties": {
-    "General Surgeon": ["Abdominal Surgery", "Hernia Repair", "Gallbladder & Appendix Surgery"],
-    "Orthopedic Surgeon": ["Joint Replacement", "Spine Surgery", "Sports Orthopedics"],
-    "Neurosurgeon": ["Brain Tumor Surgery", "Spinal Surgery", "Cerebrovascular Surgery"]
-  },
-  "Heart & Circulation": {
-    "Cardiologist": ["Heart diseases", "ECG", "Angiography"],
-    "Vascular Surgeon": ["Arteries", "Veins", "Blood vessels"]
-  },
-  "Women's Health": {
-    "Gynecologist": ["Female reproductive system"],
-    "Obstetrician": ["Pregnancy & childbirth"]
-  },
-  "Children's Health": {
-    "Pediatrician": ["General child health"],
-    "Pediatric Surgeon": ["Infant & child surgeries"]
-  },
-  "Brain & Nervous System": {
-    "Neurologist": ["Stroke", "Epilepsy", "Parkinson's"],
-    "Psychiatrist": ["Mental health (depression, anxiety)"]
-  },
-  "Skin, Hair & Appearance": {
-    "Dermatologist": ["Skin", "Hair", "Nails"],
-    "Cosmetologist": ["Non-surgical cosmetic treatments"]
-  },
-  "Eye & Vision": {
-    "Ophthalmologist": ["Cataracts", "Glaucoma", "Surgeries"]
-  },
-  "Teeth & Mouth": {
-    "Dentist (General)": ["Oral health", "Fillings"],
-    "Orthodontist": ["Braces", "Alignment"]
-  }
-};
-
 export default function PatientAppointments({ onNewAppointment }: { onNewAppointment?: () => void }) {
   const [selectedFilter, setSelectedFilter] = useState<"all" | "upcoming" | "past">("upcoming");
-  const [selectedSpecialty, setSelectedSpecialty] = useState("");
-  const [selectedSubSpecialty, setSelectedSubSpecialty] = useState("");
   const [editingAppointment, setEditingAppointment] = useState<any>(null);
+  const [deletingAppointmentId, setDeletingAppointmentId] = useState<number | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -146,10 +105,11 @@ export default function PatientAppointments({ onNewAppointment }: { onNewAppoint
     enabled: !!user, // Only fetch when user is authenticated
   });
 
-  // Fetch users for doctor names
-  const { data: usersData } = useQuery({
-    queryKey: ["/api/users"],
+  // Fetch medical staff for doctor specialty data
+  const { data: medicalStaffData } = useQuery({
+    queryKey: ["/api/medical-staff"],
     staleTime: 60000,
+    retry: false,
   });
 
   // Filter appointments to show only the current patient's appointments
@@ -160,21 +120,15 @@ export default function PatientAppointments({ onNewAppointment }: { onNewAppoint
     return appointmentsData.filter((apt: any) => apt.patientId === currentPatient.id);
   }, [appointmentsData, currentPatient]);
 
-  const getDoctorName = (providerId: number) => {
-    if (!usersData || !Array.isArray(usersData)) return "Doctor";
-    const provider = usersData.find((u: any) => u.id === providerId);
-    return provider ? `Dr. ${provider.firstName} ${provider.lastName}` : "Doctor";
-  };
-
-  // Helper functions for specialty filtering
-  const getUniqueSpecialties = (): string[] => {
-    return Object.keys(medicalSpecialties);
-  };
-
-  const getSubSpecialties = (specialty?: string): string[] => {
-    if (!specialty) return [];
-    const specialtyData = medicalSpecialties[specialty as keyof typeof medicalSpecialties];
-    return specialtyData ? Object.keys(specialtyData) : [];
+  const getDoctorSpecialtyData = (providerId: number) => {
+    const staffData = medicalStaffData as any;
+    if (!staffData?.staff || !Array.isArray(staffData.staff)) return { name: "", category: "", subSpecialty: "" };
+    const provider = staffData.staff.find((u: any) => u.id === providerId);
+    return provider ? {
+      name: `${provider.firstName} ${provider.lastName}`,
+      category: provider.medicalSpecialtyCategory || "",
+      subSpecialty: provider.subSpecialty || ""
+    } : { name: "", category: "", subSpecialty: "" };
   };
 
   // Edit appointment mutation
@@ -227,9 +181,18 @@ export default function PatientAppointments({ onNewAppointment }: { onNewAppoint
   };
 
   const handleDeleteAppointment = (appointmentId: number) => {
-    if (window.confirm("Are you sure you want to delete this appointment?")) {
-      deleteAppointmentMutation.mutate(appointmentId);
+    setDeletingAppointmentId(appointmentId);
+  };
+
+  const confirmDeleteAppointment = () => {
+    if (deletingAppointmentId) {
+      deleteAppointmentMutation.mutate(deletingAppointmentId);
+      setDeletingAppointmentId(null);
     }
+  };
+
+  const cancelDeleteAppointment = () => {
+    setDeletingAppointmentId(null);
   };
 
   const handleSaveEdit = () => {
@@ -332,8 +295,14 @@ export default function PatientAppointments({ onNewAppointment }: { onNewAppoint
                 </div>
                 <div className="flex items-center space-x-2">
                   <User className="h-5 w-5 text-blue-600" />
-                  <span>{getDoctorName(nextAppointment.providerId)}</span>
+                  <span>{getDoctorSpecialtyData(nextAppointment.providerId).category}</span>
                 </div>
+                {getDoctorSpecialtyData(nextAppointment.providerId).subSpecialty && (
+                  <div className="flex items-center space-x-2">
+                    <FileText className="h-5 w-5 text-blue-600" />
+                    <span>{getDoctorSpecialtyData(nextAppointment.providerId).subSpecialty}</span>
+                  </div>
+                )}
                 <div className="flex items-center space-x-2">
                   <FileText className="h-5 w-5 text-blue-600" />
                   <span>{nextAppointment.title}</span>
@@ -362,46 +331,6 @@ export default function PatientAppointments({ onNewAppointment }: { onNewAppoint
         </Card>
       )}
 
-      {/* Medical Specialty Selection */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
-        <div>
-          <Label htmlFor="specialty">Select Medical Specialty Category</Label>
-          <Select value={selectedSpecialty} onValueChange={(value) => {
-            setSelectedSpecialty(value);
-            setSelectedSubSpecialty("");
-          }}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select specialty category..." />
-            </SelectTrigger>
-            <SelectContent>
-              {getUniqueSpecialties().map((specialty) => (
-                <SelectItem key={specialty} value={specialty}>
-                  {specialty}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label htmlFor="subspecialty">Select Sub-Specialty</Label>
-          <Select 
-            value={selectedSubSpecialty} 
-            onValueChange={setSelectedSubSpecialty}
-            disabled={!selectedSpecialty}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select sub-specialty..." />
-            </SelectTrigger>
-            <SelectContent>
-              {getSubSpecialties(selectedSpecialty).map((subSpecialty) => (
-                <SelectItem key={subSpecialty} value={subSpecialty}>
-                  {subSpecialty}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
 
       {/* Filter Tabs */}
       <div className="flex space-x-2">
@@ -511,12 +440,14 @@ export default function PatientAppointments({ onNewAppointment }: { onNewAppoint
                           </div>
                           <div className="flex items-center space-x-2">
                             <User className="h-4 w-4 text-gray-400" />
-                            <span className="text-sm">{getDoctorName(appointment.providerId)}</span>
+                            <span className="text-sm">{getDoctorSpecialtyData(appointment.providerId).category}</span>
                           </div>
-                          <div className="flex items-center space-x-2">
-                            <FileText className="h-4 w-4 text-gray-400" />
-                            <span className="text-sm">{appointment.type}</span>
-                          </div>
+                          {getDoctorSpecialtyData(appointment.providerId).subSpecialty && (
+                            <div className="flex items-center space-x-2">
+                              <FileText className="h-4 w-4 text-gray-400" />
+                              <span className="text-sm">{getDoctorSpecialtyData(appointment.providerId).subSpecialty}</span>
+                            </div>
+                          )}
                         </div>
 
                         {appointment.location && (
@@ -610,6 +541,37 @@ export default function PatientAppointments({ onNewAppointment }: { onNewAppoint
                   disabled={editAppointmentMutation.isPending}
                 >
                   {editAppointmentMutation.isPending ? 'Saving...' : 'Save Changes'}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deletingAppointmentId && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-sm w-full mx-4">
+            <div className="p-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                Are you sure you want to delete this appointment?
+              </h3>
+              
+              <div className="flex justify-end space-x-2">
+                <Button
+                  variant="outline"
+                  onClick={cancelDeleteAppointment}
+                  data-testid="button-cancel-delete"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={confirmDeleteAppointment}
+                  disabled={deleteAppointmentMutation.isPending}
+                  className="bg-blue-600 text-white hover:bg-blue-700"
+                  data-testid="button-confirm-delete"
+                >
+                  {deleteAppointmentMutation.isPending ? 'Deleting...' : 'OK'}
                 </Button>
               </div>
             </div>
