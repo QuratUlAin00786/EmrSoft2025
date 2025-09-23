@@ -23,7 +23,8 @@ import { emailService } from "./services/email";
 import multer from "multer";
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import * as fs from 'fs-extra';
+import * as fs from 'fs';
+import * as fse from 'fs-extra';
 
 /**
  * Helper to validate organizationId after multiTenantEnforcer middleware
