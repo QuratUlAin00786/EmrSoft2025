@@ -198,12 +198,12 @@ export default function CalendarPage() {
   // Auto-populate patient when user is a patient (enhanced logic)
   useEffect(() => {
     if (user?.role === 'patient' && patients.length > 0 && !bookingForm.patientId) {
-      console.log("🔍 Looking for patient matching user:", { 
+      console.log("🔍 CALENDAR: Looking for patient matching user:", { 
         userEmail: user.email, 
         userName: `${user.firstName} ${user.lastName}`,
         userId: user.id 
       });
-      console.log("📋 Available patients:", patients.map(p => ({ 
+      console.log("📋 CALENDAR: Available patients:", patients.map(p => ({ 
         id: p.id, 
         email: p.email, 
         name: `${p.firstName} ${p.lastName}` 
@@ -227,26 +227,26 @@ export default function CalendarPage() {
           patient.firstName.toLowerCase() === user.firstName.toLowerCase()
         ) ||
         // 4. If user role is patient, take the first patient (fallback for demo)
-        (user.role === 'patient' ? patients[0] : null);
+        (user.role === 'patient' && patients.length > 0 ? patients[0] : null);
       
       if (currentPatient) {
-        console.log("✅ Found matching patient:", currentPatient);
+        console.log("✅ CALENDAR: Found matching patient:", currentPatient);
         const patientId = currentPatient.patientId || currentPatient.id.toString();
         setBookingForm(prev => ({ ...prev, patientId }));
       } else {
-        console.log("❌ No matching patient found");
+        console.log("❌ CALENDAR: No matching patient found");
       }
     }
   }, [user, patients]);
   
-  // Fetch all users for specialty filtering (we need all doctors, not just available ones)
-  const { data: allUsers = [] } = useQuery<any[]>({
-    queryKey: ["/api/users"],
+  // Fetch medical staff for doctor selection - using the correct endpoint
+  const { data: medicalStaffData } = useQuery<any>({
+    queryKey: ["/api/medical-staff"],
     retry: false,
   });
   
-  // Filter to get all doctors for specialty filtering
-  const allDoctors = allUsers.filter((user: any) => user.role === 'doctor');
+  // Extract doctors from medical staff data
+  const allDoctors = medicalStaffData?.staff || [];
   
   // Query for filtered appointments
   const { data: allAppointments = [] } = useQuery<any[]>({
@@ -812,7 +812,7 @@ export default function CalendarPage() {
             ) : (
               <div className="grid gap-4">
                 {filteredAppointments.map((appointment: any) => {
-                  const doctor = allUsers.find((u: any) => u.id === appointment.providerId);
+                  const doctor = allDoctors.find((d: any) => d.id === appointment.providerId);
                   const patient = patients.find((p: any) => p.id === appointment.patientId);
                   // Extract exact time and date from database without timezone conversion
                   const scheduledTime = appointment.scheduledAt ?? appointment.scheduled_at;
