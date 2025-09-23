@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Calendar, Clock, User, MapPin, Video, Plus, FileText, Edit, Trash2 } from "lucide-react";
+import { Calendar, Clock, User, MapPin, Video, Plus, FileText, Edit, Trash2, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { format, isSameDay, isToday, isFuture, isPast } from "date-fns";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -513,64 +513,224 @@ export default function PatientAppointments({ onNewAppointment }: { onNewAppoint
       {/* Edit Appointment Modal */}
       {editingAppointment && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-gray-900">Edit Appointment</h2>
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">Edit Appointment</h2>
+                  <p className="text-sm text-gray-500">Update appointment details for {user?.firstName} {user?.lastName}</p>
+                </div>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setEditingAppointment(null)}
+                  className="hover:bg-gray-100"
                 >
-                  ×
+                  <X className="h-4 w-4" />
                 </Button>
               </div>
               
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="title">Title</Label>
-                  <input
-                    id="title"
-                    type="text"
-                    value={editingAppointment.title || ''}
-                    onChange={(e) => setEditingAppointment({...editingAppointment, title: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  />
+              <div className="grid grid-cols-2 gap-6">
+                {/* Left Column */}
+                <div className="space-y-4">
+                  {/* Title */}
+                  <div>
+                    <Label htmlFor="title" className="text-sm font-medium text-gray-700">Title</Label>
+                    <input
+                      id="title"
+                      type="text"
+                      value={editingAppointment.title || ''}
+                      onChange={(e) => setEditingAppointment({...editingAppointment, title: e.target.value})}
+                      className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Enter appointment title"
+                    />
+                  </div>
+
+                  {/* Type */}
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700">Type</Label>
+                    <Select
+                      value={editingAppointment.type || 'consultation'}
+                      onValueChange={(value) => setEditingAppointment({...editingAppointment, type: value})}
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="consultation">Consultation</SelectItem>
+                        <SelectItem value="checkup">Checkup</SelectItem>
+                        <SelectItem value="follow-up">Follow-up</SelectItem>
+                        <SelectItem value="screening">Screening</SelectItem>
+                        <SelectItem value="procedure">Procedure</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Select Date */}
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700">Select Date</Label>
+                    <div className="mt-1 p-4 border border-gray-300 rounded-md">
+                      <div className="flex items-center justify-between mb-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const currentDate = new Date(editingAppointment.scheduledAt);
+                            currentDate.setMonth(currentDate.getMonth() - 1);
+                            setEditingAppointment({...editingAppointment, scheduledAt: currentDate.toISOString()});
+                          }}
+                          className="p-1 hover:bg-gray-100 rounded"
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                        </button>
+                        <span className="font-medium">
+                          {format(new Date(editingAppointment.scheduledAt), 'MMMM yyyy')}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const currentDate = new Date(editingAppointment.scheduledAt);
+                            currentDate.setMonth(currentDate.getMonth() + 1);
+                            setEditingAppointment({...editingAppointment, scheduledAt: currentDate.toISOString()});
+                          }}
+                          className="p-1 hover:bg-gray-100 rounded"
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-7 gap-1 text-xs mb-2">
+                        {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((day) => (
+                          <div key={day} className="p-2 text-center font-medium text-gray-500">{day}</div>
+                        ))}
+                      </div>
+                      <div className="grid grid-cols-7 gap-1">
+                        {Array.from({ length: 42 }, (_, i) => {
+                          const currentMonth = new Date(editingAppointment.scheduledAt).getMonth();
+                          const currentYear = new Date(editingAppointment.scheduledAt).getFullYear();
+                          const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
+                          const startDate = new Date(firstDayOfMonth);
+                          startDate.setDate(startDate.getDate() - firstDayOfMonth.getDay());
+                          const cellDate = new Date(startDate);
+                          cellDate.setDate(cellDate.getDate() + i);
+                          const isCurrentMonth = cellDate.getMonth() === currentMonth;
+                          const isSelected = format(cellDate, 'yyyy-MM-dd') === format(new Date(editingAppointment.scheduledAt), 'yyyy-MM-dd');
+                          
+                          return (
+                            <button
+                              key={i}
+                              type="button"
+                              onClick={() => {
+                                const newDate = new Date(editingAppointment.scheduledAt);
+                                newDate.setFullYear(cellDate.getFullYear(), cellDate.getMonth(), cellDate.getDate());
+                                setEditingAppointment({...editingAppointment, scheduledAt: newDate.toISOString()});
+                              }}
+                              className={`p-2 text-sm rounded hover:bg-blue-50 ${
+                                isSelected
+                                  ? 'bg-blue-500 text-white'
+                                  : isCurrentMonth
+                                  ? 'text-gray-900'
+                                  : 'text-gray-400'
+                              }`}
+                            >
+                              {cellDate.getDate()}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Status */}
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700">Status</Label>
+                    <Select
+                      value={editingAppointment.status || 'scheduled'}
+                      onValueChange={(value) => setEditingAppointment({...editingAppointment, status: value})}
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="scheduled">Scheduled</SelectItem>
+                        <SelectItem value="confirmed">Confirmed</SelectItem>
+                        <SelectItem value="completed">Completed</SelectItem>
+                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                
-                <div>
-                  <Label htmlFor="description">Description</Label>
-                  <textarea
-                    id="description"
-                    value={editingAppointment.description || ''}
-                    onChange={(e) => setEditingAppointment({...editingAppointment, description: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                    rows={3}
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="location">Location</Label>
-                  <input
-                    id="location"
-                    type="text"
-                    value={editingAppointment.location || ''}
-                    onChange={(e) => setEditingAppointment({...editingAppointment, location: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  />
+
+                {/* Right Column */}
+                <div className="space-y-4">
+                  {/* Select Time Slot */}
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700">Select Time Slot</Label>
+                    <div className="mt-1 max-h-64 overflow-y-auto border border-gray-300 rounded-md p-3">
+                      <div className="grid grid-cols-2 gap-2">
+                        {[
+                          '9:00 AM', '9:30 AM', '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM',
+                          '12:00 PM', '12:30 PM', '1:00 PM', '1:30 PM', '2:00 PM', '2:30 PM',
+                          '3:00 PM', '3:30 PM', '4:00 PM', '4:30 PM', '5:00 PM', '5:30 PM'
+                        ].map((timeSlot) => {
+                          const currentTime = format(new Date(editingAppointment.scheduledAt), 'h:mm a');
+                          const isSelected = timeSlot === currentTime;
+                          
+                          return (
+                            <button
+                              key={timeSlot}
+                              type="button"
+                              onClick={() => {
+                                const [time, period] = timeSlot.split(' ');
+                                const [hours, minutes] = time.split(':');
+                                let hour24 = parseInt(hours);
+                                if (period === 'PM' && hour24 !== 12) hour24 += 12;
+                                if (period === 'AM' && hour24 === 12) hour24 = 0;
+                                
+                                const newDate = new Date(editingAppointment.scheduledAt);
+                                newDate.setHours(hour24, parseInt(minutes), 0, 0);
+                                setEditingAppointment({...editingAppointment, scheduledAt: newDate.toISOString()});
+                              }}
+                              className={`p-2 text-sm rounded border text-center ${
+                                isSelected
+                                  ? 'bg-blue-500 text-white border-blue-500'
+                                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                              }`}
+                            >
+                              {timeSlot}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Description */}
+                  <div>
+                    <Label htmlFor="description" className="text-sm font-medium text-gray-700">Description</Label>
+                    <textarea
+                      id="description"
+                      value={editingAppointment.description || ''}
+                      onChange={(e) => setEditingAppointment({...editingAppointment, description: e.target.value})}
+                      className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      rows={6}
+                      placeholder="Enter appointment description"
+                    />
+                  </div>
                 </div>
               </div>
               
-              <div className="flex justify-end space-x-2 mt-6">
+              {/* Action Buttons */}
+              <div className="flex justify-end space-x-3 mt-8 pt-6 border-t">
                 <Button
                   variant="outline"
                   onClick={() => setEditingAppointment(null)}
+                  className="px-6"
                 >
                   Cancel
                 </Button>
                 <Button
                   onClick={handleSaveEdit}
                   disabled={editAppointmentMutation.isPending}
+                  className="px-6 bg-blue-600 text-white hover:bg-blue-700"
                 >
                   {editAppointmentMutation.isPending ? 'Saving...' : 'Save Changes'}
                 </Button>
