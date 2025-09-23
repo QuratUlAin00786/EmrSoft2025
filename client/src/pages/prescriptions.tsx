@@ -1695,57 +1695,59 @@ export default function PrescriptionsPage() {
                   open={showNewPrescription}
                   onOpenChange={setShowNewPrescription}
                 >
-                  <DialogTrigger asChild>
-                    <Button
-                      className="bg-medical-blue hover:bg-blue-700 flex justify-end ml-auto"
-                      onClick={() => {
-                        setSelectedPrescription(null);
-                        
-                        // For patient role users, automatically set their patient ID
-                        let patientId = "";
-                        let patientName = "";
-                        
-                        if (user?.role === "patient") {
-                          // Find the current patient based on user authentication data
-                          const currentPatient = patients.find((patient: any) => 
-                            patient.email && user.email && patient.email.toLowerCase() === user.email.toLowerCase()
-                          ) || patients.find((patient: any) => 
-                            patient.firstName && user.firstName && patient.lastName && user.lastName &&
-                            patient.firstName.toLowerCase() === user.firstName.toLowerCase() && 
-                            patient.lastName.toLowerCase() === user.lastName.toLowerCase()
-                          );
+                  {user?.role !== "patient" && (
+                    <DialogTrigger asChild>
+                      <Button
+                        className="bg-medical-blue hover:bg-blue-700 flex justify-end ml-auto"
+                        onClick={() => {
+                          setSelectedPrescription(null);
                           
-                          if (currentPatient) {
-                            patientId = currentPatient.id.toString();
-                            patientName = `${currentPatient.firstName} ${currentPatient.lastName}`;
+                          // For patient role users, automatically set their patient ID
+                          let patientId = "";
+                          let patientName = "";
+                          
+                          if (user?.role === "patient") {
+                            // Find the current patient based on user authentication data
+                            const currentPatient = patients.find((patient: any) => 
+                              patient.email && user.email && patient.email.toLowerCase() === user.email.toLowerCase()
+                            ) || patients.find((patient: any) => 
+                              patient.firstName && user.firstName && patient.lastName && user.lastName &&
+                              patient.firstName.toLowerCase() === user.firstName.toLowerCase() && 
+                              patient.lastName.toLowerCase() === user.lastName.toLowerCase()
+                            );
+                            
+                            if (currentPatient) {
+                              patientId = currentPatient.id.toString();
+                              patientName = `${currentPatient.firstName} ${currentPatient.lastName}`;
+                            }
                           }
-                        }
-                        
-                        setFormData({
-                          patientId: patientId,
-                          patientName: patientName,
-                          providerId: "",
-                          diagnosis: "",
-                          medications: [{
-                            name: "",
-                            dosage: "",
-                            frequency: "",
-                            quantity: "",
-                            refills: "",
-                            instructions: "",
-                          }],
-                          pharmacyName: "Halo Health",
-                          pharmacyAddress:
-                            "Unit 2 Drayton Court, Solihull, B90 4NG",
-                          pharmacyPhone: "+44(0)121 827 5531",
-                          pharmacyEmail: "pharmacy@halohealth.co.uk",
-                        });
-                      }}
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      New Prescription
-                    </Button>
-                  </DialogTrigger>
+                          
+                          setFormData({
+                            patientId: patientId,
+                            patientName: patientName,
+                            providerId: "",
+                            diagnosis: "",
+                            medications: [{
+                              name: "",
+                              dosage: "",
+                              frequency: "",
+                              quantity: "",
+                              refills: "",
+                              instructions: "",
+                            }],
+                            pharmacyName: "Halo Health",
+                            pharmacyAddress:
+                              "Unit 2 Drayton Court, Solihull, B90 4NG",
+                            pharmacyPhone: "+44(0)121 827 5531",
+                            pharmacyEmail: "pharmacy@halohealth.co.uk",
+                          });
+                        }}
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        New Prescription
+                      </Button>
+                    </DialogTrigger>
+                  )}
                   <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle>

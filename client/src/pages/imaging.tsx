@@ -1473,13 +1473,15 @@ export default function ImagingPage() {
                   </SelectContent>
                 </Select>
                 <div className="">
-                  <Button
-                    onClick={() => setShowUploadDialog(true)}
-                    className="bg-medical-blue hover:bg-blue-700 text-white ml-auto"
-                  >
-                    <Share className="h-4 w-4 mr-2" />
-                    Order Study
-                  </Button>
+                  {user?.role !== "patient" && (
+                    <Button
+                      onClick={() => setShowUploadDialog(true)}
+                      className="bg-medical-blue hover:bg-blue-700 text-white ml-auto"
+                    >
+                      <Share className="h-4 w-4 mr-2" />
+                      Order Study
+                    </Button>
+                  )}
                 </div>
               </div>
             </CardContent>

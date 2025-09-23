@@ -1401,13 +1401,15 @@ Report generated from Cura EMR System`;
                   </SelectContent>
                 </Select>
                 {/* Right Side: Button */}
-                <Button
-                  onClick={handleOrderTest}
-                  className="bg-medical-blue hover:bg-blue-700 ml-auto"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Order Lab Test
-                </Button>
+                {user?.role !== "patient" && (
+                  <Button
+                    onClick={handleOrderTest}
+                    className="bg-medical-blue hover:bg-blue-700 ml-auto"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Order Lab Test
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>
