@@ -614,77 +614,132 @@ export default function PatientAppointments({ onNewAppointment }: { onNewAppoint
                     </Select>
                   </div>
 
-                  {/* Select Date */}
-                  <div>
-                    <Label className="text-sm font-medium text-gray-700">Select Date</Label>
-                    <div className="mt-1 p-4 border border-gray-300 rounded-md">
-                      <div className="flex items-center justify-between mb-2">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const currentDate = new Date(editingAppointment.scheduledAt);
-                            currentDate.setMonth(currentDate.getMonth() - 1);
-                            setEditingAppointment({...editingAppointment, scheduledAt: currentDate.toISOString()});
-                          }}
-                          className="p-1 hover:bg-gray-100 rounded"
-                        >
-                          <ChevronLeft className="h-4 w-4" />
-                        </button>
-                        <span className="font-medium">
-                          {format(new Date(editingAppointment.scheduledAt), 'MMMM yyyy')}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const currentDate = new Date(editingAppointment.scheduledAt);
-                            currentDate.setMonth(currentDate.getMonth() + 1);
-                            setEditingAppointment({...editingAppointment, scheduledAt: currentDate.toISOString()});
-                          }}
-                          className="p-1 hover:bg-gray-100 rounded"
-                        >
-                          <ChevronRight className="h-4 w-4" />
-                        </button>
+                  {/* Date and Time Selection - Single Row */}
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* Select Date */}
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">Select Date</Label>
+                      <div className="mt-1 p-4 border border-gray-300 rounded-md">
+                        <div className="flex items-center justify-between mb-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const currentDate = new Date(editingAppointment.scheduledAt);
+                              currentDate.setMonth(currentDate.getMonth() - 1);
+                              setEditingAppointment({...editingAppointment, scheduledAt: currentDate});
+                            }}
+                            className="p-1 hover:bg-gray-100 rounded"
+                          >
+                            <ChevronLeft className="h-4 w-4" />
+                          </button>
+                          <span className="font-medium">
+                            {format(new Date(editingAppointment.scheduledAt), 'MMMM yyyy')}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const currentDate = new Date(editingAppointment.scheduledAt);
+                              currentDate.setMonth(currentDate.getMonth() + 1);
+                              setEditingAppointment({...editingAppointment, scheduledAt: currentDate});
+                            }}
+                            className="p-1 hover:bg-gray-100 rounded"
+                          >
+                            <ChevronRight className="h-4 w-4" />
+                          </button>
+                        </div>
+                        <div className="grid grid-cols-7 gap-1 text-xs mb-2">
+                          {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((day) => (
+                            <div key={day} className="p-2 text-center font-medium text-gray-500">{day}</div>
+                          ))}
+                        </div>
+                        <div className="grid grid-cols-7 gap-1">
+                          {Array.from({ length: 42 }, (_, i) => {
+                            const currentMonth = new Date(editingAppointment.scheduledAt).getMonth();
+                            const currentYear = new Date(editingAppointment.scheduledAt).getFullYear();
+                            const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
+                            const startDate = new Date(firstDayOfMonth);
+                            startDate.setDate(startDate.getDate() - firstDayOfMonth.getDay());
+                            const cellDate = new Date(startDate);
+                            cellDate.setDate(cellDate.getDate() + i);
+                            const isCurrentMonth = cellDate.getMonth() === currentMonth;
+                            const isSelected = format(cellDate, 'yyyy-MM-dd') === format(new Date(editingAppointment.scheduledAt), 'yyyy-MM-dd');
+                            
+                            return (
+                              <button
+                                key={i}
+                                type="button"
+                                onClick={() => {
+                                  const newDate = new Date(editingAppointment.scheduledAt);
+                                  newDate.setFullYear(cellDate.getFullYear(), cellDate.getMonth(), cellDate.getDate());
+                                  setEditingAppointment({...editingAppointment, scheduledAt: newDate});
+                                  // Fetch appointments for the new date to update time slot availability
+                                  fetchAppointmentsForDate(cellDate);
+                                }}
+                                className={`p-2 text-sm rounded hover:bg-blue-50 ${
+                                  isSelected
+                                    ? 'bg-blue-500 text-white'
+                                    : isCurrentMonth
+                                    ? 'text-gray-900'
+                                    : 'text-gray-400'
+                                }`}
+                              >
+                                {cellDate.getDate()}
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
-                      <div className="grid grid-cols-7 gap-1 text-xs mb-2">
-                        {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((day) => (
-                          <div key={day} className="p-2 text-center font-medium text-gray-500">{day}</div>
-                        ))}
-                      </div>
-                      <div className="grid grid-cols-7 gap-1">
-                        {Array.from({ length: 42 }, (_, i) => {
-                          const currentMonth = new Date(editingAppointment.scheduledAt).getMonth();
-                          const currentYear = new Date(editingAppointment.scheduledAt).getFullYear();
-                          const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
-                          const startDate = new Date(firstDayOfMonth);
-                          startDate.setDate(startDate.getDate() - firstDayOfMonth.getDay());
-                          const cellDate = new Date(startDate);
-                          cellDate.setDate(cellDate.getDate() + i);
-                          const isCurrentMonth = cellDate.getMonth() === currentMonth;
-                          const isSelected = format(cellDate, 'yyyy-MM-dd') === format(new Date(editingAppointment.scheduledAt), 'yyyy-MM-dd');
-                          
-                          return (
-                            <button
-                              key={i}
-                              type="button"
-                              onClick={() => {
-                                const newDate = new Date(editingAppointment.scheduledAt);
-                                newDate.setFullYear(cellDate.getFullYear(), cellDate.getMonth(), cellDate.getDate());
-                                setEditingAppointment({...editingAppointment, scheduledAt: newDate.toISOString()});
-                                // Fetch appointments for the new date to update time slot availability
-                                fetchAppointmentsForDate(cellDate);
-                              }}
-                              className={`p-2 text-sm rounded hover:bg-blue-50 ${
-                                isSelected
-                                  ? 'bg-blue-500 text-white'
-                                  : isCurrentMonth
-                                  ? 'text-gray-900'
-                                  : 'text-gray-400'
-                              }`}
-                            >
-                              {cellDate.getDate()}
-                            </button>
-                          );
-                        })}
+                    </div>
+
+                    {/* Select Time Slot */}
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">Select Time Slot</Label>
+                      <div className="mt-1 max-h-64 overflow-y-auto border border-gray-300 rounded-md p-3">
+                        <div className="grid grid-cols-2 gap-2">
+                          {[
+                            '9:00 AM', '9:30 AM', '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM',
+                            '12:00 PM', '12:30 PM', '1:00 PM', '1:30 PM', '2:00 PM', '2:30 PM',
+                            '3:00 PM', '3:30 PM', '4:00 PM', '4:30 PM', '5:00 PM', '5:30 PM'
+                          ].map((timeSlot) => {
+                            const currentTime = format(new Date(editingAppointment.scheduledAt), 'h:mm a');
+                            const isSelected = timeSlot === currentTime;
+                            const isBooked = bookedTimeSlots.includes(timeSlot);
+                            
+                            return (
+                              <button
+                                key={timeSlot}
+                                type="button"
+                                disabled={isBooked}
+                                onClick={() => {
+                                  if (isBooked) return;
+                                  
+                                  const [time, period] = timeSlot.split(' ');
+                                  const [hours, minutes] = time.split(':');
+                                  let hour24 = parseInt(hours);
+                                  if (period === 'PM' && hour24 !== 12) hour24 += 12;
+                                  if (period === 'AM' && hour24 === 12) hour24 = 0;
+                                  
+                                  const newDate = new Date(editingAppointment.scheduledAt);
+                                  newDate.setHours(hour24, parseInt(minutes), 0, 0);
+                                  setEditingAppointment({...editingAppointment, scheduledAt: newDate});
+                                }}
+                                className={`p-2 text-sm rounded border text-center ${
+                                  isSelected
+                                    ? 'bg-yellow-500 text-white border-yellow-500'
+                                    : isBooked
+                                    ? 'bg-gray-400 text-gray-600 border-gray-400 cursor-not-allowed'
+                                    : 'bg-green-500 text-white border-green-500 hover:bg-green-600'
+                                }`}
+                                title={isBooked ? 'Time slot already booked' : 'Available time slot'}
+                              >
+                                {timeSlot}
+                                {isBooked && (
+                                  <span className="block text-xs mt-1">Booked</span>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -711,58 +766,6 @@ export default function PatientAppointments({ onNewAppointment }: { onNewAppoint
 
                 {/* Right Column */}
                 <div className="space-y-4">
-                  {/* Select Time Slot */}
-                  <div>
-                    <Label className="text-sm font-medium text-gray-700">Select Time Slot</Label>
-                    <div className="mt-1 max-h-64 overflow-y-auto border border-gray-300 rounded-md p-3">
-                      <div className="grid grid-cols-2 gap-2">
-                        {[
-                          '9:00 AM', '9:30 AM', '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM',
-                          '12:00 PM', '12:30 PM', '1:00 PM', '1:30 PM', '2:00 PM', '2:30 PM',
-                          '3:00 PM', '3:30 PM', '4:00 PM', '4:30 PM', '5:00 PM', '5:30 PM'
-                        ].map((timeSlot) => {
-                          const currentTime = format(new Date(editingAppointment.scheduledAt), 'h:mm a');
-                          const isSelected = timeSlot === currentTime;
-                          const isBooked = bookedTimeSlots.includes(timeSlot);
-                          
-                          return (
-                            <button
-                              key={timeSlot}
-                              type="button"
-                              disabled={isBooked}
-                              onClick={() => {
-                                if (isBooked) return;
-                                
-                                const [time, period] = timeSlot.split(' ');
-                                const [hours, minutes] = time.split(':');
-                                let hour24 = parseInt(hours);
-                                if (period === 'PM' && hour24 !== 12) hour24 += 12;
-                                if (period === 'AM' && hour24 === 12) hour24 = 0;
-                                
-                                const newDate = new Date(editingAppointment.scheduledAt);
-                                newDate.setHours(hour24, parseInt(minutes), 0, 0);
-                                setEditingAppointment({...editingAppointment, scheduledAt: newDate.toISOString()});
-                              }}
-                              className={`p-2 text-sm rounded border text-center ${
-                                isSelected
-                                  ? 'bg-yellow-500 text-white border-yellow-500'
-                                  : isBooked
-                                  ? 'bg-gray-400 text-gray-600 border-gray-400 cursor-not-allowed'
-                                  : 'bg-green-500 text-white border-green-500 hover:bg-green-600'
-                              }`}
-                              title={isBooked ? 'Time slot already booked' : 'Available time slot'}
-                            >
-                              {timeSlot}
-                              {isBooked && (
-                                <span className="block text-xs mt-1">Booked</span>
-                              )}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-
                   {/* Description */}
                   <div>
                     <Label htmlFor="description" className="text-sm font-medium text-gray-700">Description</Label>
@@ -771,7 +774,7 @@ export default function PatientAppointments({ onNewAppointment }: { onNewAppoint
                       value={editingAppointment.description || ''}
                       onChange={(e) => setEditingAppointment({...editingAppointment, description: e.target.value})}
                       className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      rows={6}
+                      rows={8}
                       placeholder="Enter appointment description"
                     />
                   </div>
