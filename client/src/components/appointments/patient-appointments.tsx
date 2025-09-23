@@ -19,6 +19,24 @@ export default function PatientAppointments({ onNewAppointment }: { onNewAppoint
   const [selectedFilter, setSelectedFilter] = useState<"all" | "upcoming" | "past">("upcoming");
   const { user } = useAuth();
 
+  // Fetch patients to find the current user's patient record
+  const { data: patientsData } = useQuery({
+    queryKey: ["/api/patients"],
+    staleTime: 60000,
+  });
+
+  // Find the patient record for the logged-in user
+  const currentPatient = React.useMemo(() => {
+    if (!user || user.role !== 'patient' || !patientsData || !Array.isArray(patientsData)) return null;
+    
+    // Find patient by matching user's name or email
+    return patientsData.find((patient: any) => 
+      patient.firstName === user.firstName && patient.lastName === user.lastName
+    ) || patientsData.find((patient: any) => 
+      patient.email === user.email
+    );
+  }, [user, patientsData]);
+
   // Fetch appointments for this patient
   const { data: appointmentsData, isLoading } = useQuery({
     queryKey: ["/api/appointments"],
@@ -37,7 +55,14 @@ export default function PatientAppointments({ onNewAppointment }: { onNewAppoint
     staleTime: 60000,
   });
 
-  const appointments = appointmentsData || [];
+  // Filter appointments to show only the logged-in patient's appointments
+  const patientAppointments = React.useMemo(() => {
+    if (!appointmentsData || !currentPatient) return [];
+    
+    return appointmentsData.filter((apt: any) => apt.patientId === currentPatient.id);
+  }, [appointmentsData, currentPatient]);
+
+  const appointments = patientAppointments || [];
 
   const getDoctorName = (providerId: number) => {
     if (!usersData || !Array.isArray(usersData)) return `Dr. Provider ${providerId}`;
@@ -63,6 +88,7 @@ export default function PatientAppointments({ onNewAppointment }: { onNewAppoint
     }
   };
 
+  // Filter appointments by date for the logged-in patient
   const filteredAppointments = appointments.filter((apt: any) => {
     const appointmentDate = new Date(apt.scheduledAt);
     
@@ -74,6 +100,7 @@ export default function PatientAppointments({ onNewAppointment }: { onNewAppoint
     return true;
   });
 
+  // Get upcoming appointments for the logged-in patient
   const upcomingAppointments = appointments.filter((apt: any) => {
     const appointmentDate = new Date(apt.scheduledAt);
     return isFuture(appointmentDate) || isToday(appointmentDate);
