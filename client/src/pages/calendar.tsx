@@ -1,5 +1,5 @@
 import { Header } from "@/components/layout/header";
-import AppointmentCalendar from "@/components/calendar/appointment-calendar";
+import RoleBasedAppointmentRouter from "@/components/appointments/role-based-router";
 import { DoctorList } from "@/components/doctors/doctor-list";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -835,7 +835,7 @@ export default function CalendarPage() {
           <div className="grid gap-6 lg:grid-cols-3">
             {/* Main Calendar - 2 columns */}
             <div className="lg:col-span-2">
-              <AppointmentCalendar onNewAppointment={() => setShowNewAppointmentModal(true)} />
+              <RoleBasedAppointmentRouter onNewAppointment={() => setShowNewAppointmentModal(true)} />
             </div>
             
             {/* Doctor List - 1 column */}
