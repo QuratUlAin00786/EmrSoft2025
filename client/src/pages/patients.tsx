@@ -8,6 +8,9 @@ import PatientFamilyHistory from "@/components/patients/patient-family-history";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 import {
   Tooltip,
   TooltipContent,
@@ -22,6 +25,8 @@ export default function Patients() {
   const params = useParams();
   const [, setLocation] = useLocation();
   const patientId = params.id ? parseInt(params.id) : null;
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   
   // State for patient data
   const [patient, setPatient] = useState<any>(null);
@@ -75,6 +80,60 @@ export default function Patients() {
       setSelectedPatient(patient);
     }
   }, [patient]);
+
+  // Active status update mutation
+  const activeStatusUpdateMutation = useMutation({
+    mutationFn: async ({ patientId, isActive }: { patientId: number; isActive: boolean }) => {
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'X-Tenant-Subdomain': 'demo',
+        'Content-Type': 'application/json',
+      };
+
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`/api/patients/${patientId}`, {
+        method: 'PATCH',
+        headers,
+        credentials: 'include',
+        body: JSON.stringify({ isActive }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to update active status: ${response.status}`);
+      }
+
+      return response.json();
+    },
+    onSuccess: (updatedPatient) => {
+      // Update local state
+      setPatient(updatedPatient);
+      setSelectedPatient(updatedPatient);
+      // Auto refresh - invalidate and refetch patients
+      queryClient.invalidateQueries({ queryKey: ['/api/patients'] });
+      toast({
+        title: 'Status Updated',
+        description: 'Patient active status has been updated successfully.',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error',
+        description: 'Failed to update active status. Please try again.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Helper function for active status toggle
+  const handleToggleActiveStatus = (patientId: number, currentStatus: boolean) => {
+    activeStatusUpdateMutation.mutate({
+      patientId,
+      isActive: !currentStatus,
+    });
+  };
 
   // Function to handle flag deletion
   const handleFlagDelete = async (flagIndex: number) => {
@@ -182,6 +241,30 @@ export default function Patients() {
                   <p className="text-sm text-gray-600 dark:text-neutral-300">
                     {patient.address?.street}, {patient.address?.city} {patient.address?.postcode}
                   </p>
+                </div>
+                {/* Active Status Badge with Toggle */}
+                <div>
+                  <p className="text-sm font-medium text-gray-700 dark:text-white">Status</p>
+                  <div className="flex items-center gap-3 mt-1">
+                    <Badge
+                      variant={patient.isActive ? "default" : "secondary"}
+                      className={`text-xs ${
+                        patient.isActive
+                          ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                          : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
+                      }`}
+                      data-testid={`badge-active-${patient.id}`}
+                    >
+                      {patient.isActive ? "Active" : "Inactive"}
+                    </Badge>
+                    <Switch
+                      checked={patient.isActive || false}
+                      onCheckedChange={() => handleToggleActiveStatus(patient.id, patient.isActive || false)}
+                      disabled={activeStatusUpdateMutation.isPending}
+                      className="h-4 w-8"
+                      data-testid={`toggle-active-${patient.id}`}
+                    />
+                  </div>
                 </div>
                 {patient.medicalHistory?.chronicConditions && (
                   <div>
