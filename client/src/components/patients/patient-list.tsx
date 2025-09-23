@@ -2051,7 +2051,7 @@ export function PatientList({ onSelectPatient, showActiveOnly = true }: PatientL
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["/api/patients"],
+    queryKey: ["/api/patients", { isActive: showActiveOnly }],
     staleTime: 0,
     gcTime: 0,
     queryFn: async () => {
@@ -2067,7 +2067,9 @@ export function PatientList({ onSelectPatient, showActiveOnly = true }: PatientL
 
         console.log("Fetching patients with headers:", headers);
 
-        const response = await fetch("/api/patients", {
+        // Add isActive query parameter to URL
+        const url = `/api/patients?isActive=${showActiveOnly}`;
+        const response = await fetch(url, {
           headers,
           credentials: "include",
         });
@@ -2283,19 +2285,12 @@ export function PatientList({ onSelectPatient, showActiveOnly = true }: PatientL
     searchFilters.lastVisit ||
     (searchFilters.searchType && searchFilters.searchType !== "all");
 
-  // Filter patients based on active status and search filters
-  const getFilteredPatientsByStatus = (patientList: any[]) => {
-    if (!Array.isArray(patientList)) return [];
-    return patientList.filter(patient => {
-      // Filter by active status
-      const matchesActiveStatus = showActiveOnly ? patient.isActive : !patient.isActive;
-      return matchesActiveStatus;
-    });
-  };
-
+  // Backend handles active/inactive filtering via API query parameters
   const displayPatients = hasActiveFilters
-    ? getFilteredPatientsByStatus(filteredPatients)
-    : getFilteredPatientsByStatus(Array.isArray(patients) ? patients : []);
+    ? filteredPatients
+    : Array.isArray(patients)
+      ? patients
+      : [];
 
   return (
     <div className="space-y-4">

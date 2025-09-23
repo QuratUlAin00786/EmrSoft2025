@@ -164,7 +164,7 @@ export interface IStorage {
   getPatientByPatientId(patientId: string, organizationId: number): Promise<Patient | undefined>;
   getPatientByUserId(userId: number, organizationId: number): Promise<Patient | undefined>;
   getPatientByEmail(email: string, organizationId: number): Promise<Patient | undefined>;
-  getPatientsByOrganization(organizationId: number, limit?: number): Promise<Patient[]>;
+  getPatientsByOrganization(organizationId: number, limit?: number, isActive?: boolean): Promise<Patient[]>;
   createPatient(patient: InsertPatient): Promise<Patient>;
   updatePatient(id: number, organizationId: number, updates: Partial<InsertPatient>): Promise<Patient | undefined>;
   deletePatient(id: number, organizationId: number): Promise<boolean>;
@@ -756,9 +756,16 @@ export class DatabaseStorage implements IStorage {
     return this.normalizePatientData(patient);
   }
 
-  async getPatientsByOrganization(organizationId: number, limit = 50): Promise<Patient[]> {
+  async getPatientsByOrganization(organizationId: number, limit = 50, isActive?: boolean): Promise<Patient[]> {
+    let whereConditions = [eq(patients.organizationId, organizationId)];
+    
+    // Add isActive filter only if explicitly provided
+    if (isActive !== undefined) {
+      whereConditions.push(eq(patients.isActive, isActive));
+    }
+    
     const results = await db.select().from(patients)
-      .where(and(eq(patients.organizationId, organizationId), eq(patients.isActive, true)))
+      .where(and(...whereConditions))
       .orderBy(desc(patients.updatedAt))
       .limit(limit);
     

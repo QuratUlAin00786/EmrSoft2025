@@ -1120,7 +1120,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/patients", async (req: TenantRequest, res) => {
     try {
       const limit = parseInt(req.query.limit as string) || 50;
-      const patients = await storage.getPatientsByOrganization(req.tenant!.id, limit);
+      const isActiveParam = req.query.isActive as string;
+      
+      // Parse isActive parameter: if provided, convert to boolean, otherwise undefined (return all)
+      let isActive: boolean | undefined = undefined;
+      if (isActiveParam !== undefined) {
+        isActive = isActiveParam === 'true';
+      }
+      
+      const patients = await storage.getPatientsByOrganization(req.tenant!.id, limit, isActive);
       res.json(patients);
     } catch (error) {
       console.error("Patients fetch error:", error);
