@@ -2954,7 +2954,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             } else {
               // No shift found - check working days to see if they normally work today
               const hasWorkingDays = user.workingDays && user.workingDays.length > 0;
-              const worksToday = hasWorkingDays && user.workingDays!.includes(dayOfWeek);
+              const worksToday = hasWorkingDays && user.workingDays!.some(day => day.toLowerCase() === dayOfWeek);
               
               console.log(`  - No shift found. Working days: ${user.workingDays || 'none'}`);
               console.log(`  - Works today (${dayOfWeek}): ${worksToday}`);
