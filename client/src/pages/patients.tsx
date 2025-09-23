@@ -31,6 +31,9 @@ export default function Patients() {
   // State for patient data
   const [patient, setPatient] = useState<any>(null);
   const [patientLoading, setPatientLoading] = useState(false);
+  
+  // State for active/inactive filter toggle
+  const [showActivePatients, setShowActivePatients] = useState(true);
 
   // Fetch specific patient data if viewing records
   useEffect(() => {
@@ -395,9 +398,22 @@ export default function Patients() {
       <div className="flex-1 overflow-auto p-6">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Patient Records</h3>
+            <div className="flex items-center gap-3">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Patients</h3>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-neutral-600 dark:text-neutral-300">
+                  {showActivePatients ? "Active" : "Inactive"}
+                </span>
+                <Switch
+                  checked={showActivePatients}
+                  onCheckedChange={setShowActivePatients}
+                  className="h-4 w-8"
+                  data-testid="toggle-patient-filter"
+                />
+              </div>
+            </div>
             <p className="text-sm text-neutral-600 dark:text-neutral-300">
-              View and manage all patient information securely.
+              View and manage {showActivePatients ? "active" : "inactive"} patient information securely.
             </p>
           </div>
           <Button 
@@ -410,7 +426,7 @@ export default function Patients() {
           </Button>
         </div>
 
-        <PatientList />
+        <PatientList showActiveOnly={showActivePatients} />
       </div>
 
       <PatientModal 

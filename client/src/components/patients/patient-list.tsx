@@ -146,6 +146,7 @@ function getConditionBgColor(condition?: string) {
 
 interface PatientListProps {
   onSelectPatient?: (patient: any) => void;
+  showActiveOnly?: boolean;
 }
 
 interface PatientDetailsModalProps {
@@ -1789,7 +1790,7 @@ function PatientDetailsModal({
   );
 }
 
-export function PatientList({ onSelectPatient }: PatientListProps = {}) {
+export function PatientList({ onSelectPatient, showActiveOnly = true }: PatientListProps = {}) {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { user } = useAuth();
@@ -2282,11 +2283,19 @@ export function PatientList({ onSelectPatient }: PatientListProps = {}) {
     searchFilters.lastVisit ||
     (searchFilters.searchType && searchFilters.searchType !== "all");
 
+  // Filter patients based on active status and search filters
+  const getFilteredPatientsByStatus = (patientList: any[]) => {
+    if (!Array.isArray(patientList)) return [];
+    return patientList.filter(patient => {
+      // Filter by active status
+      const matchesActiveStatus = showActiveOnly ? patient.isActive : !patient.isActive;
+      return matchesActiveStatus;
+    });
+  };
+
   const displayPatients = hasActiveFilters
-    ? filteredPatients
-    : Array.isArray(patients)
-      ? patients
-      : [];
+    ? getFilteredPatientsByStatus(filteredPatients)
+    : getFilteredPatientsByStatus(Array.isArray(patients) ? patients : []);
 
   return (
     <div className="space-y-4">
