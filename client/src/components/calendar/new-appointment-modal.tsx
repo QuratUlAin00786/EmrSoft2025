@@ -340,50 +340,61 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
                 name="patientId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="required">Patient</FormLabel>
-                    {user?.role === 'patient' && currentPatientDetails ? (
-                      <div className="border rounded-md p-3 bg-blue-50 dark:bg-blue-900 border-blue-200 dark:border-blue-700">
-                        <div className="flex items-center space-x-3">
-                          <User className="h-8 w-8 text-blue-600 dark:text-blue-400" />
-                          <div className="flex-1">
-                            <div className="font-medium text-blue-900 dark:text-blue-100">
-                              {currentPatientDetails.firstName} {currentPatientDetails.lastName}
-                            </div>
-                            <div className="space-y-1 text-sm text-blue-700 dark:text-blue-300">
-                              {currentPatientDetails.email && (
-                                <div className="flex items-center space-x-1">
-                                  <Mail className="h-3 w-3" />
-                                  <span>{currentPatientDetails.email}</span>
+                    {user?.role === 'patient' ? (
+                      <>
+                        <FormLabel className="required">My Information</FormLabel>
+                        {currentPatientDetails ? (
+                          <div className="border rounded-md p-3 bg-blue-50 dark:bg-blue-900 border-blue-200 dark:border-blue-700">
+                            <div className="flex items-center space-x-3">
+                              <User className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                              <div className="flex-1">
+                                <div className="font-medium text-blue-900 dark:text-blue-100">
+                                  {currentPatientDetails.firstName} {currentPatientDetails.lastName}
                                 </div>
-                              )}
-                              {currentPatientDetails.phone && (
-                                <div className="flex items-center space-x-1">
-                                  <Phone className="h-3 w-3" />
-                                  <span>{currentPatientDetails.phone}</span>
+                                <div className="space-y-1 text-sm text-blue-700 dark:text-blue-300">
+                                  {currentPatientDetails.email && (
+                                    <div className="flex items-center space-x-1">
+                                      <Mail className="h-3 w-3" />
+                                      <span>{currentPatientDetails.email}</span>
+                                    </div>
+                                  )}
+                                  {currentPatientDetails.phone && (
+                                    <div className="flex items-center space-x-1">
+                                      <Phone className="h-3 w-3" />
+                                      <span>{currentPatientDetails.phone}</span>
+                                    </div>
+                                  )}
+                                  <div className="text-xs opacity-75">
+                                    Patient ID: {currentPatientDetails.patientId || `P${currentPatientDetails.id?.toString().padStart(6, '0')}`}
+                                  </div>
                                 </div>
-                              )}
-                              <div className="text-xs opacity-75">
-                                Patient ID: {currentPatientDetails.patientId || `P${currentPatientDetails.id?.toString().padStart(6, '0')}`}
                               </div>
                             </div>
                           </div>
-                        </div>
-                      </div>
+                        ) : (
+                          <div className="border rounded-md p-3 bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600">
+                            <div className="text-gray-600 dark:text-gray-300">Loading your information...</div>
+                          </div>
+                        )}
+                      </>
                     ) : (
-                      <Select onValueChange={field.onChange} value={field.value} data-testid="select-patient">
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select patient..." />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {patients.map((patient: any) => (
-                            <SelectItem key={`patient-${patient.id}`} value={patient.id.toString()}>
-                              {patient.firstName} {patient.lastName}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <>
+                        <FormLabel className="required">Patient Information</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value} data-testid="select-patient">
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select patient..." />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {patients.map((patient: any) => (
+                              <SelectItem key={`patient-${patient.id}`} value={patient.id.toString()}>
+                                {patient.firstName} {patient.lastName}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </>
                     )}
                     <FormMessage />
                   </FormItem>
