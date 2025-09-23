@@ -1375,32 +1375,34 @@ export default function MessagingPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="messageRecipient">Recipient *</Label>
-                    <div className="relative">
-                      <Input
-                        id="messageRecipient"
-                        placeholder="Search patients..."
-                        value={messagePatientSearch}
-                        onChange={(e) => setMessagePatientSearch(e.target.value)}
-                      />
-                      {messagePatientSearch && filteredMessagePatients.length > 0 && (
-                        <div className="absolute z-10 w-full mt-1 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-md shadow-lg max-h-60 overflow-auto">
-                          {filteredMessagePatients.map((patient: any) => (
-                            <div
-                              key={patient.id}
-                              className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer"
-                              onClick={() => {
-                                setSelectedMessagePatient(`${patient.firstName} ${patient.lastName}`);
-                                setMessagePatientSearch(`${patient.firstName} ${patient.lastName}`);
-                                setNewMessage(prev => ({ ...prev, recipient: `${patient.firstName} ${patient.lastName}` }));
-                              }}
-                            >
-                              <div className="font-medium">{patient.firstName} {patient.lastName}</div>
-                              <div className="text-sm text-gray-500">{patient.email} • {patient.patientId}</div>
+                    <Select 
+                      value={selectedMessagePatient} 
+                      onValueChange={(value) => {
+                        const patient = (patientsData || []).find((p: any) => `${p.firstName} ${p.lastName}` === value);
+                        if (patient) {
+                          setSelectedMessagePatient(value);
+                          setNewMessage(prev => ({ ...prev, recipient: value }));
+                        }
+                      }}
+                    >
+                      <SelectTrigger data-testid="select-patient-recipient">
+                        <SelectValue placeholder="Select a patient..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(patientsData || []).map((patient: any) => (
+                          <SelectItem 
+                            key={patient.id} 
+                            value={`${patient.firstName} ${patient.lastName}`}
+                            data-testid={`patient-option-${patient.id}`}
+                          >
+                            <div className="flex flex-col">
+                              <span className="font-medium">{patient.firstName} {patient.lastName}</span>
+                              <span className="text-sm text-gray-500">{patient.email} • {patient.patientId}</span>
                             </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="messageType">Message Type</Label>
