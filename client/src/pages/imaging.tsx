@@ -1321,6 +1321,7 @@ export default function ImagingPage() {
         image.impression ||
         `File: ${image.fileName} (${(image.fileSize / (1024 * 1024)).toFixed(2)} MB)`,
       radiologist: image.radiologist || image.uploadedByName || "Unknown",
+      fileName: image.fileName, // Include image file name for PDF generation
       reportFileName: image.reportFileName, // Include PDF report file name
       reportFilePath: image.reportFilePath, // Include PDF report file path
       images: [
