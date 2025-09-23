@@ -1135,7 +1135,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`[GENERATE-INSIGHTS] OpenAI succeeded with ${aiInsightsData.length} insights`);
       } catch (aiError) {
         console.log(`[GENERATE-INSIGHTS] OpenAI failed, using fallback mock insights for patient ${patient.firstName} ${patient.lastName}`);
-        console.error(`[GENERATE-INSIGHTS] OpenAI Error:`, aiError.message);
+        console.error(`[GENERATE-INSIGHTS] OpenAI Error:`, (aiError as Error)?.message || aiError);
         
         // Fallback to mock insights when OpenAI fails
         aiInsightsData = [
@@ -1334,7 +1334,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         frequency: prescription.frequency || 'Not specified',
         duration: prescription.duration || 'Not specified',
         instructions: prescription.instructions || 'No instructions',
-        prescribedBy: prescription.prescribedBy || 'Dr. Unknown',
+        prescribedBy: 'Dr. Unknown', // TODO: Link to doctor via doctorId
         prescribedDate: prescription.prescribedAt || prescription.createdAt,
         status: prescription.status || 'active',
         diagnosis: prescription.diagnosis || 'No diagnosis specified',
@@ -2184,7 +2184,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else if (userRole === 'patient') {
         // Patients can update their own appointments
         const patient = await storage.getPatientByUserId(userId, req.tenant!.id);
-        canUpdate = patient && existingAppointment.patientId === patient.id;
+        canUpdate = Boolean(patient && existingAppointment.patientId === patient.id);
       } else if (userRole === 'nurse') {
         // Nurses can update appointments with proper permissions
         const hasEditPermission = (req.user as any)?.permissions?.modules?.appointments?.edit === true;
@@ -3097,13 +3097,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           let matchesSubSpecialty = true;
           
           if (specialty) {
-            matchesSpecialty = user.medicalSpecialtyCategory && 
-              user.medicalSpecialtyCategory.toLowerCase().trim() === specialty.toLowerCase().trim();
+            matchesSpecialty = Boolean(user.medicalSpecialtyCategory && 
+              user.medicalSpecialtyCategory.toLowerCase().trim() === specialty.toLowerCase().trim());
           }
           
           if (subSpecialty) {
-            matchesSubSpecialty = user.subSpecialty && 
-              user.subSpecialty.toLowerCase().trim() === subSpecialty.toLowerCase().trim();
+            matchesSubSpecialty = Boolean(user.subSpecialty && 
+              user.subSpecialty.toLowerCase().trim() === subSpecialty.toLowerCase().trim());
           }
           
           const matches = matchesSpecialty && matchesSubSpecialty;
@@ -6682,10 +6682,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Ensure the wound_assessment directory exists
       const dir = path.join('uploads', 'wound_assessment');
-      await fs.ensureDir(dir);
+      await fse.ensureDir(dir);
       
       // Move the uploaded file to the correct location with the proper name
-      await fs.move(uploadedFile.path, filePath, { overwrite: true });
+      await fse.move(uploadedFile.path, filePath, { overwrite: true });
 
       // Save photo metadata to database
       const clinicalPhotoData = {
@@ -6739,7 +6739,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Check and ensure the VoiceNotes directory exists
       const dir = path.join('uploads', 'VoiceNotes');
-      await fs.ensureDir(dir);
+      await fse.ensureDir(dir);
       
       console.log(`📁 VoiceNotes directory checked/created: ${dir}`);
 
@@ -6782,10 +6782,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Ensure the VoiceNotes directory exists
       const dir = path.join('uploads', 'VoiceNotes');
-      await fs.ensureDir(dir);
+      await fse.ensureDir(dir);
       
       // Move the uploaded file to the correct location with the proper name
-      await fs.move(uploadedFile.path, filePath, { overwrite: true });
+      await fse.move(uploadedFile.path, filePath, { overwrite: true });
 
       console.log(`🎵 Voice note saved to filesystem: ${filePath}`);
 
@@ -6834,7 +6834,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Try to delete the file from filesystem (optional - don't fail if file doesn't exist)
       try {
         const filePath = path.join('uploads', 'wound_assessment', photo.fileName);
-        await fs.remove(filePath);
+        await fse.remove(filePath);
         console.log(`🗑️ Photo file deleted from filesystem: ${filePath}`);
       } catch (fileError) {
         console.warn(`⚠️ Could not delete photo file from filesystem: ${fileError}`);
@@ -7890,7 +7890,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       for (const file of files) {
         // Validate form data
         const imageData = z.object({
-          patientId: z.number(),
+          patientId: z.coerce.number(),
           imageType: z.string().optional(),
           bodyPart: z.string().optional(),
           notes: z.string().optional(),
@@ -10926,7 +10926,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Ensure reports directory exists
       const reportsDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Reports');
-      await fs.ensureDir(reportsDir);
+      await fse.ensureDir(reportsDir);
       
       // Import pdf-lib dynamically
       const { PDFDocument, rgb, StandardFonts } = await import('pdf-lib');
@@ -11086,7 +11086,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             
             // Draw content with text wrapping
             let textY = yPosition - 25;
-            lines.forEach(line => {
+            lines.forEach((line: string) => {
               page.drawText(line.trim(), { 
                 x: 50, 
                 y: textY, 
@@ -11333,7 +11333,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Save PDF to disk
       const outputPath = path.join(reportsDir, `${reportId}.pdf`);
-      await fs.outputFile(outputPath, pdfBytes);
+      await fse.outputFile(outputPath, pdfBytes);
       
       console.log(`PDF report generated and saved: ${outputPath}`);
       
@@ -11392,7 +11392,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const filePath = path.join(reportsDir, `${reportId}.pdf`);
       
       // Check if file exists
-      if (!(await fs.pathExists(filePath))) {
+      if (!(await fse.pathExists(filePath))) {
         return res.status(404).json({ error: "Report not found" });
       }
       
@@ -11444,12 +11444,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const filePath = path.join(process.cwd(), 'uploads', 'Imaging_Reports', filename);
 
       // Check if file exists
-      if (!(await fs.pathExists(filePath))) {
+      if (!(await fse.pathExists(filePath))) {
         return res.status(404).json({ error: "Report file not found" });
       }
 
       // Delete the file from the filesystem
-      await fs.remove(filePath);
+      await fse.remove(filePath);
 
       // Clear the reportFileName and reportFilePath from the database
       // Extract study ID from reportId (format: PatientID_StudyID_Timestamp)
@@ -11465,8 +11465,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           studyId,
           req.tenant!.id,
           { 
-            reportFileName: null, 
-            reportFilePath: null 
+            reportFileName: undefined, 
+            reportFilePath: undefined 
           }
         );
       }
