@@ -24,15 +24,11 @@ export default function PatientAppointments({ onNewAppointment }: { onNewAppoint
     queryKey: ["/api/patients"],
     staleTime: 60000,
     retry: false,
-  });
-  
-  // Add debugging for patient data
-  console.log("🔍 PATIENT-APPOINTMENTS: Query state:", {
-    patientsData,
-    patientsLoading,
-    dataType: typeof patientsData,
-    isArray: Array.isArray(patientsData),
-    dataLength: Array.isArray(patientsData) ? patientsData.length : 'not-array'
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/patients');
+      const data = await response.json();
+      return data;
+    },
   });
 
   // Find the patient record for the logged-in user

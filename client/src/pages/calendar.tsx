@@ -193,15 +193,11 @@ export default function CalendarPage() {
   const { data: patients = [], isLoading: patientsLoading } = useQuery<any[]>({
     queryKey: ["/api/patients"],
     retry: false,
-  });
-  
-  // Add debugging for calendar patient data
-  console.log("🔍 CALENDAR: Patients data:", {
-    patients,
-    patientsLoading,
-    dataType: typeof patients,
-    isArray: Array.isArray(patients),
-    dataLength: patients?.length
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/patients');
+      const data = await response.json();
+      return data;
+    },
   });
 
   // Auto-populate patient when user is a patient (enhanced logic)
