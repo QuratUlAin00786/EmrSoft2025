@@ -74,7 +74,7 @@ export function multiTenantEnforcer(config: Partial<MultiTenantEnforcementConfig
           console.log(`[MULTI-TENANT-AUDIT] User ${req.user.email} (org: ${req.organizationId}) ${req.method} ${req.path}`);
           
           // Log to audit trail
-          await logDataAccess(req.user.id, req.organizationId, req.path, req.method, req.ip);
+          await logDataAccess(req.user.id, req.organizationId, req.path, req.method, req.ip || 'unknown');
         }
       }
 
