@@ -22,6 +22,7 @@ export default function PatientAppointments({ onNewAppointment }: { onNewAppoint
   const [selectedFilter, setSelectedFilter] = useState<"all" | "upcoming" | "past">("upcoming");
   const [editingAppointment, setEditingAppointment] = useState<any>(null);
   const [deletingAppointmentId, setDeletingAppointmentId] = useState<number | null>(null);
+  const [bookedTimeSlots, setBookedTimeSlots] = useState<string[]>([]);
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -130,6 +131,41 @@ export default function PatientAppointments({ onNewAppointment }: { onNewAppoint
       subSpecialty: provider.subSpecialty || ""
     } : { name: "", category: "", subSpecialty: "" };
   };
+
+  // Fetch appointments for selected date to check availability
+  const fetchAppointmentsForDate = async (date: Date) => {
+    try {
+      const dateStr = format(date, 'yyyy-MM-dd');
+      const response = await apiRequest('GET', '/api/appointments');
+      const data = await response.json();
+      
+      // Filter appointments for the selected date (excluding the current appointment being edited)
+      const dayAppointments = data.filter((apt: any) => {
+        const aptDate = format(new Date(apt.scheduledAt), 'yyyy-MM-dd');
+        return aptDate === dateStr && apt.id !== editingAppointment?.id;
+      });
+      
+      // Extract booked time slots
+      const bookedSlots = dayAppointments.map((apt: any) => {
+        const aptTime = new Date(apt.scheduledAt);
+        return format(aptTime, 'h:mm a');
+      });
+      
+      setBookedTimeSlots(bookedSlots);
+      console.log('📅 Booked time slots for', dateStr, ':', bookedSlots);
+    } catch (error) {
+      console.error('Error fetching appointments for date:', error);
+      setBookedTimeSlots([]);
+    }
+  };
+
+  // Fetch appointments when editing appointment date changes
+  React.useEffect(() => {
+    if (editingAppointment?.scheduledAt) {
+      const selectedDate = new Date(editingAppointment.scheduledAt);
+      fetchAppointmentsForDate(selectedDate);
+    }
+  }, [editingAppointment?.scheduledAt]);
 
   // Edit appointment mutation
   const editAppointmentMutation = useMutation({
@@ -623,6 +659,8 @@ export default function PatientAppointments({ onNewAppointment }: { onNewAppoint
                                 const newDate = new Date(editingAppointment.scheduledAt);
                                 newDate.setFullYear(cellDate.getFullYear(), cellDate.getMonth(), cellDate.getDate());
                                 setEditingAppointment({...editingAppointment, scheduledAt: newDate.toISOString()});
+                                // Fetch appointments for the new date to update time slot availability
+                                fetchAppointmentsForDate(cellDate);
                               }}
                               className={`p-2 text-sm rounded hover:bg-blue-50 ${
                                 isSelected
@@ -674,12 +712,16 @@ export default function PatientAppointments({ onNewAppointment }: { onNewAppoint
                         ].map((timeSlot) => {
                           const currentTime = format(new Date(editingAppointment.scheduledAt), 'h:mm a');
                           const isSelected = timeSlot === currentTime;
+                          const isBooked = bookedTimeSlots.includes(timeSlot);
                           
                           return (
                             <button
                               key={timeSlot}
                               type="button"
+                              disabled={isBooked}
                               onClick={() => {
+                                if (isBooked) return;
+                                
                                 const [time, period] = timeSlot.split(' ');
                                 const [hours, minutes] = time.split(':');
                                 let hour24 = parseInt(hours);
@@ -693,10 +735,16 @@ export default function PatientAppointments({ onNewAppointment }: { onNewAppoint
                               className={`p-2 text-sm rounded border text-center ${
                                 isSelected
                                   ? 'bg-blue-500 text-white border-blue-500'
-                                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                                  : isBooked
+                                  ? 'bg-gray-300 text-gray-500 border-gray-300 cursor-not-allowed'
+                                  : 'bg-green-100 text-green-800 border-green-300 hover:bg-green-200'
                               }`}
+                              title={isBooked ? 'Time slot already booked' : 'Available time slot'}
                             >
                               {timeSlot}
+                              {isBooked && (
+                                <span className="block text-xs mt-1">Booked</span>
+                              )}
                             </button>
                           );
                         })}
