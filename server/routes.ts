@@ -221,6 +221,95 @@ const uploadVoiceNote = multer({
   }
 });
 
+// Configure disk storage specifically for medical images
+const uploadMedicalImages = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      const fs = require('fs');
+      const path = require('path');
+      const uploadDir = path.join(process.cwd(), 'uploads', 'Imaging_Images');
+      
+      // Create directory if it doesn't exist
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+        console.log('📁 Created directory:', uploadDir);
+      }
+      
+      cb(null, uploadDir);
+    },
+    filename: async (req, file, cb) => {
+      try {
+        // Get numeric patient ID from request body
+        const numericPatientId = req.body.patientId;
+        if (!numericPatientId) {
+          return cb(new Error('Patient ID is required for file naming'));
+        }
+        
+        // Get the tenant from middleware
+        const tenantReq = req as any; // TenantRequest
+        if (!tenantReq.tenant) {
+          return cb(new Error('Tenant information required for patient lookup'));
+        }
+        
+        // Import storage to lookup patient
+        const { storage } = await import('./storage.js');
+        
+        // Get patient to find their string patientId (like "P001")
+        const patient = await storage.getPatient(parseInt(numericPatientId), tenantReq.tenant.id);
+        if (!patient) {
+          return cb(new Error('Patient not found for unique filename generation'));
+        }
+        
+        // Extract file extension
+        const ext = file.originalname.split('.').pop();
+        
+        // Create unique filename: patientId_Images.extension (using string patientId like "P001")
+        const uniqueFilename = `${patient.patientId}_Images.${ext}`;
+        
+        console.log('📷 SERVER: Creating unique filename for patient:', {
+          numericId: numericPatientId,
+          stringPatientId: patient.patientId,
+          originalName: file.originalname,
+          uniqueFilename: uniqueFilename
+        });
+        
+        cb(null, uniqueFilename);
+      } catch (error) {
+        console.error('📷 SERVER: Error generating unique filename:', error);
+        cb(new Error('Failed to generate unique filename'));
+      }
+    }
+  }),
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50MB limit for medical images
+  },
+  fileFilter: (req, file, cb) => {
+    // Accept medical image files
+    const allowedTypes = [
+      'image/jpeg',
+      'image/jpg', 
+      'image/png',
+      'image/gif',
+      'image/bmp',
+      'image/tiff',
+      'image/tif',
+      'image/webp',
+      'image/svg+xml',
+      'image/x-icon',
+      'application/dicom', // DICOM files
+      'application/octet-stream' // For .dcm files
+    ];
+    
+    if (allowedTypes.includes(file.mimetype) || 
+        file.originalname.toLowerCase().endsWith('.dcm') ||
+        file.originalname.toLowerCase().endsWith('.dicom')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only medical image formats are allowed.'));
+    }
+  }
+});
+
 export async function registerRoutes(app: Express): Promise<Server> {
   
   // DEPLOYMENT HEALTH CHECK - Absolute priority for deployment success
@@ -7773,6 +7862,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       res.status(500).json({ error: "Failed to create medical image" });
+    }
+  });
+
+  // Upload medical images with unique filenames to /uploads/Imaging_Images directory
+  app.post("/api/medical-images/upload", authMiddleware, uploadMedicalImages.array('images', 10), async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const files = req.files as Express.Multer.File[];
+      if (!files || files.length === 0) {
+        return res.status(400).json({ error: "No files uploaded" });
+      }
+
+      const uploadedImages = [];
+
+      // Process each uploaded file
+      for (const file of files) {
+        // Validate form data
+        const imageData = z.object({
+          patientId: z.number(),
+          imageType: z.string().optional(),
+          bodyPart: z.string().optional(),
+          notes: z.string().optional(),
+          modality: z.string().optional(),
+          priority: z.string().optional(),
+          studyType: z.string().optional(),
+          indication: z.string().optional()
+        }).parse(req.body);
+
+        // Create database record with unique filename (not original)
+        const dbImageData = {
+          patientId: imageData.patientId,
+          organizationId: req.tenant!.id,
+          imageType: imageData.imageType || 'Medical Image',
+          bodyPart: imageData.bodyPart || 'Not specified',
+          notes: imageData.notes || '',
+          fileName: file.filename, // Use the unique filename generated by multer
+          fileUrl: `/uploads/Imaging_Images/${file.filename}`,
+          fileSize: file.size,
+          uploadedBy: req.user.id.toString(),
+          mimeType: file.mimetype,
+          // Don't store imageData for file-based storage
+          imageData: null
+        };
+
+        console.log('📷 Saving medical image to database with unique filename:', file.filename);
+
+        const savedImage = await storage.createMedicalImage(dbImageData);
+        uploadedImages.push({
+          ...savedImage,
+          originalName: file.originalname,
+          uniqueFilename: file.filename
+        });
+      }
+
+      res.status(201).json({
+        message: 'Images uploaded successfully',
+        images: uploadedImages
+      });
+    } catch (error) {
+      console.error("Error uploading medical images:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: error.errors.map(e => `${e.path.join('.')}: ${e.message}`)
+        });
+      }
+      res.status(500).json({ error: "Failed to upload medical images" });
     }
   });
 

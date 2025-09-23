@@ -823,7 +823,7 @@ export default function ImagingPage() {
     }
 
     try {
-      // Find the selected patient to get the numeric ID
+      // Find the selected patient to get the numeric ID and patientId (string)
       const selectedPatient = patients.find(
         (p) => p.id.toString() === uploadFormData.patientId,
       );
@@ -836,45 +836,61 @@ export default function ImagingPage() {
         return;
       }
 
-      // Upload each file
-      for (let i = 0; i < selectedFiles.length; i++) {
-        const file = selectedFiles[i];
+      console.log('📷 CLIENT: Selected patient for unique naming:', {
+        id: selectedPatient.id,
+        patientId: selectedPatient.patientId,
+        name: `${selectedPatient.firstName} ${selectedPatient.lastName}`
+      });
 
-        // Convert file to base64
-        const base64Data = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => {
-            const result = reader.result as string;
-            // Remove the data URL prefix to get just the base64 data
-            const base64 = result.split(",")[1];
-            resolve(base64);
-          };
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
+      // Create FormData for multipart upload
+      const formData = new FormData();
+      
+      // Add form data fields
+      formData.append('patientId', selectedPatient.id.toString()); // Use numeric ID for database
+      formData.append('imageType', uploadFormData.studyType);
+      formData.append('bodyPart', uploadFormData.bodyPart || "Not specified");
+      formData.append('notes', uploadFormData.indication || "");
+      formData.append('modality', uploadFormData.modality);
+      formData.append('priority', uploadFormData.priority);
+      formData.append('studyType', uploadFormData.studyType);
+      formData.append('indication', uploadFormData.indication || "");
+
+      // Add all files to FormData
+      selectedFiles.forEach((file, index) => {
+        formData.append('images', file);
+        console.log(`📷 CLIENT: Adding file ${index + 1}:`, {
+          originalName: file.name,
+          size: file.size,
+          type: file.type,
+          patientForUniqueName: selectedPatient.patientId
         });
+      });
 
-        const imageData = {
-          patientId: selectedPatient.id, // Use the numeric database ID
-          imageType: uploadFormData.studyType,
-          bodyPart: uploadFormData.bodyPart || "Not specified",
-          notes: uploadFormData.indication || "",
-          filename: file.name,
-          fileUrl: `data:${file.type};base64,${base64Data}`,
-          fileSize: file.size,
-          uploadedBy: 348, // Current user ID (admin)
-          imageData: base64Data, // Include the base64 image data
-          mimeType: file.type,
-        };
+      console.log('📷 CLIENT: Uploading to /api/medical-images/upload with unique naming');
 
-        await apiRequest("POST", "/api/medical-images", imageData);
+      // Upload using fetch to handle FormData properly
+      const response = await fetch('/api/medical-images/upload', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          // Don't set Content-Type - let the browser set it with boundary for multipart
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Upload failed');
       }
+
+      const result = await response.json();
+      console.log('📷 CLIENT: Upload successful:', result);
 
       const totalSize = selectedFiles.reduce((sum, file) => sum + file.size, 0);
       const totalSizeMB = (totalSize / (1024 * 1024)).toFixed(1);
 
       toast({
         title: "Images Uploaded Successfully",
-        description: `${selectedFiles.length} images (${totalSizeMB} MB) uploaded for ${selectedPatient.firstName} ${selectedPatient.lastName}`,
+        description: `${selectedFiles.length} images (${totalSizeMB} MB) uploaded with unique names for ${selectedPatient.firstName} ${selectedPatient.lastName}`,
       });
 
       // Reset form and close dialog
@@ -892,7 +908,7 @@ export default function ImagingPage() {
       // Refresh the medical images list
       refetchImages();
     } catch (error) {
-      console.error("Upload error:", error);
+      console.error("📷 CLIENT: Upload error:", error);
       toast({
         title: "Upload Failed",
         description: "Failed to upload images. Please try again.",
