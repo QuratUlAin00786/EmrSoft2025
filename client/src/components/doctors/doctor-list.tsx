@@ -622,8 +622,9 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
                       {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
                     </div>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
+                  <PopoverContent className="w-auto p-0" style={{display: 'none'}}>
+                    {/* Calendar hidden as requested */}
+                    {/* <Calendar
                       mode="single"
                       selected={selectedDate}
                       onSelect={(date: Date | undefined) => setSelectedDate(date)}
@@ -631,7 +632,7 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
                         date < new Date() || date < new Date("1900-01-01")
                       }
                       initialFocus
-                    />
+                    /> */}
                   </PopoverContent>
                 </Popover>
               </div>
