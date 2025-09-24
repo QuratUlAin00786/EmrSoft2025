@@ -343,7 +343,7 @@ export default function PatientAppointments({ onNewAppointment }: { onNewAppoint
                 </div>
                 <div className="flex items-center space-x-2">
                   <User className="h-5 w-5 text-blue-600" />
-                  <span>{getDoctorSpecialtyData(nextAppointment.providerId).category}</span>
+                  <span>{getDoctorSpecialtyData(nextAppointment.providerId).name}</span>
                 </div>
                 {getDoctorSpecialtyData(nextAppointment.providerId).subSpecialty && (
                   <div className="flex items-center space-x-2">
@@ -521,7 +521,7 @@ export default function PatientAppointments({ onNewAppointment }: { onNewAppoint
                           </div>
                           <div className="flex items-center space-x-2">
                             <User className="h-4 w-4 text-gray-400" />
-                            <span className="text-sm">{getDoctorSpecialtyData(appointment.providerId).category}</span>
+                            <span className="text-sm">{getDoctorSpecialtyData(appointment.providerId).name}</span>
                           </div>
                           {getDoctorSpecialtyData(appointment.providerId).subSpecialty && (
                             <div className="flex items-center space-x-2">
