@@ -1136,69 +1136,6 @@ export default function ClinicalDecisionSupport() {
                             </div>
                           )}
                         </div>
-                        
-                        {/* Priority editing section */}
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium">Priority:</span>
-                          {editingPriority === insight.id.toString() ? (
-                            <div className="flex items-center gap-1">
-                              <Select
-                                value={tempPriority}
-                                onValueChange={setTempPriority}
-                                data-testid={`select-priority-${insight.id}`}
-                              >
-                                <SelectTrigger className="h-6 w-20 text-xs">
-                                  <SelectValue placeholder="Select" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="critical">Critical</SelectItem>
-                                  <SelectItem value="high">High</SelectItem>
-                                  <SelectItem value="medium">Medium</SelectItem>
-                                  <SelectItem value="low">Low</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="h-6 w-6 p-0"
-                                onClick={() => savePriority(insight.id.toString())}
-                                disabled={updatePriorityMutation.isPending}
-                                data-testid={`button-save-priority-${insight.id}`}
-                              >
-                                {updatePriorityMutation.isPending ? (
-                                  <div className="w-3 h-3 border border-gray-400 border-t-transparent rounded-full animate-spin" />
-                                ) : (
-                                  <Save className="w-3 h-3" />
-                                )}
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="h-6 w-6 p-0"
-                                onClick={cancelEditingPriority}
-                                data-testid={`button-cancel-priority-${insight.id}`}
-                              >
-                                ×
-                              </Button>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-1">
-                              <Badge className={getSeverityColor(insight.severity)}>
-                                {(insight.severity || 'medium').toUpperCase()}
-                              </Badge>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="h-6 w-6 p-0 opacity-60 hover:opacity-100"
-                                onClick={() => startEditingPriority(insight.id.toString(), insight.severity || 'medium')}
-                                data-testid={`button-edit-priority-${insight.id}`}
-                              >
-                                <Edit className="w-3 h-3" />
-                              </Button>
-                            </div>
-                          )}
-                        </div>
-                        
                         <Badge variant="outline">{insight.type.replace('_', ' ')}</Badge>
                         {insight.actionRequired && (
                           <Badge variant="destructive" className="text-xs">
