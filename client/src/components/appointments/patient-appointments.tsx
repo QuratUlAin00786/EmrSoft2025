@@ -266,32 +266,169 @@ export default function PatientAppointments({
     return slots;
   };
 
-  // Get unique specialty categories from medical staff
-  const getSpecialtyCategories = () => {
-    const staffData = medicalStaffData as any;
-    if (!staffData?.staff || !Array.isArray(staffData.staff)) return [];
-    
-    const categories = new Set<string>();
-    staffData.staff.forEach((doctor: any) => {
-      if (doctor.medicalSpecialtyCategory) {
-        categories.add(doctor.medicalSpecialtyCategory);
-      }
-    });
-    return Array.from(categories).sort();
+  // Comprehensive Medical Specialties Data Structure
+  const medicalSpecialtiesData = {
+    "General & Primary Care": [
+      "General Practitioner (GP) / Family Physician",
+      "Internal Medicine",
+      "Geriatrics",
+      "Preventive Medicine",
+      "Palliative Care"
+    ],
+    "Surgical Specialties": [
+      "General Surgery",
+      "Orthopedic Surgery",
+      "Joint Replacement",
+      "Spine Surgery",
+      "Sports Medicine",
+      "Neurosurgery",
+      "Plastic & Reconstructive Surgery",
+      "Vascular Surgery",
+      "Transplant Surgery"
+    ],
+    "Heart & Circulation": [
+      "Cardiology",
+      "Interventional Cardiology",
+      "Electrophysiology",
+      "Heart Failure",
+      "Cardiothoracic Surgery",
+      "Vascular Medicine"
+    ],
+    "Women's Health": [
+      "Obstetrics",
+      "Gynecology",
+      "Reproductive Endocrinology & Infertility",
+      "Gynecologic Oncology",
+      "Maternal–Fetal Medicine",
+      "Urogynecology"
+    ],
+    "Children's Health": [
+      "Pediatrics",
+      "Neonatology",
+      "Pediatric Cardiology",
+      "Pediatric Neurology",
+      "Pediatric Oncology",
+      "Pediatric Pulmonology",
+      "Pediatric Surgery"
+    ],
+    "Brain & Nervous System": [
+      "Neurology",
+      "Epileptology",
+      "Stroke",
+      "Movement Disorders",
+      "Sleep Medicine",
+      "Multiple Sclerosis",
+      "Psychiatry",
+      "Child & Adolescent",
+      "Addiction",
+      "Geriatric",
+      "Forensic",
+      "Neuropsychiatry"
+    ],
+    "Skin, Hair & Appearance": [
+      "Dermatology",
+      "Pediatric Dermatology",
+      "Cosmetic Dermatology",
+      "Dermatopathology",
+      "Mohs Surgery",
+      "Aesthetic Medicine"
+    ],
+    "Eye & Vision": [
+      "Ophthalmology",
+      "Cataract & Refractive Surgery",
+      "Glaucoma",
+      "Retina",
+      "Cornea",
+      "Pediatric Ophthalmology",
+      "Oculoplastics"
+    ],
+    "Teeth & Mouth": [
+      "Dentistry",
+      "Oral & Maxillofacial Surgery",
+      "Orthodontics",
+      "Periodontics",
+      "Prosthodontics"
+    ],
+    "Digestive System": [
+      "Gastroenterology",
+      "Hepatology",
+      "Colorectal Surgery"
+    ],
+    "Kidneys & Urinary Tract": [
+      "Nephrology",
+      "Urology",
+      "Pediatric Urology",
+      "Oncologic Urology"
+    ],
+    "Respiratory System": [
+      "Pulmonology",
+      "Thoracic Surgery",
+      "Sleep Medicine"
+    ],
+    "Cancer": [
+      "Medical Oncology",
+      "Surgical Oncology",
+      "Radiation Oncology",
+      "Hematology-Oncology"
+    ],
+    "Endocrine & Hormones": [
+      "Endocrinology",
+      "Diabetes",
+      "Thyroid Disorders",
+      "Metabolic Disorders"
+    ],
+    "Muscles & Joints": [
+      "Rheumatology",
+      "Orthopedics",
+      "Sports Medicine"
+    ],
+    "Blood & Immunity": [
+      "Hematology",
+      "Immunology",
+      "Allergy Medicine"
+    ],
+    "Ear, Nose & Throat": [
+      "ENT",
+      "Head & Neck Surgery",
+      "Rhinology",
+      "Laryngology",
+      "Otology/Neurotology",
+      "Pediatric ENT"
+    ],
+    "Diagnostic & Imaging": [
+      "Radiology",
+      "Interventional",
+      "Neuroradiology",
+      "Pediatric Radiology",
+      "Pathology",
+      "Anatomic",
+      "Clinical",
+      "Forensic",
+      "Molecular"
+    ],
+    "Emergency & Critical Care": [
+      "Emergency Medicine",
+      "Anesthesiology",
+      "Pain Medicine",
+      "Critical Care",
+      "Cardiac Anesthesia"
+    ],
+    "Others": [
+      "Physical Medicine & Rehabilitation",
+      "Occupational Medicine",
+      "Public Health Medicine",
+      "Preventive Medicine"
+    ]
   };
 
-  // Get sub-specialties for selected category
+  // Get unique specialty categories from comprehensive data
+  const getSpecialtyCategories = () => {
+    return Object.keys(medicalSpecialtiesData).sort();
+  };
+
+  // Get sub-specialties for selected category from comprehensive data
   const getSubSpecialties = (category: string) => {
-    const staffData = medicalStaffData as any;
-    if (!staffData?.staff || !Array.isArray(staffData.staff)) return [];
-    
-    const subSpecialties = new Set<string>();
-    staffData.staff.forEach((doctor: any) => {
-      if (doctor.medicalSpecialtyCategory === category && doctor.subSpecialty) {
-        subSpecialties.add(doctor.subSpecialty);
-      }
-    });
-    return Array.from(subSpecialties).sort();
+    return medicalSpecialtiesData[category as keyof typeof medicalSpecialtiesData] || [];
   };
 
   // Get filtered doctors based on specialty selections
