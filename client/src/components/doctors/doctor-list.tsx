@@ -581,27 +581,27 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
           </div>
           
           <div className="space-y-6">
-            {/* Top row - Patient and Date & Time */}
-            <div className="grid grid-cols-2 gap-4">
-              {/* Patient Selection */}
-              <div>
-                <Label className="text-sm font-medium">
-                  Patient <span className="text-red-500">*</span>
-                </Label>
-                <Select value={selectedPatient} onValueChange={setSelectedPatient}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Select patient..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {patients?.map((patient: any) => (
-                      <SelectItem key={patient.id} value={patient.id.toString()}>
-                        {patient.firstName} {patient.lastName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            {/* Patient Selection - Full Width */}
+            <div>
+              <Label className="text-sm font-medium">
+                Patient <span className="text-red-500">*</span>
+              </Label>
+              <Select value={selectedPatient} onValueChange={setSelectedPatient}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Select patient..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {patients?.map((patient: any) => (
+                    <SelectItem key={patient.id} value={patient.id.toString()}>
+                      {patient.firstName} {patient.lastName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
+            {/* Date and Time Slots in one row */}
+            <div className="grid grid-cols-2 gap-4">
               {/* Select Date */}
               <div>
                 <Label className="text-sm font-medium">
@@ -635,9 +635,42 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
                   </PopoverContent>
                 </Popover>
               </div>
+
+              {/* Select Time Slot */}
+              {selectedDate && (
+                <div>
+                  <Label className="text-sm font-medium">
+                    Select Time Slot <span className="text-red-500">*</span>
+                  </Label>
+                  <div className="grid grid-cols-3 gap-1 mt-1 max-h-32 overflow-y-auto">
+                    {generateTimeSlots().map((slot) => {
+                      const isAvailable = isTimeSlotAvailable(slot.value);
+                      const isSelected = selectedTimeSlot === slot.value;
+                      
+                      return (
+                        <Button
+                          key={slot.value}
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setSelectedTimeSlot(slot.value)}
+                          disabled={!isAvailable}
+                          className={cn(
+                            "h-8 text-xs px-2",
+                            isSelected && "bg-blue-500 text-white hover:bg-blue-600",
+                            isAvailable && !isSelected && "bg-green-100 text-green-800 hover:bg-green-200 border-green-300",
+                            !isAvailable && "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
+                          )}
+                        >
+                          {slot.display}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Second row - Appointment Type and Duration */}
+            {/* Appointment Type and Duration */}
             <div className="grid grid-cols-2 gap-4">
               {/* Appointment Type */}
               <div>
@@ -672,39 +705,6 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
                 </Select>
               </div>
             </div>
-
-            {/* Select Time Slot */}
-            {selectedDate && (
-              <div>
-                <Label className="text-sm font-medium">
-                  Select Time Slot <span className="text-red-500">*</span>
-                </Label>
-                <div className="grid grid-cols-4 gap-2 mt-2">
-                  {generateTimeSlots().map((slot) => {
-                    const isAvailable = isTimeSlotAvailable(slot.value);
-                    const isSelected = selectedTimeSlot === slot.value;
-                    
-                    return (
-                      <Button
-                        key={slot.value}
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setSelectedTimeSlot(slot.value)}
-                        disabled={!isAvailable}
-                        className={cn(
-                          "h-10 text-xs",
-                          isSelected && "bg-blue-500 text-white hover:bg-blue-600",
-                          isAvailable && !isSelected && "bg-green-100 text-green-800 hover:bg-green-200 border-green-300",
-                          !isAvailable && "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
-                        )}
-                      >
-                        {slot.display}
-                      </Button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
 
             {/* Title */}
             <div>
