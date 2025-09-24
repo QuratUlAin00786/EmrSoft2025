@@ -110,10 +110,24 @@ export function Sidebar() {
   };
 
   // Filter navigation based on user role permissions
-  const filteredNavigation = ALL_NAVIGATION.filter(item => canAccess(item.module));
-  const filteredAdminNavigation = ADMIN_NAVIGATION.filter(item => canAccess(item.module));
-  
   const currentRole = getUserRole();
+  
+  // Items to hide from Patient role users
+  const patientHiddenItems = ["Mobile Health", "Financial Intelligence", "QuickBooks", "GDPR Compliance"];
+  
+  const filteredNavigation = ALL_NAVIGATION.filter(item => {
+    // First check role permissions
+    if (!canAccess(item.module)) return false;
+    
+    // Hide specific items from Patient role users
+    if (currentRole === "patient" && patientHiddenItems.includes(item.name)) {
+      return false;
+    }
+    
+    return true;
+  });
+  
+  const filteredAdminNavigation = ADMIN_NAVIGATION.filter(item => canAccess(item.module));
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
