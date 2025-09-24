@@ -8022,7 +8022,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (medicalImage.fileName) {
         const imagePath = path.join('./uploads/Imaging_Images', medicalImage.fileName);
         try {
-          await fs.unlink(imagePath);
+          await fs.promises.unlink(imagePath);
           console.log(`Deleted image file: ${imagePath}`);
         } catch (fileError: any) {
           if (fileError.code !== 'ENOENT') {
@@ -8035,7 +8035,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (medicalImage.reportFileName) {
         const pdfPath = path.join('./uploads/Imaging_Images', medicalImage.reportFileName);
         try {
-          await fs.unlink(pdfPath);
+          await fs.promises.unlink(pdfPath);
           console.log(`Deleted PDF file: ${pdfPath}`);
         } catch (fileError: any) {
           if (fileError.code !== 'ENOENT') {
