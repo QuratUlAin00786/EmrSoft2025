@@ -71,7 +71,7 @@ export default function PatientAppointments({
   const { data: appointmentsData, isLoading: appointmentsLoading } = useQuery({
     queryKey: [
       "/api/appointments",
-      user?.role === "Patient" ? "patient-filtered" : "all",
+      user?.role === "patient" ? "patient-filtered" : "all",
     ],
     staleTime: 30000,
     refetchInterval: 60000,
@@ -513,7 +513,7 @@ export default function PatientAppointments({
       </div>
 
       {/* Medical Specialties Display - Only show for Patient role users */}
-      {user?.role === "Patient" && filteredAppointments.length > 0 && (
+      {user?.role === "patient" && filteredAppointments.length > 0 && (
         <div className="bg-gray-50 rounded-lg p-4 space-y-2">
           <h4 className="text-sm font-medium text-gray-700 mb-2">
             Medical Specialties:
