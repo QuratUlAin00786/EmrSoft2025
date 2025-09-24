@@ -2378,7 +2378,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   };
 
-  app.post("/api/appointments", requireRole(["doctor", "nurse", "receptionist", "admin"]), async (req: TenantRequest, res) => {
+  app.post("/api/appointments", requireRole(["doctor", "nurse", "receptionist", "admin", "patient"]), async (req: TenantRequest, res) => {
     try {
       console.log("Appointment creation request received:", req.body);
       console.log("Tenant ID:", req.tenant?.id);
