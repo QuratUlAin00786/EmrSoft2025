@@ -244,9 +244,9 @@ export default function CalendarPage() {
     }
   }, [user, patients]);
   
-  // Fetch medical staff for doctor selection - using the correct endpoint
-  const { data: medicalStaffData, isLoading: isLoadingStaff, error: staffError } = useQuery<any>({
-    queryKey: ["/api/medical-staff"],
+  // Fetch doctors directly from database for appointment booking
+  const { data: doctorsData, isLoading: isLoadingDoctors, error: doctorsError } = useQuery<any>({
+    queryKey: ["/api/doctors"],
     retry: 3,
     staleTime: 0, // Force fresh requests
     cacheTime: 0, // Don't cache failed results
@@ -254,33 +254,33 @@ export default function CalendarPage() {
     refetchOnMount: true, // Always refetch on mount
     refetchOnWindowFocus: false,
     queryFn: async () => {
-      console.log('🔄 MEDICAL STAFF: Starting fetch for user:', user?.email, 'role:', user?.role);
+      console.log('🔄 DIRECT DOCTORS: Starting fetch for user:', user?.email, 'role:', user?.role);
       try {
-        const response = await apiRequest('GET', '/api/medical-staff');
-        console.log('🔄 MEDICAL STAFF: Response status:', response.status);
+        const response = await apiRequest('GET', '/api/doctors');
+        console.log('🔄 DIRECT DOCTORS: Response status:', response.status);
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
         const data = await response.json();
-        console.log('📋 MEDICAL STAFF: Success response:', data);
+        console.log('📋 DIRECT DOCTORS: Success response:', data);
         return data;
       } catch (error) {
-        console.error('❌ MEDICAL STAFF: Fetch error:', error);
+        console.error('❌ DIRECT DOCTORS: Fetch error:', error);
         throw error;
       }
     },
   });
   
-  // Extract doctors from medical staff data - memoized to prevent infinite re-renders
+  // Extract doctors from direct database query - memoized to prevent infinite re-renders
   const allDoctors = useMemo(() => {
-    console.log('🏥 Processing medical staff data:', medicalStaffData);
-    console.log('🏥 Staff error:', staffError);
-    console.log('🏥 Is loading staff:', isLoadingStaff);
+    console.log('🏥 Processing direct doctors data:', doctorsData);
+    console.log('🏥 Doctors error:', doctorsError);
+    console.log('🏥 Is loading doctors:', isLoadingDoctors);
     
-    const doctors = medicalStaffData?.staff || [];
-    console.log('👨‍⚕️ Extracted doctors:', doctors.length, doctors);
+    const doctors = doctorsData?.doctors || [];
+    console.log('👨‍⚕️ Extracted doctors from direct query:', doctors.length, doctors);
     return doctors;
-  }, [medicalStaffData, staffError, isLoadingStaff]);
+  }, [doctorsData, doctorsError, isLoadingDoctors]);
   
   // Query for filtered appointments
   const { data: allAppointments = [] } = useQuery<any[]>({
@@ -376,7 +376,7 @@ export default function CalendarPage() {
   const filterDoctorsBySpecialty = () => {
     if (!Array.isArray(allDoctors) || allDoctors.length === 0) {
       console.log('⚠️ No doctors available for filtering. Array check:', Array.isArray(allDoctors), 'Length:', allDoctors?.length);
-      console.log('⚠️ Is loading staff:', isLoadingStaff, 'Staff error:', staffError);
+      console.log('⚠️ Is loading doctors:', isLoadingDoctors, 'Doctors error:', doctorsError);
       setFilteredDoctors([]);
       return [];
     }
