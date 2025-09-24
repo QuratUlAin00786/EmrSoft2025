@@ -292,6 +292,7 @@ export default function ImagingPage() {
     specialInstructions: "",
   });
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [showImageViewer, setShowImageViewer] = useState(false);
   const [selectedImageSeries, setSelectedImageSeries] = useState<any>(null);
   const [deletedStudyIds, setDeletedStudyIds] = useState<Set<string>>(
@@ -666,6 +667,7 @@ export default function ImagingPage() {
       
       setShowEditImageDialog(false);
       setSelectedFiles([]);
+      setUploadedFile(null);
       setEditingStudyId(null);
       
       toast({
@@ -1142,10 +1144,17 @@ export default function ImagingPage() {
   };
 
   const handleReplaceImage = () => {
-    if (editingStudyId && selectedFiles.length > 0) {
+    if (selectedFiles.length > 0) {
+      // Just upload/preview the file, don't save yet
+      setUploadedFile(selectedFiles[0]);
+    }
+  };
+
+  const handleSaveImage = () => {
+    if (editingStudyId && uploadedFile) {
       replaceImageMutation.mutate({
         studyId: editingStudyId,
-        file: selectedFiles[0],
+        file: uploadedFile,
       });
     }
   };
@@ -3936,9 +3945,19 @@ export default function ImagingPage() {
             <DialogTitle>Replace Medical Image</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <p className="text-sm text-gray-600">
-              Select a new image file to replace the existing medical image. This will update the file name and other information in the database.
-            </p>
+            {!uploadedFile ? (
+              <p className="text-sm text-gray-600">
+                Select a new image file to replace the existing medical image. This will update the file name and other information in the database.
+              </p>
+            ) : (
+              <div className="p-3 bg-green-50 border border-green-200 rounded-md">
+                <p className="text-sm text-green-800">
+                  ✓ File ready to replace: <strong>{uploadedFile.name}</strong> 
+                  <br />
+                  Click "Save Image" to confirm the replacement.
+                </p>
+              </div>
+            )}
             
             <div>
               <Label htmlFor="replacement-file">Select New Image File</Label>
@@ -3967,26 +3986,38 @@ export default function ImagingPage() {
                 onClick={() => {
                   setShowEditImageDialog(false);
                   setSelectedFiles([]);
+                  setUploadedFile(null);
                   setEditingStudyId(null);
                 }}
                 data-testid="button-cancel-edit"
               >
                 Cancel
               </Button>
-              <Button
-                onClick={handleReplaceImage}
-                disabled={selectedFiles.length === 0 || replaceImageMutation.isPending}
-                data-testid="button-confirm-replace"
-              >
-                {replaceImageMutation.isPending ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Replacing...
-                  </>
-                ) : (
-                  'Replace Image'
-                )}
-              </Button>
+              
+              {!uploadedFile ? (
+                <Button
+                  onClick={handleReplaceImage}
+                  disabled={selectedFiles.length === 0}
+                  data-testid="button-confirm-replace"
+                >
+                  Replace Image
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleSaveImage}
+                  disabled={replaceImageMutation.isPending}
+                  data-testid="button-save-image"
+                >
+                  {replaceImageMutation.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    'Save Image'
+                  )}
+                </Button>
+              )}
             </div>
           </div>
         </DialogContent>
