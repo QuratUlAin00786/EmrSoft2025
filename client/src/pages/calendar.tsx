@@ -249,14 +249,25 @@ export default function CalendarPage() {
     queryKey: ["/api/medical-staff"],
     retry: 3,
     staleTime: 0, // Force fresh requests
+    cacheTime: 0, // Don't cache failed results
     enabled: true, // Ensure query is enabled
     refetchOnMount: true, // Always refetch on mount
+    refetchOnWindowFocus: false,
     queryFn: async () => {
-      console.log('🔄 Fetching medical staff data...');
-      const response = await apiRequest('GET', '/api/medical-staff');
-      const data = await response.json();
-      console.log('📋 Medical staff response:', data);
-      return data;
+      console.log('🔄 MEDICAL STAFF: Starting fetch for user:', user?.email, 'role:', user?.role);
+      try {
+        const response = await apiRequest('GET', '/api/medical-staff');
+        console.log('🔄 MEDICAL STAFF: Response status:', response.status);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        const data = await response.json();
+        console.log('📋 MEDICAL STAFF: Success response:', data);
+        return data;
+      } catch (error) {
+        console.error('❌ MEDICAL STAFF: Fetch error:', error);
+        throw error;
+      }
     },
   });
   
