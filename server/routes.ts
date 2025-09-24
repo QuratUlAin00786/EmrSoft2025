@@ -3177,23 +3177,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       medicalStaff = medicalStaff.filter(user => {
-          // For doctors specifically, check if they are available today
+          // For doctors specifically, apply minimal restrictions for patient access
           if (user.role === 'doctor') {
             console.log(`Checking doctor: ${user.firstName} ${user.lastName} (ID: ${user.id})`);
             
-            // If this is an appointment booking request (specialty filtering is being used),
-            // show doctors who have working days scheduled (for future bookings)
+            // If this is a specialty filtering request (for doctor selection/browsing),
+            // show ALL active doctors regardless of working days or shifts
+            // This allows patients to freely browse and select doctors by specialty
             if (specialty || subSpecialty) {
-              const hasWorkingDays = user.workingDays && user.workingDays.length > 0;
-              console.log(`  - Appointment booking mode: Has working days: ${hasWorkingDays}`);
-              console.log(`  - Working days: ${user.workingDays || 'none'}`);
-              // For appointment booking, show doctors who have any working days set
-              const isBookable = hasWorkingDays || true; // Default to true if no working days set
-              console.log(`  - Bookable for appointments: ${isBookable}`);
-              return isBookable;
+              console.log(`  - Specialty filtering mode: showing all active doctors for patient access`);
+              console.log(`  - Doctor is active: ${user.isActive}`);
+              // Return all active doctors for specialty browsing - no working day restrictions
+              return user.isActive;
             }
             
-            // For non-appointment booking requests, use the original availability logic
+            // For non-specialty filtering requests (like dashboard/shift management), 
+            // use the original availability logic
             // Check if doctor has a shift today and is marked as available
             const todayShift = todayShifts.find(shift => shift.staffId === user.id);
             
