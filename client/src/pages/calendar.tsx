@@ -247,6 +247,17 @@ export default function CalendarPage() {
   // Fetch medical staff for doctor selection - using the correct endpoint
   const { data: medicalStaffData, isLoading: isLoadingStaff, error: staffError } = useQuery<any>({
     queryKey: ["/api/medical-staff"],
+    queryFn: async () => {
+      const response = await fetch("/api/medical-staff", {
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem('auth_token')}`,
+          "X-Tenant-Subdomain": "demo"
+        },
+        credentials: "include"
+      });
+      if (!response.ok) throw new Error("Failed to fetch medical staff");
+      return response.json();
+    },
     retry: 3,
     staleTime: 60000,
     enabled: true, // Ensure query is enabled
