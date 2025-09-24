@@ -1257,7 +1257,7 @@ export default function ImagingPage() {
       };
 
       // Add authorization token if available
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("auth_token");
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
       }
@@ -1311,7 +1311,7 @@ export default function ImagingPage() {
       };
 
       // Add authorization token if available
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("auth_token");
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
       }
