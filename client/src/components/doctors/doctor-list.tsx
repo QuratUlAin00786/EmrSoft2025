@@ -41,7 +41,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { format, isBefore, startOfDay } from "date-fns";
 
 interface DoctorListProps {
   onSelectDoctor?: (doctor: Doctor) => void;
@@ -732,7 +732,15 @@ export function DoctorList({
                       )}
                     </div>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0"></PopoverContent>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={setSelectedDate}
+                      disabled={(date) => isBefore(date, startOfDay(new Date()))}
+                      initialFocus
+                    />
+                  </PopoverContent>
                 </Popover>
               </div>
 

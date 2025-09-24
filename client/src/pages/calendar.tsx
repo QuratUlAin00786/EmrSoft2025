@@ -249,7 +249,7 @@ export default function CalendarPage() {
     queryKey: ["/api/medical-staff"],
     retry: 3,
     staleTime: 0, // Force fresh requests
-    cacheTime: 0, // Don't cache failed results
+    gcTime: 0, // Don't cache failed results
     enabled: true, // Ensure query is enabled
     refetchOnMount: true, // Always refetch on mount
   });
@@ -260,7 +260,7 @@ export default function CalendarPage() {
     console.log('🏥 Staff error:', staffError);
     console.log('🏥 Is loading staff:', isLoadingStaff);
     
-    const doctors = medicalStaffData?.staff || [];
+    const doctors = medicalStaffData || [];
     console.log('👨‍⚕️ Extracted doctors:', doctors.length, doctors);
     return doctors;
   }, [medicalStaffData, staffError, isLoadingStaff]);
