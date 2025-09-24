@@ -38,7 +38,8 @@ import {
   ArrowLeft,
   Plus,
   Trash2,
-  Save
+  Save,
+  Edit
 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -49,10 +50,6 @@ const createInsightSchema = insertAiInsightSchema.omit({
   organizationId: true,
   id: true,
   createdAt: true
-}).extend({
-  symptoms: z.string().optional(),
-  history: z.string().optional(),
-  confidence: z.string().transform((val) => val.toString()) // Ensure confidence is always a string
 });
 
 type CreateInsightForm = z.infer<typeof createInsightSchema>;
@@ -83,6 +80,8 @@ export default function ClinicalDecisionSupport() {
   const [symptoms, setSymptoms] = useState<string>("");
   const [history, setHistory] = useState<string>("");
   const [buttonLoadingStates, setButtonLoadingStates] = useState<Record<string, string | null>>({});
+  const [editingSeverity, setEditingSeverity] = useState<string | null>(null);
+  const [tempSeverity, setTempSeverity] = useState<string>("");
   const { toast } = useToast();
   const [location, setLocation] = useLocation();
 
@@ -99,9 +98,10 @@ export default function ClinicalDecisionSupport() {
       severity: "medium",
       actionRequired: false,
       confidence: "0.8", // String as per database schema
-      symptoms: "",
-      history: "",
-      patientId: undefined // Required field for form validation
+      patientId: undefined, // Required field for form validation
+      metadata: {},
+      status: "active",
+      aiStatus: "pending"
     }
   });
 
@@ -218,62 +218,52 @@ export default function ClinicalDecisionSupport() {
   // Mock data definitions (must be defined before useQuery hooks)
   const mockInsights: ClinicalInsight[] = [
     {
-      id: "insight_1",
-      patientId: "patient_1",
+      id: 1,
+      organizationId: 2,
+      patientId: 1,
       patientName: "Sarah Johnson",
       type: "drug_interaction",
-      priority: "high",
       title: "Potential Drug Interaction Alert",
       description: "Warfarin and Amoxicillin combination may increase bleeding risk",
-      recommendations: [
-        "Monitor INR more frequently (every 2-3 days)",
-        "Consider alternative antibiotic if possible",
-        "Educate patient on bleeding signs",
-        "Document interaction in patient record"
-      ],
-      confidence: 92,
-      evidenceLevel: "A",
-      createdAt: "2024-06-26T14:30:00Z",
-      status: "active",
-      provider: "Dr. Emily Watson",
-      relatedConditions: ["Atrial Fibrillation", "Upper Respiratory Infection"],
-      supportingData: {
-        medications: [
-          { name: "Warfarin", dosage: "5mg", frequency: "Daily", interactions: ["Amoxicillin"] },
-          { name: "Amoxicillin", dosage: "500mg", frequency: "TID", interactions: ["Warfarin"] }
+      severity: "high",
+      actionRequired: true,
+      confidence: "0.92",
+      metadata: {
+        relatedConditions: ["Atrial Fibrillation", "Upper Respiratory Infection"],
+        suggestedActions: [
+          "Monitor INR more frequently (every 2-3 days)",
+          "Consider alternative antibiotic if possible",
+          "Educate patient on bleeding signs",
+          "Document interaction in patient record"
         ]
-      }
+      },
+      status: "active",
+      aiStatus: "pending",
+      createdAt: new Date("2024-06-26T14:30:00Z")
     },
     {
-      id: "insight_2",
-      patientId: "patient_2",
+      id: 2,
+      organizationId: 2,
+      patientId: 2,
       patientName: "Michael Chen",
-      type: "risk_assessment",
-      priority: "medium",
+      type: "risk_alert",
       title: "Cardiovascular Risk Assessment",
       description: "Patient shows elevated 10-year cardiovascular risk based on current factors",
-      recommendations: [
-        "Initiate statin therapy",
-        "Lifestyle counseling for diet and exercise",
-        "Blood pressure monitoring",
-        "Follow-up in 3 months"
-      ],
-      confidence: 87,
-      evidenceLevel: "A",
-      createdAt: "2024-06-26T13:15:00Z",
-      status: "active",
-      relatedConditions: ["Hypertension", "Hyperlipidemia"],
-      supportingData: {
-        labValues: [
-          { name: "Total Cholesterol", value: "285 mg/dL", reference: "<200", status: "abnormal" },
-          { name: "LDL", value: "185 mg/dL", reference: "<100", status: "abnormal" },
-          { name: "HDL", value: "35 mg/dL", reference: ">40", status: "abnormal" }
-        ],
-        vitalSigns: [
-          { parameter: "Blood Pressure", value: "145/92 mmHg", trend: "worsening" },
-          { parameter: "BMI", value: "28.5", trend: "stable" }
+      severity: "medium",
+      actionRequired: false,
+      confidence: "0.87",
+      metadata: {
+        relatedConditions: ["Hypertension", "Hyperlipidemia"],
+        suggestedActions: [
+          "Initiate statin therapy",
+          "Lifestyle counseling for diet and exercise",
+          "Blood pressure monitoring",
+          "Follow-up in 3 months"
         ]
-      }
+      },
+      status: "active",
+      aiStatus: "reviewed",
+      createdAt: new Date("2024-06-26T13:15:00Z")
     }
   ];
 
@@ -407,6 +397,31 @@ export default function ClinicalDecisionSupport() {
     }
   });
 
+  // Update severity mutation
+  const updateSeverityMutation = useMutation({
+    mutationFn: async (data: { insightId: string; severity: string }) => {
+      return apiRequest("PATCH", `/api/ai-insights/${data.insightId}`, { severity: data.severity });
+    },
+    onSuccess: (data, variables) => {
+      toast({
+        title: "Severity Updated",
+        description: `Severity changed to ${variables.severity}`,
+      });
+      // Auto-update UI by invalidating and refetching insights
+      queryClient.invalidateQueries({ queryKey: ["/api/ai-insights"] });
+      refetchInsights();
+      setEditingSeverity(null);
+      setTempSeverity("");
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Update Failed",
+        description: error.message || "Failed to update severity",
+        variant: "destructive"
+      });
+    }
+  });
+
   // Generate new insight mutation (keep existing for AI generation)
   const generateInsightMutation = useMutation({
     mutationFn: async (data: { patientId: string; symptoms: string; history: string }) => {
@@ -529,6 +544,23 @@ export default function ClinicalDecisionSupport() {
       case "moderate": return "text-yellow-600";
       case "low": return "text-green-600";
       default: return "text-gray-600";
+    }
+  };
+
+  // Helper functions for severity editing
+  const startEditingSeverity = (insightId: string, currentSeverity: string) => {
+    setEditingSeverity(insightId);
+    setTempSeverity(currentSeverity);
+  };
+
+  const cancelEditingSeverity = () => {
+    setEditingSeverity(null);
+    setTempSeverity("");
+  };
+
+  const saveSeverity = (insightId: string) => {
+    if (tempSeverity && tempSeverity !== "") {
+      updateSeverityMutation.mutate({ insightId, severity: tempSeverity });
     }
   };
 
@@ -947,9 +979,61 @@ export default function ClinicalDecisionSupport() {
                   <div className="flex justify-between items-start">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <Badge className={getSeverityColor(insight.severity)}>
-                          {insight.severity.toUpperCase()}
-                        </Badge>
+                        <div className="flex items-center gap-1">
+                          {editingSeverity === insight.id.toString() ? (
+                            <div className="flex items-center gap-1">
+                              <Select value={tempSeverity} onValueChange={setTempSeverity}>
+                                <SelectTrigger className="w-24 h-6 text-xs">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="critical">Critical</SelectItem>
+                                  <SelectItem value="high">High</SelectItem>
+                                  <SelectItem value="medium">Medium</SelectItem>
+                                  <SelectItem value="low">Low</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 w-6 p-0"
+                                onClick={() => saveSeverity(insight.id.toString())}
+                                disabled={updateSeverityMutation.isPending}
+                                data-testid={`button-save-severity-${insight.id}`}
+                              >
+                                {updateSeverityMutation.isPending ? (
+                                  <div className="w-3 h-3 border border-gray-400 border-t-transparent rounded-full animate-spin" />
+                                ) : (
+                                  <Save className="w-3 h-3" />
+                                )}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 w-6 p-0"
+                                onClick={cancelEditingSeverity}
+                                data-testid={`button-cancel-severity-${insight.id}`}
+                              >
+                                ×
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1">
+                              <Badge className={getSeverityColor(insight.severity)}>
+                                {insight.severity.toUpperCase()}
+                              </Badge>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 w-6 p-0 opacity-60 hover:opacity-100"
+                                onClick={() => startEditingSeverity(insight.id.toString(), insight.severity)}
+                                data-testid={`button-edit-severity-${insight.id}`}
+                              >
+                                <Edit className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          )}
+                        </div>
                         <Badge variant="outline">{insight.type.replace('_', ' ')}</Badge>
                         {insight.actionRequired && (
                           <Badge variant="destructive" className="text-xs">
