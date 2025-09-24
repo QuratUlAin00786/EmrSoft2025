@@ -233,7 +233,7 @@ const uploadVoiceNote = multer({
   }
 });
 
-// Configure disk storage specifically for medical images
+// Configure disk storage specifically for medical images  
 const uploadMedicalImages = multer({
   storage: multer.diskStorage({
     destination: (req, file, cb) => {
@@ -285,6 +285,64 @@ const uploadMedicalImages = multer({
         console.error('📷 SERVER: Error generating unique filename:', error);
         cb(new Error('Failed to generate unique filename'), '');
       }
+    }
+  }),
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50MB limit for medical images
+  },
+  fileFilter: (req, file, cb) => {
+    // Accept medical image files
+    const allowedTypes = [
+      'image/jpeg',
+      'image/jpg', 
+      'image/png',
+      'image/gif',
+      'image/bmp',
+      'image/tiff',
+      'image/tif',
+      'image/webp',
+      'image/svg+xml',
+      'image/x-icon',
+      'application/dicom', // DICOM files
+      'application/octet-stream' // For .dcm files
+    ];
+    
+    if (allowedTypes.includes(file.mimetype) || 
+        file.originalname.toLowerCase().endsWith('.dcm') ||
+        file.originalname.toLowerCase().endsWith('.dicom')) {
+      cb(null, true);
+    } else {
+      cb(null, false);
+    }
+  }
+});
+
+// Configure disk storage for replace operations - uses temp filename initially
+const uploadReplaceImages = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      const uploadDir = path.join(process.cwd(), 'uploads', 'Imaging_Images');
+      
+      // Create directory if it doesn't exist
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+        console.log('📁 Created directory:', uploadDir);
+      }
+      
+      cb(null, uploadDir);
+    },
+    filename: (req, file, cb) => {
+      // Use temporary filename for replace operations
+      // We'll rename it to the correct filename after upload
+      const ext = file.originalname.split('.').pop();
+      const tempFilename = `temp_replace_${Date.now()}.${ext}`;
+      
+      console.log('🔄 SERVER: Creating temporary filename for replace:', {
+        originalName: file.originalname,
+        tempFilename: tempFilename
+      });
+      
+      cb(null, tempFilename);
     }
   }),
   limits: {
@@ -8016,7 +8074,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Replace medical image file  
-  app.put("/api/medical-images/:id/replace", authMiddleware, async (req: TenantRequest, res) => {
+  app.put("/api/medical-images/:id/replace", authMiddleware, uploadReplaceImages.single('file'), async (req: TenantRequest, res) => {
     try {
       const imageId = parseInt(req.params.id);
       if (isNaN(imageId)) {
@@ -8025,6 +8083,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (!req.user) {
         return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
       }
 
       // Get the existing medical image from database first to get patient ID
@@ -8042,83 +8104,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('🔄 SERVER: Replace request for existing image:', {
         imageId,
         existingFileName: existingImage.fileName,
+        tempFileName: req.file.filename,
         patientId: patient.id,
         patientStringId: patient.patientId
       });
 
-      // Handle file upload manually with patient context
-      const upload = uploadMedicalImages.single('file');
+      // Generate the correct filename based on patient info
+      const ext = req.file.originalname.split('.').pop();
+      const correctFilename = `${patient.patientId}_Images.${ext}`;
       
-      // Add patient ID to request body for multer filename generation
-      req.body.patientId = patient.id.toString();
-      
-      // Process the upload
-      upload(req, res, async (err) => {
-        if (err) {
-          console.error('🔄 SERVER: Upload error:', err);
-          return res.status(400).json({ error: err.message });
-        }
+      const imagingImagesDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Images');
+      const tempFilePath = path.join(imagingImagesDir, req.file.filename);
+      const correctFilePath = path.join(imagingImagesDir, correctFilename);
 
-        const file = req.file;
-        if (!file) {
-          console.log('🔄 SERVER: No file received after upload processing');
-          return res.status(400).json({ error: "No file uploaded" });
-        }
-
-        console.log('🔄 SERVER: File processed successfully:', {
-          originalName: file.originalname,
-          filename: file.filename,
-          size: file.size
-        });
-
+      // Delete old file from filesystem if it exists
+      if (existingImage.fileName) {
         try {
-          // Delete old file from filesystem if it exists
-          if (existingImage.fileName) {
-            try {
-              const imagingImagesDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Images');
-              const oldFilePath = path.join(imagingImagesDir, existingImage.fileName);
-              if (await fse.pathExists(oldFilePath)) {
-                await fse.remove(oldFilePath);
-                console.log('📷 SERVER: Deleted old image file:', existingImage.fileName);
-              }
-            } catch (deleteError) {
-              console.error('📷 SERVER: Error deleting old image file:', deleteError);
-              // Continue with replacement even if old file deletion fails
-            }
+          const oldFilePath = path.join(imagingImagesDir, existingImage.fileName);
+          if (await fse.pathExists(oldFilePath)) {
+            await fse.remove(oldFilePath);
+            console.log('📷 SERVER: Deleted old image file:', existingImage.fileName);
           }
-
-          // Update database record with new file information
-          const updateData = {
-            fileName: file.filename, // Use the unique filename generated by multer
-            fileUrl: `/uploads/Imaging_Images/${file.filename}`,
-            fileSize: file.size,
-            mimeType: file.mimetype,
-            uploadedBy: req.user!.id,
-            // Keep other existing fields unchanged
-            imageData: null // Clear any base64 data since we're using filesystem storage
-          };
-
-          const success = await storage.updateMedicalImage(imageId, req.tenant!.id, updateData);
-          
-          if (!success) {
-            return res.status(500).json({ error: "Failed to update medical image record" });
-          }
-
-          console.log('📷 SERVER: Successfully replaced image file:', file.filename);
-
-          // Return the updated image information
-          const updatedImage = await storage.getMedicalImage(imageId, req.tenant!.id);
-          res.json({ 
-            success: true, 
-            image: updatedImage,
-            originalName: file.originalname,
-            uniqueFilename: file.filename
-          });
-        } catch (error) {
-          console.error("Error in replace callback:", error);
-          res.status(500).json({ error: "Failed to replace medical image" });
+        } catch (deleteError) {
+          console.error('📷 SERVER: Error deleting old image file:', deleteError);
+          // Continue with replacement even if old file deletion fails
         }
+      }
+
+      // Rename temp file to correct filename
+      try {
+        await fse.move(tempFilePath, correctFilePath);
+        console.log('🔄 SERVER: Renamed temp file to correct filename:', {
+          from: req.file.filename,
+          to: correctFilename
+        });
+      } catch (renameError) {
+        console.error('🔄 SERVER: Error renaming temp file:', renameError);
+        return res.status(500).json({ error: "Failed to rename uploaded file" });
+      }
+
+      // Update database record with new file information
+      const updateData = {
+        fileName: correctFilename, // Use the correct filename
+        fileUrl: `/uploads/Imaging_Images/${correctFilename}`,
+        fileSize: req.file.size,
+        mimeType: req.file.mimetype,
+        uploadedBy: req.user.id,
+        // Keep other existing fields unchanged
+        imageData: null // Clear any base64 data since we're using filesystem storage
+      };
+
+      const success = await storage.updateMedicalImage(imageId, req.tenant!.id, updateData);
+      
+      if (!success) {
+        return res.status(500).json({ error: "Failed to update medical image record" });
+      }
+
+      console.log('📷 SERVER: Successfully replaced image file:', correctFilename);
+
+      // Return the updated image information
+      const updatedImage = await storage.getMedicalImage(imageId, req.tenant!.id);
+      res.json({ 
+        success: true, 
+        image: updatedImage,
+        originalName: req.file.originalname,
+        uniqueFilename: correctFilename
       });
+
     } catch (error) {
       console.error("Error replacing medical image:", error);
       res.status(500).json({ error: "Failed to replace medical image" });
