@@ -631,11 +631,28 @@ export default function ImagingPage() {
       const formData = new FormData();
       formData.append('file', file);
       
-      const response = await apiRequest(
-        "PUT",
-        `/api/medical-images/${studyId}/replace`,
-        formData,
-      );
+      // Manual fetch to handle FormData properly (apiRequest doesn't work with FormData)
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'X-Tenant-Subdomain': 'demo'
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch(`/api/medical-images/${studyId}/replace`, {
+        method: 'PUT',
+        headers,
+        body: formData,
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`${response.status}: ${errorText}`);
+      }
+      
       return response.json();
     },
     onSuccess: async () => {
