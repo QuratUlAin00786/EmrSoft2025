@@ -11,27 +11,34 @@ export function PatientDashboard() {
   const { user } = useAuth();
   const [isChatbotOpen, setIsChatbotOpen] = useState(false);
   
-  const { data: patientAppointments } = useQuery({
+  const { data: appointmentsData } = useQuery({
     queryKey: ["/api/patients/my-appointments"],
   });
 
-  const { data: prescriptions } = useQuery({
+  const { data: prescriptionsData } = useQuery({
     queryKey: ["/api/patients/my-prescriptions"],
   });
+
+  // Extract data from API responses with proper type checking
+  const patientAppointments = (appointmentsData as any)?.appointments || [];
+  const nextAppointment = (appointmentsData as any)?.nextAppointment;
+  const prescriptions = (prescriptionsData as any)?.prescriptions || [];
+  const totalPrescriptions = (prescriptionsData as any)?.totalCount || 0;
+  const patientId = (prescriptionsData as any)?.patientId || (appointmentsData as any)?.patientId;
 
   const patientCards = [
     {
       title: "Next Appointment",
-      value: patientAppointments?.length > 0 ? "Tomorrow" : "None",
-      description: patientAppointments?.length > 0 ? "Cardiology Consultation" : "Schedule one today",
+      value: nextAppointment ? new Date(nextAppointment.scheduledAt).toLocaleDateString() : "None",
+      description: nextAppointment ? nextAppointment.provider : "Schedule one today",
       icon: Calendar,
       href: "/appointments",
       color: "bg-blue-100 text-blue-800"
     },
     {
       title: "Active Prescriptions",
-      value: prescriptions?.length || "0",
-      description: "Current medications",
+      value: totalPrescriptions.toString(),
+      description: patientId ? `Patient ID: ${patientId}` : "Current medications",
       icon: Pill,
       href: "/prescriptions",
       color: "bg-green-100 text-green-800"
@@ -126,11 +133,11 @@ export function PatientDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {patientAppointments?.length > 0 ? (
+              {patientAppointments.length > 0 ? (
                 patientAppointments.slice(0, 3).map((appointment: any, index: number) => (
                   <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
                     <div>
-                      <p className="font-medium">{appointment.title}</p>
+                      <p className="font-medium">{appointment.title || appointment.type || 'Appointment'}</p>
                       <p className="text-sm text-neutral-600">{appointment.provider}</p>
                     </div>
                     <div className="text-right">

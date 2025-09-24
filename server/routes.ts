@@ -9818,6 +9818,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Patient Dashboard endpoints
+  app.get("/api/patients/my-appointments", authMiddleware, requireRole(["patient"]), async (req: TenantRequest, res) => {
+    try {
+      // Find the patient record by the authenticated user's email
+      const patients = await storage.getPatientsByOrganization(req.tenant!.id, 100);
+      const patient = patients.find(p => p.email === req.user!.email);
+      
+      if (!patient) {
+        return res.status(404).json({ error: "Patient record not found for authenticated user" });
+      }
+      
+      const appointments = await storage.getAppointmentsByPatient(patient.id, req.tenant!.id);
+      
+      // Filter to future appointments and sort by date
+      const now = new Date();
+      const futureAppointments = appointments
+        .filter(apt => new Date(apt.scheduledAt) > now)
+        .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime());
+      
+      // Get provider information for appointments
+      const users = await storage.getUsersByOrganization(req.tenant!.id);
+      const appointmentsWithProviders = futureAppointments.map(apt => {
+        const provider = users.find(u => u.id === apt.providerId);
+        return {
+          ...apt,
+          provider: provider ? `Dr. ${provider.firstName} ${provider.lastName}` : 'Unknown Provider'
+        };
+      });
+      
+      res.json({
+        appointments: appointmentsWithProviders,
+        nextAppointment: appointmentsWithProviders[0] || null,
+        patientId: patient.id
+      });
+    } catch (error) {
+      console.error("Error fetching patient appointments:", error);
+      res.status(500).json({ error: "Failed to load appointments" });
+    }
+  });
+
+  app.get("/api/patients/my-prescriptions", authMiddleware, requireRole(["patient"]), async (req: TenantRequest, res) => {
+    try {
+      // Find the patient record by the authenticated user's email
+      const patients = await storage.getPatientsByOrganization(req.tenant!.id, 100);
+      const patient = patients.find(p => p.email === req.user!.email);
+      
+      if (!patient) {
+        return res.status(404).json({ error: "Patient record not found for authenticated user" });
+      }
+      
+      const prescriptions = await storage.getPrescriptionsByPatient(patient.id, req.tenant!.id);
+      
+      res.json({
+        prescriptions,
+        totalCount: prescriptions.length,
+        patientId: patient.id
+      });
+    } catch (error) {
+      console.error("Error fetching patient prescriptions:", error);
+      res.status(500).json({ error: "Failed to load prescriptions" });
+    }
+  });
+
   app.get("/api/mobile/patient/medical-records", authMiddleware, requireRole(["patient"]), async (req: TenantRequest, res) => {
     try {
       const patientId = req.user!.id;
