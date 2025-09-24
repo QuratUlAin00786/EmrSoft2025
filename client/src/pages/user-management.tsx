@@ -526,6 +526,30 @@ export default function UserManagement() {
 
   const createUserMutation = useMutation({
     mutationFn: async (userData: UserFormData) => {
+      // If role is patient, check if email already exists in patients table
+      if (userData.role === 'patient') {
+        console.log("Checking if patient email already exists:", userData.email);
+        try {
+          const patientsResponse = await apiRequest("GET", "/api/patients");
+          const patients = await patientsResponse.json();
+          
+          // Check if any patient has the same email
+          const existingPatient = patients.find((patient: any) => 
+            patient.email && patient.email.toLowerCase() === userData.email.toLowerCase()
+          );
+          
+          if (existingPatient) {
+            throw new Error("Email already exists in the patients table");
+          }
+        } catch (error: any) {
+          if (error.message === "Email already exists in the patients table") {
+            throw error;
+          }
+          console.warn("Could not check patients table:", error);
+          // Continue with user creation if we can't check patients table
+        }
+      }
+
       const payload = {
         ...userData,
         username: userData.email, // Use email as username
