@@ -500,12 +500,15 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
 
       {/* Booking Dialog */}
       <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl" aria-describedby="booking-dialog-description">
           <DialogHeader>
             <DialogTitle>
               Book Appointment with {selectedBookingDoctor?.firstName} {selectedBookingDoctor?.lastName}
             </DialogTitle>
           </DialogHeader>
+          <div id="booking-dialog-description" className="sr-only">
+            Book a new appointment with the selected doctor by choosing a patient, date, and time slot.
+          </div>
           
           <div className="space-y-6">
             {/* Top row - Patient and Date & Time */}
@@ -536,16 +539,18 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
                 </Label>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
+                    <div
                       className={cn(
-                        "w-full justify-start text-left font-normal mt-1",
+                        "flex h-10 w-full items-center justify-start rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background cursor-pointer hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-1",
                         !selectedDate && "text-muted-foreground"
                       )}
+                      tabIndex={0}
+                      role="button"
+                      aria-haspopup="dialog"
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
-                    </Button>
+                    </div>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
                     <Calendar
