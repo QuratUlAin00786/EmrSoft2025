@@ -627,10 +627,9 @@ export default function ImagingPage() {
 
   // File replacement mutation for editing images
   const replaceImageMutation = useMutation({
-    mutationFn: async ({ studyId, file, patientId }: { studyId: string; file: File; patientId: string }) => {
+    mutationFn: async ({ studyId, file }: { studyId: string; file: File }) => {
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('patientId', patientId); // Add patient ID for file naming
       
       // Manual fetch to handle FormData properly (apiRequest doesn't work with FormData)
       const token = localStorage.getItem('auth_token');
@@ -1144,17 +1143,9 @@ export default function ImagingPage() {
 
   const handleReplaceImage = () => {
     if (editingStudyId && selectedFiles.length > 0) {
-      // Find the study to get the patient ID
-      const study = ((studies as any) || []).find((s: any) => s.id === editingStudyId);
-      if (!study) {
-        console.error('Study not found for ID:', editingStudyId);
-        return;
-      }
-
       replaceImageMutation.mutate({
         studyId: editingStudyId,
         file: selectedFiles[0],
-        patientId: study.patientId, // Pass patient ID for file naming
       });
     }
   };
