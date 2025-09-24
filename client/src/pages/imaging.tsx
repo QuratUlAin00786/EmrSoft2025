@@ -297,6 +297,8 @@ export default function ImagingPage() {
   const [deletedStudyIds, setDeletedStudyIds] = useState<Set<string>>(
     new Set(),
   );
+  const [showEditImageDialog, setShowEditImageDialog] = useState(false);
+  const [editingStudyId, setEditingStudyId] = useState<string | null>(null);
   const { toast } = useToast();
 
   // Fetch patients to find the current user's patient record
@@ -620,6 +622,46 @@ export default function ImagingPage() {
         ...prev,
         [variables.fieldName]: false,
       }));
+    },
+  });
+
+  // File replacement mutation for editing images
+  const replaceImageMutation = useMutation({
+    mutationFn: async ({ studyId, file }: { studyId: string; file: File }) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const response = await apiRequest(
+        "PUT",
+        `/api/medical-images/${studyId}/replace`,
+        formData,
+      );
+      return response.json();
+    },
+    onSuccess: async () => {
+      // Refresh the medical images to get updated data
+      await refetchImages();
+      
+      // Invalidate all related queries to refresh data across the app
+      await queryClient.invalidateQueries({
+        queryKey: ["/api/medical-images"],
+      });
+      
+      setShowEditImageDialog(false);
+      setSelectedFiles([]);
+      setEditingStudyId(null);
+      
+      toast({
+        title: "Image Updated Successfully",
+        description: "The medical image has been replaced with the new file.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error Updating Image",
+        description: error.message || "Failed to replace the image. Please try again.",
+        variant: "destructive",
+      });
     },
   });
 
@@ -1073,6 +1115,21 @@ export default function ImagingPage() {
       setReportImpression(study.impression || "");
       setReportRadiologist(study.radiologist || "Dr. Michael Chen");
       setShowReportDialog(true);
+    }
+  };
+
+  const handleEditImage = (studyId: string) => {
+    setEditingStudyId(studyId);
+    setSelectedFiles([]);
+    setShowEditImageDialog(true);
+  };
+
+  const handleReplaceImage = () => {
+    if (editingStudyId && selectedFiles.length > 0) {
+      replaceImageMutation.mutate({
+        studyId: editingStudyId,
+        file: selectedFiles[0],
+      });
     }
   };
 
@@ -2919,7 +2976,7 @@ export default function ImagingPage() {
                         <div>Images: {image.imageCount}</div>
                         <div>Size: {image.size}</div>
                       </div>
-                      <div className="mt-3">
+                      <div className="mt-3 flex gap-2">
                         <Button
                           variant="outline"
                           size="sm"
@@ -2941,6 +2998,15 @@ export default function ImagingPage() {
                         >
                           <Eye className="h-4 w-4 mr-2" />
                           View Images
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEditImage(selectedStudy.id)}
+                          data-testid="button-edit-image"
+                        >
+                          <Edit className="h-4 w-4 mr-2" />
+                          Edit
                         </Button>
                       </div>
                     </div>
@@ -3840,6 +3906,69 @@ export default function ImagingPage() {
                 onClick={() => setShowFileNotAvailableDialog(false)}
               >
                 Close
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Image Dialog */}
+      <Dialog open={showEditImageDialog} onOpenChange={setShowEditImageDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Replace Medical Image</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600">
+              Select a new image file to replace the existing medical image. This will update the file name and other information in the database.
+            </p>
+            
+            <div>
+              <Label htmlFor="replacement-file">Select New Image File</Label>
+              <Input
+                id="replacement-file"
+                type="file"
+                accept="image/*,.dcm"
+                onChange={(e) => {
+                  const files = e.target.files;
+                  if (files) {
+                    setSelectedFiles(Array.from(files));
+                  }
+                }}
+                data-testid="input-replacement-file"
+              />
+              {selectedFiles.length > 0 && (
+                <p className="text-sm text-green-600 mt-2">
+                  Selected: {selectedFiles[0].name} ({(selectedFiles[0].size / (1024 * 1024)).toFixed(2)} MB)
+                </p>
+              )}
+            </div>
+            
+            <div className="flex justify-end gap-2 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowEditImageDialog(false);
+                  setSelectedFiles([]);
+                  setEditingStudyId(null);
+                }}
+                data-testid="button-cancel-edit"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleReplaceImage}
+                disabled={selectedFiles.length === 0 || replaceImageMutation.isPending}
+                data-testid="button-confirm-replace"
+              >
+                {replaceImageMutation.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Replacing...
+                  </>
+                ) : (
+                  'Replace Image'
+                )}
               </Button>
             </div>
           </div>
