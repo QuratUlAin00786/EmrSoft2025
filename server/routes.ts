@@ -2242,7 +2242,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         canUpdate = existingAppointment.providerId === userId || hasEditPermission;
       } else if (userRole === 'patient') {
         // Patients can update their own appointments
-        const patient = await storage.getPatientByUserId(userId, req.tenant!.id);
+        // Find the patient record by email since user_id column doesn't exist
+        const patients = await storage.getPatientsByOrganization(req.tenant!.id, 100);
+        const patient = patients.find(p => p.email === req.user!.email);
         canUpdate = Boolean(patient && existingAppointment.patientId === patient.id);
       } else if (userRole === 'nurse') {
         // Nurses can update appointments with proper permissions
