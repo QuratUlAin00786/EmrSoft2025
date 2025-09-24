@@ -1,0 +1,187 @@
+1. General & Primary Care
+
+Specialties:
+
+General Practitioner (GP) / Family Physician
+
+Internal Medicine
+
+Sub-specialties: Geriatrics, Preventive Medicine, Palliative Care
+
+2. Surgical Specialties
+
+Specialties:
+
+General Surgery
+
+Orthopedic Surgery → (Joint Replacement, Spine Surgery, Sports Medicine)
+
+Neurosurgery
+
+Plastic & Reconstructive Surgery
+
+Vascular Surgery
+
+Transplant Surgery
+
+3. Heart & Circulation
+
+Specialties:
+
+Cardiology → (Interventional Cardiology, Electrophysiology, Heart Failure)
+
+Cardiothoracic Surgery
+
+Vascular Medicine
+
+4. Women’s Health
+
+Specialties:
+
+Obstetrics
+
+Gynecology → (Reproductive Endocrinology & Infertility, Gynecologic Oncology, Maternal–Fetal Medicine, Urogynecology)
+
+5. Children’s Health
+
+Specialties:
+
+Pediatrics → (Neonatology, Pediatric Cardiology, Pediatric Neurology, Pediatric Oncology, Pediatric Pulmonology)
+
+Pediatric Surgery
+
+6. Brain & Nervous System
+
+Specialties:
+
+Neurology → (Epileptology, Stroke, Movement Disorders, Sleep Medicine, Multiple Sclerosis)
+
+Psychiatry → (Child & Adolescent, Addiction, Geriatric, Forensic, Neuropsychiatry)
+
+7. Skin, Hair & Appearance
+
+Specialties:
+
+Dermatology → (Pediatric Dermatology, Cosmetic Dermatology, Dermatopathology, Mohs Surgery)
+
+Aesthetic Medicine
+
+8. Eye & Vision
+
+Specialties:
+
+Ophthalmology → (Cataract & Refractive Surgery, Glaucoma, Retina, Cornea, Pediatric Ophthalmology, Oculoplastics)
+
+9. Teeth & Mouth
+
+Specialties:
+
+Dentistry
+
+Oral & Maxillofacial Surgery
+
+Orthodontics
+
+Periodontics
+
+Prosthodontics
+
+10. Digestive System
+
+Specialties:
+
+Gastroenterology
+
+Hepatology
+
+Colorectal Surgery
+
+11. Kidneys & Urinary Tract
+
+Specialties:
+
+Nephrology
+
+Urology → (Pediatric Urology, Oncologic Urology)
+
+12. Respiratory System
+
+Specialties:
+
+Pulmonology
+
+Thoracic Surgery
+
+Sleep Medicine
+
+13. Cancer
+
+Specialties:
+
+Medical Oncology
+
+Surgical Oncology
+
+Radiation Oncology
+
+Hematology-Oncology
+
+14. Endocrine & Hormones
+
+Specialties:
+
+Endocrinology → (Diabetes, Thyroid Disorders, Metabolic Disorders)
+
+15. Muscles & Joints
+
+Specialties:
+
+Rheumatology
+
+Orthopedics (covered in surgery)
+
+Sports Medicine
+
+16. Blood & Immunity
+
+Specialties:
+
+Hematology
+
+Immunology
+
+Allergy Medicine
+
+17. Ear, Nose & Throat
+
+Specialties:
+
+ENT → (Head & Neck Surgery, Rhinology, Laryngology, Otology/Neurotology, Pediatric ENT)
+
+18. Diagnostic & Imaging
+
+Specialties:
+
+Radiology → (Interventional, Neuroradiology, Pediatric Radiology)
+
+Pathology → (Anatomic, Clinical, Forensic, Molecular)
+
+19. Emergency & Critical Care
+
+Specialties:
+
+Emergency Medicine
+
+Anesthesiology → (Pain Medicine, Critical Care, Cardiac Anesthesia)
+
+20. Others
+
+Specialties:
+
+Physical Medicine & Rehabilitation
+
+Occupational Medicine
+
+Public Health Medicine
+
+Preventive Medicine
