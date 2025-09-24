@@ -2406,6 +2406,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }).parse(req.body);
 
       console.log("Parsed appointment data:", appointmentData);
+      console.log("User role:", req.user?.role);
 
       // Handle patientId conversion - SECURE LOGIC FOR PATIENT ROLE
       let numericPatientId: number;
