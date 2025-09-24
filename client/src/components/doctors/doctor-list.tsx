@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Stethoscope, User, Calendar, Clock, MapPin, Edit } from "lucide-react";
+import { Stethoscope, User, Calendar as CalendarIcon, Clock, MapPin, Edit } from "lucide-react";
 import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -15,6 +15,10 @@ import { useState } from "react";
 import type { User as Doctor, Appointment } from "@shared/schema";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
 
 interface DoctorListProps {
   onSelectDoctor?: (doctor: Doctor) => void;
@@ -57,7 +61,8 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [selectedBookingDoctor, setSelectedBookingDoctor] = useState<Doctor | null>(null);
   const [selectedPatient, setSelectedPatient] = useState("");
-  const [selectedDateTime, setSelectedDateTime] = useState("");
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState("");
   const [appointmentType, setAppointmentType] = useState("Consultation");
   const [duration, setDuration] = useState("30");
   const [appointmentTitle, setAppointmentTitle] = useState("");
@@ -91,6 +96,46 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
     },
     enabled: isBookingOpen,
   });
+
+  // Fetch doctor appointments for availability checking
+  const { data: doctorAppointments } = useQuery({
+    queryKey: ["/api/appointments", selectedBookingDoctor?.id, selectedDate],
+    queryFn: async () => {
+      if (!selectedBookingDoctor?.id || !selectedDate) return [];
+      const response = await apiRequest("GET", `/api/appointments?doctorId=${selectedBookingDoctor.id}&date=${selectedDate.toISOString().split('T')[0]}`);
+      const data = await response.json();
+      return data;
+    },
+    enabled: isBookingOpen && !!selectedBookingDoctor?.id && !!selectedDate,
+  });
+
+  // Generate time slots (9 AM to 5 PM, 30-minute intervals)
+  const generateTimeSlots = () => {
+    const slots = [];
+    for (let hour = 9; hour <= 17; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        if (hour === 17 && minute > 0) break; // Stop at 5:00 PM
+        const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        const displayTime = formatTime(timeString);
+        slots.push({ value: timeString, display: displayTime });
+      }
+    }
+    return slots;
+  };
+
+  // Check if a time slot is available
+  const isTimeSlotAvailable = (timeSlot: string) => {
+    if (!doctorAppointments || !selectedDate) return true;
+    
+    const slotDateTime = new Date(selectedDate);
+    const [hours, minutes] = timeSlot.split(':').map(Number);
+    slotDateTime.setHours(hours, minutes, 0, 0);
+    
+    return !doctorAppointments.some((appointment: any) => {
+      const appointmentDate = new Date(appointment.scheduledAt);
+      return Math.abs(appointmentDate.getTime() - slotDateTime.getTime()) < 30 * 60 * 1000; // 30 minutes threshold
+    });
+  };
 
   const updateScheduleMutation = useMutation({
     mutationFn: async (data: { userId: number; workingDays: string[]; workingHours: { start: string; end: string } }) => {
@@ -150,7 +195,8 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
   const openBookingDialog = (doctor: Doctor) => {
     setSelectedBookingDoctor(doctor);
     setSelectedPatient("");
-    setSelectedDateTime("");
+    setSelectedDate(undefined);
+    setSelectedTimeSlot("");
     setAppointmentType("Consultation");
     setDuration("30");
     setAppointmentTitle("");
@@ -483,19 +529,36 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
                 </Select>
               </div>
 
-              {/* Date & Time */}
+              {/* Select Date */}
               <div>
                 <Label className="text-sm font-medium">
-                  Date & Time <span className="text-red-500">*</span>
+                  Select Date <span className="text-red-500">*</span>
                 </Label>
-                <Input
-                  type="datetime-local"
-                  value={selectedDateTime}
-                  onChange={(e) => setSelectedDateTime(e.target.value)}
-                  placeholder="dd/mm/yyyy --:--"
-                  className="mt-1"
-                  min={new Date().toISOString().slice(0, 16)}
-                />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal mt-1",
+                        !selectedDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={(date: Date | undefined) => setSelectedDate(date)}
+                      disabled={(date: Date) =>
+                        date < new Date() || date < new Date("1900-01-01")
+                      }
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
 
@@ -534,6 +597,39 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
                 </Select>
               </div>
             </div>
+
+            {/* Select Time Slot */}
+            {selectedDate && (
+              <div>
+                <Label className="text-sm font-medium">
+                  Select Time Slot <span className="text-red-500">*</span>
+                </Label>
+                <div className="grid grid-cols-4 gap-2 mt-2">
+                  {generateTimeSlots().map((slot) => {
+                    const isAvailable = isTimeSlotAvailable(slot.value);
+                    const isSelected = selectedTimeSlot === slot.value;
+                    
+                    return (
+                      <Button
+                        key={slot.value}
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setSelectedTimeSlot(slot.value)}
+                        disabled={!isAvailable}
+                        className={cn(
+                          "h-10 text-xs",
+                          isSelected && "bg-blue-500 text-white hover:bg-blue-600",
+                          isAvailable && !isSelected && "bg-green-100 text-green-800 hover:bg-green-200 border-green-300",
+                          !isAvailable && "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
+                        )}
+                      >
+                        {slot.display}
+                      </Button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Title */}
             <div>
@@ -579,7 +675,7 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
                 Cancel
               </Button>
               <Button
-                disabled={!selectedPatient || !selectedDateTime}
+                disabled={!selectedPatient || !selectedDate || !selectedTimeSlot}
                 onClick={() => {
                   toast({
                     title: "Appointment Booked",
