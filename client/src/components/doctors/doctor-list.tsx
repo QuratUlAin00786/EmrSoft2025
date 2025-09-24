@@ -233,17 +233,25 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
       return;
     }
 
-    // Create the appointment datetime
+    // Create the appointment datetime without timezone conversion
     const appointmentDateTime = new Date(selectedDate);
     const [hours, minutes] = selectedTimeSlot.split(':').map(Number);
     appointmentDateTime.setHours(hours, minutes, 0, 0);
+
+    // Format datetime without timezone conversion
+    const year = appointmentDateTime.getFullYear();
+    const month = String(appointmentDateTime.getMonth() + 1).padStart(2, '0');
+    const day = String(appointmentDateTime.getDate()).padStart(2, '0');
+    const hourStr = String(appointmentDateTime.getHours()).padStart(2, '0');
+    const minuteStr = String(appointmentDateTime.getMinutes()).padStart(2, '0');
+    const scheduledAtString = `${year}-${month}-${day}T${hourStr}:${minuteStr}:00.000Z`;
 
     const appointmentData = {
       patientId: parseInt(selectedPatient),
       providerId: selectedBookingDoctor.id,
       title: appointmentTitle || `${appointmentType} with ${selectedBookingDoctor.firstName} ${selectedBookingDoctor.lastName}`,
       description: appointmentDescription || `${appointmentType} appointment`,
-      scheduledAt: appointmentDateTime.toISOString(),
+      scheduledAt: scheduledAtString,
       duration: parseInt(duration),
       type: appointmentType.toLowerCase().replace('-', '_') as "consultation" | "follow_up" | "procedure",
       location: appointmentLocation || `${selectedBookingDoctor.department || 'General'} Department`,
