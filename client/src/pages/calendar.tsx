@@ -249,7 +249,7 @@ export default function CalendarPage() {
     queryKey: ["/api/medical-staff"],
     retry: 3,
     staleTime: 0, // Force fresh requests
-    gcTime: 0, // Don't cache failed results
+    cacheTime: 0, // Don't cache failed results
     enabled: true, // Ensure query is enabled
     refetchOnMount: true, // Always refetch on mount
   });
@@ -260,7 +260,7 @@ export default function CalendarPage() {
     console.log('🏥 Staff error:', staffError);
     console.log('🏥 Is loading staff:', isLoadingStaff);
     
-    const doctors = medicalStaffData || [];
+    const doctors = medicalStaffData?.staff || [];
     console.log('👨‍⚕️ Extracted doctors:', doctors.length, doctors);
     return doctors;
   }, [medicalStaffData, staffError, isLoadingStaff]);
@@ -580,21 +580,8 @@ export default function CalendarPage() {
 
   const createAppointmentMutation = useMutation({
     mutationFn: async (appointmentData: any) => {
-      try {
-        const response = await apiRequest("POST", "/api/appointments", appointmentData);
-        
-        // Check if response is ok (status 200-299)
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        
-        const data = await response.json();
-        console.log("Appointment creation successful:", data);
-        return data;
-      } catch (error) {
-        console.error("Appointment creation mutation error:", error);
-        throw error;
-      }
+      const response = await apiRequest("POST", "/api/appointments", appointmentData);
+      return response.json();
     },
     onSuccess: () => {
       toast({
@@ -944,6 +931,12 @@ export default function CalendarPage() {
           </div>
         )}
 
+        {/* Selected Doctor Indicator */}
+        <div className="mt-6">
+          <div className="bg-yellow-100 border border-yellow-300 p-3 rounded text-gray-900 dark:text-gray-900">
+            Selected Doctor: {selectedDoctor ? `${selectedDoctor.firstName} ${selectedDoctor.lastName}` : 'None'}
+          </div>
+        </div>
 
         {/* Booking Form */}
         {selectedDoctor && !showNewAppointmentModal && (
@@ -1495,6 +1488,31 @@ export default function CalendarPage() {
 
                   {/* Right Column - Calendar and Time Slots */}
                   <div className="space-y-6">
+                    {/* Step 4: Select Date */}
+                    <div>
+                      <Label className="text-sm font-medium text-gray-900 dark:text-white mb-2 block">
+                        Select Date
+                      </Label>
+                      <CalendarComponent
+                        mode="single"
+                        selected={selectedDate}
+                        onSelect={setSelectedDate}
+                        disabled={(date) => {
+                          // Disable past dates (but allow today)
+                          if (isBefore(startOfDay(date), startOfDay(new Date()))) return true;
+                          
+                          // Disable days not in doctor's working days (if doctor is selected)
+                          if (selectedDoctor?.workingDays?.length > 0) {
+                            const dayName = format(date, 'EEEE');
+                            return !selectedDoctor.workingDays.includes(dayName);
+                          }
+                          
+                          return false;
+                        }}
+                        className="rounded-md border"
+                        data-testid="calendar-date-picker"
+                      />
+                    </div>
 
 
                     {/* Step 5: Select Time Slot */}

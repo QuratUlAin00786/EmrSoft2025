@@ -107,29 +107,11 @@ export default function PatientAppointments({ onNewAppointment }: { onNewAppoint
   });
 
   // Fetch medical staff for doctor specialty data
-  const { data: medicalStaffData, isLoading: medicalStaffLoading, error: medicalStaffError } = useQuery({
+  const { data: medicalStaffData, isLoading: medicalStaffLoading } = useQuery({
     queryKey: ["/api/medical-staff"],
     staleTime: 60000,
-    retry: 3,
-    queryFn: async () => {
-      console.log("🏥 PATIENT-APPOINTMENTS: Fetching medical staff data...");
-      const response = await apiRequest('GET', '/api/medical-staff');
-      const data = await response.json();
-      console.log("🏥 PATIENT-APPOINTMENTS: Medical staff response:", data);
-      return data;
-    },
-    enabled: !!user, // Only fetch when user is authenticated
+    retry: false,
   });
-
-  // Debug medical staff data
-  React.useEffect(() => {
-    console.log("🏥 PATIENT-APPOINTMENTS: Medical staff state:", {
-      data: medicalStaffData,
-      isLoading: medicalStaffLoading,
-      error: medicalStaffError,
-      hasUser: !!user
-    });
-  }, [medicalStaffData, medicalStaffLoading, medicalStaffError, user]);
 
   // Filter appointments to show only the current patient's appointments
   const appointments = React.useMemo(() => {

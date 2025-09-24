@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar as CalendarIcon, User, Mail, Phone } from "lucide-react";
+import { Calendar, User, Mail, Phone } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
@@ -14,10 +14,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { appointmentSchema, AppointmentFormData } from "./appointment-form-schema";
 import { useAuth } from "@/hooks/use-auth";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format, isBefore, startOfDay } from "date-fns";
-import { cn } from "@/lib/utils";
 
 interface NewAppointmentModalProps {
   isOpen: boolean;
@@ -35,26 +31,10 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
 
   const createAppointmentMutation = useMutation({
     mutationFn: async (appointmentData: any) => {
-      console.log("🚀 APPOINTMENT-CREATION: Starting appointment booking...");
-      console.log("📋 APPOINTMENT-DATA: Sending data:", appointmentData);
-      
-      try {
-        const response = await apiRequest("POST", "/api/appointments", appointmentData);
-        console.log("📡 APPOINTMENT-RESPONSE: Response status:", response.status);
-        
-        if (response.ok) {
-          const data = await response.json();
-          console.log("✅ APPOINTMENT-SUCCESS: Appointment created successfully:", data);
-          return data;
-        } else {
-          const errorText = await response.text();
-          console.error("❌ APPOINTMENT-ERROR: Response not ok:", response.status, errorText);
-          throw new Error(`Appointment creation failed: ${errorText}`);
-        }
-      } catch (error) {
-        console.error("💥 APPOINTMENT-FATAL: Mutation function error:", error);
-        throw error;
-      }
+      console.log("🚀 MUTATION START - Sending appointment data:", appointmentData);
+      const result = await apiRequest("POST", "/api/appointments", appointmentData);
+      console.log("✅ MUTATION SUCCESS - API returned:", result);
+      return result;
     },
     onSuccess: (data) => {
       console.log("🎉 MUTATION onSuccess triggered with data:", data);
@@ -96,35 +76,14 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
       }, 100);
     },
     onError: (error: any) => {
-      console.error("💥 APPOINTMENT-MUTATION-ERROR: Full error details:", error);
-      console.error("💥 APPOINTMENT-ERROR-MESSAGE:", error.message);
-      console.error("💥 APPOINTMENT-ERROR-STACK:", error.stack);
+      console.error("❌ MUTATION ERROR:", error);
       
-      // Extract user-friendly error message
-      let userMessage = "Failed to create appointment. Please try again.";
-      
-      if (error.message) {
-        if (error.message.includes("already scheduled")) {
-          userMessage = "The selected time slot is already booked. Please choose a different time.";
-        } else if (error.message.includes("Invalid patient")) {
-          userMessage = "Please select a valid patient from the list.";
-        } else if (error.message.includes("Invalid provider")) {
-          userMessage = "Please select a valid doctor from the list.";
-        } else if (error.message.includes("401")) {
-          userMessage = "You need to log in again to book an appointment.";
-        } else if (error.message.includes("403")) {
-          userMessage = "You don't have permission to book appointments.";
-        } else {
-          // Show original error message for debugging, but make it user-friendly
-          userMessage = error.message.replace(/^.*?: /, ''); // Remove HTTP status codes
-        }
-      }
-      
-      console.log("📱 APPOINTMENT-USER-MESSAGE:", userMessage);
+      // Show detailed validation error if available
+      const errorMessage = error.message || "Failed to create appointment";
       
       toast({
-        title: "Booking Failed",
-        description: userMessage,
+        title: "Appointment Creation Failed",
+        description: errorMessage,
         variant: "destructive"
       });
     }
@@ -175,14 +134,14 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
       ) : [];
       setPatients(uniquePatients);
 
-      // Auto-populate patient details if possible
-      if (uniquePatients.length > 0) {
+      // If user is a patient, find their details and auto-populate
+      if (user?.role === 'patient' && uniquePatients.length > 0) {
         console.log("🔍 APPOINTMENT-MODAL: Looking for patient matching user:", { 
-          userEmail: user?.email, 
-          userName: user ? `${user.firstName} ${user.lastName}` : 'No user',
-          userId: user?.id 
+          userEmail: user.email, 
+          userName: `${user.firstName} ${user.lastName}`,
+          userId: user.id 
         });
-        console.log("📋 APPOINTMENT-MODAL: Available patients:", uniquePatients.map((p: any) => ({ 
+        console.log("📋 APPOINTMENT-MODAL: Available patients:", uniquePatients.map(p => ({ 
           id: p.id, 
           email: p.email, 
           name: `${p.firstName} ${p.lastName}` 
@@ -192,21 +151,21 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
         const currentPatient = 
           // 1. PRIORITY: Match by exact email (most reliable)
           uniquePatients.find((patient: any) => 
-            patient.email && user?.email && patient.email.toLowerCase() === user.email.toLowerCase()
+            patient.email && user.email && patient.email.toLowerCase() === user.email.toLowerCase()
           ) ||
           // 2. Match by exact full name
           uniquePatients.find((patient: any) => 
-            patient.firstName && user?.firstName && patient.lastName && user?.lastName &&
+            patient.firstName && user.firstName && patient.lastName && user.lastName &&
             patient.firstName.toLowerCase() === user.firstName.toLowerCase() && 
             patient.lastName.toLowerCase() === user.lastName.toLowerCase()
           ) ||
           // 3. Match by partial name (first name only)
           uniquePatients.find((patient: any) => 
-            patient.firstName && user?.firstName &&
+            patient.firstName && user.firstName &&
             patient.firstName.toLowerCase() === user.firstName.toLowerCase()
           ) ||
-          // 4. Fallback to first patient if available
-          (uniquePatients.length > 0 ? uniquePatients[0] : null);
+          // 4. If user role is patient, take the first patient (fallback for demo)
+          (user.role === 'patient' && uniquePatients.length > 0 ? uniquePatients[0] : null);
         
         if (currentPatient) {
           console.log("✅ APPOINTMENT-MODAL: Found matching patient:", currentPatient);
@@ -412,21 +371,62 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
                 name="patientId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="required">Patient Information</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value} data-testid="select-patient">
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select patient..." />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {patients.map((patient: any) => (
-                          <SelectItem key={`patient-${patient.id}`} value={patient.id.toString()}>
-                            {patient.firstName} {patient.lastName}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    {user?.role === 'patient' ? (
+                      <>
+                        <FormLabel className="required">My Information</FormLabel>
+                        {currentPatientDetails ? (
+                          <div className="border rounded-md p-3 bg-blue-50 dark:bg-blue-900 border-blue-200 dark:border-blue-700">
+                            <div className="flex items-center space-x-3">
+                              <User className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                              <div className="flex-1">
+                                <div className="font-medium text-blue-900 dark:text-blue-100">
+                                  {currentPatientDetails.firstName} {currentPatientDetails.lastName}
+                                </div>
+                                <div className="space-y-1 text-sm text-blue-700 dark:text-blue-300">
+                                  {currentPatientDetails.email && (
+                                    <div className="flex items-center space-x-1">
+                                      <Mail className="h-3 w-3" />
+                                      <span>{currentPatientDetails.email}</span>
+                                    </div>
+                                  )}
+                                  {currentPatientDetails.phone && (
+                                    <div className="flex items-center space-x-1">
+                                      <Phone className="h-3 w-3" />
+                                      <span>{currentPatientDetails.phone}</span>
+                                    </div>
+                                  )}
+                                  <div className="text-xs opacity-75">
+                                    Patient ID: {currentPatientDetails.patientId || `P${currentPatientDetails.id?.toString().padStart(6, '0')}`}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="border rounded-md p-3 bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600">
+                            <div className="text-gray-600 dark:text-gray-300">Loading your information...</div>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <FormLabel className="required">Patient Information</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value} data-testid="select-patient">
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select patient..." />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {patients.map((patient: any) => (
+                              <SelectItem key={`patient-${patient.id}`} value={patient.id.toString()}>
+                                {patient.firstName} {patient.lastName}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}
@@ -503,38 +503,9 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="required">Date</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              "w-full pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
-                            )}
-                            data-testid="input-date"
-                          >
-                            {field.value ? (
-                              format(new Date(field.value), "PPP")
-                            ) : (
-                              <span>Pick a date</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value ? new Date(field.value) : undefined}
-                          onSelect={(date) => {
-                            field.onChange(date ? format(date, "yyyy-MM-dd") : "");
-                          }}
-                          disabled={(date) => isBefore(date, startOfDay(new Date()))}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
+                    <FormControl>
+                      <Input type="date" {...field} data-testid="input-date" />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

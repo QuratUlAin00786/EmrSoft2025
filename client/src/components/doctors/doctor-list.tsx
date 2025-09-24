@@ -3,45 +3,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarContent, AvatarFallback } from "@/components/ui/avatar";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Stethoscope,
-  User,
-  Calendar as CalendarIcon,
-  Clock,
-  MapPin,
-  Edit,
-} from "lucide-react";
+import { Stethoscope, User, Calendar as CalendarIcon, Clock, MapPin, Edit } from "lucide-react";
 import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import type { User as Doctor, Appointment } from "@shared/schema";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { format, isBefore, startOfDay } from "date-fns";
+import { format } from "date-fns";
 
 interface DoctorListProps {
   onSelectDoctor?: (doctor: Doctor) => void;
@@ -49,44 +26,40 @@ interface DoctorListProps {
 }
 
 const departmentColors = {
-  Cardiology: "bg-red-100 text-red-800",
+  "Cardiology": "bg-red-100 text-red-800",
   "General Medicine": "bg-blue-100 text-blue-800",
-  Pediatrics: "bg-green-100 text-green-800",
-  Orthopedics: "bg-purple-100 text-purple-800",
-  Neurology: "bg-indigo-100 text-indigo-800",
-  Dermatology: "bg-yellow-100 text-yellow-800",
-  Psychiatry: "bg-pink-100 text-pink-800",
-  Surgery: "bg-gray-100 text-gray-800",
-  Emergency: "bg-orange-100 text-orange-800",
-  Administration: "bg-slate-100 text-slate-800",
+  "Pediatrics": "bg-green-100 text-green-800",
+  "Orthopedics": "bg-purple-100 text-purple-800",
+  "Neurology": "bg-indigo-100 text-indigo-800",
+  "Dermatology": "bg-yellow-100 text-yellow-800",
+  "Psychiatry": "bg-pink-100 text-pink-800",
+  "Surgery": "bg-gray-100 text-gray-800",
+  "Emergency": "bg-orange-100 text-orange-800",
+  "Administration": "bg-slate-100 text-slate-800"
 };
 
 const roleColors = {
-  doctor: "bg-blue-100 text-blue-800",
-  nurse: "bg-green-100 text-green-800",
-  admin: "bg-purple-100 text-purple-800",
-  receptionist: "bg-orange-100 text-orange-800",
+  "doctor": "bg-blue-100 text-blue-800",
+  "nurse": "bg-green-100 text-green-800",
+  "admin": "bg-purple-100 text-purple-800",
+  "receptionist": "bg-orange-100 text-orange-800"
 };
 
 function getInitials(firstName: string, lastName: string): string {
   return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
 }
 
-export function DoctorList({
-  onSelectDoctor,
-  showAppointmentButton = false,
-}: DoctorListProps) {
+export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: DoctorListProps) {
   const [, setLocation] = useLocation();
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
   const [isScheduleOpen, setIsScheduleOpen] = useState(false);
   const [workingDays, setWorkingDays] = useState<string[]>([]);
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
-
+  
   // Booking dialog state
   const [isBookingOpen, setIsBookingOpen] = useState(false);
-  const [selectedBookingDoctor, setSelectedBookingDoctor] =
-    useState<Doctor | null>(null);
+  const [selectedBookingDoctor, setSelectedBookingDoctor] = useState<Doctor | null>(null);
   const [selectedPatient, setSelectedPatient] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState("");
@@ -95,15 +68,11 @@ export function DoctorList({
   const [appointmentTitle, setAppointmentTitle] = useState("");
   const [appointmentDescription, setAppointmentDescription] = useState("");
   const [appointmentLocation, setAppointmentLocation] = useState("");
-
+  
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
-  const {
-    data: medicalStaffResponse,
-    isLoading,
-    error,
-  } = useQuery({
+  
+  const { data: medicalStaffResponse, isLoading, error } = useQuery({
     queryKey: ["/api/medical-staff"],
     queryFn: async () => {
       const response = await apiRequest("GET", "/api/medical-staff");
@@ -133,10 +102,7 @@ export function DoctorList({
     queryKey: ["/api/appointments", selectedBookingDoctor?.id, selectedDate],
     queryFn: async () => {
       if (!selectedBookingDoctor?.id || !selectedDate) return [];
-      const response = await apiRequest(
-        "GET",
-        `/api/appointments?doctorId=${selectedBookingDoctor.id}&date=${selectedDate.toISOString().split("T")[0]}`,
-      );
+      const response = await apiRequest("GET", `/api/appointments?doctorId=${selectedBookingDoctor.id}&date=${selectedDate.toISOString().split('T')[0]}`);
       const data = await response.json();
       return data;
     },
@@ -149,7 +115,7 @@ export function DoctorList({
     for (let hour = 9; hour <= 17; hour++) {
       for (let minute = 0; minute < 60; minute += 30) {
         if (hour === 17 && minute > 0) break; // Stop at 5:00 PM
-        const timeString = `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`;
+        const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
         const displayTime = formatTime(timeString);
         slots.push({ value: timeString, display: displayTime });
       }
@@ -160,29 +126,22 @@ export function DoctorList({
   // Check if a time slot is available
   const isTimeSlotAvailable = (timeSlot: string) => {
     if (!doctorAppointments || !selectedDate) return true;
-
+    
     const slotDateTime = new Date(selectedDate);
-    const [hours, minutes] = timeSlot.split(":").map(Number);
+    const [hours, minutes] = timeSlot.split(':').map(Number);
     slotDateTime.setHours(hours, minutes, 0, 0);
-
+    
     return !doctorAppointments.some((appointment: any) => {
       const appointmentDate = new Date(appointment.scheduledAt);
-      return (
-        Math.abs(appointmentDate.getTime() - slotDateTime.getTime()) <
-        30 * 60 * 1000
-      ); // 30 minutes threshold
+      return Math.abs(appointmentDate.getTime() - slotDateTime.getTime()) < 30 * 60 * 1000; // 30 minutes threshold
     });
   };
 
   const updateScheduleMutation = useMutation({
-    mutationFn: async (data: {
-      userId: number;
-      workingDays: string[];
-      workingHours: { start: string; end: string };
-    }) => {
+    mutationFn: async (data: { userId: number; workingDays: string[]; workingHours: { start: string; end: string } }) => {
       const response = await apiRequest("PATCH", `/api/users/${data.userId}`, {
         workingDays: data.workingDays,
-        workingHours: data.workingHours,
+        workingHours: data.workingHours
       });
       return await response.json();
     },
@@ -191,28 +150,25 @@ export function DoctorList({
         title: "Schedule Updated",
         description: "Doctor's schedule has been updated successfully.",
       });
-
+      
       // Update the selectedDoctor with fresh data from server
       if (selectedDoctor && updatedUserData) {
         const newDoctor = {
           ...selectedDoctor,
           workingDays: updatedUserData.workingDays || [],
-          workingHours: updatedUserData.workingHours || {
-            start: "09:00",
-            end: "17:00",
-          },
+          workingHours: updatedUserData.workingHours || { start: "09:00", end: "17:00" }
         };
         setSelectedDoctor(newDoctor);
-
+        
         // Also update the form fields to show the new values
         setWorkingDays(updatedUserData.workingDays || []);
         setStartTime(updatedUserData.workingHours?.start || "09:00");
         setEndTime(updatedUserData.workingHours?.end || "17:00");
       }
-
+      
       // Invalidate queries to refresh the list
       queryClient.invalidateQueries({ queryKey: ["/api/medical-staff"] });
-
+      
       // Close the dialog after brief delay to show the update
       setTimeout(() => {
         setIsScheduleOpen(false);
@@ -230,11 +186,7 @@ export function DoctorList({
   // Appointment booking mutation
   const bookAppointmentMutation = useMutation({
     mutationFn: async (appointmentData: any) => {
-      const response = await apiRequest(
-        "POST",
-        "/api/appointments",
-        appointmentData,
-      );
+      const response = await apiRequest("POST", "/api/appointments", appointmentData);
       return await response.json();
     },
     onSuccess: () => {
@@ -242,17 +194,11 @@ export function DoctorList({
         title: "Appointment Booked",
         description: `Appointment with Dr. ${selectedBookingDoctor?.firstName} ${selectedBookingDoctor?.lastName} has been scheduled successfully.`,
       });
-
+      
       // Invalidate queries to refresh appointment data and availability
       queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
-      queryClient.invalidateQueries({
-        queryKey: [
-          "/api/appointments",
-          selectedBookingDoctor?.id,
-          selectedDate,
-        ],
-      });
-
+      queryClient.invalidateQueries({ queryKey: ["/api/appointments", selectedBookingDoctor?.id, selectedDate] });
+      
       // Reset form and close dialog
       setSelectedPatient("");
       setSelectedDate(undefined);
@@ -267,8 +213,7 @@ export function DoctorList({
     onError: (error: any) => {
       toast({
         title: "Booking Failed",
-        description:
-          error.message || "Failed to book appointment. Please try again.",
+        description: error.message || "Failed to book appointment. Please try again.",
         variant: "destructive",
       });
     },
@@ -277,54 +222,41 @@ export function DoctorList({
   const openScheduleDialog = (doctor: Doctor) => {
     setSelectedDoctor(doctor);
     setWorkingDays(doctor.workingDays || []);
-    const hours =
-      (doctor.workingHours as { start?: string; end?: string }) || {};
+    const hours = doctor.workingHours as { start?: string; end?: string } || {};
     setStartTime(hours.start || "09:00");
     setEndTime(hours.end || "17:00");
     setIsScheduleOpen(true);
   };
 
   const handleBookAppointment = () => {
-    if (
-      !selectedPatient ||
-      !selectedDate ||
-      !selectedTimeSlot ||
-      !selectedBookingDoctor
-    ) {
+    if (!selectedPatient || !selectedDate || !selectedTimeSlot || !selectedBookingDoctor) {
       return;
     }
 
     // Create the appointment datetime without timezone conversion
     const appointmentDateTime = new Date(selectedDate);
-    const [hours, minutes] = selectedTimeSlot.split(":").map(Number);
+    const [hours, minutes] = selectedTimeSlot.split(':').map(Number);
     appointmentDateTime.setHours(hours, minutes, 0, 0);
 
     // Format datetime without timezone conversion
     const year = appointmentDateTime.getFullYear();
-    const month = String(appointmentDateTime.getMonth() + 1).padStart(2, "0");
-    const day = String(appointmentDateTime.getDate()).padStart(2, "0");
-    const hourStr = String(appointmentDateTime.getHours()).padStart(2, "0");
-    const minuteStr = String(appointmentDateTime.getMinutes()).padStart(2, "0");
+    const month = String(appointmentDateTime.getMonth() + 1).padStart(2, '0');
+    const day = String(appointmentDateTime.getDate()).padStart(2, '0');
+    const hourStr = String(appointmentDateTime.getHours()).padStart(2, '0');
+    const minuteStr = String(appointmentDateTime.getMinutes()).padStart(2, '0');
     const scheduledAtString = `${year}-${month}-${day}T${hourStr}:${minuteStr}:00.000Z`;
 
     const appointmentData = {
       patientId: parseInt(selectedPatient),
       providerId: selectedBookingDoctor.id,
-      title:
-        appointmentTitle ||
-        `${appointmentType} with ${selectedBookingDoctor.firstName} ${selectedBookingDoctor.lastName}`,
+      title: appointmentTitle || `${appointmentType} with ${selectedBookingDoctor.firstName} ${selectedBookingDoctor.lastName}`,
       description: appointmentDescription || `${appointmentType} appointment`,
       scheduledAt: scheduledAtString,
       duration: parseInt(duration),
-      type: appointmentType.toLowerCase().replace("-", "_") as
-        | "consultation"
-        | "follow_up"
-        | "procedure",
-      location:
-        appointmentLocation ||
-        `${selectedBookingDoctor.department || "General"} Department`,
+      type: appointmentType.toLowerCase().replace('-', '_') as "consultation" | "follow_up" | "procedure",
+      location: appointmentLocation || `${selectedBookingDoctor.department || 'General'} Department`,
       status: "scheduled",
-      isVirtual: false,
+      isVirtual: false
     };
 
     bookAppointmentMutation.mutate(appointmentData);
@@ -343,19 +275,22 @@ export function DoctorList({
     setIsBookingOpen(true);
   };
 
+
   const handleScheduleUpdate = () => {
     if (!selectedDoctor) return;
-
+    
     updateScheduleMutation.mutate({
       userId: selectedDoctor.id,
       workingDays,
-      workingHours: { start: startTime, end: endTime },
+      workingHours: { start: startTime, end: endTime }
     });
   };
 
   const toggleWorkingDay = (day: string) => {
-    setWorkingDays((prev) =>
-      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day],
+    setWorkingDays(prev => 
+      prev.includes(day) 
+        ? prev.filter(d => d !== day)
+        : [...prev, day]
     );
   };
 
@@ -367,10 +302,10 @@ export function DoctorList({
     const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
     return `${displayHour}:${minutes} ${ampm}`;
   };
-
+  
   // Filter to show only available staff members
   // Based on backend logic: staff are available if they have no working days set OR if today is in their working days
-  const today = new Date().toLocaleDateString("en-US", { weekday: "long" });
+  const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
   const availableStaff = medicalStaff.filter((doctor: Doctor) => {
     // If no working days are set, staff is considered available (like mobile users)
     if (!doctor.workingDays || doctor.workingDays.length === 0) {
@@ -416,9 +351,7 @@ export function DoctorList({
           <div className="text-center py-8 text-gray-500">
             <User className="h-12 w-12 mx-auto mb-4 text-gray-300" />
             <p>No available medical staff</p>
-            <p className="text-sm text-gray-400 mt-1">
-              All staff are currently off duty
-            </p>
+            <p className="text-sm text-gray-400 mt-1">All staff are currently off duty</p>
           </div>
         </CardContent>
       </Card>
@@ -436,8 +369,8 @@ export function DoctorList({
       <CardContent>
         <div className="space-y-4">
           {availableStaff.map((doctor: Doctor) => (
-            <div
-              key={doctor.id}
+            <div 
+              key={doctor.id} 
               className="flex items-start justify-between p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
             >
               <div className="flex items-start gap-3 flex-1">
@@ -446,35 +379,26 @@ export function DoctorList({
                     {getInitials(doctor.firstName, doctor.lastName)}
                   </AvatarFallback>
                 </Avatar>
-
+                
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <h4
+                    <h4 
                       className="font-semibold text-gray-900 dark:text-gray-100 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                       onClick={() => openScheduleDialog(doctor)}
                     >
                       Dr. {doctor.firstName} {doctor.lastName}
                     </h4>
-                    <Badge
-                      className={
-                        roleColors[doctor.role as keyof typeof roleColors] ||
-                        "bg-gray-100 text-gray-800"
-                      }
-                    >
+                    <Badge className={roleColors[doctor.role as keyof typeof roleColors] || "bg-gray-100 text-gray-800"}>
                       {doctor.role}
                     </Badge>
                   </div>
-
+                  
                   {doctor.department && (
                     <div className="flex items-center gap-1 mb-2">
                       <MapPin className="h-3 w-3 text-gray-400" />
-                      <Badge
-                        variant="outline"
-                        className={
-                          departmentColors[
-                            doctor.department as keyof typeof departmentColors
-                          ] || "bg-gray-100 text-gray-800"
-                        }
+                      <Badge 
+                        variant="outline" 
+                        className={departmentColors[doctor.department as keyof typeof departmentColors] || "bg-gray-100 text-gray-800"}
                       >
                         {doctor.department}
                       </Badge>
@@ -482,22 +406,17 @@ export function DoctorList({
                   )}
 
                   {/* Working Hours Display */}
-                  {doctor.workingDays &&
-                    doctor.workingDays.length > 0 &&
-                    doctor.workingHours && (
-                      <div className="flex items-center gap-1 mb-2">
-                        <Clock className="h-3 w-3 text-blue-500 dark:text-blue-400" />
-                        <span className="text-sm text-blue-700 dark:text-blue-300 font-medium">
-                          {doctor.workingDays.slice(0, 3).join(", ")}
-                          {doctor.workingDays.length > 3 &&
-                            ` +${doctor.workingDays.length - 3} more`}
-                          {" · "}
-                          {doctor.workingHours.start} -{" "}
-                          {doctor.workingHours.end}
-                        </span>
-                      </div>
-                    )}
-
+                  {doctor.workingDays && doctor.workingDays.length > 0 && doctor.workingHours && (
+                    <div className="flex items-center gap-1 mb-2">
+                      <Clock className="h-3 w-3 text-blue-500 dark:text-blue-400" />
+                      <span className="text-sm text-blue-700 dark:text-blue-300 font-medium">
+                        {doctor.workingDays.slice(0, 3).join(", ")}
+                        {doctor.workingDays.length > 3 && ` +${doctor.workingDays.length - 3} more`} 
+                        {" · "}{doctor.workingHours.start} - {doctor.workingHours.end}
+                      </span>
+                    </div>
+                  )}
+                  
                   <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
                     <span className="flex items-center gap-1">
                       <User className="h-3 w-3" />
@@ -506,41 +425,40 @@ export function DoctorList({
                     {doctor.lastLoginAt && (
                       <span className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
-                        Last active:{" "}
-                        {new Date(doctor.lastLoginAt).toLocaleDateString()}
+                        Last active: {new Date(doctor.lastLoginAt).toLocaleDateString()}
                       </span>
                     )}
                   </div>
                 </div>
               </div>
-
+              
               <div className="flex flex-col gap-2">
                 {showAppointmentButton && (
-                  <Button
-                    size="sm"
+                  <Button 
+                    size="sm" 
                     variant="outline"
                     onClick={(e) => {
                       e.stopPropagation();
                       openBookingDialog(doctor);
                     }}
                   >
-                    <Calendar className="h-4 w-3 mr-1" />
+                    <Calendar className="h-3 w-3 mr-1" />
                     Book
                   </Button>
                 )}
-                <Button
-                  size="sm"
+                <Button 
+                  size="sm" 
                   variant="outline"
                   onClick={(e) => {
                     e.stopPropagation();
                     openScheduleDialog(doctor);
                   }}
                 >
-                  <Edit className="h-4 w-3 mr-1" />
+                  <Edit className="h-3 w-3 mr-1" />
                   Edit Schedule
                 </Button>
-                <Button
-                  size="sm"
+                <Button 
+                  size="sm" 
                   variant="ghost"
                   onClick={(e) => {
                     e.stopPropagation();
@@ -560,25 +478,16 @@ export function DoctorList({
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>
-              Edit Schedule - Dr. {selectedDoctor?.firstName}{" "}
-              {selectedDoctor?.lastName}
+              Edit Schedule - Dr. {selectedDoctor?.firstName} {selectedDoctor?.lastName}
             </DialogTitle>
           </DialogHeader>
-
+          
           <div className="space-y-4">
             {/* Working Days */}
             <div>
               <Label className="text-base font-medium">Working Days</Label>
               <div className="grid grid-cols-2 gap-2 mt-2">
-                {[
-                  "Monday",
-                  "Tuesday",
-                  "Wednesday",
-                  "Thursday",
-                  "Friday",
-                  "Saturday",
-                  "Sunday",
-                ].map((day) => (
+                {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day) => (
                   <div key={day} className="flex items-center space-x-2">
                     <Checkbox
                       id={day}
@@ -626,16 +535,11 @@ export function DoctorList({
               <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <p className="text-sm font-medium mb-1">Current Schedule:</p>
                 <div className="text-sm text-gray-600 dark:text-gray-400">
-                  {selectedDoctor.workingDays &&
-                  selectedDoctor.workingDays.length > 0 ? (
+                  {selectedDoctor.workingDays && selectedDoctor.workingDays.length > 0 ? (
                     <>
                       <p>Days: {selectedDoctor.workingDays.join(", ")}</p>
                       {selectedDoctor.workingHours && (
-                        <p>
-                          Hours:{" "}
-                          {formatTime(selectedDoctor.workingHours.start || "")}{" "}
-                          - {formatTime(selectedDoctor.workingHours.end || "")}
-                        </p>
+                        <p>Hours: {formatTime(selectedDoctor.workingHours.start || "")} - {formatTime(selectedDoctor.workingHours.end || "")}</p>
                       )}
                     </>
                   ) : (
@@ -657,9 +561,7 @@ export function DoctorList({
                 onClick={handleScheduleUpdate}
                 disabled={updateScheduleMutation.isPending}
               >
-                {updateScheduleMutation.isPending
-                  ? "Updating..."
-                  : "Update Schedule"}
+                {updateScheduleMutation.isPending ? "Updating..." : "Update Schedule"}
               </Button>
             </div>
           </div>
@@ -668,46 +570,38 @@ export function DoctorList({
 
       {/* Booking Dialog */}
       <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
-        <DialogContent
-          className="max-w-2xl"
-          aria-describedby="booking-dialog-description"
-        >
+        <DialogContent className="max-w-2xl" aria-describedby="booking-dialog-description">
           <DialogHeader>
             <DialogTitle>
-              Book Appointment with {selectedBookingDoctor?.firstName}{" "}
-              {selectedBookingDoctor?.lastName}
+              Book Appointment with {selectedBookingDoctor?.firstName} {selectedBookingDoctor?.lastName}
             </DialogTitle>
           </DialogHeader>
           <div id="booking-dialog-description" className="sr-only">
-            Book a new appointment with the selected doctor by choosing a
-            patient, date, and time slot.
+            Book a new appointment with the selected doctor by choosing a patient, date, and time slot.
           </div>
-
+          
           <div className="space-y-6">
-            {/* Patient Selection - Full Width */}
-            <div>
-              <Label className="text-sm font-medium">
-                Patient <span className="text-red-500">*</span>
-              </Label>
-              <Select
-                value={selectedPatient}
-                onValueChange={setSelectedPatient}
-              >
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Select patient..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {patients?.map((patient: any) => (
-                    <SelectItem key={patient.id} value={patient.id.toString()}>
-                      {patient.firstName} {patient.lastName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Date and Time Slots in one row */}
+            {/* Top row - Patient and Date & Time */}
             <div className="grid grid-cols-2 gap-4">
+              {/* Patient Selection */}
+              <div>
+                <Label className="text-sm font-medium">
+                  Patient <span className="text-red-500">*</span>
+                </Label>
+                <Select value={selectedPatient} onValueChange={setSelectedPatient}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select patient..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {patients?.map((patient: any) => (
+                      <SelectItem key={patient.id} value={patient.id.toString()}>
+                        {patient.firstName} {patient.lastName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
               {/* Select Date */}
               <div>
                 <Label className="text-sm font-medium">
@@ -718,79 +612,37 @@ export function DoctorList({
                     <div
                       className={cn(
                         "flex h-10 w-full items-center justify-start rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background cursor-pointer hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-1",
-                        !selectedDate && "text-muted-foreground",
+                        !selectedDate && "text-muted-foreground"
                       )}
                       tabIndex={0}
                       role="button"
                       aria-haspopup="dialog"
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {selectedDate ? (
-                        format(selectedDate, "PPP")
-                      ) : (
-                        <span>Pick a date</span>
-                      )}
+                      {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
                     </div>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
                     <Calendar
                       mode="single"
                       selected={selectedDate}
-                      onSelect={setSelectedDate}
-                      disabled={(date) => isBefore(date, startOfDay(new Date()))}
+                      onSelect={(date: Date | undefined) => setSelectedDate(date)}
+                      disabled={(date: Date) =>
+                        date < new Date() || date < new Date("1900-01-01")
+                      }
                       initialFocus
                     />
                   </PopoverContent>
                 </Popover>
               </div>
-
-              {/* Select Time Slot */}
-              {selectedDate && (
-                <div>
-                  <Label className="text-sm font-medium">
-                    Select Time Slot <span className="text-red-500">*</span>
-                  </Label>
-                  <div className="grid grid-cols-3 gap-1 mt-1 max-h-32 overflow-y-auto">
-                    {generateTimeSlots().map((slot) => {
-                      const isAvailable = isTimeSlotAvailable(slot.value);
-                      const isSelected = selectedTimeSlot === slot.value;
-
-                      return (
-                        <Button
-                          key={slot.value}
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setSelectedTimeSlot(slot.value)}
-                          disabled={!isAvailable}
-                          className={cn(
-                            "h-8 text-xs px-2",
-                            isSelected &&
-                              "bg-blue-500 text-white hover:bg-blue-600",
-                            isAvailable &&
-                              !isSelected &&
-                              "bg-green-100 text-green-800 hover:bg-green-200 border-green-300",
-                            !isAvailable &&
-                              "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed",
-                          )}
-                        >
-                          {slot.display}
-                        </Button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
             </div>
 
-            {/* Appointment Type and Duration */}
+            {/* Second row - Appointment Type and Duration */}
             <div className="grid grid-cols-2 gap-4">
               {/* Appointment Type */}
               <div>
                 <Label className="text-sm font-medium">Appointment Type</Label>
-                <Select
-                  value={appointmentType}
-                  onValueChange={setAppointmentType}
-                >
+                <Select value={appointmentType} onValueChange={setAppointmentType}>
                   <SelectTrigger className="mt-1">
                     <SelectValue />
                   </SelectTrigger>
@@ -805,9 +657,7 @@ export function DoctorList({
 
               {/* Duration */}
               <div>
-                <Label className="text-sm font-medium">
-                  Duration (minutes)
-                </Label>
+                <Label className="text-sm font-medium">Duration (minutes)</Label>
                 <Select value={duration} onValueChange={setDuration}>
                   <SelectTrigger className="mt-1">
                     <SelectValue />
@@ -822,6 +672,39 @@ export function DoctorList({
                 </Select>
               </div>
             </div>
+
+            {/* Select Time Slot */}
+            {selectedDate && (
+              <div>
+                <Label className="text-sm font-medium">
+                  Select Time Slot <span className="text-red-500">*</span>
+                </Label>
+                <div className="grid grid-cols-4 gap-2 mt-2">
+                  {generateTimeSlots().map((slot) => {
+                    const isAvailable = isTimeSlotAvailable(slot.value);
+                    const isSelected = selectedTimeSlot === slot.value;
+                    
+                    return (
+                      <Button
+                        key={slot.value}
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setSelectedTimeSlot(slot.value)}
+                        disabled={!isAvailable}
+                        className={cn(
+                          "h-10 text-xs",
+                          isSelected && "bg-blue-500 text-white hover:bg-blue-600",
+                          isAvailable && !isSelected && "bg-green-100 text-green-800 hover:bg-green-200 border-green-300",
+                          !isAvailable && "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
+                        )}
+                      >
+                        {slot.display}
+                      </Button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Title */}
             <div>
@@ -860,22 +743,18 @@ export function DoctorList({
 
             {/* Action Buttons */}
             <div className="flex justify-end gap-3 pt-4">
-              <Button variant="outline" onClick={() => setIsBookingOpen(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setIsBookingOpen(false)}
+              >
                 Cancel
               </Button>
               <Button
-                disabled={
-                  !selectedPatient ||
-                  !selectedDate ||
-                  !selectedTimeSlot ||
-                  bookAppointmentMutation.isPending
-                }
+                disabled={!selectedPatient || !selectedDate || !selectedTimeSlot || bookAppointmentMutation.isPending}
                 onClick={handleBookAppointment}
                 className="bg-blue-600 hover:bg-blue-700 text-white"
               >
-                {bookAppointmentMutation.isPending
-                  ? "Booking..."
-                  : "Book Appointment"}
+                {bookAppointmentMutation.isPending ? "Booking..." : "Book Appointment"}
               </Button>
             </div>
           </div>
