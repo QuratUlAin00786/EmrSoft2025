@@ -3058,20 +3058,52 @@ export default function ImagingPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => {
-                            // Get image from filesystem using API endpoint with cache-busting parameter
-                            const imageForViewer = {
-                              seriesDescription: image.seriesDescription,
-                              type: image.type,
-                              imageCount: image.imageCount,
-                              size: image.size,
-                              imageId: selectedStudy.id, // Use study ID for API endpoint
-                              imageUrl: `/api/medical-images/${selectedStudy.id}/image?t=${Date.now()}`, // API endpoint with cache-busting
-                              mimeType: image.mimeType || "image/jpeg",
-                              fileName: (selectedStudy as any).fileName || null, // Get fileName from study for logging
-                            };
-                            setSelectedImageSeries(imageForViewer);
-                            setShowImageViewer(true);
+                          onClick={async () => {
+                            try {
+                              // Fetch image with authentication headers
+                              const token = localStorage.getItem("auth_token");
+                              const headers: Record<string, string> = {
+                                "X-Tenant-Subdomain": "demo",
+                              };
+                              
+                              if (token) {
+                                headers["Authorization"] = `Bearer ${token}`;
+                              }
+                              
+                              const response = await fetch(`/api/medical-images/${selectedStudy.id}/image?t=${Date.now()}`, {
+                                method: "GET",
+                                headers,
+                                credentials: "include",
+                              });
+                              
+                              if (!response.ok) {
+                                throw new Error(`Failed to load image: ${response.status}`);
+                              }
+                              
+                              // Convert response to blob and create blob URL
+                              const blob = await response.blob();
+                              const blobUrl = URL.createObjectURL(blob);
+                              
+                              const imageForViewer = {
+                                seriesDescription: image.seriesDescription,
+                                type: image.type,
+                                imageCount: image.imageCount,
+                                size: image.size,
+                                imageId: selectedStudy.id,
+                                imageUrl: blobUrl, // Use blob URL instead of direct API endpoint
+                                mimeType: image.mimeType || "image/jpeg",
+                                fileName: (selectedStudy as any).fileName || null,
+                              };
+                              setSelectedImageSeries(imageForViewer);
+                              setShowImageViewer(true);
+                            } catch (error) {
+                              console.error("Error loading image:", error);
+                              toast({
+                                title: "Error",
+                                description: "Failed to load medical image. Please try again.",
+                                variant: "destructive",
+                              });
+                            }
                           }}
                         >
                           <Eye className="h-4 w-4 mr-2" />
