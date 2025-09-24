@@ -11728,6 +11728,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Share Imaging Study via Email
+  app.post("/api/imaging/share-study", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const { studyId, recipientEmail, customMessage } = req.body;
+
+      if (!studyId || !recipientEmail) {
+        return res.status(400).json({ error: "Study ID and recipient email are required" });
+      }
+
+      // Get the study details from the database
+      const study = await storage.getMedicalImage(studyId, req.tenant!.id);
+      if (!study) {
+        return res.status(404).json({ error: "Study not found" });
+      }
+
+      // Get patient details for the study
+      const patient = await storage.getPatient(study.patientId, req.tenant!.id);
+      if (!patient) {
+        return res.status(404).json({ error: "Patient not found" });
+      }
+
+      // Get the user details who is sharing the study
+      const sharedBy = req.user.email;
+      
+      // Create report URL if report exists
+      let reportUrl = '';
+      if (study.reportFileName) {
+        const baseUrl = process.env.NODE_ENV === 'production' 
+          ? `https://${req.get('host')}` 
+          : `http://${req.get('host')}`;
+        reportUrl = `${baseUrl}/api/imaging/reports/${study.reportFileName.replace('.pdf', '')}`;
+      }
+
+      // Send the email using the email service
+      const { default: EmailService } = await import('./services/email');
+      const emailService = new EmailService();
+      const patientName = `${patient.firstName} ${patient.lastName}`;
+      const studyType = study.studyDescription || 'Medical Imaging Study';
+
+      const emailSent = await emailService.sendImagingStudyShare(
+        recipientEmail,
+        patientName,
+        studyType,
+        sharedBy,
+        customMessage || '',
+        reportUrl
+      );
+
+      if (emailSent) {
+        console.log(`📧 EMAIL: Successfully shared imaging study ${studyId} with ${recipientEmail}`);
+        res.json({
+          success: true,
+          message: `Imaging study shared successfully with ${recipientEmail}`,
+          studyId,
+          recipientEmail,
+          patientName
+        });
+      } else {
+        console.error(`📧 EMAIL: Failed to share imaging study ${studyId} with ${recipientEmail}`);
+        res.status(500).json({
+          error: "Failed to send email. Please try again or contact support.",
+          studyId,
+          recipientEmail
+        });
+      }
+
+    } catch (error) {
+      console.error("Share imaging study error:", error);
+      res.status(500).json({ error: "Failed to share imaging study" });
+    }
+  });
+
   // Serve PDF Reports
   app.get("/api/imaging/reports/:reportId", authMiddleware, async (req: TenantRequest, res) => {
     try {

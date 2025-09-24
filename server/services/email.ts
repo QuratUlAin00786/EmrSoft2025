@@ -519,6 +519,103 @@ Cura EMR Team
     });
   }
 
+  // Template for sharing imaging studies
+  generateImagingStudyShareEmail(recipientEmail: string, patientName: string, studyType: string, sharedBy: string, customMessage: string = '', reportUrl?: string): EmailTemplate {
+    const subject = `Imaging Study Shared - ${patientName}`;
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background-color: #4F46E5; color: white; padding: 20px; text-align: center; }
+          .content { padding: 20px; background-color: #f9f9f9; }
+          .study-details { background-color: white; padding: 15px; border-radius: 5px; margin: 20px 0; }
+          .custom-message { background-color: #FEF3C7; border-left: 4px solid #F59E0B; padding: 15px; margin: 20px 0; }
+          .report-link { background-color: #DBEAFE; border: 1px solid #3B82F6; border-radius: 5px; padding: 15px; text-align: center; margin: 20px 0; }
+          .footer { text-align: center; color: #666; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Cura EMR</h1>
+            <h2>Imaging Study Shared</h2>
+          </div>
+          <div class="content">
+            <p>Dear Colleague,</p>
+            <p>An imaging study has been shared with you by ${sharedBy}:</p>
+            
+            <div class="study-details">
+              <h3>Study Information</h3>
+              <p><strong>Patient:</strong> ${patientName}</p>
+              <p><strong>Study Type:</strong> ${studyType}</p>
+              <p><strong>Shared by:</strong> ${sharedBy}</p>
+              <p><strong>Date Shared:</strong> ${new Date().toLocaleDateString()}</p>
+            </div>
+            
+            ${customMessage ? `
+            <div class="custom-message">
+              <h4>Message from ${sharedBy}:</h4>
+              <p>${customMessage}</p>
+            </div>
+            ` : ''}
+            
+            ${reportUrl ? `
+            <div class="report-link">
+              <h4>Report Access</h4>
+              <p>Click the link below to view the imaging report:</p>
+              <a href="${reportUrl}" style="display: inline-block; background-color: #3B82F6; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-top: 10px;">View Report</a>
+            </div>
+            ` : ''}
+            
+            <p>This study has been shared for medical consultation purposes. Please ensure appropriate patient confidentiality is maintained.</p>
+            
+            <p>Best regards,<br>Cura EMR Team</p>
+          </div>
+          <div class="footer">
+            <p>© 2025 Cura EMR by Halo Group. All rights reserved.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+    
+    const text = `
+Dear Colleague,
+
+An imaging study has been shared with you by ${sharedBy}:
+
+Patient: ${patientName}
+Study Type: ${studyType}  
+Shared by: ${sharedBy}
+Date Shared: ${new Date().toLocaleDateString()}
+
+${customMessage ? `Message from ${sharedBy}: ${customMessage}` : ''}
+
+${reportUrl ? `Report URL: ${reportUrl}` : ''}
+
+This study has been shared for medical consultation purposes. Please ensure appropriate patient confidentiality is maintained.
+
+Best regards,
+Cura EMR Team
+    `;
+
+    return { subject, html, text };
+  }
+
+  // Send imaging study share email
+  async sendImagingStudyShare(recipientEmail: string, patientName: string, studyType: string, sharedBy: string, customMessage: string = '', reportUrl?: string): Promise<boolean> {
+    const template = this.generateImagingStudyShareEmail(recipientEmail, patientName, studyType, sharedBy, customMessage, reportUrl);
+    return this.sendEmail({
+      to: recipientEmail,
+      subject: template.subject,
+      html: template.html,
+      text: template.text
+    });
+  }
+
   // Template for prescription PDF emails with clinic logo in header and Cura logo in footer
   generatePrescriptionEmail(
     patientName: string, 

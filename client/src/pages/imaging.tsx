@@ -2392,18 +2392,52 @@ export default function ImagingPage() {
                   Cancel
                 </Button>
                 <Button
-                  onClick={() => {
-                    const method =
-                      shareFormData.method === "email" ? "email" : "WhatsApp";
-                    const contact =
-                      shareFormData.method === "email"
-                        ? shareFormData.email
-                        : shareFormData.whatsapp;
+                  onClick={async () => {
+                    if (shareFormData.method === "email") {
+                      try {
+                        const response = await fetch("/api/imaging/share-study", {
+                          method: "POST",
+                          headers: {
+                            "Content-Type": "application/json",
+                          },
+                          body: JSON.stringify({
+                            studyId: selectedStudy.id,
+                            recipientEmail: shareFormData.email,
+                            customMessage: shareFormData.message,
+                          }),
+                        });
 
-                    toast({
-                      title: "Study Shared",
-                      description: `Imaging study sent to ${selectedStudy.patientName} via ${method} (${contact})`,
-                    });
+                        const result = await response.json();
+
+                        if (response.ok) {
+                          toast({
+                            title: "Study Shared",
+                            description: `Imaging study sent to ${shareFormData.email} successfully`,
+                          });
+                        } else {
+                          toast({
+                            title: "Sharing Failed",
+                            description: result.error || "Failed to send email. Please try again.",
+                            variant: "destructive",
+                          });
+                        }
+                      } catch (error) {
+                        console.error("Email sharing error:", error);
+                        toast({
+                          title: "Sharing Failed",
+                          description: "Network error. Please check your connection and try again.",
+                          variant: "destructive",
+                        });
+                      }
+                    } else {
+                      // WhatsApp sharing - not implemented yet, show info message
+                      toast({
+                        title: "WhatsApp Sharing",
+                        description: "WhatsApp sharing is not yet implemented. Please use email sharing.",
+                        variant: "destructive",
+                      });
+                    }
+
                     setShowShareDialog(false);
                     setShareFormData({
                       method: "",
