@@ -174,12 +174,42 @@ export default function PatientAppointments({
 
   // Filter appointments to show only the current patient's appointments
   const appointments = React.useMemo(() => {
-    if (!appointmentsData || !currentPatient) return [];
+    if (!appointmentsData || !currentPatient) {
+      console.log("🚨 PATIENT-APPOINTMENTS: No appointments to filter", {
+        hasAppointmentsData: !!appointmentsData,
+        appointmentsCount: appointmentsData?.length || 0,
+        hasCurrentPatient: !!currentPatient,
+        currentPatientId: currentPatient?.id,
+      });
+      return [];
+    }
+
+    console.log("🔍 PATIENT-APPOINTMENTS: Filtering appointments", {
+      totalAppointments: appointmentsData.length,
+      currentPatientId: currentPatient.id,
+      currentPatientEmail: currentPatient.email,
+      appointmentsData: appointmentsData.map((apt: any) => ({
+        id: apt.id,
+        patientId: apt.patientId,
+        title: apt.title
+      }))
+    });
 
     // Filter appointments by current patient database ID - appointments store the numeric patient ID
-    return appointmentsData.filter(
+    const filtered = appointmentsData.filter(
       (apt: any) => apt.patientId === currentPatient.id,
     );
+    
+    console.log("✅ PATIENT-APPOINTMENTS: Filtered result", {
+      filteredCount: filtered.length,
+      filtered: filtered.map((apt: any) => ({
+        id: apt.id,
+        patientId: apt.patientId,
+        title: apt.title
+      }))
+    });
+    
+    return filtered;
   }, [appointmentsData, currentPatient]);
 
   const getDoctorSpecialtyData = (providerId: number) => {
