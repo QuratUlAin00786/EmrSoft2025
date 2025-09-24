@@ -3243,6 +3243,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Simple doctors endpoint - direct database query for appointment booking
+  app.get("/api/doctors", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      console.log('🔄 DIRECT DOCTORS: Fetching doctors directly from database for organization:', req.tenant!.id);
+      
+      const users = await storage.getUsersByOrganization(req.tenant!.id);
+      
+      // Filter for active doctors only
+      const doctors = users
+        .filter(user => user.role === 'doctor' && user.isActive)
+        .map(user => {
+          const { passwordHash, ...safeUser } = user;
+          return safeUser;
+        });
+      
+      console.log('🔄 DIRECT DOCTORS: Found doctors:', doctors.length);
+      console.log('🔄 DIRECT DOCTORS: Doctor names:', doctors.map(d => `${d.firstName} ${d.lastName}`).join(', '));
+      
+      res.json({ 
+        doctors,
+        count: doctors.length
+      });
+    } catch (error) {
+      console.error("Direct doctors fetch error:", error);
+      res.status(500).json({ error: "Failed to fetch doctors" });
+    }
+  });
+
   // Filter doctors by specialization
   app.get("/api/doctors/by-specialization", authMiddleware, async (req: TenantRequest, res) => {
     try {
