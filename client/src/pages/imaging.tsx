@@ -1177,7 +1177,7 @@ export default function ImagingPage() {
           // Fetch image data from server using the fileName
           try {
             console.log("📷 IMAGING: Fetching image from server for fileName:", study.fileName);
-            const imageResponse = await apiRequest('GET', `/api/medical-images/${study.id}/image`);
+            const imageResponse = await apiRequest('GET', `/api/medical-images/${study.id}/image?t=${Date.now()}`);
             if (imageResponse.ok) {
               const imageBlob = await imageResponse.blob();
               // Convert blob to base64
