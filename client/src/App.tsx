@@ -51,6 +51,7 @@ import GDPRCompliance from "@/pages/gdpr-compliance";
 import AiAgent from "@/pages/ai-agent";
 import QuickBooks from "@/pages/quickbooks";
 import FontTest from "@/pages/font-test";
+import TechSpecExport from "@/pages/tech-spec-export";
 import NotFound from "@/pages/not-found";
 import Login from "@/pages/login";
 
@@ -239,6 +240,7 @@ function ProtectedApp() {
           <Route path="/ai-agent" component={AiAgent} />
           <Route path="/quickbooks" component={QuickBooks} />
           <Route path="/font-test" component={FontTest} />
+          <Route path="/tech-spec-export" component={TechSpecExport} />
           <Route path="/users" component={UserManagement} />
           <Route path="/user-management" component={UserManagement} />
           <Route path="/shifts" component={ShiftsPage} />
