@@ -129,36 +129,13 @@ export default function PatientAppointments({
       })),
     );
 
-    // Try multiple matching strategies
-    const foundPatient =
-      // 1. Match by exact email
-      patientsData.find(
-        (patient: any) =>
-          patient.email &&
-          user.email &&
-          patient.email.toLowerCase() === user.email.toLowerCase(),
-      ) ||
-      // 2. Match by exact name
-      patientsData.find(
-        (patient: any) =>
-          patient.firstName &&
-          user.firstName &&
-          patient.lastName &&
-          user.lastName &&
-          patient.firstName.toLowerCase() === user.firstName.toLowerCase() &&
-          patient.lastName.toLowerCase() === user.lastName.toLowerCase(),
-      ) ||
-      // 3. Match by partial name (first name only)
-      patientsData.find(
-        (patient: any) =>
-          patient.firstName &&
-          user.firstName &&
-          patient.firstName.toLowerCase() === user.firstName.toLowerCase(),
-      ) ||
-      // 4. If user role is patient, take the first patient (fallback for demo)
-      (user.role === "patient" && patientsData.length > 0
-        ? patientsData[0]
-        : null);
+    // Match by exact email only - users table email equals patients table email
+    const foundPatient = patientsData.find(
+      (patient: any) =>
+        patient.email &&
+        user.email &&
+        patient.email.toLowerCase() === user.email.toLowerCase(),
+    ) || null;
 
     if (foundPatient) {
       console.log(
