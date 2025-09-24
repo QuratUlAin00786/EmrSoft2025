@@ -1296,11 +1296,7 @@ export default function CalendarPage() {
                               )
                             : null;
                           
-                          if (!selectedPatient) return (
-                            <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-                              <p className="text-sm text-yellow-800">Loading your patient information...</p>
-                            </div>
-                          );
+                          if (!selectedPatient) return null;
                           
                           // Calculate age from date of birth
                           const age = selectedPatient.dateOfBirth 
