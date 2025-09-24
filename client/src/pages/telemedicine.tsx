@@ -13,6 +13,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { 
   Video,
   VideoOff,
@@ -40,7 +42,10 @@ import {
   MonitorSpeaker,
   ArrowLeft,
   AlertTriangle,
-  CheckCircle
+  CheckCircle,
+  Trash2,
+  ChevronsUpDown,
+  Check
 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -385,6 +390,8 @@ export default function Telemedicine() {
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [monitoringOpen, setMonitoringOpen] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [selectedPatient, setSelectedPatient] = useState<any>(null);
+  const [patientSearchOpen, setPatientSearchOpen] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const { toast } = useToast();
 
@@ -399,6 +406,25 @@ export default function Telemedicine() {
     queryKey: ["/api/telemedicine/waiting-room"],
     enabled: true,
     refetchInterval: 30000 // Refresh every 30 seconds
+  });
+
+  // Fetch patients for scheduling
+  const { data: patients, isLoading: patientsLoading } = useQuery({
+    queryKey: ["/api/patients"],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/patients', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo'
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch patients');
+      }
+      return response.json();
+    },
+    enabled: true
   });
 
   // Start consultation mutation
@@ -418,6 +444,37 @@ export default function Telemedicine() {
     },
     onError: () => {
       toast({ title: "Failed to start consultation", variant: "destructive" });
+    }
+  });
+
+  // Delete patient mutation
+  const deletePatientMutation = useMutation({
+    mutationFn: async (patientId: number) => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`/api/patients/${patientId}`, {
+        method: "DELETE",
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo'
+        }
+      });
+      if (!response.ok) throw new Error("Failed to delete patient");
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Patient Deleted",
+        description: "Patient has been successfully deleted.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/patients"] });
+      setSelectedPatient(null);
+    },
+    onError: () => {
+      toast({
+        title: "Delete Failed",
+        description: "Failed to delete patient. Please try again.",
+        variant: "destructive",
+      });
     }
   });
 
@@ -754,13 +811,71 @@ export default function Telemedicine() {
                 {/* Patient Selection */}
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-900 dark:text-gray-100">Patient</label>
-                  <select className="w-full p-2 border rounded-md">
-                    <option value="">Select a patient...</option>
-                    <option value="patient_1">Sarah Johnson</option>
-                    <option value="patient_2">Michael Chen</option>
-                    <option value="patient_3">Emma Davis</option>
-                    <option value="patient_4">James Wilson</option>
-                  </select>
+                  <Popover open={patientSearchOpen} onOpenChange={setPatientSearchOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={patientSearchOpen}
+                        className="w-full justify-between"
+                      >
+                        {selectedPatient
+                          ? `${selectedPatient.firstName} ${selectedPatient.lastName}`
+                          : "Select a patient..."}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-full p-0">
+                      <Command>
+                        <CommandInput placeholder="Search patients..." />
+                        <CommandEmpty>No patients found.</CommandEmpty>
+                        <CommandGroup>
+                          <CommandList className="max-h-[200px]">
+                            {patientsLoading ? (
+                              <CommandItem disabled>Loading patients...</CommandItem>
+                            ) : (
+                              patients?.map((patient: any) => (
+                                <CommandItem
+                                  key={patient.id}
+                                  value={`${patient.firstName} ${patient.lastName}`}
+                                  onSelect={() => {
+                                    setSelectedPatient(patient);
+                                    setPatientSearchOpen(false);
+                                  }}
+                                  className="flex items-center justify-between"
+                                >
+                                  <div className="flex items-center">
+                                    <Check
+                                      className={`mr-2 h-4 w-4 ${
+                                        selectedPatient?.id === patient.id ? "opacity-100" : "opacity-0"
+                                      }`}
+                                    />
+                                    <div>
+                                      <div>{patient.firstName} {patient.lastName}</div>
+                                      <div className="text-xs text-gray-500">ID: {patient.patientId || patient.id}</div>
+                                    </div>
+                                  </div>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      if (window.confirm(`Are you sure you want to delete ${patient.firstName} ${patient.lastName}?`)) {
+                                        deletePatientMutation.mutate(patient.id);
+                                      }
+                                    }}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </CommandItem>
+                              ))
+                            )}
+                          </CommandList>
+                        </CommandGroup>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                 </div>
 
                 {/* Provider Selection */}
