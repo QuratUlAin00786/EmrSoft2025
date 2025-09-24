@@ -1495,31 +1495,6 @@ export default function CalendarPage() {
 
                   {/* Right Column - Calendar and Time Slots */}
                   <div className="space-y-6">
-                    {/* Step 4: Select Date */}
-                    <div>
-                      <Label className="text-sm font-medium text-gray-900 dark:text-white mb-2 block">
-                        Select Date
-                      </Label>
-                      <CalendarComponent
-                        mode="single"
-                        selected={selectedDate}
-                        onSelect={setSelectedDate}
-                        disabled={(date) => {
-                          // Disable past dates (but allow today)
-                          if (isBefore(startOfDay(date), startOfDay(new Date()))) return true;
-                          
-                          // Disable days not in doctor's working days (if doctor is selected)
-                          if (selectedDoctor?.workingDays?.length > 0) {
-                            const dayName = format(date, 'EEEE');
-                            return !selectedDoctor.workingDays.includes(dayName);
-                          }
-                          
-                          return false;
-                        }}
-                        className="rounded-md border"
-                        data-testid="calendar-date-picker"
-                      />
-                    </div>
 
 
                     {/* Step 5: Select Time Slot */}
