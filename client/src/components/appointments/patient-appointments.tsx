@@ -11,6 +11,14 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
   Calendar,
   Clock,
   User,
@@ -23,6 +31,7 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  Stethoscope,
 } from "lucide-react";
 import { format, isSameDay, isToday, isFuture, isPast } from "date-fns";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -50,6 +59,15 @@ export default function PatientAppointments({
     number | null
   >(null);
   const [bookedTimeSlots, setBookedTimeSlots] = useState<string[]>([]);
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [selectedSpecialtyCategory, setSelectedSpecialtyCategory] = useState("");
+  const [selectedSubSpecialty, setSelectedSubSpecialty] = useState("");
+  const [selectedDoctorId, setSelectedDoctorId] = useState<number | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState("");
+  const [appointmentTitle, setAppointmentTitle] = useState("");
+  const [appointmentNotes, setAppointmentNotes] = useState("");
+  const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([]);
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -231,6 +249,122 @@ export default function PatientAppointments({
     }
   }, [editingAppointment?.scheduledAt, editingAppointment?.id]);
 
+  // Generate time slots for appointment booking
+  const generateTimeSlots = () => {
+    const slots = [];
+    for (let hour = 9; hour <= 17; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        const displayTime = new Date(`2000-01-01T${time}`).toLocaleTimeString('en-US', {
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true
+        });
+        slots.push(displayTime);
+      }
+    }
+    return slots;
+  };
+
+  // Get unique specialty categories from medical staff
+  const getSpecialtyCategories = () => {
+    const staffData = medicalStaffData as any;
+    if (!staffData?.staff || !Array.isArray(staffData.staff)) return [];
+    
+    const categories = new Set<string>();
+    staffData.staff.forEach((doctor: any) => {
+      if (doctor.medicalSpecialtyCategory) {
+        categories.add(doctor.medicalSpecialtyCategory);
+      }
+    });
+    return Array.from(categories).sort();
+  };
+
+  // Get sub-specialties for selected category
+  const getSubSpecialties = (category: string) => {
+    const staffData = medicalStaffData as any;
+    if (!staffData?.staff || !Array.isArray(staffData.staff)) return [];
+    
+    const subSpecialties = new Set<string>();
+    staffData.staff.forEach((doctor: any) => {
+      if (doctor.medicalSpecialtyCategory === category && doctor.subSpecialty) {
+        subSpecialties.add(doctor.subSpecialty);
+      }
+    });
+    return Array.from(subSpecialties).sort();
+  };
+
+  // Get filtered doctors based on specialty selections
+  const getFilteredDoctors = () => {
+    const staffData = medicalStaffData as any;
+    if (!staffData?.staff || !Array.isArray(staffData.staff)) return [];
+    
+    let filteredDoctors = staffData.staff.filter((doctor: any) => doctor.role === 'doctor');
+    
+    if (selectedSpecialtyCategory) {
+      filteredDoctors = filteredDoctors.filter(
+        (doctor: any) => doctor.medicalSpecialtyCategory === selectedSpecialtyCategory
+      );
+    }
+    
+    if (selectedSubSpecialty) {
+      filteredDoctors = filteredDoctors.filter(
+        (doctor: any) => doctor.subSpecialty === selectedSubSpecialty
+      );
+    }
+    
+    return filteredDoctors.map((doctor: any) => ({
+      id: doctor.id,
+      name: `${doctor.firstName} ${doctor.lastName}`,
+      specialty: doctor.medicalSpecialtyCategory,
+      subSpecialty: doctor.subSpecialty,
+    }));
+  };
+
+  // Fetch appointments for selected date and doctor to check availability
+  const checkTimeSlotAvailability = async (date: Date, doctorId: number) => {
+    try {
+      const dateStr = format(date, 'yyyy-MM-dd');
+      const response = await apiRequest('GET', '/api/appointments');
+      const data = await response.json();
+      
+      // Filter appointments for the selected date and doctor
+      const dayAppointments = data.filter((apt: any) => {
+        const aptDate = format(new Date(apt.scheduledAt), 'yyyy-MM-dd');
+        return aptDate === dateStr && apt.providerId === doctorId;
+      });
+      
+      // Extract booked time slots
+      const bookedSlots = dayAppointments.map((apt: any) => {
+        const aptTime = new Date(apt.scheduledAt);
+        return format(aptTime, 'h:mm a');
+      });
+      
+      setBookedTimeSlots(bookedSlots);
+      console.log('📅 Booked slots for doctor', doctorId, 'on', dateStr, ':', bookedSlots);
+    } catch (error) {
+      console.error('Error checking availability:', error);
+      setBookedTimeSlots([]);
+    }
+  };
+
+  // Effect to check availability when date or doctor changes
+  React.useEffect(() => {
+    if (selectedDate && selectedDoctorId) {
+      checkTimeSlotAvailability(selectedDate, selectedDoctorId);
+    }
+  }, [selectedDate, selectedDoctorId]);
+
+  // Reset dependent selections when parent selection changes
+  React.useEffect(() => {
+    setSelectedSubSpecialty('');
+    setSelectedDoctorId(null);
+  }, [selectedSpecialtyCategory]);
+
+  React.useEffect(() => {
+    setSelectedDoctorId(null);
+  }, [selectedSubSpecialty]);
+
   // Edit appointment mutation
   const editAppointmentMutation = useMutation({
     mutationFn: async (appointmentData: any) => {
@@ -294,6 +428,33 @@ export default function PatientAppointments({
     },
   });
 
+  // Book new appointment mutation
+  const bookAppointmentMutation = useMutation({
+    mutationFn: async (appointmentData: any) => {
+      const response = await apiRequest('POST', '/api/appointments', appointmentData);
+      if (!response.ok) {
+        throw new Error(`Failed to book appointment: ${response.status}`);
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Appointment Booked',
+        description: 'Your appointment has been successfully scheduled.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/appointments'] });
+      setShowBookingModal(false);
+      resetBookingForm();
+    },
+    onError: (error) => {
+      toast({
+        title: 'Booking Failed',
+        description: 'Failed to book appointment. Please try again.',
+        variant: 'destructive',
+      });
+    },
+  });
+
   const handleEditAppointment = (appointment: any) => {
     setEditingAppointment(appointment);
   };
@@ -311,6 +472,55 @@ export default function PatientAppointments({
 
   const cancelDeleteAppointment = () => {
     setDeletingAppointmentId(null);
+  };
+
+  const resetBookingForm = () => {
+    setSelectedSpecialtyCategory('');
+    setSelectedSubSpecialty('');
+    setSelectedDoctorId(null);
+    setSelectedDate(null);
+    setSelectedTimeSlot('');
+    setAppointmentTitle('');
+    setAppointmentNotes('');
+    setBookedTimeSlots([]);
+  };
+
+  const handleBookAppointment = () => {
+    if (!selectedDate || !selectedTimeSlot || !selectedDoctorId || !appointmentTitle || !currentPatient) {
+      toast({
+        title: 'Missing Information',
+        description: 'Please fill in all required fields.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Combine date and time
+    const [time, period] = selectedTimeSlot.split(' ');
+    const [hours, minutes] = time.split(':');
+    let hour24 = parseInt(hours);
+    
+    if (period === 'PM' && hour24 !== 12) {
+      hour24 += 12;
+    } else if (period === 'AM' && hour24 === 12) {
+      hour24 = 0;
+    }
+    
+    const scheduledDate = new Date(selectedDate);
+    scheduledDate.setHours(hour24, parseInt(minutes), 0, 0);
+
+    const appointmentData = {
+      patientId: currentPatient.id,
+      providerId: selectedDoctorId,
+      title: appointmentTitle,
+      scheduledAt: scheduledDate.toISOString(),
+      duration: 30,
+      status: 'scheduled',
+      notes: appointmentNotes,
+      isVirtual: false,
+    };
+
+    bookAppointmentMutation.mutate(appointmentData);
   };
 
   const handleSaveEdit = () => {
@@ -402,7 +612,7 @@ export default function PatientAppointments({
           </div>
         </div>
         <Button
-          onClick={() => onNewAppointment?.()}
+          onClick={() => setShowBookingModal(true)}
           className="flex items-center gap-2"
           data-testid="button-book-appointment"
         >
@@ -1104,6 +1314,182 @@ export default function PatientAppointments({
           </div>
         </div>
       )}
+
+      {/* Book Appointment Modal */}
+      <Dialog open={showBookingModal} onOpenChange={setShowBookingModal}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Stethoscope className="h-5 w-5" />
+              Schedule New Appointment
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6 py-4">
+            {/* Medical Specialty Category */}
+            <div className="space-y-2">
+              <Label htmlFor="specialty-category">Medical Specialty Category *</Label>
+              <Select value={selectedSpecialtyCategory} onValueChange={setSelectedSpecialtyCategory}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Medical Specialty Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {getSpecialtyCategories().map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Sub-Specialty */}
+            {selectedSpecialtyCategory && (
+              <div className="space-y-2">
+                <Label htmlFor="sub-specialty">Sub-Specialty</Label>
+                <Select value={selectedSubSpecialty} onValueChange={setSelectedSubSpecialty}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Sub-Specialty" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {getSubSpecialties(selectedSpecialtyCategory).map((subSpecialty) => (
+                      <SelectItem key={subSpecialty} value={subSpecialty}>
+                        {subSpecialty}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Doctor Selection */}
+            {selectedSpecialtyCategory && (
+              <div className="space-y-2">
+                <Label htmlFor="doctor">Select Doctor *</Label>
+                <Select 
+                  value={selectedDoctorId?.toString() || ''} 
+                  onValueChange={(value) => setSelectedDoctorId(parseInt(value))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Doctor" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {getFilteredDoctors().map((doctor: any) => (
+                      <SelectItem key={doctor.id} value={doctor.id.toString()}>
+                        <div className="flex flex-col">
+                          <span className="font-medium">{doctor.name}</span>
+                          <span className="text-sm text-gray-500">
+                            {doctor.subSpecialty || doctor.specialty}
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Date Selection */}
+            {selectedDoctorId && (
+              <div className="space-y-2">
+                <Label htmlFor="date">Appointment Date *</Label>
+                <Input
+                  type="date"
+                  value={selectedDate ? format(selectedDate, 'yyyy-MM-dd') : ''}
+                  onChange={(e) => setSelectedDate(e.target.value ? new Date(e.target.value) : null)}
+                  min={format(new Date(), 'yyyy-MM-dd')}
+                />
+              </div>
+            )}
+
+            {/* Time Slot Selection */}
+            {selectedDate && selectedDoctorId && (
+              <div className="space-y-2">
+                <Label htmlFor="time-slot">Available Time Slots *</Label>
+                <div className="grid grid-cols-4 gap-2 max-h-40 overflow-y-auto">
+                  {generateTimeSlots().map((timeSlot) => {
+                    const isBooked = bookedTimeSlots.includes(timeSlot);
+                    return (
+                      <Button
+                        key={timeSlot}
+                        variant={selectedTimeSlot === timeSlot ? "default" : "outline"}
+                        size="sm"
+                        className={`text-xs ${
+                          isBooked 
+                            ? 'bg-gray-400 text-gray-700 cursor-not-allowed hover:bg-gray-400' 
+                            : selectedTimeSlot === timeSlot 
+                              ? 'bg-blue-600 text-white' 
+                              : 'bg-green-100 text-green-800 hover:bg-green-200'
+                        }`}
+                        onClick={() => !isBooked && setSelectedTimeSlot(timeSlot)}
+                        disabled={isBooked}
+                      >
+                        {timeSlot}
+                        {isBooked && ' (Booked)'}
+                      </Button>
+                    );
+                  })}
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  <span className="inline-block w-3 h-3 bg-green-100 rounded mr-2"></span>Available
+                  <span className="inline-block w-3 h-3 bg-gray-400 rounded mr-2 ml-4"></span>Booked
+                </p>
+              </div>
+            )}
+
+            {/* Appointment Title */}
+            {selectedTimeSlot && (
+              <div className="space-y-2">
+                <Label htmlFor="title">Appointment Title *</Label>
+                <Input
+                  value={appointmentTitle}
+                  onChange={(e) => setAppointmentTitle(e.target.value)}
+                  placeholder="e.g., General Consultation, Follow-up, etc."
+                />
+              </div>
+            )}
+
+            {/* Notes */}
+            {appointmentTitle && (
+              <div className="space-y-2">
+                <Label htmlFor="notes">Additional Notes (Optional)</Label>
+                <Textarea
+                  value={appointmentNotes}
+                  onChange={(e) => setAppointmentNotes(e.target.value)}
+                  placeholder="Any additional information for the doctor..."
+                  rows={3}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Modal Actions */}
+          <div className="flex justify-end space-x-3 pt-4 border-t">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowBookingModal(false);
+                resetBookingForm();
+              }}
+              disabled={bookAppointmentMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleBookAppointment}
+              disabled={
+                !selectedDate || 
+                !selectedTimeSlot || 
+                !selectedDoctorId || 
+                !appointmentTitle ||
+                bookAppointmentMutation.isPending
+              }
+            >
+              {bookAppointmentMutation.isPending ? 'Booking...' : 'Book Appointment'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation Modal */}
       {deletingAppointmentId && (
