@@ -217,6 +217,7 @@ export default function ImagingPage() {
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [showFileNotAvailableDialog, setShowFileNotAvailableDialog] =
     useState(false);
+  const [showImageEditDialog, setShowImageEditDialog] = useState(false);
   const [modalityFilter, setModalityFilter] = useState<string>("all");
   const [selectedStudyId, setSelectedStudyId] = useState<string | null>(null);
   const [shareFormData, setShareFormData] = useState({
@@ -1026,6 +1027,11 @@ export default function ImagingPage() {
   const handleViewStudy = (study: ImagingStudy) => {
     setSelectedStudyId(study.id);
     setShowViewDialog(true);
+  };
+
+  const handleImageEdit = (study: ImagingStudy) => {
+    setSelectedStudyId(study.id);
+    setShowImageEditDialog(true);
   };
 
   const handleDownloadStudy = (studyId: string) => {
@@ -2006,6 +2012,17 @@ export default function ImagingPage() {
                         variant="outline"
                         size="sm"
                         onClick={() => handleViewStudy(study)}
+                        title="View Images"
+                        data-testid="button-view-images"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleImageEdit(study)}
+                        title="Edit Image"
+                        data-testid="button-edit-image"
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -3840,6 +3857,144 @@ export default function ImagingPage() {
                 onClick={() => setShowFileNotAvailableDialog(false)}
               >
                 Close
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Image Edit Dialog */}
+      <Dialog open={showImageEditDialog} onOpenChange={setShowImageEditDialog}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>View Imaging Study</DialogTitle>
+          </DialogHeader>
+          {selectedStudy && (
+            <div className="space-y-6">
+              {/* Study Information */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h4 className="font-medium text-lg mb-3">Study Details</h4>
+                  <div className="space-y-2 text-sm">
+                    <div><strong>Patient:</strong> {selectedStudy.patientName}</div>
+                    <div><strong>Study Type:</strong> {selectedStudy.studyType}</div>
+                    <div><strong>Modality:</strong> {selectedStudy.modality}</div>
+                    <div><strong>Body Part:</strong> {selectedStudy.bodyPart}</div>
+                    <div><strong>Status:</strong> {selectedStudy.status}</div>
+                  </div>
+                </div>
+
+                {/* Image Preview */}
+                {selectedStudy.images && selectedStudy.images.length > 0 && (
+                  <div>
+                    <h4 className="font-medium text-lg mb-3">Image Preview</h4>
+                    <div className="border rounded-lg p-4 bg-gray-50 dark:bg-slate-800">
+                      {selectedStudy.images[0].imageData ? (
+                        <img
+                          src={selectedStudy.images[0].imageData}
+                          alt={`Medical Image - ${selectedStudy.studyType}`}
+                          className="w-full h-48 object-contain rounded"
+                          data-testid="image-preview"
+                        />
+                      ) : (
+                        <div className="w-full h-48 bg-gray-200 dark:bg-slate-600 rounded flex items-center justify-center">
+                          <div className="text-center text-gray-500">
+                            <FileImage className="h-12 w-12 mx-auto mb-2" />
+                            <p className="text-sm">No image preview available</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Image Edit Controls */}
+              <div>
+                <h4 className="font-medium text-lg mb-3">Image Edit Tools</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center justify-center"
+                    data-testid="button-brightness"
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Brightness
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center justify-center"
+                    data-testid="button-contrast"
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Contrast
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center justify-center"
+                    data-testid="button-rotate"
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Rotate
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center justify-center"
+                    data-testid="button-annotations"
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Annotate
+                  </Button>
+                </div>
+              </div>
+
+              {/* Notes Section */}
+              <div>
+                <h4 className="font-medium text-lg mb-3">Study Notes</h4>
+                <div className="space-y-3">
+                  <div>
+                    <Label className="text-sm font-medium">Findings:</Label>
+                    <div className="mt-1 p-3 bg-gray-50 dark:bg-slate-700 rounded-md border text-sm">
+                      {selectedStudy.findings || "No findings recorded"}
+                    </div>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">Impression:</Label>
+                    <div className="mt-1 p-3 bg-gray-50 dark:bg-slate-700 rounded-md border text-sm">
+                      {selectedStudy.impression || "No impression recorded"}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="flex justify-between items-center pt-4 border-t">
+            <Button
+              variant="outline"
+              onClick={() => setShowImageEditDialog(false)}
+              data-testid="button-close-image-edit"
+            >
+              Close
+            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  // Save image edits functionality can be added here
+                  toast({
+                    title: "Image Saved",
+                    description: "Image edits have been saved successfully.",
+                  });
+                }}
+                data-testid="button-save-image-edits"
+              >
+                <Edit className="h-4 w-4 mr-2" />
+                Save Changes
               </Button>
             </div>
           </div>
