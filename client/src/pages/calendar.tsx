@@ -931,12 +931,6 @@ export default function CalendarPage() {
           </div>
         )}
 
-        {/* Selected Doctor Indicator */}
-        <div className="mt-6">
-          <div className="bg-yellow-100 border border-yellow-300 p-3 rounded text-gray-900 dark:text-gray-900">
-            Selected Doctor: {selectedDoctor ? `${selectedDoctor.firstName} ${selectedDoctor.lastName}` : 'None'}
-          </div>
-        </div>
 
         {/* Booking Form */}
         {selectedDoctor && !showNewAppointmentModal && (
