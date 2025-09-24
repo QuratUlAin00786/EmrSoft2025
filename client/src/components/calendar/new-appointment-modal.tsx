@@ -31,10 +31,26 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
 
   const createAppointmentMutation = useMutation({
     mutationFn: async (appointmentData: any) => {
-      console.log("🚀 MUTATION START - Sending appointment data:", appointmentData);
-      const result = await apiRequest("POST", "/api/appointments", appointmentData);
-      console.log("✅ MUTATION SUCCESS - API returned:", result);
-      return result;
+      console.log("🚀 APPOINTMENT-CREATION: Starting appointment booking...");
+      console.log("📋 APPOINTMENT-DATA: Sending data:", appointmentData);
+      
+      try {
+        const response = await apiRequest("POST", "/api/appointments", appointmentData);
+        console.log("📡 APPOINTMENT-RESPONSE: Response status:", response.status);
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log("✅ APPOINTMENT-SUCCESS: Appointment created successfully:", data);
+          return data;
+        } else {
+          const errorText = await response.text();
+          console.error("❌ APPOINTMENT-ERROR: Response not ok:", response.status, errorText);
+          throw new Error(`Appointment creation failed: ${errorText}`);
+        }
+      } catch (error) {
+        console.error("💥 APPOINTMENT-FATAL: Mutation function error:", error);
+        throw error;
+      }
     },
     onSuccess: (data) => {
       console.log("🎉 MUTATION onSuccess triggered with data:", data);
@@ -76,14 +92,35 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
       }, 100);
     },
     onError: (error: any) => {
-      console.error("❌ MUTATION ERROR:", error);
+      console.error("💥 APPOINTMENT-MUTATION-ERROR: Full error details:", error);
+      console.error("💥 APPOINTMENT-ERROR-MESSAGE:", error.message);
+      console.error("💥 APPOINTMENT-ERROR-STACK:", error.stack);
       
-      // Show detailed validation error if available
-      const errorMessage = error.message || "Failed to create appointment";
+      // Extract user-friendly error message
+      let userMessage = "Failed to create appointment. Please try again.";
+      
+      if (error.message) {
+        if (error.message.includes("already scheduled")) {
+          userMessage = "The selected time slot is already booked. Please choose a different time.";
+        } else if (error.message.includes("Invalid patient")) {
+          userMessage = "Please select a valid patient from the list.";
+        } else if (error.message.includes("Invalid provider")) {
+          userMessage = "Please select a valid doctor from the list.";
+        } else if (error.message.includes("401")) {
+          userMessage = "You need to log in again to book an appointment.";
+        } else if (error.message.includes("403")) {
+          userMessage = "You don't have permission to book appointments.";
+        } else {
+          // Show original error message for debugging, but make it user-friendly
+          userMessage = error.message.replace(/^.*?: /, ''); // Remove HTTP status codes
+        }
+      }
+      
+      console.log("📱 APPOINTMENT-USER-MESSAGE:", userMessage);
       
       toast({
-        title: "Appointment Creation Failed",
-        description: errorMessage,
+        title: "Booking Failed",
+        description: userMessage,
         variant: "destructive"
       });
     }
