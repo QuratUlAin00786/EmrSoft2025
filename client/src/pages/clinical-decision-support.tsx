@@ -82,6 +82,8 @@ export default function ClinicalDecisionSupport() {
   const [buttonLoadingStates, setButtonLoadingStates] = useState<Record<string, string | null>>({});
   const [editingSeverity, setEditingSeverity] = useState<string | null>(null);
   const [tempSeverity, setTempSeverity] = useState<string>("");
+  const [editingPriority, setEditingPriority] = useState<string | null>(null);
+  const [tempPriority, setTempPriority] = useState<string>("");
   const { toast } = useToast();
   const [location, setLocation] = useLocation();
 
@@ -451,6 +453,60 @@ export default function ClinicalDecisionSupport() {
     }
   });
 
+  // Update priority mutation
+  const updatePriorityMutation = useMutation({
+    mutationFn: async (data: { insightId: string; priority: string }) => {
+      const response = await apiRequest("PATCH", `/api/ai-insights/${data.insightId}`, { severity: data.priority });
+      
+      // Check if response has content before parsing as JSON
+      const text = await response.text();
+      if (text.trim() === '') {
+        return { success: true }; // Empty response is success
+      }
+      
+      try {
+        return JSON.parse(text);
+      } catch (error) {
+        // If not valid JSON, just return success status
+        return { success: response.ok };
+      }
+    },
+    onSuccess: async (data, variables) => {
+      toast({
+        title: "Priority Updated", 
+        description: `Priority changed to ${variables.priority}`,
+      });
+      
+      // 🚀 COMPREHENSIVE AUTO-REFRESH: Use comprehensive cache invalidation that matches all AI insights queries
+      await queryClient.invalidateQueries({ 
+        predicate: (query) => Array.isArray(query.queryKey) && query.queryKey[0] === "/api/ai-insights" 
+      });
+      
+      // 🔄 FORCE IMMEDIATE REFETCH: Force immediate refetch to ensure data displays
+      await queryClient.refetchQueries({ 
+        predicate: (query) => Array.isArray(query.queryKey) && query.queryKey[0] === "/api/ai-insights" 
+      });
+      
+      // Also call the specific refetch function for this component
+      await refetchInsights();
+      
+      setEditingPriority(null);
+      setTempPriority("");
+    },
+    onError: (error: any) => {
+      // On error, still try to refresh from server to get latest state
+      queryClient.invalidateQueries({ 
+        predicate: (query) => Array.isArray(query.queryKey) && query.queryKey[0] === "/api/ai-insights" 
+      });
+      
+      toast({
+        title: "Update Failed",
+        description: error.message || "Failed to update priority",
+        variant: "destructive"
+      });
+    }
+  });
+
   // Generate new insight mutation (keep existing for AI generation)
   const generateInsightMutation = useMutation({
     mutationFn: async (data: { patientId: string; symptoms: string; history: string }) => {
@@ -590,6 +646,23 @@ export default function ClinicalDecisionSupport() {
   const saveSeverity = (insightId: string) => {
     if (tempSeverity && tempSeverity !== "") {
       updateSeverityMutation.mutate({ insightId, severity: tempSeverity });
+    }
+  };
+
+  // Helper functions for priority editing
+  const startEditingPriority = (insightId: string, currentPriority: string) => {
+    setEditingPriority(insightId);
+    setTempPriority(currentPriority);
+  };
+
+  const cancelEditingPriority = () => {
+    setEditingPriority(null);
+    setTempPriority("");
+  };
+
+  const savePriority = (insightId: string) => {
+    if (tempPriority && tempPriority !== "") {
+      updatePriorityMutation.mutate({ insightId, priority: tempPriority });
     }
   };
 
@@ -1063,6 +1136,69 @@ export default function ClinicalDecisionSupport() {
                             </div>
                           )}
                         </div>
+                        
+                        {/* Priority editing section */}
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium">Priority:</span>
+                          {editingPriority === insight.id.toString() ? (
+                            <div className="flex items-center gap-1">
+                              <Select
+                                value={tempPriority}
+                                onValueChange={setTempPriority}
+                                data-testid={`select-priority-${insight.id}`}
+                              >
+                                <SelectTrigger className="h-6 w-20 text-xs">
+                                  <SelectValue placeholder="Select" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="critical">Critical</SelectItem>
+                                  <SelectItem value="high">High</SelectItem>
+                                  <SelectItem value="medium">Medium</SelectItem>
+                                  <SelectItem value="low">Low</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 w-6 p-0"
+                                onClick={() => savePriority(insight.id.toString())}
+                                disabled={updatePriorityMutation.isPending}
+                                data-testid={`button-save-priority-${insight.id}`}
+                              >
+                                {updatePriorityMutation.isPending ? (
+                                  <div className="w-3 h-3 border border-gray-400 border-t-transparent rounded-full animate-spin" />
+                                ) : (
+                                  <Save className="w-3 h-3" />
+                                )}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 w-6 p-0"
+                                onClick={cancelEditingPriority}
+                                data-testid={`button-cancel-priority-${insight.id}`}
+                              >
+                                ×
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1">
+                              <Badge className={getSeverityColor(insight.severity)}>
+                                {(insight.severity || 'medium').toUpperCase()}
+                              </Badge>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 w-6 p-0 opacity-60 hover:opacity-100"
+                                onClick={() => startEditingPriority(insight.id.toString(), insight.severity || 'medium')}
+                                data-testid={`button-edit-priority-${insight.id}`}
+                              >
+                                <Edit className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                        
                         <Badge variant="outline">{insight.type.replace('_', ' ')}</Badge>
                         {insight.actionRequired && (
                           <Badge variant="destructive" className="text-xs">
