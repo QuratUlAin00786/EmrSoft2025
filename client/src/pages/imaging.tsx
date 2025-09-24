@@ -2395,11 +2395,21 @@ export default function ImagingPage() {
                   onClick={async () => {
                     if (shareFormData.method === "email") {
                       try {
+                        // Prepare authentication headers
+                        const token = localStorage.getItem("auth_token");
+                        const headers: Record<string, string> = {
+                          "Content-Type": "application/json",
+                          "X-Tenant-Subdomain": "demo",
+                        };
+                        
+                        if (token) {
+                          headers["Authorization"] = `Bearer ${token}`;
+                        }
+                        
                         const response = await fetch("/api/imaging/share-study", {
                           method: "POST",
-                          headers: {
-                            "Content-Type": "application/json",
-                          },
+                          headers,
+                          credentials: "include",
                           body: JSON.stringify({
                             studyId: selectedStudy.id,
                             recipientEmail: shareFormData.email,
