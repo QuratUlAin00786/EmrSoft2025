@@ -1602,14 +1602,16 @@ export default function CalendarPage() {
                         <div>
                           <Label className="text-gray-600 dark:text-gray-400">Patient</Label>
                           <p className="font-medium" data-testid="text-summary-patient">
-                            {bookingForm.patientId 
-                              ? (() => {
-                                  const patient = patients.find((p: any) => 
-                                    (p.patientId || p.id.toString()) === bookingForm.patientId
-                                  );
-                                  return patient ? `${patient.firstName} ${patient.lastName}` : "Not found";
-                                })()
-                              : "Not selected"}
+                            {user?.role === 'patient' 
+                              ? `${user.firstName} ${user.lastName}` 
+                              : bookingForm.patientId 
+                                ? (() => {
+                                    const patient = patients.find((p: any) => 
+                                      (p.patientId || p.id.toString()) === bookingForm.patientId
+                                    );
+                                    return patient ? `${patient.firstName} ${patient.lastName}` : "Not found";
+                                  })()
+                                : "Not selected"}
                           </p>
                         </div>
                         <div>
@@ -1642,7 +1644,7 @@ export default function CalendarPage() {
                 </div>
 
                 {/* Book Appointment Button */}
-                {selectedDoctor && selectedDate && selectedTimeSlot && bookingForm.patientId && (
+                {selectedDoctor && selectedDate && selectedTimeSlot && (user?.role === 'patient' || bookingForm.patientId) && (
                   <div className="flex justify-end gap-2 mt-6 pt-6 border-t">
                     <Button
                       variant="outline"
@@ -1673,7 +1675,9 @@ export default function CalendarPage() {
 
                         const appointmentData = {
                           ...bookingForm,
-                          patientId: patientId,
+                          // For patient users, backend will derive patientId from user email
+                          // For staff users, use the selected patientId
+                          patientId: user?.role === 'patient' ? null : patientId,
                           providerId: Number(selectedDoctor.id), // Ensure numeric ID consistency
                           title: bookingForm.title || `${bookingForm.type} with ${selectedDoctor.firstName} ${selectedDoctor.lastName}`,
                           location: bookingForm.location || `${selectedDoctor.department} Department`,

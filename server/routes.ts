@@ -2407,55 +2407,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("Parsed appointment data:", appointmentData);
 
-      // Handle patientId conversion
+      // Handle patientId conversion - SECURE LOGIC FOR PATIENT ROLE
       let numericPatientId: number;
-      if (appointmentData.patientId === null) {
-        console.log("Patient ID is null, returning error");
-        return res.status(400).json({ error: "Patient ID is required" });
-      } else if (typeof appointmentData.patientId === "string") {
-        // If it's a string (like "P000007"), find the patient by patientId
-        console.log("Looking up patient by patientId:", appointmentData.patientId);
-        let patient = await storage.getPatientByPatientId(appointmentData.patientId, req.tenant!.id);
-        
-        // If not found, try different formatting patterns
-        if (!patient && appointmentData.patientId.startsWith("P")) {
-          // Extract the numeric part and try different formats
-          const numericPart = appointmentData.patientId.substring(1);
-          const numericValue = parseInt(numericPart, 10);
-          
-          if (!isNaN(numericValue)) {
-            // Try with 6-digit padding: P000007
-            const paddedId = `P${numericValue.toString().padStart(6, '0')}`;
-            console.log("Trying padded patientId:", paddedId);
-            patient = await storage.getPatientByPatientId(paddedId, req.tenant!.id);
-            
-            // If still not found, try with 3-digit padding: P007
-            if (!patient) {
-              const shortPaddedId = `P${numericValue.toString().padStart(3, '0')}`;
-              console.log("Trying short padded patientId:", shortPaddedId);
-              patient = await storage.getPatientByPatientId(shortPaddedId, req.tenant!.id);
-            }
-            
-            // If still not found, try without padding: P7
-            if (!patient) {
-              const noPaddingId = `P${numericValue}`;
-              console.log("Trying no padding patientId:", noPaddingId);
-              patient = await storage.getPatientByPatientId(noPaddingId, req.tenant!.id);
-            }
-          }
-        }
+      
+      if (req.user!.role === "patient") {
+        // For patient users: ignore client patientId and derive from authenticated user's email
+        console.log("Patient user - looking up patient by authenticated user email:", req.user!.email);
+        const patients = await storage.getPatientsByOrganization(req.tenant!.id, 1000);
+        const patient = patients.find(p => p.email && req.user!.email && 
+          p.email.toLowerCase() === req.user!.email.toLowerCase());
         
         if (!patient) {
-          console.log("Patient not found for patientId:", appointmentData.patientId);
-          return res.status(400).json({ 
-            error: `Patient not found. Please use a valid patient ID like P000001, P000002, P000004, P000005, P000007, P000008, P000009, P000010, or P000158.` 
+          console.log("Patient record not found for authenticated user email:", req.user!.email);
+          return res.status(404).json({ 
+            error: "Patient record not found for authenticated user. Please contact administration." 
           });
         }
         numericPatientId = patient.id;
-        console.log("Found patient with numeric ID:", numericPatientId);
+        console.log("Found patient record for authenticated user - using patient ID:", numericPatientId);
       } else {
-        numericPatientId = appointmentData.patientId;
-        console.log("Using provided numeric patient ID:", numericPatientId);
+        // For staff users (admin, doctor, nurse, receptionist): allow explicit patientId selection
+        if (appointmentData.patientId === null) {
+          console.log("Patient ID is null, returning error");
+          return res.status(400).json({ error: "Patient ID is required" });
+        } else if (typeof appointmentData.patientId === "string") {
+          // If it's a string (like "P000007"), find the patient by patientId
+          console.log("Looking up patient by patientId:", appointmentData.patientId);
+          let patient = await storage.getPatientByPatientId(appointmentData.patientId, req.tenant!.id);
+          
+          // If not found, try different formatting patterns
+          if (!patient && appointmentData.patientId.startsWith("P")) {
+            // Extract the numeric part and try different formats
+            const numericPart = appointmentData.patientId.substring(1);
+            const numericValue = parseInt(numericPart, 10);
+            
+            if (!isNaN(numericValue)) {
+              // Try with 6-digit padding: P000007
+              const paddedId = `P${numericValue.toString().padStart(6, '0')}`;
+              console.log("Trying padded patientId:", paddedId);
+              patient = await storage.getPatientByPatientId(paddedId, req.tenant!.id);
+              
+              // If still not found, try with 3-digit padding: P007
+              if (!patient) {
+                const shortPaddedId = `P${numericValue.toString().padStart(3, '0')}`;
+                console.log("Trying short padded patientId:", shortPaddedId);
+                patient = await storage.getPatientByPatientId(shortPaddedId, req.tenant!.id);
+              }
+              
+              // If still not found, try without padding: P7
+              if (!patient) {
+                const noPaddingId = `P${numericValue}`;
+                console.log("Trying no padding patientId:", noPaddingId);
+                patient = await storage.getPatientByPatientId(noPaddingId, req.tenant!.id);
+              }
+            }
+          }
+          
+          if (!patient) {
+            console.log("Patient not found for patientId:", appointmentData.patientId);
+            return res.status(400).json({ 
+              error: `Patient not found. Please use a valid patient ID like P000001, P000002, P000004, P000005, P000007, P000008, P000009, P000010, or P000158.` 
+            });
+          }
+          numericPatientId = patient.id;
+          console.log("Found patient with numeric ID:", numericPatientId);
+        } else {
+          numericPatientId = appointmentData.patientId;
+          console.log("Using provided numeric patient ID:", numericPatientId);
+        }
       }
 
       const appointmentToCreate = {
