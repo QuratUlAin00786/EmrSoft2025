@@ -382,12 +382,12 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
                 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <h4 
+                    <h5
                       className="font-semibold text-gray-900 dark:text-gray-100 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                       onClick={() => openScheduleDialog(doctor)}
                     >
                       Dr. {doctor.firstName} {doctor.lastName}
-                    </h4>
+                    </h5>
                     <Badge className={roleColors[doctor.role as keyof typeof roleColors] || "bg-gray-100 text-gray-800"}>
                       {doctor.role}
                     </Badge>
@@ -442,7 +442,7 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
                       openBookingDialog(doctor);
                     }}
                   >
-                    <Calendar className="h-3 w-3 mr-1" />
+                    <Calendar className="h-4 w-3 mr-1" />
                     Book
                   </Button>
                 )}
@@ -454,7 +454,7 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
                     openScheduleDialog(doctor);
                   }}
                 >
-                  <Edit className="h-3 w-3 mr-1" />
+                  <Edit className="h-4 w-3 mr-1" />
                   Edit Schedule
                 </Button>
                 <Button 
@@ -600,67 +600,7 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
               </Select>
             </div>
 
-            {/* Date and Time Slots in one row */}
-            <div className="grid grid-cols-2 gap-4">
-              {/* Select Date */}
-              <div>
-                <Label className="text-sm font-medium">
-                  Select Date <span className="text-red-500">*</span>
-                </Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <div
-                      className={cn(
-                        "flex h-10 w-full items-center justify-start rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background cursor-pointer hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-1",
-                        !selectedDate && "text-muted-foreground"
-                      )}
-                      tabIndex={0}
-                      role="button"
-                      aria-haspopup="dialog"
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
-                    </div>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                  </PopoverContent>
-                </Popover>
-              </div>
-
-              {/* Select Time Slot */}
-              {selectedDate && (
-                <div>
-                  <Label className="text-sm font-medium">
-                    Select Time Slot <span className="text-red-500">*</span>
-                  </Label>
-                  <div className="grid grid-cols-3 gap-1 mt-1 max-h-32 overflow-y-auto">
-                    {generateTimeSlots().map((slot) => {
-                      const isAvailable = isTimeSlotAvailable(slot.value);
-                      const isSelected = selectedTimeSlot === slot.value;
-                      
-                      return (
-                        <Button
-                          key={slot.value}
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setSelectedTimeSlot(slot.value)}
-                          disabled={!isAvailable}
-                          className={cn(
-                            "h-8 text-xs px-2",
-                            isSelected && "bg-blue-500 text-white hover:bg-blue-600",
-                            isAvailable && !isSelected && "bg-green-100 text-green-800 hover:bg-green-200 border-green-300",
-                            !isAvailable && "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
-                          )}
-                        >
-                          {slot.display}
-                        </Button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-
+           
             {/* Appointment Type and Duration */}
             <div className="grid grid-cols-2 gap-4">
               {/* Appointment Type */}

@@ -134,14 +134,14 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
       ) : [];
       setPatients(uniquePatients);
 
-      // If user is a patient, find their details and auto-populate
-      if (user?.role === 'patient' && uniquePatients.length > 0) {
+      // Auto-populate patient details if possible
+      if (uniquePatients.length > 0) {
         console.log("🔍 APPOINTMENT-MODAL: Looking for patient matching user:", { 
-          userEmail: user.email, 
-          userName: `${user.firstName} ${user.lastName}`,
-          userId: user.id 
+          userEmail: user?.email, 
+          userName: user ? `${user.firstName} ${user.lastName}` : 'No user',
+          userId: user?.id 
         });
-        console.log("📋 APPOINTMENT-MODAL: Available patients:", uniquePatients.map(p => ({ 
+        console.log("📋 APPOINTMENT-MODAL: Available patients:", uniquePatients.map((p: any) => ({ 
           id: p.id, 
           email: p.email, 
           name: `${p.firstName} ${p.lastName}` 
@@ -151,21 +151,21 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
         const currentPatient = 
           // 1. PRIORITY: Match by exact email (most reliable)
           uniquePatients.find((patient: any) => 
-            patient.email && user.email && patient.email.toLowerCase() === user.email.toLowerCase()
+            patient.email && user?.email && patient.email.toLowerCase() === user.email.toLowerCase()
           ) ||
           // 2. Match by exact full name
           uniquePatients.find((patient: any) => 
-            patient.firstName && user.firstName && patient.lastName && user.lastName &&
+            patient.firstName && user?.firstName && patient.lastName && user?.lastName &&
             patient.firstName.toLowerCase() === user.firstName.toLowerCase() && 
             patient.lastName.toLowerCase() === user.lastName.toLowerCase()
           ) ||
           // 3. Match by partial name (first name only)
           uniquePatients.find((patient: any) => 
-            patient.firstName && user.firstName &&
+            patient.firstName && user?.firstName &&
             patient.firstName.toLowerCase() === user.firstName.toLowerCase()
           ) ||
-          // 4. If user role is patient, take the first patient (fallback for demo)
-          (user.role === 'patient' && uniquePatients.length > 0 ? uniquePatients[0] : null);
+          // 4. Fallback to first patient if available
+          (uniquePatients.length > 0 ? uniquePatients[0] : null);
         
         if (currentPatient) {
           console.log("✅ APPOINTMENT-MODAL: Found matching patient:", currentPatient);
@@ -371,62 +371,21 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
                 name="patientId"
                 render={({ field }) => (
                   <FormItem>
-                    {user?.role === 'patient' ? (
-                      <>
-                        <FormLabel className="required">My Information</FormLabel>
-                        {currentPatientDetails ? (
-                          <div className="border rounded-md p-3 bg-blue-50 dark:bg-blue-900 border-blue-200 dark:border-blue-700">
-                            <div className="flex items-center space-x-3">
-                              <User className="h-8 w-8 text-blue-600 dark:text-blue-400" />
-                              <div className="flex-1">
-                                <div className="font-medium text-blue-900 dark:text-blue-100">
-                                  {currentPatientDetails.firstName} {currentPatientDetails.lastName}
-                                </div>
-                                <div className="space-y-1 text-sm text-blue-700 dark:text-blue-300">
-                                  {currentPatientDetails.email && (
-                                    <div className="flex items-center space-x-1">
-                                      <Mail className="h-3 w-3" />
-                                      <span>{currentPatientDetails.email}</span>
-                                    </div>
-                                  )}
-                                  {currentPatientDetails.phone && (
-                                    <div className="flex items-center space-x-1">
-                                      <Phone className="h-3 w-3" />
-                                      <span>{currentPatientDetails.phone}</span>
-                                    </div>
-                                  )}
-                                  <div className="text-xs opacity-75">
-                                    Patient ID: {currentPatientDetails.patientId || `P${currentPatientDetails.id?.toString().padStart(6, '0')}`}
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="border rounded-md p-3 bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600">
-                            <div className="text-gray-600 dark:text-gray-300">Loading your information...</div>
-                          </div>
-                        )}
-                      </>
-                    ) : (
-                      <>
-                        <FormLabel className="required">Patient Information</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value} data-testid="select-patient">
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select patient..." />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {patients.map((patient: any) => (
-                              <SelectItem key={`patient-${patient.id}`} value={patient.id.toString()}>
-                                {patient.firstName} {patient.lastName}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </>
-                    )}
+                    <FormLabel className="required">Patient Information</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value} data-testid="select-patient">
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select patient..." />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {patients.map((patient: any) => (
+                          <SelectItem key={`patient-${patient.id}`} value={patient.id.toString()}>
+                            {patient.firstName} {patient.lastName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
