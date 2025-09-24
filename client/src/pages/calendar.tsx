@@ -1185,7 +1185,10 @@ export default function CalendarPage() {
                                     key={specialty}
                                     value={specialty}
                                     onSelect={(currentValue) => {
-                                      setSelectedSpecialty(currentValue === selectedSpecialty ? "" : currentValue);
+                                      // Use the original specialty value instead of normalized currentValue
+                                      const isCurrentlySelected = specialty === selectedSpecialty;
+                                      setSelectedSpecialty(isCurrentlySelected ? "" : specialty);
+                                      setSelectedSubSpecialty(""); // Reset sub-specialty when specialty changes
                                       setSpecialtyComboboxOpen(false);
                                     }}
                                     data-testid={`item-specialty-${specialty.replace(/\s+/g, '-').toLowerCase()}`}
