@@ -3572,7 +3572,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         role: z.enum(["admin", "doctor", "nurse", "receptionist", "patient", "sample_taker"]),
         department: z.string().optional(),
         medicalSpecialtyCategory: z.string().optional(),
-        subSpecialty: z.string().optional()
+        subSpecialty: z.string().optional(),
+        // Patient-specific fields
+        dateOfBirth: z.string().optional(),
+        phone: z.string().optional(),
+        nhsNumber: z.string().optional(),
+        address: z.object({
+          street: z.string().optional(),
+          city: z.string().optional(),
+          state: z.string().optional(),
+          postcode: z.string().optional(),
+          country: z.string().optional(),
+        }).optional(),
+        emergencyContact: z.object({
+          name: z.string().optional(),
+          relationship: z.string().optional(),
+          phone: z.string().optional(),
+          email: z.string().optional(),
+        }).optional(),
+        insuranceInfo: z.object({
+          provider: z.string().optional(),
+          policyNumber: z.string().optional(),
+          memberNumber: z.string().optional(),
+          planType: z.string().optional(),
+          effectiveDate: z.string().optional(),
+        }).optional(),
       }).parse(req.body);
 
       // Hash password
@@ -3581,19 +3605,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Generate default permissions based on role
       const defaultPermissions = getDefaultPermissionsByRole(userData.role);
 
-      // Force create user with unique email suffix for production fix
-      const uniqueEmail = userData.email.includes('+') ? userData.email : userData.email.replace('@', `+${Date.now()}@`);
-      
       const { password, ...userDataWithoutPassword } = userData;
       const user = await storage.createUser({
         ...userDataWithoutPassword,
-        email: uniqueEmail,
         organizationId: req.tenant!.id,
         passwordHash: hashedPassword,
         permissions: defaultPermissions
       });
 
       console.log(`Created user with role: ${userData.role} and permissions:`, defaultPermissions);
+
+      // If user role is patient, automatically create patient record
+      if (userData.role === 'patient') {
+        try {
+          console.log("Creating patient record for user with role 'patient'");
+          
+          // Generate patient ID
+          const patientCount = await storage.getPatientsByOrganization(req.tenant!.id, 999999);
+          const patientId = `P${(patientCount.length + 1).toString().padStart(6, '0')}`;
+
+          const patientData = {
+            firstName: userData.firstName,
+            lastName: userData.lastName,
+            dateOfBirth: userData.dateOfBirth ? new Date(userData.dateOfBirth) : new Date('1990-01-01'),
+            email: userData.email, // Use same email as user
+            phone: userData.phone || '',
+            nhsNumber: userData.nhsNumber || '',
+            organizationId: req.tenant!.id,
+            patientId,
+            address: userData.address || {},
+            emergencyContact: userData.emergencyContact || {},
+            medicalHistory: {
+              allergies: [],
+              chronicConditions: [],
+              medications: [],
+              familyHistory: {
+                father: [],
+                mother: [],
+                siblings: [],
+                grandparents: []
+              },
+              socialHistory: {
+                smoking: { status: "never" as const },
+                alcohol: { status: "never" as const },
+                drugs: { status: "never" as const },
+                occupation: "",
+                maritalStatus: "single" as const,
+                education: "",
+                exercise: { frequency: "none" as const }
+              },
+              immunizations: []
+            },
+            insuranceInfo: userData.insuranceInfo || null
+          };
+
+          const patient = await storage.createPatient(patientData);
+          console.log(`Created patient record with ID: ${patient.id} and patientId: ${patient.patientId}`);
+          
+        } catch (patientError) {
+          console.error("Error creating patient record:", patientError);
+          // Don't fail user creation if patient creation fails
+          // Log the error but continue with user creation response
+        }
+      }
 
       // Remove password from response
       const { passwordHash, ...safeUser } = user;

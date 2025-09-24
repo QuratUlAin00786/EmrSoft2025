@@ -536,34 +536,9 @@ export default function UserManagement() {
       const result = await response.json();
       console.log("User creation response:", result);
       
-      // If role is patient, also create patient record
-      if (userData.role === 'patient' && result.id) {
-        console.log("Creating patient record for user ID:", result.id);
-        const patientPayload = {
-          firstName: userData.firstName,
-          lastName: userData.lastName,
-          dateOfBirth: userData.dateOfBirth || '1990-01-01', // Default date if not provided
-          email: userData.email,
-          phone: userData.phone || '',
-          nhsNumber: userData.nhsNumber || '',
-          address: userData.address || {},
-          emergencyContact: userData.emergencyContact || {},
-          insuranceInfo: userData.insuranceInfo || {},
-          patientId: `P${String(result.id).padStart(6, '0')}`, // Generate patient ID like P000001
-        };
-        
-        try {
-          const patientResponse = await apiRequest("POST", "/api/patients", patientPayload);
-          const patientResult = await patientResponse.json();
-          console.log("Patient record created:", patientResult);
-        } catch (patientError) {
-          console.error("Error creating patient record:", patientError);
-          toast({
-            title: "Warning",
-            description: "User created but patient record failed. Please create patient record manually.",
-            variant: "destructive",
-          });
-        }
+      // Patient record creation is now handled automatically by the backend
+      if (userData.role === 'patient') {
+        console.log("Patient record will be created automatically by backend");
       }
       
       return result;
