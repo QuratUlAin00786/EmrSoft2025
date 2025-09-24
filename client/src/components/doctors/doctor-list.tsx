@@ -442,7 +442,7 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
                       openBookingDialog(doctor);
                     }}
                   >
-                    <Calendar className="h-3 w-3 mr-1" />
+                 
                     Book
                   </Button>
                 )}
