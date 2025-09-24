@@ -183,6 +183,42 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
     },
   });
 
+  // Appointment booking mutation
+  const bookAppointmentMutation = useMutation({
+    mutationFn: async (appointmentData: any) => {
+      const response = await apiRequest("POST", "/api/appointments", appointmentData);
+      return await response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Appointment Booked",
+        description: `Appointment with Dr. ${selectedBookingDoctor?.firstName} ${selectedBookingDoctor?.lastName} has been scheduled successfully.`,
+      });
+      
+      // Invalidate queries to refresh appointment data and availability
+      queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/appointments", selectedBookingDoctor?.id, selectedDate] });
+      
+      // Reset form and close dialog
+      setSelectedPatient("");
+      setSelectedDate(undefined);
+      setSelectedTimeSlot("");
+      setAppointmentType("Consultation");
+      setDuration("30");
+      setAppointmentTitle("");
+      setAppointmentDescription("");
+      setAppointmentLocation("");
+      setIsBookingOpen(false);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Booking Failed",
+        description: error.message || "Failed to book appointment. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const openScheduleDialog = (doctor: Doctor) => {
     setSelectedDoctor(doctor);
     setWorkingDays(doctor.workingDays || []);
@@ -190,6 +226,32 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
     setStartTime(hours.start || "09:00");
     setEndTime(hours.end || "17:00");
     setIsScheduleOpen(true);
+  };
+
+  const handleBookAppointment = () => {
+    if (!selectedPatient || !selectedDate || !selectedTimeSlot || !selectedBookingDoctor) {
+      return;
+    }
+
+    // Create the appointment datetime
+    const appointmentDateTime = new Date(selectedDate);
+    const [hours, minutes] = selectedTimeSlot.split(':').map(Number);
+    appointmentDateTime.setHours(hours, minutes, 0, 0);
+
+    const appointmentData = {
+      patientId: parseInt(selectedPatient),
+      providerId: selectedBookingDoctor.id,
+      title: appointmentTitle || `${appointmentType} with ${selectedBookingDoctor.firstName} ${selectedBookingDoctor.lastName}`,
+      description: appointmentDescription || `${appointmentType} appointment`,
+      scheduledAt: appointmentDateTime.toISOString(),
+      duration: parseInt(duration),
+      type: appointmentType.toLowerCase().replace('-', '_') as "consultation" | "follow_up" | "procedure",
+      location: appointmentLocation || `${selectedBookingDoctor.department || 'General'} Department`,
+      status: "scheduled",
+      isVirtual: false
+    };
+
+    bookAppointmentMutation.mutate(appointmentData);
   };
 
   const openBookingDialog = (doctor: Doctor) => {
@@ -680,17 +742,11 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
                 Cancel
               </Button>
               <Button
-                disabled={!selectedPatient || !selectedDate || !selectedTimeSlot}
-                onClick={() => {
-                  toast({
-                    title: "Appointment Booked",
-                    description: `Appointment with Dr. ${selectedBookingDoctor?.firstName} ${selectedBookingDoctor?.lastName} has been scheduled successfully.`,
-                  });
-                  setIsBookingOpen(false);
-                }}
+                disabled={!selectedPatient || !selectedDate || !selectedTimeSlot || bookAppointmentMutation.isPending}
+                onClick={handleBookAppointment}
                 className="bg-blue-600 hover:bg-blue-700 text-white"
               >
-                Book Appointment
+                {bookAppointmentMutation.isPending ? "Booking..." : "Book Appointment"}
               </Button>
             </div>
           </div>
