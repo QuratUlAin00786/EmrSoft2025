@@ -2183,8 +2183,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       } else if (userRole === 'patient') {
         // Patients can only see their own appointments
-        // First find the patient record for this user
-        const patient = await storage.getPatientByUserId(userId, req.tenant!.id);
+        // Find the patient record by email since user_id column doesn't exist
+        const patients = await storage.getPatientsByOrganization(req.tenant!.id, 100);
+        const patient = patients.find(p => p.email === req.user!.email);
         if (patient) {
           appointments = await storage.getAppointmentsByPatient(patient.id, req.tenant!.id);
         } else {
