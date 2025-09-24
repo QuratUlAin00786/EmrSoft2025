@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar, User, Mail, Phone } from "lucide-react";
+import { Calendar as CalendarIcon, User, Mail, Phone } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
@@ -14,6 +14,10 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { appointmentSchema, AppointmentFormData } from "./appointment-form-schema";
 import { useAuth } from "@/hooks/use-auth";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format, isBefore, startOfDay } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface NewAppointmentModalProps {
   isOpen: boolean;
@@ -499,9 +503,38 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="required">Date</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} data-testid="input-date" />
-                    </FormControl>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full pl-3 text-left font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                            data-testid="input-date"
+                          >
+                            {field.value ? (
+                              format(new Date(field.value), "PPP")
+                            ) : (
+                              <span>Pick a date</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value ? new Date(field.value) : undefined}
+                          onSelect={(date) => {
+                            field.onChange(date ? format(date, "yyyy-MM-dd") : "");
+                          }}
+                          disabled={(date) => isBefore(date, startOfDay(new Date()))}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
                     <FormMessage />
                   </FormItem>
                 )}
