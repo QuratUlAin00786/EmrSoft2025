@@ -426,6 +426,7 @@ export default function ImagingPage() {
         study.impression ??
         `File: ${study.fileName} (${(study.fileSize / (1024 * 1024)).toFixed(2)} MB)`,
       radiologist: study.radiologist ?? study.uploadedByName ?? "Unknown",
+      fileName: study.fileName, // Add fileName from medical_images table for PDF generation
       reportFileName: study.reportFileName,
       reportFilePath: study.reportFilePath,
       images: [
