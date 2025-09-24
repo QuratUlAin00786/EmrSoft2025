@@ -245,20 +245,14 @@ export default function CalendarPage() {
   }, [user, patients]);
   
   // Fetch medical staff for doctor selection - using the correct endpoint
-  console.log("🔍 QUERY DEBUG: About to set up medical staff query");
   const { data: medicalStaffData, isLoading: isLoadingStaff, error: staffError } = useQuery<any>({
     queryKey: ["/api/medical-staff"],
     retry: 3,
-    staleTime: 60000,
+    staleTime: 0, // Force fresh requests
+    cacheTime: 0, // Don't cache failed results
     enabled: true, // Ensure query is enabled
-    onError: (error: any) => {
-      console.error("🚨 MEDICAL STAFF QUERY ERROR:", error);
-    },
-    onSuccess: (data: any) => {
-      console.log("✅ MEDICAL STAFF QUERY SUCCESS:", data);
-    }
+    refetchOnMount: true, // Always refetch on mount
   });
-  console.log("🔍 QUERY STATUS: isLoading:", isLoadingStaff, "error:", staffError, "data:", medicalStaffData);
   
   // Extract doctors from medical staff data - memoized to prevent infinite re-renders
   const allDoctors = useMemo(() => {
