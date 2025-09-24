@@ -1317,7 +1317,7 @@ export default function PatientAppointments({
 
       {/* Book Appointment Modal */}
       <Dialog open={showBookingModal} onOpenChange={setShowBookingModal}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Stethoscope className="h-5 w-5" />
@@ -1325,34 +1325,35 @@ export default function PatientAppointments({
             </DialogTitle>
           </DialogHeader>
           
-          <div className="space-y-6 py-4">
-            {/* Medical Specialty Category */}
-            <div className="space-y-2">
-              <Label htmlFor="specialty-category">Medical Specialty Category *</Label>
-              <Select value={selectedSpecialtyCategory} onValueChange={setSelectedSpecialtyCategory}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Medical Specialty Category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {getSpecialtyCategories().map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Sub-Specialty */}
-            {selectedSpecialtyCategory && (
+          <div className="grid grid-cols-2 gap-8 py-4">
+            {/* Left Column */}
+            <div className="space-y-6">
+              {/* Medical Specialty Category */}
               <div className="space-y-2">
-                <Label htmlFor="sub-specialty">Sub-Specialty</Label>
+                <Label className="text-sm font-medium">Select Medical Specialty Category</Label>
+                <Select value={selectedSpecialtyCategory} onValueChange={setSelectedSpecialtyCategory}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Specialty" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {getSpecialtyCategories().map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {category}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Sub-Specialty */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Select Sub-Specialty</Label>
                 <Select value={selectedSubSpecialty} onValueChange={setSelectedSubSpecialty}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select Sub-Specialty" />
                   </SelectTrigger>
                   <SelectContent>
-                    {getSubSpecialties(selectedSpecialtyCategory).map((subSpecialty) => (
+                    {selectedSpecialtyCategory && getSubSpecialties(selectedSpecialtyCategory).map((subSpecialty) => (
                       <SelectItem key={subSpecialty} value={subSpecialty}>
                         {subSpecialty}
                       </SelectItem>
@@ -1360,12 +1361,10 @@ export default function PatientAppointments({
                   </SelectContent>
                 </Select>
               </div>
-            )}
 
-            {/* Doctor Selection */}
-            {selectedSpecialtyCategory && (
+              {/* Doctor Selection */}
               <div className="space-y-2">
-                <Label htmlFor="doctor">Select Doctor *</Label>
+                <Label className="text-sm font-medium">Select Doctor</Label>
                 <Select 
                   value={selectedDoctorId?.toString() || ''} 
                   onValueChange={(value) => setSelectedDoctorId(parseInt(value))}
@@ -1387,81 +1386,214 @@ export default function PatientAppointments({
                   </SelectContent>
                 </Select>
               </div>
-            )}
 
-            {/* Date Selection */}
-            {selectedDoctorId && (
-              <div className="space-y-2">
-                <Label htmlFor="date">Appointment Date *</Label>
-                <Input
-                  type="date"
-                  value={selectedDate ? format(selectedDate, 'yyyy-MM-dd') : ''}
-                  onChange={(e) => setSelectedDate(e.target.value ? new Date(e.target.value) : null)}
-                  min={format(new Date(), 'yyyy-MM-dd')}
-                />
-              </div>
-            )}
-
-            {/* Time Slot Selection */}
-            {selectedDate && selectedDoctorId && (
-              <div className="space-y-2">
-                <Label htmlFor="time-slot">Available Time Slots *</Label>
-                <div className="grid grid-cols-4 gap-2 max-h-40 overflow-y-auto">
-                  {generateTimeSlots().map((timeSlot) => {
-                    const isBooked = bookedTimeSlots.includes(timeSlot);
-                    return (
-                      <Button
-                        key={timeSlot}
-                        variant={selectedTimeSlot === timeSlot ? "default" : "outline"}
-                        size="sm"
-                        className={`text-xs ${
-                          isBooked 
-                            ? 'bg-gray-400 text-gray-700 cursor-not-allowed hover:bg-gray-400' 
-                            : selectedTimeSlot === timeSlot 
-                              ? 'bg-blue-600 text-white' 
-                              : 'bg-green-100 text-green-800 hover:bg-green-200'
-                        }`}
-                        onClick={() => !isBooked && setSelectedTimeSlot(timeSlot)}
-                        disabled={isBooked}
-                      >
-                        {timeSlot}
-                        {isBooked && ' (Booked)'}
-                      </Button>
-                    );
-                  })}
+              {/* My Information */}
+              <div className="space-y-3">
+                <Label className="text-sm font-medium">My Information</Label>
+                <div className="bg-blue-50 p-4 rounded-lg space-y-2">
+                  <div className="flex items-center gap-2">
+                    <User className="h-4 w-4 text-blue-600" />
+                    <span className="font-medium text-blue-900">
+                      {user?.firstName} {user?.lastName}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-blue-700">
+                    <span>✉</span>
+                    <span>{user?.email}</span>
+                  </div>
+                  {currentPatient?.phone && (
+                    <div className="flex items-center gap-2 text-sm text-blue-700">
+                      <span>📞</span>
+                      <span>{currentPatient.phone}</span>
+                    </div>
+                  )}
+                  {currentPatient?.patientId && (
+                    <div className="text-xs text-blue-600">
+                      Patient ID: {currentPatient.patientId}
+                    </div>
+                  )}
                 </div>
-                <p className="text-xs text-gray-500 mt-2">
-                  <span className="inline-block w-3 h-3 bg-green-100 rounded mr-2"></span>Available
-                  <span className="inline-block w-3 h-3 bg-gray-400 rounded mr-2 ml-4"></span>Booked
-                </p>
               </div>
-            )}
 
-            {/* Appointment Title */}
-            {selectedTimeSlot && (
-              <div className="space-y-2">
-                <Label htmlFor="title">Appointment Title *</Label>
-                <Input
-                  value={appointmentTitle}
-                  onChange={(e) => setAppointmentTitle(e.target.value)}
-                  placeholder="e.g., General Consultation, Follow-up, etc."
-                />
-              </div>
-            )}
+              {/* Patient Information */}
+              {currentPatient && (
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium">Patient Information</Label>
+                  <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-medium">
+                        {currentPatient.firstName?.charAt(0)}{currentPatient.lastName?.charAt(0)}
+                      </div>
+                      <div>
+                        <div className="font-medium">
+                          {currentPatient.firstName} {currentPatient.lastName}
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          {currentPatient.patientId}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="space-y-1 text-sm text-gray-600">
+                      <div className="flex items-center gap-2">
+                        <span>📞</span>
+                        <span>{currentPatient.phone}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span>✉</span>
+                        <span>{currentPatient.email}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span>📍</span>
+                        <span>{currentPatient.address?.city}, {currentPatient.address?.country}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
 
-            {/* Notes */}
-            {appointmentTitle && (
-              <div className="space-y-2">
-                <Label htmlFor="notes">Additional Notes (Optional)</Label>
-                <Textarea
-                  value={appointmentNotes}
-                  onChange={(e) => setAppointmentNotes(e.target.value)}
-                  placeholder="Any additional information for the doctor..."
-                  rows={3}
-                />
+            {/* Right Column */}
+            <div className="space-y-6">
+              {/* Date Selection */}
+              <div className="space-y-3">
+                <Label className="text-sm font-medium">Select Date</Label>
+                <div className="border rounded-lg p-4">
+                  {/* Calendar Header */}
+                  <div className="flex items-center justify-between mb-4">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        const newDate = selectedDate ? new Date(selectedDate) : new Date();
+                        newDate.setMonth(newDate.getMonth() - 1);
+                        setSelectedDate(newDate);
+                      }}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <div className="font-medium">
+                      {selectedDate ? format(selectedDate, 'MMMM yyyy') : format(new Date(), 'MMMM yyyy')}
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        const newDate = selectedDate ? new Date(selectedDate) : new Date();
+                        newDate.setMonth(newDate.getMonth() + 1);
+                        setSelectedDate(newDate);
+                      }}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  {/* Calendar Grid */}
+                  <div className="grid grid-cols-7 gap-1 text-center text-xs">
+                    {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => (
+                      <div key={day} className="p-2 font-medium text-gray-500">
+                        {day}
+                      </div>
+                    ))}
+                    {Array.from({ length: 42 }, (_, i) => {
+                      const currentMonth = selectedDate ? selectedDate.getMonth() : new Date().getMonth();
+                      const currentYear = selectedDate ? selectedDate.getFullYear() : new Date().getFullYear();
+                      const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
+                      const startDate = new Date(firstDayOfMonth);
+                      startDate.setDate(startDate.getDate() - firstDayOfMonth.getDay());
+                      const cellDate = new Date(startDate);
+                      cellDate.setDate(cellDate.getDate() + i);
+                      const isCurrentMonth = cellDate.getMonth() === currentMonth;
+                      const isSelected = selectedDate && isSameDay(cellDate, selectedDate);
+                      const isTodayDate = isToday(cellDate);
+                      const isPastDate = isPast(cellDate) && !isTodayDate;
+
+                      return (
+                        <button
+                          key={i}
+                          type="button"
+                          disabled={isPastDate}
+                          onClick={() => setSelectedDate(cellDate)}
+                          className={`p-2 text-sm rounded hover:bg-blue-50 ${
+                            isSelected
+                              ? 'bg-blue-500 text-white'
+                              : isTodayDate
+                                ? 'bg-blue-100 text-blue-700 font-medium'
+                                : isPastDate
+                                  ? 'text-gray-300 cursor-not-allowed'
+                                  : isCurrentMonth
+                                    ? 'text-gray-900 hover:bg-blue-50'
+                                    : 'text-gray-400'
+                          }`}
+                        >
+                          {cellDate.getDate()}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
-            )}
+
+              {/* Time Slot Selection */}
+              <div className="space-y-3">
+                <Label className="text-sm font-medium">Select Time Slot</Label>
+                <div className="border rounded-lg p-4 min-h-[200px]">
+                  {!selectedDoctorId || !selectedDate ? (
+                    <div className="flex items-center justify-center h-full text-gray-500 text-sm">
+                      Please select a doctor and date to view available time slots.
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-3 gap-2">
+                      {generateTimeSlots().map((timeSlot) => {
+                        const isBooked = bookedTimeSlots.includes(timeSlot);
+                        return (
+                          <Button
+                            key={timeSlot}
+                            variant={selectedTimeSlot === timeSlot ? "default" : "outline"}
+                            size="sm"
+                            className={`text-xs ${
+                              isBooked 
+                                ? 'bg-gray-400 text-gray-700 cursor-not-allowed hover:bg-gray-400' 
+                                : selectedTimeSlot === timeSlot 
+                                  ? 'bg-blue-600 text-white' 
+                                  : 'bg-green-100 text-green-800 hover:bg-green-200'
+                            }`}
+                            onClick={() => !isBooked && setSelectedTimeSlot(timeSlot)}
+                            disabled={isBooked}
+                          >
+                            {timeSlot}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
+
+          {/* Appointment Title and Notes */}
+          {selectedTimeSlot && (
+            <div className="space-y-4 pt-4 border-t">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="title">Appointment Title *</Label>
+                  <Input
+                    value={appointmentTitle}
+                    onChange={(e) => setAppointmentTitle(e.target.value)}
+                    placeholder="e.g., General Consultation, Follow-up, etc."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="notes">Additional Notes (Optional)</Label>
+                  <Input
+                    value={appointmentNotes}
+                    onChange={(e) => setAppointmentNotes(e.target.value)}
+                    placeholder="Any additional information..."
+                  />
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Modal Actions */}
           <div className="flex justify-end space-x-3 pt-4 border-t">
