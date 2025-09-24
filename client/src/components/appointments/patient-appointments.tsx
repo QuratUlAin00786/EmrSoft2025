@@ -54,17 +54,42 @@ export default function PatientAppointments({
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch patients to find the current user's patient record
-  const { data: patientsData, isLoading: patientsLoading } = useQuery({
-    queryKey: ["/api/patients"],
-    staleTime: 60000,
+  // Fetch all data simultaneously on page load
+  const { 
+    data: allData, 
+    isLoading 
+  } = useQuery({
+    queryKey: ["/api/patient-appointments-all-data"],
+    staleTime: 30000,
+    refetchInterval: 60000,
     retry: false,
+    enabled: !!user,
     queryFn: async () => {
-      const response = await apiRequest("GET", "/api/patients");
-      const data = await response.json();
-      return data;
+      // Fetch all three data sources simultaneously
+      const [patientsResponse, appointmentsResponse, medicalStaffResponse] = await Promise.all([
+        apiRequest("GET", "/api/patients"),
+        apiRequest("GET", "/api/appointments"),
+        apiRequest("GET", "/api/medical-staff")
+      ]);
+
+      const [patientsData, appointmentsData, medicalStaffData] = await Promise.all([
+        patientsResponse.json(),
+        appointmentsResponse.json(),
+        medicalStaffResponse.json()
+      ]);
+
+      return {
+        patients: patientsData,
+        appointments: appointmentsData,
+        medicalStaff: medicalStaffData
+      };
     },
   });
+
+  // Extract data from combined response
+  const patientsData = allData?.patients;
+  const appointmentsData = allData?.appointments;
+  const medicalStaffData = allData?.medicalStaff;
 
   // Find the patient record for the logged-in user
   const currentPatient = React.useMemo(() => {
@@ -141,31 +166,6 @@ export default function PatientAppointments({
 
     return foundPatient;
   }, [user, patientsData]);
-
-  // Fetch appointments for this patient - backend automatically filters for patient role
-  const { data: appointmentsData, isLoading } = useQuery({
-    queryKey: [
-      "/api/appointments",
-      user?.role === "Patient" ? "patient-filtered" : "all",
-    ],
-    staleTime: 30000,
-    refetchInterval: 60000,
-    queryFn: async () => {
-      // For patient users, the backend automatically filters by patient ID
-      // No need to pass patientId explicitly as backend uses the authenticated user's patient record
-      const response = await apiRequest("GET", "/api/appointments");
-      const data = await response.json();
-      return data;
-    },
-    enabled: !!user, // Only fetch when user is authenticated
-  });
-
-  // Fetch medical staff for doctor specialty data
-  const { data: medicalStaffData, isLoading: medicalStaffLoading } = useQuery({
-    queryKey: ["/api/medical-staff"],
-    staleTime: 60000,
-    retry: false,
-  });
 
   // Filter appointments to show only the current patient's appointments
   const appointments = React.useMemo(() => {
@@ -367,8 +367,8 @@ export default function PatientAppointments({
         )[0]
       : null;
 
-  // Show loading state when either appointments or medical staff data is loading
-  if (isLoading || medicalStaffLoading) {
+  // Show loading state when all data is loading
+  if (isLoading) {
     return (
       <Card>
         <CardContent className="p-6">
