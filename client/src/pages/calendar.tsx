@@ -580,8 +580,21 @@ export default function CalendarPage() {
 
   const createAppointmentMutation = useMutation({
     mutationFn: async (appointmentData: any) => {
-      const response = await apiRequest("POST", "/api/appointments", appointmentData);
-      return response.json();
+      try {
+        const response = await apiRequest("POST", "/api/appointments", appointmentData);
+        
+        // Check if response is ok (status 200-299)
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        console.log("Appointment creation successful:", data);
+        return data;
+      } catch (error) {
+        console.error("Appointment creation mutation error:", error);
+        throw error;
+      }
     },
     onSuccess: () => {
       toast({
