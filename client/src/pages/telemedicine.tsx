@@ -842,32 +842,17 @@ export default function Telemedicine() {
                                     setSelectedPatient(patient);
                                     setPatientSearchOpen(false);
                                   }}
-                                  className="flex items-center justify-between"
+                                  className="flex items-center"
                                 >
-                                  <div className="flex items-center">
-                                    <Check
-                                      className={`mr-2 h-4 w-4 ${
-                                        selectedPatient?.id === patient.id ? "opacity-100" : "opacity-0"
-                                      }`}
-                                    />
-                                    <div>
-                                      <div>{patient.firstName} {patient.lastName}</div>
-                                      <div className="text-xs text-gray-500">ID: {patient.patientId || patient.id}</div>
-                                    </div>
+                                  <Check
+                                    className={`mr-2 h-4 w-4 ${
+                                      selectedPatient?.id === patient.id ? "opacity-100" : "opacity-0"
+                                    }`}
+                                  />
+                                  <div>
+                                    <div>{patient.firstName} {patient.lastName}</div>
+                                    <div className="text-xs text-gray-500">ID: {patient.patientId || patient.id}</div>
                                   </div>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      if (window.confirm(`Are you sure you want to delete ${patient.firstName} ${patient.lastName}?`)) {
-                                        deletePatientMutation.mutate(patient.id);
-                                      }
-                                    }}
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
                                 </CommandItem>
                               ))
                             )}
