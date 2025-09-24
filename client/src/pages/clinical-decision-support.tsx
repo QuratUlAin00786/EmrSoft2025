@@ -401,7 +401,19 @@ export default function ClinicalDecisionSupport() {
   const updateSeverityMutation = useMutation({
     mutationFn: async (data: { insightId: string; severity: string }) => {
       const response = await apiRequest("PATCH", `/api/ai-insights/${data.insightId}`, { severity: data.severity });
-      return response.json();
+      
+      // Check if response has content before parsing as JSON
+      const text = await response.text();
+      if (text.trim() === '') {
+        return { success: true }; // Empty response is success
+      }
+      
+      try {
+        return JSON.parse(text);
+      } catch (error) {
+        // If not valid JSON, just return success status
+        return { success: response.ok };
+      }
     },
     onSuccess: async (data, variables) => {
       toast({
