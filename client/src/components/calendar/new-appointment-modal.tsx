@@ -136,17 +136,38 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
 
       // If user is a patient, find their details and auto-populate
       if (user?.role === 'patient' && uniquePatients.length > 0) {
-        // Find patient by matching user's name or email
-        const currentPatient = uniquePatients.find((patient: any) => 
-          patient.firstName === user.firstName && patient.lastName === user.lastName
-        ) || uniquePatients.find((patient: any) => 
-          patient.email === user.email
-        );
+        console.log("🔍 APPOINTMENT-MODAL: Looking for patient matching user:", { 
+          userEmail: user.email, 
+          userName: `${user.firstName} ${user.lastName}`,
+          userId: user.id 
+        });
+        console.log("📋 APPOINTMENT-MODAL: Available patients:", uniquePatients.map(p => ({ 
+          id: p.id, 
+          email: p.email, 
+          name: `${p.firstName} ${p.lastName}` 
+        })));
+
+        // Try multiple matching strategies - PRIORITIZE EMAIL MATCH
+        const currentPatient = 
+          // 1. PRIORITY: Match by exact email (most reliable)
+          uniquePatients.find((patient: any) => 
+            patient.email && user.email && patient.email.toLowerCase() === user.email.toLowerCase()
+          ) ||
+          // 2. Fallback: Match by exact full name
+          uniquePatients.find((patient: any) => 
+            patient.firstName && user.firstName && patient.lastName && user.lastName &&
+            patient.firstName.toLowerCase() === user.firstName.toLowerCase() && 
+            patient.lastName.toLowerCase() === user.lastName.toLowerCase()
+          );
         
         if (currentPatient) {
+          console.log("✅ APPOINTMENT-MODAL: Found matching patient:", currentPatient);
           setCurrentPatientDetails(currentPatient);
           // Auto-populate the form with patient ID
           form.setValue("patientId", currentPatient.id.toString());
+        } else {
+          console.log("❌ APPOINTMENT-MODAL: No matching patient found");
+          setCurrentPatientDetails(null);
         }
       }
     } catch (err) {
@@ -252,6 +273,9 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
         location: "",
         isVirtual: false
       });
+      
+      // Clear previous patient details to prevent stale data
+      setCurrentPatientDetails(null);
       
       fetchPatients();
       fetchProviders();
