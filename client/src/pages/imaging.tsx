@@ -3007,14 +3007,14 @@ export default function ImagingPage() {
                           variant="outline"
                           size="sm"
                           onClick={() => {
-                            // Get image from filesystem using API endpoint
+                            // Get image from filesystem using API endpoint with cache-busting parameter
                             const imageForViewer = {
                               seriesDescription: image.seriesDescription,
                               type: image.type,
                               imageCount: image.imageCount,
                               size: image.size,
                               imageId: selectedStudy.id, // Use study ID for API endpoint
-                              imageUrl: `/api/medical-images/${selectedStudy.id}/image`, // API endpoint for filesystem image
+                              imageUrl: `/api/medical-images/${selectedStudy.id}/image?t=${Date.now()}`, // API endpoint with cache-busting
                               mimeType: image.mimeType || "image/jpeg",
                               fileName: selectedStudy.fileName || null, // Get fileName from study for logging
                             };
