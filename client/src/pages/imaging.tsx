@@ -217,6 +217,8 @@ export default function ImagingPage() {
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [showFileNotAvailableDialog, setShowFileNotAvailableDialog] =
     useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [studyToDelete, setStudyToDelete] = useState<any>(null);
   const [modalityFilter, setModalityFilter] = useState<string>("all");
   const [selectedStudyId, setSelectedStudyId] = useState<string | null>(null);
   const [shareFormData, setShareFormData] = useState({
@@ -1358,20 +1360,36 @@ export default function ImagingPage() {
     const study = ((studies as any) || []).find((s: any) => s.id === studyId);
     if (!study) return;
 
-    const confirmDelete = window.confirm(
-      `Are you sure you want to delete the ${study.studyType} study for ${study.patientName}? This action cannot be undone.`,
-    );
+    // Show confirmation modal instead of window.confirm
+    setStudyToDelete(study);
+    setShowDeleteDialog(true);
+  };
 
-    if (!confirmDelete) return;
+  const confirmDeleteStudy = async () => {
+    if (!studyToDelete) return;
 
     try {
+      // Call API to delete the study with files
+      const response = await apiRequest('DELETE', `/api/medical-images/${studyToDelete.id}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to delete study');
+      }
+
       // Add the study ID to the deleted set to remove it from the display
-      setDeletedStudyIds((prev) => new Set([...prev, studyId]));
+      setDeletedStudyIds((prev) => new Set([...prev, studyToDelete.id]));
+
+      // Refresh the medical images list
+      refetchImages();
 
       toast({
         title: "Study Deleted",
-        description: `${study.studyType} study for ${study.patientName} has been deleted successfully`,
+        description: `${studyToDelete.studyType} study for ${studyToDelete.patientName} has been deleted successfully`,
       });
+
+      // Close modal
+      setShowDeleteDialog(false);
+      setStudyToDelete(null);
     } catch (error) {
       console.error("Delete error:", error);
       toast({
@@ -3016,7 +3034,7 @@ export default function ImagingPage() {
                               imageId: selectedStudy.id, // Use study ID for API endpoint
                               imageUrl: `/api/medical-images/${selectedStudy.id}/image?t=${Date.now()}`, // API endpoint with cache-busting
                               mimeType: image.mimeType || "image/jpeg",
-                              fileName: selectedStudy.fileName || null, // Get fileName from study for logging
+                              fileName: (selectedStudy as any).fileName || null, // Get fileName from study for logging
                             };
                             setSelectedImageSeries(imageForViewer);
                             setShowImageViewer(true);
@@ -3932,6 +3950,41 @@ export default function ImagingPage() {
                 onClick={() => setShowFileNotAvailableDialog(false)}
               >
                 Close
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              {studyToDelete ? (
+                `Are you sure you want to delete the ${studyToDelete.studyType} study for ${studyToDelete.patientName}? This action cannot be undone.`
+              ) : (
+                "Are you sure you want to delete this study? This action cannot be undone."
+              )}
+            </p>
+            <div className="flex justify-end space-x-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowDeleteDialog(false);
+                  setStudyToDelete(null);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={confirmDeleteStudy}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                OK
               </Button>
             </div>
           </div>

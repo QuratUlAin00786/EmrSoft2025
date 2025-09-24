@@ -8012,12 +8012,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Invalid image ID" });
       }
 
-      const success = await storage.deleteMedicalImage(imageId, req.tenant!.id);
-      if (!success) {
+      // First, get the medical image record to retrieve file names
+      const medicalImage = await storage.getMedicalImage(imageId, req.tenant!.id);
+      if (!medicalImage) {
         return res.status(404).json({ error: "Medical image not found" });
       }
 
-      res.json({ success: true });
+      // Delete image file from server filesystem if it exists
+      if (medicalImage.fileName) {
+        const imagePath = path.join('./uploads/Imaging_Images', medicalImage.fileName);
+        try {
+          await fs.unlink(imagePath);
+          console.log(`Deleted image file: ${imagePath}`);
+        } catch (fileError: any) {
+          if (fileError.code !== 'ENOENT') {
+            console.error(`Error deleting image file ${imagePath}:`, fileError);
+          }
+        }
+      }
+
+      // Delete PDF report file from server filesystem if it exists
+      if (medicalImage.reportFileName) {
+        const pdfPath = path.join('./uploads/Imaging_Images', medicalImage.reportFileName);
+        try {
+          await fs.unlink(pdfPath);
+          console.log(`Deleted PDF file: ${pdfPath}`);
+        } catch (fileError: any) {
+          if (fileError.code !== 'ENOENT') {
+            console.error(`Error deleting PDF file ${pdfPath}:`, fileError);
+          }
+        }
+      }
+
+      // Delete the record from the medical_images table
+      const success = await storage.deleteMedicalImage(imageId, req.tenant!.id);
+      if (!success) {
+        return res.status(404).json({ error: "Failed to delete medical image record" });
+      }
+
+      res.json({ 
+        success: true,
+        message: "Medical image and associated files deleted successfully"
+      });
     } catch (error) {
       console.error("Error deleting medical image:", error);
       res.status(500).json({ error: "Failed to delete medical image" });
