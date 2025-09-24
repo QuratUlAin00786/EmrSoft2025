@@ -400,20 +400,37 @@ export default function ClinicalDecisionSupport() {
   // Update severity mutation
   const updateSeverityMutation = useMutation({
     mutationFn: async (data: { insightId: string; severity: string }) => {
-      return apiRequest("PATCH", `/api/ai-insights/${data.insightId}`, { severity: data.severity });
+      const response = await apiRequest("PATCH", `/api/ai-insights/${data.insightId}`, { severity: data.severity });
+      return response.json();
     },
-    onSuccess: (data, variables) => {
+    onSuccess: async (data, variables) => {
       toast({
         title: "Severity Updated",
         description: `Severity changed to ${variables.severity}`,
       });
-      // Auto-update UI by invalidating and refetching insights
-      queryClient.invalidateQueries({ queryKey: ["/api/ai-insights"] });
-      refetchInsights();
+      
+      // 🚀 COMPREHENSIVE AUTO-REFRESH: Use comprehensive cache invalidation that matches all AI insights queries
+      await queryClient.invalidateQueries({ 
+        predicate: (query) => Array.isArray(query.queryKey) && query.queryKey[0] === "/api/ai-insights" 
+      });
+      
+      // 🔄 FORCE IMMEDIATE REFETCH: Force immediate refetch to ensure data displays
+      await queryClient.refetchQueries({ 
+        predicate: (query) => Array.isArray(query.queryKey) && query.queryKey[0] === "/api/ai-insights" 
+      });
+      
+      // Also call the specific refetch function for this component
+      await refetchInsights();
+      
       setEditingSeverity(null);
       setTempSeverity("");
     },
     onError: (error: any) => {
+      // On error, still try to refresh from server to get latest state
+      queryClient.invalidateQueries({ 
+        predicate: (query) => Array.isArray(query.queryKey) && query.queryKey[0] === "/api/ai-insights" 
+      });
+      
       toast({
         title: "Update Failed",
         description: error.message || "Failed to update severity",
