@@ -4214,6 +4214,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // PATCH /api/ai-insights/:id - Update insight fields (severity, status, etc.)
+  app.patch("/api/ai-insights/:id", requireRole(["doctor", "nurse", "admin"]), async (req: TenantRequest, res) => {
+    try {
+      const insightId = parseInt(req.params.id);
+      
+      if (isNaN(insightId)) {
+        return res.status(400).json({ error: "Invalid insight ID" });
+      }
+
+      // Validate update data - allow severity, status, and other fields
+      const updateData = z.object({
+        severity: z.enum(["critical", "high", "medium", "low"]).optional(),
+        status: z.enum(["active", "reviewed", "dismissed", "implemented"]).optional(),
+        aiStatus: z.enum(["pending", "reviewed", "implemented", "dismissed"]).optional(),
+        notes: z.string().optional()
+      }).parse(req.body);
+
+      console.log(`[AI-INSIGHTS] Updating insight ${insightId} with data:`, updateData);
+
+      // Check if insight exists and belongs to organization
+      const existingInsight = await storage.getAiInsight(insightId, req.tenant!.id);
+      if (!existingInsight) {
+        return res.status(404).json({ error: "AI insight not found" });
+      }
+
+      // Update the insight in the database
+      const updatedInsight = await storage.updateAiInsight(insightId, req.tenant!.id, updateData);
+      
+      if (!updatedInsight) {
+        return res.status(404).json({ error: "AI insight not found or update failed" });
+      }
+
+      console.log(`[AI-INSIGHTS] Successfully updated insight ${insightId}:`, updatedInsight);
+
+      // Transform confidence from string to number for frontend response
+      const transformedInsight = {
+        ...updatedInsight,
+        confidence: updatedInsight.confidence ? parseFloat(updatedInsight.confidence) : 0
+      };
+
+      res.json({ success: true, insight: transformedInsight, message: "AI insight updated successfully" });
+    } catch (error) {
+      console.error(`[AI-INSIGHTS] Update error for insight ${req.params.id}:`, error);
+      handleRouteError(error, "update AI insight", res);
+    }
+  });
+
   // Keep the existing clinical insights route for backward compatibility but use real data
   app.get("/api/clinical/insights", requireRole(["doctor", "nurse", "admin"]), async (req: TenantRequest, res) => {
     try {
