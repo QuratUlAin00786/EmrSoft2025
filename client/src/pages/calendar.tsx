@@ -249,9 +249,15 @@ export default function CalendarPage() {
     queryKey: ["/api/medical-staff"],
     retry: 3,
     staleTime: 0, // Force fresh requests
-    cacheTime: 0, // Don't cache failed results
     enabled: true, // Ensure query is enabled
     refetchOnMount: true, // Always refetch on mount
+    queryFn: async () => {
+      console.log('🔄 Fetching medical staff data...');
+      const response = await apiRequest('GET', '/api/medical-staff');
+      const data = await response.json();
+      console.log('📋 Medical staff response:', data);
+      return data;
+    },
   });
   
   // Extract doctors from medical staff data - memoized to prevent infinite re-renders
