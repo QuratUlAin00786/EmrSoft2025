@@ -11766,8 +11766,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Send the email using the email service
-      const { default: EmailService } = await import('./services/email');
-      const emailService = new EmailService();
       const patientName = `${patient.firstName} ${patient.lastName}`;
       const studyType = study.studyDescription || 'Medical Imaging Study';
 
