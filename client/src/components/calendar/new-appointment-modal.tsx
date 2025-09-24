@@ -147,18 +147,25 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
           name: `${p.firstName} ${p.lastName}` 
         })));
 
-        // Try multiple matching strategies - PRIORITIZE EMAIL MATCH
+        // Try multiple matching strategies - SAME AS APPOINTMENTS PAGE
         const currentPatient = 
           // 1. PRIORITY: Match by exact email (most reliable)
           uniquePatients.find((patient: any) => 
             patient.email && user.email && patient.email.toLowerCase() === user.email.toLowerCase()
           ) ||
-          // 2. Fallback: Match by exact full name
+          // 2. Match by exact full name
           uniquePatients.find((patient: any) => 
             patient.firstName && user.firstName && patient.lastName && user.lastName &&
             patient.firstName.toLowerCase() === user.firstName.toLowerCase() && 
             patient.lastName.toLowerCase() === user.lastName.toLowerCase()
-          );
+          ) ||
+          // 3. Match by partial name (first name only)
+          uniquePatients.find((patient: any) => 
+            patient.firstName && user.firstName &&
+            patient.firstName.toLowerCase() === user.firstName.toLowerCase()
+          ) ||
+          // 4. If user role is patient, take the first patient (fallback for demo)
+          (user.role === 'patient' && uniquePatients.length > 0 ? uniquePatients[0] : null);
         
         if (currentPatient) {
           console.log("✅ APPOINTMENT-MODAL: Found matching patient:", currentPatient);
