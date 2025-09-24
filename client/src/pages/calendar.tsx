@@ -367,6 +367,14 @@ export default function CalendarPage() {
     console.log('Filtering doctors with specialty:', selectedSpecialty, 'sub-specialty:', selectedSubSpecialty);
     console.log('Available doctors:', allDoctors);
     
+    // For patients, show all active doctors regardless of specialty selection
+    if (user?.role === 'patient') {
+      console.log('Patient role detected - showing all active doctors:', allDoctors);
+      const activeDoctors = allDoctors.filter((doctor: any) => doctor.isActive !== false);
+      setFilteredDoctors(activeDoctors);
+      return activeDoctors;
+    }
+    
     // If no specialty is selected, show all active doctors
     if (!selectedSpecialty) {
       console.log('No specialty selected, showing all doctors:', allDoctors);
