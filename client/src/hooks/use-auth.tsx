@@ -69,6 +69,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
+      // First clear any existing token and cache
+      localStorage.removeItem('auth_token');
+      queryClient.clear();
+      setUser(null);
+      
       const response = await apiRequest('POST', '/api/auth/login', {
         email,
         password
@@ -76,11 +81,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       const data = await response.json();
       
+      // Set new token and user
       localStorage.setItem('auth_token', data.token);
       setUser(data.user);
       
-      // Clear React Query cache to force fresh API calls with new token
+      // Clear React Query cache again to force fresh API calls with new token
       queryClient.clear();
+      
+      console.log('🔐 LOGIN: Successfully logged in as', data.user.email, 'with role', data.user.role);
     } catch (error) {
       throw new Error('Login failed. Please check your credentials.');
     }
