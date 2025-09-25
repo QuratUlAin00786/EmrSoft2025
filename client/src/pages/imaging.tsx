@@ -2078,6 +2078,147 @@ export default function ImagingPage() {
                         </div>
                       )}
 
+                      {/* Patient-Specific Information Section */}
+                      {user?.role === 'patient' && (
+                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-700 dark:to-slate-600 border-l-4 border-indigo-400 dark:border-indigo-500 p-5 mb-4 rounded-r-lg">
+                          <div className="flex items-center gap-2 mb-3">
+                            <FileImage className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                            <h4 className="font-semibold text-indigo-800 dark:text-indigo-300 text-lg">
+                              Your Medical Imaging Report
+                            </h4>
+                          </div>
+                          
+                          <div className="space-y-3 text-sm">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <div className="bg-white dark:bg-slate-800 p-3 rounded-lg border">
+                                  <h5 className="font-medium text-indigo-700 dark:text-indigo-300 mb-1">Study Details</h5>
+                                  <div className="text-gray-700 dark:text-gray-300 space-y-1">
+                                    <div><strong>Type:</strong> {study.studyType}</div>
+                                    <div><strong>Area Examined:</strong> {study.bodyPart}</div>
+                                    <div><strong>Method:</strong> {study.modality}</div>
+                                  </div>
+                                </div>
+                                
+                                <div className="bg-white dark:bg-slate-800 p-3 rounded-lg border">
+                                  <h5 className="font-medium text-indigo-700 dark:text-indigo-300 mb-1">Status</h5>
+                                  <div className="flex items-center gap-2">
+                                    <Badge className={getStatusColor(study.status)}>
+                                      {study.status}
+                                    </Badge>
+                                    <span className="text-xs text-gray-600 dark:text-gray-400">
+                                      {study.status === 'completed' ? 'Your scan is complete' : 
+                                       study.status === 'final' ? 'Report is finalized' :
+                                       study.status === 'preliminary' ? 'Initial report available' :
+                                       'Scan in progress'}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              <div className="space-y-2">
+                                <div className="bg-white dark:bg-slate-800 p-3 rounded-lg border">
+                                  <h5 className="font-medium text-indigo-700 dark:text-indigo-300 mb-1">Timeline</h5>
+                                  <div className="text-gray-700 dark:text-gray-300 space-y-1 text-xs">
+                                    <div><strong>Ordered:</strong> {format(new Date(study.orderedAt), "MMM d, yyyy")}</div>
+                                    {study.scheduledAt && (
+                                      <div><strong>Scheduled:</strong> {format(new Date(study.scheduledAt), "MMM d, yyyy")}</div>
+                                    )}
+                                    {study.performedAt && (
+                                      <div><strong>Performed:</strong> {format(new Date(study.performedAt), "MMM d, yyyy")}</div>
+                                    )}
+                                  </div>
+                                </div>
+                                
+                                {study.radiologist && (
+                                  <div className="bg-white dark:bg-slate-800 p-3 rounded-lg border">
+                                    <h5 className="font-medium text-indigo-700 dark:text-indigo-300 mb-1">Radiologist</h5>
+                                    <div className="text-gray-700 dark:text-gray-300 text-xs">
+                                      {study.radiologist}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            
+                            {study.reportFileName && (
+                              <div className="bg-green-50 dark:bg-slate-800 border border-green-200 dark:border-green-600 rounded-lg p-4">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <FileText className="h-4 w-4 text-green-600 dark:text-green-400" />
+                                  <h5 className="font-medium text-green-800 dark:text-green-300">Report Available</h5>
+                                </div>
+                                <p className="text-green-700 dark:text-green-200 text-xs mb-3">
+                                  Your detailed imaging report is ready. You can view it online or download a copy for your records.
+                                </p>
+                                <div className="flex gap-2">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={async () => {
+                                      const reportId = study.reportFileName.replace(/\.pdf$/i, "");
+                                      await viewPDFReport(reportId);
+                                    }}
+                                    className="text-green-700 border-green-300 hover:bg-green-100 dark:text-green-300 dark:border-green-600 dark:hover:bg-green-800"
+                                  >
+                                    <Eye className="h-4 w-4 mr-1" />
+                                    View Report
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={async () => {
+                                      try {
+                                        const token = localStorage.getItem("auth_token");
+                                        const headers: Record<string, string> = {
+                                          "X-Tenant-Subdomain": "demo",
+                                        };
+                                        if (token) {
+                                          headers["Authorization"] = `Bearer ${token}`;
+                                        }
+                                        const response = await fetch(
+                                          `/api/imaging/reports/${study.reportFileName.replace(".pdf", "")}?download=true`,
+                                          { headers, credentials: "include" }
+                                        );
+                                        if (response.ok) {
+                                          const blob = await response.blob();
+                                          const url = URL.createObjectURL(blob);
+                                          const a = document.createElement("a");
+                                          a.href = url;
+                                          a.download = study.reportFileName;
+                                          document.body.appendChild(a);
+                                          a.click();
+                                          document.body.removeChild(a);
+                                          URL.revokeObjectURL(url);
+                                        }
+                                      } catch (error) {
+                                        console.error("Download failed:", error);
+                                      }
+                                    }}
+                                    className="text-green-700 border-green-300 hover:bg-green-100 dark:text-green-300 dark:border-green-600 dark:hover:bg-green-800"
+                                  >
+                                    <Download className="h-4 w-4 mr-1" />
+                                    Download Report
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
+                            
+                            <div className="bg-amber-50 dark:bg-slate-800 border border-amber-200 dark:border-amber-600 rounded-lg p-4">
+                              <div className="flex items-center gap-2 mb-2">
+                                <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                                <h5 className="font-medium text-amber-800 dark:text-amber-300">Important Information</h5>
+                              </div>
+                              <ul className="text-amber-700 dark:text-amber-200 text-xs space-y-1">
+                                <li>• Discuss these results with your doctor during your next appointment</li>
+                                <li>• Keep a copy of your report for your personal medical records</li>
+                                <li>• Contact your healthcare provider if you have questions about your results</li>
+                                <li>• This report was reviewed by: {study.radiologist || 'Medical professional'}</li>
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
                       {study.report && (
                         <div className="bg-green-50 dark:bg-slate-700 border-l-4 border-green-400 dark:border-green-500 p-3">
                           <div className="flex items-center justify-between mb-2">
