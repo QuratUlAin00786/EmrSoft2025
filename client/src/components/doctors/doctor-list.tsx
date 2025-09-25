@@ -307,7 +307,7 @@ export function DoctorList({
     const day = String(appointmentDateTime.getDate()).padStart(2, "0");
     const hourStr = String(appointmentDateTime.getHours()).padStart(2, "0");
     const minuteStr = String(appointmentDateTime.getMinutes()).padStart(2, "0");
-    const scheduledAtString = `${year}-${month}-${day}T${hourStr}:${minuteStr}:00.000Z`;
+    const scheduledAtString = `${year}-${month}-${day}T${hourStr}:${minuteStr}:00`;
 
     const appointmentData = {
       patientId: parseInt(selectedPatient),
