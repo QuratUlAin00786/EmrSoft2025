@@ -480,57 +480,6 @@ export default function PatientAppointments({
         </Card>
       )}
 
-      {/* Upcoming Appointments List */}
-      {upcomingAppointments.length > 1 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg text-gray-800">
-              Upcoming Appointments
-            </CardTitle>
-            <CardDescription>
-              Your next {Math.min(upcomingAppointments.length - 1, 3)} scheduled appointments
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {upcomingAppointments.slice(1, 4).map((appointment: any, index: number) => (
-                <div key={appointment.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors">
-                  <div className="space-y-1">
-                    <p className="font-medium text-gray-900">{appointment.title}</p>
-                    {getDoctorSpecialtyData(appointment.providerId).name && (
-                      <p className="text-sm text-gray-600">
-                        {getDoctorSpecialtyData(appointment.providerId).name}
-                      </p>
-                    )}
-                    {appointment.location && (
-                      <div className="flex items-center space-x-1">
-                        <MapPin className="h-3 w-3 text-gray-400" />
-                        <span className="text-xs text-gray-500">{appointment.location}</span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="text-right space-y-1">
-                    <p className="text-sm font-medium text-gray-900">
-                      {formatDate(appointment.scheduledAt)}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      {formatTime(appointment.scheduledAt)}
-                    </p>
-                    <Badge
-                      style={{
-                        backgroundColor: statusColors[appointment.status as keyof typeof statusColors],
-                      }}
-                      className="text-white text-xs"
-                    >
-                      {appointment.status.toUpperCase()}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Filter Tabs */}
       <div className="flex space-x-2">
