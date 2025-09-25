@@ -369,7 +369,7 @@ export const appointments = pgTable("appointments", {
   providerId: integer("provider_id").notNull(),
   title: text("title").notNull(),
   description: text("description"),
-  scheduledAt: timestamp("scheduled_at").notNull(),
+  scheduledAt: timestamp("scheduled_at", { withTimezone: false }).notNull(),
   duration: integer("duration").notNull().default(30), // minutes
   status: varchar("status", { length: 20 }).notNull().default("scheduled"), // scheduled, completed, cancelled, no_show, rescheduled
   type: varchar("type", { length: 20 }).notNull().default("consultation"), // consultation, follow_up, procedure, emergency, routine_checkup

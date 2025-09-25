@@ -2303,8 +2303,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (title !== undefined) allowedUpdates.title = title;
       if (description !== undefined) allowedUpdates.description = description;
       if (scheduledAt !== undefined) {
-        // Convert scheduledAt string back to Date object for Drizzle ORM
-        allowedUpdates.scheduledAt = new Date(scheduledAt);
+        // Store scheduledAt string directly without timezone conversion
+        allowedUpdates.scheduledAt = scheduledAt;
       }
       if (duration !== undefined) allowedUpdates.duration = duration;
       if (status !== undefined) allowedUpdates.status = status;
@@ -2507,7 +2507,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         organizationId: req.tenant!.id,
         title: appointmentData.title || `${appointmentData.type} appointment`,
         description: appointmentData.description || appointmentData.notes || "",
-        scheduledAt: appointmentData.scheduledAt ? new Date(appointmentData.scheduledAt) : new Date(appointmentData.appointmentDate || new Date()),
+        scheduledAt: appointmentData.scheduledAt || appointmentData.appointmentDate,
         duration: appointmentData.duration,
         type: appointmentData.type,
         status: appointmentData.status || "scheduled", // Add missing status field
@@ -2515,16 +2515,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isVirtual: appointmentData.isVirtual
       };
 
-      // VALIDATE APPOINTMENT TIME - Prevent past scheduling
-      const now = new Date();
-      if (appointmentToCreate.scheduledAt <= now) {
-        return res.status(400).json({ 
-          error: "Cannot schedule appointments for past times. Please select a future date and time.",
-          type: "past_time_error",
-          providedTime: appointmentToCreate.scheduledAt.toISOString(),
-          currentTime: now.toISOString()
-        });
-      }
+      // Note: Removed past time validation since we're using naive timestamps
       
       console.log("Creating appointment with final data:", appointmentToCreate);
       
@@ -2578,20 +2569,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`Updating appointment ${appointmentId} with data:`, updateData);
 
-      // Convert scheduledAt to Date if provided
+      // Store scheduledAt string directly without timezone conversion
       const updatePayload: any = { ...updateData };
-      if (updateData.scheduledAt) {
-        updatePayload.scheduledAt = new Date(updateData.scheduledAt);
-        
-        // Validate future scheduling
-        const now = new Date();
-        if (updatePayload.scheduledAt <= now) {
-          return res.status(400).json({ 
-            error: "Cannot schedule appointments for past times. Please select a future date and time.",
-            type: "past_time_error"
-          });
-        }
-      }
+      // Note: Removed timezone validation since we're now storing naive timestamps
 
       const updated = await storage.updateAppointment(appointmentId, req.tenant!.id, updatePayload);
       
