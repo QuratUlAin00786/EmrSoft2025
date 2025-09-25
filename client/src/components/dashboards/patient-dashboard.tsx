@@ -55,6 +55,28 @@ export function PatientDashboard() {
 
   const { data: prescriptionsData } = useQuery({
     queryKey: ["/api/patients/my-prescriptions"],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'X-Tenant-Subdomain': 'demo'
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch('/api/patients/my-prescriptions', {
+        headers,
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch prescriptions: ${response.status}`);
+      }
+      
+      return response.json();
+    },
+    enabled: !!user && user.role === 'patient',
   });
 
   const { data: doctorsData } = useQuery({
