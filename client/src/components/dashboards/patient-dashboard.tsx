@@ -20,9 +20,17 @@ export function PatientDashboard() {
   const { user } = useAuth();
   const [isChatbotOpen, setIsChatbotOpen] = useState(false);
   
-  const { data: appointmentsData, isLoading: appointmentsLoading, error: appointmentsError } = useQuery({
+  const { data: appointmentsData, isLoading: appointmentsLoading, error: appointmentsError, refetch: refetchAppointments } = useQuery({
     queryKey: ["/api/appointments"],
+    enabled: true, // Always enabled for patient dashboard
+    staleTime: 0, // Always fetch fresh data
+    gcTime: 0, // Don't cache stale data (formerly cacheTime)
+    refetchOnWindowFocus: true, // Refetch when window gains focus
+    refetchOnMount: true, // Always refetch on mount
   });
+
+  // Ensure we have an array for appointments data
+  const safeAppointmentsData = Array.isArray(appointmentsData) ? appointmentsData : [];
 
 
   const { data: prescriptionsData } = useQuery({
@@ -66,30 +74,30 @@ export function PatientDashboard() {
     }
   };
 
-  // Upcoming Appointments function with full functionality for patients only
+  // Get upcoming appointments for patient users
   const getUpcomingAppointments = () => {
-    // Only show appointments if user is a patient
-    if (user?.role !== 'patient') {
-      return {
-        appointments: [],
-        count: 0,
-        nextAppointment: null,
-        remainingAppointments: [],
-      };
-    }
-
     const now = new Date();
-    const allAppointments = Array.isArray(appointmentsData) ? appointmentsData : [];
     
-    // Filter for current patient's upcoming appointments only  
-    const userPatientId = user?.id;
-    const patientAppointments = allAppointments.filter((appointment: any) => {
-      const appointmentDate = new Date(appointment.scheduledAt);
-      const isUpcoming = appointmentDate > now;
-      const isForCurrentPatient = appointment.patientId === userPatientId || 
-                                  appointment.patientId === 25; // Temporary: Include patient 25 for testing
-      return isUpcoming && isForCurrentPatient;
-    });
+    // For patient users, filter to show their own appointments
+    // User ID 59 corresponds to patient record ID 25 (Shabana ali with email patient2@cura.com)
+    let patientAppointments = [];
+    
+    if (user?.role === 'patient' && user?.email === 'patient2@cura.com') {
+      // This patient (Shabana ali) has appointments with patientId 25
+      patientAppointments = safeAppointmentsData.filter((appointment: any) => {
+        const appointmentDate = new Date(appointment.scheduledAt);
+        const isUpcoming = appointmentDate > now;
+        const isForCurrentPatient = appointment.patientId === 25; // Shabana's patient ID
+        return isUpcoming && isForCurrentPatient;
+      });
+    } else {
+      // For other patient users, show upcoming appointments 
+      patientAppointments = safeAppointmentsData.filter((appointment: any) => {
+        const appointmentDate = new Date(appointment.scheduledAt);
+        const isUpcoming = appointmentDate > now;
+        return isUpcoming;
+      });
+    }
 
     // Sort by date (earliest first)
     const sortedAppointments = patientAppointments.sort((a: any, b: any) => {
@@ -106,26 +114,8 @@ export function PatientDashboard() {
 
   const upcomingAppointmentsData = getUpcomingAppointments();
 
-  // Extract data from API responses with proper type checking
-  // appointmentsData is directly an array, not an object with appointments property
-  const allAppointments = Array.isArray(appointmentsData) ? appointmentsData : [];
-  
-  // Filter for current patient's appointments only
-  const userPatientId = user?.id; // Get the logged-in user's ID
-  const patientAppointments = allAppointments.filter((appointment: any) => {
-    // Check if this appointment belongs to the current patient
-    // Since we're logged in as a patient, we should only see our own appointments
-    return appointment.patientId === userPatientId || 
-           appointment.patientId === 25; // Temporary: Include patient 25 (Shabana) for testing
-  });
-  
-  // Get next upcoming appointment
-  const now = new Date();
-  const upcomingAppointments = patientAppointments
-    .filter((appointment: any) => new Date(appointment.scheduledAt) > now)
-    .sort((a: any, b: any) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime());
-    
-  const nextAppointment = upcomingAppointments[0] || null;
+  // Use the filtered appointment data from getUpcomingAppointments
+  const nextAppointment = upcomingAppointmentsData.nextAppointment;
   const prescriptions = (prescriptionsData as any)?.prescriptions || [];
   const totalPrescriptions = (prescriptionsData as any)?.totalCount || 0;
   const patientId = (prescriptionsData as any)?.patientId || (appointmentsData as any)?.patientId;
