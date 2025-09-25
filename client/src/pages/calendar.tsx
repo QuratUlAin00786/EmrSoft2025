@@ -244,9 +244,9 @@ export default function CalendarPage() {
     }
   }, [user, patients]);
   
-  // Fetch doctors directly from database for appointment booking
+  // Fetch medical staff with availability for appointment booking
   const { data: doctorsData, isLoading: isLoadingDoctors, error: doctorsError } = useQuery<any>({
-    queryKey: ["/api/doctors"],
+    queryKey: ["/api/medical-staff"],
     retry: 3,
     staleTime: 0, // Force fresh requests
     cacheTime: 0, // Don't cache failed results
@@ -254,31 +254,31 @@ export default function CalendarPage() {
     refetchOnMount: true, // Always refetch on mount
     refetchOnWindowFocus: false,
     queryFn: async () => {
-      console.log('🔄 DIRECT DOCTORS: Starting fetch for user:', user?.email, 'role:', user?.role);
+      console.log('🔄 MEDICAL STAFF: Starting fetch for user:', user?.email, 'role:', user?.role);
       try {
-        const response = await apiRequest('GET', '/api/doctors');
-        console.log('🔄 DIRECT DOCTORS: Response status:', response.status);
+        const response = await apiRequest('GET', '/api/medical-staff');
+        console.log('🔄 MEDICAL STAFF: Response status:', response.status);
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
         const data = await response.json();
-        console.log('📋 DIRECT DOCTORS: Success response:', data);
+        console.log('📋 MEDICAL STAFF: Success response:', data);
         return data;
       } catch (error) {
-        console.error('❌ DIRECT DOCTORS: Fetch error:', error);
+        console.error('❌ MEDICAL STAFF: Fetch error:', error);
         throw error;
       }
     },
   });
   
-  // Extract doctors from direct database query - memoized to prevent infinite re-renders
+  // Extract doctors from medical staff query - memoized to prevent infinite re-renders
   const allDoctors = useMemo(() => {
-    console.log('🏥 Processing direct doctors data:', doctorsData);
-    console.log('🏥 Doctors error:', doctorsError);
-    console.log('🏥 Is loading doctors:', isLoadingDoctors);
+    console.log('🏥 Processing medical staff data:', doctorsData);
+    console.log('🏥 Medical staff error:', doctorsError);
+    console.log('🏥 Is loading medical staff:', isLoadingDoctors);
     
-    const doctors = doctorsData?.doctors || [];
-    console.log('👨‍⚕️ Extracted doctors from direct query:', doctors.length, doctors);
+    const doctors = doctorsData?.staff || [];
+    console.log('👨‍⚕️ Extracted doctors from medical staff query:', doctors.length, doctors);
     return doctors;
   }, [doctorsData, doctorsError, isLoadingDoctors]);
   
