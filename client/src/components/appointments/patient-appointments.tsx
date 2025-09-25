@@ -85,16 +85,16 @@ export default function PatientAppointments({
     },
   });
 
-  // Fetch medical staff for doctor specialty data
-  const { data: medicalStaffData, isLoading: medicalStaffLoading } = useQuery({
-    queryKey: ["/api/medical-staff"],
+  // Fetch doctors for doctor specialty data (faster than medical-staff)
+  const { data: doctorsData, isLoading: doctorsLoading } = useQuery({
+    queryKey: ["/api/doctors"],
     staleTime: 300000, // 5 minutes cache for better performance
     retry: false,
     enabled: !!user,
   });
 
   // Combined loading state
-  const isLoading = patientsLoading || appointmentsLoading || medicalStaffLoading;
+  const isLoading = patientsLoading || appointmentsLoading || doctorsLoading;
 
   // Find the patient record for the logged-in user
   const currentPatient = React.useMemo(() => {
@@ -183,10 +183,10 @@ export default function PatientAppointments({
   }, [appointmentsData, currentPatient]);
 
   const getDoctorSpecialtyData = (providerId: number) => {
-    const staffResponse = medicalStaffData as any;
-    if (!staffResponse?.staff || !Array.isArray(staffResponse.staff))
+    const doctorsResponse = doctorsData as any;
+    if (!doctorsResponse?.doctors || !Array.isArray(doctorsResponse.doctors))
       return { name: "", category: "", subSpecialty: "" };
-    const provider = staffResponse.staff.find((u: any) => u.id === providerId && u.role === 'doctor');
+    const provider = doctorsResponse.doctors.find((u: any) => u.id === providerId);
     return provider
       ? {
           name: `${provider.firstName} ${provider.lastName}`,
@@ -436,22 +436,10 @@ export default function PatientAppointments({
                   </span>
                 </div>
                 {getDoctorSpecialtyData(nextAppointment.providerId)
-                  .category && (
-                  <div className="flex items-center space-x-2">
-                    <FileText className="h-5 w-5 text-blue-600" />
-                    <span className="text-sm font-medium text-blue-700">
-                      {
-                        getDoctorSpecialtyData(nextAppointment.providerId)
-                          .category
-                      }
-                    </span>
-                  </div>
-                )}
-                {getDoctorSpecialtyData(nextAppointment.providerId)
                   .subSpecialty && (
                   <div className="flex items-center space-x-2">
                     <FileText className="h-5 w-5 text-blue-600" />
-                    <span className="text-sm text-blue-600">
+                    <span>
                       {
                         getDoctorSpecialtyData(nextAppointment.providerId)
                           .subSpecialty
