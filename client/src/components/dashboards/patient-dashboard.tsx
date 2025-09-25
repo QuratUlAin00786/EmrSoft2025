@@ -65,6 +65,32 @@ export function PatientDashboard() {
     }
   };
 
+  // Upcoming Appointments function with full functionality
+  const getUpcomingAppointments = () => {
+    const now = new Date();
+    const appointments = (appointmentsData as any)?.appointments || [];
+    
+    // Filter upcoming appointments (future dates only)
+    const upcomingAppointments = appointments.filter((appointment: any) => {
+      const appointmentDate = new Date(appointment.scheduledAt);
+      return appointmentDate > now;
+    });
+
+    // Sort by date (earliest first)
+    const sortedAppointments = upcomingAppointments.sort((a: any, b: any) => {
+      return new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime();
+    });
+
+    return {
+      appointments: sortedAppointments,
+      count: sortedAppointments.length,
+      nextAppointment: sortedAppointments[0] || null,
+      remainingAppointments: sortedAppointments.slice(1),
+    };
+  };
+
+  const upcomingAppointmentsData = getUpcomingAppointments();
+
   // Extract data from API responses with proper type checking
   const patientAppointments = (appointmentsData as any)?.appointments || [];
   const nextAppointment = (appointmentsData as any)?.nextAppointment;
