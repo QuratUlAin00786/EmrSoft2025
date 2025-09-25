@@ -85,16 +85,16 @@ export default function PatientAppointments({
     },
   });
 
-  // Fetch medical staff for doctor specialty data
-  const { data: medicalStaffData, isLoading: medicalStaffLoading } = useQuery({
-    queryKey: ["/api/medical-staff"],
-    staleTime: 60000,
+  // Fetch doctors for doctor specialty data (faster than medical-staff)
+  const { data: doctorsData, isLoading: doctorsLoading } = useQuery({
+    queryKey: ["/api/doctors"],
+    staleTime: 300000, // 5 minutes cache for better performance
     retry: false,
     enabled: !!user,
   });
 
   // Combined loading state
-  const isLoading = patientsLoading || appointmentsLoading || medicalStaffLoading;
+  const isLoading = patientsLoading || appointmentsLoading || doctorsLoading;
 
   // Find the patient record for the logged-in user
   const currentPatient = React.useMemo(() => {
@@ -183,10 +183,10 @@ export default function PatientAppointments({
   }, [appointmentsData, currentPatient]);
 
   const getDoctorSpecialtyData = (providerId: number) => {
-    const staffData = medicalStaffData as any;
-    if (!staffData?.staff || !Array.isArray(staffData.staff))
+    const doctorsResponse = doctorsData as any;
+    if (!doctorsResponse?.doctors || !Array.isArray(doctorsResponse.doctors))
       return { name: "", category: "", subSpecialty: "" };
-    const provider = staffData.staff.find((u: any) => u.id === providerId);
+    const provider = doctorsResponse.doctors.find((u: any) => u.id === providerId);
     return provider
       ? {
           name: `${provider.firstName} ${provider.lastName}`,
