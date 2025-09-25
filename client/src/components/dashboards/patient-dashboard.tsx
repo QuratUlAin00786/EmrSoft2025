@@ -22,9 +22,9 @@ export function PatientDashboard() {
   
   const { data: appointmentsData, isLoading: appointmentsLoading, error: appointmentsError } = useQuery({
     queryKey: ["/api/appointments"],
-    enabled: !!user && user.role === 'patient', // Only enabled for authenticated patient users
-    retry: 3,
-    retryDelay: 1000,
+    enabled: !!user, // Enable for any authenticated user
+    staleTime: 0,
+    refetchOnMount: true,
   });
 
   // Ensure we have an array for appointments data
