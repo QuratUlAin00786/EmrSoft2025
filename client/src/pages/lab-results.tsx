@@ -1515,15 +1515,17 @@ Report generated from Cura EMR System`;
                             <Badge className={getStatusColor(result.status)}>
                               {result.status}
                             </Badge>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setEditingStatusId(result.id)}
-                              className="h-6 w-6 p-0"
-                              data-testid="button-edit-status-list"
-                            >
-                              <Edit className="h-3 w-3" />
-                            </Button>
+                            {user?.role !== 'patient' && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setEditingStatusId(result.id)}
+                                className="h-6 w-6 p-0"
+                                data-testid="button-edit-status-list"
+                              >
+                                <Edit className="h-3 w-3" />
+                              </Button>
+                            )}
                           </>
                         )}
                       </div>
