@@ -81,6 +81,28 @@ export function PatientDashboard() {
 
   const { data: doctorsData } = useQuery({
     queryKey: ["/api/medical-staff"],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'X-Tenant-Subdomain': 'demo'
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch('/api/medical-staff', {
+        headers,
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch medical staff: ${response.status}`);
+      }
+      
+      return response.json();
+    },
+    enabled: !!user,
   });
 
   // Helper functions

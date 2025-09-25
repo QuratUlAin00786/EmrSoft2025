@@ -1290,9 +1290,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // IMPORTANT: Specific routes must come before parameterized routes
+  app.get("/api/patients/my-prescriptions", authMiddleware, requireRole(["patient"]), async (req: TenantRequest, res) => {
+    try {
+      console.log("🏥 MY-PRESCRIPTIONS DEBUG: Starting request for user:", req.user?.email);
+      
+      // Find the patient record by the authenticated user's email
+      const patients = await storage.getPatientsByOrganization(req.tenant!.id, 100);
+      console.log("🏥 MY-PRESCRIPTIONS DEBUG: Found patients count:", patients.length);
+      
+      const patient = patients.find(p => p.email === req.user!.email);
+      console.log("🏥 MY-PRESCRIPTIONS DEBUG: Found matching patient:", patient ? { id: patient.id, email: patient.email } : null);
+      
+      if (!patient) {
+        console.log("🏥 MY-PRESCRIPTIONS DEBUG: No patient found for email:", req.user!.email);
+        return res.status(404).json({ error: "Patient record not found for authenticated user" });
+      }
+      
+      console.log("🏥 MY-PRESCRIPTIONS DEBUG: Getting prescriptions for patient ID:", patient.id);
+      const prescriptions = await storage.getPrescriptionsByPatient(patient.id, req.tenant!.id);
+      console.log("🏥 MY-PRESCRIPTIONS DEBUG: Found prescriptions count:", prescriptions.length);
+      
+      res.json({
+        prescriptions,
+        totalCount: prescriptions.length,
+        patientId: patient.id
+      });
+    } catch (error) {
+      console.error("Error fetching patient prescriptions:", error);
+      res.status(500).json({ error: "Failed to load prescriptions" });
+    }
+  });
+
   app.get("/api/patients/:id", async (req: TenantRequest, res) => {
     try {
+      console.log("🔍 PATIENTS/:ID DEBUG - Raw ID param:", req.params.id);
       const patientId = parseInt(req.params.id);
+      console.log("🔍 PATIENTS/:ID DEBUG - Parsed ID:", patientId);
+      
+      if (isNaN(patientId)) {
+        console.error("🔍 PATIENTS/:ID DEBUG - Invalid ID provided:", req.params.id);
+        return res.status(400).json({ error: "Invalid patient ID provided" });
+      }
+      
       const patient = await storage.getPatient(patientId, req.tenant!.id);
       
       if (!patient) {
@@ -10047,15 +10087,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/patients/my-prescriptions", authMiddleware, requireRole(["patient"]), async (req: TenantRequest, res) => {
     try {
+      console.log("🏥 MY-PRESCRIPTIONS DEBUG: Starting request for user:", req.user?.email);
+      
       // Find the patient record by the authenticated user's email
       const patients = await storage.getPatientsByOrganization(req.tenant!.id, 100);
+      console.log("🏥 MY-PRESCRIPTIONS DEBUG: Found patients count:", patients.length);
+      
       const patient = patients.find(p => p.email === req.user!.email);
+      console.log("🏥 MY-PRESCRIPTIONS DEBUG: Found matching patient:", patient ? { id: patient.id, email: patient.email } : null);
       
       if (!patient) {
+        console.log("🏥 MY-PRESCRIPTIONS DEBUG: No patient found for email:", req.user!.email);
         return res.status(404).json({ error: "Patient record not found for authenticated user" });
       }
       
+      console.log("🏥 MY-PRESCRIPTIONS DEBUG: Getting prescriptions for patient ID:", patient.id);
       const prescriptions = await storage.getPrescriptionsByPatient(patient.id, req.tenant!.id);
+      console.log("🏥 MY-PRESCRIPTIONS DEBUG: Found prescriptions count:", prescriptions.length);
       
       res.json({
         prescriptions,
