@@ -436,10 +436,22 @@ export default function PatientAppointments({
                   </span>
                 </div>
                 {getDoctorSpecialtyData(nextAppointment.providerId)
+                  .category && (
+                  <div className="flex items-center space-x-2">
+                    <FileText className="h-5 w-5 text-blue-600" />
+                    <span className="text-sm font-medium text-blue-700">
+                      {
+                        getDoctorSpecialtyData(nextAppointment.providerId)
+                          .category
+                      }
+                    </span>
+                  </div>
+                )}
+                {getDoctorSpecialtyData(nextAppointment.providerId)
                   .subSpecialty && (
                   <div className="flex items-center space-x-2">
                     <FileText className="h-5 w-5 text-blue-600" />
-                    <span>
+                    <span className="text-sm text-blue-600">
                       {
                         getDoctorSpecialtyData(nextAppointment.providerId)
                           .subSpecialty
