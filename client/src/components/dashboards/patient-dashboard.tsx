@@ -57,9 +57,6 @@ export function PatientDashboard() {
     queryKey: ["/api/patients/my-prescriptions", user?.id],
     queryFn: async () => {
       const token = localStorage.getItem('auth_token');
-      console.log('🔍 PATIENT DASHBOARD: Current user:', user?.email, 'Role:', user?.role);
-      console.log('🔍 PATIENT DASHBOARD: Using token:', token ? token.substring(0, 20) + '...' : 'No token');
-      
       const headers: Record<string, string> = {
         'X-Tenant-Subdomain': 'demo'
       };
@@ -74,13 +71,10 @@ export function PatientDashboard() {
       });
       
       if (!response.ok) {
-        console.error('🔍 PATIENT DASHBOARD: API Error:', response.status, response.statusText);
         throw new Error(`Failed to fetch prescriptions: ${response.status}`);
       }
       
-      const result = await response.json();
-      console.log('🔍 PATIENT DASHBOARD: API Response:', result);
-      return result;
+      return response.json();
     },
     enabled: !!user && user.role === 'patient',
     staleTime: 0,
