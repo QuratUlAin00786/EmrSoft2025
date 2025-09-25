@@ -2526,20 +2526,22 @@ export default function PrescriptionsPage() {
                         </span>
                         <span className="lg:hidden">Send</span>
                       </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setSelectedPrescription(prescription);
-                          setShowESignDialog(true);
-                        }}
-                        className="text-xs sm:text-sm px-2 sm:px-3"
-                      >
-                        <PenTool className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                        <span className="hidden lg:inline">E-Sign</span>
-                        <span className="lg:hidden">Sign</span>
-                      </Button>
-                      {prescription.status === "active" && (
+                      {user?.role !== 'patient' && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedPrescription(prescription);
+                            setShowESignDialog(true);
+                          }}
+                          className="text-xs sm:text-sm px-2 sm:px-3"
+                        >
+                          <PenTool className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                          <span className="hidden lg:inline">E-Sign</span>
+                          <span className="lg:hidden">Sign</span>
+                        </Button>
+                      )}
+                      {user?.role !== 'patient' && prescription.status === "active" && (
                         <Button
                           variant="outline"
                           size="sm"
@@ -2551,27 +2553,29 @@ export default function PrescriptionsPage() {
                           <span className="sm:hidden">Edit</span>
                         </Button>
                       )}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          handleDeletePrescription(prescription.id)
-                        }
-                        disabled={deletePrescriptionMutation.isPending}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50 text-xs sm:text-sm px-2 sm:px-3 disabled:opacity-50"
-                      >
-                        <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                        <span className="hidden sm:inline">
-                          {deletePrescriptionMutation.isPending
-                            ? "Deleting..."
-                            : "Delete"}
-                        </span>
-                        <span className="sm:hidden">
-                          {deletePrescriptionMutation.isPending
-                            ? "Deleting..."
-                            : "Delete"}
-                        </span>
-                      </Button>
+                      {user?.role !== 'patient' && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            handleDeletePrescription(prescription.id)
+                          }
+                          disabled={deletePrescriptionMutation.isPending}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50 text-xs sm:text-sm px-2 sm:px-3 disabled:opacity-50"
+                        >
+                          <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                          <span className="hidden sm:inline">
+                            {deletePrescriptionMutation.isPending
+                              ? "Deleting..."
+                              : "Delete"}
+                          </span>
+                          <span className="sm:hidden">
+                            {deletePrescriptionMutation.isPending
+                              ? "Deleting..."
+                              : "Delete"}
+                          </span>
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </Card>
