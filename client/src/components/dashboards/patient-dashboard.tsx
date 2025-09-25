@@ -22,21 +22,32 @@ export function PatientDashboard() {
   
   const { data: appointmentsData, isLoading: appointmentsLoading, error: appointmentsError } = useQuery({
     queryKey: ["/api/appointments"],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'X-Tenant-Subdomain': 'demo'
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch('/api/appointments', {
+        headers,
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch appointments: ${response.status}`);
+      }
+      
+      return response.json();
+    },
     enabled: !!user, // Enable for any authenticated user
     staleTime: 0,
     refetchOnMount: true,
   });
 
-  // Debug appointments data specifically for patient dashboard
-  console.log("🚑 PATIENT DASHBOARD - APPOINTMENTS DEBUG:", {
-    user: user ? { id: user.id, email: user.email, role: user.role } : null,
-    queryEnabled: !!user,
-    appointmentsData,
-    isArray: Array.isArray(appointmentsData),
-    appointmentsLength: appointmentsData?.length,
-    isLoading: appointmentsLoading,
-    error: appointmentsError
-  });
 
   // Ensure we have an array for appointments data
   const safeAppointmentsData = Array.isArray(appointmentsData) ? appointmentsData : [];
