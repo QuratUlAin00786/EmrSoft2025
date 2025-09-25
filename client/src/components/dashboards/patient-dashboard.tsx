@@ -27,6 +27,17 @@ export function PatientDashboard() {
     refetchOnMount: true,
   });
 
+  // Debug appointments data specifically for patient dashboard
+  console.log("🚑 PATIENT DASHBOARD - APPOINTMENTS DEBUG:", {
+    user: user ? { id: user.id, email: user.email, role: user.role } : null,
+    queryEnabled: !!user,
+    appointmentsData,
+    isArray: Array.isArray(appointmentsData),
+    appointmentsLength: appointmentsData?.length,
+    isLoading: appointmentsLoading,
+    error: appointmentsError
+  });
+
   // Ensure we have an array for appointments data
   const safeAppointmentsData = Array.isArray(appointmentsData) ? appointmentsData : [];
 
