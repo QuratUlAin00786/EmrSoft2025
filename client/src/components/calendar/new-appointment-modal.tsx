@@ -502,7 +502,7 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
                 name="date"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="required">Date</FormLabel>
+                    <FormLabel className="required">Select Date *</FormLabel>
                     <FormControl>
                       <Input type="date" {...field} data-testid="input-date" />
                     </FormControl>
@@ -516,9 +516,55 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
                 name="time"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="required">Time</FormLabel>
+                    <FormLabel className="required">Select Time Slot *</FormLabel>
                     <FormControl>
-                      <Input type="time" {...field} data-testid="input-time" />
+                      <div className="max-h-64 overflow-y-auto border border-gray-300 rounded-md p-3">
+                        <div className="grid grid-cols-2 gap-2">
+                          {[
+                            "9:00 AM",
+                            "9:30 AM",
+                            "10:00 AM",
+                            "10:30 AM",
+                            "11:00 AM",
+                            "11:30 AM",
+                            "12:00 PM",
+                            "12:30 PM",
+                            "1:00 PM",
+                            "1:30 PM",
+                            "2:00 PM",
+                            "2:30 PM",
+                            "3:00 PM",
+                            "3:30 PM",
+                            "4:00 PM",
+                            "4:30 PM",
+                            "5:00 PM",
+                          ].map((timeSlot) => {
+                            const isSelected = field.value === timeSlot.replace(" ", "").toLowerCase();
+                            
+                            return (
+                              <button
+                                key={timeSlot}
+                                type="button"
+                                onClick={() => {
+                                  const [time, period] = timeSlot.split(" ");
+                                  const [hours, minutes] = time.split(":");
+                                  let hour24 = parseInt(hours);
+                                  if (period === "PM" && hour24 !== 12) hour24 += 12;
+                                  if (period === "AM" && hour24 === 12) hour24 = 0;
+                                  field.onChange(`${hour24.toString().padStart(2, '0')}:${minutes}`);
+                                }}
+                                className={`p-2 text-sm rounded border text-center ${
+                                  isSelected
+                                    ? "bg-yellow-500 text-white border-yellow-500"
+                                    : "bg-green-500 text-white border-green-500 hover:bg-green-600"
+                                }`}
+                              >
+                                {timeSlot}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
