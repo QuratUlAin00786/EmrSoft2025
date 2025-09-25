@@ -31,6 +31,16 @@ export function PatientDashboard() {
 
   // Ensure we have an array for appointments data
   const safeAppointmentsData = Array.isArray(appointmentsData) ? appointmentsData : [];
+  
+  // Debug logging for appointments data
+  console.log("🚑 PATIENT DASHBOARD - APPOINTMENTS DEBUG:", {
+    userEmail: user?.email,
+    appointmentsLoading,
+    appointmentsDataType: typeof appointmentsData,
+    appointmentsLength: safeAppointmentsData.length,
+    firstAppointment: safeAppointmentsData[0] || 'no appointments',
+    allAppointments: safeAppointmentsData.slice(0, 3) // Show first 3
+  });
 
 
   const { data: prescriptionsData } = useQuery({
@@ -78,26 +88,30 @@ export function PatientDashboard() {
   const getUpcomingAppointments = () => {
     const now = new Date();
     
-    // For patient users, filter to show their own appointments
-    // User ID 59 corresponds to patient record ID 25 (Shabana ali with email patient2@cura.com)
-    let patientAppointments = [];
-    
-    if (user?.role === 'patient' && user?.email === 'patient2@cura.com') {
-      // This patient (Shabana ali) has appointments with patientId 25
-      patientAppointments = safeAppointmentsData.filter((appointment: any) => {
-        const appointmentDate = new Date(appointment.scheduledAt);
-        const isUpcoming = appointmentDate > now;
-        const isForCurrentPatient = appointment.patientId === 25; // Shabana's patient ID
-        return isUpcoming && isForCurrentPatient;
+    // Filter appointments for patient ID 25 (Shabana ali with email patient2@cura.com)
+    const patientAppointments = safeAppointmentsData.filter((appointment: any) => {
+      const isForCurrentPatient = appointment.patientId === 25; // Shabana's patient ID
+      const appointmentDate = new Date(appointment.scheduledAt);
+      const isUpcoming = appointmentDate >= now; // Include today's appointments
+      
+      console.log("🔍 FILTERING APPOINTMENT:", {
+        appointmentId: appointment.id,
+        patientId: appointment.patientId,
+        scheduledAt: appointment.scheduledAt,
+        isForCurrentPatient,
+        isUpcoming,
+        appointmentDate: appointmentDate.toISOString(),
+        nowDate: now.toISOString()
       });
-    } else {
-      // For other patient users, show upcoming appointments 
-      patientAppointments = safeAppointmentsData.filter((appointment: any) => {
-        const appointmentDate = new Date(appointment.scheduledAt);
-        const isUpcoming = appointmentDate > now;
-        return isUpcoming;
-      });
-    }
+      
+      return isForCurrentPatient && isUpcoming;
+    });
+
+    console.log("✅ FILTERED PATIENT APPOINTMENTS:", {
+      totalAppointments: safeAppointmentsData.length,
+      patientAppointments: patientAppointments.length,
+      appointments: patientAppointments
+    });
 
     // Sort by date (earliest first)
     const sortedAppointments = patientAppointments.sort((a: any, b: any) => {
