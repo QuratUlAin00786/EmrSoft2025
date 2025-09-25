@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Calendar, Heart, Pill, FileText, Clock, AlertCircle, MessageSquare, User, MapPin, Video, X, Download } from "lucide-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,7 @@ const statusColors = {
 
 export function PatientDashboard() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [isChatbotOpen, setIsChatbotOpen] = useState(false);
   const [isPrescriptionsPopupOpen, setIsPrescriptionsPopupOpen] = useState(false);
   const [isLabResultsPopupOpen, setIsLabResultsPopupOpen] = useState(false);
@@ -192,9 +193,9 @@ export function PatientDashboard() {
     refetchOnMount: true,
   });
 
-  // Medical Imaging data query for patient
-  const { data: medicalImagingData } = useQuery({
-    queryKey: ["/api/patients/25/medical-imaging"],
+  // Fetch patients data to get current patient ID - MUST come first before medical imaging query
+  const { data: patients = [], isLoading: patientsLoading } = useQuery({
+    queryKey: ["/api/patients"],
     queryFn: async () => {
       const token = localStorage.getItem('auth_token');
       const headers: Record<string, string> = {
@@ -205,7 +206,47 @@ export function PatientDashboard() {
         headers['Authorization'] = `Bearer ${token}`;
       }
       
-      const response = await fetch('/api/patients/25/medical-imaging', {
+      const response = await fetch('/api/patients?isActive=true', {
+        headers,
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch patients: ${response.status}`);
+      }
+      
+      return response.json();
+    },
+    enabled: !!user && user.role === 'patient',
+    staleTime: 0,
+    refetchOnMount: true,
+  });
+
+  // Find current patient ID based on user email (same logic as lab results)
+  const currentPatient = patients.find((patient: any) => 
+    patient.email && user?.email && patient.email.toLowerCase() === user.email.toLowerCase()
+  ) || patients.find((patient: any) => 
+    patient.firstName && user?.firstName && patient.lastName && user?.lastName &&
+    patient.firstName.toLowerCase() === user.firstName.toLowerCase() && 
+    patient.lastName.toLowerCase() === user.lastName.toLowerCase()
+  );
+
+  const currentPatientId = currentPatient?.id;
+
+  // Medical Imaging data query for patient - now dynamic based on current patient
+  const { data: medicalImagingData } = useQuery({
+    queryKey: ["/api/patients", currentPatientId, "medical-imaging"],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'X-Tenant-Subdomain': 'demo'
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch(`/api/patients/${currentPatientId}/medical-imaging`, {
         headers,
         credentials: 'include',
       });
@@ -216,7 +257,7 @@ export function PatientDashboard() {
       
       return response.json();
     },
-    enabled: !!user && user.role === 'patient',
+    enabled: !!user && user.role === 'patient' && !!currentPatientId && patients.length > 0,
     staleTime: 0,
     refetchOnMount: true,
   });
@@ -363,6 +404,12 @@ export function PatientDashboard() {
       setIsLabResultsPopupOpen(true);
     } else if (action.title === "Medical Imaging" && user?.role === "patient") {
       setIsHealthRecordsPopupOpen(true);
+      // Invalidate medical imaging query to fetch fresh data when popup opens
+      if (currentPatientId) {
+        queryClient.invalidateQueries({ 
+          queryKey: ["/api/patients", currentPatientId, "medical-imaging"] 
+        });
+      }
     } else {
       // For non-patient users or other actions, use normal navigation
       window.location.href = action.href;
