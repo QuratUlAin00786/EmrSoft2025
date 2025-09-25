@@ -46,7 +46,7 @@ export default function Dashboard() {
       <div className="flex items-center justify-between mr-6 bg-white px-2 py-1 rounded">
         <Header
           title="Dashboard"
-          subtitle={`Welcome back, John. Here's your patient overview. Total Active Patients: ${
+          subtitle={`Welcome back. Here's your patient overview. Total Active Patients: ${
             activePatientsLoading ? "..." : activePatientCount
           }`}
         />
