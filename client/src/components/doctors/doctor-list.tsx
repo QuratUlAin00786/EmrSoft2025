@@ -11,6 +11,7 @@ import { Stethoscope, User, Calendar as CalendarIcon, Clock, MapPin, Edit } from
 import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import { useState } from "react";
 import type { User as Doctor, Appointment } from "@shared/schema";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -71,6 +72,7 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   
   const { data: medicalStaffResponse, isLoading, error } = useQuery({
     queryKey: ["/api/medical-staff"],
@@ -363,7 +365,7 @@ export function DoctorList({ onSelectDoctor, showAppointmentButton = false }: Do
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Stethoscope className="h-5 w-5" />
-          Medical Staff ({availableDoctors}/{totalDoctors} Available)
+          {user?.role === 'patient' ? 'Medical Staff' : `Medical Staff (${availableDoctors}/${totalDoctors} Available)`}
         </CardTitle>
       </CardHeader>
       <CardContent>
