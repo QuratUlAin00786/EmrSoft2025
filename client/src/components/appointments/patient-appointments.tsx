@@ -688,17 +688,15 @@ export default function PatientAppointments({
                           {appointment.title}
                         </h3>
                         <div className="flex items-center space-x-2">
-                          {user?.role !== 'patient' && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleEditAppointment(appointment)}
-                              className="h-8 w-8 p-0"
-                              data-testid={`button-edit-appointment-${appointment.id}`}
-                            >
-                              <Edit className="h-4 w-4 text-blue-600" />
-                            </Button>
-                          )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEditAppointment(appointment)}
+                            className="h-8 w-8 p-0"
+                            data-testid={`button-edit-appointment-${appointment.id}`}
+                          >
+                            <Edit className="h-4 w-4 text-blue-600" />
+                          </Button>
                           <Button
                             variant="ghost"
                             size="sm"
