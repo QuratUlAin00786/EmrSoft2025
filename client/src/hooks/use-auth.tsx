@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import type { AuthUser } from "@/types";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 // Helper function to get the correct tenant subdomain
 function getTenantSubdomain(): string {
@@ -78,6 +78,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       localStorage.setItem('auth_token', data.token);
       setUser(data.user);
+      
+      // Clear React Query cache to force fresh API calls with new token
+      queryClient.clear();
     } catch (error) {
       throw new Error('Login failed. Please check your credentials.');
     }
@@ -86,6 +89,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = () => {
     localStorage.removeItem('auth_token');
     setUser(null);
+    // Clear React Query cache when logging out
+    queryClient.clear();
   };
 
   return (
