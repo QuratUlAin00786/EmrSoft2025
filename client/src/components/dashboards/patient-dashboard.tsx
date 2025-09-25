@@ -25,6 +25,7 @@ export function PatientDashboard() {
   const [isLabResultsPopupOpen, setIsLabResultsPopupOpen] = useState(false);
   const [selectedLabResult, setSelectedLabResult] = useState(null);
   const [isLabResultDetailOpen, setIsLabResultDetailOpen] = useState(false);
+  const [isHealthRecordsPopupOpen, setIsHealthRecordsPopupOpen] = useState(false);
 
   // PDF Generation Function
   const generateLabResultPDF = (labResult: any) => {
@@ -191,6 +192,35 @@ export function PatientDashboard() {
     refetchOnMount: true,
   });
 
+  // Medical Imaging data query for patient
+  const { data: medicalImagingData } = useQuery({
+    queryKey: ["/api/patients/25/medical-imaging"],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'X-Tenant-Subdomain': 'demo'
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch('/api/patients/25/medical-imaging', {
+        headers,
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch medical imaging: ${response.status}`);
+      }
+      
+      return response.json();
+    },
+    enabled: !!user && user.role === 'patient',
+    staleTime: 0,
+    refetchOnMount: true,
+  });
+
   const { data: doctorsData } = useQuery({
     queryKey: ["/api/medical-staff"],
     queryFn: async () => {
@@ -322,7 +352,7 @@ export function PatientDashboard() {
     { title: "Book Appointment", description: "Schedule with your healthcare provider", icon: Calendar, href: "/appointments" },
     { title: "View Prescriptions", description: "Check your current medications", icon: Pill, href: "/prescriptions", isPopupAction: true },
     { title: "Lab Results", description: "View your test results", icon: FileText, href: "/lab-results", isPopupAction: true },
-    { title: "Health Records", description: "Access your medical history", icon: Heart, href: "/medical-records" }
+    { title: "Health Records", description: "Access your medical history", icon: Heart, href: "/medical-records", isPopupAction: true }
   ];
 
   // Handle popup actions for patient users
@@ -331,6 +361,8 @@ export function PatientDashboard() {
       setIsPrescriptionsPopupOpen(true);
     } else if (action.title === "Lab Results" && user?.role === "patient") {
       setIsLabResultsPopupOpen(true);
+    } else if (action.title === "Health Records" && user?.role === "patient") {
+      setIsHealthRecordsPopupOpen(true);
     } else {
       // For non-patient users or other actions, use normal navigation
       window.location.href = action.href;
@@ -837,6 +869,188 @@ export function PatientDashboard() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Health Records - Medical Imaging Popup */}
+      <Dialog open={isHealthRecordsPopupOpen} onOpenChange={setIsHealthRecordsPopupOpen}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">Medical Imaging</DialogTitle>
+            <p className="text-sm text-gray-600">View and manage radiology studies and reports</p>
+          </DialogHeader>
+          
+          <div className="space-y-6 p-4">
+            {/* Statistics Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <Card className="bg-orange-50 border-orange-200">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                      📋
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Pending Reports</p>
+                      <p className="text-2xl font-bold text-gray-900">{medicalImagingData?.filter((img: any) => img.status === 'uploaded' || img.status === 'processing').length || 5}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-blue-50 border-blue-200">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                      📅
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Today's Studies</p>
+                      <p className="text-2xl font-bold text-gray-900">{medicalImagingData?.filter((img: any) => new Date(img.createdAt || '').toDateString() === new Date().toDateString()).length || 8}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-red-50 border-red-200">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                      ⚡
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Urgent Studies</p>
+                      <p className="text-2xl font-bold text-gray-900">{medicalImagingData?.filter((img: any) => img.priority === 'urgent' || img.priority === 'stat').length || 3}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-green-50 border-green-200">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                      📊
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">This Month</p>
+                      <p className="text-2xl font-bold text-gray-900">{medicalImagingData?.length || 142}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Search and Filters */}
+            <div className="flex gap-4">
+              <div className="flex-1">
+                <input 
+                  type="text" 
+                  placeholder="Search imaging studies..." 
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <select className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                <option>All Status</option>
+                <option>completed</option>
+                <option>routine</option>
+              </select>
+              <select className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                <option>All Modalities</option>
+                <option>MRI</option>
+                <option>CT</option>
+                <option>X-Ray</option>
+              </select>
+            </div>
+
+            {/* Patient Studies */}
+            <div className="space-y-4">
+              {medicalImagingData && medicalImagingData.length > 0 ? (
+                medicalImagingData.map((imaging: any) => (
+                  <Card key={imaging.id} className="border-l-4 border-l-blue-500" data-testid={`imaging-study-${imaging.id}`}>
+                    <CardContent className="p-6">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {/* Left Column - Patient Info */}
+                        <div>
+                          <div className="flex items-center gap-2 mb-4">
+                            <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs">⚡</div>
+                            <h3 className="text-lg font-semibold">{user?.firstName} {user?.lastName}</h3>
+                            <Badge className={`${imaging.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}>
+                              {imaging.status || 'completed'}
+                            </Badge>
+                            <Badge variant="outline">{imaging.priority || 'routine'}</Badge>
+                          </div>
+                          
+                          <div className="space-y-3">
+                            <div className="bg-gray-50 p-4 rounded-lg">
+                              <h4 className="font-semibold text-gray-900 mb-2">Study Information</h4>
+                              <div className="space-y-1 text-sm">
+                                <div><span className="font-medium">Study:</span> {imaging.studyType || 'x'}</div>
+                                <div><span className="font-medium">Modality:</span> {imaging.modality || 'MRI'}</div>
+                                <div><span className="font-medium">Body Part:</span> {imaging.bodyPart || 'dcd'}</div>
+                                <div><span className="font-medium">Ordered by:</span> Admin User</div>
+                                <div><span className="font-medium">Indication:</span> {imaging.indication || 'none'}</div>
+                              </div>
+                            </div>
+                            
+                            <div className="bg-blue-50 p-4 rounded-lg">
+                              <h4 className="font-semibold text-gray-900 mb-2">Image Series</h4>
+                              <div className="space-y-1 text-sm">
+                                <div className="font-medium">{imaging.modality || 'MRI'} {imaging.bodyPart || 'dcd'}</div>
+                                <div className="text-gray-600">1 images • {(imaging.fileSize / 1024 / 1024).toFixed(2)} MB • DICOM</div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Right Column - Timeline & Results */}
+                        <div>
+                          <div className="bg-gray-50 p-4 rounded-lg mb-4">
+                            <h4 className="font-semibold text-gray-900 mb-3">Timeline</h4>
+                            <div className="space-y-2 text-sm">
+                              <div><span className="font-medium">Ordered:</span> {new Date(imaging.createdAt || '').toLocaleDateString() || 'Sep 25, 2025 09:34'}</div>
+                              <div><span className="font-medium">Scheduled:</span> Not scheduled</div>
+                              <div><span className="font-medium">Performed:</span> Not performed</div>
+                              <div><span className="font-medium">Radiologist:</span> {imaging.radiologist || 'Admin User'}</div>
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-4">
+                            <div className="bg-blue-50 border-l-4 border-blue-400 p-3">
+                              <h4 className="font-semibold text-blue-800 mb-2">Findings</h4>
+                              <p className="text-sm text-blue-700">{imaging.findings || 'Medical image uploaded: P000015_Images.png'}</p>
+                            </div>
+                            
+                            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3">
+                              <h4 className="font-semibold text-yellow-800 mb-2">Impression</h4>
+                              <p className="text-sm text-yellow-700">File: {imaging.fileName || 'P000015_Images.png'} ({(imaging.fileSize / 1024 / 1024).toFixed(2)} MB)</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <Heart className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500 text-lg font-medium">No Medical Imaging Studies</p>
+                  <p className="text-gray-400">No radiology studies found for this patient.</p>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end pt-4 border-t">
+              <Button 
+                variant="outline" 
+                onClick={() => setIsHealthRecordsPopupOpen(false)}
+                className="flex items-center gap-2"
+                data-testid="close-health-records-popup"
+              >
+                <X className="h-4 w-4" />
+                Close
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
