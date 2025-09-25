@@ -677,7 +677,7 @@ export function DoctorList({
         >
           <DialogHeader>
             <DialogTitle>
-              Schedule New Appointment
+              Book Appointment with {selectedBookingDoctor ? `${selectedBookingDoctor.firstName} ${selectedBookingDoctor.lastName}` : 'Doctor'}
             </DialogTitle>
           </DialogHeader>
           <div id="booking-dialog-description" className="sr-only">
@@ -687,65 +687,34 @@ export function DoctorList({
           <div className="grid grid-cols-2 gap-8">
             {/* Left Column */}
             <div className="space-y-6">
-              {/* Select Medical Specialty Category */}
+              {/* Medical Specialty Category Display */}
               <div>
-                <Label className="text-sm font-medium">Select Medical Specialty Category</Label>
-                <Select
-                  value={appointmentType}
-                  onValueChange={setAppointmentType}
-                >
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Select Specialty" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="General & Primary Care">General & Primary Care</SelectItem>
-                    <SelectItem value="Cardiology">Cardiology</SelectItem>
-                    <SelectItem value="Dermatology">Dermatology</SelectItem>
-                    <SelectItem value="Neurology">Neurology</SelectItem>
-                    <SelectItem value="Orthopedics">Orthopedics</SelectItem>
-                    <SelectItem value="Pediatrics">Pediatrics</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label className="text-sm font-medium mb-2 block">Medical Specialty Category</Label>
+                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-800">
+                  <div className="text-gray-900 dark:text-white font-medium">
+                    {selectedBookingDoctor?.medicalSpecialtyCategory || 'Not specified'}
+                  </div>
+                </div>
               </div>
 
-              {/* Select Sub-Specialty */}
+              {/* Sub-Specialty Display */}
               <div>
-                <Label className="text-sm font-medium">Select Sub-Specialty</Label>
-                <Select
-                  value=""
-                  onValueChange={() => {}}
-                >
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Select Sub-Specialty" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="general-practitioner">General Practitioner (GP) / Family Physician</SelectItem>
-                    <SelectItem value="internal-medicine">Internal Medicine</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label className="text-sm font-medium mb-2 block">Sub-Specialty</Label>
+                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-800">
+                  <div className="text-gray-900 dark:text-white font-medium">
+                    {selectedBookingDoctor?.subSpecialty || 'Not specified'}
+                  </div>
+                </div>
               </div>
 
-              {/* Select Doctor */}
+              {/* Doctor Display */}
               <div>
-                <Label className="text-sm font-medium">Select Doctor</Label>
-                <Select
-                  value={selectedBookingDoctor?.id.toString() || ""}
-                  onValueChange={(value) => {
-                    const doctor = availableStaff.find((d: Doctor) => d.id.toString() === value);
-                    if (doctor) setSelectedBookingDoctor(doctor);
-                  }}
-                >
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Select Doctor" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableStaff.map((doctor: Doctor) => (
-                      <SelectItem key={doctor.id} value={doctor.id.toString()}>
-                        Dr. {doctor.firstName} {doctor.lastName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label className="text-sm font-medium mb-2 block">Doctor</Label>
+                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-800">
+                  <div className="text-gray-900 dark:text-white font-medium">
+                    {selectedBookingDoctor ? `${selectedBookingDoctor.firstName} ${selectedBookingDoctor.lastName}` : 'Not selected'}
+                  </div>
+                </div>
               </div>
 
               {/* Patient Selection (hidden but needed for booking) */}
@@ -770,9 +739,9 @@ export function DoctorList({
                 </Select>
               </div>
 
-              {/* My Information */}
+              {/* Doctor Information */}
               <div>
-                <Label className="text-sm font-medium mb-2 block">My Information</Label>
+                <Label className="text-sm font-medium mb-2 block">Doctor Information</Label>
                 <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-blue-100 dark:bg-blue-800 rounded-full flex items-center justify-center">
@@ -780,16 +749,16 @@ export function DoctorList({
                     </div>
                     <div>
                       <div className="font-medium text-gray-900 dark:text-white">
-                        {patients?.find((p: any) => p.id.toString() === selectedPatient)?.firstName} {patients?.find((p: any) => p.id.toString() === selectedPatient)?.lastName}
+                        {selectedBookingDoctor ? `${selectedBookingDoctor.firstName} ${selectedBookingDoctor.lastName}` : 'Doctor not selected'}
                       </div>
                       <div className="text-sm text-gray-600 dark:text-gray-400">
-                        📧 {patients?.find((p: any) => p.id.toString() === selectedPatient)?.email}
+                        📧 {selectedBookingDoctor?.email || 'Not available'}
                       </div>
                       <div className="text-sm text-gray-600 dark:text-gray-400">
-                        📞 {patients?.find((p: any) => p.id.toString() === selectedPatient)?.phone}
+                        🏥 {selectedBookingDoctor?.department || 'Not specified'}
                       </div>
                       <div className="text-xs text-blue-600 dark:text-blue-400">
-                        Patient ID: P{String(patients?.find((p: any) => p.id.toString() === selectedPatient)?.id).padStart(6, '0')}
+                        Doctor ID: {selectedBookingDoctor ? String(selectedBookingDoctor.id).padStart(6, '0') : 'Not available'}
                       </div>
                     </div>
                   </div>
