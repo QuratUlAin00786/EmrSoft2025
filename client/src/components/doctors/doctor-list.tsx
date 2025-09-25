@@ -296,13 +296,15 @@ export function DoctorList({
       return;
     }
 
-    // Create the appointment datetime string directly without timezone conversion
+    // Create the appointment datetime string preserving the exact time slot selected
     const year = selectedDate.getFullYear();
     const month = String(selectedDate.getMonth() + 1).padStart(2, "0");
     const day = String(selectedDate.getDate()).padStart(2, "0");
     const [hours, minutes] = selectedTimeSlot.split(":").map(Number);
     const hourStr = String(hours).padStart(2, "0");
     const minuteStr = String(minutes).padStart(2, "0");
+    
+    // Send the exact time slot as local time without timezone indicator
     const scheduledAtString = `${year}-${month}-${day}T${hourStr}:${minuteStr}:00`;
 
     const appointmentData = {
