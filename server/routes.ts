@@ -2954,7 +2954,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: insuranceData.status || "active",
         coverageType: insuranceData.coverageType || "primary",
         eligibilityStatus: insuranceData.eligibilityStatus || "pending",
-        lastVerified: insuranceData.lastVerified ? new Date(insuranceData.lastVerified) : undefined,
+        lastVerified: insuranceData.lastVerified ? insuranceData.lastVerified : null,
         benefits: insuranceData.benefits || {
           deductible: 0,
           deductibleMet: 0,
@@ -4011,7 +4011,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const sseEvent: AiInsightSSEEvent = {
           type: 'ai_insight.status_updated',
           id: insight.id.toString(),
-          patientId: insight.patientId.toString(),
+          patientId: insight.patientId?.toString() || '',
           status: updateData.aiStatus,
           previousStatus: currentInsight.aiStatus || 'pending',
           updatedAt: new Date().toISOString(),
@@ -4120,11 +4120,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // POST /api/ai-insights - Create new insight
   app.post("/api/ai-insights", requireRole(["doctor", "nurse", "admin"]), async (req: TenantRequest, res) => {
     try {
-      // Create schema that excludes server-managed fields (organizationId, id, createdAt)
+      // Create schema that excludes server-managed fields (organizationId)
       const createInsightSchema = insertAiInsightSchema.omit({
-        organizationId: true,
-        id: true,
-        createdAt: true
+        organizationId: true
       }).extend({
         symptoms: z.string().optional(),
         history: z.string().optional()
@@ -4180,7 +4178,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return actions;
       };
 
-      const suggestedActions = generateSuggestedActions(insightData.type, insightData.severity, insightData.actionRequired || false);
+      const suggestedActions = generateSuggestedActions(insightData.type || '', insightData.severity || '', insightData.actionRequired || false);
       
       // Generate related conditions based on insight type and content
       const generateRelatedConditions = (type: string, title: string, description: string) => {
@@ -4225,7 +4223,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return conditions.slice(0, 4); // Limit to 4 conditions max
       };
 
-      const relatedConditions = generateRelatedConditions(insightData.type, insightData.title, insightData.description);
+      const relatedConditions = generateRelatedConditions(insightData.type || '', insightData.title || '', insightData.description || '');
       
       const metadata = {
         ...insightData.metadata,
@@ -9823,7 +9821,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .slice(0, 5)
           .map(apt => ({
             id: apt.id,
-            patientName: apt.patientName,
+            patientName: 'Patient Name', // TODO: Join with patient table
             time: apt.scheduledAt,
             type: apt.type,
             status: apt.status
@@ -9848,7 +9846,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         phone: patient.phone,
         dateOfBirth: patient.dateOfBirth,
         // gender: not available in schema,
-        lastVisit: patient.lastVisit,
+        // lastVisit: not available in current schema
         riskLevel: patient.riskLevel || 'low'
       }));
       
@@ -10134,7 +10132,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         id: doctor.id,
         name: `Dr. ${doctor.firstName} ${doctor.lastName}`,
         department: doctor.department || 'General Medicine',
-        specialization: doctor.specialization || 'General Practice',
+        specialization: doctor.medicalSpecialtyCategory || doctor.subSpecialty || 'General Practice',
         email: doctor.email,
         workingHours: doctor.workingHours || 'Monday-Friday, 09:00-17:00'
       }));
