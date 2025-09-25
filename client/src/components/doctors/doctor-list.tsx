@@ -667,7 +667,7 @@ export function DoctorList({
       {/* Booking Dialog */}
       <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
         <DialogContent
-          className="max-w-2xl"
+          className="max-w-6xl"
           aria-describedby="booking-dialog-description"
         >
           <DialogHeader>
@@ -681,34 +681,34 @@ export function DoctorList({
             patient, date, and time slot.
           </div>
 
-          <div className="space-y-6">
-            {/* Top row - Patient Selection */}
-            <div>
-              <Label className="text-sm font-medium">
-                Patient <span className="text-red-500">*</span>
-              </Label>
-              <Select
-                value={selectedPatient}
-                onValueChange={setSelectedPatient}
-              >
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Select patient..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {patients?.map((patient: any) => (
-                    <SelectItem
-                      key={patient.id}
-                      value={patient.id.toString()}
-                    >
-                      {patient.firstName} {patient.lastName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="space-y-4">
+            {/* First Row - Patient, Date, Time Slot */}
+            <div className="grid grid-cols-3 gap-4">
+              {/* Patient Selection */}
+              <div>
+                <Label className="text-sm font-medium">
+                  Patient <span className="text-red-500">*</span>
+                </Label>
+                <Select
+                  value={selectedPatient}
+                  onValueChange={setSelectedPatient}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select patient..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {patients?.map((patient: any) => (
+                      <SelectItem
+                        key={patient.id}
+                        value={patient.id.toString()}
+                      >
+                        {patient.firstName} {patient.lastName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-            {/* Date and Time Selection Row */}
-            <div className="grid grid-cols-2 gap-4">
               {/* Select Date */}
               <div>
                 <Label className="text-sm font-medium">
@@ -754,7 +754,7 @@ export function DoctorList({
                 <Label className="text-sm font-medium">
                   Select Time Slot <span className="text-red-500">*</span>
                 </Label>
-                <div className="grid grid-cols-2 gap-1 mt-1">
+                <div className="grid grid-cols-3 gap-1 mt-1 max-h-32 overflow-y-auto">
                   {generateTimeSlots().map((slot) => {
                     const isAvailable = selectedDate ? isTimeSlotAvailable(slot.value) : false;
                     const isSelected = selectedTimeSlot === slot.value;
@@ -767,7 +767,7 @@ export function DoctorList({
                         onClick={() => setSelectedTimeSlot(slot.value)}
                         disabled={!selectedDate || !isAvailable}
                         className={cn(
-                          "h-8 text-xs",
+                          "h-7 text-xs",
                           isSelected &&
                             "bg-blue-500 text-white hover:bg-blue-600",
                           isAvailable &&
@@ -785,8 +785,8 @@ export function DoctorList({
               </div>
             </div>
 
-            {/* Second row - Appointment Type and Duration */}
-            <div className="grid grid-cols-2 gap-4">
+            {/* Second Row - Appointment Type, Duration, Title */}
+            <div className="grid grid-cols-3 gap-4">
               {/* Appointment Type */}
               <div>
                 <Label className="text-sm font-medium">Appointment Type</Label>
@@ -824,42 +824,44 @@ export function DoctorList({
                   </SelectContent>
                 </Select>
               </div>
+
+              {/* Title */}
+              <div>
+                <Label className="text-sm font-medium">Title (optional)</Label>
+                <Input
+                  type="text"
+                  value={appointmentTitle}
+                  onChange={(e) => setAppointmentTitle(e.target.value)}
+                  placeholder="Enter appointment title"
+                  className="mt-1"
+                />
+              </div>
             </div>
 
+            {/* Third Row - Description and Location */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* Description */}
+              <div>
+                <Label className="text-sm font-medium">Description</Label>
+                <Textarea
+                  value={appointmentDescription}
+                  onChange={(e) => setAppointmentDescription(e.target.value)}
+                  placeholder="Enter appointment description or notes"
+                  className="mt-1 min-h-20"
+                />
+              </div>
 
-            {/* Title */}
-            <div>
-              <Label className="text-sm font-medium">Title (optional)</Label>
-              <Input
-                type="text"
-                value={appointmentTitle}
-                onChange={(e) => setAppointmentTitle(e.target.value)}
-                placeholder="Enter appointment title"
-                className="mt-1"
-              />
-            </div>
-
-            {/* Description */}
-            <div>
-              <Label className="text-sm font-medium">Description</Label>
-              <Textarea
-                value={appointmentDescription}
-                onChange={(e) => setAppointmentDescription(e.target.value)}
-                placeholder="Enter appointment description or notes"
-                className="mt-1 min-h-24"
-              />
-            </div>
-
-            {/* Location */}
-            <div>
-              <Label className="text-sm font-medium">Location</Label>
-              <Input
-                type="text"
-                value={appointmentLocation}
-                onChange={(e) => setAppointmentLocation(e.target.value)}
-                placeholder="Room or department location"
-                className="mt-1"
-              />
+              {/* Location */}
+              <div>
+                <Label className="text-sm font-medium">Location</Label>
+                <Input
+                  type="text"
+                  value={appointmentLocation}
+                  onChange={(e) => setAppointmentLocation(e.target.value)}
+                  placeholder="Room or department location"
+                  className="mt-1"
+                />
+              </div>
             </div>
 
             {/* Action Buttons */}
