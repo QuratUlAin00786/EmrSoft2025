@@ -1,9 +1,10 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
-import { Calendar, Heart, Pill, FileText, Clock, AlertCircle, MessageSquare, User, MapPin, Video } from "lucide-react";
+import { Calendar, Heart, Pill, FileText, Clock, AlertCircle, MessageSquare, User, MapPin, Video, X } from "lucide-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/use-auth";
 import { useState } from "react";
 import { format } from "date-fns";
@@ -19,6 +20,7 @@ const statusColors = {
 export function PatientDashboard() {
   const { user } = useAuth();
   const [isChatbotOpen, setIsChatbotOpen] = useState(false);
+  const [isPrescriptionsPopupOpen, setIsPrescriptionsPopupOpen] = useState(false);
   
   const { data: appointmentsData, isLoading: appointmentsLoading, error: appointmentsError } = useQuery({
     queryKey: ["/api/appointments"],
@@ -210,10 +212,20 @@ export function PatientDashboard() {
 
   const quickActions = [
     { title: "Book Appointment", description: "Schedule with your healthcare provider", icon: Calendar, href: "/appointments" },
-    { title: "View Prescriptions", description: "Check your current medications", icon: Pill, href: "/prescriptions" },
+    { title: "View Prescriptions", description: "Check your current medications", icon: Pill, href: "/prescriptions", isPopupAction: true },
     { title: "Lab Results", description: "View your test results", icon: FileText, href: "/lab-results" },
     { title: "Health Records", description: "Access your medical history", icon: Heart, href: "/medical-records" }
   ];
+
+  // Handle prescription popup for patient users
+  const handlePrescriptionAccess = (action: any) => {
+    if (action.title === "View Prescriptions" && user?.role === "patient") {
+      setIsPrescriptionsPopupOpen(true);
+    } else {
+      // For non-patient users or other actions, use normal navigation
+      window.location.href = action.href;
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -262,9 +274,19 @@ export function PatientDashboard() {
                 </div>
               </CardHeader>
               <CardContent className="pt-0">
-                <Link href={action.href}>
-                  <Button className="w-full" variant="outline">Access</Button>
-                </Link>
+                {action.isPopupAction && user?.role === "patient" ? (
+                  <Button 
+                    className="w-full" 
+                    variant="outline"
+                    onClick={() => handlePrescriptionAccess(action)}
+                  >
+                    Access
+                  </Button>
+                ) : (
+                  <Link href={action.href}>
+                    <Button className="w-full" variant="outline">Access</Button>
+                  </Link>
+                )}
               </CardContent>
             </Card>
           ))}
@@ -388,6 +410,106 @@ export function PatientDashboard() {
         isOpen={isChatbotOpen} 
         onClose={() => setIsChatbotOpen(false)} 
       />
+
+      {/* Prescriptions Popup */}
+      <Dialog open={isPrescriptionsPopupOpen} onOpenChange={setIsPrescriptionsPopupOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Pill className="h-5 w-5 text-green-600" />
+              Your Active Prescriptions
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {prescriptionsData && prescriptionsData.prescriptions && prescriptionsData.prescriptions.length > 0 ? (
+              prescriptionsData.prescriptions.map((prescription: any) => (
+                <Card key={prescription.id} className="border-l-4 border-l-green-500">
+                  <CardHeader className="pb-3">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <CardTitle className="text-lg font-semibold text-gray-900">
+                          {prescription.medicationName || 'Unknown Medication'}
+                        </CardTitle>
+                        <CardDescription className="text-sm text-gray-600">
+                          Prescription #{prescription.prescriptionNumber || prescription.id}
+                        </CardDescription>
+                      </div>
+                      <Badge 
+                        className={`${prescription.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}
+                      >
+                        {prescription.status || 'Active'}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div>
+                        <p className="text-sm font-medium text-gray-500">Dosage</p>
+                        <p className="text-sm text-gray-900">{prescription.dosage || 'Not specified'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-500">Frequency</p>
+                        <p className="text-sm text-gray-900">{prescription.frequency || 'Not specified'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-500">Duration</p>
+                        <p className="text-sm text-gray-900">{prescription.duration || 'Not specified'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-500">Prescribed Date</p>
+                        <p className="text-sm text-gray-900">
+                          {prescription.issuedDate ? new Date(prescription.issuedDate).toLocaleDateString() : 'N/A'}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {prescription.diagnosis && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-500">Diagnosis</p>
+                        <p className="text-sm text-gray-900">{prescription.diagnosis}</p>
+                      </div>
+                    )}
+                    
+                    {prescription.instructions && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-500">Instructions</p>
+                        <p className="text-sm text-gray-900">{prescription.instructions}</p>
+                      </div>
+                    )}
+
+                    {prescription.pharmacy && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-500">Pharmacy</p>
+                        <p className="text-sm text-gray-900">
+                          {prescription.pharmacy.name} - {prescription.pharmacy.phone}
+                        </p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <div className="text-center py-8">
+                <Pill className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500 text-lg font-medium">No Active Prescriptions</p>
+                <p className="text-gray-400 text-sm">You currently have no active prescriptions on file.</p>
+              </div>
+            )}
+          </div>
+          
+          <div className="flex justify-end pt-4 border-t">
+            <Button 
+              variant="outline" 
+              onClick={() => setIsPrescriptionsPopupOpen(false)}
+              className="flex items-center gap-2"
+            >
+              <X className="h-4 w-4" />
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
