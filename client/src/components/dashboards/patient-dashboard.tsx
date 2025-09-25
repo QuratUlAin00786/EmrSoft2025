@@ -172,92 +172,44 @@ export function PatientDashboard() {
 
       {/* Patient-specific content */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Next Appointment Card */}
-        {nextAppointment ? (
-          <Card className="border-blue-200 bg-blue-50">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg text-blue-800">
-                Next Appointment
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <Clock className="h-5 w-5 text-blue-600" />
-                    <span className="font-medium text-lg">
-                      {formatDate(nextAppointment.scheduledAt)} at{" "}
-                      {formatTime(nextAppointment.scheduledAt)}
-                    </span>
+        <Card>
+          <CardHeader>
+            <CardTitle>Upcoming Appointments</CardTitle>
+            <CardDescription>Your scheduled healthcare visits</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {patientAppointments.length > 0 ? (
+                patientAppointments.slice(0, 3).map((appointment: any, index: number) => (
+                  <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div>
+                      <p className="font-medium">{appointment.title || appointment.type || 'Appointment'}</p>
+                      <p className="text-sm text-neutral-600">
+                        {getDoctorSpecialtyData(appointment.providerId).name || 'Doctor'}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-medium">
+                        {formatDate(appointment.scheduledAt)}
+                      </p>
+                      <p className="text-xs text-neutral-500">
+                        {formatTime(appointment.scheduledAt)}
+                      </p>
+                    </div>
                   </div>
-                  {getDoctorSpecialtyData(nextAppointment.providerId).name && (
-                    <div className="flex items-center space-x-2">
-                      <User className="h-5 w-5 text-blue-600" />
-                      <span>
-                        {getDoctorSpecialtyData(nextAppointment.providerId).name}
-                      </span>
-                    </div>
-                  )}
-                  {getDoctorSpecialtyData(nextAppointment.providerId)
-                    .subSpecialty && (
-                    <div className="flex items-center space-x-2">
-                      <FileText className="h-5 w-5 text-blue-600" />
-                      <span>
-                        {
-                          getDoctorSpecialtyData(nextAppointment.providerId)
-                            .subSpecialty
-                        }
-                      </span>
-                    </div>
-                  )}
-                  <div className="flex items-center space-x-2">
-                    <FileText className="h-5 w-5 text-blue-600" />
-                    <span>{nextAppointment.title}</span>
-                  </div>
-                  {nextAppointment.location && (
-                    <div className="flex items-center space-x-2">
-                      <MapPin className="h-5 w-5 text-blue-600" />
-                      <span>{nextAppointment.location}</span>
-                    </div>
-                  )}
-                  {nextAppointment.isVirtual && (
-                    <div className="flex items-center space-x-2">
-                      <Video className="h-5 w-5 text-blue-600" />
-                      <span>Virtual Appointment</span>
-                    </div>
-                  )}
+                ))
+              ) : (
+                <div className="text-center py-4">
+                  <Calendar className="h-12 w-12 text-neutral-300 mx-auto mb-2" />
+                  <p className="text-neutral-500">No upcoming appointments</p>
+                  <Button className="mt-2" size="sm" asChild>
+                    <Link href="/appointments">Book Appointment</Link>
+                  </Button>
                 </div>
-                <Badge
-                  style={{
-                    backgroundColor:
-                      statusColors[
-                        nextAppointment.status as keyof typeof statusColors
-                      ],
-                  }}
-                  className="text-white text-sm"
-                >
-                  {nextAppointment.status.toUpperCase()}
-                </Badge>
-              </div>
-            </CardContent>
-          </Card>
-        ) : (
-          <Card>
-            <CardHeader>
-              <CardTitle>Upcoming Appointments</CardTitle>
-              <CardDescription>Your scheduled healthcare visits</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-4">
-                <Calendar className="h-12 w-12 text-neutral-300 mx-auto mb-2" />
-                <p className="text-neutral-500">No upcoming appointments</p>
-                <Button className="mt-2" size="sm" asChild>
-                  <Link href="/appointments">Book Appointment</Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>
