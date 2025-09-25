@@ -439,7 +439,14 @@ export function PatientDashboard() {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{card.value}</div>
+                {card.title === "Next Appointment" && nextAppointment ? (
+                  <div>
+                    <div className="text-2xl font-bold">{new Date(nextAppointment.scheduledAt).toLocaleDateString()}</div>
+                    <div className="text-sm text-gray-500 mt-1">{new Date(nextAppointment.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                  </div>
+                ) : (
+                  <div className="text-2xl font-bold">{card.value}</div>
+                )}
                 <p className="text-xs text-neutral-500">{card.description}</p>
               </CardContent>
             </Card>
