@@ -20,27 +20,15 @@ export function PatientDashboard() {
   const { user } = useAuth();
   const [isChatbotOpen, setIsChatbotOpen] = useState(false);
   
-  const { data: appointmentsData, isLoading: appointmentsLoading, error: appointmentsError, refetch: refetchAppointments } = useQuery({
+  const { data: appointmentsData, isLoading: appointmentsLoading, error: appointmentsError } = useQuery({
     queryKey: ["/api/appointments"],
-    enabled: true, // Always enabled for patient dashboard
-    staleTime: 0, // Always fetch fresh data
-    gcTime: 0, // Don't cache stale data (formerly cacheTime)
-    refetchOnWindowFocus: true, // Refetch when window gains focus
-    refetchOnMount: true, // Always refetch on mount
+    enabled: !!user && user.role === 'patient', // Only enabled for authenticated patient users
+    retry: 3,
+    retryDelay: 1000,
   });
 
   // Ensure we have an array for appointments data
   const safeAppointmentsData = Array.isArray(appointmentsData) ? appointmentsData : [];
-  
-  // Debug logging for appointments data
-  console.log("🚑 PATIENT DASHBOARD - APPOINTMENTS DEBUG:", {
-    userEmail: user?.email,
-    appointmentsLoading,
-    appointmentsDataType: typeof appointmentsData,
-    appointmentsLength: safeAppointmentsData.length,
-    firstAppointment: safeAppointmentsData[0] || 'no appointments',
-    allAppointments: safeAppointmentsData.slice(0, 3) // Show first 3
-  });
 
 
   const { data: prescriptionsData } = useQuery({
@@ -93,24 +81,7 @@ export function PatientDashboard() {
       const isForCurrentPatient = appointment.patientId === 25; // Shabana's patient ID
       const appointmentDate = new Date(appointment.scheduledAt);
       const isUpcoming = appointmentDate >= now; // Include today's appointments
-      
-      console.log("🔍 FILTERING APPOINTMENT:", {
-        appointmentId: appointment.id,
-        patientId: appointment.patientId,
-        scheduledAt: appointment.scheduledAt,
-        isForCurrentPatient,
-        isUpcoming,
-        appointmentDate: appointmentDate.toISOString(),
-        nowDate: now.toISOString()
-      });
-      
       return isForCurrentPatient && isUpcoming;
-    });
-
-    console.log("✅ FILTERED PATIENT APPOINTMENTS:", {
-      totalAppointments: safeAppointmentsData.length,
-      patientAppointments: patientAppointments.length,
-      appointments: patientAppointments
     });
 
     // Sort by date (earliest first)
