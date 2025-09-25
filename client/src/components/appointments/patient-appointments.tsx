@@ -680,6 +680,12 @@ export default function PatientAppointments({
                         <div className="flex items-center space-x-2">
                           <User className="h-4 w-4 text-gray-400" />
                           <span className="text-sm">
+                            {currentPatient ? `${currentPatient.firstName} ${currentPatient.lastName}` : 'Patient'}
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <User className="h-4 w-4 text-gray-400" />
+                          <span className="text-sm">
                             {
                               getDoctorSpecialtyData(appointment.providerId)
                                 .name
