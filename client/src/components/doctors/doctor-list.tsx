@@ -687,14 +687,77 @@ export function DoctorList({
           <div className="grid grid-cols-2 gap-8">
             {/* Left Column */}
             <div className="space-y-6">
-              {/* Doctor Display */}
-              <div>
-                <Label className="text-sm font-medium mb-2 block">Doctor</Label>
-                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-800">
-                  <div className="text-gray-900 dark:text-white font-medium">
-                    {selectedBookingDoctor ? `${selectedBookingDoctor.firstName} ${selectedBookingDoctor.lastName}` : 'Not selected'}
-                  </div>
+              {/* Appointment Type and Duration */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium">Appointment Type</Label>
+                  <Select
+                    value={appointmentType}
+                    onValueChange={setAppointmentType}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Select Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Consultation">Consultation</SelectItem>
+                      <SelectItem value="Follow-up">Follow-up</SelectItem>
+                      <SelectItem value="Check-up">Check-up</SelectItem>
+                      <SelectItem value="Emergency">Emergency</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
+                <div>
+                  <Label className="text-sm font-medium">Duration (minutes)</Label>
+                  <Select
+                    value={duration}
+                    onValueChange={setDuration}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Select Duration" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="15">15 minutes</SelectItem>
+                      <SelectItem value="30">30 minutes</SelectItem>
+                      <SelectItem value="45">45 minutes</SelectItem>
+                      <SelectItem value="60">60 minutes</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Title */}
+              <div>
+                <Label className="text-sm font-medium">Title (optional)</Label>
+                <Input
+                  type="text"
+                  placeholder="Enter appointment title"
+                  value={appointmentTitle}
+                  onChange={(e) => setAppointmentTitle(e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+
+              {/* Description */}
+              <div>
+                <Label className="text-sm font-medium">Description</Label>
+                <Textarea
+                  placeholder="Enter appointment description or notes"
+                  value={appointmentDescription}
+                  onChange={(e) => setAppointmentDescription(e.target.value)}
+                  className="mt-1 min-h-[100px]"
+                />
+              </div>
+
+              {/* Location */}
+              <div>
+                <Label className="text-sm font-medium">Location</Label>
+                <Input
+                  type="text"
+                  placeholder="Room or department location"
+                  value={appointmentLocation}
+                  onChange={(e) => setAppointmentLocation(e.target.value)}
+                  className="mt-1"
+                />
               </div>
 
               {/* Patient Selection (hidden but needed for booking) */}
