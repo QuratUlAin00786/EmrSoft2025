@@ -85,16 +85,16 @@ export default function PatientAppointments({
     },
   });
 
-  // Fetch medical staff for doctor specialty data
-  const { data: medicalStaffData, isLoading: medicalStaffLoading } = useQuery({
-    queryKey: ["/api/medical-staff"],
+  // Fetch doctors for doctor specialty data - medical staff has the specialty information
+  const { data: doctorsData, isLoading: doctorsLoading } = useQuery({
+    queryKey: ["/api/doctors"],
     staleTime: 60000,
     retry: false,
     enabled: !!user,
   });
 
   // Combined loading state
-  const isLoading = patientsLoading || appointmentsLoading || medicalStaffLoading;
+  const isLoading = patientsLoading || appointmentsLoading || doctorsLoading;
 
   // Find the patient record for the logged-in user
   const currentPatient = React.useMemo(() => {
@@ -183,10 +183,14 @@ export default function PatientAppointments({
   }, [appointmentsData, currentPatient]);
 
   const getDoctorSpecialtyData = (providerId: number) => {
-    const staffData = medicalStaffData as any;
-    if (!staffData?.staff || !Array.isArray(staffData.staff))
+    const doctorsApiData = doctorsData as any;
+    
+    if (!doctorsApiData?.doctors || !Array.isArray(doctorsApiData.doctors)) {
       return { name: "", category: "", subSpecialty: "" };
-    const provider = staffData.staff.find((u: any) => u.id === providerId);
+    }
+    
+    const provider = doctorsApiData.doctors.find((d: any) => d.id === providerId);
+    
     return provider
       ? {
           name: `${provider.firstName} ${provider.lastName}`,
@@ -692,6 +696,18 @@ export default function PatientAppointments({
                             }
                           </span>
                         </div>
+                        {getDoctorSpecialtyData(appointment.providerId)
+                          .category && (
+                          <div className="flex items-center space-x-2">
+                            <FileText className="h-4 w-4 text-gray-400" />
+                            <span className="text-sm">
+                              {
+                                getDoctorSpecialtyData(appointment.providerId)
+                                  .category
+                              }
+                            </span>
+                          </div>
+                        )}
                         {getDoctorSpecialtyData(appointment.providerId)
                           .subSpecialty && (
                           <div className="flex items-center space-x-2">
