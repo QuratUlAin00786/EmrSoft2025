@@ -22,6 +22,8 @@ export function PatientDashboard() {
   const [isChatbotOpen, setIsChatbotOpen] = useState(false);
   const [isPrescriptionsPopupOpen, setIsPrescriptionsPopupOpen] = useState(false);
   const [isLabResultsPopupOpen, setIsLabResultsPopupOpen] = useState(false);
+  const [selectedLabResult, setSelectedLabResult] = useState(null);
+  const [isLabResultDetailOpen, setIsLabResultDetailOpen] = useState(false);
   
   const { data: appointmentsData, isLoading: appointmentsLoading, error: appointmentsError } = useQuery({
     queryKey: ["/api/appointments"],
@@ -555,72 +557,62 @@ export function PatientDashboard() {
           <div className="space-y-4">
             {labResultsData && labResultsData.length > 0 ? (
               labResultsData.map((labResult: any) => (
-                <Card key={labResult.id} className="border-l-4 border-l-blue-500">
+                <Card key={labResult.id} className="border-l-4 border-l-blue-500" data-testid={`lab-result-card-${labResult.id}`}>
                   <CardHeader className="pb-3">
-                    <div className="flex justify-between items-start">
+                    <div className="flex justify-between items-start mb-2">
                       <div>
                         <CardTitle className="text-lg font-semibold text-gray-900">
-                          {labResult.testName || 'Lab Test'}
+                          {user?.firstName} {user?.lastName}
                         </CardTitle>
                         <CardDescription className="text-sm text-gray-600">
-                          Test Date: {labResult.testDate ? new Date(labResult.testDate).toLocaleDateString() : 'N/A'}
+                          Ordered: {labResult.testDate ? new Date(labResult.testDate).toLocaleDateString() : new Date().toLocaleDateString()} {labResult.testTime || '09:34'}
                         </CardDescription>
                       </div>
                       <Badge 
                         className={`${labResult.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}
+                        data-testid={`lab-result-status-${labResult.id}`}
                       >
-                        {labResult.status || 'Pending'}
+                        {labResult.status || 'pending'}
                       </Badge>
+                    </div>
+                    <div className="space-y-2">
+                      <div>
+                        <p className="text-sm font-medium text-gray-700">Test: <span className="font-normal">{labResult.testType || labResult.type || 'Vitamin D, Thyroid Function Tests'}</span></p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-700">Test ID: <span className="font-normal">{labResult.testId || labResult.id || 'LAB175877489700K5Q18'}</span></p>
+                      </div>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                      <div>
-                        <p className="text-sm font-medium text-gray-500">Test Type</p>
-                        <p className="text-sm text-gray-900">{labResult.type || 'Not specified'}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-500">Lab</p>
-                        <p className="text-sm text-gray-900">{labResult.labName || 'Not specified'}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-500">Doctor</p>
-                        <p className="text-sm text-gray-900">{labResult.doctorName || 'Not specified'}</p>
-                      </div>
+                    <div>
+                      <h4 className="text-sm font-semibold text-gray-800 mb-2">Notes</h4>
+                      <p className="text-sm text-gray-600">{labResult.notes || 'none'}</p>
                     </div>
                     
-                    {labResult.results && labResult.results.length > 0 && (
-                      <div>
-                        <p className="text-sm font-medium text-gray-500 mb-2">Results</p>
-                        <div className="bg-gray-50 p-3 rounded-md space-y-2">
-                          {labResult.results.map((result: any, index: number) => (
-                            <div key={index} className="flex justify-between items-center">
-                              <span className="text-sm font-medium">{result.name || `Test ${index + 1}`}</span>
-                              <div className="text-right">
-                                <span className="text-sm text-gray-900">{result.value} {result.unit || ''}</span>
-                                {result.reference && (
-                                  <p className="text-xs text-gray-500">Ref: {result.reference}</p>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    
-                    {labResult.notes && (
-                      <div>
-                        <p className="text-sm font-medium text-gray-500">Notes</p>
-                        <p className="text-sm text-gray-900">{labResult.notes}</p>
-                      </div>
-                    )}
-
-                    {labResult.criticalValues && (
-                      <div className="bg-red-50 border border-red-200 p-3 rounded-md">
-                        <p className="text-sm font-medium text-red-800">⚠️ Critical Values Detected</p>
-                        <p className="text-sm text-red-700">Please contact your healthcare provider immediately.</p>
-                      </div>
-                    )}
+                    <div className="flex gap-2 pt-3">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="flex items-center gap-2"
+                        onClick={() => {
+                          setSelectedLabResult(labResult);
+                          setIsLabResultDetailOpen(true);
+                        }}
+                        data-testid={`view-lab-result-${labResult.id}`}
+                      >
+                        <FileText className="h-4 w-4" />
+                        View Prescription
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="flex items-center gap-2"
+                        data-testid={`download-lab-result-${labResult.id}`}
+                      >
+                        📄 Download PDF
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               ))
@@ -643,6 +635,129 @@ export function PatientDashboard() {
               Close
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Detailed Lab Result Prescription View */}
+      <Dialog open={isLabResultDetailOpen} onOpenChange={setIsLabResultDetailOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-center text-xl font-bold">Lab Result Prescription</DialogTitle>
+          </DialogHeader>
+          
+          {selectedLabResult && (
+            <div className="space-y-6 p-4">
+              {/* Header Section */}
+              <div className="text-center space-y-2">
+                <div className="flex justify-center items-center gap-3 mb-4">
+                  <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
+                    <span className="text-white font-bold text-xs">AI</span>
+                  </div>
+                  <div>
+                    <h1 className="text-2xl font-bold text-blue-600">CURA EMR SYSTEM</h1>
+                    <p className="text-sm text-gray-600">Laboratory Test Prescription (RESIDENT PHYSICIAN M.D)</p>
+                  </div>
+                </div>
+                <div className="text-sm text-gray-600">
+                  <p>Halo Health Clinic</p>
+                  <p>Unit 2 Drayton Court, Solihull</p>
+                  <p>B90 4NG, UK</p>
+                  <p>+44(0)121 827 5531</p>
+                </div>
+              </div>
+
+              {/* Information Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Physician Information */}
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Physician Information</h3>
+                  <div className="space-y-2 text-sm">
+                    <div>
+                      <span className="font-medium">Name:</span> Dr. Dr. John Smith
+                    </div>
+                    <div>
+                      <span className="font-medium">Main Specialization:</span> General & Primary Care
+                    </div>
+                    <div>
+                      <span className="font-medium">Sub-Specialization:</span> General Practitioner (GP) / Family Physician
+                    </div>
+                    <div>
+                      <span className="font-medium">Priority:</span> routine
+                    </div>
+                  </div>
+                </div>
+
+                {/* Patient Information */}
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Patient Information</h3>
+                  <div className="space-y-2 text-sm">
+                    <div>
+                      <span className="font-medium">Name:</span> {user?.firstName} {user?.lastName}
+                    </div>
+                    <div>
+                      <span className="font-medium">Patient ID:</span> 25
+                    </div>
+                    <div>
+                      <span className="font-medium">Date:</span> {selectedLabResult.testDate ? new Date(selectedLabResult.testDate).toLocaleDateString() : 'Sep 25, 2025'}
+                    </div>
+                    <div>
+                      <span className="font-medium">Time:</span> {selectedLabResult.testTime || '13:43'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Laboratory Test Prescription Section */}
+              <div className="border-t pt-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">℞ Laboratory Test Prescription</h3>
+                
+                <div className="bg-gray-50 p-4 rounded-lg space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm font-medium text-gray-700">Test ID:</p>
+                      <p className="text-sm text-gray-900">{selectedLabResult.testId || selectedLabResult.id || 'LAB175877489700K5Q18'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-700">Test Type:</p>
+                      <p className="text-sm text-blue-600 font-medium">{selectedLabResult.testType || selectedLabResult.type || 'Vitamin D, Thyroid Function Tests'}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm font-medium text-gray-700">Ordered Date:</p>
+                      <p className="text-sm text-gray-900">{selectedLabResult.testDate ? new Date(selectedLabResult.testDate).toLocaleDateString() : 'Sep 25, 2025'} {selectedLabResult.testTime || '09:34'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-700">Status:</p>
+                      <Badge className={`${selectedLabResult.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                        {selectedLabResult.status || 'PENDING'}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-sm font-medium text-gray-700 mb-2">Clinical Notes:</p>
+                    <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3">
+                      <p className="text-sm text-gray-900">{selectedLabResult.notes || 'none'}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-4 border-t">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setIsLabResultDetailOpen(false)}
+                  className="flex items-center gap-2"
+                  data-testid="close-lab-result-detail"
+                >
+                  <X className="h-4 w-4" />
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
