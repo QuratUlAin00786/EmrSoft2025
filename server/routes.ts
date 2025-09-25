@@ -10205,8 +10205,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/mobile/patient/lab-results", authMiddleware, requireRole(["patient"]), async (req: TenantRequest, res) => {
     try {
-      const patientId = req.user!.id;
-      const labResults = await storage.getLabResultsByPatient(patientId, req.tenant!.id);
+      console.log("🏥 MOBILE LAB RESULTS DEBUG: Starting request for user:", req.user?.email);
+      
+      // Find the patient record by the authenticated user's email
+      const patients = await storage.getPatientsByOrganization(req.tenant!.id, 100);
+      console.log("🏥 MOBILE LAB RESULTS DEBUG: Found patients count:", patients.length);
+      
+      const patient = patients.find(p => p.email === req.user!.email);
+      console.log("🏥 MOBILE LAB RESULTS DEBUG: Found matching patient:", patient ? { id: patient.id, email: patient.email } : null);
+      
+      if (!patient) {
+        console.log("🏥 MOBILE LAB RESULTS DEBUG: No patient found for email:", req.user!.email);
+        return res.status(404).json({ error: "Patient record not found for authenticated user" });
+      }
+      
+      console.log("🏥 MOBILE LAB RESULTS DEBUG: Getting lab results for patient ID:", patient.id);
+      const labResults = await storage.getLabResultsByPatient(patient.id, req.tenant!.id);
+      console.log("🏥 MOBILE LAB RESULTS DEBUG: Found lab results count:", labResults.length);
+      
       res.json(labResults);
     } catch (error) {
       console.error("Error fetching patient lab results:", error);
