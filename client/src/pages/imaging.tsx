@@ -1738,18 +1738,21 @@ export default function ImagingPage() {
                             <Badge className={getStatusColor(study.status)}>
                               {study.status}
                             </Badge>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                setSelectedStudyId(study.id);
-                                handleFieldEdit("status");
-                              }}
-                              className="h-6 w-6 p-0 hover:bg-gray-100 dark:hover:bg-slate-600"
-                              data-testid="button-edit-status-header"
-                            >
-                              <Edit className="h-3 w-3 text-gray-400" />
-                            </Button>
+                            {/* Hide Status Edit icon for patient role */}
+                            {user?.role !== 'patient' && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedStudyId(study.id);
+                                  handleFieldEdit("status");
+                                }}
+                                className="h-6 w-6 p-0 hover:bg-gray-100 dark:hover:bg-slate-600"
+                                data-testid="button-edit-status-header"
+                              >
+                                <Edit className="h-3 w-3 text-gray-400" />
+                              </Button>
+                            )}
                           </div>
                         )}
                         {/* Priority Badge - Editable */}
@@ -1794,18 +1797,21 @@ export default function ImagingPage() {
                             <Badge className={getPriorityColor(study.priority)}>
                               {study.priority}
                             </Badge>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                setSelectedStudyId(study.id);
-                                handleFieldEdit("priority");
-                              }}
-                              className="h-6 w-6 p-0 hover:bg-gray-100 dark:hover:bg-slate-600"
-                              data-testid="button-edit-priority-header"
-                            >
-                              <Edit className="h-3 w-3 text-gray-400" />
-                            </Button>
+                            {/* Hide Priority Edit icon for patient role */}
+                            {user?.role !== 'patient' && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedStudyId(study.id);
+                                  handleFieldEdit("priority");
+                                }}
+                                className="h-6 w-6 p-0 hover:bg-gray-100 dark:hover:bg-slate-600"
+                                data-testid="button-edit-priority-header"
+                              >
+                                <Edit className="h-3 w-3 text-gray-400" />
+                              </Button>
+                            )}
                           </div>
                         )}
                       </div>
@@ -1937,18 +1943,21 @@ export default function ImagingPage() {
                                         )
                                       : "Not scheduled"}
                                   </span>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => {
-                                      setSelectedStudyId(study.id);
-                                      handleFieldEdit("scheduledAt");
-                                    }}
-                                    className="h-6 w-6 p-0"
-                                    data-testid="button-edit-scheduled-date"
-                                  >
-                                    <Edit className="h-3 w-3 text-gray-400" />
-                                  </Button>
+                                  {/* Hide Scheduled Date Edit icon for patient role */}
+                                  {user?.role !== 'patient' && (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => {
+                                        setSelectedStudyId(study.id);
+                                        handleFieldEdit("scheduledAt");
+                                      }}
+                                      className="h-6 w-6 p-0"
+                                      data-testid="button-edit-scheduled-date"
+                                    >
+                                      <Edit className="h-3 w-3 text-gray-400" />
+                                    </Button>
+                                  )}
                                 </div>
                               )}
                             </div>
@@ -2019,18 +2028,21 @@ export default function ImagingPage() {
                                         )
                                       : "Not performed"}
                                   </span>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => {
-                                      setSelectedStudyId(study.id);
-                                      handleFieldEdit("performedAt");
-                                    }}
-                                    className="h-6 w-6 p-0"
-                                    data-testid="button-edit-performed-date"
-                                  >
-                                    <Edit className="h-3 w-3 text-gray-400" />
-                                  </Button>
+                                  {/* Hide inline Edit icon for patient role */}
+                                  {user?.role !== 'patient' && (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => {
+                                        setSelectedStudyId(study.id);
+                                        handleFieldEdit("performedAt");
+                                      }}
+                                      className="h-6 w-6 p-0"
+                                      data-testid="button-edit-performed-date"
+                                    >
+                                      <Edit className="h-3 w-3 text-gray-400" />
+                                    </Button>
+                                  )}
                                 </div>
                               )}
                             </div>
@@ -2103,13 +2115,16 @@ export default function ImagingPage() {
                     </div>
 
                     <div className="flex items-center gap-2 justify-center">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleViewStudy(study)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
+                      {/* Hide Edit icon for patient role */}
+                      {user?.role !== 'patient' && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleViewStudy(study)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      )}
 
                       {/* PDF Report Download and View Icons */}
                       {study.reportFileName && (
@@ -2251,28 +2266,39 @@ export default function ImagingPage() {
                         </>
                       )}
 
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleShareStudy(study)}
-                      >
-                        <Share2 className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleGenerateReport(study.id)}
-                      >
-                        <FileText className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDeleteStudy(study.id)}
-                        className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      {/* Hide Share icon for patient role */}
+                      {user?.role !== 'patient' && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleShareStudy(study)}
+                        >
+                          <Share2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                      
+                      {/* Hide File (Generate Report) icon for patient role */}
+                      {user?.role !== 'patient' && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleGenerateReport(study.id)}
+                        >
+                          <FileText className="h-4 w-4" />
+                        </Button>
+                      )}
+                      
+                      {/* Hide Delete icon for patient role */}
+                      {user?.role !== 'patient' && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDeleteStudy(study.id)}
+                          className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </CardContent>
@@ -3119,15 +3145,18 @@ export default function ImagingPage() {
                           <Eye className="h-4 w-4 mr-2" />
                           View Images
                         </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEditImage(selectedStudy.id)}
-                          data-testid="button-edit-image"
-                        >
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit
-                        </Button>
+                        {/* Hide Edit Image button for patient role */}
+                        {user?.role !== 'patient' && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEditImage(selectedStudy.id)}
+                            data-testid="button-edit-image"
+                          >
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit
+                          </Button>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -3173,16 +3202,19 @@ export default function ImagingPage() {
                   Close
                 </Button>
                 <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setShowViewDialog(false);
-                      setShowReportDialog(true);
-                    }}
-                  >
-                    <FileText className="h-4 w-4 mr-2" />
-                    Generate Report
-                  </Button>
+                  {/* Hide Generate Report button for patient role */}
+                  {user?.role !== 'patient' && (
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setShowViewDialog(false);
+                        setShowReportDialog(true);
+                      }}
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
+                      Generate Report
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>
