@@ -372,6 +372,69 @@ export default function PatientAppointments({
         )[0]
       : null;
 
+  // Upcoming Appointments function with full functionality for dashboard
+  const getUpcomingAppointmentsDetails = () => {
+    const now = new Date();
+    
+    // Filter and sort upcoming appointments
+    const sortedUpcomingAppointments = appointments
+      .filter((appointment: any) => {
+        const appointmentDate = new Date(appointment.scheduledAt);
+        return appointmentDate > now || isToday(appointmentDate);
+      })
+      .sort((a: any, b: any) => {
+        return new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime();
+      });
+
+    // Enhanced appointment details for dashboard display
+    const enhancedAppointments = sortedUpcomingAppointments.map((appointment: any) => {
+      const doctorData = getDoctorSpecialtyData(appointment.providerId);
+      
+      return {
+        id: appointment.id,
+        title: appointment.title || "Medical Consultation",
+        doctorName: doctorData.name,
+        doctorCategory: doctorData.category,
+        doctorSubSpecialty: doctorData.subSpecialty,
+        scheduledDate: formatDate(appointment.scheduledAt),
+        scheduledTime: formatTime(appointment.scheduledAt),
+        rawDateTime: appointment.scheduledAt,
+        status: appointment.status,
+        statusColor: statusColors[appointment.status as keyof typeof statusColors] || "#4A7DFF",
+        location: appointment.location || "",
+        isVirtual: appointment.isVirtual || false,
+        patientId: appointment.patientId,
+        providerId: appointment.providerId,
+        notes: appointment.notes || "",
+        type: appointment.type || "consultation"
+      };
+    });
+
+    return {
+      appointments: enhancedAppointments,
+      count: enhancedAppointments.length,
+      nextAppointment: enhancedAppointments[0] || null,
+      hasUpcomingAppointments: enhancedAppointments.length > 0,
+      remainingAppointments: enhancedAppointments.slice(1),
+      upcomingInNext7Days: enhancedAppointments.filter((apt: any) => {
+        const aptDate = new Date(apt.rawDateTime);
+        const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+        return aptDate <= weekFromNow;
+      }),
+      summary: {
+        totalUpcoming: enhancedAppointments.length,
+        nextInDays: enhancedAppointments.length > 0 
+          ? Math.ceil((new Date(enhancedAppointments[0].rawDateTime).getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+          : null,
+        doctorNames: [...new Set(enhancedAppointments.map((apt: any) => apt.doctorName).filter(Boolean))],
+        appointmentTypes: [...new Set(enhancedAppointments.map((apt: any) => apt.type))]
+      }
+    };
+  };
+
+  // Get detailed upcoming appointments data
+  const upcomingAppointmentsDetails = getUpcomingAppointmentsDetails();
+
   // Show loading state when all data is loading
   if (isLoading) {
     return (
