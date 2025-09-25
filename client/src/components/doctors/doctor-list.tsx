@@ -334,7 +334,12 @@ export function DoctorList({
 
   const openBookingDialog = (doctor: Doctor) => {
     setSelectedBookingDoctor(doctor);
-    setSelectedPatient("");
+    // Auto-select the first patient if available
+    if (patients && patients.length > 0) {
+      setSelectedPatient(patients[0].id.toString());
+    } else {
+      setSelectedPatient("");
+    }
     setSelectedDate(undefined);
     setSelectedTimeSlot("");
     setAppointmentType("Consultation");
@@ -667,33 +672,89 @@ export function DoctorList({
       {/* Booking Dialog */}
       <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
         <DialogContent
-          className="max-w-6xl"
+          className="max-w-6xl max-h-[90vh] overflow-y-auto"
           aria-describedby="booking-dialog-description"
         >
           <DialogHeader>
             <DialogTitle>
-              Book Appointment with {selectedBookingDoctor?.firstName}{" "}
-              {selectedBookingDoctor?.lastName}
+              Schedule New Appointment
             </DialogTitle>
           </DialogHeader>
           <div id="booking-dialog-description" className="sr-only">
-            Book a new appointment with the selected doctor by choosing a
-            patient, date, and time slot.
+            Schedule a new appointment by selecting specialty, doctor, date, and time slot.
           </div>
 
-          <div className="space-y-4">
-            {/* First Row - Patient, Date, Time Slot */}
-            <div className="grid grid-cols-3 gap-4">
-              {/* Patient Selection */}
+          <div className="grid grid-cols-2 gap-8">
+            {/* Left Column */}
+            <div className="space-y-6">
+              {/* Select Medical Specialty Category */}
               <div>
-                <Label className="text-sm font-medium">
-                  Patient <span className="text-red-500">*</span>
-                </Label>
+                <Label className="text-sm font-medium">Select Medical Specialty Category</Label>
+                <Select
+                  value={appointmentType}
+                  onValueChange={setAppointmentType}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select Specialty" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="General & Primary Care">General & Primary Care</SelectItem>
+                    <SelectItem value="Cardiology">Cardiology</SelectItem>
+                    <SelectItem value="Dermatology">Dermatology</SelectItem>
+                    <SelectItem value="Neurology">Neurology</SelectItem>
+                    <SelectItem value="Orthopedics">Orthopedics</SelectItem>
+                    <SelectItem value="Pediatrics">Pediatrics</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Select Sub-Specialty */}
+              <div>
+                <Label className="text-sm font-medium">Select Sub-Specialty</Label>
+                <Select
+                  value=""
+                  onValueChange={() => {}}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select Sub-Specialty" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="general-practitioner">General Practitioner (GP) / Family Physician</SelectItem>
+                    <SelectItem value="internal-medicine">Internal Medicine</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Select Doctor */}
+              <div>
+                <Label className="text-sm font-medium">Select Doctor</Label>
+                <Select
+                  value={selectedBookingDoctor?.id.toString() || ""}
+                  onValueChange={(value) => {
+                    const doctor = availableStaff.find((d: Doctor) => d.id.toString() === value);
+                    if (doctor) setSelectedBookingDoctor(doctor);
+                  }}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select Doctor" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableStaff.map((doctor: Doctor) => (
+                      <SelectItem key={doctor.id} value={doctor.id.toString()}>
+                        Dr. {doctor.firstName} {doctor.lastName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Patient Selection (hidden but needed for booking) */}
+              <div className="hidden">
                 <Select
                   value={selectedPatient}
                   onValueChange={setSelectedPatient}
                 >
-                  <SelectTrigger className="mt-1">
+                  <SelectTrigger>
                     <SelectValue placeholder="Select patient..." />
                   </SelectTrigger>
                   <SelectContent>
@@ -709,181 +770,196 @@ export function DoctorList({
                 </Select>
               </div>
 
-              {/* Select Date */}
+              {/* My Information */}
               <div>
-                <Label className="text-sm font-medium">
-                  Select Date <span className="text-red-500">*</span>
-                </Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <div
-                      className={cn(
-                        "flex h-10 w-full items-center justify-start rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background cursor-pointer hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-1",
-                        !selectedDate && "text-muted-foreground",
-                      )}
-                      tabIndex={0}
-                      role="button"
-                      aria-haspopup="dialog"
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {selectedDate ? (
-                        format(selectedDate, "PPP")
-                      ) : (
-                        <span>Pick a date</span>
-                      )}
+                <Label className="text-sm font-medium mb-2 block">My Information</Label>
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-blue-100 dark:bg-blue-800 rounded-full flex items-center justify-center">
+                      <User className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                     </div>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={selectedDate}
-                      onSelect={(date: Date | undefined) =>
-                        setSelectedDate(date)
-                      }
-                      disabled={(date: Date) =>
-                        date < new Date() || date < new Date("1900-01-01")
-                      }
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
+                    <div>
+                      <div className="font-medium text-gray-900 dark:text-white">
+                        {patients?.find((p: any) => p.id.toString() === selectedPatient)?.firstName} {patients?.find((p: any) => p.id.toString() === selectedPatient)?.lastName}
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        📧 {patients?.find((p: any) => p.id.toString() === selectedPatient)?.email}
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        📞 {patients?.find((p: any) => p.id.toString() === selectedPatient)?.phone}
+                      </div>
+                      <div className="text-xs text-blue-600 dark:text-blue-400">
+                        Patient ID: P{String(patients?.find((p: any) => p.id.toString() === selectedPatient)?.id).padStart(6, '0')}
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              {/* Select Time Slot */}
+              {/* Patient Information */}
               <div>
-                <Label className="text-sm font-medium">
-                  Select Time Slot <span className="text-red-500">*</span>
-                </Label>
-                <div className="grid grid-cols-3 gap-1 mt-1 max-h-32 overflow-y-auto">
-                  {generateTimeSlots().map((slot) => {
-                    const isAvailable = selectedDate ? isTimeSlotAvailable(slot.value) : false;
-                    const isSelected = selectedTimeSlot === slot.value;
-
-                    return (
-                      <Button
-                        key={slot.value}
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setSelectedTimeSlot(slot.value)}
-                        disabled={!selectedDate || !isAvailable}
-                        className={cn(
-                          "h-7 text-xs",
-                          isSelected &&
-                            "bg-blue-500 text-white hover:bg-blue-600",
-                          isAvailable &&
-                            !isSelected &&
-                            "bg-green-100 text-green-800 hover:bg-green-200 border-green-300",
-                          (!isAvailable || !selectedDate) &&
-                            "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed",
-                        )}
-                      >
-                        {slot.display}
-                      </Button>
-                    );
-                  })}
+                <Label className="text-sm font-medium mb-2 block">Patient Information</Label>
+                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-medium">
+                      {patients?.find((p: any) => p.id.toString() === selectedPatient)?.firstName?.charAt(0)}{patients?.find((p: any) => p.id.toString() === selectedPatient)?.lastName?.charAt(0)}
+                    </div>
+                    <div>
+                      <div className="font-medium text-gray-900 dark:text-white">
+                        {patients?.find((p: any) => p.id.toString() === selectedPatient)?.firstName} {patients?.find((p: any) => p.id.toString() === selectedPatient)?.lastName}
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        OP{String(patients?.find((p: any) => p.id.toString() === selectedPatient)?.id).padStart(6, '0')}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                    <div className="flex items-center gap-2">
+                      <span>📞</span>
+                      <span>{patients?.find((p: any) => p.id.toString() === selectedPatient)?.phone}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span>📧</span>
+                      <span>{patients?.find((p: any) => p.id.toString() === selectedPatient)?.email}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span>🏥</span>
+                      <span>NHS: {patients?.find((p: any) => p.id.toString() === selectedPatient)?.nhsNumber}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span>📍</span>
+                      <span>{patients?.find((p: any) => p.id.toString() === selectedPatient)?.address?.city}, {patients?.find((p: any) => p.id.toString() === selectedPatient)?.address?.country}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Second Row - Appointment Type, Duration, Title */}
-            <div className="grid grid-cols-3 gap-4">
-              {/* Appointment Type */}
+            {/* Right Column */}
+            <div className="space-y-6">
+              {/* Select Date */}
               <div>
-                <Label className="text-sm font-medium">Appointment Type</Label>
-                <Select
-                  value={appointmentType}
-                  onValueChange={setAppointmentType}
-                >
-                  <SelectTrigger className="mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Consultation">Consultation</SelectItem>
-                    <SelectItem value="Follow-up">Follow-up</SelectItem>
-                    <SelectItem value="Emergency">Emergency</SelectItem>
-                    <SelectItem value="Check-up">Check-up</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label className="text-sm font-medium mb-2 block">Select Date</Label>
+                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={(date: Date | undefined) => setSelectedDate(date)}
+                    disabled={(date: Date) =>
+                      date < new Date() || date < new Date("1900-01-01")
+                    }
+                    className="w-full"
+                  />
+                </div>
               </div>
 
-              {/* Duration */}
+              {/* Select Time Slot */}
               <div>
-                <Label className="text-sm font-medium">
-                  Duration (minutes)
-                </Label>
-                <Select value={duration} onValueChange={setDuration}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="15">15 minutes</SelectItem>
-                    <SelectItem value="30">30 minutes</SelectItem>
-                    <SelectItem value="45">45 minutes</SelectItem>
-                    <SelectItem value="60">60 minutes</SelectItem>
-                    <SelectItem value="90">90 minutes</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                <Label className="text-sm font-medium mb-2 block">Select Time Slot</Label>
+                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 min-h-[120px] flex items-center justify-center">
+                  {!selectedBookingDoctor || !selectedDate ? (
+                    <p className="text-gray-500 text-center">
+                      Please select a doctor and date to view available time slots.
+                    </p>
+                  ) : (
+                    <div className="grid grid-cols-4 gap-2 w-full">
+                      {generateTimeSlots().map((slot) => {
+                        const isAvailable = isTimeSlotAvailable(slot.value);
+                        const isSelected = selectedTimeSlot === slot.value;
 
-              {/* Title */}
-              <div>
-                <Label className="text-sm font-medium">Title (optional)</Label>
-                <Input
-                  type="text"
-                  value={appointmentTitle}
-                  onChange={(e) => setAppointmentTitle(e.target.value)}
-                  placeholder="Enter appointment title"
-                  className="mt-1"
-                />
-              </div>
-            </div>
-
-            {/* Third Row - Description and Location */}
-            <div className="grid grid-cols-2 gap-4">
-              {/* Description */}
-              <div>
-                <Label className="text-sm font-medium">Description</Label>
-                <Textarea
-                  value={appointmentDescription}
-                  onChange={(e) => setAppointmentDescription(e.target.value)}
-                  placeholder="Enter appointment description or notes"
-                  className="mt-1 min-h-20"
-                />
-              </div>
-
-              {/* Location */}
-              <div>
-                <Label className="text-sm font-medium">Location</Label>
-                <Input
-                  type="text"
-                  value={appointmentLocation}
-                  onChange={(e) => setAppointmentLocation(e.target.value)}
-                  placeholder="Room or department location"
-                  className="mt-1"
-                />
+                        return (
+                          <Button
+                            key={slot.value}
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setSelectedTimeSlot(slot.value)}
+                            disabled={!isAvailable}
+                            className={cn(
+                              "h-8 text-xs",
+                              isSelected &&
+                                "bg-blue-500 text-white hover:bg-blue-600",
+                              isAvailable &&
+                                !isSelected &&
+                                "bg-green-100 text-green-800 hover:bg-green-200 border-green-300",
+                              !isAvailable &&
+                                "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed",
+                            )}
+                          >
+                            {slot.display}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
+          </div>
 
-            {/* Action Buttons */}
-            <div className="flex justify-end gap-3 pt-4">
-              <Button variant="outline" onClick={() => setIsBookingOpen(false)}>
-                Cancel
-              </Button>
-              <Button
-                disabled={
-                  !selectedPatient ||
-                  !selectedDate ||
-                  !selectedTimeSlot ||
-                  bookAppointmentMutation.isPending
-                }
-                onClick={handleBookAppointment}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                {bookAppointmentMutation.isPending
-                  ? "Booking..."
-                  : "Book Appointment"}
-              </Button>
+          {/* Booking Summary */}
+          <div className="mt-8 border-t border-gray-200 dark:border-gray-700 pt-6">
+            <h3 className="text-lg font-medium mb-4">Booking Summary</h3>
+            <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-3">
+                <div>
+                  <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">Medical Specialty</Label>
+                  <p className="text-sm font-medium">{appointmentType || "Not selected"}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">Patient</Label>
+                  <p className="text-sm font-medium">
+                    {selectedPatient 
+                      ? `${patients?.find((p: any) => p.id.toString() === selectedPatient)?.firstName} ${patients?.find((p: any) => p.id.toString() === selectedPatient)?.lastName}`
+                      : "Not selected"
+                    }
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">Date</Label>
+                  <p className="text-sm font-medium">{selectedDate ? format(selectedDate, "PPP") : "Not selected"}</p>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <div>
+                  <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">Sub-Specialty</Label>
+                  <p className="text-sm font-medium">Not selected</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">Doctor</Label>
+                  <p className="text-sm font-medium">
+                    {selectedBookingDoctor 
+                      ? `Dr. ${selectedBookingDoctor.firstName} ${selectedBookingDoctor.lastName}`
+                      : "Not selected"
+                    }
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">Time</Label>
+                  <p className="text-sm font-medium">{selectedTimeSlot || "Not selected"}</p>
+                </div>
+              </div>
             </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-3 pt-4">
+            <Button variant="outline" onClick={() => setIsBookingOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              disabled={
+                !selectedPatient ||
+                !selectedDate ||
+                !selectedTimeSlot ||
+                bookAppointmentMutation.isPending
+              }
+              onClick={handleBookAppointment}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              {bookAppointmentMutation.isPending
+                ? "Booking..."
+                : "Book Appointment"}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
