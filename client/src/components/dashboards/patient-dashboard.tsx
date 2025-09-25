@@ -352,7 +352,7 @@ export function PatientDashboard() {
     { title: "Book Appointment", description: "Schedule with your healthcare provider", icon: Calendar, href: "/appointments" },
     { title: "View Prescriptions", description: "Check your current medications", icon: Pill, href: "/prescriptions", isPopupAction: true },
     { title: "Lab Results", description: "View your test results", icon: FileText, href: "/lab-results", isPopupAction: true },
-    { title: "Health Records", description: "Access your medical history", icon: Heart, href: "/medical-records", isPopupAction: true }
+    { title: "Medical Imaging", description: "Access your medical history", icon: Heart, href: "/medical-records", isPopupAction: true }
   ];
 
   // Handle popup actions for patient users
@@ -361,7 +361,7 @@ export function PatientDashboard() {
       setIsPrescriptionsPopupOpen(true);
     } else if (action.title === "Lab Results" && user?.role === "patient") {
       setIsLabResultsPopupOpen(true);
-    } else if (action.title === "Health Records" && user?.role === "patient") {
+    } else if (action.title === "Medical Imaging" && user?.role === "patient") {
       setIsHealthRecordsPopupOpen(true);
     } else {
       // For non-patient users or other actions, use normal navigation
