@@ -205,8 +205,8 @@ export function PatientDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {patientAppointments.length > 0 ? (
-                patientAppointments.slice(0, 3).map((appointment: any, index: number) => (
+              {upcomingAppointmentsData.appointments.length > 0 ? (
+                upcomingAppointmentsData.appointments.slice(0, 3).map((appointment: any, index: number) => (
                   <div key={appointment.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors">
                     <div className="space-y-1">
                       <p className="font-medium text-gray-900">{appointment.title}</p>
