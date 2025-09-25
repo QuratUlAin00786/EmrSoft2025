@@ -1633,17 +1633,15 @@ Report generated from Cura EMR System`;
                           Edit
                         </Button>
                       )}
-                      {user?.role !== 'patient' && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleGeneratePrescription(result)}
-                          className="bg-white hover:bg-gray-50 text-gray-900 border-gray-300"
-                        >
-                          <FileText className="h-4 w-4 mr-2" />
-                          Generate Prescription
-                        </Button>
-                      )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleGeneratePrescription(result)}
+                        className="bg-white hover:bg-gray-50 text-gray-900 border-gray-300"
+                      >
+                        <FileText className="h-4 w-4 mr-2" />
+                        {user?.role === 'patient' ? 'View Prescription' : 'Generate Prescription'}
+                      </Button>
                       <Button
                         variant="outline"
                         size="sm"
