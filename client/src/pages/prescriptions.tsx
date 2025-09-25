@@ -2265,15 +2265,17 @@ export default function PrescriptionsPage() {
                                 >
                                   {prescription.status}
                                 </Badge>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => handleStartEditingStatus(prescription.id, prescription.status)}
-                                  className="h-6 w-6 p-0 hover:bg-gray-100"
-                                  data-testid="button-edit-status"
-                                >
-                                  <Edit className="h-3 w-3" />
-                                </Button>
+                                {user?.role !== 'patient' && (
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => handleStartEditingStatus(prescription.id, prescription.status)}
+                                    className="h-6 w-6 p-0 hover:bg-gray-100"
+                                    data-testid="button-edit-status"
+                                  >
+                                    <Edit className="h-3 w-3" />
+                                  </Button>
+                                )}
                               </div>
                             )}
                           </div>
