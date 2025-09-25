@@ -973,9 +973,9 @@ export function PatientDashboard() {
                           <div className="bg-gray-50 p-4 rounded-lg mb-4">
                             <h4 className="font-semibold text-gray-900 mb-3">Timeline</h4>
                             <div className="space-y-2 text-sm">
-                              <div><span className="font-medium">Ordered:</span> {new Date(imaging.createdAt || '').toLocaleDateString() || 'Sep 25, 2025 09:34'}</div>
-                              <div><span className="font-medium">Scheduled:</span> Not scheduled</div>
-                              <div><span className="font-medium">Performed:</span> Not performed</div>
+                              <div><span className="font-medium">Ordered:</span> {imaging.createdAt ? format(new Date(imaging.createdAt), 'MMM dd, yyyy HH:mm') : 'Sep 25, 2025 09:34'}</div>
+                              <div><span className="font-medium">Scheduled:</span> {imaging.scheduledDate ? format(new Date(imaging.scheduledDate), 'MMM dd, yyyy HH:mm') : 'Not scheduled'}</div>
+                              <div><span className="font-medium">Performed:</span> {imaging.performedDate ? format(new Date(imaging.performedDate), 'MMM dd, yyyy HH:mm') : 'Not performed'}</div>
                               <div><span className="font-medium">Radiologist:</span> {imaging.radiologist || 'Admin User'}</div>
                             </div>
                           </div>
