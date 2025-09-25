@@ -296,17 +296,13 @@ export function DoctorList({
       return;
     }
 
-    // Create the appointment datetime without timezone conversion
-    const appointmentDateTime = new Date(selectedDate);
+    // Create the appointment datetime string directly without timezone conversion
+    const year = selectedDate.getFullYear();
+    const month = String(selectedDate.getMonth() + 1).padStart(2, "0");
+    const day = String(selectedDate.getDate()).padStart(2, "0");
     const [hours, minutes] = selectedTimeSlot.split(":").map(Number);
-    appointmentDateTime.setHours(hours, minutes, 0, 0);
-
-    // Format datetime without timezone conversion
-    const year = appointmentDateTime.getFullYear();
-    const month = String(appointmentDateTime.getMonth() + 1).padStart(2, "0");
-    const day = String(appointmentDateTime.getDate()).padStart(2, "0");
-    const hourStr = String(appointmentDateTime.getHours()).padStart(2, "0");
-    const minuteStr = String(appointmentDateTime.getMinutes()).padStart(2, "0");
+    const hourStr = String(hours).padStart(2, "0");
+    const minuteStr = String(minutes).padStart(2, "0");
     const scheduledAtString = `${year}-${month}-${day}T${hourStr}:${minuteStr}:00`;
 
     const appointmentData = {
