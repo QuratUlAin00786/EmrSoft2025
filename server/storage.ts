@@ -951,11 +951,13 @@ export class DatabaseStorage implements IStorage {
       );
       
       // Check for time conflicts
-      const appointmentEnd = new Date(appointment.scheduledAt.getTime() + (appointment.duration || 30) * 60 * 1000);
+      const appointmentStart = new Date(appointment.scheduledAt);
+      const appointmentEnd = new Date(appointmentStart.getTime() + (appointment.duration || 30) * 60 * 1000);
       const conflicts = existingAppointments.filter(existing => {
-        const existingEnd = new Date(existing.scheduledAt.getTime() + (existing.duration || 30) * 60 * 1000);
+        const existingStart = new Date(existing.scheduledAt);
+        const existingEnd = new Date(existingStart.getTime() + (existing.duration || 30) * 60 * 1000);
         // Check if the time ranges overlap
-        return (appointment.scheduledAt < existingEnd && appointmentEnd > existing.scheduledAt);
+        return (appointmentStart < existingEnd && appointmentEnd > existingStart);
       });
       
       if (conflicts.length > 0) {
