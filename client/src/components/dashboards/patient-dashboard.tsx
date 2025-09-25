@@ -21,6 +21,7 @@ export function PatientDashboard() {
   const { user } = useAuth();
   const [isChatbotOpen, setIsChatbotOpen] = useState(false);
   const [isPrescriptionsPopupOpen, setIsPrescriptionsPopupOpen] = useState(false);
+  const [isLabResultsPopupOpen, setIsLabResultsPopupOpen] = useState(false);
   
   const { data: appointmentsData, isLoading: appointmentsLoading, error: appointmentsError } = useQuery({
     queryKey: ["/api/appointments"],
@@ -74,6 +75,34 @@ export function PatientDashboard() {
       
       if (!response.ok) {
         throw new Error(`Failed to fetch prescriptions: ${response.status}`);
+      }
+      
+      return response.json();
+    },
+    enabled: !!user && user.role === 'patient',
+    staleTime: 0,
+    refetchOnMount: true,
+  });
+
+  const { data: labResultsData } = useQuery({
+    queryKey: ["/api/mobile/patient/lab-results", user?.id],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'X-Tenant-Subdomain': 'demo'
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch('/api/mobile/patient/lab-results', {
+        headers,
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch lab results: ${response.status}`);
       }
       
       return response.json();
@@ -213,14 +242,16 @@ export function PatientDashboard() {
   const quickActions = [
     { title: "Book Appointment", description: "Schedule with your healthcare provider", icon: Calendar, href: "/appointments" },
     { title: "View Prescriptions", description: "Check your current medications", icon: Pill, href: "/prescriptions", isPopupAction: true },
-    { title: "Lab Results", description: "View your test results", icon: FileText, href: "/lab-results" },
+    { title: "Lab Results", description: "View your test results", icon: FileText, href: "/lab-results", isPopupAction: true },
     { title: "Health Records", description: "Access your medical history", icon: Heart, href: "/medical-records" }
   ];
 
-  // Handle prescription popup for patient users
-  const handlePrescriptionAccess = (action: any) => {
+  // Handle popup actions for patient users
+  const handlePopupAccess = (action: any) => {
     if (action.title === "View Prescriptions" && user?.role === "patient") {
       setIsPrescriptionsPopupOpen(true);
+    } else if (action.title === "Lab Results" && user?.role === "patient") {
+      setIsLabResultsPopupOpen(true);
     } else {
       // For non-patient users or other actions, use normal navigation
       window.location.href = action.href;
@@ -278,7 +309,7 @@ export function PatientDashboard() {
                   <Button 
                     className="w-full" 
                     variant="outline"
-                    onClick={() => handlePrescriptionAccess(action)}
+                    onClick={() => handlePopupAccess(action)}
                   >
                     Access
                   </Button>
@@ -502,6 +533,110 @@ export function PatientDashboard() {
             <Button 
               variant="outline" 
               onClick={() => setIsPrescriptionsPopupOpen(false)}
+              className="flex items-center gap-2"
+            >
+              <X className="h-4 w-4" />
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Lab Results Popup */}
+      <Dialog open={isLabResultsPopupOpen} onOpenChange={setIsLabResultsPopupOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-blue-600" />
+              Your Lab Results
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {labResultsData && labResultsData.length > 0 ? (
+              labResultsData.map((labResult: any) => (
+                <Card key={labResult.id} className="border-l-4 border-l-blue-500">
+                  <CardHeader className="pb-3">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <CardTitle className="text-lg font-semibold text-gray-900">
+                          {labResult.testName || 'Lab Test'}
+                        </CardTitle>
+                        <CardDescription className="text-sm text-gray-600">
+                          Test Date: {labResult.testDate ? new Date(labResult.testDate).toLocaleDateString() : 'N/A'}
+                        </CardDescription>
+                      </div>
+                      <Badge 
+                        className={`${labResult.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}
+                      >
+                        {labResult.status || 'Pending'}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      <div>
+                        <p className="text-sm font-medium text-gray-500">Test Type</p>
+                        <p className="text-sm text-gray-900">{labResult.type || 'Not specified'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-500">Lab</p>
+                        <p className="text-sm text-gray-900">{labResult.labName || 'Not specified'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-500">Doctor</p>
+                        <p className="text-sm text-gray-900">{labResult.doctorName || 'Not specified'}</p>
+                      </div>
+                    </div>
+                    
+                    {labResult.results && labResult.results.length > 0 && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-500 mb-2">Results</p>
+                        <div className="bg-gray-50 p-3 rounded-md space-y-2">
+                          {labResult.results.map((result: any, index: number) => (
+                            <div key={index} className="flex justify-between items-center">
+                              <span className="text-sm font-medium">{result.name || `Test ${index + 1}`}</span>
+                              <div className="text-right">
+                                <span className="text-sm text-gray-900">{result.value} {result.unit || ''}</span>
+                                {result.reference && (
+                                  <p className="text-xs text-gray-500">Ref: {result.reference}</p>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {labResult.notes && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-500">Notes</p>
+                        <p className="text-sm text-gray-900">{labResult.notes}</p>
+                      </div>
+                    )}
+
+                    {labResult.criticalValues && (
+                      <div className="bg-red-50 border border-red-200 p-3 rounded-md">
+                        <p className="text-sm font-medium text-red-800">⚠️ Critical Values Detected</p>
+                        <p className="text-sm text-red-700">Please contact your healthcare provider immediately.</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <div className="text-center py-8">
+                <FileText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500 text-lg font-medium">No Lab Results</p>
+                <p className="text-gray-400 text-sm">You currently have no lab results on file.</p>
+              </div>
+            )}
+          </div>
+          
+          <div className="flex justify-end pt-4 border-t">
+            <Button 
+              variant="outline" 
+              onClick={() => setIsLabResultsPopupOpen(false)}
               className="flex items-center gap-2"
             >
               <X className="h-4 w-4" />
