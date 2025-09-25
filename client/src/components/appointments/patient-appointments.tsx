@@ -884,7 +884,7 @@ export default function PatientAppointments({
                   {/* Select Date */}
                   <div>
                     <Label className="text-sm font-medium text-gray-700">
-                      Select Date
+                      Select Date *
                     </Label>
                     <div className="mt-1 p-4 border border-gray-300 rounded-md">
                       <div className="flex items-center justify-between mb-2">
@@ -1006,7 +1006,7 @@ export default function PatientAppointments({
                   {/* Select Time Slot */}
                   <div>
                     <Label className="text-sm font-medium text-gray-700">
-                      Select Time Slot
+                      Select Time Slot *
                     </Label>
                     <div className="mt-1 max-h-64 overflow-y-auto border border-gray-300 rounded-md p-3">
                       <div className="grid grid-cols-2 gap-2">
