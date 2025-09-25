@@ -21,7 +21,8 @@ export function PatientDashboard() {
   const [isChatbotOpen, setIsChatbotOpen] = useState(false);
   
   const { data: appointmentsData } = useQuery({
-    queryKey: ["/api/patients/my-appointments"],
+    queryKey: ["/api/appointments"],
+    enabled: user?.role === 'patient',
   });
 
   const { data: prescriptionsData } = useQuery({
@@ -65,19 +66,31 @@ export function PatientDashboard() {
     }
   };
 
-  // Upcoming Appointments function with full functionality
+  // Upcoming Appointments function with full functionality for patients only
   const getUpcomingAppointments = () => {
+    // Only show appointments if user is a patient
+    if (user?.role !== 'patient') {
+      return {
+        appointments: [],
+        count: 0,
+        nextAppointment: null,
+        remainingAppointments: [],
+      };
+    }
+
     const now = new Date();
-    const appointments = (appointmentsData as any)?.appointments || [];
+    const allAppointments = Array.isArray(appointmentsData) ? appointmentsData : [];
     
-    // Filter upcoming appointments (future dates only)
-    const upcomingAppointments = appointments.filter((appointment: any) => {
+    // Filter for current patient's upcoming appointments only
+    const patientAppointments = allAppointments.filter((appointment: any) => {
       const appointmentDate = new Date(appointment.scheduledAt);
-      return appointmentDate > now;
+      const isUpcoming = appointmentDate > now;
+      // For patient role, appointments are already filtered by backend
+      return isUpcoming;
     });
 
     // Sort by date (earliest first)
-    const sortedAppointments = upcomingAppointments.sort((a: any, b: any) => {
+    const sortedAppointments = patientAppointments.sort((a: any, b: any) => {
       return new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime();
     });
 

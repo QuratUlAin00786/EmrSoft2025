@@ -491,12 +491,7 @@ export default function PatientAppointments({
                     {formatTime(nextAppointment.scheduledAt)}
                   </span>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <User className="h-5 w-5 text-blue-600" />
-                  <span>
-                    {getDoctorSpecialtyData(nextAppointment.providerId).name}
-                  </span>
-                </div>
+             
                 {getDoctorSpecialtyData(nextAppointment.providerId)
                   .subSpecialty && (
                   <div className="flex items-center space-x-2">
