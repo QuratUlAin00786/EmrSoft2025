@@ -144,6 +144,7 @@ export default function MessagingPage() {
   const [videoCallPatientSearch, setVideoCallPatientSearch] = useState<string>("");
   const [selectedMessagePatient, setSelectedMessagePatient] = useState<string>("");
   const [messagePatientSearch, setMessagePatientSearch] = useState<string>("");
+  const [isAppointmentReminderContext, setIsAppointmentReminderContext] = useState<boolean>(false);
   const { toast } = useToast();
 
   // Authentication token and headers
@@ -178,6 +179,14 @@ export default function MessagingPage() {
       return data;
     },
     enabled: true // Always fetch patients data
+  });
+
+  // Fetch doctors for patient appointment reminders
+  const { data: doctorsData, isLoading: doctorsLoading } = useQuery({
+    queryKey: ["/api/doctors"],
+    staleTime: 300000, // 5 minutes cache for better performance
+    retry: false,
+    enabled: !!user,
   });
 
   // Update current user when user data changes
@@ -1167,6 +1176,7 @@ export default function MessagingPage() {
                   phoneNumber: "",
                   messageType: "sms"
                 });
+                setIsAppointmentReminderContext(true);
                 setShowNewMessage(true);
               }}
             >
@@ -1185,6 +1195,7 @@ export default function MessagingPage() {
                   phoneNumber: "",
                   messageType: "sms"
                 });
+                setIsAppointmentReminderContext(false);
                 setShowNewMessage(true);
               }}
             >
@@ -1203,6 +1214,7 @@ export default function MessagingPage() {
                   phoneNumber: "",
                   messageType: "sms"
                 });
+                setIsAppointmentReminderContext(false);
                 setShowNewMessage(true);
               }}
             >
@@ -1360,9 +1372,15 @@ export default function MessagingPage() {
               </div>
             </DialogContent>
           </Dialog>
-          <Dialog open={showNewMessage} onOpenChange={setShowNewMessage}>
+          <Dialog open={showNewMessage} onOpenChange={(open) => {
+            setShowNewMessage(open);
+            if (!open) {
+              // Reset context when dialog closes
+              setIsAppointmentReminderContext(false);
+            }
+          }}>
             <DialogTrigger asChild>
-              <Button>
+              <Button onClick={() => setIsAppointmentReminderContext(false)}>
                 <Plus className="h-4 w-4 mr-2" />
                 New Message
               </Button>
@@ -1378,29 +1396,62 @@ export default function MessagingPage() {
                     <Select 
                       value={selectedMessagePatient} 
                       onValueChange={(value) => {
-                        const patient = (patientsData || []).find((p: any) => `${p.firstName} ${p.lastName}` === value);
-                        if (patient) {
-                          setSelectedMessagePatient(value);
-                          setNewMessage(prev => ({ ...prev, recipient: value }));
+                        // Check if we should show doctors or patients
+                        if (user?.role === "patient" && isAppointmentReminderContext) {
+                          // Find selected doctor
+                          const doctorsResponse = doctorsData as any;
+                          const doctor = (doctorsResponse?.doctors || []).find((d: any) => `${d.firstName} ${d.lastName}` === value);
+                          if (doctor) {
+                            setSelectedMessagePatient(value);
+                            setNewMessage(prev => ({ ...prev, recipient: value }));
+                          }
+                        } else {
+                          // Default behavior - find patient
+                          const patient = (patientsData || []).find((p: any) => `${p.firstName} ${p.lastName}` === value);
+                          if (patient) {
+                            setSelectedMessagePatient(value);
+                            setNewMessage(prev => ({ ...prev, recipient: value }));
+                          }
                         }
                       }}
                     >
                       <SelectTrigger data-testid="select-patient-recipient">
-                        <SelectValue placeholder="Select a patient..." />
+                        <SelectValue placeholder={
+                          user?.role === "patient" && isAppointmentReminderContext 
+                            ? "Select a doctor..." 
+                            : "Select a patient..."
+                        } />
                       </SelectTrigger>
                       <SelectContent>
-                        {(patientsData || []).map((patient: any) => (
-                          <SelectItem 
-                            key={patient.id} 
-                            value={`${patient.firstName} ${patient.lastName}`}
-                            data-testid={`patient-option-${patient.id}`}
-                          >
-                            <div className="flex flex-col">
-                              <span className="font-medium">{patient.firstName} {patient.lastName}</span>
-                              <span className="text-sm text-gray-500">{patient.email} • {patient.patientId}</span>
-                            </div>
-                          </SelectItem>
-                        ))}
+                        {user?.role === "patient" && isAppointmentReminderContext ? (
+                          // Show doctors for patients in appointment reminder context
+                          ((doctorsData as any)?.doctors || []).map((doctor: any) => (
+                            <SelectItem 
+                              key={doctor.id} 
+                              value={`${doctor.firstName} ${doctor.lastName}`}
+                              data-testid={`doctor-option-${doctor.id}`}
+                            >
+                              <div className="flex flex-col">
+                                <span className="font-medium">{doctor.firstName} {doctor.lastName}</span>
+                                <span className="text-sm text-gray-500">{doctor.email} • {doctor.medicalSpecialtyCategory}</span>
+                              </div>
+                            </SelectItem>
+                          ))
+                        ) : (
+                          // Default behavior - show patients
+                          (patientsData || []).map((patient: any) => (
+                            <SelectItem 
+                              key={patient.id} 
+                              value={`${patient.firstName} ${patient.lastName}`}
+                              data-testid={`patient-option-${patient.id}`}
+                            >
+                              <div className="flex flex-col">
+                                <span className="font-medium">{patient.firstName} {patient.lastName}</span>
+                                <span className="text-sm text-gray-500">{patient.email} • {patient.patientId}</span>
+                              </div>
+                            </SelectItem>
+                          ))
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
