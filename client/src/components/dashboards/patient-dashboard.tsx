@@ -20,9 +20,8 @@ export function PatientDashboard() {
   const { user } = useAuth();
   const [isChatbotOpen, setIsChatbotOpen] = useState(false);
   
-  const { data: appointmentsData } = useQuery({
+  const { data: appointmentsData, isLoading: appointmentsLoading, error: appointmentsError } = useQuery({
     queryKey: ["/api/appointments"],
-    enabled: user?.role === 'patient',
   });
 
   const { data: prescriptionsData } = useQuery({
