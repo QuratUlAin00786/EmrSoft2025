@@ -687,26 +687,6 @@ export function DoctorList({
           <div className="grid grid-cols-2 gap-8">
             {/* Left Column */}
             <div className="space-y-6">
-              {/* Medical Specialty Category Display */}
-              <div>
-                <Label className="text-sm font-medium mb-2 block">Medical Specialty Category</Label>
-                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-800">
-                  <div className="text-gray-900 dark:text-white font-medium">
-                    {selectedBookingDoctor?.medicalSpecialtyCategory || 'Not specified'}
-                  </div>
-                </div>
-              </div>
-
-              {/* Sub-Specialty Display */}
-              <div>
-                <Label className="text-sm font-medium mb-2 block">Sub-Specialty</Label>
-                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-800">
-                  <div className="text-gray-900 dark:text-white font-medium">
-                    {selectedBookingDoctor?.subSpecialty || 'Not specified'}
-                  </div>
-                </div>
-              </div>
-
               {/* Doctor Display */}
               <div>
                 <Label className="text-sm font-medium mb-2 block">Doctor</Label>
@@ -750,6 +730,12 @@ export function DoctorList({
                     <div>
                       <div className="font-medium text-gray-900 dark:text-white">
                         {selectedBookingDoctor ? `${selectedBookingDoctor.firstName} ${selectedBookingDoctor.lastName}` : 'Doctor not selected'}
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        {selectedBookingDoctor?.medicalSpecialtyCategory || 'General & Primary Care'}
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        {selectedBookingDoctor?.subSpecialty || 'General Practitioner (GP) / Family Physician'}
                       </div>
                       <div className="text-sm text-gray-600 dark:text-gray-400">
                         📧 {selectedBookingDoctor?.email || 'Not available'}
