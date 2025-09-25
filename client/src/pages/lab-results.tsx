@@ -1623,23 +1623,27 @@ Report generated from Cura EMR System`;
 
                     {/* Action buttons at bottom - with right margin for blue box */}
                     <div className="flex gap-2 mt-6 pt-4 border-t border-gray-200 mr-72 justify-end">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleViewResult(result)}
-                      >
-                        <Edit className="h-4 w-4 mr-2" />
-                        Edit
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleGeneratePrescription(result)}
-                        className="bg-white hover:bg-gray-50 text-gray-900 border-gray-300"
-                      >
-                        <FileText className="h-4 w-4 mr-2" />
-                        Generate Prescription
-                      </Button>
+                      {user?.role !== 'patient' && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleViewResult(result)}
+                        >
+                          <Edit className="h-4 w-4 mr-2" />
+                          Edit
+                        </Button>
+                      )}
+                      {user?.role !== 'patient' && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleGeneratePrescription(result)}
+                          className="bg-white hover:bg-gray-50 text-gray-900 border-gray-300"
+                        >
+                          <FileText className="h-4 w-4 mr-2" />
+                          Generate Prescription
+                        </Button>
+                      )}
                       <Button
                         variant="outline"
                         size="sm"
@@ -1661,25 +1665,29 @@ Report generated from Cura EMR System`;
                         <Download className="h-4 w-4 mr-2" />
                         Download PDF
                       </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleShareResult(result)}
-                      >
-                        <User className="h-4 w-4 mr-2" />
-                        Review
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          deleteLabResultMutation.mutate(result.id)
-                        }
-                        disabled={deleteLabResultMutation.isPending}
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete
-                      </Button>
+                      {user?.role !== 'patient' && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleShareResult(result)}
+                        >
+                          <User className="h-4 w-4 mr-2" />
+                          Review
+                        </Button>
+                      )}
+                      {user?.role !== 'patient' && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            deleteLabResultMutation.mutate(result.id)
+                          }
+                          disabled={deleteLabResultMutation.isPending}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete
+                        </Button>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -2481,9 +2489,11 @@ Report generated from Cura EMR System`;
                 >
                   Close
                 </Button>
-                <Button variant="outline" onClick={handleStartEdit}>
-                  Edit
-                </Button>
+                {user?.role !== 'patient' && (
+                  <Button variant="outline" onClick={handleStartEdit}>
+                    Edit
+                  </Button>
+                )}
               </>
             )}
           </div>
