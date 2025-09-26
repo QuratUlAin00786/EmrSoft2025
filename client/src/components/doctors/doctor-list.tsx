@@ -570,6 +570,7 @@ export function DoctorList({
                     <Button
                       size="sm"
                       variant="ghost"
+                      className="bg-white hover:bg-gray-50 border border-gray-200"
                       onClick={(e) => {
                         e.stopPropagation();
                         setLocation(`/staff/${doctor.id}`);
