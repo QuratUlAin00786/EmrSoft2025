@@ -633,6 +633,38 @@ export default function PatientAppointments({
             </Button>
           </div>
         </div>
+
+        {/* Upcoming, Past, All Filter Buttons for Patient */}
+        <div className="flex space-x-2 mt-4">
+          <Button
+            variant={selectedFilter === "upcoming" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setSelectedFilter("upcoming")}
+          >
+            Upcoming ({upcomingAppointments.length})
+          </Button>
+          <Button
+            variant={selectedFilter === "past" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setSelectedFilter("past")}
+          >
+            Past (
+            {
+              appointments.filter((apt: any) => {
+                const appointmentDate = new Date(apt.scheduledAt);
+                return isPast(appointmentDate) && !isToday(appointmentDate);
+              }).length
+            }
+            )
+          </Button>
+          <Button
+            variant={selectedFilter === "all" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setSelectedFilter("all")}
+          >
+            All ({appointments.length})
+          </Button>
+        </div>
       </div>
 
       ) : (
