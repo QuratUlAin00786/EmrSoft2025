@@ -53,8 +53,8 @@ export default function PatientAppointments({
   
   // Patient filter states
   const [patientFilterDate, setPatientFilterDate] = useState<string>("");
-  const [patientFilterSpecialty, setPatientFilterSpecialty] = useState<string>("");
-  const [patientFilterSubSpecialty, setPatientFilterSubSpecialty] = useState<string>("");
+  const [patientFilterSpecialty, setPatientFilterSpecialty] = useState<string>("all");
+  const [patientFilterSubSpecialty, setPatientFilterSubSpecialty] = useState<string>("all");
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -360,7 +360,7 @@ export default function PatientAppointments({
     }
 
     // Filter by medical specialty category if selected
-    if (patientFilterSpecialty) {
+    if (patientFilterSpecialty && patientFilterSpecialty !== "all") {
       filtered = filtered.filter((apt: any) => {
         const doctorData = getDoctorSpecialtyData(apt.providerId);
         return doctorData.category === patientFilterSpecialty;
@@ -368,7 +368,7 @@ export default function PatientAppointments({
     }
 
     // Filter by sub-specialty if selected
-    if (patientFilterSubSpecialty) {
+    if (patientFilterSubSpecialty && patientFilterSubSpecialty !== "all") {
       filtered = filtered.filter((apt: any) => {
         const doctorData = getDoctorSpecialtyData(apt.providerId);
         return doctorData.subSpecialty === patientFilterSubSpecialty;
@@ -630,7 +630,7 @@ export default function PatientAppointments({
                   <SelectValue placeholder="Select specialty" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Specialties</SelectItem>
+                  <SelectItem value="all">All Specialties</SelectItem>
                   {getPatientFilterOptions.specialties.map((specialty: string) => (
                     <SelectItem key={specialty} value={specialty}>
                       {specialty}
@@ -651,7 +651,7 @@ export default function PatientAppointments({
                   <SelectValue placeholder="Select sub-specialty" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Sub-Specialties</SelectItem>
+                  <SelectItem value="all">All Sub-Specialties</SelectItem>
                   {getPatientFilterOptions.subSpecialties.map((subSpecialty: string) => (
                     <SelectItem key={subSpecialty} value={subSpecialty}>
                       {subSpecialty}
@@ -669,8 +669,8 @@ export default function PatientAppointments({
               size="sm"
               onClick={() => {
                 setPatientFilterDate("");
-                setPatientFilterSpecialty("");
-                setPatientFilterSubSpecialty("");
+                setPatientFilterSpecialty("all");
+                setPatientFilterSubSpecialty("all");
               }}
             >
               Clear Filters
