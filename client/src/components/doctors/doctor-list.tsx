@@ -159,7 +159,7 @@ export function DoctorList({
     return slots;
   };
 
-  // Check if a time slot is available
+  // Check if a time slot is available (only SCHEDULED appointments block slots)
   const isTimeSlotAvailable = (timeSlot: string) => {
     if (!doctorAppointments || !selectedDate) return true;
 
@@ -168,6 +168,9 @@ export function DoctorList({
     slotDateTime.setHours(hours, minutes, 0, 0);
 
     return !doctorAppointments.some((appointment: any) => {
+      // Only check SCHEDULED appointments - CANCELLED appointments should not block slots
+      if (appointment.status?.toLowerCase() !== 'scheduled') return false;
+      
       const appointmentDate = new Date(appointment.scheduledAt);
       return (
         Math.abs(appointmentDate.getTime() - slotDateTime.getTime()) <
@@ -374,13 +377,21 @@ export function DoctorList({
     );
   };
 
+  // Extract time directly from database string and format to 12-hour format without timezone conversion
   const formatTime = (time: string): string => {
     if (!time) return "";
-    const [hours, minutes] = time.split(":");
+    
+    // Handle database datetime format like "2025-09-27T09:00:00.000Z"
+    let timeOnly = time;
+    if (time.includes('T')) {
+      timeOnly = time.split('T')[1]?.substring(0, 5) || time; // Extract "09:00" from "2025-09-27T09:00:00.000Z"
+    }
+    
+    const [hours, minutes] = timeOnly.split(":");
     const hour = parseInt(hours);
     const ampm = hour >= 12 ? "PM" : "AM";
     const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-    return `${displayHour}:${minutes} ${ampm}`;
+    return `${displayHour}:${minutes || '00'} ${ampm}`;
   };
 
   // Filter to show only available staff members
