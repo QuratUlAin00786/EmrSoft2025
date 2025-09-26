@@ -4305,7 +4305,6 @@ export default function Forms() {
           {/* Medical data buttons row - medical theme colors */}
           <div className="flex justify-center items-center flex-wrap gap-2">
             <Button
-              data-bluewave="true"
               size="sm"
               className="text-xs px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
               onClick={handleInsertTemplate}
@@ -4313,7 +4312,6 @@ export default function Forms() {
               Insert template
             </Button>
             <Button
-              data-bluewave="true"
               size="sm"
               className="text-xs px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
               onClick={handleInsertLogo}
@@ -4321,7 +4319,6 @@ export default function Forms() {
               Insert logo
             </Button>
             <Button
-              data-bluewave="true"
               size="sm"
               className="text-xs px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
               onClick={handleClinic}
@@ -4329,7 +4326,6 @@ export default function Forms() {
               Clinic
             </Button>
             <Button
-              data-bluewave="true"
               size="sm"
               className="text-xs px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
               onClick={handlePatient}
@@ -4337,7 +4333,6 @@ export default function Forms() {
               Patient
             </Button>
             <Button
-              data-bluewave="true"
               size="sm"
               className="text-xs px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
               onClick={handleRecipient}
@@ -4345,7 +4340,6 @@ export default function Forms() {
               Recipient
             </Button>
             <Button
-              data-bluewave="true"
               size="sm"
               className="text-xs px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
               onClick={handleAppointments}
@@ -4353,7 +4347,6 @@ export default function Forms() {
               Appointments
             </Button>
             <Button
-              data-bluewave="true"
               size="sm"
               className="text-xs px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
               onClick={handleLabs}
@@ -4361,7 +4354,6 @@ export default function Forms() {
               Labs
             </Button>
             <Button
-              data-bluewave="true"
               size="sm"
               className="text-xs px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
               onClick={handlePatientRecords}
@@ -4369,7 +4361,6 @@ export default function Forms() {
               Patient records
             </Button>
             <Button
-              data-bluewave="true"
               size="sm"
               className="text-xs px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
               onClick={handleInsertProduct}
@@ -4381,7 +4372,6 @@ export default function Forms() {
           {/* Save, Download, Print and View buttons - medical theme colors */}
           <div className="flex justify-center items-center gap-1 flex-wrap">
             <Button
-              data-bluewave="true"
               size="sm"
               className="text-xs h-7 px-4 py-2 mt-5"
               onClick={handleSave}
@@ -4400,7 +4390,6 @@ export default function Forms() {
               Download
             </Button>
             <Button
-              data-bluewave="true"
               size="sm"
               className="text-xs h-7 px-4 py-2 mt-5"
               onClick={handlePrint}
@@ -4410,7 +4399,6 @@ export default function Forms() {
               Print
             </Button>
             <Button
-              data-bluewave="true"
               size="sm"
               className="text-xs h-7 px-4 py-2 mt-5"
               onClick={() => setShowSavedTemplatesDialog(true)}
