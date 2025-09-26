@@ -1,5 +1,11 @@
 import React, { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -50,11 +56,13 @@ export default function PatientAppointments({
     number | null
   >(null);
   const [bookedTimeSlots, setBookedTimeSlots] = useState<string[]>([]);
-  
+
   // Patient filter states
   const [patientFilterDate, setPatientFilterDate] = useState<string>("");
-  const [patientFilterSpecialty, setPatientFilterSpecialty] = useState<string>("");
-  const [patientFilterSubSpecialty, setPatientFilterSubSpecialty] = useState<string>("");
+  const [patientFilterSpecialty, setPatientFilterSpecialty] =
+    useState<string>("");
+  const [patientFilterSubSpecialty, setPatientFilterSubSpecialty] =
+    useState<string>("");
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -191,7 +199,9 @@ export default function PatientAppointments({
     const doctorsResponse = doctorsData as any;
     if (!doctorsResponse?.doctors || !Array.isArray(doctorsResponse.doctors))
       return { name: "", category: "", subSpecialty: "" };
-    const provider = doctorsResponse.doctors.find((u: any) => u.id === providerId);
+    const provider = doctorsResponse.doctors.find(
+      (u: any) => u.id === providerId,
+    );
     return provider
       ? {
           name: `${provider.firstName} ${provider.lastName}`,
@@ -376,10 +386,18 @@ export default function PatientAppointments({
     }
 
     return filtered;
-  }, [appointments, patientFilterDate, patientFilterSpecialty, patientFilterSubSpecialty, user?.role]);
+  }, [
+    appointments,
+    patientFilterDate,
+    patientFilterSpecialty,
+    patientFilterSubSpecialty,
+    user?.role,
+  ]);
 
   // Filter and sort appointments by date for the logged-in patient
-  const filteredAppointments = (user?.role === "patient" ? getPatientFilteredAppointments : appointments)
+  const filteredAppointments = (
+    user?.role === "patient" ? getPatientFilteredAppointments : appointments
+  )
     .filter((apt: any) => {
       const appointmentDate = new Date(apt.scheduledAt);
 
@@ -413,7 +431,7 @@ export default function PatientAppointments({
   // Upcoming Appointments function with full functionality for dashboard
   const getUpcomingAppointmentsDetails = () => {
     const now = new Date();
-    
+
     // Filter and sort upcoming appointments
     const sortedUpcomingAppointments = appointments
       .filter((appointment: any) => {
@@ -421,32 +439,38 @@ export default function PatientAppointments({
         return appointmentDate > now || isToday(appointmentDate);
       })
       .sort((a: any, b: any) => {
-        return new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime();
+        return (
+          new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime()
+        );
       });
 
     // Enhanced appointment details for dashboard display
-    const enhancedAppointments = sortedUpcomingAppointments.map((appointment: any) => {
-      const doctorData = getDoctorSpecialtyData(appointment.providerId);
-      
-      return {
-        id: appointment.id,
-        title: appointment.title || "Medical Consultation",
-        doctorName: doctorData.name,
-        doctorCategory: doctorData.category,
-        doctorSubSpecialty: doctorData.subSpecialty,
-        scheduledDate: formatDate(appointment.scheduledAt),
-        scheduledTime: formatTime(appointment.scheduledAt),
-        rawDateTime: appointment.scheduledAt,
-        status: appointment.status,
-        statusColor: statusColors[appointment.status as keyof typeof statusColors] || "#4A7DFF",
-        location: appointment.location || "",
-        isVirtual: appointment.isVirtual || false,
-        patientId: appointment.patientId,
-        providerId: appointment.providerId,
-        notes: appointment.notes || "",
-        type: appointment.type || "consultation"
-      };
-    });
+    const enhancedAppointments = sortedUpcomingAppointments.map(
+      (appointment: any) => {
+        const doctorData = getDoctorSpecialtyData(appointment.providerId);
+
+        return {
+          id: appointment.id,
+          title: appointment.title || "Medical Consultation",
+          doctorName: doctorData.name,
+          doctorCategory: doctorData.category,
+          doctorSubSpecialty: doctorData.subSpecialty,
+          scheduledDate: formatDate(appointment.scheduledAt),
+          scheduledTime: formatTime(appointment.scheduledAt),
+          rawDateTime: appointment.scheduledAt,
+          status: appointment.status,
+          statusColor:
+            statusColors[appointment.status as keyof typeof statusColors] ||
+            "#4A7DFF",
+          location: appointment.location || "",
+          isVirtual: appointment.isVirtual || false,
+          patientId: appointment.patientId,
+          providerId: appointment.providerId,
+          notes: appointment.notes || "",
+          type: appointment.type || "consultation",
+        };
+      },
+    );
 
     return {
       appointments: enhancedAppointments,
@@ -461,12 +485,25 @@ export default function PatientAppointments({
       }),
       summary: {
         totalUpcoming: enhancedAppointments.length,
-        nextInDays: enhancedAppointments.length > 0 
-          ? Math.ceil((new Date(enhancedAppointments[0].rawDateTime).getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
-          : null,
-        doctorNames: [...new Set(enhancedAppointments.map((apt: any) => apt.doctorName).filter(Boolean))],
-        appointmentTypes: [...new Set(enhancedAppointments.map((apt: any) => apt.type))]
-      }
+        nextInDays:
+          enhancedAppointments.length > 0
+            ? Math.ceil(
+                (new Date(enhancedAppointments[0].rawDateTime).getTime() -
+                  now.getTime()) /
+                  (1000 * 60 * 60 * 24),
+              )
+            : null,
+        doctorNames: [
+          ...new Set(
+            enhancedAppointments
+              .map((apt: any) => apt.doctorName)
+              .filter(Boolean),
+          ),
+        ],
+        appointmentTypes: [
+          ...new Set(enhancedAppointments.map((apt: any) => apt.type)),
+        ],
+      },
     };
   };
 
@@ -484,16 +521,16 @@ export default function PatientAppointments({
       new Set(
         doctorsResponse.doctors
           .map((doctor: any) => doctor.medicalSpecialtyCategory)
-          .filter(Boolean)
-      )
+          .filter(Boolean),
+      ),
     ) as string[];
 
     const subSpecialties = Array.from(
       new Set(
         doctorsResponse.doctors
           .map((doctor: any) => doctor.subSpecialty)
-          .filter(Boolean)
-      )
+          .filter(Boolean),
+      ),
     ) as string[];
 
     return { specialties, subSpecialties };
@@ -555,7 +592,7 @@ export default function PatientAppointments({
                     {formatTime(nextAppointment.scheduledAt)}
                   </span>
                 </div>
-             
+
                 {getDoctorSpecialtyData(nextAppointment.providerId)
                   .subSpecialty && (
                   <div className="flex items-center space-x-2">
@@ -601,79 +638,15 @@ export default function PatientAppointments({
         </Card>
       )}
 
-
       {/* Filter Tabs */}
-      {user?.role === "patient" ? (
-        /* Patient Filter */
-      <div title="Patient Filter (filter appointments)" className="w-full">
-        <div className="flex items-end gap-4">
-          {/* Date Filter */}
-          <div className="flex-1">
-            <Label className="text-sm font-medium text-gray-700">Filter by Date</Label>
-            <input
-              type="date"
-              value={patientFilterDate}
-              onChange={(e) => setPatientFilterDate(e.target.value)}
-              className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-
-          {/* Clear Filters Button */}
-          <div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setPatientFilterDate("");
-                setPatientFilterSpecialty("");
-                setPatientFilterSubSpecialty("");
-              }}
-            >
-              Clear Filters
-            </Button>
-          </div>
-        </div>
-
-        {/* Upcoming, Past, All Filter Buttons for Patient */}
-        <div className="flex space-x-2 mt-4">
-          <Button
-            variant={selectedFilter === "upcoming" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setSelectedFilter("upcoming")}
-          >
-            Upcoming ({upcomingAppointments.length})
-          </Button>
-          <Button
-            variant={selectedFilter === "past" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setSelectedFilter("past")}
-          >
-            Past (
-            {
-              appointments.filter((apt: any) => {
-                const appointmentDate = new Date(apt.scheduledAt);
-                return isPast(appointmentDate) && !isToday(appointmentDate);
-              }).length
-            }
-            )
-          </Button>
-          <Button
-            variant={selectedFilter === "all" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setSelectedFilter("all")}
-          >
-            All ({appointments.length})
-          </Button>
-        </div>
-      </div>
-
-      ) : (
-        /* Regular Filter Tabs for non-patient roles */
+      <div className="flex flex-col gap-3">
+        {/* Always show Upcoming/Past/All buttons for all users */}
         <div className="flex space-x-2">
           <Button
             variant={selectedFilter === "upcoming" ? "default" : "outline"}
             size="sm"
             onClick={() => setSelectedFilter("upcoming")}
+            data-testid="button-filter-upcoming"
           >
             Upcoming ({upcomingAppointments.length})
           </Button>
@@ -681,6 +654,7 @@ export default function PatientAppointments({
             variant={selectedFilter === "past" ? "default" : "outline"}
             size="sm"
             onClick={() => setSelectedFilter("past")}
+            data-testid="button-filter-past"
           >
             Past (
             {
@@ -695,13 +669,47 @@ export default function PatientAppointments({
             variant={selectedFilter === "all" ? "default" : "outline"}
             size="sm"
             onClick={() => setSelectedFilter("all")}
+            data-testid="button-filter-all"
           >
             All ({appointments.length})
           </Button>
         </div>
-      )}
 
-   
+        {/* Additional patient-specific filters */}
+        {user?.role === "patient" && (
+          <div title="Patient Filter (filter appointments)" className="w-full">
+            <div className="flex items-end gap-4">
+              {/* Date Filter */}
+              <div className="flex-1">
+                <Label className="text-sm font-medium text-gray-700">
+                  Filter by Date
+                </Label>
+                <input
+                  type="date"
+                  value={patientFilterDate}
+                  onChange={(e) => setPatientFilterDate(e.target.value)}
+                  className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+
+              {/* Clear Filters Button */}
+              <div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setPatientFilterDate("");
+                    setPatientFilterSpecialty("");
+                    setPatientFilterSubSpecialty("");
+                  }}
+                >
+                  Clear Filters
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Appointments List */}
       <div className="space-y-4">
@@ -798,10 +806,13 @@ export default function PatientAppointments({
                         <div className="flex items-center space-x-2">
                           <User className="h-4 w-4 text-gray-400" />
                           <span className="text-sm">
-                            {currentPatient ? `${currentPatient.firstName} ${currentPatient.lastName}` : 'Patient'}
+                            {currentPatient
+                              ? `${currentPatient.firstName} ${currentPatient.lastName}`
+                              : "Patient"}
                           </span>
                         </div>
-                        {getDoctorSpecialtyData(appointment.providerId).name && (
+                        {getDoctorSpecialtyData(appointment.providerId)
+                          .name && (
                           <div className="flex items-center space-x-2">
                             <User className="h-4 w-4 text-gray-400" />
                             <span className="text-sm">
