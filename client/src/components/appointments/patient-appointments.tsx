@@ -804,27 +804,28 @@ export default function PatientAppointments({
                           {/* Cancel Appointment button for patient users */}
                           {user?.role === "patient" && appointment.status === "scheduled" && (
                             <Button
-                              variant="ghost"
+                              variant="outline"
                               size="sm"
                               onClick={() => handleCancelAppointment(appointment.id)}
-                              className="h-8 w-8 p-0"
                               data-testid={`button-cancel-appointment-${appointment.id}`}
                               title="Cancel Appointment"
                             >
-                              <X className="h-4 w-4 text-orange-600" />
+                              Cancel
                             </Button>
                           )}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() =>
-                              handleDeleteAppointment(appointment.id)
-                            }
-                            className="h-8 w-8 p-0"
-                            data-testid={`button-delete-appointment-${appointment.id}`}
-                          >
-                            <Trash2 className="h-4 w-4 text-red-600" />
-                          </Button>
+                          {user?.role !== "patient" && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() =>
+                                handleDeleteAppointment(appointment.id)
+                              }
+                              className="h-8 w-8 p-0"
+                              data-testid={`button-delete-appointment-${appointment.id}`}
+                            >
+                              <Trash2 className="h-4 w-4 text-red-600" />
+                            </Button>
+                          )}
                           <Badge
                             style={{
                               backgroundColor:
