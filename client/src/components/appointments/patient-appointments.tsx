@@ -740,7 +740,10 @@ export default function PatientAppointments({
           <Button
             variant={selectedFilter === "all" ? "default" : "outline"}
             size="sm"
-            onClick={() => setSelectedFilter("all")}
+            onClick={() => {
+              setSelectedFilter("all");
+              setStatusFilter("all");
+            }}
             data-testid="button-filter-all"
           >
             All ({appointments.length})
