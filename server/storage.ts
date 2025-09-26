@@ -189,6 +189,7 @@ export interface IStorage {
   getAiInsight(id: number, organizationId: number): Promise<AiInsight | undefined>;
   getAiInsightsByOrganization(organizationId: number, limit?: number): Promise<AiInsight[]>;
   getAiInsightsByPatient(patientId: number, organizationId: number): Promise<AiInsight[]>;
+  getAiInsightsByStatus(patientId: number, organizationId: number, status: string): Promise<AiInsight[]>;
   createAiInsight(insight: InsertAiInsight): Promise<AiInsight>;
   updateAiInsight(id: number, organizationId: number, updates: Partial<InsertAiInsight>): Promise<AiInsight | undefined>;
   deleteAiInsight(id: number, organizationId: number): Promise<boolean>;
@@ -228,6 +229,7 @@ export interface IStorage {
   getPrescriptionsByOrganization(organizationId: number, limit?: number): Promise<Prescription[]>;
   getPrescriptionsByPatient(patientId: number, organizationId: number): Promise<Prescription[]>;
   getPrescriptionsByProvider(providerId: number, organizationId: number): Promise<Prescription[]>;
+  getPrescriptionsByStatus(patientId: number, organizationId: number, status: string): Promise<Prescription[]>;
   createPrescription(prescription: InsertPrescription): Promise<Prescription>;
   updatePrescription(id: number, organizationId: number, updates: Partial<InsertPrescription>): Promise<Prescription | undefined>;
   deletePrescription(id: number, organizationId: number): Promise<Prescription | undefined>;
@@ -307,6 +309,7 @@ export interface IStorage {
   getLabResult(id: number, organizationId: number): Promise<LabResult | undefined>;
   getLabResultsByOrganization(organizationId: number, limit?: number): Promise<LabResult[]>;
   getLabResultsByPatient(patientId: number, organizationId: number): Promise<LabResult[]>;
+  getLabResultsByStatus(patientId: number, organizationId: number, status: string): Promise<LabResult[]>;
   createLabResult(labResult: InsertLabResult): Promise<LabResult>;
   updateLabResult(id: number, organizationId: number, updates: Partial<InsertLabResult>): Promise<LabResult | undefined>;
 
@@ -314,6 +317,7 @@ export interface IStorage {
   getClaim(id: number, organizationId: number): Promise<Claim | undefined>;
   getClaimsByOrganization(organizationId: number, limit?: number): Promise<Claim[]>;
   getClaimsByPatient(patientId: number, organizationId: number): Promise<Claim[]>;
+  getClaimsByStatus(patientId: number, organizationId: number, status: string): Promise<Claim[]>;
   createClaim(claim: InsertClaim): Promise<Claim>;
   updateClaim(id: number, organizationId: number, updates: Partial<InsertClaim>): Promise<Claim | undefined>;
 
@@ -425,6 +429,7 @@ export interface IStorage {
   getVoiceNote(id: string, organizationId: number): Promise<VoiceNote | undefined>;
   getVoiceNotesByOrganization(organizationId: number, limit?: number): Promise<VoiceNote[]>;
   getVoiceNotesByPatient(patientId: string, organizationId: number): Promise<VoiceNote[]>;
+  getVoiceNotesByStatus(patientId: number, organizationId: number, status: string): Promise<VoiceNote[]>;
   createVoiceNote(voiceNote: InsertVoiceNote): Promise<VoiceNote>;
   updateVoiceNote(id: string, organizationId: number, updates: Partial<InsertVoiceNote>): Promise<VoiceNote | undefined>;
   deleteVoiceNote(id: string, organizationId: number): Promise<boolean>;
@@ -1135,6 +1140,16 @@ export class DatabaseStorage implements IStorage {
         eq(aiInsights.patientId, patientId),
         eq(aiInsights.organizationId, organizationId),
         eq(aiInsights.status, 'active')
+      ))
+      .orderBy(desc(aiInsights.createdAt));
+  }
+
+  async getAiInsightsByStatus(patientId: number, organizationId: number, status: string): Promise<AiInsight[]> {
+    return await db.select().from(aiInsights)
+      .where(and(
+        eq(aiInsights.patientId, patientId),
+        eq(aiInsights.organizationId, organizationId),
+        eq(aiInsights.aiStatus, status)
       ))
       .orderBy(desc(aiInsights.createdAt));
   }
@@ -3010,6 +3025,18 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(prescriptions.createdAt));
   }
 
+  async getPrescriptionsByStatus(patientId: number, organizationId: number, status: string): Promise<Prescription[]> {
+    return await db
+      .select()
+      .from(prescriptions)
+      .where(and(
+        eq(prescriptions.patientId, patientId),
+        eq(prescriptions.organizationId, organizationId),
+        eq(prescriptions.status, status)
+      ))
+      .orderBy(desc(prescriptions.createdAt));
+  }
+
   async createPrescription(prescription: InsertPrescription): Promise<Prescription> {
     console.log("Storage: Creating prescription with data:", prescription);
     console.log("Storage: Doctor ID being inserted:", prescription.doctorId);
@@ -3655,6 +3682,17 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(labResults.createdAt));
   }
 
+  async getLabResultsByStatus(patientId: number, organizationId: number, status: string): Promise<LabResult[]> {
+    return await db.select()
+      .from(labResults)
+      .where(and(
+        eq(labResults.patientId, patientId),
+        eq(labResults.organizationId, organizationId),
+        eq(labResults.status, status)
+      ))
+      .orderBy(desc(labResults.createdAt));
+  }
+
 
   async updateLabResult(id: number, organizationId: number, updates: Partial<InsertLabResult>): Promise<LabResult | undefined> {
     const [result] = await db.update(labResults)
@@ -3700,6 +3738,17 @@ export class DatabaseStorage implements IStorage {
     return await db.select()
       .from(claims)
       .where(and(eq(claims.patientId, patientId), eq(claims.organizationId, organizationId)))
+      .orderBy(desc(claims.createdAt));
+  }
+
+  async getClaimsByStatus(patientId: number, organizationId: number, status: string): Promise<Claim[]> {
+    return await db.select()
+      .from(claims)
+      .where(and(
+        eq(claims.patientId, patientId),
+        eq(claims.organizationId, organizationId),
+        eq(claims.status, status)
+      ))
       .orderBy(desc(claims.createdAt));
   }
 
@@ -5190,6 +5239,18 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(voiceNotes)
       .where(and(eq(voiceNotes.patientId, patientId), eq(voiceNotes.organizationId, organizationId)))
+      .orderBy(desc(voiceNotes.createdAt));
+  }
+
+  async getVoiceNotesByStatus(patientId: number, organizationId: number, status: string): Promise<VoiceNote[]> {
+    return await db
+      .select()
+      .from(voiceNotes)
+      .where(and(
+        eq(voiceNotes.patientId, patientId.toString()), // Convert to string as voice notes uses string patientId
+        eq(voiceNotes.organizationId, organizationId),
+        eq(voiceNotes.status, status)
+      ))
       .orderBy(desc(voiceNotes.createdAt));
   }
 

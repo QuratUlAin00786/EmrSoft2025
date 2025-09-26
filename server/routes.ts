@@ -1449,6 +1449,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get patient lab results by ID
+  app.get("/api/patients/:id/pending-results", async (req: TenantRequest, res) => {
+    try {
+      const patientId = parseInt(req.params.id);
+      const organizationId = requireOrgId(req);
+
+      if (isNaN(patientId)) {
+        return res.status(400).json({ error: "Invalid patient ID" });
+      }
+
+      // Fetch pending records from all relevant tables
+      const pendingPrescriptions = await storage.getPrescriptionsByStatus(patientId, organizationId, "pending");
+      const pendingLabResults = await storage.getLabResultsByStatus(patientId, organizationId, "pending"); 
+      const pendingAiInsights = await storage.getAiInsightsByStatus(patientId, organizationId, "pending");
+      const pendingClaims = await storage.getClaimsByStatus(patientId, organizationId, "pending");
+      const pendingVoiceNotes = await storage.getVoiceNotesByStatus(patientId, organizationId, "pending");
+      
+      // Get all medical records (since they don't have status field)
+      const allMedicalRecords = await storage.getMedicalRecordsByPatient(patientId, organizationId);
+
+      // Calculate totals
+      const totalCount = 
+        (pendingPrescriptions?.length || 0) +
+        (pendingLabResults?.length || 0) +
+        (pendingAiInsights?.length || 0) +
+        (pendingClaims?.length || 0) +
+        (pendingVoiceNotes?.length || 0) +
+        (allMedicalRecords?.length || 0);
+
+      res.json({
+        totalCount,
+        prescriptions: pendingPrescriptions || [],
+        labResults: pendingLabResults || [],
+        medicalRecords: allMedicalRecords || [],
+        aiInsights: pendingAiInsights || [],
+        voiceNotes: pendingVoiceNotes || [],
+        claims: pendingClaims || []
+      });
+    } catch (error) {
+      return handleRouteError(error, "fetch patient pending results", res);
+    }
+  });
+
   app.get("/api/patients/:id/lab-results", async (req: TenantRequest, res) => {
     try {
       const patientId = parseInt(req.params.id);

@@ -27,6 +27,7 @@ export function PatientDashboard() {
   const [selectedLabResult, setSelectedLabResult] = useState(null);
   const [isLabResultDetailOpen, setIsLabResultDetailOpen] = useState(false);
   const [isHealthRecordsPopupOpen, setIsHealthRecordsPopupOpen] = useState(false);
+  const [isPendingResultsPopupOpen, setIsPendingResultsPopupOpen] = useState(false);
 
   // PDF Generation Function
   const generateLabResultPDF = (labResult: any) => {
@@ -233,6 +234,35 @@ export function PatientDashboard() {
 
   const currentPatientId = currentPatient?.id;
 
+  // Fetch pending results for patient role
+  const { data: pendingResultsData } = useQuery({
+    queryKey: ["/api/patients/pending-results", currentPatientId],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'X-Tenant-Subdomain': 'demo'
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch(`/api/patients/${currentPatientId}/pending-results`, {
+        headers,
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch pending results: ${response.status}`);
+      }
+      
+      return response.json();
+    },
+    enabled: !!user && user.role === 'patient' && !!currentPatientId,
+    staleTime: 0,
+    refetchOnMount: true,
+  });
+
   // Medical Imaging data query for patient - now dynamic based on current patient
   const { data: medicalImagingData } = useQuery({
     queryKey: ["/api/patients", currentPatientId, "medical-imaging"],
@@ -354,6 +384,9 @@ export function PatientDashboard() {
   const totalPrescriptions = (prescriptionsData as any)?.totalCount || 0;
   const patientId = (prescriptionsData as any)?.patientId || (appointmentsData as any)?.patientId;
 
+  // Calculate total pending results count
+  const totalPendingCount = (pendingResultsData?.totalCount || 0);
+
   const patientCards = [
     {
       title: "Next Appointment",
@@ -381,11 +414,12 @@ export function PatientDashboard() {
     },
     {
       title: "Pending Results",
-      value: "0",
+      value: totalPendingCount.toString(),
       description: "Lab test results",
       icon: FileText,
-      href: "/lab-results",
-      color: "bg-orange-100 text-orange-800"
+      href: "#",
+      color: "bg-orange-100 text-orange-800",
+      isPendingResults: true
     }
   ];
 
@@ -430,8 +464,8 @@ export function PatientDashboard() {
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {patientCards.map((card) => (
-          <Link key={card.title} href={card.href}>
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+          card.isPendingResults ? (
+            <Card key={card.title} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setIsPendingResultsPopupOpen(true)}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
                 <div className={`p-2 rounded-full ${card.color}`}>
@@ -439,18 +473,33 @@ export function PatientDashboard() {
                 </div>
               </CardHeader>
               <CardContent>
-                {card.title === "Next Appointment" && nextAppointment ? (
-                  <div>
-                    <div className="text-2xl font-bold">{new Date(nextAppointment.scheduledAt).toLocaleDateString()}</div>
-                    <div className="text-sm text-gray-500 mt-1">{new Date(nextAppointment.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}</div>
-                  </div>
-                ) : (
-                  <div className="text-2xl font-bold">{card.value}</div>
-                )}
+                <div className="text-2xl font-bold">{card.value}</div>
                 <p className="text-xs text-neutral-500">{card.description}</p>
               </CardContent>
             </Card>
-          </Link>
+          ) : (
+            <Link key={card.title} href={card.href}>
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
+                  <div className={`p-2 rounded-full ${card.color}`}>
+                    <card.icon className="h-4 w-4" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {card.title === "Next Appointment" && nextAppointment ? (
+                    <div>
+                      <div className="text-2xl font-bold">{new Date(nextAppointment.scheduledAt).toLocaleDateString()}</div>
+                      <div className="text-sm text-gray-500 mt-1">{new Date(nextAppointment.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}</div>
+                    </div>
+                  ) : (
+                    <div className="text-2xl font-bold">{card.value}</div>
+                  )}
+                  <p className="text-xs text-neutral-500">{card.description}</p>
+                </CardContent>
+              </Card>
+            </Link>
+          )
         ))}
       </div>
 
@@ -606,6 +655,228 @@ export function PatientDashboard() {
         isOpen={isChatbotOpen} 
         onClose={() => setIsChatbotOpen(false)} 
       />
+
+      {/* Pending Results Popup */}
+      <Dialog open={isPendingResultsPopupOpen} onOpenChange={setIsPendingResultsPopupOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold text-gray-900">Pending Results</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            {pendingResultsData ? (
+              <div className="space-y-6">
+                {/* Prescriptions */}
+                {pendingResultsData.prescriptions && pendingResultsData.prescriptions.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-3 border-b pb-2">Prescriptions ({pendingResultsData.prescriptions.length})</h3>
+                    <div className="space-y-3">
+                      {pendingResultsData.prescriptions.map((prescription: any, index: number) => (
+                        <div key={prescription.id || index} className="border rounded-lg p-4 bg-gray-50">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h4 className="font-semibold text-gray-900">{prescription.medicationName}</h4>
+                              <p className="text-sm text-gray-600">Dosage: {prescription.dosage}</p>
+                              <p className="text-sm text-gray-600">Frequency: {prescription.frequency}</p>
+                              <p className="text-sm text-gray-600">Duration: {prescription.duration}</p>
+                              {prescription.instructions && (
+                                <p className="text-sm text-gray-600">Instructions: {prescription.instructions}</p>
+                              )}
+                            </div>
+                            <span className="px-2 py-1 rounded text-xs bg-yellow-100 text-yellow-800">
+                              {prescription.status || 'Pending'}
+                            </span>
+                          </div>
+                          {prescription.issuedDate && (
+                            <p className="text-xs text-gray-500 mt-2">
+                              Issued: {new Date(prescription.issuedDate).toLocaleDateString()}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Lab Results */}
+                {pendingResultsData.labResults && pendingResultsData.labResults.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-3 border-b pb-2">Lab Results ({pendingResultsData.labResults.length})</h3>
+                    <div className="space-y-3">
+                      {pendingResultsData.labResults.map((labResult: any, index: number) => (
+                        <div key={labResult.id || index} className="border rounded-lg p-4 bg-gray-50">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h4 className="font-semibold text-gray-900">{labResult.testType}</h4>
+                              <p className="text-sm text-gray-600">Test ID: {labResult.testId}</p>
+                              <p className="text-sm text-gray-600">Priority: {labResult.priority || 'Routine'}</p>
+                              {labResult.doctorName && (
+                                <p className="text-sm text-gray-600">Ordered by: {labResult.doctorName}</p>
+                              )}
+                            </div>
+                            <span className="px-2 py-1 rounded text-xs bg-yellow-100 text-yellow-800">
+                              {labResult.status || 'Pending'}
+                            </span>
+                          </div>
+                          {labResult.orderedAt && (
+                            <p className="text-xs text-gray-500 mt-2">
+                              Ordered: {new Date(labResult.orderedAt).toLocaleDateString()}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Medical Records */}
+                {pendingResultsData.medicalRecords && pendingResultsData.medicalRecords.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-3 border-b pb-2">Medical Records ({pendingResultsData.medicalRecords.length})</h3>
+                    <div className="space-y-3">
+                      {pendingResultsData.medicalRecords.map((record: any, index: number) => (
+                        <div key={record.id || index} className="border rounded-lg p-4 bg-gray-50">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h4 className="font-semibold text-gray-900">{record.title}</h4>
+                              <p className="text-sm text-gray-600">Type: {record.type}</p>
+                              {record.diagnosis && (
+                                <p className="text-sm text-gray-600">Diagnosis: {record.diagnosis}</p>
+                              )}
+                              {record.notes && (
+                                <p className="text-sm text-gray-600 mt-1">{record.notes}</p>
+                              )}
+                            </div>
+                          </div>
+                          {record.createdAt && (
+                            <p className="text-xs text-gray-500 mt-2">
+                              Created: {new Date(record.createdAt).toLocaleDateString()}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* AI Insights */}
+                {pendingResultsData.aiInsights && pendingResultsData.aiInsights.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-3 border-b pb-2">AI Insights ({pendingResultsData.aiInsights.length})</h3>
+                    <div className="space-y-3">
+                      {pendingResultsData.aiInsights.map((insight: any, index: number) => (
+                        <div key={insight.id || index} className="border rounded-lg p-4 bg-gray-50">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h4 className="font-semibold text-gray-900">{insight.title}</h4>
+                              <p className="text-sm text-gray-600">Type: {insight.type}</p>
+                              <p className="text-sm text-gray-600">Severity: {insight.severity}</p>
+                              <p className="text-sm text-gray-600 mt-1">{insight.description}</p>
+                            </div>
+                            <span className="px-2 py-1 rounded text-xs bg-yellow-100 text-yellow-800">
+                              {insight.aiStatus || 'Pending'}
+                            </span>
+                          </div>
+                          {insight.createdAt && (
+                            <p className="text-xs text-gray-500 mt-2">
+                              Created: {new Date(insight.createdAt).toLocaleDateString()}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Voice Notes */}
+                {pendingResultsData.voiceNotes && pendingResultsData.voiceNotes.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-3 border-b pb-2">Voice Notes ({pendingResultsData.voiceNotes.length})</h3>
+                    <div className="space-y-3">
+                      {pendingResultsData.voiceNotes.map((voiceNote: any, index: number) => (
+                        <div key={voiceNote.id || index} className="border rounded-lg p-4 bg-gray-50">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h4 className="font-semibold text-gray-900">{voiceNote.type}</h4>
+                              <p className="text-sm text-gray-600">Patient: {voiceNote.patientName}</p>
+                              <p className="text-sm text-gray-600">Provider: {voiceNote.providerName}</p>
+                              {voiceNote.recordingDuration && (
+                                <p className="text-sm text-gray-600">Duration: {voiceNote.recordingDuration}s</p>
+                              )}
+                            </div>
+                            <span className="px-2 py-1 rounded text-xs bg-yellow-100 text-yellow-800">
+                              {voiceNote.status || 'Pending'}
+                            </span>
+                          </div>
+                          {voiceNote.createdAt && (
+                            <p className="text-xs text-gray-500 mt-2">
+                              Created: {new Date(voiceNote.createdAt).toLocaleDateString()}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Claims */}
+                {pendingResultsData.claims && pendingResultsData.claims.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-3 border-b pb-2">Claims ({pendingResultsData.claims.length})</h3>
+                    <div className="space-y-3">
+                      {pendingResultsData.claims.map((claim: any, index: number) => (
+                        <div key={claim.id || index} className="border rounded-lg p-4 bg-gray-50">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h4 className="font-semibold text-gray-900">Claim #{claim.claimNumber}</h4>
+                              <p className="text-sm text-gray-600">Insurance: {claim.insuranceProvider}</p>
+                              <p className="text-sm text-gray-600">Amount: £{claim.amount}</p>
+                              <p className="text-sm text-gray-600">Service Date: {new Date(claim.serviceDate).toLocaleDateString()}</p>
+                            </div>
+                            <span className="px-2 py-1 rounded text-xs bg-yellow-100 text-yellow-800">
+                              {claim.status || 'Pending'}
+                            </span>
+                          </div>
+                          {claim.submissionDate && (
+                            <p className="text-xs text-gray-500 mt-2">
+                              Submitted: {new Date(claim.submissionDate).toLocaleDateString()}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {totalPendingCount === 0 && (
+                  <div className="text-center py-8">
+                    <FileText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-500 text-lg font-medium">No Pending Results</p>
+                    <p className="text-gray-400">All your test results and records are up to date.</p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <FileText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500 text-lg font-medium">Loading Pending Results...</p>
+              </div>
+            )}
+
+            <div className="flex justify-end pt-4 border-t">
+              <Button 
+                variant="outline" 
+                onClick={() => setIsPendingResultsPopupOpen(false)}
+                className="flex items-center gap-2"
+                data-testid="close-pending-results-popup"
+              >
+                <X className="h-4 w-4" />
+                Close
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Prescriptions Popup */}
       <Dialog open={isPrescriptionsPopupOpen} onOpenChange={setIsPrescriptionsPopupOpen}>
