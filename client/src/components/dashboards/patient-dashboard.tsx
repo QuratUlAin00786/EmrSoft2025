@@ -523,7 +523,7 @@ export function PatientDashboard() {
                 <CardContent>
                   {card.title === "Next Appointment" && nextAppointment ? (
                     <div>
-                      <div className="text-2xl font-bold">
+                      <div className={user?.role === "patient" ? "text-lg font-bold" : "text-2xl font-bold"}>
                         {user?.role === "patient" ? (() => {
                           const date = new Date(nextAppointment.scheduledAt);
                           const day = date.getDate();
