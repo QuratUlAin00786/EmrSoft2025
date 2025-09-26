@@ -15,6 +15,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import {
   Calendar,
@@ -53,6 +61,9 @@ export default function PatientAppointments({
   >("upcoming");
   const [editingAppointment, setEditingAppointment] = useState<any>(null);
   const [deletingAppointmentId, setDeletingAppointmentId] = useState<
+    number | null
+  >(null);
+  const [cancellingAppointmentId, setCancellingAppointmentId] = useState<
     number | null
   >(null);
   const [bookedTimeSlots, setBookedTimeSlots] = useState<string[]>([]);
@@ -350,7 +361,18 @@ export default function PatientAppointments({
   };
 
   const handleCancelAppointment = (appointmentId: number) => {
-    cancelAppointmentMutation.mutate(appointmentId);
+    setCancellingAppointmentId(appointmentId);
+  };
+
+  const confirmCancelAppointment = () => {
+    if (cancellingAppointmentId) {
+      cancelAppointmentMutation.mutate(cancellingAppointmentId);
+      setCancellingAppointmentId(null);
+    }
+  };
+
+  const closeCancelModal = () => {
+    setCancellingAppointmentId(null);
   };
 
   const confirmDeleteAppointment = () => {
@@ -807,10 +829,11 @@ export default function PatientAppointments({
                               variant="outline"
                               size="sm"
                               onClick={() => handleCancelAppointment(appointment.id)}
+                              className="border-red-500 text-red-500 hover:bg-red-50 text-xs"
                               data-testid={`button-cancel-appointment-${appointment.id}`}
                               title="Cancel Appointment"
                             >
-                              Cancel
+                              Cancel Appointment
                             </Button>
                           )}
                           {user?.role !== "patient" && (
@@ -1321,6 +1344,30 @@ export default function PatientAppointments({
           </div>
         </div>
       )}
+
+      {/* Cancel Appointment Confirmation Dialog */}
+      <Dialog open={!!cancellingAppointmentId} onOpenChange={closeCancelModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cancel Appointment</DialogTitle>
+            <DialogDescription>
+              Do you want to cancel this appointment?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={closeCancelModal}>
+              No
+            </Button>
+            <Button 
+              onClick={confirmCancelAppointment}
+              disabled={cancelAppointmentMutation.isPending}
+              className="bg-red-600 text-white hover:bg-red-700"
+            >
+              {cancelAppointmentMutation.isPending ? "Cancelling..." : "Yes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Appointment Stats */}
       <Card>
