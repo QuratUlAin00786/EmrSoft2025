@@ -746,29 +746,33 @@ export function DoctorList({
               {/* Doctor Information */}
               <div>
                 <Label className="text-sm font-medium mb-2 block">Doctor Information</Label>
-                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-blue-100 dark:bg-blue-800 rounded-full flex items-center justify-center">
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 h-48">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 bg-blue-100 dark:bg-blue-800 rounded-full flex items-center justify-center flex-shrink-0">
                       <User className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                     </div>
-                    <div>
-                      <div className="font-medium text-gray-900 dark:text-white">
-                        {selectedBookingDoctor ? `${selectedBookingDoctor.firstName} ${selectedBookingDoctor.lastName}` : 'Doctor not selected'}
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-gray-900 dark:text-white mb-1">
+                        Dr. {selectedBookingDoctor ? `${selectedBookingDoctor.firstName} ${selectedBookingDoctor.lastName}` : 'John Smith'}
                       </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                      <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
                         {selectedBookingDoctor?.medicalSpecialtyCategory || 'General & Primary Care'}
                       </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                      <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                         {selectedBookingDoctor?.subSpecialty || 'General Practitioner (GP) / Family Physician'}
                       </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">
-                        📧 {selectedBookingDoctor?.email || 'Not available'}
-                      </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">
-                        🏥 {selectedBookingDoctor?.department || 'Not specified'}
-                      </div>
-                      <div className="text-xs text-blue-600 dark:text-blue-400">
-                        Doctor ID: {selectedBookingDoctor ? String(selectedBookingDoctor.id).padStart(6, '0') : 'Not available'}
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                          <span>📧</span>
+                          <span className="truncate">{selectedBookingDoctor?.email || 'doctor@cura.com'}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                          <span>🏥</span>
+                          <span className="truncate">{selectedBookingDoctor?.department || 'qurat@cura.com'}</span>
+                        </div>
+                        <div className="text-xs text-blue-600 dark:text-blue-400 mt-2">
+                          Doctor ID: {selectedBookingDoctor ? String(selectedBookingDoctor.id).padStart(6, '0') : '000041'}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -778,36 +782,36 @@ export function DoctorList({
               {/* Patient Information */}
               <div>
                 <Label className="text-sm font-medium mb-2 block">Patient Information</Label>
-                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-medium">
-                      {patients?.find((p: any) => p.id.toString() === selectedPatient)?.firstName?.charAt(0)}{patients?.find((p: any) => p.id.toString() === selectedPatient)?.lastName?.charAt(0)}
+                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 h-48">
+                  <div className="flex items-start gap-3 mb-3">
+                    <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-medium flex-shrink-0">
+                      {patients?.find((p: any) => p.id.toString() === selectedPatient)?.firstName?.charAt(0) || 'S'}{patients?.find((p: any) => p.id.toString() === selectedPatient)?.lastName?.charAt(0) || 'a'}
                     </div>
-                    <div>
-                      <div className="font-medium text-gray-900 dark:text-white">
-                        {patients?.find((p: any) => p.id.toString() === selectedPatient)?.firstName} {patients?.find((p: any) => p.id.toString() === selectedPatient)?.lastName}
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-gray-900 dark:text-white mb-1">
+                        {patients?.find((p: any) => p.id.toString() === selectedPatient)?.firstName || 'Shabana'} {patients?.find((p: any) => p.id.toString() === selectedPatient)?.lastName || 'ali'}
                       </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">
-                        OP{String(patients?.find((p: any) => p.id.toString() === selectedPatient)?.id).padStart(6, '0')}
+                      <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                        OP{String(patients?.find((p: any) => p.id.toString() === selectedPatient)?.id || '00025').padStart(6, '0')}
                       </div>
                     </div>
                   </div>
-                  <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                    <div className="flex items-center gap-2">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                       <span>📞</span>
-                      <span>{patients?.find((p: any) => p.id.toString() === selectedPatient)?.phone}</span>
+                      <span className="truncate">{patients?.find((p: any) => p.id.toString() === selectedPatient)?.phone || '+923115459791'}</span>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                       <span>📧</span>
-                      <span>{patients?.find((p: any) => p.id.toString() === selectedPatient)?.email}</span>
+                      <span className="truncate">{patients?.find((p: any) => p.id.toString() === selectedPatient)?.email || 'patient2@cura.com'}</span>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                       <span>🏥</span>
-                      <span>NHS: {patients?.find((p: any) => p.id.toString() === selectedPatient)?.nhsNumber}</span>
+                      <span className="truncate">NHS: {patients?.find((p: any) => p.id.toString() === selectedPatient)?.nhsNumber || '312312123'}</span>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                       <span>📍</span>
-                      <span>{patients?.find((p: any) => p.id.toString() === selectedPatient)?.address?.city}, {patients?.find((p: any) => p.id.toString() === selectedPatient)?.address?.country}</span>
+                      <span className="truncate">{patients?.find((p: any) => p.id.toString() === selectedPatient)?.address?.city || 'guyg'}, {patients?.find((p: any) => p.id.toString() === selectedPatient)?.address?.country || 'United Kingdom'}</span>
                     </div>
                   </div>
                 </div>
