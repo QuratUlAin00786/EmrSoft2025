@@ -684,7 +684,7 @@ export function PatientDashboard() {
                         
                         reminders.push({
                           type: 'appointment',
-                          title: 'Upcoming Appointment',
+                          title: 'Next Appointment',
                           description: `${appointment.title}${doctorInfo.name ? ` with ${doctorInfo.name}` : ''}`,
                           timeframe,
                           urgency,
