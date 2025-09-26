@@ -309,12 +309,48 @@ export default function PatientAppointments({
     },
   });
 
+  // Cancel appointment mutation for patient users
+  const cancelAppointmentMutation = useMutation({
+    mutationFn: async (appointmentId: number) => {
+      const response = await apiRequest(
+        "PUT",
+        `/api/appointments/${appointmentId}`,
+        { status: "cancelled" }
+      );
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to cancel appointment");
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Appointment Cancelled",
+        description: "The appointment has been successfully cancelled.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Cancel Failed",
+        description: "Failed to cancel appointment. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleEditAppointment = (appointment: any) => {
     setEditingAppointment(appointment);
   };
 
   const handleDeleteAppointment = (appointmentId: number) => {
     setDeletingAppointmentId(appointmentId);
+  };
+
+  const handleCancelAppointment = (appointmentId: number) => {
+    cancelAppointmentMutation.mutate(appointmentId);
   };
 
   const confirmDeleteAppointment = () => {
@@ -765,6 +801,19 @@ export default function PatientAppointments({
                           >
                             <Edit className="h-4 w-4 text-blue-600" />
                           </Button>
+                          {/* Cancel Appointment button for patient users */}
+                          {user?.role === "patient" && appointment.status === "scheduled" && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleCancelAppointment(appointment.id)}
+                              className="h-8 w-8 p-0"
+                              data-testid={`button-cancel-appointment-${appointment.id}`}
+                              title="Cancel Appointment"
+                            >
+                              <X className="h-4 w-4 text-orange-600" />
+                            </Button>
+                          )}
                           <Button
                             variant="ghost"
                             size="sm"
