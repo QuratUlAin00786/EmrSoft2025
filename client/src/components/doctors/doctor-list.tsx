@@ -462,16 +462,27 @@ export function DoctorList({
                       className="font-semibold text-gray-900 dark:text-gray-100 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                       onClick={() => openScheduleDialog(doctor)}
                     >
-                      Dr. {doctor.firstName} {doctor.lastName}
+                      {doctor.firstName} {doctor.lastName}
                     </h4>
-                    <Badge
-                      className={
-                        roleColors[doctor.role as keyof typeof roleColors] ||
-                        "bg-gray-100 text-gray-800"
-                      }
-                    >
-                      {doctor.role}
-                    </Badge>
+                  </div>
+
+                  {/* Medical Specializations */}
+                  <div className="flex items-center gap-2 mb-2">
+                    {doctor.medicalSpecialtyCategory && (
+                      <Badge
+                        className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                      >
+                        {doctor.medicalSpecialtyCategory}
+                      </Badge>
+                    )}
+                    {doctor.subSpecialty && (
+                      <Badge
+                        variant="outline"
+                        className="bg-green-100 text-green-800 border-green-200 dark:bg-green-900 dark:text-green-200 dark:border-green-700"
+                      >
+                        {doctor.subSpecialty}
+                      </Badge>
+                    )}
                   </div>
 
                   {doctor.department && (
@@ -507,19 +518,13 @@ export function DoctorList({
                       </div>
                     )}
 
-                  <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-                    <span className="flex items-center gap-1">
-                      <User className="h-3 w-3" />
-                      ID: {doctor.id}
-                    </span>
-                    {doctor.lastLoginAt && (
-                      <span className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        Last active:{" "}
-                        {new Date(doctor.lastLoginAt).toLocaleDateString()}
-                      </span>
-                    )}
-                  </div>
+                  {doctor.lastLoginAt && (
+                    <div className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
+                      <Clock className="h-3 w-3" />
+                      Last active:{" "}
+                      {new Date(doctor.lastLoginAt).toLocaleDateString()}
+                    </div>
+                  )}
                 </div>
               </div>
 
