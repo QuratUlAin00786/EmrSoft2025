@@ -1570,6 +1570,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Calculate patient health score - MUST come before /api/patients/:id
+  app.get("/api/patients/health-score", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "User authentication required" });
+      }
+
+      // Find patient by user email
+      const patients = await storage.getPatientsByOrganization(req.tenant!.id);
+      const matchingPatient = patients.find(p => p.email === req.user?.email);
+      
+      if (!matchingPatient) {
+        return res.status(404).json({ error: "Patient record not found" });
+      }
+
+      // Get medical records for this patient
+      const records = await storage.getMedicalRecordsByPatient(matchingPatient.id, req.tenant!.id);
+      
+      // Calculate health score
+      const healthScore = calculateHealthScore(records, matchingPatient);
+      
+      res.json(healthScore);
+    } catch (error) {
+      console.error("Health score calculation error:", error);
+      res.status(500).json({ error: "Failed to calculate health score" });
+    }
+  });
+
   app.get("/api/patients/:id", async (req: TenantRequest, res) => {
     try {
       console.log("🔍 PATIENTS/:ID DEBUG - Raw ID param:", req.params.id);
@@ -1637,34 +1666,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Calculate patient health score
-  app.get("/api/patients/health-score", authMiddleware, async (req: TenantRequest, res) => {
-    try {
-      const userId = req.user?.id;
-      if (!userId) {
-        return res.status(401).json({ error: "User authentication required" });
-      }
-
-      // Find patient by user email
-      const patients = await storage.getPatients(req.tenant!.id);
-      const matchingPatient = patients.find(p => p.email === req.user?.email);
-      
-      if (!matchingPatient) {
-        return res.status(404).json({ error: "Patient record not found" });
-      }
-
-      // Get medical records for this patient
-      const records = await storage.getMedicalRecordsByPatient(matchingPatient.id, req.tenant!.id);
-      
-      // Calculate health score
-      const healthScore = calculateHealthScore(records, matchingPatient);
-      
-      res.json(healthScore);
-    } catch (error) {
-      console.error("Health score calculation error:", error);
-      res.status(500).json({ error: "Failed to calculate health score" });
-    }
-  });
 
   // Get patient history by ID
   app.get("/api/patients/:id/history", async (req: TenantRequest, res) => {
