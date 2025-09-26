@@ -194,6 +194,35 @@ export function PatientDashboard() {
     refetchOnMount: true,
   });
 
+  // Health Score query
+  const { data: healthScoreData, isLoading: healthScoreLoading } = useQuery({
+    queryKey: ["/api/patients/health-score", user?.id],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'X-Tenant-Subdomain': 'demo'
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch('/api/patients/health-score', {
+        headers,
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch health score: ${response.status}`);
+      }
+      
+      return response.json();
+    },
+    enabled: !!user && user.role === 'patient',
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes since health score calculation is expensive
+    refetchOnMount: true,
+  });
+
   // Fetch patients data to get current patient ID - MUST come first before medical imaging query
   const { data: patients = [], isLoading: patientsLoading } = useQuery({
     queryKey: ["/api/patients"],
@@ -406,11 +435,16 @@ export function PatientDashboard() {
     },
     {
       title: "Health Score",
-      value: "Good",
-      description: "Based on recent vitals",
+      value: healthScoreLoading ? "..." : healthScoreData ? `${healthScoreData.score}%` : "N/A",
+      description: healthScoreData ? `${healthScoreData.category} - Based on ${healthScoreData.totalRecords} records` : "Based on recent vitals",
       icon: Heart,
       href: "/health-summary",
-      color: "bg-purple-100 text-purple-800"
+      color: healthScoreData ? 
+        (healthScoreData.score >= 85 ? "bg-green-100 text-green-800" :
+         healthScoreData.score >= 70 ? "bg-blue-100 text-blue-800" :
+         healthScoreData.score >= 50 ? "bg-yellow-100 text-yellow-800" :
+         "bg-red-100 text-red-800") : 
+        "bg-purple-100 text-purple-800"
     },
     {
       title: "Pending Results",

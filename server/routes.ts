@@ -45,6 +45,254 @@ declare global {
   var appointmentClients: Map<string, { res: express.Response, organizationId: number, userId: number }> | undefined;
 }
 
+// Health Score calculation function
+function calculateHealthScore(medicalRecords: any[], patientData: any) {
+  // Default scores - starting point
+  let totalWeightedScore = 0;
+  let maxPossibleScore = 0;
+  const weights = {
+    spo2: 0.20,      // 20%
+    bp: 0.20,        // 20%
+    hr: 0.15,        // 15%
+    labs: 0.20,      // 20%
+    bmi: 0.10,       // 10%
+    lifestyle: 0.15  // 15%
+  };
+
+  // Initialize scores for each category
+  const scores = {
+    spo2: { points: 10, maxPoints: 20 },      // Default moderate score
+    bp: { points: 10, maxPoints: 20 },
+    hr: { points: 10, maxPoints: 20 },
+    labs: { points: 10, maxPoints: 20 },
+    bmi: { points: 10, maxPoints: 20 },
+    lifestyle: { points: 10, maxPoints: 20 }
+  };
+
+  // Extract health data from medical records notes
+  medicalRecords.forEach(record => {
+    if (record.notes) {
+      const notes = record.notes.toLowerCase();
+      
+      // Parse Blood Pressure (BP)
+      const bpMatch = notes.match(/bp[:\s]*(\d+)\/(\d+)|blood pressure[:\s]*(\d+)\/(\d+)|systolic[:\s]*(\d+)/);
+      if (bpMatch) {
+        const systolic = parseInt(bpMatch[1] || bpMatch[3] || bpMatch[5]);
+        if (systolic >= 110 && systolic <= 130) {
+          scores.bp.points = 20;
+        } else if ((systolic >= 90 && systolic < 110) || (systolic > 130 && systolic <= 150)) {
+          scores.bp.points = 15;
+        } else if (systolic < 90 || systolic > 150) {
+          scores.bp.points = 5;
+        }
+      }
+
+      // Parse Heart Rate (HR)
+      const hrMatch = notes.match(/hr[:\s]*(\d+)|heart rate[:\s]*(\d+)|pulse[:\s]*(\d+)/);
+      if (hrMatch) {
+        const heartRate = parseInt(hrMatch[1] || hrMatch[2] || hrMatch[3]);
+        if (heartRate >= 60 && heartRate <= 100) {
+          scores.hr.points = 20;
+        } else if ((heartRate >= 50 && heartRate < 60) || (heartRate > 100 && heartRate <= 120)) {
+          scores.hr.points = 15;
+        } else if (heartRate < 50 || heartRate > 120) {
+          scores.hr.points = 5;
+        }
+      }
+
+      // Parse SpO2 (Oxygen Saturation)
+      const spo2Match = notes.match(/spo2[:\s]*(\d+)|o2 sat[:\s]*(\d+)|oxygen[:\s]*(\d+)/);
+      if (spo2Match) {
+        const spo2 = parseInt(spo2Match[1] || spo2Match[2] || spo2Match[3]);
+        if (spo2 >= 95) {
+          scores.spo2.points = 20;
+        } else if (spo2 >= 90 && spo2 < 95) {
+          scores.spo2.points = 10;
+        } else if (spo2 < 90) {
+          scores.spo2.points = 0;
+        }
+      }
+
+      // Parse Temperature
+      const tempMatch = notes.match(/temp[:\s]*(\d+\.?\d*)|temperature[:\s]*(\d+\.?\d*)/);
+      if (tempMatch) {
+        const temp = parseFloat(tempMatch[1] || tempMatch[2]);
+        // Assuming Celsius - normal range 36.1-37.2°C
+        if (temp >= 36.1 && temp <= 37.2) {
+          scores.hr.points = Math.max(scores.hr.points, 20); // Use HR category for temp
+        } else if ((temp >= 35.5 && temp < 36.1) || (temp > 37.2 && temp <= 38.0)) {
+          scores.hr.points = Math.max(scores.hr.points, 15);
+        }
+      }
+
+      // Parse BMI or Weight/Height
+      const bmiMatch = notes.match(/bmi[:\s]*(\d+\.?\d*)/);
+      const weightMatch = notes.match(/weight[:\s]*(\d+\.?\d*)/);
+      const heightMatch = notes.match(/height[:\s]*(\d+\.?\d*)/);
+      
+      if (bmiMatch) {
+        const bmi = parseFloat(bmiMatch[1]);
+        if (bmi >= 18.5 && bmi <= 24.9) {
+          scores.bmi.points = 20;
+        } else if ((bmi >= 17 && bmi < 18.5) || (bmi >= 25 && bmi <= 29.9)) {
+          scores.bmi.points = 10;
+        } else if (bmi < 17 || bmi >= 30) {
+          scores.bmi.points = 5;
+        }
+      } else if (weightMatch && heightMatch) {
+        const weight = parseFloat(weightMatch[1]);
+        const height = parseFloat(heightMatch[1]);
+        const bmi = weight / (height * height); // Assuming height in meters
+        if (bmi >= 18.5 && bmi <= 24.9) {
+          scores.bmi.points = 20;
+        } else if ((bmi >= 17 && bmi < 18.5) || (bmi >= 25 && bmi <= 29.9)) {
+          scores.bmi.points = 10;
+        } else if (bmi < 17 || bmi >= 30) {
+          scores.bmi.points = 5;
+        }
+      }
+
+      // Parse Labs (Glucose, Cholesterol, HbA1c, etc.)
+      const glucoseMatch = notes.match(/glucose[:\s]*(\d+\.?\d*)|blood sugar[:\s]*(\d+\.?\d*)/);
+      const cholesterolMatch = notes.match(/cholesterol[:\s]*(\d+\.?\d*)/);
+      const hba1cMatch = notes.match(/hba1c[:\s]*(\d+\.?\d*)/);
+      
+      let labScore = 10; // Default
+      let labCount = 0;
+      
+      if (glucoseMatch) {
+        const glucose = parseFloat(glucoseMatch[1] || glucoseMatch[2]);
+        if (glucose >= 70 && glucose <= 140) {
+          labScore += 20;
+        } else if ((glucose >= 60 && glucose < 70) || (glucose > 140 && glucose <= 180)) {
+          labScore += 15;
+        } else {
+          labScore += 5;
+        }
+        labCount++;
+      }
+      
+      if (cholesterolMatch) {
+        const cholesterol = parseFloat(cholesterolMatch[1]);
+        if (cholesterol < 200) {
+          labScore += 20;
+        } else if (cholesterol >= 200 && cholesterol <= 239) {
+          labScore += 15;
+        } else {
+          labScore += 5;
+        }
+        labCount++;
+      }
+      
+      if (hba1cMatch) {
+        const hba1c = parseFloat(hba1cMatch[1]);
+        if (hba1c < 5.7) {
+          labScore += 20;
+        } else if (hba1c >= 5.7 && hba1c <= 6.4) {
+          labScore += 15;
+        } else {
+          labScore += 5;
+        }
+        labCount++;
+      }
+      
+      if (labCount > 0) {
+        scores.labs.points = Math.min(20, labScore / labCount);
+      }
+    }
+  });
+
+  // Parse lifestyle factors from patient data
+  if (patientData.medicalHistory?.socialHistory) {
+    const social = patientData.medicalHistory.socialHistory;
+    let lifestyleScore = 0;
+    let factorCount = 0;
+
+    // Smoking
+    if (social.smoking?.status) {
+      if (social.smoking.status === 'never') {
+        lifestyleScore += 20;
+      } else if (social.smoking.status === 'former') {
+        lifestyleScore += 15;
+      } else {
+        lifestyleScore += 5;
+      }
+      factorCount++;
+    }
+
+    // Alcohol
+    if (social.alcohol?.status) {
+      if (social.alcohol.status === 'never' || social.alcohol.status === 'social') {
+        lifestyleScore += 20;
+      } else if (social.alcohol.status === 'moderate') {
+        lifestyleScore += 15;
+      } else {
+        lifestyleScore += 5;
+      }
+      factorCount++;
+    }
+
+    // Exercise
+    if (social.exercise?.frequency) {
+      if (social.exercise.frequency === 'daily' || social.exercise.frequency === 'weekly') {
+        lifestyleScore += 20;
+      } else if (social.exercise.frequency === 'monthly') {
+        lifestyleScore += 15;
+      } else {
+        lifestyleScore += 5;
+      }
+      factorCount++;
+    }
+
+    if (factorCount > 0) {
+      scores.lifestyle.points = lifestyleScore / factorCount;
+    }
+  }
+
+  // Calculate weighted total
+  Object.entries(scores).forEach(([category, score]) => {
+    const weight = weights[category as keyof typeof weights];
+    totalWeightedScore += score.points * weight;
+    maxPossibleScore += score.maxPoints * weight;
+  });
+
+  // Calculate final percentage
+  const healthScorePercentage = Math.round((totalWeightedScore / maxPossibleScore) * 100);
+
+  // Categorize score
+  let category = '';
+  let color = '';
+  if (healthScorePercentage >= 85) {
+    category = 'Excellent';
+    color = '#6CFFEB'; // Mint
+  } else if (healthScorePercentage >= 70) {
+    category = 'Good';
+    color = '#4A7DFF'; // Blue
+  } else if (healthScorePercentage >= 50) {
+    category = 'Fair';
+    color = '#FFA500'; // Orange
+  } else {
+    category = 'Poor';
+    color = '#FF6B6B'; // Red
+  }
+
+  return {
+    score: healthScorePercentage,
+    category,
+    color,
+    breakdown: {
+      spo2: { points: Math.round(scores.spo2.points), maxPoints: scores.spo2.maxPoints, weight: weights.spo2 },
+      bp: { points: Math.round(scores.bp.points), maxPoints: scores.bp.maxPoints, weight: weights.bp },
+      hr: { points: Math.round(scores.hr.points), maxPoints: scores.hr.maxPoints, weight: weights.hr },
+      labs: { points: Math.round(scores.labs.points), maxPoints: scores.labs.maxPoints, weight: weights.labs },
+      bmi: { points: Math.round(scores.bmi.points), maxPoints: scores.bmi.maxPoints, weight: weights.bmi },
+      lifestyle: { points: Math.round(scores.lifestyle.points), maxPoints: scores.lifestyle.maxPoints, weight: weights.lifestyle }
+    },
+    totalRecords: medicalRecords.length,
+    lastUpdated: new Date().toISOString()
+  };
+}
+
 // Server-Sent Events broadcaster for real-time AI insight updates
 interface AiInsightSSEEvent {
   type: 'ai_insight.status_updated';
@@ -1386,6 +1634,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Medical records fetch error:", error);
       res.status(500).json({ error: "Failed to fetch medical records" });
+    }
+  });
+
+  // Calculate patient health score
+  app.get("/api/patients/health-score", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "User authentication required" });
+      }
+
+      // Find patient by user email
+      const patients = await storage.getPatients(req.tenant!.id);
+      const matchingPatient = patients.find(p => p.email === req.user?.email);
+      
+      if (!matchingPatient) {
+        return res.status(404).json({ error: "Patient record not found" });
+      }
+
+      // Get medical records for this patient
+      const records = await storage.getMedicalRecordsByPatient(matchingPatient.id, req.tenant!.id);
+      
+      // Calculate health score
+      const healthScore = calculateHealthScore(records, matchingPatient);
+      
+      res.json(healthScore);
+    } catch (error) {
+      console.error("Health score calculation error:", error);
+      res.status(500).json({ error: "Failed to calculate health score" });
     }
   });
 
