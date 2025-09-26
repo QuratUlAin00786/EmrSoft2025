@@ -89,7 +89,16 @@ export default function Forms() {
   const [showSavedTemplatesDialog, setShowSavedTemplatesDialog] =
     useState(false);
   const [showEmptyContentDialog, setShowEmptyContentDialog] = useState(false);
+  const [showShareDialog, setShowShareDialog] = useState(false);
   const [selectedDoctorId, setSelectedDoctorId] = useState("");
+  const [shareFormData, setShareFormData] = useState({
+    subject: "",
+    recipient: "",
+    location: "",
+    copiedRecipients: "",
+    doctor: "",
+    header: "your-clinic"
+  });
 
   // Fetch doctors from database
   const { data: users = [], isLoading: usersLoading } = useQuery<User[]>({
@@ -3403,6 +3412,7 @@ export default function Forms() {
                   e.currentTarget.style.boxShadow =
                     "0 4px 12px rgba(74,125,255,0.3)";
                 }}
+                onClick={() => setShowShareDialog(true)}
               >
                 Share this...
               </Button>
@@ -3763,6 +3773,112 @@ export default function Forms() {
 
         {/* Toolbar - medical theme colors */}
         <div className="bg-gray-50 border-b border-gray-200 px-4 py-3 flex-shrink-0">
+     
+          {/* Medical data buttons row - medical theme colors */}
+          <div className="flex justify-center items-center flex-wrap gap-2">
+            <Button
+              size="sm"
+              className="text-xs px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
+              onClick={handleInsertTemplate}
+            >
+              Insert template
+            </Button>
+            <Button
+              size="sm"
+              className="text-xs px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
+              onClick={handleInsertLogo}
+            >
+              Insert logo
+            </Button>
+            <Button
+              size="sm"
+              className="text-xs px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
+              onClick={handleClinic}
+            >
+              Clinic
+            </Button>
+            <Button
+              size="sm"
+              className="text-xs px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
+              onClick={handlePatient}
+            >
+              Patient
+            </Button>
+            <Button
+              size="sm"
+              className="text-xs px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
+              onClick={handleRecipient}
+            >
+              Recipient
+            </Button>
+            <Button
+              size="sm"
+              className="text-xs px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
+              onClick={handleAppointments}
+            >
+              Appointments
+            </Button>
+            <Button
+              size="sm"
+              className="text-xs px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
+              onClick={handleLabs}
+            >
+              Labs
+            </Button>
+            <Button
+              size="sm"
+              className="text-xs px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
+              onClick={handlePatientRecords}
+            >
+              Patient records
+            </Button>
+            <Button
+              size="sm"
+              className="text-xs px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
+              onClick={handleInsertProduct}
+            >
+              Insert product
+            </Button>
+          </div>
+
+          {/* Save, Download, Print and View buttons - medical theme colors */}
+          <div className="flex justify-center items-center gap-1 flex-wrap">
+            <Button
+              size="sm"
+              className="text-xs h-7 px-4 py-2 mt-5"
+              onClick={handleSave}
+              data-testid="button-save-template"
+            >
+              Save Template
+            </Button>
+            <Button
+              data-bluewave="true"
+              size="sm"
+              className="text-xs h-7 px-4 py-2 mt-5"
+              onClick={handleDownload}
+              data-testid="button-download"
+            >
+              <Download className="h-3 w-3 mr-1" />
+              Download
+            </Button>
+            <Button
+              size="sm"
+              className="text-xs h-7 px-4 py-2 mt-5"
+              onClick={handlePrint}
+              data-testid="button-print"
+            >
+              <Printer className="h-3 w-3 mr-1" />
+              Print
+            </Button>
+            <Button
+              size="sm"
+              className="text-xs h-7 px-4 py-2 mt-5"
+              onClick={() => setShowSavedTemplatesDialog(true)}
+            >
+              View Saved Templates
+            </Button>
+          </div>
+
           {/* Main formatting row */}
           <div className="flex justify-center items-center gap-0.5 mb-2">
             {/* Font controls */}
@@ -4302,110 +4418,7 @@ export default function Forms() {
             </Button>
           </div>
 
-          {/* Medical data buttons row - medical theme colors */}
-          <div className="flex justify-center items-center flex-wrap gap-2">
-            <Button
-              size="sm"
-              className="text-xs px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
-              onClick={handleInsertTemplate}
-            >
-              Insert template
-            </Button>
-            <Button
-              size="sm"
-              className="text-xs px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
-              onClick={handleInsertLogo}
-            >
-              Insert logo
-            </Button>
-            <Button
-              size="sm"
-              className="text-xs px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
-              onClick={handleClinic}
-            >
-              Clinic
-            </Button>
-            <Button
-              size="sm"
-              className="text-xs px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
-              onClick={handlePatient}
-            >
-              Patient
-            </Button>
-            <Button
-              size="sm"
-              className="text-xs px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
-              onClick={handleRecipient}
-            >
-              Recipient
-            </Button>
-            <Button
-              size="sm"
-              className="text-xs px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
-              onClick={handleAppointments}
-            >
-              Appointments
-            </Button>
-            <Button
-              size="sm"
-              className="text-xs px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
-              onClick={handleLabs}
-            >
-              Labs
-            </Button>
-            <Button
-              size="sm"
-              className="text-xs px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
-              onClick={handlePatientRecords}
-            >
-              Patient records
-            </Button>
-            <Button
-              size="sm"
-              className="text-xs px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
-              onClick={handleInsertProduct}
-            >
-              Insert product
-            </Button>
-          </div>
-
-          {/* Save, Download, Print and View buttons - medical theme colors */}
-          <div className="flex justify-center items-center gap-1 flex-wrap">
-            <Button
-              size="sm"
-              className="text-xs h-7 px-4 py-2 mt-5"
-              onClick={handleSave}
-              data-testid="button-save-template"
-            >
-              Save Template
-            </Button>
-            <Button
-              data-bluewave="true"
-              size="sm"
-              className="text-xs h-7 px-4 py-2 mt-5"
-              onClick={handleDownload}
-              data-testid="button-download"
-            >
-              <Download className="h-3 w-3 mr-1" />
-              Download
-            </Button>
-            <Button
-              size="sm"
-              className="text-xs h-7 px-4 py-2 mt-5"
-              onClick={handlePrint}
-              data-testid="button-print"
-            >
-              <Printer className="h-3 w-3 mr-1" />
-              Print
-            </Button>
-            <Button
-              size="sm"
-              className="text-xs h-7 px-4 py-2 mt-5"
-              onClick={() => setShowSavedTemplatesDialog(true)}
-            >
-              View Saved Templates
-            </Button>
-          </div>
+        
         </div>
 
         {/* Document Editor - medical theme colors */}
@@ -6270,6 +6283,177 @@ export default function Forms() {
             >
               OK
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Share Dialog - Letter Details */}
+      <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              Letter Details
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {/* First Row - Subject and Recipient */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="share-subject" className="text-sm font-medium">
+                  Subject
+                </Label>
+                <Input
+                  id="share-subject"
+                  value={shareFormData.subject}
+                  onChange={(e) =>
+                    setShareFormData((prev) => ({ ...prev, subject: e.target.value }))
+                  }
+                  placeholder="Enter subject"
+                  className="w-full mt-1"
+                />
+              </div>
+              <div>
+                <Label htmlFor="share-recipient" className="text-sm font-medium">
+                  Recipient (optional)
+                </Label>
+                <Input
+                  id="share-recipient"
+                  value={shareFormData.recipient}
+                  onChange={(e) =>
+                    setShareFormData((prev) => ({ ...prev, recipient: e.target.value }))
+                  }
+                  placeholder="Enter recipient"
+                  className="w-full mt-1"
+                />
+              </div>
+            </div>
+
+            {/* Second Row - Location and Copied Recipients */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="share-location" className="text-sm font-medium">
+                  Location (optional)
+                </Label>
+                <Select
+                  value={shareFormData.location}
+                  onValueChange={(value) =>
+                    setShareFormData((prev) => ({ ...prev, location: value }))
+                  }
+                >
+                  <SelectTrigger className="w-full mt-1">
+                    <SelectValue placeholder="Select..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="main-clinic">Main Clinic</SelectItem>
+                    <SelectItem value="branch-office">Branch Office</SelectItem>
+                    <SelectItem value="hospital">Hospital</SelectItem>
+                    <SelectItem value="specialty-center">Specialty Center</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="share-copied" className="text-sm font-medium">
+                  Copied in recipients (optional)
+                </Label>
+                <Input
+                  id="share-copied"
+                  value={shareFormData.copiedRecipients}
+                  onChange={(e) =>
+                    setShareFormData((prev) => ({ ...prev, copiedRecipients: e.target.value }))
+                  }
+                  placeholder="Enter copied recipients"
+                  className="w-full mt-1"
+                />
+              </div>
+            </div>
+
+            {/* Third Row - Doctor and Header */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="share-doctor" className="text-sm font-medium">
+                  Doctor (optional)
+                </Label>
+                <Select
+                  value={shareFormData.doctor}
+                  onValueChange={(value) =>
+                    setShareFormData((prev) => ({ ...prev, doctor: value }))
+                  }
+                >
+                  <SelectTrigger className="w-full mt-1">
+                    <SelectValue placeholder="Select doctor" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {usersLoading ? (
+                      <SelectItem value="loading" disabled>Loading doctors...</SelectItem>
+                    ) : doctors.length > 0 ? (
+                      doctors.map((doctor) => (
+                        <SelectItem key={doctor.id} value={doctor.id.toString()}>
+                          Dr. {doctor.firstName} {doctor.lastName}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="no-doctors" disabled>No doctors available</SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="share-header" className="text-sm font-medium">
+                  Select Header
+                </Label>
+                <Select
+                  value={shareFormData.header}
+                  onValueChange={(value) =>
+                    setShareFormData((prev) => ({ ...prev, header: value }))
+                  }
+                >
+                  <SelectTrigger className="w-full mt-1">
+                    <SelectValue placeholder="Your Clinic" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="your-clinic">Your Clinic</SelectItem>
+                    <SelectItem value="main-hospital">Main Hospital</SelectItem>
+                    <SelectItem value="cardiology-dept">Cardiology Department</SelectItem>
+                    <SelectItem value="neurology-dept">Neurology Department</SelectItem>
+                    <SelectItem value="orthopedic-dept">Orthopedic Department</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Create the Letter Section */}
+            <div className="border-t pt-4 mt-6">
+              <div className="text-center">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Create the Letter</h3>
+                <div className="flex justify-center gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowShareDialog(false)}
+                    className="px-6"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      // Handle creating the letter
+                      toast({
+                        title: "Letter Created",
+                        description: "Letter has been created with the specified details.",
+                      });
+                      setShowShareDialog(false);
+                    }}
+                    className="px-6"
+                    style={{
+                      backgroundColor: "#8FB0FF",
+                      borderColor: "#8FB0FF",
+                      color: "white",
+                    }}
+                  >
+                    Create Letter
+                  </Button>
+                </div>
+              </div>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
