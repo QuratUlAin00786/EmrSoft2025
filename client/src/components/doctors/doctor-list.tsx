@@ -685,55 +685,50 @@ export function DoctorList({
         >
           <DialogHeader>
             <DialogTitle>
-              Book Appointment with {selectedBookingDoctor ? `${selectedBookingDoctor.firstName} ${selectedBookingDoctor.lastName}` : 'Doctor'}
+              Book Appointment with Dr. {selectedBookingDoctor ? `${selectedBookingDoctor.firstName} ${selectedBookingDoctor.lastName}` : 'John Smith'}
             </DialogTitle>
           </DialogHeader>
           <div id="booking-dialog-description" className="sr-only">
             Schedule a new appointment by selecting specialty, doctor, date, and time slot.
           </div>
 
-          <div className="grid grid-cols-2 gap-8">
-            {/* Left Column */}
-            <div className="space-y-6">
-              {/* Appointment Type and Duration */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-sm font-medium">Appointment Type</Label>
-                  <Select
-                    value={appointmentType}
-                    onValueChange={setAppointmentType}
-                  >
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Select Type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Consultation">Consultation</SelectItem>
-                      <SelectItem value="Follow-up">Follow-up</SelectItem>
-                      <SelectItem value="Check-up">Check-up</SelectItem>
-                      <SelectItem value="Emergency">Emergency</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium">Duration (minutes)</Label>
-                  <Select
-                    value={duration}
-                    onValueChange={setDuration}
-                  >
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Select Duration" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="15">15 minutes</SelectItem>
-                      <SelectItem value="30">30 minutes</SelectItem>
-                      <SelectItem value="45">45 minutes</SelectItem>
-                      <SelectItem value="60">60 minutes</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+          <div className="space-y-8">
+            {/* First Row - Appointment Details */}
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <Label className="text-sm font-medium">Appointment Type</Label>
+                <Select
+                  value={appointmentType}
+                  onValueChange={setAppointmentType}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Consultation">Consultation</SelectItem>
+                    <SelectItem value="Follow-up">Follow-up</SelectItem>
+                    <SelectItem value="Check-up">Check-up</SelectItem>
+                    <SelectItem value="Emergency">Emergency</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-
-              {/* Title */}
+              <div>
+                <Label className="text-sm font-medium">Duration (minutes)</Label>
+                <Select
+                  value={duration}
+                  onValueChange={setDuration}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select Duration" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="15">15 minutes</SelectItem>
+                    <SelectItem value="30">30 minutes</SelectItem>
+                    <SelectItem value="45">45 minutes</SelectItem>
+                    <SelectItem value="60">60 minutes</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <div>
                 <Label className="text-sm font-medium">Title (optional)</Label>
                 <Input
@@ -744,52 +739,10 @@ export function DoctorList({
                   className="mt-1"
                 />
               </div>
+            </div>
 
-              {/* Description */}
-              <div>
-                <Label className="text-sm font-medium">Description</Label>
-                <Textarea
-                  placeholder="Enter appointment description or notes"
-                  value={appointmentDescription}
-                  onChange={(e) => setAppointmentDescription(e.target.value)}
-                  className="mt-1 min-h-[100px]"
-                />
-              </div>
-
-              {/* Location */}
-              <div>
-                <Label className="text-sm font-medium">Location</Label>
-                <Input
-                  type="text"
-                  placeholder="Room or department location"
-                  value={appointmentLocation}
-                  onChange={(e) => setAppointmentLocation(e.target.value)}
-                  className="mt-1"
-                />
-              </div>
-
-              {/* Patient Selection (hidden but needed for booking) */}
-              <div className="hidden">
-                <Select
-                  value={selectedPatient}
-                  onValueChange={setSelectedPatient}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select patient..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {patients?.map((patient: any) => (
-                      <SelectItem
-                        key={patient.id}
-                        value={patient.id.toString()}
-                      >
-                        {patient.firstName} {patient.lastName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
+            {/* Second Row - Doctor and Patient Information */}
+            <div className="grid grid-cols-2 gap-6">
               {/* Doctor Information */}
               <div>
                 <Label className="text-sm font-medium mb-2 block">Doctor Information</Label>
@@ -861,8 +814,8 @@ export function DoctorList({
               </div>
             </div>
 
-            {/* Right Column */}
-            <div className="space-y-6">
+            {/* Third Row - Date and Time Selection */}
+            <div className="grid grid-cols-2 gap-6">
               {/* Select Date */}
               <div>
                 <Label className="text-sm font-medium mb-2 block">Select Date</Label>
@@ -920,52 +873,105 @@ export function DoctorList({
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Booking Summary */}
-          <div className="mt-8 border-t border-gray-200 dark:border-gray-700 pt-6">
-            <h3 className="text-lg font-medium mb-4">Booking Summary</h3>
-            <div className="grid grid-cols-2 gap-6">
-              <div className="space-y-3">
+            {/* Hidden Patient Selection (needed for booking) */}
+            <div className="hidden">
+              <Select
+                value={selectedPatient}
+                onValueChange={setSelectedPatient}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select patient..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {patients?.map((patient: any) => (
+                    <SelectItem
+                      key={patient.id}
+                      value={patient.id.toString()}
+                    >
+                      {patient.firstName} {patient.lastName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Additional Fields Section */}
+            <div className="space-y-4 border-t border-gray-200 dark:border-gray-700 pt-6">
+              <h3 className="text-lg font-medium">Additional Information</h3>
+              <div className="grid grid-cols-2 gap-4">
+                {/* Description */}
                 <div>
-                  <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">Medical Specialty</Label>
-                  <p className="text-sm font-medium">{appointmentType || "Not selected"}</p>
+                  <Label className="text-sm font-medium">Description</Label>
+                  <Textarea
+                    placeholder="Enter appointment description or notes"
+                    value={appointmentDescription}
+                    onChange={(e) => setAppointmentDescription(e.target.value)}
+                    className="mt-1 min-h-[100px]"
+                  />
                 </div>
+
+                {/* Location */}
                 <div>
-                  <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">Patient</Label>
-                  <p className="text-sm font-medium">
-                    {selectedPatient 
-                      ? `${patients?.find((p: any) => p.id.toString() === selectedPatient)?.firstName} ${patients?.find((p: any) => p.id.toString() === selectedPatient)?.lastName}`
-                      : "Not selected"
-                    }
-                  </p>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">Date</Label>
-                  <p className="text-sm font-medium">{selectedDate ? format(selectedDate, "PPP") : "Not selected"}</p>
-                </div>
-              </div>
-              <div className="space-y-3">
-                <div>
-                  <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">Sub-Specialty</Label>
-                  <p className="text-sm font-medium">Not selected</p>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">Doctor</Label>
-                  <p className="text-sm font-medium">
-                    {selectedBookingDoctor 
-                      ? `Dr. ${selectedBookingDoctor.firstName} ${selectedBookingDoctor.lastName}`
-                      : "Not selected"
-                    }
-                  </p>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">Time</Label>
-                  <p className="text-sm font-medium">{selectedTimeSlot || "Not selected"}</p>
+                  <Label className="text-sm font-medium">Location</Label>
+                  <Input
+                    type="text"
+                    placeholder="Room or department location"
+                    value={appointmentLocation}
+                    onChange={(e) => setAppointmentLocation(e.target.value)}
+                    className="mt-1"
+                  />
                 </div>
               </div>
             </div>
           </div>
+
+            {/* Fourth Row - Booking Summary */}
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+              <h3 className="text-lg font-medium mb-4">Booking Summary</h3>
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="space-y-3">
+                    <div>
+                      <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">Appointment Type</Label>
+                      <p className="text-sm font-medium">{appointmentType || "Not selected"}</p>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">Patient</Label>
+                      <p className="text-sm font-medium">
+                        {selectedPatient 
+                          ? `${patients?.find((p: any) => p.id.toString() === selectedPatient)?.firstName} ${patients?.find((p: any) => p.id.toString() === selectedPatient)?.lastName}`
+                          : "Not selected"
+                        }
+                      </p>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">Date</Label>
+                      <p className="text-sm font-medium">{selectedDate ? format(selectedDate, "PPP") : "Not selected"}</p>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <div>
+                      <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">Duration</Label>
+                      <p className="text-sm font-medium">{duration ? `${duration} minutes` : "Not selected"}</p>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">Doctor</Label>
+                      <p className="text-sm font-medium">
+                        {selectedBookingDoctor 
+                          ? `Dr. ${selectedBookingDoctor.firstName} ${selectedBookingDoctor.lastName}`
+                          : "Not selected"
+                        }
+                      </p>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">Time</Label>
+                      <p className="text-sm font-medium">{selectedTimeSlot ? formatTime(selectedTimeSlot) : "Not selected"}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
 
           {/* Action Buttons */}
           <div className="flex justify-end gap-3 pt-4">

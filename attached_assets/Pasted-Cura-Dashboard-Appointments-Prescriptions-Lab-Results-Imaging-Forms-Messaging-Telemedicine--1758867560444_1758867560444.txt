@@ -1,0 +1,351 @@
+Cura
+Dashboard
+Appointments
+Prescriptions
+Lab Results
+Imaging
+Forms
+Messaging
+Telemedicine
+Billing
+Theme
+
+SA
+Shabana ali
+
+Patient
+
+
+Back
+Appointments
+Schedule and manage patient appointments efficiently.
+
+AI Active
+UK/GDPR
+
+Calendar & Scheduling
+View appointments, manage schedules, and book new consultations.
+
+My Appointments
+Shabana ali
+
+Book Appointment
+Next Appointment
+Friday, September 26, 2025 at 2:00 PM
+Consultation with Ali Raza
+Dermatology Department
+SCHEDULED
+Upcoming (27)
+Past (1)
+All (28)
+Filter by Date
+dd/mm/yyyy
+Clear Filters
+Consultation with Ali Raza
+
+CANCELLED
+Tuesday, February 3, 2026
+9:00 AM
+Shabana ali
+Dermatology Department
+Consultation appointment
+
+Consultation with Ali Raza
+
+CANCELLED
+Monday, February 2, 2026
+9:00 AM
+Shabana ali
+Dermatology Department
+Consultation appointment
+
+Consultation with Usman Gardezi
+
+CANCELLED
+Sunday, February 1, 2026
+2:00 PM
+Shabana ali
+General Department
+Consultation appointment
+
+Consultation with Ali Raza
+
+Cancel Appointment
+SCHEDULED
+Saturday, January 31, 2026
+2:00 PM
+Shabana ali
+Dermatology Department
+Consultation appointment
+
+Consultation with Sarah Williams
+
+Cancel Appointment
+SCHEDULED
+Wednesday, December 31, 2025
+2:00 PM
+Shabana ali
+General Department
+Consultation appointment
+
+Consultation with Dr. John Smith
+
+CANCELLED
+Saturday, December 13, 2025
+10:00 PM
+Shabana ali
+qurat@cura.com Department
+Consultation appointment
+
+Consultation with Dr. John Smith
+
+Cancel Appointment
+SCHEDULED
+Saturday, December 13, 2025
+6:30 PM
+Shabana ali
+qurat@cura.com Department
+Consultation appointment
+
+Consultation with Dr. John Smith
+
+Cancel Appointment
+SCHEDULED
+Saturday, December 13, 2025
+2:30 PM
+Shabana ali
+qurat@cura.com Department
+Consultation appointment
+
+Consultation with Ali Raza
+
+Cancel Appointment
+SCHEDULED
+Saturday, December 13, 2025
+2:00 PM
+Shabana ali
+Dermatology Department
+Consultation appointment
+
+Consultation with Sarah Williams
+
+Cancel Appointment
+SCHEDULED
+Saturday, December 13, 2025
+2:00 PM
+Shabana ali
+General Department
+Consultation appointment
+
+Consultation with Ali Raza
+
+Cancel Appointment
+SCHEDULED
+Saturday, December 6, 2025
+9:00 PM
+Shabana ali
+Dermatology Department
+Consultation appointment
+
+Consultation with Sarah Williams
+
+Cancel Appointment
+SCHEDULED
+Monday, December 1, 2025
+9:30 PM
+Shabana ali
+General Department
+Consultation appointment
+
+Consultation with Dr. John Smith
+
+Cancel Appointment
+SCHEDULED
+Monday, December 1, 2025
+2:00 PM
+Shabana ali
+qurat@cura.com Department
+Consultation appointment
+
+Consultation with Ali Raza
+
+Cancel Appointment
+SCHEDULED
+Monday, December 1, 2025
+2:00 PM
+Shabana ali
+Dermatology Department
+Consultation appointment
+
+Consultation with Dr. John Smith
+
+Cancel Appointment
+SCHEDULED
+Thursday, November 20, 2025
+10:00 PM
+Shabana ali
+qurat@cura.com Department
+Consultation appointment
+
+Consultation with Ali Raza
+
+Cancel Appointment
+SCHEDULED
+Saturday, November 1, 2025
+2:00 PM
+Shabana ali
+Dermatology Department
+Consultation appointment
+
+consultation with Dr. John Smith
+
+Cancel Appointment
+SCHEDULED
+Friday, October 10, 2025
+10:00 AM
+Shabana ali
+qurat@cura.com Department
+Consultation with Dr. John Smith
+
+Cancel Appointment
+SCHEDULED
+Wednesday, October 1, 2025
+10:00 PM
+Shabana ali
+qurat@cura.com Department
+Consultation appointment
+
+Consultation with Ali Raza
+
+Cancel Appointment
+SCHEDULED
+Tuesday, September 30, 2025
+3:00 PM
+Shabana ali
+Dermatology Department
+Consultation appointment
+
+consultation with Dr. John Smith
+
+Cancel Appointment
+SCHEDULED
+Saturday, September 27, 2025
+2:00 PM
+Shabana ali
+qurat@cura.com Department
+Consultation with Ali Raza
+
+Cancel Appointment
+SCHEDULED
+Friday, September 26, 2025
+8:00 PM
+Shabana ali
+Dermatology Department
+Consultation appointment
+
+consultation with Dr. John Smith
+
+Cancel Appointment
+SCHEDULED
+Friday, September 26, 2025
+7:00 PM
+Shabana ali
+qurat@cura.com Department
+Follow-up with Sarah Williams
+
+Cancel Appointment
+SCHEDULED
+Friday, September 26, 2025
+6:30 PM
+Shabana ali
+General Department
+Follow-up appointment
+
+Consultation with Dr. John Smith
+
+Cancel Appointment
+SCHEDULED
+Friday, September 26, 2025
+6:30 PM
+Shabana ali
+qurat@cura.com Department
+Consultation appointment
+
+Consultation with Zeeshan Khan
+
+Cancel Appointment
+SCHEDULED
+Friday, September 26, 2025
+3:00 PM
+Shabana ali
+Dermatology Department
+Consultation appointment
+
+Title
+
+Cancel Appointment
+SCHEDULED
+Friday, September 26, 2025
+2:30 PM
+Shabana ali
+Location
+Description
+
+Consultation with Ali Raza
+
+Cancel Appointment
+SCHEDULED
+Friday, September 26, 2025
+2:00 PM
+Shabana ali
+Dermatology Department
+Consultation appointment
+
+Appointment Summary
+27
+Upcoming
+0
+Completed
+28
+Total
+Available Doctors
+DS
+Dr. Dr. John Smith
+doctor
+qurat@cura.com
+Monday, Tuesday, Thursday +3 more · 09:00 - 17:00
+ID: 41
+Book
+View Profile
+AR
+Dr. Ali Raza
+doctor
+Dermatology
+Sunday, Friday, Wednesday +4 more · 09:00 - 17:00
+ID: 9
+Book
+View Profile
+ZK
+Dr. Zeeshan Khan
+doctor
+Dermatology
+Monday, Wednesday, Tuesday +2 more · 09:00 - 17:00
+ID: 51
+Book
+View Profile
+AQ
+Dr. aa qq
+doctor
+department
+ID: 49
+Book
+View Profile
+RA
+Dr. rahhat ali
+doctor
+department
+ID: 58
+Book
+View Profile
+
+Book Appointment with Dr. John Smith
