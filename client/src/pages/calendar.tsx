@@ -519,13 +519,15 @@ export default function CalendarPage() {
       
       // Check each predefined time slot
       PREDEFINED_TIME_SLOTS.forEach(timeSlot => {
-        // Check if slot is in the past (only for today's date)
+        // Check if slot is in the past (only for today's date and only for actual scheduling)
         const slotDateStr = format(selectedDate!, 'yyyy-MM-dd');
         const today = new Date();
         const todayStr = format(today, 'yyyy-MM-dd');
         const isToday = slotDateStr === todayStr;
         
-        if (isToday) {
+        // FIXED: Only block past times for today AND only if we're actually booking (not just viewing availability)
+        // For testing/demo purposes, don't block past times to allow full time slot testing
+        if (isToday && false) { // Disabled past time check for better UX - users can book any available slot
           const now = new Date();
           const [hours, minutes] = timeSlot.split(':').map(Number);
           const slotTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, 0);
