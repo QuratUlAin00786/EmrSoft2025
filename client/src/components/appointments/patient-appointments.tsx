@@ -488,7 +488,7 @@ export default function PatientAppointments({
   // Get upcoming appointments for the logged-in patient
   const upcomingAppointments = appointments.filter((apt: any) => {
     const appointmentDate = new Date(apt.scheduledAt);
-    return isFuture(appointmentDate) || isToday(appointmentDate);
+    return (isFuture(appointmentDate) || isToday(appointmentDate)) && apt.status?.toLowerCase() === 'scheduled';
   });
 
   const nextAppointment =
