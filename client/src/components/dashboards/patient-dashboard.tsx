@@ -659,39 +659,47 @@ export function PatientDashboard() {
                     });
                   }
                   
-                  // Upcoming Appointment Reminders
+                  // Next Appointment Reminder (only show the latest/earliest one)
                   if (upcomingAppointmentsData.appointments && upcomingAppointmentsData.appointments.length > 0) {
-                    upcomingAppointmentsData.appointments.forEach((appointment: any) => {
-                      const appointmentDate = new Date(appointment.scheduledAt);
-                      const daysUntil = Math.ceil((appointmentDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+                    // Filter appointments within 7 days and sort by date to get the earliest one
+                    const upcomingAppointments = upcomingAppointmentsData.appointments
+                      .map((appointment: any) => ({
+                        ...appointment,
+                        appointmentDate: new Date(appointment.scheduledAt),
+                        daysUntil: Math.ceil((new Date(appointment.scheduledAt).getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+                      }))
+                      .filter((appointment: any) => appointment.daysUntil >= 0 && appointment.daysUntil <= 7)
+                      .sort((a: any, b: any) => a.appointmentDate.getTime() - b.appointmentDate.getTime());
+                    
+                    if (upcomingAppointments.length > 0) {
+                      const nextAppointment = upcomingAppointments[0]; // Get the earliest appointment
+                      const daysUntil = nextAppointment.daysUntil;
                       
-                      if (daysUntil >= 0 && daysUntil <= 7) {
-                        let timeframe = "This Week";
-                        let urgency = "green";
-                        
-                        if (daysUntil === 0) {
-                          timeframe = "Today";
-                          urgency = "blue";
-                        } else if (daysUntil === 1) {
-                          timeframe = "Tomorrow";
-                          urgency = "blue";
-                        } else if (daysUntil <= 3) {
-                          timeframe = `In ${daysUntil} days`;
-                          urgency = "orange";
-                        }
-                        
-                        const doctorInfo = getDoctorSpecialtyData(appointment.providerId);
-                        
-                        reminders.push({
-                          type: 'appointment',
-                          title: 'Next Appointment',
-                          description: `${appointment.title}${doctorInfo.name ? ` with ${doctorInfo.name}` : ''}`,
-                          timeframe,
-                          urgency,
-                          priority: daysUntil === 0 ? 1 : daysUntil <= 1 ? 2 : 3
-                        });
+                      let timeframe = "This Week";
+                      let urgency = "green";
+                      
+                      if (daysUntil === 0) {
+                        timeframe = "Today";
+                        urgency = "blue";
+                      } else if (daysUntil === 1) {
+                        timeframe = "Tomorrow";
+                        urgency = "blue";
+                      } else if (daysUntil <= 3) {
+                        timeframe = `In ${daysUntil} days`;
+                        urgency = "orange";
                       }
-                    });
+                      
+                      const doctorInfo = getDoctorSpecialtyData(nextAppointment.providerId);
+                      
+                      reminders.push({
+                        type: 'appointment',
+                        title: 'Next Appointment',
+                        description: `${nextAppointment.title}${doctorInfo.name ? ` with ${doctorInfo.name}` : ''}`,
+                        timeframe,
+                        urgency,
+                        priority: daysUntil === 0 ? 1 : daysUntil <= 1 ? 2 : 3
+                      });
+                    }
                   }
                   
                   // Pending Lab Results Reminders
