@@ -257,7 +257,7 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
         const isCorrectDoctor = apt.providerId === parseInt(doctorId);
         const isScheduled = apt.status === 'scheduled';
         
-        console.log(`[NEW_TIME_SLOTS] Appointment ${apt.id}:`, {
+        console.log(`[NEW_TIME_SLOTS] Appointment ${apt.id} STATUS DEBUG:`, {
           aptDate,
           selectedDate: date,
           isCorrectDate,
@@ -265,8 +265,11 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
           selectedDoctor: parseInt(doctorId),
           isCorrectDoctor,
           status: apt.status,
+          statusType: typeof apt.status,
+          statusLowercase: apt.status?.toLowerCase(),
           isScheduled,
-          scheduledAt: apt.scheduledAt
+          scheduledAt: apt.scheduledAt,
+          fullAppointment: apt
         });
         
         return isCorrectDate && isCorrectDoctor && isScheduled;
