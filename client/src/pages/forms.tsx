@@ -171,9 +171,9 @@ export default function Forms() {
     const timer = setTimeout(() => {
       const buttons = document.querySelectorAll('[data-bluewave="true"]');
       buttons.forEach((button: any) => {
-        button.style.setProperty("background-color", "#4A7DFF", "important");
-        button.style.setProperty("border-color", "#4A7DFF", "important");
-        button.style.setProperty("color", "white", "important");
+        button.style.setProperty("background-color", "white", "important");
+        button.style.setProperty("border-color", "#e5e7eb", "important");
+        button.style.setProperty("color", "black", "important");
         button.style.setProperty("border-width", "1px", "important");
         button.style.setProperty("border-style", "solid", "important");
         // Remove any conflicting classes
@@ -3218,25 +3218,25 @@ export default function Forms() {
               <Button
                 className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
                 style={{
-                  backgroundColor: "#8FB0FF",
-                  color: "white",
-                  borderColor: "#8FB0FF",
+                  backgroundColor: "white",
+                  color: "black",
+                  borderColor: "#e5e7eb",
                   borderRadius: "10px",
-                  boxShadow: "0 4px 12px rgba(74,125,255,0.3)",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#A3A8FC";
-                  e.currentTarget.style.borderColor = "#A3A8FC";
+                  e.currentTarget.style.backgroundColor = "#f9fafb";
+                  e.currentTarget.style.borderColor = "#d1d5db";
                   e.currentTarget.style.transform = "translateY(-2px)";
                   e.currentTarget.style.boxShadow =
-                    "0 6px 16px rgba(114,121,251,0.4)";
+                    "0 6px 16px rgba(0,0,0,0.15)";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#8FB0FF";
-                  e.currentTarget.style.borderColor = "#8FB0FF";
+                  e.currentTarget.style.backgroundColor = "white";
+                  e.currentTarget.style.borderColor = "#e5e7eb";
                   e.currentTarget.style.transform = "translateY(0px)";
                   e.currentTarget.style.boxShadow =
-                    "0 4px 12px rgba(74,125,255,0.3)";
+                    "0 4px 12px rgba(0,0,0,0.1)";
                 }}
                 onClick={() =>
                   toast({
@@ -3254,25 +3254,25 @@ export default function Forms() {
               <Button
                 className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
                 style={{
-                  backgroundColor: "#A3A8FC",
-                  color: "white",
-                  borderColor: "#A3A8FC",
+                  backgroundColor: "white",
+                  color: "black",
+                  borderColor: "#e5e7eb",
                   borderRadius: "10px",
-                  boxShadow: "0 4px 12px rgba(114,121,251,0.3)",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#8FB0FF";
-                  e.currentTarget.style.borderColor = "#8FB0FF";
+                  e.currentTarget.style.backgroundColor = "#f9fafb";
+                  e.currentTarget.style.borderColor = "#d1d5db";
                   e.currentTarget.style.transform = "translateY(-2px)";
                   e.currentTarget.style.boxShadow =
-                    "0 6px 16px rgba(74,125,255,0.4)";
+                    "0 6px 16px rgba(0,0,0,0.15)";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#A3A8FC";
-                  e.currentTarget.style.borderColor = "#A3A8FC";
+                  e.currentTarget.style.backgroundColor = "white";
+                  e.currentTarget.style.borderColor = "#e5e7eb";
                   e.currentTarget.style.transform = "translateY(0px)";
                   e.currentTarget.style.boxShadow =
-                    "0 4px 12px rgba(114,121,251,0.3)";
+                    "0 4px 12px rgba(0,0,0,0.1)";
                 }}
                 onClick={handlePreview}
               >
@@ -3281,25 +3281,25 @@ export default function Forms() {
               <Button
                 className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
                 style={{
-                  backgroundColor: "#8FB0FF",
-                  color: "white",
-                  borderColor: "#8FB0FF",
+                  backgroundColor: "white",
+                  color: "black",
+                  borderColor: "#e5e7eb",
                   borderRadius: "10px",
-                  boxShadow: "0 4px 12px rgba(74,125,255,0.3)",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#A3A8FC";
-                  e.currentTarget.style.borderColor = "#A3A8FC";
+                  e.currentTarget.style.backgroundColor = "#f9fafb";
+                  e.currentTarget.style.borderColor = "#d1d5db";
                   e.currentTarget.style.transform = "translateY(-2px)";
                   e.currentTarget.style.boxShadow =
-                    "0 6px 16px rgba(114,121,251,0.4)";
+                    "0 6px 16px rgba(0,0,0,0.15)";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#8FB0FF";
-                  e.currentTarget.style.borderColor = "#8FB0FF";
+                  e.currentTarget.style.backgroundColor = "white";
+                  e.currentTarget.style.borderColor = "#e5e7eb";
                   e.currentTarget.style.transform = "translateY(0px)";
                   e.currentTarget.style.boxShadow =
-                    "0 4px 12px rgba(74,125,255,0.3)";
+                    "0 4px 12px rgba(0,0,0,0.1)";
                 }}
                 onClick={handleSaveAsDraft}
               >
@@ -3311,25 +3311,25 @@ export default function Forms() {
               <Button
                 className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
                 style={{
-                  backgroundColor: "#A3A8FC",
-                  color: "white",
-                  borderColor: "#A3A8FC",
+                  backgroundColor: "white",
+                  color: "black",
+                  borderColor: "#e5e7eb",
                   borderRadius: "10px",
-                  boxShadow: "0 4px 12px rgba(114,121,251,0.3)",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#8FB0FF";
-                  e.currentTarget.style.borderColor = "#8FB0FF";
+                  e.currentTarget.style.backgroundColor = "#f9fafb";
+                  e.currentTarget.style.borderColor = "#d1d5db";
                   e.currentTarget.style.transform = "translateY(-2px)";
                   e.currentTarget.style.boxShadow =
-                    "0 6px 16px rgba(74,125,255,0.4)";
+                    "0 6px 16px rgba(0,0,0,0.15)";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#A3A8FC";
-                  e.currentTarget.style.borderColor = "#A3A8FC";
+                  e.currentTarget.style.backgroundColor = "white";
+                  e.currentTarget.style.borderColor = "#e5e7eb";
                   e.currentTarget.style.transform = "translateY(0px)";
                   e.currentTarget.style.boxShadow =
-                    "0 4px 12px rgba(114,121,251,0.3)";
+                    "0 4px 12px rgba(0,0,0,0.1)";
                 }}
               >
                 Letter body
@@ -3340,25 +3340,25 @@ export default function Forms() {
               <Button
                 className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
                 style={{
-                  backgroundColor: "#8FB0FF",
-                  color: "white",
-                  borderColor: "#8FB0FF",
+                  backgroundColor: "white",
+                  color: "black",
+                  borderColor: "#e5e7eb",
                   borderRadius: "10px",
-                  boxShadow: "0 4px 12px rgba(74,125,255,0.3)",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#A3A8FC";
-                  e.currentTarget.style.borderColor = "#A3A8FC";
+                  e.currentTarget.style.backgroundColor = "#f9fafb";
+                  e.currentTarget.style.borderColor = "#d1d5db";
                   e.currentTarget.style.transform = "translateY(-2px)";
                   e.currentTarget.style.boxShadow =
-                    "0 6px 16px rgba(114,121,251,0.4)";
+                    "0 6px 16px rgba(0,0,0,0.15)";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#8FB0FF";
-                  e.currentTarget.style.borderColor = "#8FB0FF";
+                  e.currentTarget.style.backgroundColor = "white";
+                  e.currentTarget.style.borderColor = "#e5e7eb";
                   e.currentTarget.style.transform = "translateY(0px)";
                   e.currentTarget.style.boxShadow =
-                    "0 4px 12px rgba(74,125,255,0.3)";
+                    "0 4px 12px rgba(0,0,0,0.1)";
                 }}
               >
                 Select Patient...
@@ -3366,25 +3366,25 @@ export default function Forms() {
               <Button
                 className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
                 style={{
-                  backgroundColor: "#A3A8FC",
-                  color: "white",
-                  borderColor: "#A3A8FC",
+                  backgroundColor: "white",
+                  color: "black",
+                  borderColor: "#e5e7eb",
                   borderRadius: "10px",
-                  boxShadow: "0 4px 12px rgba(114,121,251,0.3)",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#8FB0FF";
-                  e.currentTarget.style.borderColor = "#8FB0FF";
+                  e.currentTarget.style.backgroundColor = "#f9fafb";
+                  e.currentTarget.style.borderColor = "#d1d5db";
                   e.currentTarget.style.transform = "translateY(-2px)";
                   e.currentTarget.style.boxShadow =
-                    "0 6px 16px rgba(74,125,255,0.4)";
+                    "0 6px 16px rgba(0,0,0,0.15)";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#A3A8FC";
-                  e.currentTarget.style.borderColor = "#A3A8FC";
+                  e.currentTarget.style.backgroundColor = "white";
+                  e.currentTarget.style.borderColor = "#e5e7eb";
                   e.currentTarget.style.transform = "translateY(0px)";
                   e.currentTarget.style.boxShadow =
-                    "0 4px 12px rgba(114,121,251,0.3)";
+                    "0 4px 12px rgba(0,0,0,0.1)";
                 }}
               >
                 New Chris...
@@ -3392,25 +3392,25 @@ export default function Forms() {
               <Button
                 className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
                 style={{
-                  backgroundColor: "#8FB0FF",
-                  color: "white",
-                  borderColor: "#8FB0FF",
+                  backgroundColor: "white",
+                  color: "black",
+                  borderColor: "#e5e7eb",
                   borderRadius: "10px",
-                  boxShadow: "0 4px 12px rgba(74,125,255,0.3)",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#A3A8FC";
-                  e.currentTarget.style.borderColor = "#A3A8FC";
+                  e.currentTarget.style.backgroundColor = "#f9fafb";
+                  e.currentTarget.style.borderColor = "#d1d5db";
                   e.currentTarget.style.transform = "translateY(-2px)";
                   e.currentTarget.style.boxShadow =
-                    "0 6px 16px rgba(114,121,251,0.4)";
+                    "0 6px 16px rgba(0,0,0,0.15)";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#8FB0FF";
-                  e.currentTarget.style.borderColor = "#8FB0FF";
+                  e.currentTarget.style.backgroundColor = "white";
+                  e.currentTarget.style.borderColor = "#e5e7eb";
                   e.currentTarget.style.transform = "translateY(0px)";
                   e.currentTarget.style.boxShadow =
-                    "0 4px 12px rgba(74,125,255,0.3)";
+                    "0 4px 12px rgba(0,0,0,0.1)";
                 }}
                 onClick={() => setShowShareDialog(true)}
               >
@@ -3420,140 +3420,13 @@ export default function Forms() {
           </div>
         </div>
 
-        {/* Form Fields Section - Collapsible */}
-        <div className="bg-white dark:bg-[hsl(var(--cura-midnight))] border-b border-gray-200 dark:border-[hsl(var(--cura-steel))]">
-          {/* Toggle Header */}
-          <div
-            className="px-4 py-2 flex items-center justify-between cursor-pointer"
-            onClick={() => setShowFormFields(!showFormFields)}
-          >
-            <span className="text-sm font-medium text-gray-900 dark:text-white">
-              Letter Details
-            </span>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 w-6 p-0 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
-            >
-              {showFormFields ? (
-                <ChevronUp className="h-4 w-4" />
-              ) : (
-                <ChevronDown className="h-4 w-4" />
-              )}
-            </Button>
-          </div>
-
-          {/* Collapsible Content */}
-          {showFormFields && (
-            <div className="px-4 pb-4">
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                  <label className="block text-sm font-medium text-[hsl(var(--cura-midnight))] dark:text-white mb-1">
-                    Subject
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full px-3 py-2 border border-gray-200 dark:border-[hsl(var(--cura-steel))] bg-white dark:bg-[hsl(var(--cura-midnight))] text-[hsl(var(--cura-midnight))] dark:text-white rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[hsl(var(--cura-bluewave))]"
-                    placeholder="Enter subject"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-[hsl(var(--cura-midnight))] dark:text-white mb-1">
-                    Recipient (optional)
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full px-3 py-2 border border-gray-200 dark:border-[hsl(var(--cura-steel))] bg-white dark:bg-[hsl(var(--cura-midnight))] text-[hsl(var(--cura-midnight))] dark:text-white rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[hsl(var(--cura-bluewave))]"
-                    placeholder="Enter recipient"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                  <label className="block text-sm font-medium text-[hsl(var(--cura-midnight))] dark:text-white mb-1">
-                    Location (optional)
-                  </label>
-                  <Select>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="main-clinic">Main Clinic</SelectItem>
-                      <SelectItem value="branch-office">
-                        Branch Office
-                      </SelectItem>
-                      <SelectItem value="hospital">Hospital</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-[hsl(var(--cura-midnight))] dark:text-white mb-1">
-                    Copied in recipients (optional)
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full px-3 py-2 border border-gray-200 dark:border-[hsl(var(--cura-steel))] bg-white dark:bg-[hsl(var(--cura-midnight))] text-[hsl(var(--cura-midnight))] dark:text-white rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[hsl(var(--cura-bluewave))]"
-                    placeholder="Enter copied recipients"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-[hsl(var(--cura-midnight))] dark:text-white mb-1">
-                    Doctor (optional)
-                  </label>
-                  <Select value={selectedDoctorId} onValueChange={setSelectedDoctorId}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder={usersLoading ? "Loading doctors..." : "Select doctor"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {usersLoading ? (
-                        <SelectItem value="loading" disabled>Loading doctors...</SelectItem>
-                      ) : doctors.length > 0 ? (
-                        doctors.map((doctor) => (
-                          <SelectItem key={doctor.id} value={doctor.id.toString()}>
-                            Dr. {doctor.firstName} {doctor.lastName}
-                          </SelectItem>
-                        ))
-                      ) : (
-                        <SelectItem value="no-doctors" disabled>No doctors available</SelectItem>
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-[hsl(var(--cura-midnight))] dark:text-white mb-1">
-                    Select Header
-                  </label>
-                  <Select>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Your Clinic" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="your-clinic">Your Clinic</SelectItem>
-                      <SelectItem value="main-hospital">
-                        Main Hospital
-                      </SelectItem>
-                      <SelectItem value="specialty-center">
-                        Specialty Center
-                      </SelectItem>
-                      <SelectItem value="urgent-care">Urgent Care</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
+      
         {/* Clinical Header Selection - Create the Letter */}
         <div className="bg-white-100 px-4 py-4">
           <div className="flex flex-col items-center">
-            <h3 className="text-sm font-medium text-[hsl(var(--cura-midnight))] dark:text-white mb-3">
+            <h4 className="text-md font-medium text-[hsl(var(--cura-midnight))] dark:text-white mb-3">
               Create the Letter
-            </h3>
+            </h4>
             <div>
               <label className="block text-xs font-medium text-[hsl(var(--cura-midnight))] dark:text-white mb-2 text-center">
                 Select Header
@@ -3615,17 +3488,17 @@ export default function Forms() {
                         size="sm"
                         className="absolute top-2 right-2 border transition-all duration-200"
                         style={{
-                          backgroundColor: "#8FB0FF",
-                          borderColor: "#8FB0FF",
-                          color: "white",
+                          backgroundColor: "white",
+                          borderColor: "#e5e7eb",
+                          color: "black",
                         }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.backgroundColor = "#A3A8FC";
                           e.currentTarget.style.borderColor = "#A3A8FC";
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = "#8FB0FF";
-                          e.currentTarget.style.borderColor = "#8FB0FF";
+                          e.currentTarget.style.backgroundColor = "white";
+                          e.currentTarget.style.borderColor = "#e5e7eb";
                         }}
                         onClick={() => setShowEditClinic(true)}
                       >
@@ -3713,17 +3586,17 @@ export default function Forms() {
                             variant="ghost"
                             className="border transition-all duration-200"
                             style={{
-                              backgroundColor: "#8FB0FF",
-                              borderColor: "#8FB0FF",
-                              color: "white",
+                              backgroundColor: "white",
+                              borderColor: "#e5e7eb",
+                              color: "black",
                             }}
                             onMouseEnter={(e) => {
                               e.currentTarget.style.backgroundColor = "#A3A8FC";
                               e.currentTarget.style.borderColor = "#A3A8FC";
                             }}
                             onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = "#8FB0FF";
-                              e.currentTarget.style.borderColor = "#8FB0FF";
+                              e.currentTarget.style.backgroundColor = "white";
+                              e.currentTarget.style.borderColor = "#e5e7eb";
                             }}
                             onClick={() => setShowEditClinic(false)}
                           >
@@ -3733,17 +3606,17 @@ export default function Forms() {
                             variant="ghost"
                             className="border transition-all duration-200"
                             style={{
-                              backgroundColor: "#8FB0FF",
-                              borderColor: "#8FB0FF",
-                              color: "white",
+                              backgroundColor: "white",
+                              borderColor: "#e5e7eb",
+                              color: "black",
                             }}
                             onMouseEnter={(e) => {
                               e.currentTarget.style.backgroundColor = "#A3A8FC";
                               e.currentTarget.style.borderColor = "#A3A8FC";
                             }}
                             onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = "#8FB0FF";
-                              e.currentTarget.style.borderColor = "#8FB0FF";
+                              e.currentTarget.style.backgroundColor = "white";
+                              e.currentTarget.style.borderColor = "#e5e7eb";
                             }}
                             onClick={handleSaveClinicInfo}
                           >
@@ -3880,7 +3753,7 @@ export default function Forms() {
           </div>
 
           {/* Main formatting row */}
-          <div className="flex justify-center items-center gap-0.5 mb-2">
+          <div className="flex justify-center items-center gap-0.5 mb-2 mt-3">
             {/* Font controls */}
             <Select
               value={textStyle}
@@ -3999,17 +3872,17 @@ export default function Forms() {
               size="sm"
               className="h-6 w-6 p-0 border transition-all duration-200"
               style={{
-                backgroundColor: "#4A7DFF",
-                borderColor: "#4A7DFF",
-                color: "white",
+                backgroundColor: "white",
+                borderColor: "#e5e7eb",
+                color: "black",
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = "#7279FB";
                 e.currentTarget.style.borderColor = "#7279FB";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "#4A7DFF";
-                e.currentTarget.style.borderColor = "#4A7DFF";
+                e.currentTarget.style.backgroundColor = "white";
+                e.currentTarget.style.borderColor = "#e5e7eb";
               }}
               onClick={handleBold}
             >
@@ -4022,11 +3895,11 @@ export default function Forms() {
               style={{
                 backgroundColor: "#7279FB",
                 borderColor: "#7279FB",
-                color: "white",
+                color: "black",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#4A7DFF";
-                e.currentTarget.style.borderColor = "#4A7DFF";
+                e.currentTarget.style.backgroundColor = "white";
+                e.currentTarget.style.borderColor = "#e5e7eb";
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = "#7279FB";
@@ -4041,17 +3914,17 @@ export default function Forms() {
               size="sm"
               className="h-6 w-6 p-0 border transition-all duration-200"
               style={{
-                backgroundColor: "#4A7DFF",
-                borderColor: "#4A7DFF",
-                color: "white",
+                backgroundColor: "white",
+                borderColor: "#e5e7eb",
+                color: "black",
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = "#7279FB";
                 e.currentTarget.style.borderColor = "#7279FB";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "#4A7DFF";
-                e.currentTarget.style.borderColor = "#4A7DFF";
+                e.currentTarget.style.backgroundColor = "white";
+                e.currentTarget.style.borderColor = "#e5e7eb";
               }}
               onClick={handleUnderline}
             >
@@ -4068,11 +3941,11 @@ export default function Forms() {
               style={{
                 backgroundColor: "#7279FB",
                 borderColor: "#7279FB",
-                color: "white",
+                color: "black",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#4A7DFF";
-                e.currentTarget.style.borderColor = "#4A7DFF";
+                e.currentTarget.style.backgroundColor = "white";
+                e.currentTarget.style.borderColor = "#e5e7eb";
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = "#7279FB";
@@ -4087,17 +3960,17 @@ export default function Forms() {
               size="sm"
               className="h-6 w-6 p-0 border transition-all duration-200"
               style={{
-                backgroundColor: "#4A7DFF",
-                borderColor: "#4A7DFF",
-                color: "white",
+                backgroundColor: "white",
+                borderColor: "#e5e7eb",
+                color: "black",
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = "#7279FB";
                 e.currentTarget.style.borderColor = "#7279FB";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "#4A7DFF";
-                e.currentTarget.style.borderColor = "#4A7DFF";
+                e.currentTarget.style.backgroundColor = "white";
+                e.currentTarget.style.borderColor = "#e5e7eb";
               }}
               onClick={handleNumberedList}
             >
@@ -4114,11 +3987,11 @@ export default function Forms() {
               style={{
                 backgroundColor: "#7279FB",
                 borderColor: "#7279FB",
-                color: "white",
+                color: "black",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#4A7DFF";
-                e.currentTarget.style.borderColor = "#4A7DFF";
+                e.currentTarget.style.backgroundColor = "white";
+                e.currentTarget.style.borderColor = "#e5e7eb";
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = "#7279FB";
@@ -4133,17 +4006,17 @@ export default function Forms() {
               size="sm"
               className="h-6 w-6 p-0 border transition-all duration-200"
               style={{
-                backgroundColor: "#4A7DFF",
-                borderColor: "#4A7DFF",
-                color: "white",
+                backgroundColor: "white",
+                borderColor: "#e5e7eb",
+                color: "black",
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = "#7279FB";
                 e.currentTarget.style.borderColor = "#7279FB";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "#4A7DFF";
-                e.currentTarget.style.borderColor = "#4A7DFF";
+                e.currentTarget.style.backgroundColor = "white";
+                e.currentTarget.style.borderColor = "#e5e7eb";
               }}
               onClick={handleAlignCenter}
             >
@@ -4156,11 +4029,11 @@ export default function Forms() {
               style={{
                 backgroundColor: "#7279FB",
                 borderColor: "#7279FB",
-                color: "white",
+                color: "black",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#4A7DFF";
-                e.currentTarget.style.borderColor = "#4A7DFF";
+                e.currentTarget.style.backgroundColor = "white";
+                e.currentTarget.style.borderColor = "#e5e7eb";
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = "#7279FB";
@@ -4175,17 +4048,17 @@ export default function Forms() {
               size="sm"
               className="h-6 w-6 p-0 border transition-all duration-200"
               style={{
-                backgroundColor: "#4A7DFF",
-                borderColor: "#4A7DFF",
-                color: "white",
+                backgroundColor: "white",
+                borderColor: "#e5e7eb",
+                color: "black",
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = "#7279FB";
                 e.currentTarget.style.borderColor = "#7279FB";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "#4A7DFF";
-                e.currentTarget.style.borderColor = "#4A7DFF";
+                e.currentTarget.style.backgroundColor = "white";
+                e.currentTarget.style.borderColor = "#e5e7eb";
               }}
               onClick={handleAlignJustify}
             >
@@ -4284,17 +4157,17 @@ export default function Forms() {
               size="sm"
               className="h-6 w-6 p-0 border transition-all duration-200"
               style={{
-                backgroundColor: "#4A7DFF",
-                borderColor: "#4A7DFF",
-                color: "white",
+                backgroundColor: "white",
+                borderColor: "#e5e7eb",
+                color: "black",
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = "#7279FB";
                 e.currentTarget.style.borderColor = "#7279FB";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "#4A7DFF";
-                e.currentTarget.style.borderColor = "#4A7DFF";
+                e.currentTarget.style.backgroundColor = "white";
+                e.currentTarget.style.borderColor = "#e5e7eb";
               }}
               onClick={handleHighlight}
             >
@@ -4310,11 +4183,11 @@ export default function Forms() {
               style={{
                 backgroundColor: "#7279FB",
                 borderColor: "#7279FB",
-                color: "white",
+                color: "black",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#4A7DFF";
-                e.currentTarget.style.borderColor = "#4A7DFF";
+                e.currentTarget.style.backgroundColor = "white";
+                e.currentTarget.style.borderColor = "#e5e7eb";
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = "#7279FB";
@@ -4329,17 +4202,17 @@ export default function Forms() {
               size="sm"
               className="h-6 w-6 p-0 border transition-all duration-200"
               style={{
-                backgroundColor: "#4A7DFF",
-                borderColor: "#4A7DFF",
-                color: "white",
+                backgroundColor: "white",
+                borderColor: "#e5e7eb",
+                color: "black",
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = "#7279FB";
                 e.currentTarget.style.borderColor = "#7279FB";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "#4A7DFF";
-                e.currentTarget.style.borderColor = "#4A7DFF";
+                e.currentTarget.style.backgroundColor = "white";
+                e.currentTarget.style.borderColor = "#e5e7eb";
               }}
               onClick={handleTable}
             >
@@ -4352,11 +4225,11 @@ export default function Forms() {
               style={{
                 backgroundColor: "#7279FB",
                 borderColor: "#7279FB",
-                color: "white",
+                color: "black",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#4A7DFF";
-                e.currentTarget.style.borderColor = "#4A7DFF";
+                e.currentTarget.style.backgroundColor = "white";
+                e.currentTarget.style.borderColor = "#e5e7eb";
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = "#7279FB";
@@ -4371,17 +4244,17 @@ export default function Forms() {
               size="sm"
               className="h-6 w-6 p-0 border transition-all duration-200"
               style={{
-                backgroundColor: "#4A7DFF",
-                borderColor: "#4A7DFF",
-                color: "white",
+                backgroundColor: "white",
+                borderColor: "#e5e7eb",
+                color: "black",
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = "#7279FB";
                 e.currentTarget.style.borderColor = "#7279FB";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "#4A7DFF";
-                e.currentTarget.style.borderColor = "#4A7DFF";
+                e.currentTarget.style.backgroundColor = "white";
+                e.currentTarget.style.borderColor = "#e5e7eb";
               }}
               onClick={handleImage}
             >
@@ -4394,11 +4267,11 @@ export default function Forms() {
               style={{
                 backgroundColor: "#7279FB",
                 borderColor: "#7279FB",
-                color: "white",
+                color: "black",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#4A7DFF";
-                e.currentTarget.style.borderColor = "#4A7DFF";
+                e.currentTarget.style.backgroundColor = "white";
+                e.currentTarget.style.borderColor = "#e5e7eb";
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = "#7279FB";
@@ -4509,17 +4382,17 @@ export default function Forms() {
                 variant="ghost"
                 className="border transition-all duration-200"
                 style={{
-                  backgroundColor: "#8FB0FF",
-                  borderColor: "#8FB0FF",
-                  color: "white",
+                  backgroundColor: "white",
+                  borderColor: "#e5e7eb",
+                  color: "black",
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = "#A3A8FC";
                   e.currentTarget.style.borderColor = "#A3A8FC";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#8FB0FF";
-                  e.currentTarget.style.borderColor = "#8FB0FF";
+                  e.currentTarget.style.backgroundColor = "white";
+                  e.currentTarget.style.borderColor = "#e5e7eb";
                 }}
                 onClick={() => setShowLinkDialog(false)}
               >
@@ -4529,17 +4402,17 @@ export default function Forms() {
                 variant="ghost"
                 className="border transition-all duration-200"
                 style={{
-                  backgroundColor: "#8FB0FF",
-                  borderColor: "#8FB0FF",
-                  color: "white",
+                  backgroundColor: "white",
+                  borderColor: "#e5e7eb",
+                  color: "black",
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = "#A3A8FC";
                   e.currentTarget.style.borderColor = "#A3A8FC";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#8FB0FF";
-                  e.currentTarget.style.borderColor = "#8FB0FF";
+                  e.currentTarget.style.backgroundColor = "white";
+                  e.currentTarget.style.borderColor = "#e5e7eb";
                 }}
                 onClick={handleInsertLink}
               >
@@ -4744,17 +4617,17 @@ export default function Forms() {
                 variant="ghost"
                 className="border transition-all duration-200"
                 style={{
-                  backgroundColor: "#8FB0FF",
-                  borderColor: "#8FB0FF",
-                  color: "white",
+                  backgroundColor: "white",
+                  borderColor: "#e5e7eb",
+                  color: "black",
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = "#A3A8FC";
                   e.currentTarget.style.borderColor = "#A3A8FC";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#8FB0FF";
-                  e.currentTarget.style.borderColor = "#8FB0FF";
+                  e.currentTarget.style.backgroundColor = "white";
+                  e.currentTarget.style.borderColor = "#e5e7eb";
                 }}
                 onClick={() => setShowTemplateDialog(false)}
               >
@@ -4882,17 +4755,17 @@ export default function Forms() {
                 variant="ghost"
                 className="border transition-all duration-200"
                 style={{
-                  backgroundColor: "#8FB0FF",
-                  borderColor: "#8FB0FF",
-                  color: "white",
+                  backgroundColor: "white",
+                  borderColor: "#e5e7eb",
+                  color: "black",
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = "#A3A8FC";
                   e.currentTarget.style.borderColor = "#A3A8FC";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#8FB0FF";
-                  e.currentTarget.style.borderColor = "#8FB0FF";
+                  e.currentTarget.style.backgroundColor = "white";
+                  e.currentTarget.style.borderColor = "#e5e7eb";
                 }}
                 onClick={() => setShowLogoDialog(false)}
               >
@@ -5013,17 +4886,17 @@ export default function Forms() {
                     className="mt-3 w-full border transition-all duration-200"
                     variant="ghost"
                     style={{
-                      backgroundColor: "#8FB0FF",
-                      borderColor: "#8FB0FF",
-                      color: "white",
+                      backgroundColor: "white",
+                      borderColor: "#e5e7eb",
+                      color: "black",
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.backgroundColor = "#A3A8FC";
                       e.currentTarget.style.borderColor = "#A3A8FC";
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = "#8FB0FF";
-                      e.currentTarget.style.borderColor = "#8FB0FF";
+                      e.currentTarget.style.backgroundColor = "white";
+                      e.currentTarget.style.borderColor = "#e5e7eb";
                     }}
                   >
                     Edit Clinic Info
@@ -5037,17 +4910,17 @@ export default function Forms() {
                 variant="ghost"
                 className="border transition-all duration-200"
                 style={{
-                  backgroundColor: "#8FB0FF",
-                  borderColor: "#8FB0FF",
-                  color: "white",
+                  backgroundColor: "white",
+                  borderColor: "#e5e7eb",
+                  color: "black",
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = "#A3A8FC";
                   e.currentTarget.style.borderColor = "#A3A8FC";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#8FB0FF";
-                  e.currentTarget.style.borderColor = "#8FB0FF";
+                  e.currentTarget.style.backgroundColor = "white";
+                  e.currentTarget.style.borderColor = "#e5e7eb";
                 }}
                 onClick={() => setShowClinicDialog(false)}
               >
@@ -5155,17 +5028,17 @@ export default function Forms() {
                 variant="ghost"
                 className="border transition-all duration-200"
                 style={{
-                  backgroundColor: "#8FB0FF",
-                  borderColor: "#8FB0FF",
-                  color: "white",
+                  backgroundColor: "white",
+                  borderColor: "#e5e7eb",
+                  color: "black",
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = "#A3A8FC";
                   e.currentTarget.style.borderColor = "#A3A8FC";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#8FB0FF";
-                  e.currentTarget.style.borderColor = "#8FB0FF";
+                  e.currentTarget.style.backgroundColor = "white";
+                  e.currentTarget.style.borderColor = "#e5e7eb";
                 }}
                 onClick={() => setShowEditClinicDialog(false)}
               >
@@ -5175,17 +5048,17 @@ export default function Forms() {
                 variant="ghost"
                 className="border transition-all duration-200"
                 style={{
-                  backgroundColor: "#8FB0FF",
-                  borderColor: "#8FB0FF",
-                  color: "white",
+                  backgroundColor: "white",
+                  borderColor: "#e5e7eb",
+                  color: "black",
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = "#A3A8FC";
                   e.currentTarget.style.borderColor = "#A3A8FC";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#8FB0FF";
-                  e.currentTarget.style.borderColor = "#8FB0FF";
+                  e.currentTarget.style.backgroundColor = "white";
+                  e.currentTarget.style.borderColor = "#e5e7eb";
                 }}
                 onClick={saveClinicInfo}
               >
@@ -5302,17 +5175,17 @@ export default function Forms() {
                 variant="ghost"
                 className="border transition-all duration-200"
                 style={{
-                  backgroundColor: "#8FB0FF",
-                  borderColor: "#8FB0FF",
-                  color: "white",
+                  backgroundColor: "white",
+                  borderColor: "#e5e7eb",
+                  color: "black",
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = "#A3A8FC";
                   e.currentTarget.style.borderColor = "#A3A8FC";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#8FB0FF";
-                  e.currentTarget.style.borderColor = "#8FB0FF";
+                  e.currentTarget.style.backgroundColor = "white";
+                  e.currentTarget.style.borderColor = "#e5e7eb";
                 }}
                 onClick={() => setShowPatientDialog(false)}
               >
@@ -5431,17 +5304,17 @@ export default function Forms() {
                 variant="ghost"
                 className="border transition-all duration-200"
                 style={{
-                  backgroundColor: "#8FB0FF",
-                  borderColor: "#8FB0FF",
-                  color: "white",
+                  backgroundColor: "white",
+                  borderColor: "#e5e7eb",
+                  color: "black",
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = "#A3A8FC";
                   e.currentTarget.style.borderColor = "#A3A8FC";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#8FB0FF";
-                  e.currentTarget.style.borderColor = "#8FB0FF";
+                  e.currentTarget.style.backgroundColor = "white";
+                  e.currentTarget.style.borderColor = "#e5e7eb";
                 }}
                 onClick={() => setShowRecipientDialog(false)}
               >
@@ -5564,17 +5437,17 @@ export default function Forms() {
                 variant="ghost"
                 className="border transition-all duration-200"
                 style={{
-                  backgroundColor: "#8FB0FF",
-                  borderColor: "#8FB0FF",
-                  color: "white",
+                  backgroundColor: "white",
+                  borderColor: "#e5e7eb",
+                  color: "black",
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = "#A3A8FC";
                   e.currentTarget.style.borderColor = "#A3A8FC";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#8FB0FF";
-                  e.currentTarget.style.borderColor = "#8FB0FF";
+                  e.currentTarget.style.backgroundColor = "white";
+                  e.currentTarget.style.borderColor = "#e5e7eb";
                 }}
                 onClick={() => setShowAppointmentsDialog(false)}
               >
@@ -5694,17 +5567,17 @@ export default function Forms() {
                 variant="ghost"
                 className="border transition-all duration-200"
                 style={{
-                  backgroundColor: "#8FB0FF",
-                  borderColor: "#8FB0FF",
-                  color: "white",
+                  backgroundColor: "white",
+                  borderColor: "#e5e7eb",
+                  color: "black",
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = "#A3A8FC";
                   e.currentTarget.style.borderColor = "#A3A8FC";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#8FB0FF";
-                  e.currentTarget.style.borderColor = "#8FB0FF";
+                  e.currentTarget.style.backgroundColor = "white";
+                  e.currentTarget.style.borderColor = "#e5e7eb";
                 }}
                 onClick={() => setShowLabsDialog(false)}
               >
@@ -5831,17 +5704,17 @@ export default function Forms() {
                 variant="ghost"
                 className="border transition-all duration-200"
                 style={{
-                  backgroundColor: "#8FB0FF",
-                  borderColor: "#8FB0FF",
-                  color: "white",
+                  backgroundColor: "white",
+                  borderColor: "#e5e7eb",
+                  color: "black",
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = "#A3A8FC";
                   e.currentTarget.style.borderColor = "#A3A8FC";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#8FB0FF";
-                  e.currentTarget.style.borderColor = "#8FB0FF";
+                  e.currentTarget.style.backgroundColor = "white";
+                  e.currentTarget.style.borderColor = "#e5e7eb";
                 }}
                 onClick={() => setShowPatientRecordsDialog(false)}
               >
@@ -5963,17 +5836,17 @@ export default function Forms() {
                 variant="ghost"
                 className="border transition-all duration-200"
                 style={{
-                  backgroundColor: "#8FB0FF",
-                  borderColor: "#8FB0FF",
-                  color: "white",
+                  backgroundColor: "white",
+                  borderColor: "#e5e7eb",
+                  color: "black",
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = "#A3A8FC";
                   e.currentTarget.style.borderColor = "#A3A8FC";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#8FB0FF";
-                  e.currentTarget.style.borderColor = "#8FB0FF";
+                  e.currentTarget.style.backgroundColor = "white";
+                  e.currentTarget.style.borderColor = "#e5e7eb";
                 }}
                 onClick={() => setShowInsertProductDialog(false)}
               >
@@ -6102,17 +5975,17 @@ export default function Forms() {
                 variant="ghost"
                 className="border transition-all duration-200"
                 style={{
-                  backgroundColor: "#8FB0FF",
-                  borderColor: "#8FB0FF",
-                  color: "white",
+                  backgroundColor: "white",
+                  borderColor: "#e5e7eb",
+                  color: "black",
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = "#A3A8FC";
                   e.currentTarget.style.borderColor = "#A3A8FC";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#8FB0FF";
-                  e.currentTarget.style.borderColor = "#8FB0FF";
+                  e.currentTarget.style.backgroundColor = "white";
+                  e.currentTarget.style.borderColor = "#e5e7eb";
                 }}
                 onClick={() => setShowMoreOptionsDialog(false)}
               >
@@ -6223,17 +6096,17 @@ export default function Forms() {
                 variant="ghost"
                 className="border transition-all duration-200"
                 style={{
-                  backgroundColor: "#8FB0FF",
-                  borderColor: "#8FB0FF",
-                  color: "white",
+                  backgroundColor: "white",
+                  borderColor: "#e5e7eb",
+                  color: "black",
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = "#A3A8FC";
                   e.currentTarget.style.borderColor = "#A3A8FC";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#8FB0FF";
-                  e.currentTarget.style.borderColor = "#8FB0FF";
+                  e.currentTarget.style.backgroundColor = "white";
+                  e.currentTarget.style.borderColor = "#e5e7eb";
                 }}
                 onClick={() => setShowSavedTemplatesDialog(false)}
               >
@@ -6267,17 +6140,17 @@ export default function Forms() {
               onClick={() => setShowEmptyContentDialog(false)}
               className="transition-all duration-200"
               style={{
-                backgroundColor: "#4A7DFF",
-                borderColor: "#4A7DFF",
-                color: "white",
+                backgroundColor: "white",
+                borderColor: "#e5e7eb",
+                color: "black",
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = "#7279FB";
                 e.currentTarget.style.borderColor = "#7279FB";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "#4A7DFF";
-                e.currentTarget.style.borderColor = "#4A7DFF";
+                e.currentTarget.style.backgroundColor = "white";
+                e.currentTarget.style.borderColor = "#e5e7eb";
               }}
               data-testid="button-close-empty-dialog"
             >
@@ -6292,7 +6165,7 @@ export default function Forms() {
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              Letter Details
+              Letter Details 2
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
@@ -6444,9 +6317,9 @@ export default function Forms() {
                     }}
                     className="px-6"
                     style={{
-                      backgroundColor: "#8FB0FF",
-                      borderColor: "#8FB0FF",
-                      color: "white",
+                      backgroundColor: "white",
+                      borderColor: "#e5e7eb",
+                      color: "black",
                     }}
                   >
                     Create Letter
