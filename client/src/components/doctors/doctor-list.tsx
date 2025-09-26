@@ -456,8 +456,9 @@ export function DoctorList({
                   </AvatarFallback>
                 </Avatar>
 
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
+                <div className="flex-1 min-w-0 space-y-2">
+                  {/* Row 1: Name */}
+                  <div className="mb-1">
                     <h4
                       className="font-semibold text-gray-900 dark:text-gray-100 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                       onClick={() => openScheduleDialog(doctor)}
@@ -466,28 +467,40 @@ export function DoctorList({
                     </h4>
                   </div>
 
-                  {/* Medical Specializations */}
-                  <div className="flex items-center gap-2 mb-2">
-                    {doctor.medicalSpecialtyCategory && (
-                      <Badge
-                        className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                      >
+                  {/* Row 2: Medical Specialty Category */}
+                  {doctor.medicalSpecialtyCategory && (
+                    <div className="flex items-center">
+                      <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                         {doctor.medicalSpecialtyCategory}
                       </Badge>
-                    )}
-                    {doctor.subSpecialty && (
+                    </div>
+                  )}
+
+                  {/* Row 3: Sub-specialty */}
+                  {doctor.subSpecialty && (
+                    <div className="flex items-center">
                       <Badge
                         variant="outline"
                         className="bg-green-100 text-green-800 border-green-200 dark:bg-green-900 dark:text-green-200 dark:border-green-700"
                       >
                         {doctor.subSpecialty}
                       </Badge>
-                    )}
-                  </div>
+                    </div>
+                  )}
 
-                  {doctor.department && (
-                    <div className="flex items-center gap-1 mb-2">
+                  {/* Row 4: Email */}
+                  {doctor.email && (
+                    <div className="flex items-center gap-1">
                       <MapPin className="h-3 w-3 text-gray-400" />
+                      <span className="text-sm text-gray-600 dark:text-gray-300">
+                        {doctor.email}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Row 5: Department */}
+                  {doctor.department && (
+                    <div className="flex items-center">
                       <Badge
                         variant="outline"
                         className={
@@ -501,11 +514,11 @@ export function DoctorList({
                     </div>
                   )}
 
-                  {/* Working Hours Display */}
+                  {/* Row 6: Working Hours */}
                   {doctor.workingDays &&
                     doctor.workingDays.length > 0 &&
                     doctor.workingHours && (
-                      <div className="flex items-center gap-1 mb-2">
+                      <div className="flex items-center gap-1">
                         <Clock className="h-3 w-3 text-blue-500 dark:text-blue-400" />
                         <span className="text-sm text-blue-700 dark:text-blue-300 font-medium">
                           {doctor.workingDays.slice(0, 3).join(", ")}
@@ -518,6 +531,7 @@ export function DoctorList({
                       </div>
                     )}
 
+                  {/* Row 7: Last Active */}
                   {doctor.lastLoginAt && (
                     <div className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
                       <Clock className="h-3 w-3" />
