@@ -523,7 +523,18 @@ export function PatientDashboard() {
                 <CardContent>
                   {card.title === "Next Appointment" && nextAppointment ? (
                     <div>
-                      <div className="text-2xl font-bold">{new Date(nextAppointment.scheduledAt).toLocaleDateString()}</div>
+                      <div className="text-2xl font-bold">
+                        {user?.role === "patient" ? (() => {
+                          const date = new Date(nextAppointment.scheduledAt);
+                          const day = date.getDate();
+                          const month = date.toLocaleDateString('en-GB', { month: 'long' });
+                          const year = date.getFullYear();
+                          const suffix = day === 1 || day === 21 || day === 31 ? 'st' : 
+                                        day === 2 || day === 22 ? 'nd' : 
+                                        day === 3 || day === 23 ? 'rd' : 'th';
+                          return `${day}${suffix} ${month}, ${year}`;
+                        })() : new Date(nextAppointment.scheduledAt).toLocaleDateString()}
+                      </div>
                       <div className="text-sm text-gray-500 mt-1">{new Date(nextAppointment.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}</div>
                     </div>
                   ) : (
