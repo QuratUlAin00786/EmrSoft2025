@@ -74,7 +74,7 @@ export default function PatientAppointments({
     useState<string>("");
   const [patientFilterSubSpecialty, setPatientFilterSubSpecialty] =
     useState<string>("");
-  const [statusFilter, setStatusFilter] = useState<'all'|'scheduled'|'cancelled'|'completed'|'rescheduled'|'no_show'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all'|'scheduled'|'cancelled'|'completed'|'rescheduled'|'no_show'>('scheduled');
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
