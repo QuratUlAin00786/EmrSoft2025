@@ -618,6 +618,48 @@ export default function PatientAppointments({
                 className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
+
+            {/* Medical Specialty Category Filter */}
+            <div>
+              <Label className="text-sm font-medium text-gray-700">Medical Specialty</Label>
+              <Select
+                value={patientFilterSpecialty}
+                onValueChange={setPatientFilterSpecialty}
+              >
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Select specialty" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Specialties</SelectItem>
+                  {getPatientFilterOptions.specialties.map((specialty: string) => (
+                    <SelectItem key={specialty} value={specialty}>
+                      {specialty}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Sub-Specialty Filter */}
+            <div>
+              <Label className="text-sm font-medium text-gray-700">Sub-Specialty</Label>
+              <Select
+                value={patientFilterSubSpecialty}
+                onValueChange={setPatientFilterSubSpecialty}
+              >
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Select sub-specialty" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Sub-Specialties</SelectItem>
+                  {getPatientFilterOptions.subSpecialties.map((subSpecialty: string) => (
+                    <SelectItem key={subSpecialty} value={subSpecialty}>
+                      {subSpecialty}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {/* Clear Filters Button */}
@@ -627,8 +669,8 @@ export default function PatientAppointments({
               size="sm"
               onClick={() => {
                 setPatientFilterDate("");
-                setPatientFilterSpecialty("");
-                setPatientFilterSubSpecialty("");
+                setPatientFilterSpecialty("all");
+                setPatientFilterSubSpecialty("all");
               }}
             >
               Clear Filters
@@ -669,7 +711,78 @@ export default function PatientAppointments({
         </div>
       )}
 
-   
+      {/* Medical Specialties Display - Only show for Patient role users */}
+      {user?.role === "patient" && filteredAppointments.length > 0 && (
+        <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+          <h4 className="text-sm font-medium text-gray-700 mb-2">
+            Medical Specialties:
+          </h4>
+          <div className="flex flex-wrap gap-2">
+            {(
+              Array.from(
+                new Set(
+                  filteredAppointments
+                    .map((apt: any) => {
+                      const specialtyData = getDoctorSpecialtyData(
+                        apt.providerId,
+                      );
+                      return specialtyData.category;
+                    })
+                    .filter(Boolean),
+                ),
+              ) as string[]
+            ).map((category: string) => (
+              <span
+                key={category}
+                className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+              >
+                {category}
+              </span>
+            ))}
+          </div>
+          {(
+            Array.from(
+              new Set(
+                filteredAppointments
+                  .map((apt: any) => {
+                    const specialtyData = getDoctorSpecialtyData(
+                      apt.providerId,
+                    );
+                    return specialtyData.subSpecialty;
+                  })
+                  .filter(Boolean),
+              ),
+            ) as string[]
+          ).length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-2">
+              <h5 className="text-xs font-medium text-gray-600 w-full mb-1">
+                Sub-Specialties:
+              </h5>
+              {(
+                Array.from(
+                  new Set(
+                    filteredAppointments
+                      .map((apt: any) => {
+                        const specialtyData = getDoctorSpecialtyData(
+                          apt.providerId,
+                        );
+                        return specialtyData.subSpecialty;
+                      })
+                      .filter(Boolean),
+                  ),
+                ) as string[]
+              ).map((subSpecialty: string) => (
+                <span
+                  key={subSpecialty}
+                  className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800"
+                >
+                  {subSpecialty}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Appointments List */}
       <div className="space-y-4">
