@@ -74,9 +74,13 @@ export default function PatientAppointments({
     useState<string>("");
   const [patientFilterSubSpecialty, setPatientFilterSubSpecialty] =
     useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<'all'|'scheduled'|'cancelled'|'completed'|'rescheduled'|'no_show'>('all');
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Helper function to normalize status values for case-insensitive filtering
+  const normalizeStatus = (s?: string) => (s || '').toLowerCase().replace(/\s+/g, '_');
 
   // Fetch patients to find the current user's patient record
   const { data: patientsData, isLoading: patientsLoading } = useQuery({
@@ -463,9 +467,9 @@ export default function PatientAppointments({
   ]);
 
   // Filter and sort appointments by date for the logged-in patient
-  const filteredAppointments = (
-    user?.role === "patient" ? getPatientFilteredAppointments : appointments
-  )
+  const base = user?.role === "patient" ? getPatientFilteredAppointments : appointments;
+  const statusFiltered = statusFilter === 'all' ? base : base.filter((apt:any) => normalizeStatus(apt.status) === statusFilter);
+  const filteredAppointments = statusFiltered
     .filter((apt: any) => {
       const appointmentDate = new Date(apt.scheduledAt);
 
@@ -760,6 +764,24 @@ export default function PatientAppointments({
                 />
               </div>
 
+              {/* Status Filter */}
+              <div className="flex-1">
+                <Label className="text-sm font-medium text-gray-700">Filter by Status</Label>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger data-testid="select-status-filter">
+                    <SelectValue placeholder="All statuses" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all" data-testid="option-status-all">All</SelectItem>
+                    <SelectItem value="scheduled" data-testid="option-status-scheduled">SCHEDULED</SelectItem>
+                    <SelectItem value="cancelled" data-testid="option-status-cancelled">CANCELLED</SelectItem>
+                    <SelectItem value="completed" data-testid="option-status-completed">COMPLETED</SelectItem>
+                    <SelectItem value="rescheduled" data-testid="option-status-rescheduled">RESCHEDULED</SelectItem>
+                    <SelectItem value="no_show" data-testid="option-status-no_show">NO_SHOW</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               {/* Clear Filters Button */}
               <div>
                 <Button
@@ -769,6 +791,7 @@ export default function PatientAppointments({
                     setPatientFilterDate("");
                     setPatientFilterSpecialty("");
                     setPatientFilterSubSpecialty("");
+                    setStatusFilter('all');
                   }}
                 >
                   Clear Filters
