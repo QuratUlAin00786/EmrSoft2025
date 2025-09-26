@@ -50,6 +50,11 @@ export default function PatientAppointments({
     number | null
   >(null);
   const [bookedTimeSlots, setBookedTimeSlots] = useState<string[]>([]);
+  
+  // Patient filter states
+  const [patientFilterDate, setPatientFilterDate] = useState<string>("");
+  const [patientFilterSpecialty, setPatientFilterSpecialty] = useState<string>("");
+  const [patientFilterSubSpecialty, setPatientFilterSubSpecialty] = useState<string>("");
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -340,8 +345,41 @@ export default function PatientAppointments({
     }
   };
 
+  // Filter appointments based on patient filters (for patient role)
+  const getPatientFilteredAppointments = React.useMemo(() => {
+    if (user?.role !== "patient") return appointments;
+
+    let filtered = appointments;
+
+    // Filter by date if selected
+    if (patientFilterDate) {
+      filtered = filtered.filter((apt: any) => {
+        const aptDate = format(new Date(apt.scheduledAt), "yyyy-MM-dd");
+        return aptDate === patientFilterDate;
+      });
+    }
+
+    // Filter by medical specialty category if selected
+    if (patientFilterSpecialty) {
+      filtered = filtered.filter((apt: any) => {
+        const doctorData = getDoctorSpecialtyData(apt.providerId);
+        return doctorData.category === patientFilterSpecialty;
+      });
+    }
+
+    // Filter by sub-specialty if selected
+    if (patientFilterSubSpecialty) {
+      filtered = filtered.filter((apt: any) => {
+        const doctorData = getDoctorSpecialtyData(apt.providerId);
+        return doctorData.subSpecialty === patientFilterSubSpecialty;
+      });
+    }
+
+    return filtered;
+  }, [appointments, patientFilterDate, patientFilterSpecialty, patientFilterSubSpecialty, user?.role]);
+
   // Filter and sort appointments by date for the logged-in patient
-  const filteredAppointments = appointments
+  const filteredAppointments = (user?.role === "patient" ? getPatientFilteredAppointments : appointments)
     .filter((apt: any) => {
       const appointmentDate = new Date(apt.scheduledAt);
 
@@ -434,6 +472,32 @@ export default function PatientAppointments({
 
   // Get detailed upcoming appointments data
   const upcomingAppointmentsDetails = getUpcomingAppointmentsDetails();
+
+  // Get unique medical specialties and sub-specialties for patient filter
+  const getPatientFilterOptions = React.useMemo(() => {
+    const doctorsResponse = doctorsData as any;
+    if (!doctorsResponse?.doctors || !Array.isArray(doctorsResponse.doctors)) {
+      return { specialties: [], subSpecialties: [] };
+    }
+
+    const specialties = Array.from(
+      new Set(
+        doctorsResponse.doctors
+          .map((doctor: any) => doctor.medicalSpecialtyCategory)
+          .filter(Boolean)
+      )
+    ) as string[];
+
+    const subSpecialties = Array.from(
+      new Set(
+        doctorsResponse.doctors
+          .map((doctor: any) => doctor.subSpecialty)
+          .filter(Boolean)
+      )
+    ) as string[];
+
+    return { specialties, subSpecialties };
+  }, [doctorsData]);
 
   // Show loading state when all data is loading
   if (isLoading) {
@@ -539,36 +603,113 @@ export default function PatientAppointments({
 
 
       {/* Filter Tabs */}
-      <div className="flex space-x-2">
-        <Button
-          variant={selectedFilter === "upcoming" ? "default" : "outline"}
-          size="sm"
-          onClick={() => setSelectedFilter("upcoming")}
-        >
-          Upcoming ({upcomingAppointments.length})
-        </Button>
-        <Button
-          variant={selectedFilter === "past" ? "default" : "outline"}
-          size="sm"
-          onClick={() => setSelectedFilter("past")}
-        >
-          Past (
-          {
-            appointments.filter((apt: any) => {
-              const appointmentDate = new Date(apt.scheduledAt);
-              return isPast(appointmentDate) && !isToday(appointmentDate);
-            }).length
-          }
-          )
-        </Button>
-        <Button
-          variant={selectedFilter === "all" ? "default" : "outline"}
-          size="sm"
-          onClick={() => setSelectedFilter("all")}
-        >
-          All ({appointments.length})
-        </Button>
-      </div>
+      {user?.role === "patient" ? (
+        /* Patient Filter */
+        <div title="Patient Filter(filter appointments)" className="space-y-4">
+          <h3 className="text-lg font-medium text-gray-700">Patient Filter</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Date Filter */}
+            <div>
+              <Label className="text-sm font-medium text-gray-700">Filter by Date</Label>
+              <input
+                type="date"
+                value={patientFilterDate}
+                onChange={(e) => setPatientFilterDate(e.target.value)}
+                className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+
+            {/* Medical Specialty Category Filter */}
+            <div>
+              <Label className="text-sm font-medium text-gray-700">Medical Specialty</Label>
+              <Select
+                value={patientFilterSpecialty}
+                onValueChange={setPatientFilterSpecialty}
+              >
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Select specialty" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Specialties</SelectItem>
+                  {getPatientFilterOptions.specialties.map((specialty: string) => (
+                    <SelectItem key={specialty} value={specialty}>
+                      {specialty}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Sub-Specialty Filter */}
+            <div>
+              <Label className="text-sm font-medium text-gray-700">Sub-Specialty</Label>
+              <Select
+                value={patientFilterSubSpecialty}
+                onValueChange={setPatientFilterSubSpecialty}
+              >
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Select sub-specialty" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Sub-Specialties</SelectItem>
+                  {getPatientFilterOptions.subSpecialties.map((subSpecialty: string) => (
+                    <SelectItem key={subSpecialty} value={subSpecialty}>
+                      {subSpecialty}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Clear Filters Button */}
+          <div className="flex justify-end">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setPatientFilterDate("");
+                setPatientFilterSpecialty("");
+                setPatientFilterSubSpecialty("");
+              }}
+            >
+              Clear Filters
+            </Button>
+          </div>
+        </div>
+      ) : (
+        /* Regular Filter Tabs for non-patient roles */
+        <div className="flex space-x-2">
+          <Button
+            variant={selectedFilter === "upcoming" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setSelectedFilter("upcoming")}
+          >
+            Upcoming ({upcomingAppointments.length})
+          </Button>
+          <Button
+            variant={selectedFilter === "past" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setSelectedFilter("past")}
+          >
+            Past (
+            {
+              appointments.filter((apt: any) => {
+                const appointmentDate = new Date(apt.scheduledAt);
+                return isPast(appointmentDate) && !isToday(appointmentDate);
+              }).length
+            }
+            )
+          </Button>
+          <Button
+            variant={selectedFilter === "all" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setSelectedFilter("all")}
+          >
+            All ({appointments.length})
+          </Button>
+        </div>
+      )}
 
       {/* Medical Specialties Display - Only show for Patient role users */}
       {user?.role === "patient" && filteredAppointments.length > 0 && (
