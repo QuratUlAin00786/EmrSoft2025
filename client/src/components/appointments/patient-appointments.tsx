@@ -202,13 +202,20 @@ export default function PatientAppointments({
 
   // Filter appointments to show only the current patient's appointments
   const appointments = React.useMemo(() => {
-    if (!appointmentsData || !currentPatient) return [];
+    // If we're loading patients data, don't filter yet - return empty but don't cause "No appointments found"
+    if (patientsLoading || !appointmentsData) return [];
+    
+    // If user is not a patient, return all appointments
+    if (user?.role !== "patient") return appointmentsData;
+    
+    // If no current patient found but we're not loading, return empty
+    if (!currentPatient) return [];
 
     // Filter appointments by current patient database ID - appointments store the numeric patient ID
     return appointmentsData.filter(
       (apt: any) => apt.patientId === currentPatient.id,
     );
-  }, [appointmentsData, currentPatient]);
+  }, [appointmentsData, currentPatient, patientsLoading, user?.role]);
 
   const getDoctorSpecialtyData = (providerId: number) => {
     const doctorsResponse = doctorsData as any;
@@ -431,6 +438,7 @@ export default function PatientAppointments({
   const getPatientFilteredAppointments = React.useMemo(() => {
     if (user?.role !== "patient") return appointments;
 
+    // Start with the already patient-filtered appointments (appointments already filtered by currentPatient.id)
     let filtered = appointments;
 
     // Filter by date if selected
