@@ -397,8 +397,17 @@ export default function PatientAppointments({
 
   const formatTime = (timeString: string) => {
     try {
-      const date = new Date(timeString);
-      return format(date, "h:mm a");
+      // FIXED: Extract time directly from database string without timezone conversion
+      // Database format: "2025-09-27T09:00:00.000Z"
+      // Extract "09:00" and convert to readable format
+      const timeOnly = timeString.split('T')[1]?.substring(0, 5); // Extract "09:00"
+      if (!timeOnly) return "Invalid time";
+      
+      const [hours, minutes] = timeOnly.split(':').map(Number);
+      const period = hours >= 12 ? 'PM' : 'AM';
+      const displayHours = hours % 12 || 12;
+      
+      return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
     } catch {
       return "Invalid time";
     }
