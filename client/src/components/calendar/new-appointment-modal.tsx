@@ -28,6 +28,7 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
   const [currentPatientDetails, setCurrentPatientDetails] = useState<any>(null);
   const [allProviders, setAllProviders] = useState<any[]>([]);
   const [availableProviders, setAvailableProviders] = useState<any[]>([]);
+  const [bookedTimeSlots, setBookedTimeSlots] = useState<string[]>([]);
 
   const createAppointmentMutation = useMutation({
     mutationFn: async (appointmentData: any) => {
@@ -220,6 +221,61 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
     }
   };
 
+  // Fetch appointments for selected date and doctor to check time slot availability
+  const fetchAppointmentsForDate = async (date: string, doctorId: string) => {
+    if (!date || !doctorId) {
+      setBookedTimeSlots([]);
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'X-Tenant-Subdomain': 'cura'
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch('/api/appointments', {
+        headers,
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // Filter appointments for the selected date and doctor with "Scheduled" status
+      const dayAppointments = data.filter((apt: any) => {
+        const aptDate = new Date(apt.scheduledAt).toISOString().split('T')[0];
+        return aptDate === date && 
+               apt.providerId === parseInt(doctorId) && 
+               apt.status === 'scheduled';
+      });
+
+      // Extract booked time slots
+      const bookedSlots = dayAppointments.map((apt: any) => {
+        const aptTime = new Date(apt.scheduledAt);
+        const hours = aptTime.getHours();
+        const minutes = aptTime.getMinutes();
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        const displayHours = hours % 12 || 12;
+        const displayMinutes = minutes === 0 ? '00' : minutes.toString().padStart(2, '0');
+        return `${displayHours}:${displayMinutes} ${ampm}`;
+      });
+
+      setBookedTimeSlots(bookedSlots);
+      console.log("📅 Booked time slots for", date, "with doctor", doctorId, ":", bookedSlots);
+    } catch (error) {
+      console.error("Error fetching appointments for date:", error);
+      setBookedTimeSlots([]);
+    }
+  };
+
   const filterAvailableProviders = () => {
     if (!formData.date || !formData.time || allProviders.length === 0) {
       setAvailableProviders(allProviders);
@@ -293,6 +349,15 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
   useEffect(() => {
     filterAvailableProviders();
   }, [formData.date, formData.time, allProviders]);
+
+  // Fetch appointments when date or doctor changes
+  useEffect(() => {
+    if (formData.date && formData.providerId) {
+      fetchAppointmentsForDate(formData.date, formData.providerId);
+    } else {
+      setBookedTimeSlots([]);
+    }
+  }, [formData.date, formData.providerId]);
 
   const onSubmit = (data: AppointmentFormData) => {
     console.log("🔍 FORM VALIDATION - Form data:", data);
@@ -540,12 +605,15 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
                             "5:00 PM",
                           ].map((timeSlot) => {
                             const isSelected = field.value === timeSlot.replace(" ", "").toLowerCase();
+                            const isBooked = bookedTimeSlots.includes(timeSlot);
                             
                             return (
                               <button
                                 key={timeSlot}
                                 type="button"
+                                disabled={isBooked}
                                 onClick={() => {
+                                  if (isBooked) return;
                                   const [time, period] = timeSlot.split(" ");
                                   const [hours, minutes] = time.split(":");
                                   let hour24 = parseInt(hours);
@@ -554,10 +622,13 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
                                   field.onChange(`${hour24.toString().padStart(2, '0')}:${minutes}`);
                                 }}
                                 className={`p-2 text-sm rounded border text-center ${
-                                  isSelected
-                                    ? "bg-yellow-500 text-white border-yellow-500"
-                                    : "bg-green-500 text-white border-green-500 hover:bg-green-600"
+                                  isBooked
+                                    ? "bg-gray-400 text-gray-600 border-gray-400 cursor-not-allowed"
+                                    : isSelected
+                                    ? "bg-gray-600 text-white border-gray-600"
+                                    : "bg-gray-500 text-white border-gray-500 hover:bg-gray-600"
                                 }`}
+                                title={isBooked ? "Time slot already booked" : "Available time slot"}
                               >
                                 {timeSlot}
                               </button>
