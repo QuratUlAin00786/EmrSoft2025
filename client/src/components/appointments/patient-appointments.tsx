@@ -633,38 +633,6 @@ export default function PatientAppointments({
             </Button>
           </div>
         </div>
-
-        {/* Upcoming, Past, All Filter Buttons for Patient */}
-        <div className="flex space-x-2 mt-4">
-          <Button
-            variant={selectedFilter === "upcoming" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setSelectedFilter("upcoming")}
-          >
-            Upcoming ({upcomingAppointments.length})
-          </Button>
-          <Button
-            variant={selectedFilter === "past" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setSelectedFilter("past")}
-          >
-            Past (
-            {
-              appointments.filter((apt: any) => {
-                const appointmentDate = new Date(apt.scheduledAt);
-                return isPast(appointmentDate) && !isToday(appointmentDate);
-              }).length
-            }
-            )
-          </Button>
-          <Button
-            variant={selectedFilter === "all" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setSelectedFilter("all")}
-          >
-            All ({appointments.length})
-          </Button>
-        </div>
       </div>
 
       ) : (
@@ -701,78 +669,7 @@ export default function PatientAppointments({
         </div>
       )}
 
-      {/* Medical Specialties Display - Only show for Patient role users */}
-      {user?.role === "patient" && filteredAppointments.length > 0 && (
-        <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-          <h4 className="text-sm font-medium text-gray-700 mb-2">
-            Medical Specialties:
-          </h4>
-          <div className="flex flex-wrap gap-2">
-            {(
-              Array.from(
-                new Set(
-                  filteredAppointments
-                    .map((apt: any) => {
-                      const specialtyData = getDoctorSpecialtyData(
-                        apt.providerId,
-                      );
-                      return specialtyData.category;
-                    })
-                    .filter(Boolean),
-                ),
-              ) as string[]
-            ).map((category: string) => (
-              <span
-                key={category}
-                className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-              >
-                {category}
-              </span>
-            ))}
-          </div>
-          {(
-            Array.from(
-              new Set(
-                filteredAppointments
-                  .map((apt: any) => {
-                    const specialtyData = getDoctorSpecialtyData(
-                      apt.providerId,
-                    );
-                    return specialtyData.subSpecialty;
-                  })
-                  .filter(Boolean),
-              ),
-            ) as string[]
-          ).length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-2">
-              <h5 className="text-xs font-medium text-gray-600 w-full mb-1">
-                Sub-Specialties:
-              </h5>
-              {(
-                Array.from(
-                  new Set(
-                    filteredAppointments
-                      .map((apt: any) => {
-                        const specialtyData = getDoctorSpecialtyData(
-                          apt.providerId,
-                        );
-                        return specialtyData.subSpecialty;
-                      })
-                      .filter(Boolean),
-                  ),
-                ) as string[]
-              ).map((subSpecialty: string) => (
-                <span
-                  key={subSpecialty}
-                  className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800"
-                >
-                  {subSpecialty}
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+   
 
       {/* Appointments List */}
       <div className="space-y-4">
