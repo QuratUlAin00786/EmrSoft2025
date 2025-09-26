@@ -825,16 +825,16 @@ export default function PatientAppointments({
                           </Button>
                           {/* Cancel Appointment button for patient users */}
                           {user?.role === "patient" && appointment.status === "scheduled" && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleCancelAppointment(appointment.id)}
-                              className="border-red-500 text-red-500 hover:bg-red-50 text-xs"
-                              data-testid={`button-cancel-appointment-${appointment.id}`}
-                              title="Cancel Appointment"
-                            >
-                              Cancel Appointment
-                            </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleCancelAppointment(appointment.id)}
+                  className="p-0 border-red-500 text-red-500 hover:bg-red-50 text-xs"
+                  data-testid={`button-cancel-appointment-${appointment.id}`}
+                  title="Cancel Appointment"
+                >
+                  Cancel Appointment
+                </Button>
                           )}
                           {user?.role !== "patient" && (
                             <Button
