@@ -692,9 +692,9 @@ export function DoctorList({
             Schedule a new appointment by selecting specialty, doctor, date, and time slot.
           </div>
 
-          <div className="space-y-8">
+          <div className="space-y-4">
             {/* First Row - Appointment Details */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label className="text-sm font-medium">Appointment Type</Label>
                 <Select
@@ -729,25 +729,15 @@ export function DoctorList({
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label className="text-sm font-medium">Title (optional)</Label>
-                <Input
-                  type="text"
-                  placeholder="Enter appointment title"
-                  value={appointmentTitle}
-                  onChange={(e) => setAppointmentTitle(e.target.value)}
-                  className="mt-1"
-                />
-              </div>
             </div>
 
             {/* Second Row - Doctor and Patient Information */}
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-2 gap-4">
               {/* Doctor Information */}
               <div>
-                <Label className="text-sm font-medium mb-2 block">Doctor Information</Label>
-                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 h-48">
-                  <div className="flex items-start gap-3">
+                <Label className="text-sm font-medium mb-1 block">Doctor Information</Label>
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 h-40">
+                  <div className="flex items-start gap-2">
                     <div className="w-8 h-8 bg-blue-100 dark:bg-blue-800 rounded-full flex items-center justify-center flex-shrink-0">
                       <User className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                     </div>
@@ -758,19 +748,19 @@ export function DoctorList({
                       <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
                         {selectedBookingDoctor?.medicalSpecialtyCategory || 'General & Primary Care'}
                       </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                      <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
                         {selectedBookingDoctor?.subSpecialty || 'General Practitioner (GP) / Family Physician'}
                       </div>
                       <div className="space-y-1">
-                        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                        <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
                           <span>📧</span>
                           <span className="truncate">{selectedBookingDoctor?.email || 'doctor@cura.com'}</span>
                         </div>
-                        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                        <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
                           <span>🏥</span>
                           <span className="truncate">{selectedBookingDoctor?.department || 'qurat@cura.com'}</span>
                         </div>
-                        <div className="text-xs text-blue-600 dark:text-blue-400 mt-2">
+                        <div className="text-xs text-blue-600 dark:text-blue-400 mt-1">
                           Doctor ID: {selectedBookingDoctor ? String(selectedBookingDoctor.id).padStart(6, '0') : '000041'}
                         </div>
                       </div>
@@ -781,9 +771,9 @@ export function DoctorList({
 
               {/* Patient Information */}
               <div>
-                <Label className="text-sm font-medium mb-2 block">Patient Information</Label>
-                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 h-48">
-                  <div className="flex items-start gap-3 mb-3">
+                <Label className="text-sm font-medium mb-1 block">Patient Information</Label>
+                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 h-40">
+                  <div className="flex items-start gap-2 mb-2">
                     <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-medium flex-shrink-0">
                       {patients?.find((p: any) => p.id.toString() === selectedPatient)?.firstName?.charAt(0) || 'S'}{patients?.find((p: any) => p.id.toString() === selectedPatient)?.lastName?.charAt(0) || 'a'}
                     </div>
@@ -791,25 +781,25 @@ export function DoctorList({
                       <div className="font-medium text-gray-900 dark:text-white mb-1">
                         {patients?.find((p: any) => p.id.toString() === selectedPatient)?.firstName || 'Shabana'} {patients?.find((p: any) => p.id.toString() === selectedPatient)?.lastName || 'ali'}
                       </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                      <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
                         OP{String(patients?.find((p: any) => p.id.toString() === selectedPatient)?.id || '00025').padStart(6, '0')}
                       </div>
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                    <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
                       <span>📞</span>
                       <span className="truncate">{patients?.find((p: any) => p.id.toString() === selectedPatient)?.phone || '+923115459791'}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                    <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
                       <span>📧</span>
                       <span className="truncate">{patients?.find((p: any) => p.id.toString() === selectedPatient)?.email || 'patient2@cura.com'}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                    <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
                       <span>🏥</span>
                       <span className="truncate">NHS: {patients?.find((p: any) => p.id.toString() === selectedPatient)?.nhsNumber || '312312123'}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                    <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
                       <span>📍</span>
                       <span className="truncate">{patients?.find((p: any) => p.id.toString() === selectedPatient)?.address?.city || 'guyg'}, {patients?.find((p: any) => p.id.toString() === selectedPatient)?.address?.country || 'United Kingdom'}</span>
                     </div>
@@ -819,11 +809,11 @@ export function DoctorList({
             </div>
 
             {/* Third Row - Date and Time Selection */}
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-2 gap-4">
               {/* Select Date */}
               <div>
-                <Label className="text-sm font-medium mb-2 block">Select Date</Label>
-                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                <Label className="text-sm font-medium mb-1 block">Select Date</Label>
+                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-2">
                   <Calendar
                     mode="single"
                     selected={selectedDate}
@@ -838,14 +828,14 @@ export function DoctorList({
 
               {/* Select Time Slot */}
               <div>
-                <Label className="text-sm font-medium mb-2 block">Select Time Slot</Label>
-                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 min-h-[120px] flex items-center justify-center">
+                <Label className="text-sm font-medium mb-1 block">Select Time Slot</Label>
+                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-2 min-h-[120px] flex items-center justify-center">
                   {!selectedBookingDoctor || !selectedDate ? (
-                    <p className="text-gray-500 text-center">
+                    <p className="text-gray-500 text-center text-sm">
                       Please select a doctor and date to view available time slots.
                     </p>
                   ) : (
-                    <div className="grid grid-cols-4 gap-2 w-full">
+                    <div className="grid grid-cols-4 gap-1 w-full">
                       {generateTimeSlots().map((slot) => {
                         const isAvailable = isTimeSlotAvailable(slot.value);
                         const isSelected = selectedTimeSlot === slot.value;
@@ -858,7 +848,7 @@ export function DoctorList({
                             onClick={() => setSelectedTimeSlot(slot.value)}
                             disabled={!isAvailable}
                             className={cn(
-                              "h-8 text-xs",
+                              "h-7 text-xs",
                               isSelected &&
                                 "bg-blue-500 text-white hover:bg-blue-600",
                               isAvailable &&
@@ -900,48 +890,44 @@ export function DoctorList({
               </Select>
             </div>
 
-            {/* Additional Fields Section */}
-            <div className="space-y-4 border-t border-gray-200 dark:border-gray-700 pt-6">
-              <h3 className="text-lg font-medium">Additional Information</h3>
-              <div className="grid grid-cols-2 gap-4">
+            {/* Fourth Row - Title and Booking Summary */}
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
+              <div className="grid grid-cols-2 gap-3 mb-3">
+                {/* Title Field */}
+                <div>
+                  <Label className="text-sm font-medium">Title (optional)</Label>
+                  <Input
+                    type="text"
+                    placeholder="Enter appointment title"
+                    value={appointmentTitle}
+                    onChange={(e) => setAppointmentTitle(e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+                
                 {/* Description */}
                 <div>
                   <Label className="text-sm font-medium">Description</Label>
-                  <Textarea
-                    placeholder="Enter appointment description or notes"
-                    value={appointmentDescription}
-                    onChange={(e) => setAppointmentDescription(e.target.value)}
-                    className="mt-1 min-h-[100px]"
-                  />
-                </div>
-
-                {/* Location */}
-                <div>
-                  <Label className="text-sm font-medium">Location</Label>
                   <Input
                     type="text"
-                    placeholder="Room or department location"
-                    value={appointmentLocation}
-                    onChange={(e) => setAppointmentLocation(e.target.value)}
+                    placeholder="Enter appointment description"
+                    value={appointmentDescription}
+                    onChange={(e) => setAppointmentDescription(e.target.value)}
                     className="mt-1"
                   />
                 </div>
               </div>
-            </div>
-          </div>
-
-            {/* Fourth Row - Booking Summary */}
-            <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
-              <h3 className="text-lg font-medium mb-4">Booking Summary</h3>
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="space-y-3">
+              
+              <h3 className="text-base font-medium mb-2">Booking Summary</h3>
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
                     <div>
-                      <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">Appointment Type</Label>
+                      <Label className="text-xs font-medium text-gray-600 dark:text-gray-400">Appointment Type</Label>
                       <p className="text-sm font-medium">{appointmentType || "Not selected"}</p>
                     </div>
                     <div>
-                      <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">Patient</Label>
+                      <Label className="text-xs font-medium text-gray-600 dark:text-gray-400">Patient</Label>
                       <p className="text-sm font-medium">
                         {selectedPatient 
                           ? `${patients?.find((p: any) => p.id.toString() === selectedPatient)?.firstName} ${patients?.find((p: any) => p.id.toString() === selectedPatient)?.lastName}`
@@ -950,17 +936,17 @@ export function DoctorList({
                       </p>
                     </div>
                     <div>
-                      <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">Date</Label>
+                      <Label className="text-xs font-medium text-gray-600 dark:text-gray-400">Date</Label>
                       <p className="text-sm font-medium">{selectedDate ? format(selectedDate, "PPP") : "Not selected"}</p>
                     </div>
                   </div>
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     <div>
-                      <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">Duration</Label>
+                      <Label className="text-xs font-medium text-gray-600 dark:text-gray-400">Duration</Label>
                       <p className="text-sm font-medium">{duration ? `${duration} minutes` : "Not selected"}</p>
                     </div>
                     <div>
-                      <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">Doctor</Label>
+                      <Label className="text-xs font-medium text-gray-600 dark:text-gray-400">Doctor</Label>
                       <p className="text-sm font-medium">
                         {selectedBookingDoctor 
                           ? `Dr. ${selectedBookingDoctor.firstName} ${selectedBookingDoctor.lastName}`
@@ -969,13 +955,14 @@ export function DoctorList({
                       </p>
                     </div>
                     <div>
-                      <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">Time</Label>
+                      <Label className="text-xs font-medium text-gray-600 dark:text-gray-400">Time</Label>
                       <p className="text-sm font-medium">{selectedTimeSlot ? formatTime(selectedTimeSlot) : "Not selected"}</p>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
+          </div>
 
           {/* Action Buttons */}
           <div className="flex justify-end gap-3 pt-4">
