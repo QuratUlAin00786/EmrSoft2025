@@ -6124,73 +6124,11 @@ export default function Forms() {
               <div className="grid grid-cols-1 gap-4 max-h-96 overflow-y-auto">
                 {templates.map((template: any) => (
                   <div key={template.id} className="border rounded-lg p-4">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <h3 className="font-medium">{template.name}</h3>
-                        <p className="text-sm text-gray-500">
-                          Created:{" "}
-                          {new Date(template.createdAt).toLocaleDateString()}
-                        </p>
-                        <div className="mt-2 text-sm text-gray-700">
-                          <div
-                            dangerouslySetInnerHTML={{
-                              __html:
-                                template.content.substring(0, 200) + "...",
-                            }}
-                          />
-                        </div>
-                      </div>
-                      <div className="flex gap-2 ml-4">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            loadTemplate(template.id);
-                            setShowSavedTemplatesDialog(false);
-                          }}
-                        >
-                          Load
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="text-red-600 hover:text-red-700"
-                          onClick={async () => {
-                            try {
-                              const response = await fetch(
-                                `/api/documents/${template.id}`,
-                                {
-                                  method: "DELETE",
-                                  headers: {
-                                    "Content-Type": "application/json",
-                                    Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-                                  },
-                                },
-                              );
-
-                              if (response.ok) {
-                                toast({
-                                  title: "✓ Template Deleted",
-                                  description: "Template deleted successfully",
-                                  duration: 3000,
-                                });
-                                // Refresh templates
-                                window.location.reload();
-                              } else {
-                                throw new Error("Failed to delete template");
-                              }
-                            } catch (error) {
-                              toast({
-                                title: "Error",
-                                description: "Failed to delete template",
-                                duration: 3000,
-                              });
-                            }
-                          }}
-                        >
-                          Delete
-                        </Button>
-                      </div>
+                    <div>
+                      <h3 className="font-medium">{template.name}</h3>
+                      <p className="text-sm text-gray-500">
+                        Created: {new Date(template.createdAt).toLocaleDateString()}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -6224,7 +6162,7 @@ export default function Forms() {
                 }}
                 onClick={() => setShowSavedTemplatesDialog(false)}
               >
-                Close
+                Cancel
               </Button>
             </div>
           </div>
