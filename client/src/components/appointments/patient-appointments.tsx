@@ -480,6 +480,7 @@ export default function PatientAppointments({
       }
       return true;
     })
+    .filter((apt: any) => apt.status?.toLowerCase() === 'scheduled') // Only show SCHEDULED appointments
     .sort(
       (a: any, b: any) =>
         new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime(),
