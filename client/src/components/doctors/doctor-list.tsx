@@ -467,7 +467,16 @@ export function DoctorList({
                     </h4>
                   </div>
 
-                  {/* Row 2: Medical Specialty Category */}
+                  {/* Row 2: Email */}
+                  {doctor.email && (
+                    <div className="flex items-center gap-1">
+                      <span className="text-sm text-gray-600 dark:text-gray-300">
+                        {doctor.email}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Row 3: Medical Specialty Category */}
                   {doctor.medicalSpecialtyCategory && (
                     <div className="flex items-center">
                       <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
@@ -476,7 +485,7 @@ export function DoctorList({
                     </div>
                   )}
 
-                  {/* Row 3: Sub-specialty */}
+                  {/* Row 4: Sub-specialty */}
                   {doctor.subSpecialty && (
                     <div className="flex items-center">
                       <Badge
@@ -488,33 +497,7 @@ export function DoctorList({
                     </div>
                   )}
 
-                  {/* Row 4: Email */}
-                  {doctor.email && (
-                    <div className="flex items-center gap-1">
-                      <MapPin className="h-3 w-3 text-gray-400" />
-                      <span className="text-sm text-gray-600 dark:text-gray-300">
-                        {doctor.email}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Row 5: Department */}
-                  {doctor.department && (
-                    <div className="flex items-center">
-                      <Badge
-                        variant="outline"
-                        className={
-                          departmentColors[
-                            doctor.department as keyof typeof departmentColors
-                          ] || "bg-gray-100 text-gray-800"
-                        }
-                      >
-                        {doctor.department}
-                      </Badge>
-                    </div>
-                  )}
-
-                  {/* Row 6: Working Hours */}
+                  {/* Row 5: Working Hours */}
                   {doctor.workingDays &&
                     doctor.workingDays.length > 0 &&
                     doctor.workingHours && (
@@ -531,7 +514,7 @@ export function DoctorList({
                       </div>
                     )}
 
-                  {/* Row 7: Last Active */}
+                  {/* Row 6: Last Active */}
                   {doctor.lastLoginAt && (
                     <div className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
                       <Clock className="h-3 w-3" />
@@ -540,7 +523,7 @@ export function DoctorList({
                     </div>
                   )}
 
-                  {/* Row 8: Action Buttons */}
+                  {/* Row 7: Action Buttons */}
                   <div className="flex items-center gap-2 pt-2">
                     {showAppointmentButton && (
                       <Button
@@ -775,10 +758,6 @@ export function DoctorList({
                         <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
                           <span>📧</span>
                           <span className="truncate">{selectedBookingDoctor?.email || 'doctor@cura.com'}</span>
-                        </div>
-                        <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
-                          <span>🏥</span>
-                          <span className="truncate">{selectedBookingDoctor?.department || 'qurat@cura.com'}</span>
                         </div>
                         <div className="text-xs text-blue-600 dark:text-blue-400 mt-1">
                           Doctor ID: {selectedBookingDoctor ? String(selectedBookingDoctor.id).padStart(6, '0') : '000041'}
