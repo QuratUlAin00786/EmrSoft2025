@@ -299,7 +299,7 @@ export function DoctorList({
       return;
     }
 
-    // Create the appointment datetime string preserving the exact time slot selected
+    // Create the appointment datetime string without timezone conversion
     const year = selectedDate.getFullYear();
     const month = String(selectedDate.getMonth() + 1).padStart(2, "0");
     const day = String(selectedDate.getDate()).padStart(2, "0");
@@ -307,18 +307,7 @@ export function DoctorList({
     const hourStr = String(hours).padStart(2, "0");
     const minuteStr = String(minutes).padStart(2, "0");
     
-    // Create appointment datetime preserving local timezone offset
-    const localDateTime = new Date(selectedDate);
-    localDateTime.setHours(hours, minutes, 0, 0);
-    
-    // Get timezone offset and format with proper offset to preserve local time
-    const timezoneOffset = localDateTime.getTimezoneOffset();
-    const offsetHours = Math.floor(Math.abs(timezoneOffset) / 60);
-    const offsetMinutes = Math.abs(timezoneOffset) % 60;
-    const offsetSign = timezoneOffset <= 0 ? '+' : '-';
-    const offsetString = `${offsetSign}${offsetHours.toString().padStart(2, '0')}:${offsetMinutes.toString().padStart(2, '0')}`;
-    
-    const scheduledAtString = `${year}-${month}-${day}T${hourStr}:${minuteStr}:00${offsetString}`;
+    const scheduledAtString = `${year}-${month}-${day}T${hourStr}:${minuteStr}:00.000Z`;
 
     const appointmentData = {
       patientId: parseInt(selectedPatient),
