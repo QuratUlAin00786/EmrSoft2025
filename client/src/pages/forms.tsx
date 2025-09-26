@@ -3209,22 +3209,22 @@ export default function Forms() {
               <Button
                 className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
                 style={{
-                  backgroundColor: "#4A7DFF",
+                  backgroundColor: "#8FB0FF",
                   color: "white",
-                  borderColor: "#4A7DFF",
+                  borderColor: "#8FB0FF",
                   borderRadius: "10px",
                   boxShadow: "0 4px 12px rgba(74,125,255,0.3)",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#7279FB";
-                  e.currentTarget.style.borderColor = "#7279FB";
+                  e.currentTarget.style.backgroundColor = "#A3A8FC";
+                  e.currentTarget.style.borderColor = "#A3A8FC";
                   e.currentTarget.style.transform = "translateY(-2px)";
                   e.currentTarget.style.boxShadow =
                     "0 6px 16px rgba(114,121,251,0.4)";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#4A7DFF";
-                  e.currentTarget.style.borderColor = "#4A7DFF";
+                  e.currentTarget.style.backgroundColor = "#8FB0FF";
+                  e.currentTarget.style.borderColor = "#8FB0FF";
                   e.currentTarget.style.transform = "translateY(0px)";
                   e.currentTarget.style.boxShadow =
                     "0 4px 12px rgba(74,125,255,0.3)";
@@ -3245,22 +3245,22 @@ export default function Forms() {
               <Button
                 className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
                 style={{
-                  backgroundColor: "#7279FB",
+                  backgroundColor: "#A3A8FC",
                   color: "white",
-                  borderColor: "#7279FB",
+                  borderColor: "#A3A8FC",
                   borderRadius: "10px",
                   boxShadow: "0 4px 12px rgba(114,121,251,0.3)",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#4A7DFF";
-                  e.currentTarget.style.borderColor = "#4A7DFF";
+                  e.currentTarget.style.backgroundColor = "#8FB0FF";
+                  e.currentTarget.style.borderColor = "#8FB0FF";
                   e.currentTarget.style.transform = "translateY(-2px)";
                   e.currentTarget.style.boxShadow =
                     "0 6px 16px rgba(74,125,255,0.4)";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#7279FB";
-                  e.currentTarget.style.borderColor = "#7279FB";
+                  e.currentTarget.style.backgroundColor = "#A3A8FC";
+                  e.currentTarget.style.borderColor = "#A3A8FC";
                   e.currentTarget.style.transform = "translateY(0px)";
                   e.currentTarget.style.boxShadow =
                     "0 4px 12px rgba(114,121,251,0.3)";
@@ -3272,22 +3272,22 @@ export default function Forms() {
               <Button
                 className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
                 style={{
-                  backgroundColor: "#4A7DFF",
+                  backgroundColor: "#8FB0FF",
                   color: "white",
-                  borderColor: "#4A7DFF",
+                  borderColor: "#8FB0FF",
                   borderRadius: "10px",
                   boxShadow: "0 4px 12px rgba(74,125,255,0.3)",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#7279FB";
-                  e.currentTarget.style.borderColor = "#7279FB";
+                  e.currentTarget.style.backgroundColor = "#A3A8FC";
+                  e.currentTarget.style.borderColor = "#A3A8FC";
                   e.currentTarget.style.transform = "translateY(-2px)";
                   e.currentTarget.style.boxShadow =
                     "0 6px 16px rgba(114,121,251,0.4)";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#4A7DFF";
-                  e.currentTarget.style.borderColor = "#4A7DFF";
+                  e.currentTarget.style.backgroundColor = "#8FB0FF";
+                  e.currentTarget.style.borderColor = "#8FB0FF";
                   e.currentTarget.style.transform = "translateY(0px)";
                   e.currentTarget.style.boxShadow =
                     "0 4px 12px rgba(74,125,255,0.3)";
@@ -3302,22 +3302,22 @@ export default function Forms() {
               <Button
                 className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
                 style={{
-                  backgroundColor: "#7279FB",
+                  backgroundColor: "#A3A8FC",
                   color: "white",
-                  borderColor: "#7279FB",
+                  borderColor: "#A3A8FC",
                   borderRadius: "10px",
                   boxShadow: "0 4px 12px rgba(114,121,251,0.3)",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#4A7DFF";
-                  e.currentTarget.style.borderColor = "#4A7DFF";
+                  e.currentTarget.style.backgroundColor = "#8FB0FF";
+                  e.currentTarget.style.borderColor = "#8FB0FF";
                   e.currentTarget.style.transform = "translateY(-2px)";
                   e.currentTarget.style.boxShadow =
                     "0 6px 16px rgba(74,125,255,0.4)";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#7279FB";
-                  e.currentTarget.style.borderColor = "#7279FB";
+                  e.currentTarget.style.backgroundColor = "#A3A8FC";
+                  e.currentTarget.style.borderColor = "#A3A8FC";
                   e.currentTarget.style.transform = "translateY(0px)";
                   e.currentTarget.style.boxShadow =
                     "0 4px 12px rgba(114,121,251,0.3)";
@@ -3331,22 +3331,22 @@ export default function Forms() {
               <Button
                 className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
                 style={{
-                  backgroundColor: "#4A7DFF",
+                  backgroundColor: "#8FB0FF",
                   color: "white",
-                  borderColor: "#4A7DFF",
+                  borderColor: "#8FB0FF",
                   borderRadius: "10px",
                   boxShadow: "0 4px 12px rgba(74,125,255,0.3)",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#7279FB";
-                  e.currentTarget.style.borderColor = "#7279FB";
+                  e.currentTarget.style.backgroundColor = "#A3A8FC";
+                  e.currentTarget.style.borderColor = "#A3A8FC";
                   e.currentTarget.style.transform = "translateY(-2px)";
                   e.currentTarget.style.boxShadow =
                     "0 6px 16px rgba(114,121,251,0.4)";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#4A7DFF";
-                  e.currentTarget.style.borderColor = "#4A7DFF";
+                  e.currentTarget.style.backgroundColor = "#8FB0FF";
+                  e.currentTarget.style.borderColor = "#8FB0FF";
                   e.currentTarget.style.transform = "translateY(0px)";
                   e.currentTarget.style.boxShadow =
                     "0 4px 12px rgba(74,125,255,0.3)";
@@ -3357,22 +3357,22 @@ export default function Forms() {
               <Button
                 className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
                 style={{
-                  backgroundColor: "#7279FB",
+                  backgroundColor: "#A3A8FC",
                   color: "white",
-                  borderColor: "#7279FB",
+                  borderColor: "#A3A8FC",
                   borderRadius: "10px",
                   boxShadow: "0 4px 12px rgba(114,121,251,0.3)",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#4A7DFF";
-                  e.currentTarget.style.borderColor = "#4A7DFF";
+                  e.currentTarget.style.backgroundColor = "#8FB0FF";
+                  e.currentTarget.style.borderColor = "#8FB0FF";
                   e.currentTarget.style.transform = "translateY(-2px)";
                   e.currentTarget.style.boxShadow =
                     "0 6px 16px rgba(74,125,255,0.4)";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#7279FB";
-                  e.currentTarget.style.borderColor = "#7279FB";
+                  e.currentTarget.style.backgroundColor = "#A3A8FC";
+                  e.currentTarget.style.borderColor = "#A3A8FC";
                   e.currentTarget.style.transform = "translateY(0px)";
                   e.currentTarget.style.boxShadow =
                     "0 4px 12px rgba(114,121,251,0.3)";
@@ -3383,22 +3383,22 @@ export default function Forms() {
               <Button
                 className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
                 style={{
-                  backgroundColor: "#4A7DFF",
+                  backgroundColor: "#8FB0FF",
                   color: "white",
-                  borderColor: "#4A7DFF",
+                  borderColor: "#8FB0FF",
                   borderRadius: "10px",
                   boxShadow: "0 4px 12px rgba(74,125,255,0.3)",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#7279FB";
-                  e.currentTarget.style.borderColor = "#7279FB";
+                  e.currentTarget.style.backgroundColor = "#A3A8FC";
+                  e.currentTarget.style.borderColor = "#A3A8FC";
                   e.currentTarget.style.transform = "translateY(-2px)";
                   e.currentTarget.style.boxShadow =
                     "0 6px 16px rgba(114,121,251,0.4)";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#4A7DFF";
-                  e.currentTarget.style.borderColor = "#4A7DFF";
+                  e.currentTarget.style.backgroundColor = "#8FB0FF";
+                  e.currentTarget.style.borderColor = "#8FB0FF";
                   e.currentTarget.style.transform = "translateY(0px)";
                   e.currentTarget.style.boxShadow =
                     "0 4px 12px rgba(74,125,255,0.3)";
@@ -3605,17 +3605,17 @@ export default function Forms() {
                         size="sm"
                         className="absolute top-2 right-2 border transition-all duration-200"
                         style={{
-                          backgroundColor: "#4A7DFF",
-                          borderColor: "#4A7DFF",
+                          backgroundColor: "#8FB0FF",
+                          borderColor: "#8FB0FF",
                           color: "white",
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = "#7279FB";
-                          e.currentTarget.style.borderColor = "#7279FB";
+                          e.currentTarget.style.backgroundColor = "#A3A8FC";
+                          e.currentTarget.style.borderColor = "#A3A8FC";
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = "#4A7DFF";
-                          e.currentTarget.style.borderColor = "#4A7DFF";
+                          e.currentTarget.style.backgroundColor = "#8FB0FF";
+                          e.currentTarget.style.borderColor = "#8FB0FF";
                         }}
                         onClick={() => setShowEditClinic(true)}
                       >
@@ -3703,17 +3703,17 @@ export default function Forms() {
                             variant="ghost"
                             className="border transition-all duration-200"
                             style={{
-                              backgroundColor: "#4A7DFF",
-                              borderColor: "#4A7DFF",
+                              backgroundColor: "#8FB0FF",
+                              borderColor: "#8FB0FF",
                               color: "white",
                             }}
                             onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor = "#7279FB";
-                              e.currentTarget.style.borderColor = "#7279FB";
+                              e.currentTarget.style.backgroundColor = "#A3A8FC";
+                              e.currentTarget.style.borderColor = "#A3A8FC";
                             }}
                             onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = "#4A7DFF";
-                              e.currentTarget.style.borderColor = "#4A7DFF";
+                              e.currentTarget.style.backgroundColor = "#8FB0FF";
+                              e.currentTarget.style.borderColor = "#8FB0FF";
                             }}
                             onClick={() => setShowEditClinic(false)}
                           >
@@ -3723,17 +3723,17 @@ export default function Forms() {
                             variant="ghost"
                             className="border transition-all duration-200"
                             style={{
-                              backgroundColor: "#4A7DFF",
-                              borderColor: "#4A7DFF",
+                              backgroundColor: "#8FB0FF",
+                              borderColor: "#8FB0FF",
                               color: "white",
                             }}
                             onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor = "#7279FB";
-                              e.currentTarget.style.borderColor = "#7279FB";
+                              e.currentTarget.style.backgroundColor = "#A3A8FC";
+                              e.currentTarget.style.borderColor = "#A3A8FC";
                             }}
                             onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = "#4A7DFF";
-                              e.currentTarget.style.borderColor = "#4A7DFF";
+                              e.currentTarget.style.backgroundColor = "#8FB0FF";
+                              e.currentTarget.style.borderColor = "#8FB0FF";
                             }}
                             onClick={handleSaveClinicInfo}
                           >
@@ -4508,17 +4508,17 @@ export default function Forms() {
                 variant="ghost"
                 className="border transition-all duration-200"
                 style={{
-                  backgroundColor: "#4A7DFF",
-                  borderColor: "#4A7DFF",
+                  backgroundColor: "#8FB0FF",
+                  borderColor: "#8FB0FF",
                   color: "white",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#7279FB";
-                  e.currentTarget.style.borderColor = "#7279FB";
+                  e.currentTarget.style.backgroundColor = "#A3A8FC";
+                  e.currentTarget.style.borderColor = "#A3A8FC";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#4A7DFF";
-                  e.currentTarget.style.borderColor = "#4A7DFF";
+                  e.currentTarget.style.backgroundColor = "#8FB0FF";
+                  e.currentTarget.style.borderColor = "#8FB0FF";
                 }}
                 onClick={() => setShowLinkDialog(false)}
               >
@@ -4528,17 +4528,17 @@ export default function Forms() {
                 variant="ghost"
                 className="border transition-all duration-200"
                 style={{
-                  backgroundColor: "#4A7DFF",
-                  borderColor: "#4A7DFF",
+                  backgroundColor: "#8FB0FF",
+                  borderColor: "#8FB0FF",
                   color: "white",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#7279FB";
-                  e.currentTarget.style.borderColor = "#7279FB";
+                  e.currentTarget.style.backgroundColor = "#A3A8FC";
+                  e.currentTarget.style.borderColor = "#A3A8FC";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#4A7DFF";
-                  e.currentTarget.style.borderColor = "#4A7DFF";
+                  e.currentTarget.style.backgroundColor = "#8FB0FF";
+                  e.currentTarget.style.borderColor = "#8FB0FF";
                 }}
                 onClick={handleInsertLink}
               >
@@ -4743,17 +4743,17 @@ export default function Forms() {
                 variant="ghost"
                 className="border transition-all duration-200"
                 style={{
-                  backgroundColor: "#4A7DFF",
-                  borderColor: "#4A7DFF",
+                  backgroundColor: "#8FB0FF",
+                  borderColor: "#8FB0FF",
                   color: "white",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#7279FB";
-                  e.currentTarget.style.borderColor = "#7279FB";
+                  e.currentTarget.style.backgroundColor = "#A3A8FC";
+                  e.currentTarget.style.borderColor = "#A3A8FC";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#4A7DFF";
-                  e.currentTarget.style.borderColor = "#4A7DFF";
+                  e.currentTarget.style.backgroundColor = "#8FB0FF";
+                  e.currentTarget.style.borderColor = "#8FB0FF";
                 }}
                 onClick={() => setShowTemplateDialog(false)}
               >
@@ -4881,17 +4881,17 @@ export default function Forms() {
                 variant="ghost"
                 className="border transition-all duration-200"
                 style={{
-                  backgroundColor: "#4A7DFF",
-                  borderColor: "#4A7DFF",
+                  backgroundColor: "#8FB0FF",
+                  borderColor: "#8FB0FF",
                   color: "white",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#7279FB";
-                  e.currentTarget.style.borderColor = "#7279FB";
+                  e.currentTarget.style.backgroundColor = "#A3A8FC";
+                  e.currentTarget.style.borderColor = "#A3A8FC";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#4A7DFF";
-                  e.currentTarget.style.borderColor = "#4A7DFF";
+                  e.currentTarget.style.backgroundColor = "#8FB0FF";
+                  e.currentTarget.style.borderColor = "#8FB0FF";
                 }}
                 onClick={() => setShowLogoDialog(false)}
               >
@@ -5012,17 +5012,17 @@ export default function Forms() {
                     className="mt-3 w-full border transition-all duration-200"
                     variant="ghost"
                     style={{
-                      backgroundColor: "#4A7DFF",
-                      borderColor: "#4A7DFF",
+                      backgroundColor: "#8FB0FF",
+                      borderColor: "#8FB0FF",
                       color: "white",
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = "#7279FB";
-                      e.currentTarget.style.borderColor = "#7279FB";
+                      e.currentTarget.style.backgroundColor = "#A3A8FC";
+                      e.currentTarget.style.borderColor = "#A3A8FC";
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = "#4A7DFF";
-                      e.currentTarget.style.borderColor = "#4A7DFF";
+                      e.currentTarget.style.backgroundColor = "#8FB0FF";
+                      e.currentTarget.style.borderColor = "#8FB0FF";
                     }}
                   >
                     Edit Clinic Info
@@ -5036,17 +5036,17 @@ export default function Forms() {
                 variant="ghost"
                 className="border transition-all duration-200"
                 style={{
-                  backgroundColor: "#4A7DFF",
-                  borderColor: "#4A7DFF",
+                  backgroundColor: "#8FB0FF",
+                  borderColor: "#8FB0FF",
                   color: "white",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#7279FB";
-                  e.currentTarget.style.borderColor = "#7279FB";
+                  e.currentTarget.style.backgroundColor = "#A3A8FC";
+                  e.currentTarget.style.borderColor = "#A3A8FC";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#4A7DFF";
-                  e.currentTarget.style.borderColor = "#4A7DFF";
+                  e.currentTarget.style.backgroundColor = "#8FB0FF";
+                  e.currentTarget.style.borderColor = "#8FB0FF";
                 }}
                 onClick={() => setShowClinicDialog(false)}
               >
@@ -5154,17 +5154,17 @@ export default function Forms() {
                 variant="ghost"
                 className="border transition-all duration-200"
                 style={{
-                  backgroundColor: "#4A7DFF",
-                  borderColor: "#4A7DFF",
+                  backgroundColor: "#8FB0FF",
+                  borderColor: "#8FB0FF",
                   color: "white",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#7279FB";
-                  e.currentTarget.style.borderColor = "#7279FB";
+                  e.currentTarget.style.backgroundColor = "#A3A8FC";
+                  e.currentTarget.style.borderColor = "#A3A8FC";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#4A7DFF";
-                  e.currentTarget.style.borderColor = "#4A7DFF";
+                  e.currentTarget.style.backgroundColor = "#8FB0FF";
+                  e.currentTarget.style.borderColor = "#8FB0FF";
                 }}
                 onClick={() => setShowEditClinicDialog(false)}
               >
@@ -5174,17 +5174,17 @@ export default function Forms() {
                 variant="ghost"
                 className="border transition-all duration-200"
                 style={{
-                  backgroundColor: "#4A7DFF",
-                  borderColor: "#4A7DFF",
+                  backgroundColor: "#8FB0FF",
+                  borderColor: "#8FB0FF",
                   color: "white",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#7279FB";
-                  e.currentTarget.style.borderColor = "#7279FB";
+                  e.currentTarget.style.backgroundColor = "#A3A8FC";
+                  e.currentTarget.style.borderColor = "#A3A8FC";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#4A7DFF";
-                  e.currentTarget.style.borderColor = "#4A7DFF";
+                  e.currentTarget.style.backgroundColor = "#8FB0FF";
+                  e.currentTarget.style.borderColor = "#8FB0FF";
                 }}
                 onClick={saveClinicInfo}
               >
@@ -5301,17 +5301,17 @@ export default function Forms() {
                 variant="ghost"
                 className="border transition-all duration-200"
                 style={{
-                  backgroundColor: "#4A7DFF",
-                  borderColor: "#4A7DFF",
+                  backgroundColor: "#8FB0FF",
+                  borderColor: "#8FB0FF",
                   color: "white",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#7279FB";
-                  e.currentTarget.style.borderColor = "#7279FB";
+                  e.currentTarget.style.backgroundColor = "#A3A8FC";
+                  e.currentTarget.style.borderColor = "#A3A8FC";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#4A7DFF";
-                  e.currentTarget.style.borderColor = "#4A7DFF";
+                  e.currentTarget.style.backgroundColor = "#8FB0FF";
+                  e.currentTarget.style.borderColor = "#8FB0FF";
                 }}
                 onClick={() => setShowPatientDialog(false)}
               >
@@ -5430,17 +5430,17 @@ export default function Forms() {
                 variant="ghost"
                 className="border transition-all duration-200"
                 style={{
-                  backgroundColor: "#4A7DFF",
-                  borderColor: "#4A7DFF",
+                  backgroundColor: "#8FB0FF",
+                  borderColor: "#8FB0FF",
                   color: "white",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#7279FB";
-                  e.currentTarget.style.borderColor = "#7279FB";
+                  e.currentTarget.style.backgroundColor = "#A3A8FC";
+                  e.currentTarget.style.borderColor = "#A3A8FC";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#4A7DFF";
-                  e.currentTarget.style.borderColor = "#4A7DFF";
+                  e.currentTarget.style.backgroundColor = "#8FB0FF";
+                  e.currentTarget.style.borderColor = "#8FB0FF";
                 }}
                 onClick={() => setShowRecipientDialog(false)}
               >
@@ -5563,17 +5563,17 @@ export default function Forms() {
                 variant="ghost"
                 className="border transition-all duration-200"
                 style={{
-                  backgroundColor: "#4A7DFF",
-                  borderColor: "#4A7DFF",
+                  backgroundColor: "#8FB0FF",
+                  borderColor: "#8FB0FF",
                   color: "white",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#7279FB";
-                  e.currentTarget.style.borderColor = "#7279FB";
+                  e.currentTarget.style.backgroundColor = "#A3A8FC";
+                  e.currentTarget.style.borderColor = "#A3A8FC";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#4A7DFF";
-                  e.currentTarget.style.borderColor = "#4A7DFF";
+                  e.currentTarget.style.backgroundColor = "#8FB0FF";
+                  e.currentTarget.style.borderColor = "#8FB0FF";
                 }}
                 onClick={() => setShowAppointmentsDialog(false)}
               >
@@ -5693,17 +5693,17 @@ export default function Forms() {
                 variant="ghost"
                 className="border transition-all duration-200"
                 style={{
-                  backgroundColor: "#4A7DFF",
-                  borderColor: "#4A7DFF",
+                  backgroundColor: "#8FB0FF",
+                  borderColor: "#8FB0FF",
                   color: "white",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#7279FB";
-                  e.currentTarget.style.borderColor = "#7279FB";
+                  e.currentTarget.style.backgroundColor = "#A3A8FC";
+                  e.currentTarget.style.borderColor = "#A3A8FC";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#4A7DFF";
-                  e.currentTarget.style.borderColor = "#4A7DFF";
+                  e.currentTarget.style.backgroundColor = "#8FB0FF";
+                  e.currentTarget.style.borderColor = "#8FB0FF";
                 }}
                 onClick={() => setShowLabsDialog(false)}
               >
@@ -5830,17 +5830,17 @@ export default function Forms() {
                 variant="ghost"
                 className="border transition-all duration-200"
                 style={{
-                  backgroundColor: "#4A7DFF",
-                  borderColor: "#4A7DFF",
+                  backgroundColor: "#8FB0FF",
+                  borderColor: "#8FB0FF",
                   color: "white",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#7279FB";
-                  e.currentTarget.style.borderColor = "#7279FB";
+                  e.currentTarget.style.backgroundColor = "#A3A8FC";
+                  e.currentTarget.style.borderColor = "#A3A8FC";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#4A7DFF";
-                  e.currentTarget.style.borderColor = "#4A7DFF";
+                  e.currentTarget.style.backgroundColor = "#8FB0FF";
+                  e.currentTarget.style.borderColor = "#8FB0FF";
                 }}
                 onClick={() => setShowPatientRecordsDialog(false)}
               >
@@ -5962,17 +5962,17 @@ export default function Forms() {
                 variant="ghost"
                 className="border transition-all duration-200"
                 style={{
-                  backgroundColor: "#4A7DFF",
-                  borderColor: "#4A7DFF",
+                  backgroundColor: "#8FB0FF",
+                  borderColor: "#8FB0FF",
                   color: "white",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#7279FB";
-                  e.currentTarget.style.borderColor = "#7279FB";
+                  e.currentTarget.style.backgroundColor = "#A3A8FC";
+                  e.currentTarget.style.borderColor = "#A3A8FC";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#4A7DFF";
-                  e.currentTarget.style.borderColor = "#4A7DFF";
+                  e.currentTarget.style.backgroundColor = "#8FB0FF";
+                  e.currentTarget.style.borderColor = "#8FB0FF";
                 }}
                 onClick={() => setShowInsertProductDialog(false)}
               >
@@ -6101,17 +6101,17 @@ export default function Forms() {
                 variant="ghost"
                 className="border transition-all duration-200"
                 style={{
-                  backgroundColor: "#4A7DFF",
-                  borderColor: "#4A7DFF",
+                  backgroundColor: "#8FB0FF",
+                  borderColor: "#8FB0FF",
                   color: "white",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#7279FB";
-                  e.currentTarget.style.borderColor = "#7279FB";
+                  e.currentTarget.style.backgroundColor = "#A3A8FC";
+                  e.currentTarget.style.borderColor = "#A3A8FC";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#4A7DFF";
-                  e.currentTarget.style.borderColor = "#4A7DFF";
+                  e.currentTarget.style.backgroundColor = "#8FB0FF";
+                  e.currentTarget.style.borderColor = "#8FB0FF";
                 }}
                 onClick={() => setShowMoreOptionsDialog(false)}
               >
@@ -6222,17 +6222,17 @@ export default function Forms() {
                 variant="ghost"
                 className="border transition-all duration-200"
                 style={{
-                  backgroundColor: "#4A7DFF",
-                  borderColor: "#4A7DFF",
+                  backgroundColor: "#8FB0FF",
+                  borderColor: "#8FB0FF",
                   color: "white",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#7279FB";
-                  e.currentTarget.style.borderColor = "#7279FB";
+                  e.currentTarget.style.backgroundColor = "#A3A8FC";
+                  e.currentTarget.style.borderColor = "#A3A8FC";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#4A7DFF";
-                  e.currentTarget.style.borderColor = "#4A7DFF";
+                  e.currentTarget.style.backgroundColor = "#8FB0FF";
+                  e.currentTarget.style.borderColor = "#8FB0FF";
                 }}
                 onClick={() => setShowSavedTemplatesDialog(false)}
               >
