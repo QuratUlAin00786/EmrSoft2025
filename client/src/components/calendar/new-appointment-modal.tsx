@@ -249,6 +249,9 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
       
       const data = await response.json();
       
+      // CRITICAL DEBUG: Check raw API response
+      console.log(`🚨 RAW API RESPONSE - Total appointments:`, data.length, data);
+      
       // Filter appointments for the selected date and doctor with "Scheduled" status
       const dayAppointments = data.filter((apt: any) => {
         const aptDateTime = new Date(apt.scheduledAt);

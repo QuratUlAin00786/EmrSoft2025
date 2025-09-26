@@ -466,8 +466,9 @@ export default function CalendarPage() {
         // Format: "2025-09-16T09:00:00.000Z" -> extract "2025-09-16"
         const appointmentDateStr = scheduledTime.split('T')[0];
         const matchesDate = appointmentDateStr === dateStr;
+        const isScheduled = apt.status === 'scheduled'; // Only include scheduled appointments
         
-        return matchesDoctor && matchesDate;
+        return matchesDoctor && matchesDate && isScheduled;
       });
 
       console.log(`[NEW_TIME_SLOTS] Found ${doctorAppointments.length} appointments for doctor ${doctorId} on ${dateStr}`);
