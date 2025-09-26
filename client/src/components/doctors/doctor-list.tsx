@@ -539,45 +539,46 @@ export function DoctorList({
                       {new Date(doctor.lastLoginAt).toLocaleDateString()}
                     </div>
                   )}
-                </div>
-              </div>
 
-              <div className="flex flex-col gap-2">
-                {showAppointmentButton && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openBookingDialog(doctor);
-                    }}
-                  >
-                    Book
-                  </Button>
-                )}
-                {user?.role !== 'patient' && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openScheduleDialog(doctor);
-                    }}
-                  >
-                    <Edit className="h-3 w-3 mr-1" />
-                    Edit Schedule
-                  </Button>
-                )}
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setLocation(`/staff/${doctor.id}`);
-                  }}
-                >
-                  View Profile
-                </Button>
+                  {/* Row 8: Action Buttons */}
+                  <div className="flex items-center gap-2 pt-2">
+                    {showAppointmentButton && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openBookingDialog(doctor);
+                        }}
+                      >
+                        Book
+                      </Button>
+                    )}
+                    {user?.role !== 'patient' && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openScheduleDialog(doctor);
+                        }}
+                      >
+                        <Edit className="h-3 w-3 mr-1" />
+                        Edit Schedule
+                      </Button>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setLocation(`/staff/${doctor.id}`);
+                      }}
+                    >
+                      View Profile
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
           ))}
