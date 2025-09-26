@@ -163,19 +163,18 @@ export function DoctorList({
   const isTimeSlotAvailable = (timeSlot: string) => {
     if (!doctorAppointments || !selectedDate) return true;
 
-    const slotDateTime = new Date(selectedDate);
-    const [hours, minutes] = timeSlot.split(":").map(Number);
-    slotDateTime.setHours(hours, minutes, 0, 0);
-
     return !doctorAppointments.some((appointment: any) => {
       // Only check SCHEDULED appointments - CANCELLED appointments should not block slots
       if (appointment.status?.toLowerCase() !== 'scheduled') return false;
       
-      const appointmentDate = new Date(appointment.scheduledAt);
-      return (
-        Math.abs(appointmentDate.getTime() - slotDateTime.getTime()) <
-        30 * 60 * 1000
-      ); // 30 minutes threshold
+      // Extract time directly from database string without timezone conversion
+      const appointmentDateString = appointment.scheduledAt; // "2025-09-27T09:00:00.000Z"
+      const appointmentTimeOnly = appointmentDateString.includes('T') 
+        ? appointmentDateString.split('T')[1]?.substring(0, 5) 
+        : appointmentDateString; // Extract "09:00"
+      
+      // Compare the time slots directly as strings (both are in HH:MM format)
+      return appointmentTimeOnly === timeSlot;
     });
   };
 
