@@ -251,10 +251,25 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
       
       // Filter appointments for the selected date and doctor with "Scheduled" status
       const dayAppointments = data.filter((apt: any) => {
-        const aptDate = new Date(apt.scheduledAt).toISOString().split('T')[0];
-        return aptDate === date && 
-               apt.providerId === parseInt(doctorId) && 
-               apt.status === 'scheduled';
+        const aptDateTime = new Date(apt.scheduledAt);
+        const aptDate = aptDateTime.toISOString().split('T')[0];
+        const isCorrectDate = aptDate === date;
+        const isCorrectDoctor = apt.providerId === parseInt(doctorId);
+        const isScheduled = apt.status === 'scheduled';
+        
+        console.log(`[NEW_TIME_SLOTS] Appointment ${apt.id}:`, {
+          aptDate,
+          selectedDate: date,
+          isCorrectDate,
+          doctorId: apt.providerId,
+          selectedDoctor: parseInt(doctorId),
+          isCorrectDoctor,
+          status: apt.status,
+          isScheduled,
+          scheduledAt: apt.scheduledAt
+        });
+        
+        return isCorrectDate && isCorrectDoctor && isScheduled;
       });
 
       // Extract booked time slots
