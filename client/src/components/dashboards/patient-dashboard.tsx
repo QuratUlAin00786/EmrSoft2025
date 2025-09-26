@@ -602,38 +602,186 @@ export function PatientDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 border rounded-lg border-blue-200 bg-blue-50">
-                <div className="flex items-center space-x-3">
-                  <Clock className="h-5 w-5 text-blue-600" />
-                  <div>
-                    <p className="font-medium">Medication Reminder</p>
-                    <p className="text-sm text-neutral-600">Take evening medication</p>
-                  </div>
-                </div>
-                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Today</span>
-              </div>
-              
-              <div className="flex items-center justify-between p-3 border rounded-lg border-green-200 bg-green-50">
-                <div className="flex items-center space-x-3">
-                  <Heart className="h-5 w-5 text-green-600" />
-                  <div>
-                    <p className="font-medium">Health Check</p>
-                    <p className="text-sm text-neutral-600">Annual physical due</p>
-                  </div>
-                </div>
-                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">This Month</span>
-              </div>
-              
-              <div className="flex items-center justify-between p-3 border rounded-lg border-orange-200 bg-orange-50">
-                <div className="flex items-center space-x-3">
-                  <AlertCircle className="h-5 w-5 text-orange-600" />
-                  <div>
-                    <p className="font-medium">Lab Results</p>
-                    <p className="text-sm text-neutral-600">New results available</p>
-                  </div>
-                </div>
-                <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">New</span>
-              </div>
+              {(() => {
+                const generateHealthReminders = () => {
+                  const reminders: any[] = [];
+                  const now = new Date();
+                  
+                  // Medication Reminders from Active Prescriptions
+                  if (prescriptions && prescriptions.length > 0) {
+                    prescriptions.forEach((prescription: any) => {
+                      // Check if prescription is currently active
+                      const issuedDate = prescription.issuedDate ? new Date(prescription.issuedDate) : null;
+                      const duration = prescription.duration;
+                      
+                      if (issuedDate && duration) {
+                        // Parse duration (assuming format like "7 days", "2 weeks", "1 month")
+                        const durationMatch = duration.match(/(\d+)\s*(day|week|month)s?/i);
+                        if (durationMatch) {
+                          const amount = parseInt(durationMatch[1]);
+                          const unit = durationMatch[2].toLowerCase();
+                          
+                          let endDate = new Date(issuedDate);
+                          if (unit === 'day') {
+                            endDate.setDate(endDate.getDate() + amount);
+                          } else if (unit === 'week') {
+                            endDate.setDate(endDate.getDate() + (amount * 7));
+                          } else if (unit === 'month') {
+                            endDate.setMonth(endDate.getMonth() + amount);
+                          }
+                          
+                          // If prescription is still active, add reminder
+                          if (now <= endDate) {
+                            const daysRemaining = Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+                            
+                            let timeframe = "Active";
+                            let urgency = "blue";
+                            
+                            if (daysRemaining <= 3) {
+                              timeframe = "Ending Soon";
+                              urgency = "red";
+                            } else if (daysRemaining <= 7) {
+                              timeframe = "This Week";
+                              urgency = "orange";
+                            }
+                            
+                            reminders.push({
+                              type: 'medication',
+                              title: 'Medication Reminder',
+                              description: `Take ${prescription.medicationName} - ${prescription.frequency}`,
+                              timeframe,
+                              urgency,
+                              priority: daysRemaining <= 3 ? 1 : daysRemaining <= 7 ? 2 : 3
+                            });
+                          }
+                        }
+                      }
+                    });
+                  }
+                  
+                  // Upcoming Appointment Reminders
+                  if (upcomingAppointmentsData.appointments && upcomingAppointmentsData.appointments.length > 0) {
+                    upcomingAppointmentsData.appointments.forEach((appointment: any) => {
+                      const appointmentDate = new Date(appointment.scheduledAt);
+                      const daysUntil = Math.ceil((appointmentDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+                      
+                      if (daysUntil >= 0 && daysUntil <= 7) {
+                        let timeframe = "This Week";
+                        let urgency = "green";
+                        
+                        if (daysUntil === 0) {
+                          timeframe = "Today";
+                          urgency = "blue";
+                        } else if (daysUntil === 1) {
+                          timeframe = "Tomorrow";
+                          urgency = "blue";
+                        } else if (daysUntil <= 3) {
+                          timeframe = `In ${daysUntil} days`;
+                          urgency = "orange";
+                        }
+                        
+                        const doctorInfo = getDoctorSpecialtyData(appointment.providerId);
+                        
+                        reminders.push({
+                          type: 'appointment',
+                          title: 'Upcoming Appointment',
+                          description: `${appointment.title}${doctorInfo.name ? ` with ${doctorInfo.name}` : ''}`,
+                          timeframe,
+                          urgency,
+                          priority: daysUntil === 0 ? 1 : daysUntil <= 1 ? 2 : 3
+                        });
+                      }
+                    });
+                  }
+                  
+                  // Pending Lab Results Reminders
+                  if (totalPendingCount > 0) {
+                    reminders.push({
+                      type: 'lab_results',
+                      title: 'Lab Results Available',
+                      description: `${totalPendingCount} result${totalPendingCount > 1 ? 's' : ''} pending review`,
+                      timeframe: 'New',
+                      urgency: 'orange',
+                      priority: 2
+                    });
+                  }
+                  
+                  // Health Check Reminders (Based on last appointment)
+                  if (upcomingAppointmentsData.appointments.length === 0) {
+                    // No upcoming appointments scheduled
+                    reminders.push({
+                      type: 'health_check',
+                      title: 'Schedule Health Check',
+                      description: 'Regular checkup recommended',
+                      timeframe: 'Recommended',
+                      urgency: 'green',
+                      priority: 4
+                    });
+                  }
+                  
+                  // Overdue Lab Results Check (if no recent lab data)
+                  if ((!labResultsData || labResultsData.length === 0) && totalPendingCount === 0) {
+                    reminders.push({
+                      type: 'lab_check',
+                      title: 'Lab Work Due',
+                      description: 'Consider scheduling routine lab work',
+                      timeframe: 'Suggested',
+                      urgency: 'green',
+                      priority: 5
+                    });
+                  }
+                  
+                  // Sort reminders by priority (1 = highest, 5 = lowest)
+                  return reminders.sort((a, b) => a.priority - b.priority).slice(0, 5); // Show max 5 reminders
+                };
+                
+                const reminderColors = {
+                  blue: { border: 'border-blue-200', bg: 'bg-blue-50', icon: 'text-blue-600', badge: 'bg-blue-100 text-blue-800' },
+                  green: { border: 'border-green-200', bg: 'bg-green-50', icon: 'text-green-600', badge: 'bg-green-100 text-green-800' },
+                  orange: { border: 'border-orange-200', bg: 'bg-orange-50', icon: 'text-orange-600', badge: 'bg-orange-100 text-orange-800' },
+                  red: { border: 'border-red-200', bg: 'bg-red-50', icon: 'text-red-600', badge: 'bg-red-100 text-red-800' }
+                };
+                
+                const reminderIcons = {
+                  medication: Clock,
+                  appointment: Calendar,
+                  lab_results: FileText,
+                  health_check: Heart,
+                  lab_check: AlertCircle
+                };
+                
+                const healthReminders = generateHealthReminders();
+                
+                if (healthReminders.length === 0) {
+                  return (
+                    <div className="text-center py-6">
+                      <Heart className="h-12 w-12 text-green-300 mx-auto mb-2" />
+                      <p className="text-neutral-500">All caught up! No health reminders at this time.</p>
+                      <p className="text-sm text-neutral-400 mt-1">Keep up the great work with your health.</p>
+                    </div>
+                  );
+                }
+                
+                return healthReminders.map((reminder, index) => {
+                  const colors = reminderColors[reminder.urgency as keyof typeof reminderColors];
+                  const IconComponent = reminderIcons[reminder.type as keyof typeof reminderIcons];
+                  
+                  return (
+                    <div key={index} className={`flex items-center justify-between p-3 border rounded-lg ${colors.border} ${colors.bg}`}>
+                      <div className="flex items-center space-x-3">
+                        <IconComponent className={`h-5 w-5 ${colors.icon}`} />
+                        <div>
+                          <p className="font-medium">{reminder.title}</p>
+                          <p className="text-sm text-neutral-600">{reminder.description}</p>
+                        </div>
+                      </div>
+                      <span className={`text-xs px-2 py-1 rounded ${colors.badge}`}>
+                        {reminder.timeframe}
+                      </span>
+                    </div>
+                  );
+                });
+              })()}
             </div>
           </CardContent>
         </Card>
