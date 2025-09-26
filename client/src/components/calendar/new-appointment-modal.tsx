@@ -386,8 +386,29 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
       return;
     }
 
-    // Create date in local timezone and keep it as local time for proper scheduling
-    const localDateTime = `${data.date}T${data.time}:00`;
+    // Fix timezone conversion: Keep time in user's local timezone 
+    // Create a proper date object without timezone conversion
+    const [year, month, day] = data.date.split('-');
+    const [hours, minutes] = data.time.split(':');
+    
+    // Create date in local timezone and format as ISO string for consistent storage
+    const appointmentDate = new Date(
+      parseInt(year), 
+      parseInt(month) - 1, // Month is 0-indexed
+      parseInt(day), 
+      parseInt(hours), 
+      parseInt(minutes)
+    );
+    
+    // Convert to ISO string but keep the local time (no timezone conversion)
+    const localDateTime = `${data.date}T${data.time}:00.000Z`;
+    
+    console.log("🕐 TIMEZONE DEBUG:", {
+      selectedDate: data.date,
+      selectedTime: data.time,
+      finalDateTime: localDateTime,
+      dateObject: appointmentDate.toString()
+    });
     
     // The patientId field now contains the database ID (as string)
     const patientDatabaseId = parseInt(data.patientId);
