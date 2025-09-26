@@ -230,9 +230,10 @@ export default function PatientAppointments({
       const data = await response.json();
 
       // Filter appointments for the selected date (excluding the current appointment being edited)
+      // Only include SCHEDULED appointments - CANCELLED appointments should not block time slots
       const dayAppointments = data.filter((apt: any) => {
         const aptDate = format(new Date(apt.scheduledAt), "yyyy-MM-dd");
-        return aptDate === dateStr && apt.id !== editingAppointment?.id;
+        return aptDate === dateStr && apt.id !== editingAppointment?.id && apt.status === 'SCHEDULED';
       });
 
       // Extract booked time slots
