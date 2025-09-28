@@ -1309,12 +1309,27 @@ Coverage Details: [Insurance Coverage]`;
   });
   const { toast } = useToast();
 
-  // Fetch organization data
+  // Fetch organization data (for fallback)
   const { data: organization } = useQuery({
     queryKey: ["/api/tenant/info"],
     queryFn: async () => {
       const response = await fetch("/api/tenant/info", {
         headers: { "Content-Type": "application/json" },
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return response.json();
+    },
+  });
+
+  // Fetch user document preferences
+  const { data: userPreferences, refetch: refetchPreferences } = useQuery({
+    queryKey: ["/api/me/preferences"],
+    queryFn: async () => {
+      const response = await fetch("/api/me/preferences", {
+        headers: { 
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+        },
       });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       return response.json();
@@ -1336,20 +1351,42 @@ Coverage Details: [Insurance Coverage]`;
     },
   });
 
-  // Update clinic info when organization data loads
+  // Update clinic info when user preferences or organization data loads
   useEffect(() => {
-    if (organization) {
+    if (userPreferences) {
+      // Use user preferences first
+      setClinicInfo({
+        name: userPreferences.clinicName || "Your Clinic",
+        address: userPreferences.clinicAddress || "123 Healthcare Street, Medical City, MC 12345",
+        phone: userPreferences.clinicPhone || "+44 20 1234 5678",
+        email: userPreferences.clinicEmail || "info@yourclinic.com",
+        website: userPreferences.clinicWebsite || "www.yourclinic.com",
+      });
+      setEditingClinicInfo({
+        name: userPreferences.clinicName || "",
+        address: userPreferences.clinicAddress || "",
+        phone: userPreferences.clinicPhone || "",
+        email: userPreferences.clinicEmail || "",
+        website: userPreferences.clinicWebsite || "",
+      });
+    } else if (organization) {
+      // Fallback to organization data if no user preferences
       setClinicInfo({
         name: organization.name || "Your Clinic",
-        address:
-          organization.address ||
-          "123 Healthcare Street, Medical City, MC 12345",
+        address: organization.address || "123 Healthcare Street, Medical City, MC 12345",
         phone: organization.phone || "+44 20 1234 5678",
         email: organization.email || "info@yourclinic.com",
         website: organization.website || "www.yourclinic.com",
       });
+      setEditingClinicInfo({
+        name: organization.name || "",
+        address: organization.address || "",
+        phone: organization.phone || "",
+        email: organization.email || "",
+        website: organization.website || "",
+      });
     }
-  }, [organization]);
+  }, [userPreferences, organization]);
 
   // NUCLEAR OPTION: Force bluewave color on all toolbar buttons with data-bluewave attribute
   useEffect(() => {
@@ -1373,27 +1410,40 @@ Coverage Details: [Insurance Coverage]`;
 
   const handleSaveClinicInfo = async () => {
     try {
-      const response = await fetch("/api/organization/settings", {
+      const response = await fetch("/api/me/preferences", {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
         },
         body: JSON.stringify({
-          name: clinicInfo.name,
-          address: clinicInfo.address,
-          phone: clinicInfo.phone,
-          email: clinicInfo.email,
-          website: clinicInfo.website,
+          clinicName: editingClinicInfo.name,
+          clinicAddress: editingClinicInfo.address,
+          clinicPhone: editingClinicInfo.phone,
+          clinicEmail: editingClinicInfo.email,
+          clinicWebsite: editingClinicInfo.website,
         }),
       });
 
       if (response.ok) {
+        // Update the clinic info state with the new values
+        setClinicInfo({
+          name: editingClinicInfo.name,
+          address: editingClinicInfo.address,
+          phone: editingClinicInfo.phone,
+          email: editingClinicInfo.email,
+          website: editingClinicInfo.website,
+        });
+        
+        // Refetch user preferences to stay in sync
+        refetchPreferences();
+        
         toast({
           title: "Clinic Information Updated",
           description: "Your clinic information has been saved successfully.",
         });
         setShowEditClinic(false);
+        setShowEditClinicDialog(false);
       } else {
         throw new Error("Failed to update clinic information");
       }
