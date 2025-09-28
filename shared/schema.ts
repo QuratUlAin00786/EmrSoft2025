@@ -214,6 +214,28 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// User Document Preferences
+export const userDocumentPreferences = pgTable("user_document_preferences", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  userId: integer("user_id").notNull(),
+  clinicInfo: jsonb("clinic_info").$type<{
+    name?: string;
+    address?: string;
+    phone?: string;
+    email?: string;
+    website?: string;
+  }>().default({}),
+  headerPreferences: jsonb("header_preferences").$type<{
+    selectedHeader?: string;
+    logoPosition?: string;
+    clinicHeaderType?: string;
+    clinicHeaderPosition?: string;
+  }>().default({}),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Roles
 export const roles = pgTable("roles", {
   id: serial("id").primaryKey(),
@@ -1193,6 +1215,18 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   medicalRecords: many(medicalRecords),
   appointments: many(appointments),
   shifts: many(staffShifts),
+  documentPreferences: many(userDocumentPreferences),
+}));
+
+export const userDocumentPreferencesRelations = relations(userDocumentPreferences, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [userDocumentPreferences.organizationId],
+    references: [organizations.id],
+  }),
+  user: one(users, {
+    fields: [userDocumentPreferences.userId],
+    references: [users.id],
+  }),
 }));
 
 export const rolesRelations = relations(roles, ({ one }) => ({
@@ -1707,6 +1741,17 @@ export const insertUserSchema = createInsertSchema(users).omit({
   }),
 });
 
+export const insertUserDocumentPreferencesSchema = createInsertSchema(userDocumentPreferences).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateUserDocumentPreferencesSchema = insertUserDocumentPreferencesSchema.omit({
+  organizationId: true,
+  userId: true,
+}).partial();
+
 export const insertRoleSchema = createInsertSchema(roles).omit({
   id: true,
   createdAt: true,
@@ -2083,6 +2128,10 @@ export type InsertOrganization = z.infer<typeof insertOrganizationSchema>;
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
+
+export type UserDocumentPreferences = typeof userDocumentPreferences.$inferSelect;
+export type InsertUserDocumentPreferences = z.infer<typeof insertUserDocumentPreferencesSchema>;
+export type UpdateUserDocumentPreferences = z.infer<typeof updateUserDocumentPreferencesSchema>;
 
 export type Role = typeof roles.$inferSelect;
 export type InsertRole = z.infer<typeof insertRoleSchema>;
