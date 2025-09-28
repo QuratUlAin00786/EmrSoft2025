@@ -130,6 +130,10 @@ export default function Forms() {
   const [addFooter, setAddFooter] = useState(false);
   const [showClinicPositionDialog, setShowClinicPositionDialog] = useState(false);
   const [tempClinicHeaderType, setTempClinicHeaderType] = useState("");
+  const [isComingFromClinicButton, setIsComingFromClinicButton] = useState(false);
+  const [showClinicalHeaderDialog, setShowClinicalHeaderDialog] = useState(false);
+  const [showAddClinicInfoDialog, setShowAddClinicInfoDialog] = useState(false);
+  const [selectedClinicalHeader, setSelectedClinicalHeader] = useState("");
   
   // Additional preview states for other template types
   const [showOtherTemplatePreviewDialog, setShowOtherTemplatePreviewDialog] = useState(false);
@@ -2305,7 +2309,12 @@ Coverage Details: [Insurance Coverage]`;
     }
   };
   const handleClinic = () => {
+    setIsComingFromClinicButton(true);
     setShowClinicDialog(true);
+  };
+
+  const handleClinicalHeader = () => {
+    setShowClinicalHeaderDialog(true);
   };
 
   const insertClinicInfo = (infoType: string) => {
@@ -4690,70 +4699,41 @@ Coverage Details: [Insurance Coverage]`;
 
       
         {/* Clinical Header Selection - Create the Letter */}
-            <div className="bg-white-100 px-4 py-4">
-              <div className="flex flex-col items-center">
-                <h4 className="text-md font-medium text-[hsl(var(--cura-midnight))] dark:text-white mb-3">
-                  Create the Letter
-                </h4>
-
-                {/* Row container for Header Select + Add New Clinic Info Button */}
-                <div className="flex items-center gap-4">
-                  <div>
-                    <label className="block text-xs font-medium text-[hsl(var(--cura-midnight))] dark:text-white mb-2">
-                      Select Header
-                    </label>
-                    <Select value={selectedHeader} onValueChange={setSelectedHeader}>
-                      <SelectTrigger style={{ width: "400px" }}>
-                        <SelectValue placeholder="Your Clinic" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="your-clinic">Your Clinic</SelectItem>
-                        <SelectItem value="main-hospital">Main Hospital</SelectItem>
-                        <SelectItem value="cardiology-dept">Cardiology Department</SelectItem>
-                        <SelectItem value="neurology-dept">Neurology Department</SelectItem>
-                        <SelectItem value="orthopedic-dept">Orthopedic Department</SelectItem>
-                        <SelectItem value="pediatrics-dept">Pediatrics Department</SelectItem>
-                        <SelectItem value="emergency-dept">Emergency Department</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Add New Clinic Info Button */}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="border transition-all duration-200"
-                    style={{
-                      backgroundColor: "white",
-                      borderColor: "#e5e7eb",
-                      color: "black",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = "#6CFFEB";
-                      e.currentTarget.style.borderColor = "#6CFFEB";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = "white";
-                      e.currentTarget.style.borderColor = "#e5e7eb";
-                    }}
-                    onClick={() => {
-                      setEditingClinicInfo({
-                        name: "",
-                        address: "",
-                        phone: "",
-                        email: "",
-                        website: "",
-                      });
-                      setShowEditClinic(true);
-                    }}
-                  >
-                    <Plus className="h-4 w-4 mr-1" />
-                    Add New Clinic Info
-                  </Button>
-                </div>
-              </div>
+        <div className="bg-white-100 px-4 py-4">
+          <div className="flex flex-col items-center">
+            <h4 className="text-md font-medium text-[hsl(var(--cura-midnight))] dark:text-white mb-3">
+              Create the Letter
+            </h4>
+            <div>
+              <label className="block text-xs font-medium text-[hsl(var(--cura-midnight))] dark:text-white mb-2 text-center">
+                Select Header
+              </label>
+              <Select value={selectedHeader} onValueChange={setSelectedHeader}>
+                <SelectTrigger style={{ width: "700px" }}>
+                  <SelectValue placeholder="Your Clinic" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="your-clinic">Your Clinic</SelectItem>
+                  <SelectItem value="main-hospital">Main Hospital</SelectItem>
+                  <SelectItem value="cardiology-dept">
+                    Cardiology Department
+                  </SelectItem>
+                  <SelectItem value="neurology-dept">
+                    Neurology Department
+                  </SelectItem>
+                  <SelectItem value="orthopedic-dept">
+                    Orthopedic Department
+                  </SelectItem>
+                  <SelectItem value="pediatrics-dept">
+                    Pediatrics Department
+                  </SelectItem>
+                  <SelectItem value="emergency-dept">
+                    Emergency Department
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-
+         
             {/* Header Preview Area */}
             <div
               className="mt-4 p-6 bg-blue-50 dark:bg-[hsl(var(--cura-midnight))] border border-blue-200 dark:border-[hsl(var(--cura-steel))] rounded text-center relative"
@@ -4960,6 +4940,40 @@ Coverage Details: [Insurance Coverage]`;
           </div>
         </div>
 
+        {/* Add New Clinic Info Button */}
+        <div className="bg-white-100 px-4 py-4">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="absolute top-2 right-32 border transition-all duration-200"
+          style={{
+            backgroundColor: "white",
+            borderColor: "#e5e7eb",
+            color: "black",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = "#6CFFEB";
+            e.currentTarget.style.borderColor = "#6CFFEB";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = "white";
+            e.currentTarget.style.borderColor = "#e5e7eb";
+          }}
+          onClick={() => {
+            setEditingClinicInfo({
+              name: "",
+              address: "",
+              phone: "",
+              email: "",
+              website: "",
+            });
+            setShowEditClinic(true);
+          }}
+        >
+          <Plus className="h-4 w-4 mr-1" />
+          Add New Clinic Info
+        </Button>
+          </div>
         {/* Toolbar - medical theme colors */}
         <div className="bg-gray-50 border-b border-gray-200 px-4 py-3 flex-shrink-0">
      
@@ -5017,6 +5031,14 @@ Coverage Details: [Insurance Coverage]`;
               onClick={handleClinic}
             >
               Clinic
+            </Button>
+            <Button
+              size="sm"
+              className="text-xs h-7 px-4 py-2 mt-5"
+              onClick={handleClinicalHeader}
+              data-testid="button-clinical-header"
+            >
+              Clinical Header
             </Button>
             <Button
               size="sm"
@@ -9488,6 +9510,226 @@ Registration No: [Number]`
                 }}
               >
                 OK
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Clinical Header Dialog */}
+      <Dialog open={showClinicalHeaderDialog} onOpenChange={setShowClinicalHeaderDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Clinical Header</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {/* Add New Clinic Info Button at Top */}
+            <div className="flex justify-end">
+              <Button
+                variant="outline"
+                className="border transition-all duration-200"
+                style={{
+                  backgroundColor: "white",
+                  borderColor: "#e5e7eb",
+                  color: "black",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#6CFFEB";
+                  e.currentTarget.style.borderColor = "#6CFFEB";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "white";
+                  e.currentTarget.style.borderColor = "#e5e7eb";
+                }}
+                onClick={() => {
+                  setShowAddClinicInfoDialog(true);
+                  setShowClinicalHeaderDialog(false);
+                }}
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                Add New Clinic Info
+              </Button>
+            </div>
+
+            {/* Clinical Header Options */}
+            <div className="grid grid-cols-1 gap-3 max-h-96 overflow-y-auto">
+              <div
+                className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer"
+                onClick={() => {
+                  setSelectedClinicalHeader("main-hospital");
+                  setShowAddClinicInfoDialog(true);
+                  setShowClinicalHeaderDialog(false);
+                }}
+              >
+                <h3 className="font-semibold text-gray-800">Main Hospital</h3>
+                <p className="text-sm text-gray-600">Main hospital information and contact details</p>
+              </div>
+              
+              <div
+                className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer"
+                onClick={() => {
+                  setSelectedClinicalHeader("cardiology-dept");
+                  setShowAddClinicInfoDialog(true);
+                  setShowClinicalHeaderDialog(false);
+                }}
+              >
+                <h3 className="font-semibold text-gray-800">Cardiology Department</h3>
+                <p className="text-sm text-gray-600">Cardiology department information and contact details</p>
+              </div>
+              
+              <div
+                className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer"
+                onClick={() => {
+                  setSelectedClinicalHeader("neurology-dept");
+                  setShowAddClinicInfoDialog(true);
+                  setShowClinicalHeaderDialog(false);
+                }}
+              >
+                <h3 className="font-semibold text-gray-800">Neurology Department</h3>
+                <p className="text-sm text-gray-600">Neurology department information and contact details</p>
+              </div>
+              
+              <div
+                className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer"
+                onClick={() => {
+                  setSelectedClinicalHeader("orthopedic-dept");
+                  setShowAddClinicInfoDialog(true);
+                  setShowClinicalHeaderDialog(false);
+                }}
+              >
+                <h3 className="font-semibold text-gray-800">Orthopedic Department</h3>
+                <p className="text-sm text-gray-600">Orthopedic department information and contact details</p>
+              </div>
+              
+              <div
+                className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer"
+                onClick={() => {
+                  setSelectedClinicalHeader("pediatrics-dept");
+                  setShowAddClinicInfoDialog(true);
+                  setShowClinicalHeaderDialog(false);
+                }}
+              >
+                <h3 className="font-semibold text-gray-800">Pediatrics Department</h3>
+                <p className="text-sm text-gray-600">Pediatrics department information and contact details</p>
+              </div>
+              
+              <div
+                className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer"
+                onClick={() => {
+                  setSelectedClinicalHeader("emergency-dept");
+                  setShowAddClinicInfoDialog(true);
+                  setShowClinicalHeaderDialog(false);
+                }}
+              >
+                <h3 className="font-semibold text-gray-800">Emergency Department</h3>
+                <p className="text-sm text-gray-600">Emergency department information and contact details</p>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4 border-t">
+              <Button variant="outline" onClick={() => setShowClinicalHeaderDialog(false)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add New Clinic Info Dialog */}
+      <Dialog open={showAddClinicInfoDialog} onOpenChange={setShowAddClinicInfoDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Clinic Information</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {/* Display the clinic info like in the attached image */}
+            <div className="p-6 bg-blue-50 dark:bg-[hsl(var(--cura-midnight))] border border-blue-200 dark:border-[hsl(var(--cura-steel))] rounded text-center relative">
+              <div className="text-[hsl(var(--cura-bluewave))] dark:text-[hsl(var(--cura-bluewave))] text-lg font-semibold mb-2 flex items-center justify-center gap-2">
+                🏥 {selectedClinicalHeader 
+                      ? selectedClinicalHeader.replace("-", " ").replace(/\b\w/g, (l) => l.toUpperCase())
+                      : "Cardiology Dept"}
+              </div>
+              <div className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                {clinicInfo.address || "123 Healthcare Street, Medical City, MC 12345"}
+              </div>
+              <div className="text-sm text-gray-600 dark:text-gray-300">
+                {clinicInfo.phone || "+44 20 1234 5678"} • {clinicInfo.email || "info@yourclinic.com"}
+              </div>
+              <div className="text-sm text-gray-600 dark:text-gray-300">
+                {clinicInfo.website || "www.yourclinic.com"}
+              </div>
+
+              {/* Edit Clinic Info Button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute top-2 right-2 border transition-all duration-200"
+                style={{
+                  backgroundColor: "white",
+                  borderColor: "#e5e7eb",
+                  color: "black",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#A3A8FC";
+                  e.currentTarget.style.borderColor = "#A3A8FC";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "white";
+                  e.currentTarget.style.borderColor = "#e5e7eb";
+                }}
+                onClick={() => {
+                  setEditingClinicInfo({
+                    name: selectedClinicalHeader 
+                          ? selectedClinicalHeader.replace("-", " ").replace(/\b\w/g, (l) => l.toUpperCase())
+                          : "Cardiology Dept",
+                    address: clinicInfo.address,
+                    phone: clinicInfo.phone,
+                    email: clinicInfo.email,
+                    website: clinicInfo.website,
+                  });
+                  setShowEditClinic(true);
+                  setShowAddClinicInfoDialog(false);
+                }}
+              >
+                <Edit className="h-4 w-4 mr-1" />
+                Edit Clinic Info
+              </Button>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4 border-t">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowAddClinicInfoDialog(false);
+                  setShowClinicalHeaderDialog(true);
+                }}
+              >
+                Back
+              </Button>
+              <Button
+                onClick={() => {
+                  // Insert the clinic info into the editor
+                  const clinicHTML = `
+                    <div style="text-align: center; margin: 20px 0; padding: 15px; border-bottom: 2px solid #0D9488;">
+                      <h2 style="color: #0D9488; margin: 0; font-size: 24px; font-weight: bold;">🏥 ${selectedClinicalHeader 
+                        ? selectedClinicalHeader.replace("-", " ").replace(/\b\w/g, (l) => l.toUpperCase())
+                        : "Cardiology Dept"}</h2>
+                      <p style="margin: 5px 0; color: #666;">${clinicInfo.address || "123 Healthcare Street, Medical City, MC 12345"}</p>
+                      <p style="margin: 5px 0; color: #666;">${clinicInfo.phone || "+44 20 1234 5678"} • ${clinicInfo.email || "info@yourclinic.com"}</p>
+                      <p style="margin: 5px 0; color: #666;">${clinicInfo.website || "www.yourclinic.com"}</p>
+                    </div>
+                  `;
+                  
+                  if (textareaRef) {
+                    const currentContent = textareaRef.value;
+                    textareaRef.value = clinicHTML + currentContent;
+                    setDocumentContent(textareaRef.value);
+                  }
+                  
+                  setShowAddClinicInfoDialog(false);
+                }}
+              >
+                Load
               </Button>
             </div>
           </div>
