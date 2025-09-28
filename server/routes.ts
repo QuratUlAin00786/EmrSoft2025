@@ -9514,6 +9514,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         subject: z.string(),
         documentContent: z.string(),
         doctorEmail: z.string().email().optional(),
+        location: z.string().optional(),
+        copiedRecipients: z.string().optional(),
+        header: z.string().optional(),
       }).parse(req.body);
 
       // Import necessary libraries for PDF conversion
@@ -9569,7 +9572,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (success) {
         res.json({ success: true, message: "Letter sent successfully" });
       } else {
-        res.status(500).json({ error: "Failed to send letter" });
+        // Email sending failed, save as draft
+        console.log("Email sending failed, saving as draft...");
+        try {
+          const draft = await storage.createLetterDraft({
+            subject: emailData.subject,
+            recipient: emailData.to,
+            doctorEmail: emailData.doctorEmail,
+            location: emailData.location,
+            copiedRecipients: emailData.copiedRecipients,
+            header: emailData.header,
+            documentContent: emailData.documentContent,
+            organizationId: req.tenant!.id,
+            userId: req.user!.id,
+          });
+          
+          res.json({ 
+            success: false, 
+            savedAsDraft: true, 
+            draftId: draft.id,
+            message: "Email delivery failed but letter saved as draft. You can retry sending from your drafts." 
+          });
+        } catch (draftError) {
+          console.error("Error saving draft:", draftError);
+          res.status(500).json({ error: "Failed to send letter and unable to save draft" });
+        }
       }
     } catch (error) {
       console.error("Error sending letter:", error);
@@ -9579,7 +9606,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
           details: error.errors.map(e => `${e.path.join('.')}: ${e.message}`)
         });
       }
-      res.status(500).json({ error: "Failed to send letter" });
+
+      // Try to save as draft even if there's an error
+      try {
+        const emailData = req.body;
+        if (emailData.to && emailData.subject && emailData.documentContent) {
+          const draft = await storage.createLetterDraft({
+            subject: emailData.subject,
+            recipient: emailData.to,
+            doctorEmail: emailData.doctorEmail,
+            location: emailData.location,
+            copiedRecipients: emailData.copiedRecipients,
+            header: emailData.header,
+            documentContent: emailData.documentContent,
+            organizationId: req.tenant!.id,
+            userId: req.user!.id,
+          });
+          
+          res.status(500).json({ 
+            error: "Failed to send letter", 
+            savedAsDraft: true, 
+            draftId: draft.id,
+            message: "Error occurred but letter saved as draft. You can retry sending from your drafts."
+          });
+        } else {
+          res.status(500).json({ error: "Failed to send letter" });
+        }
+      } catch (draftError) {
+        console.error("Error saving draft after failure:", draftError);
+        res.status(500).json({ error: "Failed to send letter" });
+      }
     }
   });
 
