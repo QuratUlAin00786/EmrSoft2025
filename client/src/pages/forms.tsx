@@ -5281,28 +5281,32 @@ Best regards,
                       <Button
                         variant="outline"
                         className="w-full text-left justify-start h-auto p-4"
-                        onClick={() =>
-                          insertTemplate(`
-                          <h2 style="font-size: 18px; font-weight: bold; margin: 6px 0;">Treatment Plan</h2>
-                          <p><strong>Patient:</strong> [Patient Name]</p>
-                          <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
-                          <p><strong>Diagnosis:</strong> [Primary Diagnosis]</p>
-                          <p><strong>Treatment Goals:</strong></p>
-                          <ul style="margin-left: 20px; list-style-type: disc;">
-                            <li>[Goal 1]</li>
-                            <li>[Goal 2]</li>
-                            <li>[Goal 3]</li>
-                          </ul>
-                          <p><strong>Treatment Plan:</strong></p>
-                          <ol style="margin-left: 20px; list-style-type: decimal;">
-                            <li><strong>Medications:</strong> [Specify medications and dosages]</li>
-                            <li><strong>Therapy:</strong> [Specify therapy type and frequency]</li>
-                            <li><strong>Lifestyle Modifications:</strong> [Specify recommendations]</li>
-                            <li><strong>Follow-up:</strong> [Specify follow-up schedule]</li>
-                          </ol>
-                          <p><strong>Next Review:</strong> [Date]</p>
-                        `)
-                        }
+                        onClick={() => {
+                          const template = {
+                            subject: "Treatment Plan",
+                            body: `Patient: [Patient Name]
+Date: ${new Date().toLocaleDateString()}
+
+Diagnosis: [Primary Diagnosis]
+
+Treatment Goals:
+• [Goal 1]
+• [Goal 2]
+• [Goal 3]
+
+Treatment Plan:
+1. Medications: [Specify medications and dosages]
+2. Therapy: [Specify therapy type and frequency]
+3. Lifestyle Modifications: [Specify recommendations]
+4. Follow-up: [Specify follow-up schedule]
+
+Next Review: [Date]`
+                          };
+                          setPreviewTemplate(template);
+                          setPreviewTemplateName("Treatment Plan");
+                          setShowTemplateDialog(false);
+                          setShowTemplatePreviewDialog(true);
+                        }}
                       >
                         <div>
                           <div className="font-medium">Treatment Plan</div>
@@ -5324,20 +5328,39 @@ Best regards,
                   <Button
                     variant="outline"
                     className="w-full text-left justify-start h-auto p-4"
-                    onClick={() =>
-                      insertTemplate(`
-                      <h2 style="font-size: 18px; font-weight: bold; margin: 6px 0;">Referral Letter</h2>
-                      <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
-                      <p><strong>Dear Colleague,</strong></p>
-                      <p>I am writing to refer <strong>[Patient Name]</strong> for your expert opinion and management.</p>
-                      <p><strong>Clinical History:</strong><br>[Enter clinical history here]</p>
-                      <p><strong>Current Medications:</strong><br>[Enter current medications]</p>
-                      <p><strong>Examination Findings:</strong><br>[Enter examination findings]</p>
-                      <p><strong>Reason for Referral:</strong><br>[Enter reason for referral]</p>
-                      <p>Thank you for your assistance in the care of this patient.</p>
-                      <p>Yours sincerely,<br><br><strong>[Your Name]</strong><br>[Your Title]</p>
-                    `)
-                    }
+                    onClick={() => {
+                      const template = {
+                        subject: "Referral Letter",
+                        body: `Date: ${new Date().toLocaleDateString()}
+
+Dear Colleague,
+
+I am writing to refer [Patient Name] for your expert opinion and management.
+
+Clinical History:
+[Enter clinical history here]
+
+Current Medications:
+[Enter current medications]
+
+Examination Findings:
+[Enter examination findings]
+
+Reason for Referral:
+[Enter reason for referral]
+
+Thank you for your assistance in the care of this patient.
+
+Yours sincerely,
+
+[Your Name]
+[Your Title]`
+                      };
+                      setPreviewTemplate(template);
+                      setPreviewTemplateName("Referral Letter");
+                      setShowTemplateDialog(false);
+                      setShowTemplatePreviewDialog(true);
+                    }}
                   >
                     <div>
                       <div className="font-medium">Referral Letter</div>
@@ -5350,20 +5373,37 @@ Best regards,
                   <Button
                     variant="outline"
                     className="w-full text-left justify-start h-auto p-4"
-                    onClick={() =>
-                      insertTemplate(`
-                      <h2 style="font-size: 18px; font-weight: bold; margin: 6px 0;">Discharge Summary</h2>
-                      <p><strong>Date of Admission:</strong> [Date]</p>
-                      <p><strong>Date of Discharge:</strong> ${new Date().toLocaleDateString()}</p>
-                      <p><strong>Patient:</strong> [Patient Name]</p>
-                      <p><strong>Admission Diagnosis:</strong><br>[Enter admission diagnosis]</p>
-                      <p><strong>Discharge Diagnosis:</strong><br>[Enter discharge diagnosis]</p>
-                      <p><strong>Treatment Received:</strong><br>[Enter treatment details]</p>
-                      <p><strong>Medications on Discharge:</strong><br>[Enter discharge medications]</p>
-                      <p><strong>Follow-up Instructions:</strong><br>[Enter follow-up instructions]</p>
-                      <p><strong>GP Actions Required:</strong><br>[Enter GP actions if any]</p>
-                    `)
-                    }
+                    onClick={() => {
+                      const template = {
+                        subject: "Discharge Summary",
+                        body: `Date of Admission: [Date]
+Date of Discharge: ${new Date().toLocaleDateString()}
+
+Patient: [Patient Name]
+
+Admission Diagnosis:
+[Enter admission diagnosis]
+
+Discharge Diagnosis:
+[Enter discharge diagnosis]
+
+Treatment Received:
+[Enter treatment details]
+
+Medications on Discharge:
+[Enter discharge medications]
+
+Follow-up Instructions:
+[Enter follow-up instructions]
+
+GP Actions Required:
+[Enter GP actions if any]`
+                      };
+                      setPreviewTemplate(template);
+                      setPreviewTemplateName("Discharge Summary");
+                      setShowTemplateDialog(false);
+                      setShowTemplatePreviewDialog(true);
+                    }}
                   >
                     <div>
                       <div className="font-medium">Discharge Summary</div>
@@ -5376,21 +5416,41 @@ Best regards,
                   <Button
                     variant="outline"
                     className="w-full text-left justify-start h-auto p-4"
-                    onClick={() =>
-                      insertTemplate(`
-                      <h2 style="font-size: 18px; font-weight: bold; margin: 6px 0;">Medical Certificate</h2>
-                      <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
-                      <p><strong>Patient Name:</strong> [Patient Name]</p>
-                      <p><strong>Date of Birth:</strong> [DOB]</p>
-                      <p>I certify that I examined the above named patient on <strong>${new Date().toLocaleDateString()}</strong></p>
-                      <p><strong>Clinical Findings:</strong><br>[Enter clinical findings]</p>
-                      <p><strong>Diagnosis:</strong><br>[Enter diagnosis]</p>
-                      <p><strong>Fitness for Work:</strong><br>☐ Fit for normal duties<br>☐ Fit for light duties<br>☐ Unfit for work</p>
-                      <p><strong>Period:</strong> From [Date] to [Date]</p>
-                      <p><strong>Additional Comments:</strong><br>[Enter any additional comments]</p>
-                      <p><br><strong>Dr. [Name]</strong><br>Medical Practitioner<br>Registration No: [Number]</p>
-                    `)
-                    }
+                    onClick={() => {
+                      const template = {
+                        subject: "Medical Certificate",
+                        body: `Date: ${new Date().toLocaleDateString()}
+
+Patient Name: [Patient Name]
+Date of Birth: [DOB]
+
+I certify that I examined the above named patient on ${new Date().toLocaleDateString()}
+
+Clinical Findings:
+[Enter clinical findings]
+
+Diagnosis:
+[Enter diagnosis]
+
+Fitness for Work:
+☐ Fit for normal duties
+☐ Fit for light duties
+☐ Unfit for work
+
+Period: From [Date] to [Date]
+
+Additional Comments:
+[Enter any additional comments]
+
+Dr. [Name]
+Medical Practitioner
+Registration No: [Number]`
+                      };
+                      setPreviewTemplate(template);
+                      setPreviewTemplateName("Medical Certificate");
+                      setShowTemplateDialog(false);
+                      setShowTemplatePreviewDialog(true);
+                    }}
                   >
                     <div>
                       <div className="font-medium">Medical Certificate</div>
