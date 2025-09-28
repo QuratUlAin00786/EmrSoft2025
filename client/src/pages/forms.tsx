@@ -18,6 +18,19 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
@@ -101,6 +114,7 @@ export default function Forms() {
     doctor: "",
     header: "your-clinic"
   });
+  const [doctorDropdownOpen, setDoctorDropdownOpen] = useState(false);
 
   // Patient template states
   const [showPatientTemplateDialog, setShowPatientTemplateDialog] = useState(false);
@@ -7504,29 +7518,51 @@ Registration No: [Number]`
                 <Label htmlFor="share-doctor" className="text-sm font-medium">
                   Doctor (optional)
                 </Label>
-                <Select
-                  value={shareFormData.doctor}
-                  onValueChange={(value) =>
-                    setShareFormData((prev) => ({ ...prev, doctor: value }))
-                  }
-                >
-                  <SelectTrigger className="w-full mt-1">
-                    <SelectValue placeholder="Select doctor" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {usersLoading ? (
-                      <SelectItem value="loading" disabled>Loading doctors...</SelectItem>
-                    ) : doctors.length > 0 ? (
-                      doctors.map((doctor) => (
-                        <SelectItem key={doctor.id} value={doctor.email}>
-                          Dr. {doctor.firstName} {doctor.lastName} ({doctor.email})
-                        </SelectItem>
-                      ))
-                    ) : (
-                      <SelectItem value="no-doctors" disabled>No doctors available</SelectItem>
-                    )}
-                  </SelectContent>
-                </Select>
+                <Popover open={doctorDropdownOpen} onOpenChange={setDoctorDropdownOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={doctorDropdownOpen}
+                      className="w-full mt-1 justify-between"
+                    >
+                      {shareFormData.doctor
+                        ? doctors.find((doctor) => doctor.email === shareFormData.doctor)
+                            ? `Dr. ${doctors.find((doctor) => doctor.email === shareFormData.doctor)?.firstName} ${doctors.find((doctor) => doctor.email === shareFormData.doctor)?.lastName} (${shareFormData.doctor})`
+                            : shareFormData.doctor
+                        : "Select doctor..."}
+                      <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0">
+                    <Command>
+                      <CommandInput placeholder="Search doctors..." />
+                      <CommandList>
+                        <CommandEmpty>No doctors found.</CommandEmpty>
+                        <CommandGroup>
+                          {usersLoading ? (
+                            <CommandItem disabled>Loading doctors...</CommandItem>
+                          ) : doctors.length > 0 ? (
+                            doctors.map((doctor) => (
+                              <CommandItem
+                                key={doctor.id}
+                                value={`${doctor.firstName} ${doctor.lastName} ${doctor.email}`}
+                                onSelect={() => {
+                                  setShareFormData((prev) => ({ ...prev, doctor: doctor.email }));
+                                  setDoctorDropdownOpen(false);
+                                }}
+                              >
+                                Dr. {doctor.firstName} {doctor.lastName} ({doctor.email})
+                              </CommandItem>
+                            ))
+                          ) : (
+                            <CommandItem disabled>No doctors available</CommandItem>
+                          )}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
               <div>
                 <Label htmlFor="share-header" className="text-sm font-medium">

@@ -9513,7 +9513,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         to: z.string().email(),
         subject: z.string(),
         documentContent: z.string(),
-        doctorEmail: z.string().email().optional(),
+        doctorEmail: z.string().email().or(z.literal("")).optional(),
         location: z.string().optional(),
         copiedRecipients: z.string().optional(),
         header: z.string().optional(),

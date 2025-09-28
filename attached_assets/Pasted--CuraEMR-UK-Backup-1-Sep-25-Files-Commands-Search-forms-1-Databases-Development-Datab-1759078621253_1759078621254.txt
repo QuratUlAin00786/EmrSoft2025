@@ -1,0 +1,262 @@
+
+
+
+CuraEMR-UK-Backup 1 Sep 25
+Files
+Commands
+Search
+/forms
+1
+
+Databases
+Development Database
+36.48MB / 10GB
+Production Database
+36.77MB / 100GB
+Billing Period
+Renews monthly, 29 Sept
+Hours of Compute Used
+917.04 hours
+Production
+Status
+salman711 published 4 days ago
+Visibility
+Public
+Domain
+https://cura-emr-uk-backup-1-sep-25-salman711.replit.app
+https://app.curaemr.ai
+Type
+Autoscale
+(4 vCPU / 8 GiB RAM / 3 Max)
+See all usage
+Database
+Production database connected
+ac4f1a52
+SA
+
+salman711
+salman711
+published 4 days ago
+02c70a07
+SA
+
+salman711
+salman711
+published 4 days ago
+257e3313
+SA
+
+salman711
+salman711
+published 4 days ago
+eb1fa4df
+SA
+
+salman711
+salman711
+published 4 days ago
+056b885f
+SA
+
+salman711
+salman711
+published 4 days ago
+da0da9bb
+SA
+
+salman711
+salman711
+published 4 days ago
+c8faf3a8
+SA
+
+salman711
+salman711
+published 4 days ago
+9a6f5b2e
+SA
+
+salman711
+salman711
+published 4 days ago
+19949a18
+SA
+
+salman711
+salman711
+published 5 days ago
+e337879f
+SA
+
+salman711
+salman711
+published 5 days ago
+278dce4d
+SA
+
+salman711
+salman711
+published 5 days ago
+8822b964
+SA
+
+salman711
+salman711
+published 5 days ago
+6203f31a
+SA
+
+salman711
+salman711
+published 5 days ago
+9121d994
+SA
+
+salman711
+salman711
+published 6 days ago
+3514e351
+SA
+
+salman711
+salman711
+published 6 days ago
+929d628d
+SA
+
+salman711
+salman711
+published 7 days ago
+38e7ac2a
+SA
+
+salman711
+salman711
+published 7 days ago
+620fab84
+SA
+
+salman711
+salman711
+published 8 days ago
+cecebb06
+SA
+
+salman711
+salman711
+published 9 days ago
+19m
+ • 
+19 minutes ago
+Selection deleted
+                className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
+                style={{
+                  backgroundColor: "white",
+                  color: "black",
+                  borderColor: "#e5e7eb",
+                  borderRadius: "10px",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#f9fafb";
+                  e.currentTarget.style.borderColor = "#d1d5db";
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                  e.currentTarget.style.boxShadow =
+                    "0 6px 16px rgba(0,0,0,0.15)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "white";
+                  e.currentTarget.style.borderColor = "#e5e7eb";
+                  e.currentTarget.style.transform = "translateY(0px)";
+                  e.currentTarget.style.boxShadow =
+                    "0 4px 12px rgba(0,0,0,0.1)";
+                }}
+                onClick={handleSaveAsDraft}
+              >
+                Save as draft
+              </Button>
+            </div>
+
+            <div className="flex items-center gap-4">
+            
+
+              <div className="h-8 w-px bg-white/30 mx-1"></div>
+
+          
+              <Button
+                className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
+                style={{
+                  backgroundColor: "white",
+                  color: "black",
+                  borderColor: "#e5e7eb",
+                  borderRadius: "10px",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#f9fafb";
+                  e.currentTarget.style.borderColor = "#d1d5db";
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                  e.currentTarget.style.boxShadow =
+                    "0 6px 16px rgba(0,0,0,0.15)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "white";
+                  e.currentTarget.style.borderColor = "#e5e7eb";
+                  e.currentTarget.style.transform = "translateY(0px)";
+                  e.currentTarget.style.boxShadow =
+                    "0 4px 12px rgba(0,0,0,0.1)";
+                }}
+                onClick={() => setShowShareDialog(true)}
+              >
+                Share this...
+              </Button>
+              
+              {/* Patient Template Dropdown - Only show for patients */}
+              {user?.role === "patient" && (
+                <>
+                  <div className="h-8 w-px bg-white/30 mx-1"></div>
+                  <Button
+                    className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
+                    style={{
+                      backgroundColor: "white",
+                      color: "black",
+                      borderColor: "#e5e7eb",
+                      borderRadius: "10px",
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = "#f9fafb";
+                      e.currentTarget.style.borderColor = "#d1d5db";
+                      e.currentTarget.style.transform = "translateY(-2px)";
+                      e.currentTarget.style.boxShadow =
+                        "0 6px 16px rgba(0,0,0,0.15)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = "white";
+                      e.currentTarget.style.borderColor = "#e5e7eb";
+                      e.currentTarget.style.transform = "translateY(0px)";
+                      e.currentTarget.style.boxShadow =
+                        "0 4px 12px rgba(0,0,0,0.1)";
+                    }}
+Add a share functionality to forms with configurable options
+Completed tasks
+7 / 7
+
+5 messages & 10 actions
+Let me find where the template preview dialog is defined to see how I can modify its preview section:
+Checkpoint made
+1 hour ago
+Improve template preview by removing unnecessary popup image
+3 minutes of work
+in the forms.tsx file, when i click on "" button , popup open "
+Letter Details 2" here add "Recipient (optional)" patient email list in searchable dropdown get from database "patients" table. Doctor (optional) add here doctor email list from users list in searchable dropdown. Please do not make any other changes while doing this.
+
+57 minutes ago
+
+14 messages & 42 actions
+I'll help you add the searchable dropdowns for patient and doctor emails to the "Letter Details 2" popup. Let me first find where this popup is defined in the forms.tsx file.
+Checkpoint made
+45 minutes ago
+Add searchable patient and doctor email dropdowns to letter forms
+9 minutes of work
+In the forms.tsx file, 
