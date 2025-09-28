@@ -3682,6 +3682,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // User Document Preferences endpoints
+  app.get("/api/me/preferences", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const organizationId = req.tenant!.id;
+      
+      const preferences = await storage.getUserDocumentPreferences(userId, organizationId);
+      
+      // If no preferences exist, return default values
+      if (!preferences) {
+        return res.json({
+          clinicName: "",
+          clinicAddress: "",
+          clinicPhone: "",
+          clinicEmail: "",
+          doctorName: "",
+          doctorTitle: "",
+          doctorSpecialty: "",
+          logoPosition: "left",
+          headerPosition: "left"
+        });
+      }
+      
+      res.json(preferences);
+    } catch (error) {
+      console.error("Error fetching user document preferences:", error);
+      res.status(500).json({ error: "Failed to fetch document preferences" });
+    }
+  });
+
+  app.patch("/api/me/preferences", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const organizationId = req.tenant!.id;
+      
+      // Import the update schema from shared/schema.ts
+      const { updateUserDocumentPreferencesSchema } = await import("@shared/schema");
+      const validationResult = updateUserDocumentPreferencesSchema.safeParse(req.body);
+      
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: "Invalid request data",
+          details: validationResult.error.issues
+        });
+      }
+      
+      const updateData = validationResult.data;
+      
+      // Check if preferences already exist
+      const existingPreferences = await storage.getUserDocumentPreferences(userId, organizationId);
+      
+      let preferences;
+      if (existingPreferences) {
+        // Update existing preferences
+        preferences = await storage.updateUserDocumentPreferences(userId, organizationId, updateData);
+      } else {
+        // Create new preferences
+        const newPreferences = {
+          userId,
+          organizationId,
+          ...updateData
+        };
+        preferences = await storage.createUserDocumentPreferences(newPreferences);
+      }
+      
+      if (!preferences) {
+        return res.status(500).json({ error: "Failed to save document preferences" });
+      }
+      
+      res.json(preferences);
+    } catch (error) {
+      console.error("Error updating user document preferences:", error);
+      res.status(500).json({ error: "Failed to update document preferences" });
+    }
+  });
+
   app.get("/api/users", authMiddleware, async (req: TenantRequest, res) => {
     try {
       const users = await storage.getUsersByOrganization(req.tenant!.id);
