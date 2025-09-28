@@ -9644,7 +9644,7 @@ Registration No: [Number]`
                   setShowClinicalHeaderDialog(false);
                 }}
               >
-                <h3 className="font-semibold text-gray-800">Main Hospital</h3>
+                <h6 className="font-semibold text-gray-800">Main Hospital</h6>
                 <p className="text-sm text-gray-600">Main hospital information and contact details</p>
               </div>
               
@@ -9663,7 +9663,7 @@ Registration No: [Number]`
                   setShowClinicalHeaderDialog(false);
                 }}
               >
-                <h3 className="font-semibold text-gray-800">Cardiology Department</h3>
+                <h6 className="font-semibold text-gray-800">Cardiology Department</h6>
                 <p className="text-sm text-gray-600">Cardiology department information and contact details</p>
               </div>
               
@@ -9682,7 +9682,7 @@ Registration No: [Number]`
                   setShowClinicalHeaderDialog(false);
                 }}
               >
-                <h3 className="font-semibold text-gray-800">Neurology Department</h3>
+                <h6 className="font-semibold text-gray-800">Neurology Department</h6>
                 <p className="text-sm text-gray-600">Neurology department information and contact details</p>
               </div>
               
@@ -9701,7 +9701,7 @@ Registration No: [Number]`
                   setShowClinicalHeaderDialog(false);
                 }}
               >
-                <h3 className="font-semibold text-gray-800">Orthopedic Department</h3>
+                <h6 className="font-semibold text-gray-800">Orthopedic Department</h6>
                 <p className="text-sm text-gray-600">Orthopedic department information and contact details</p>
               </div>
               
@@ -9720,7 +9720,7 @@ Registration No: [Number]`
                   setShowClinicalHeaderDialog(false);
                 }}
               >
-                <h3 className="font-semibold text-gray-800">Pediatrics Department</h3>
+                <h6 className="font-semibold text-gray-800">Pediatrics Department</h6>
                 <p className="text-sm text-gray-600">Pediatrics department information and contact details</p>
               </div>
               
@@ -9739,7 +9739,7 @@ Registration No: [Number]`
                   setShowClinicalHeaderDialog(false);
                 }}
               >
-                <h3 className="font-semibold text-gray-800">Emergency Department</h3>
+                <h6 className="font-semibold text-gray-800">Emergency Department</h6>
                 <p className="text-sm text-gray-600">Emergency department information and contact details</p>
               </div>
             </div>
@@ -9902,7 +9902,7 @@ Registration No: [Number]`
 
       {/* Clinic Display Dialog */}
       <Dialog open={showClinicDisplayDialog} onOpenChange={setShowClinicDisplayDialog}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-lg">
           <div className="space-y-4">
             {/* Display the clinic info like in the attached image */}
             <div className="p-6 bg-blue-50 dark:bg-[hsl(var(--cura-midnight))] border border-blue-200 dark:border-[hsl(var(--cura-steel))] rounded text-center relative">
