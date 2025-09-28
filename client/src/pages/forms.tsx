@@ -2326,17 +2326,24 @@ Coverage Details: [Insurance Coverage]`;
           Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
         },
         body: JSON.stringify({
-          clinicName: selectedClinicalHeader 
-            ? selectedClinicalHeader.replace("-", " ").replace(/\b\w/g, (l) => l.toUpperCase())
-            : "Cardiology Dept",
-          clinicAddress: clinicInfo.address || "123 Healthcare Street, Medical City, MC 12345",
-          clinicPhone: clinicInfo.phone || "+44 20 1234 5678",
-          clinicEmail: clinicInfo.email || "info@yourclinic.com",
-          clinicWebsite: clinicInfo.website || "www.yourclinic.com",
+          clinicName: editingClinicInfo.name || "Clinic",
+          clinicAddress: editingClinicInfo.address || "123 Healthcare Street, Medical City, MC 12345",
+          clinicPhone: editingClinicInfo.phone || "+44 20 1234 5678",
+          clinicEmail: editingClinicInfo.email || "info@yourclinic.com",
+          clinicWebsite: editingClinicInfo.website || "www.yourclinic.com",
         }),
       });
 
       if (response.ok) {
+        // Update clinic info state with saved values
+        setClinicInfo({
+          name: editingClinicInfo.name,
+          address: editingClinicInfo.address,
+          phone: editingClinicInfo.phone,
+          email: editingClinicInfo.email,
+          website: editingClinicInfo.website,
+        });
+        
         toast({
           title: "Success",
           description: "Clinical header information saved successfully",
@@ -2354,6 +2361,26 @@ Coverage Details: [Insurance Coverage]`;
         duration: 3000,
       });
     }
+  };
+
+  const handleLoadClinicalHeader = () => {
+    // Insert the clinic info into the editor
+    const clinicHTML = `
+      <div style="text-align: center; margin: 20px 0; padding: 15px; border-bottom: 2px solid #0D9488;">
+        <h2 style="color: #0D9488; margin: 0; font-size: 24px; font-weight: bold;">🏥 ${editingClinicInfo.name || "Clinic"}</h2>
+        <p style="margin: 5px 0; color: #666;">${editingClinicInfo.address || "123 Healthcare Street, Medical City, MC 12345"}</p>
+        <p style="margin: 5px 0; color: #666;">${editingClinicInfo.phone || "+44 20 1234 5678"} • ${editingClinicInfo.email || "info@yourclinic.com"}</p>
+        <p style="margin: 5px 0; color: #666;">${editingClinicInfo.website || "www.yourclinic.com"}</p>
+      </div>
+    `;
+    
+    if (textareaRef) {
+      const currentContent = textareaRef.value;
+      textareaRef.value = clinicHTML + currentContent;
+      setDocumentContent(textareaRef.value);
+    }
+    
+    setShowAddClinicInfoDialog(false);
   };
 
   const insertClinicInfo = (infoType: string) => {
@@ -9581,6 +9608,15 @@ Registration No: [Number]`
                   e.currentTarget.style.borderColor = "#e5e7eb";
                 }}
                 onClick={() => {
+                  // Initialize form with default values for new clinic info
+                  setEditingClinicInfo({
+                    name: "",
+                    address: "",
+                    phone: "",
+                    email: "",
+                    website: "",
+                  });
+                  setSelectedClinicalHeader("");
                   setShowAddClinicInfoDialog(true);
                   setShowClinicalHeaderDialog(false);
                 }}
@@ -9596,6 +9632,13 @@ Registration No: [Number]`
                 className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer"
                 onClick={() => {
                   setSelectedClinicalHeader("main-hospital");
+                  setEditingClinicInfo({
+                    name: "Main Hospital",
+                    address: clinicInfo.address || "123 Healthcare Street, Medical City, MC 12345",
+                    phone: clinicInfo.phone || "+44 20 1234 5678",
+                    email: clinicInfo.email || "info@yourclinic.com",
+                    website: clinicInfo.website || "www.yourclinic.com",
+                  });
                   setShowAddClinicInfoDialog(true);
                   setShowClinicalHeaderDialog(false);
                 }}
@@ -9608,6 +9651,13 @@ Registration No: [Number]`
                 className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer"
                 onClick={() => {
                   setSelectedClinicalHeader("cardiology-dept");
+                  setEditingClinicInfo({
+                    name: "Cardiology Department",
+                    address: clinicInfo.address || "123 Healthcare Street, Medical City, MC 12345",
+                    phone: clinicInfo.phone || "+44 20 1234 5678",
+                    email: clinicInfo.email || "info@yourclinic.com",
+                    website: clinicInfo.website || "www.yourclinic.com",
+                  });
                   setShowAddClinicInfoDialog(true);
                   setShowClinicalHeaderDialog(false);
                 }}
@@ -9620,6 +9670,13 @@ Registration No: [Number]`
                 className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer"
                 onClick={() => {
                   setSelectedClinicalHeader("neurology-dept");
+                  setEditingClinicInfo({
+                    name: "Neurology Department",
+                    address: clinicInfo.address || "123 Healthcare Street, Medical City, MC 12345",
+                    phone: clinicInfo.phone || "+44 20 1234 5678",
+                    email: clinicInfo.email || "info@yourclinic.com",
+                    website: clinicInfo.website || "www.yourclinic.com",
+                  });
                   setShowAddClinicInfoDialog(true);
                   setShowClinicalHeaderDialog(false);
                 }}
@@ -9632,6 +9689,13 @@ Registration No: [Number]`
                 className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer"
                 onClick={() => {
                   setSelectedClinicalHeader("orthopedic-dept");
+                  setEditingClinicInfo({
+                    name: "Orthopedic Department",
+                    address: clinicInfo.address || "123 Healthcare Street, Medical City, MC 12345",
+                    phone: clinicInfo.phone || "+44 20 1234 5678",
+                    email: clinicInfo.email || "info@yourclinic.com",
+                    website: clinicInfo.website || "www.yourclinic.com",
+                  });
                   setShowAddClinicInfoDialog(true);
                   setShowClinicalHeaderDialog(false);
                 }}
@@ -9644,6 +9708,13 @@ Registration No: [Number]`
                 className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer"
                 onClick={() => {
                   setSelectedClinicalHeader("pediatrics-dept");
+                  setEditingClinicInfo({
+                    name: "Pediatrics Department",
+                    address: clinicInfo.address || "123 Healthcare Street, Medical City, MC 12345",
+                    phone: clinicInfo.phone || "+44 20 1234 5678",
+                    email: clinicInfo.email || "info@yourclinic.com",
+                    website: clinicInfo.website || "www.yourclinic.com",
+                  });
                   setShowAddClinicInfoDialog(true);
                   setShowClinicalHeaderDialog(false);
                 }}
@@ -9656,6 +9727,13 @@ Registration No: [Number]`
                 className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer"
                 onClick={() => {
                   setSelectedClinicalHeader("emergency-dept");
+                  setEditingClinicInfo({
+                    name: "Emergency Department",
+                    address: clinicInfo.address || "123 Healthcare Street, Medical City, MC 12345",
+                    phone: clinicInfo.phone || "+44 20 1234 5678",
+                    email: clinicInfo.email || "info@yourclinic.com",
+                    website: clinicInfo.website || "www.yourclinic.com",
+                  });
                   setShowAddClinicInfoDialog(true);
                   setShowClinicalHeaderDialog(false);
                 }}
@@ -9678,61 +9756,93 @@ Registration No: [Number]`
       <Dialog open={showAddClinicInfoDialog} onOpenChange={setShowAddClinicInfoDialog}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Clinic Information</DialogTitle>
+            <DialogTitle>Edit Clinic Information</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            {/* Display the clinic info like in the attached image */}
-            <div className="p-6 bg-blue-50 dark:bg-[hsl(var(--cura-midnight))] border border-blue-200 dark:border-[hsl(var(--cura-steel))] rounded text-center relative">
-              <div className="text-[hsl(var(--cura-bluewave))] dark:text-[hsl(var(--cura-bluewave))] text-lg font-semibold mb-2 flex items-center justify-center gap-2">
-                🏥 {selectedClinicalHeader 
-                      ? selectedClinicalHeader.replace("-", " ").replace(/\b\w/g, (l) => l.toUpperCase())
-                      : "Cardiology Dept"}
-              </div>
-              <div className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                {clinicInfo.address || "123 Healthcare Street, Medical City, MC 12345"}
-              </div>
-              <div className="text-sm text-gray-600 dark:text-gray-300">
-                {clinicInfo.phone || "+44 20 1234 5678"} • {clinicInfo.email || "info@yourclinic.com"}
-              </div>
-              <div className="text-sm text-gray-600 dark:text-gray-300">
-                {clinicInfo.website || "www.yourclinic.com"}
-              </div>
-
-              {/* Edit Clinic Info Button */}
-              <Button
-                variant="ghost"
-                size="sm"
-                className="absolute top-2 right-2 border transition-all duration-200"
-                style={{
-                  backgroundColor: "white",
-                  borderColor: "#e5e7eb",
-                  color: "black",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#A3A8FC";
-                  e.currentTarget.style.borderColor = "#A3A8FC";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "white";
-                  e.currentTarget.style.borderColor = "#e5e7eb";
-                }}
-                onClick={() => {
-                  setEditingClinicInfo({
-                    name: selectedClinicalHeader 
-                          ? selectedClinicalHeader.replace("-", " ").replace(/\b\w/g, (l) => l.toUpperCase())
-                          : "Cardiology Dept",
-                    address: clinicInfo.address,
-                    phone: clinicInfo.phone,
-                    email: clinicInfo.email,
-                    website: clinicInfo.website,
-                  });
-                  setShowEditClinic(true);
-                  setShowAddClinicInfoDialog(false);
-                }}
-              >
-                <Edit className="h-4 w-4 mr-1" />
-                Edit Clinic Info
-              </Button>
+            <div>
+              <Label htmlFor="clinical-clinic-name" className="text-sm font-medium">
+                Clinic Name
+              </Label>
+              <Input
+                id="clinical-clinic-name"
+                value={editingClinicInfo.name}
+                onChange={(e) =>
+                  setEditingClinicInfo((prev) => ({
+                    ...prev,
+                    name: e.target.value,
+                  }))
+                }
+                placeholder="Enter clinic name"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="clinical-clinic-address" className="text-sm font-medium">
+                Address
+              </Label>
+              <Input
+                id="clinical-clinic-address"
+                value={editingClinicInfo.address}
+                onChange={(e) =>
+                  setEditingClinicInfo((prev) => ({
+                    ...prev,
+                    address: e.target.value,
+                  }))
+                }
+                placeholder="Enter clinic address"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="clinical-clinic-phone" className="text-sm font-medium">
+                Phone
+              </Label>
+              <Input
+                id="clinical-clinic-phone"
+                value={editingClinicInfo.phone}
+                onChange={(e) =>
+                  setEditingClinicInfo((prev) => ({
+                    ...prev,
+                    phone: e.target.value,
+                  }))
+                }
+                placeholder="Enter phone number"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="clinical-clinic-email" className="text-sm font-medium">
+                Email
+              </Label>
+              <Input
+                id="clinical-clinic-email"
+                value={editingClinicInfo.email}
+                onChange={(e) =>
+                  setEditingClinicInfo((prev) => ({
+                    ...prev,
+                    email: e.target.value,
+                  }))
+                }
+                placeholder="Enter email address"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="clinical-clinic-website" className="text-sm font-medium">
+                Website
+              </Label>
+              <Input
+                id="clinical-clinic-website"
+                value={editingClinicInfo.website}
+                onChange={(e) =>
+                  setEditingClinicInfo((prev) => ({
+                    ...prev,
+                    website: e.target.value,
+                  }))
+                }
+                placeholder="Enter website URL"
+                className="mt-1"
+              />
             </div>
 
             <div className="flex justify-end gap-2 pt-4 border-t">
@@ -9743,7 +9853,7 @@ Registration No: [Number]`
                   setShowClinicalHeaderDialog(true);
                 }}
               >
-                Back
+                Cancel
               </Button>
               <Button
                 variant="outline"
@@ -9754,41 +9864,35 @@ Registration No: [Number]`
                   color: "black",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#A3A8FC";
-                  e.currentTarget.style.borderColor = "#A3A8FC";
+                  e.currentTarget.style.backgroundColor = "#6CFFEB";
+                  e.currentTarget.style.borderColor = "#6CFFEB";
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.backgroundColor = "white";
                   e.currentTarget.style.borderColor = "#e5e7eb";
                 }}
-                onClick={handleSaveClinicalHeader}
-              >
-                Save
-              </Button>
-              <Button
-                onClick={() => {
-                  // Insert the clinic info into the editor
-                  const clinicHTML = `
-                    <div style="text-align: center; margin: 20px 0; padding: 15px; border-bottom: 2px solid #0D9488;">
-                      <h2 style="color: #0D9488; margin: 0; font-size: 24px; font-weight: bold;">🏥 ${selectedClinicalHeader 
-                        ? selectedClinicalHeader.replace("-", " ").replace(/\b\w/g, (l) => l.toUpperCase())
-                        : "Cardiology Dept"}</h2>
-                      <p style="margin: 5px 0; color: #666;">${clinicInfo.address || "123 Healthcare Street, Medical City, MC 12345"}</p>
-                      <p style="margin: 5px 0; color: #666;">${clinicInfo.phone || "+44 20 1234 5678"} • ${clinicInfo.email || "info@yourclinic.com"}</p>
-                      <p style="margin: 5px 0; color: #666;">${clinicInfo.website || "www.yourclinic.com"}</p>
-                    </div>
-                  `;
-                  
-                  if (textareaRef) {
-                    const currentContent = textareaRef.value;
-                    textareaRef.value = clinicHTML + currentContent;
-                    setDocumentContent(textareaRef.value);
-                  }
-                  
-                  setShowAddClinicInfoDialog(false);
-                }}
+                onClick={handleLoadClinicalHeader}
               >
                 Load
+              </Button>
+              <Button
+                className="border transition-all duration-200"
+                style={{
+                  backgroundColor: "#4A7DFF",
+                  borderColor: "#4A7DFF",
+                  color: "white",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#3A6BDF";
+                  e.currentTarget.style.borderColor = "#3A6BDF";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "#4A7DFF";
+                  e.currentTarget.style.borderColor = "#4A7DFF";
+                }}
+                onClick={handleSaveClinicalHeader}
+              >
+                Save Changes
               </Button>
             </div>
           </div>
