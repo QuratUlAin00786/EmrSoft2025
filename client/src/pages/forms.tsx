@@ -117,6 +117,8 @@ export default function Forms() {
   const [showTemplatePreviewDialog, setShowTemplatePreviewDialog] = useState(false);
   const [previewTemplate, setPreviewTemplate] = useState<any>(null);
   const [previewTemplateName, setPreviewTemplateName] = useState("");
+  const [addLogo, setAddLogo] = useState(false);
+  const [addClinicHeader, setAddClinicHeader] = useState(false);
 
   // Get current user
   const { user } = useAuth();
@@ -806,16 +808,51 @@ Dr. [Name]`
   // Handler for loading template from preview
   const handleLoadTemplateFromPreview = () => {
     if (previewTemplate) {
-      // Convert template to semantic HTML
+      let finalHtml = '';
+      
+      // Add header section with logo and clinic header if selected
+      if (addLogo || addClinicHeader) {
+        finalHtml += '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">';
+        
+        if (addClinicHeader) {
+          finalHtml += `
+            <div style="text-align: center; flex: 1;">
+              <h1 style="font-size: 24px; font-weight: bold; margin: 0; color: #2563eb;">Demo Healthcare Clinic</h1>
+              <p style="margin: 5px 0; color: #666;">123 Healthcare Street, Medical City, MC 12345</p>
+              <p style="margin: 5px 0; color: #666;">+44 20 1234 5678 • info@yourdlinic.com</p>
+              <p style="margin: 5px 0; color: #666;">www.yourdlinic.com</p>
+            </div>
+          `;
+        } else {
+          finalHtml += '<div style="flex: 1;"></div>';
+        }
+        
+        if (addLogo) {
+          finalHtml += `
+            <div style="text-align: right;">
+              <div style="width: 80px; height: 80px; background-color: #2563eb; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-left: 20px;">
+                <span style="color: white; font-weight: bold; font-size: 14px;">LOGO</span>
+              </div>
+            </div>
+          `;
+        }
+        
+        finalHtml += '</div><hr style="margin: 20px 0; border: 1px solid #e5e7eb;">';
+      }
+      
+      // Add the main template content
       const templateHtml = templateToHtml(previewTemplate);
+      finalHtml += templateHtml;
       
       // Load template into editor with proper HTML formatting
       if (textareaRef) {
-        textareaRef.innerHTML = templateHtml;
-        setDocumentContent(templateHtml);
+        textareaRef.innerHTML = finalHtml;
+        setDocumentContent(finalHtml);
       }
       
       setShowTemplatePreviewDialog(false);
+      setAddLogo(false);
+      setAddClinicHeader(false);
       
       toast({
         title: "Template Loaded",
@@ -7329,17 +7366,73 @@ Registration No: [Number]`
             <DialogTitle>{previewTemplateName}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
+            {/* Options Section */}
+            <div className="bg-blue-50 p-4 rounded-lg border">
+              <h4 className="text-sm font-medium text-gray-700 mb-3">Additional Options:</h4>
+              <div className="flex gap-6">
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={addLogo}
+                    onChange={(e) => setAddLogo(e.target.checked)}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">Add Logo</span>
+                </label>
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={addClinicHeader}
+                    onChange={(e) => setAddClinicHeader(e.target.checked)}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">Clinic Header Templates</span>
+                </label>
+              </div>
+            </div>
+
+            {/* Preview Section */}
             {previewTemplate && (
               <div className="bg-gray-50 p-4 rounded-lg border">
-                <div className="space-y-3">
-                  <div>
-                    <label className="text-sm font-medium text-gray-700">Subject:</label>
-                    <p className="text-gray-900 font-medium mt-1">{previewTemplate.subject}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-700">Body:</label>
-                    <div className="text-gray-900 mt-1 whitespace-pre-wrap bg-white p-3 rounded border">
-                      {previewTemplate.body}
+                <h4 className="text-sm font-medium text-gray-700 mb-3">Preview:</h4>
+                <div className="bg-white p-4 rounded border">
+                  {/* Header Preview */}
+                  {(addLogo || addClinicHeader) && (
+                    <>
+                      <div className="flex justify-between items-center mb-4">
+                        {addClinicHeader ? (
+                          <div className="text-center flex-1">
+                            <h1 className="text-xl font-bold text-blue-600 mb-1">Demo Healthcare Clinic</h1>
+                            <p className="text-xs text-gray-600">123 Healthcare Street, Medical City, MC 12345</p>
+                            <p className="text-xs text-gray-600">+44 20 1234 5678 • info@yourdlinic.com</p>
+                            <p className="text-xs text-gray-600">www.yourdlinic.com</p>
+                          </div>
+                        ) : (
+                          <div className="flex-1"></div>
+                        )}
+                        {addLogo && (
+                          <div className="text-right">
+                            <div className="w-16 h-16 bg-blue-600 rounded flex items-center justify-center ml-4">
+                              <span className="text-white font-bold text-xs">LOGO</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <hr className="mb-4 border-gray-300" />
+                    </>
+                  )}
+                  
+                  {/* Template Content Preview */}
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Subject:</label>
+                      <p className="text-gray-900 font-medium mt-1">{previewTemplate.subject}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Body:</label>
+                      <div className="text-gray-900 mt-1 whitespace-pre-wrap bg-gray-50 p-3 rounded border">
+                        {previewTemplate.body}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -7348,7 +7441,11 @@ Registration No: [Number]`
             <div className="flex justify-end gap-2 pt-4 border-t">
               <Button 
                 variant="outline" 
-                onClick={() => setShowTemplatePreviewDialog(false)}
+                onClick={() => {
+                  setShowTemplatePreviewDialog(false);
+                  setAddLogo(false);
+                  setAddClinicHeader(false);
+                }}
               >
                 Cancel
               </Button>
