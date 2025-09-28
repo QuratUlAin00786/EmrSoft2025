@@ -6018,9 +6018,9 @@ Registration No: [Number]`
 
               {/* Current Clinic Info Preview */}
               <div>
-                <h3 className="font-semibold mb-2">
+                <h6 className="font-semibold mb-2">
                   Current Clinic Information
-                </h3>
+                </h6>
                 <div className="bg-gray-50 p-4 rounded-lg space-y-2">
                   <div>
                     <strong>Name:</strong> {clinicInfo.name || "Not set"}
