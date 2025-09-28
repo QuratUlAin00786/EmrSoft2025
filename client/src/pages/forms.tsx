@@ -85,6 +85,7 @@ export default function Forms() {
   const [showLabsDialog, setShowLabsDialog] = useState(false);
   const [showPatientRecordsDialog, setShowPatientRecordsDialog] =
     useState(false);
+  const [showAllTemplatesDialog, setShowAllTemplatesDialog] = useState(false);
   const [showInsertProductDialog, setShowInsertProductDialog] = useState(false);
   const [showMoreOptionsDialog, setShowMoreOptionsDialog] = useState(false);
   const [showSavedTemplatesDialog, setShowSavedTemplatesDialog] =
@@ -4896,67 +4897,10 @@ Coverage Details: [Insurance Coverage]`;
           <div className="flex justify-center items-center flex-wrap gap-2">
             <Button
               size="sm"
-              className="text-xs px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
-              onClick={handleInsertTemplate}
+              className="text-xs px-3 py-2 bg-blue-100 text-blue-700 hover:bg-blue-200 font-medium"
+              onClick={() => setShowAllTemplatesDialog(true)}
             >
-              General & Medical Letter template
-            </Button>
-            <Button
-              size="sm"
-              className="text-xs px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
-              onClick={handleInsertLogo}
-            >
-               logo
-            </Button>
-            <Button
-              size="sm"
-              className="text-xs px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
-              onClick={handleClinic}
-            >
-              Clinic Header Templates
-
-            </Button>
-            <Button
-              size="sm"
-              className="text-xs px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
-              onClick={handlePatient}
-            >
-              Patient Information Templates
-            </Button>
-            <Button
-              size="sm"
-              className="text-xs px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
-              onClick={handleRecipient}
-            >
-              Recipient Information Templates
-            </Button>
-            <Button
-              size="sm"
-              className="text-xs px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
-              onClick={handleAppointments}
-            >
-              Appointment Information Templates
-            </Button>
-            <Button
-              size="sm"
-              className="text-xs px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
-              onClick={handleLabs}
-            >
-              Laboratory Information Templates
-            </Button>
-            <Button
-              size="sm"
-              className="text-xs px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
-              onClick={handlePatientRecords}
-            >
-              Patient Records Templates
-            </Button>
-            <Button
-              size="sm"
-              className="text-xs px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
-              onClick={handleInsertProduct}
-            >
-              Product Information Templates
+              Templates
             </Button>
           </div>
 
@@ -9331,6 +9275,173 @@ Registration No: [Number]`
             <Button variant="outline" onClick={() => setShowClinicHeaderDialog(false)}>
               Cancel
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* All Templates Dialog */}
+      <Dialog
+        open={showAllTemplatesDialog}
+        onOpenChange={setShowAllTemplatesDialog}
+      >
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>All Templates</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 max-h-96 overflow-y-auto">
+              {/* Templates Grid */}
+              <div className="grid grid-cols-2 gap-4">
+                <Button
+                  variant="outline"
+                  className="h-auto p-4 text-left justify-start"
+                  onClick={() => {
+                    handleInsertTemplate();
+                    setShowAllTemplatesDialog(false);
+                  }}
+                >
+                  <div>
+                    <div className="font-medium">General & Medical Letter Template</div>
+                    <div className="text-sm text-gray-500">
+                      Professional letter templates for medical documentation
+                    </div>
+                  </div>
+                </Button>
+
+                <Button
+                  variant="outline"
+                  className="h-auto p-4 text-left justify-start"
+                  onClick={() => {
+                    handlePatient();
+                    setShowAllTemplatesDialog(false);
+                  }}
+                >
+                  <div>
+                    <div className="font-medium">Patient Information Templates</div>
+                    <div className="text-sm text-gray-500">
+                      Patient demographic and medical information
+                    </div>
+                  </div>
+                </Button>
+
+                <Button
+                  variant="outline"
+                  className="h-auto p-4 text-left justify-start"
+                  onClick={() => {
+                    handleRecipient();
+                    setShowAllTemplatesDialog(false);
+                  }}
+                >
+                  <div>
+                    <div className="font-medium">Recipient Information Templates</div>
+                    <div className="text-sm text-gray-500">
+                      Recipient contact and address information
+                    </div>
+                  </div>
+                </Button>
+
+                <Button
+                  variant="outline"
+                  className="h-auto p-4 text-left justify-start"
+                  onClick={() => {
+                    handleAppointments();
+                    setShowAllTemplatesDialog(false);
+                  }}
+                >
+                  <div>
+                    <div className="font-medium">Appointment Information Templates</div>
+                    <div className="text-sm text-gray-500">
+                      Appointment scheduling and details
+                    </div>
+                  </div>
+                </Button>
+
+                <Button
+                  variant="outline"
+                  className="h-auto p-4 text-left justify-start"
+                  onClick={() => {
+                    handleLabs();
+                    setShowAllTemplatesDialog(false);
+                  }}
+                >
+                  <div>
+                    <div className="font-medium">Laboratory Information Templates</div>
+                    <div className="text-sm text-gray-500">
+                      Lab test results and diagnostic information
+                    </div>
+                  </div>
+                </Button>
+
+                <Button
+                  variant="outline"
+                  className="h-auto p-4 text-left justify-start"
+                  onClick={() => {
+                    handlePatientRecords();
+                    setShowAllTemplatesDialog(false);
+                  }}
+                >
+                  <div>
+                    <div className="font-medium">Patient Records Templates</div>
+                    <div className="text-sm text-gray-500">
+                      Comprehensive medical record information
+                    </div>
+                  </div>
+                </Button>
+
+                <Button
+                  variant="outline"
+                  className="h-auto p-4 text-left justify-start"
+                  onClick={() => {
+                    handleInsertProduct();
+                    setShowAllTemplatesDialog(false);
+                  }}
+                >
+                  <div>
+                    <div className="font-medium">Product Information Templates</div>
+                    <div className="text-sm text-gray-500">
+                      Medical products and equipment details
+                    </div>
+                  </div>
+                </Button>
+              </div>
+
+              {/* Information Note */}
+              <div>
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <h4 className="font-semibold text-blue-800 mb-2">
+                    Template Categories
+                  </h4>
+                  <p className="text-sm text-blue-700">
+                    Choose from various template categories to quickly insert formatted content 
+                    into your documents. Each template provides structured placeholders that can 
+                    be easily replaced with actual data.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end">
+              <Button
+                variant="ghost"
+                className="border transition-all duration-200"
+                style={{
+                  backgroundColor: "white",
+                  borderColor: "#e5e7eb",
+                  color: "black",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#A3A8FC";
+                  e.currentTarget.style.borderColor = "#A3A8FC";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "white";
+                  e.currentTarget.style.borderColor = "#e5e7eb";
+                }}
+                onClick={() => setShowAllTemplatesDialog(false)}
+              >
+                Cancel
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
