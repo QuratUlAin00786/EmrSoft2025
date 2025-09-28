@@ -107,6 +107,12 @@ export default function Forms() {
   const [showCategoryOptionsDialog, setShowCategoryOptionsDialog] = useState(false);
   const [selectedCategoryData, setSelectedCategoryData] = useState<any>(null);
 
+  // Doctor template states
+  const [showDoctorTemplateDialog, setShowDoctorTemplateDialog] = useState(false);
+  const [selectedDoctorTemplateCategory, setSelectedDoctorTemplateCategory] = useState("");
+  const [showDoctorCategoryOptionsDialog, setShowDoctorCategoryOptionsDialog] = useState(false);
+  const [selectedDoctorCategoryData, setSelectedDoctorCategoryData] = useState<any>(null);
+
   // Get current user
   const { user } = useAuth();
 
@@ -414,6 +420,332 @@ Thank you,
     }
   };
 
+  // Doctor letter templates data
+  const doctorTemplates = {
+    "1. Appointment & Scheduling": {
+      options: [
+        "a) Appointment Confirmation",
+        "b) Appointment Rescheduling Notice",
+        "c) Missed Appointment Follow-up"
+      ],
+      templates: {
+        "a) Appointment Confirmation": {
+          subject: "Appointment Confirmation – [Date/Time]",
+          body: `Dear [Patient Name],
+
+This is to confirm your appointment with Dr. [Doctor Name] on [Date, Time] at [Clinic/Hospital Name]. Please arrive 10–15 minutes early for check-in.
+
+Sincerely,
+Dr. [Name]`
+        },
+        "b) Appointment Rescheduling Notice": {
+          subject: "Appointment Rescheduled – [New Date/Time]",
+          body: `Dear [Patient Name],
+
+Your appointment originally scheduled for [Old Date/Time] has been rescheduled to [New Date/Time] due to unforeseen circumstances. Please confirm your availability.
+
+Thank you,
+Dr. [Name]`
+        },
+        "c) Missed Appointment Follow-up": {
+          subject: "Missed Appointment – Please Reschedule",
+          body: `Dear [Patient Name],
+
+We noticed you missed your appointment on [Date]. It is important to continue your care without delays. Please contact us to reschedule at your earliest convenience.
+
+Best regards,
+Dr. [Name]`
+        }
+      }
+    },
+    "2. Prescription & Medication": {
+      options: [
+        "a) New Prescription Instructions",
+        "b) Prescription Refill Confirmation",
+        "c) Dosage Adjustment"
+      ],
+      templates: {
+        "a) New Prescription Instructions": {
+          subject: "Prescription for [Medication Name]",
+          body: `Dear [Patient Name],
+
+I have prescribed [Medication Name, Dosage, Frequency] for your condition. Please take it as directed and report any side effects immediately.
+
+Regards,
+Dr. [Name]`
+        },
+        "b) Prescription Refill Confirmation": {
+          subject: "Prescription Refill Approved",
+          body: `Dear [Patient Name],
+
+Your request for a refill of [Medication Name] has been approved. You may collect it from [Pharmacy Name/Clinic].
+
+Stay well,
+Dr. [Name]`
+        },
+        "c) Dosage Adjustment": {
+          subject: "Updated Dosage for [Medication Name]",
+          body: `Dear [Patient Name],
+
+After reviewing your recent progress, I recommend adjusting your dosage of [Medication Name] to [New Dosage]. Please start this from [Date].
+
+Sincerely,
+Dr. [Name]`
+        }
+      }
+    },
+    "3. Lab Results & Reports": {
+      options: [
+        "a) Normal Lab Results",
+        "b) Abnormal Lab Results with Recommendations",
+        "c) Pending/Delayed Results"
+      ],
+      templates: {
+        "a) Normal Lab Results": {
+          subject: "Lab Results – Normal",
+          body: `Dear [Patient Name],
+
+Your recent lab results for [Test Name] are within normal range. No further action is required at this time. Please continue your current treatment.
+
+Sincerely,
+Dr. [Name]`
+        },
+        "b) Abnormal Lab Results with Recommendations": {
+          subject: "Lab Results – Follow-up Needed",
+          body: `Dear [Patient Name],
+
+Your lab results for [Test Name] indicate [Abnormal Finding]. I recommend scheduling a follow-up appointment to discuss treatment options.
+
+Sincerely,
+Dr. [Name]`
+        },
+        "c) Pending/Delayed Results": {
+          subject: "Update on Pending Lab Results",
+          body: `Dear [Patient Name],
+
+Your test results for [Test Name] are still pending due to [Reason: lab delay, technical issue, etc.]. We will notify you immediately once they are available.
+
+Sincerely,
+Dr. [Name]`
+        }
+      }
+    },
+    "4. Treatment & Care Instructions": {
+      options: [
+        "a) Treatment Plan Explanation",
+        "b) Post-Surgery / Post-Treatment Care",
+        "c) Follow-up Visit Requirement"
+      ],
+      templates: {
+        "a) Treatment Plan Explanation": {
+          subject: "Your Treatment Plan – [Condition Name]",
+          body: `Dear [Patient Name],
+
+Your treatment plan includes [Details: medications, therapies, lifestyle changes]. Please follow these instructions closely and contact me if you face any issues.
+
+Sincerely,
+Dr. [Name]`
+        },
+        "b) Post-Surgery / Post-Treatment Care": {
+          subject: "Post-Treatment Care Instructions",
+          body: `Dear [Patient Name],
+
+Following your recent [Surgery/Treatment], please adhere to the following care guidelines:
+
+[Instruction 1]
+
+[Instruction 2]
+
+[Instruction 3]
+
+Contact us if you notice unusual pain, swelling, or fever.
+
+Best wishes for recovery,
+Dr. [Name]`
+        },
+        "c) Follow-up Visit Requirement": {
+          subject: "Follow-up Appointment Needed",
+          body: `Dear [Patient Name],
+
+A follow-up visit is required in [X days/weeks] to monitor your progress. Please schedule this at your earliest convenience.
+
+Sincerely,
+Dr. [Name]`
+        }
+      }
+    },
+    "5. Medical Condition Updates": {
+      options: [
+        "a) Explanation of Diagnosis",
+        "b) Treatment Progress Update",
+        "c) Lifestyle Modification Advice"
+      ],
+      templates: {
+        "a) Explanation of Diagnosis": {
+          subject: "Diagnosis Report – [Condition Name]",
+          body: `Dear [Patient Name],
+
+Based on your recent evaluation, the diagnosis is [Condition Name]. I will discuss treatment options and lifestyle modifications during your next visit.
+
+Sincerely,
+Dr. [Name]`
+        },
+        "b) Treatment Progress Update": {
+          subject: "Progress Report on Your Treatment",
+          body: `Dear [Patient Name],
+
+Your recent assessments show [Improvement/Stable/Concerns] in your condition. Please continue your current regimen and follow-up as scheduled.
+
+Sincerely,
+Dr. [Name]`
+        },
+        "c) Lifestyle Modification Advice": {
+          subject: "Lifestyle Recommendations for Better Health",
+          body: `Dear [Patient Name],
+
+To support your treatment, I recommend:
+
+• Healthy diet (low in [sugar/salt/fat])
+
+• Regular physical activity
+
+• Avoiding [smoking/alcohol/etc.]
+
+These changes will help improve your overall health.
+
+Sincerely,
+Dr. [Name]`
+        }
+      }
+    },
+    "6. Administrative / Documentation": {
+      options: [
+        "a) Medical Record Request Fulfillment",
+        "b) Insurance / Claim Support",
+        "c) Referral Letter"
+      ],
+      templates: {
+        "a) Medical Record Request Fulfillment": {
+          subject: "Your Medical Records",
+          body: `Dear [Patient Name],
+
+As requested, attached are your [Medical Records / Test Reports / Discharge Summary]. Please keep them safe for your records.
+
+Sincerely,
+Dr. [Name]`
+        },
+        "b) Insurance / Claim Support": {
+          subject: "Insurance Documentation for Treatment",
+          body: `Dear [Patient Name],
+
+Please find the attached documents required for your insurance/claim process. Contact our office if additional paperwork is needed.
+
+Sincerely,
+Dr. [Name]`
+        },
+        "c) Referral Letter": {
+          subject: "Referral to Specialist – [Specialty]",
+          body: `Dear [Patient Name],
+
+I am referring you to Dr. [Specialist Name], a specialist in [Field], for further evaluation of your condition. Please carry your medical records.
+
+Sincerely,
+Dr. [Name]`
+        }
+      }
+    },
+    "7. Emergency / Urgent Notices": {
+      options: [
+        "a) Critical Results Notification",
+        "b) Emergency Care Instructions",
+        "c) Post-Emergency Follow-up"
+      ],
+      templates: {
+        "a) Critical Results Notification": {
+          subject: "Urgent – Critical Test Results",
+          body: `Dear [Patient Name],
+
+Your recent results show [Critical Finding]. Please seek emergency care immediately or visit the ER.
+
+Sincerely,
+Dr. [Name]`
+        },
+        "b) Emergency Care Instructions": {
+          subject: "Emergency Health Advisory",
+          body: `Dear [Patient Name],
+
+Based on your symptoms ([Symptoms]), I strongly advise immediate emergency medical attention. Do not delay.
+
+Sincerely,
+Dr. [Name]`
+        },
+        "c) Post-Emergency Follow-up": {
+          subject: "Follow-up After Emergency Visit",
+          body: `Dear [Patient Name],
+
+I was informed of your recent ER visit for [Condition]. Please schedule a follow-up with me to review your care and next steps.
+
+Sincerely,
+Dr. [Name]`
+        }
+      }
+    },
+    "8. Preventive & General Health Advice": {
+      options: [
+        "a) Preventive Care Recommendations",
+        "b) Lifestyle & Wellness Guidance",
+        "c) Chronic Condition Management Reminder"
+      ],
+      templates: {
+        "a) Preventive Care Recommendations": {
+          subject: "Preventive Health Reminders",
+          body: `Dear [Patient Name],
+
+It is time for your [Screening / Vaccination]. Preventive care is essential for long-term health. Please schedule an appointment soon.
+
+Sincerely,
+Dr. [Name]`
+        },
+        "b) Lifestyle & Wellness Guidance": {
+          subject: "Healthy Living Recommendations",
+          body: `Dear [Patient Name],
+
+I recommend incorporating the following habits for better health:
+
+• Balanced nutrition
+
+• Regular exercise
+
+• Adequate sleep
+
+• Stress management
+
+These will help prevent complications.
+
+Sincerely,
+Dr. [Name]`
+        },
+        "c) Chronic Condition Management Reminder": {
+          subject: "Ongoing Care for [Chronic Condition]",
+          body: `Dear [Patient Name],
+
+As part of managing your [Condition], please ensure:
+
+• Regular monitoring (e.g., BP, blood sugar)
+
+• Adherence to medication
+
+• Routine follow-up visits
+
+This will help avoid future complications.
+
+Sincerely,
+Dr. [Name]`
+        }
+      }
+    }
+  };
+
   // Convert template to semantic HTML with proper formatting
   const templateToHtml = (template: { subject: string; body: string }) => {
     const paragraphs = template.body.split(/\n\n+/);
@@ -447,6 +779,38 @@ Thank you,
       }
       
       setShowCategoryOptionsDialog(false);
+      
+      toast({
+        title: "Template Loaded",
+        description: `${option} template has been loaded into the editor.`,
+        duration: 3000,
+      });
+    }
+  };
+
+  // Handler functions for doctor templates
+  const handleDoctorTemplateSelect = (category: string) => {
+    setSelectedDoctorTemplateCategory(category);
+    setSelectedDoctorCategoryData(doctorTemplates[category as keyof typeof doctorTemplates]);
+    setShowDoctorTemplateDialog(false);
+    setShowDoctorCategoryOptionsDialog(true);
+  };
+
+  const handleDoctorTemplateOptionSelect = (option: string) => {
+    const categoryData = selectedDoctorCategoryData;
+    if (categoryData && categoryData.templates[option]) {
+      const template = categoryData.templates[option];
+      
+      // Convert template to semantic HTML
+      const templateHtml = templateToHtml(template);
+      
+      // Load template into editor with proper HTML formatting
+      if (textareaRef) {
+        textareaRef.innerHTML = templateHtml;
+        setDocumentContent(templateHtml);
+      }
+      
+      setShowDoctorCategoryOptionsDialog(false);
       
       toast({
         title: "Template Loaded",
@@ -3806,6 +4170,40 @@ Thank you,
                   </Button>
                 </>
               )}
+
+              {/* Doctor Template Dropdown - Only show for non-patients */}
+              {user?.role !== "patient" && (
+                <>
+                  <div className="h-8 w-px bg-white/30 mx-1"></div>
+                  <Button
+                    className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
+                    style={{
+                      backgroundColor: "white",
+                      color: "black",
+                      borderColor: "#e5e7eb",
+                      borderRadius: "10px",
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = "#f9fafb";
+                      e.currentTarget.style.borderColor = "#d1d5db";
+                      e.currentTarget.style.transform = "translateY(-2px)";
+                      e.currentTarget.style.boxShadow =
+                        "0 6px 16px rgba(0,0,0,0.15)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = "white";
+                      e.currentTarget.style.borderColor = "#e5e7eb";
+                      e.currentTarget.style.transform = "translateY(0px)";
+                      e.currentTarget.style.boxShadow =
+                        "0 4px 12px rgba(0,0,0,0.1)";
+                    }}
+                    onClick={() => setShowDoctorTemplateDialog(true)}
+                  >
+                    Doctor Templates
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -6783,6 +7181,76 @@ Thank you,
               <Button 
                 variant="outline" 
                 onClick={() => setShowCategoryOptionsDialog(false)}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Doctor Template Category Selection Dialog */}
+      <Dialog open={showDoctorTemplateDialog} onOpenChange={setShowDoctorTemplateDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Select Doctor Letter Template Category</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-gray-600">Choose a category for your doctor-to-patient letter template:</p>
+            <div className="grid gap-3">
+              {Object.keys(doctorTemplates).map((category) => (
+                <Button
+                  key={category}
+                  variant="outline"
+                  className="h-12 justify-start text-left p-4 hover:bg-blue-50"
+                  onClick={() => handleDoctorTemplateSelect(category)}
+                >
+                  {category}
+                </Button>
+              ))}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Doctor Template Options Dialog */}
+      <Dialog open={showDoctorCategoryOptionsDialog} onOpenChange={setShowDoctorCategoryOptionsDialog}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>{selectedDoctorTemplateCategory}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-gray-600">Choose a specific template option:</p>
+            <div className="grid gap-3">
+              {selectedDoctorCategoryData?.options.map((option: string) => (
+                <Button
+                  key={option}
+                  variant="outline"
+                  className="h-auto justify-start text-left p-4 hover:bg-blue-50 whitespace-normal"
+                  onClick={() => handleDoctorTemplateOptionSelect(option)}
+                >
+                  <div>
+                    <div className="font-medium">{option}</div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      {selectedDoctorCategoryData?.templates[option]?.subject}
+                    </div>
+                  </div>
+                </Button>
+              ))}
+            </div>
+            <div className="flex justify-end gap-2 pt-4 border-t">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setShowDoctorCategoryOptionsDialog(false);
+                  setShowDoctorTemplateDialog(true);
+                }}
+              >
+                Back to Categories
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowDoctorCategoryOptionsDialog(false)}
               >
                 Cancel
               </Button>
