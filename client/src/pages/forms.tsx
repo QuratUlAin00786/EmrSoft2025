@@ -4730,193 +4730,234 @@ Coverage Details: [Insurance Coverage]`;
               className="mt-4 p-6 bg-blue-50 dark:bg-[hsl(var(--cura-midnight))] border border-blue-200 dark:border-[hsl(var(--cura-steel))] rounded text-center relative"
               style={{ width: "700px" }}
             >
-              {selectedHeader === "your-clinic" ? (
-                <div>
-                  <div className="text-[hsl(var(--cura-bluewave))] dark:text-[hsl(var(--cura-bluewave))] text-lg font-semibold">
-                    🏥 {clinicInfo.name}
-                  </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                    {clinicInfo.address}
-                  </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-300">
-                    {clinicInfo.phone} • {clinicInfo.email}
-                  </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-300">
-                    {clinicInfo.website}
-                  </div>
+              <div>
+                <div className="text-[hsl(var(--cura-bluewave))] dark:text-[hsl(var(--cura-bluewave))] text-lg font-semibold">
+                  🏥 {selectedHeader === "your-clinic" ? clinicInfo.name : 
+                      selectedHeader
+                        .replace("-", " ")
+                        .replace(/\b\w/g, (l) => l.toUpperCase())}
+                </div>
+                {selectedHeader === "your-clinic" ? (
+                  <>
+                    <div className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                      {clinicInfo.address}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300">
+                      {clinicInfo.phone} • {clinicInfo.email}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300">
+                      {clinicInfo.website}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                      {clinicInfo.address}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300">
+                      {clinicInfo.phone} • {clinicInfo.email}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300">
+                      {clinicInfo.website}
+                    </div>
+                  </>
+                )}
 
-                  {/* Edit Button */}
-                  <Dialog
-                    open={showEditClinic}
-                    onOpenChange={setShowEditClinic}
-                  >
-                    <DialogTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="absolute top-2 right-2 border transition-all duration-200"
-                        style={{
-                          backgroundColor: "white",
-                          borderColor: "#e5e7eb",
-                          color: "black",
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = "#A3A8FC";
-                          e.currentTarget.style.borderColor = "#A3A8FC";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = "white";
-                          e.currentTarget.style.borderColor = "#e5e7eb";
-                        }}
-                        onClick={() => {
-                          setEditingClinicInfo({
-                            name: clinicInfo.name,
-                            address: clinicInfo.address,
-                            phone: clinicInfo.phone,
-                            email: clinicInfo.email,
-                            website: clinicInfo.website,
-                          });
-                          setShowEditClinic(true);
-                        }}
-                      >
-                        <Edit className="h-4 w-4 mr-1" />
-                        Edit Clinic Info
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-md">
-                      <DialogHeader>
-                        <DialogTitle>Edit Clinic Information</DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <div>
-                          <Label htmlFor="clinic-name">Clinic Name</Label>
-                          <Input
-                            id="clinic-name"
-                            value={editingClinicInfo.name}
-                            onChange={(e) =>
-                              setEditingClinicInfo((prev) => ({
-                                ...prev,
-                                name: e.target.value,
-                              }))
-                            }
-                            placeholder="Enter clinic name"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="clinic-address">Address</Label>
-                          <Input
-                            id="clinic-address"
-                            value={editingClinicInfo.address}
-                            onChange={(e) =>
-                              setEditingClinicInfo((prev) => ({
-                                ...prev,
-                                address: e.target.value,
-                              }))
-                            }
-                            placeholder="Enter clinic address"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="clinic-phone">Phone</Label>
-                          <Input
-                            id="clinic-phone"
-                            value={editingClinicInfo.phone}
-                            onChange={(e) =>
-                              setEditingClinicInfo((prev) => ({
-                                ...prev,
-                                phone: e.target.value,
-                              }))
-                            }
-                            placeholder="Enter phone number"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="clinic-email">Email</Label>
-                          <Input
-                            id="clinic-email"
-                            value={editingClinicInfo.email}
-                            onChange={(e) =>
-                              setEditingClinicInfo((prev) => ({
-                                ...prev,
-                                email: e.target.value,
-                              }))
-                            }
-                            placeholder="Enter email address"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="clinic-website">Website</Label>
-                          <Input
-                            id="clinic-website"
-                            value={editingClinicInfo.website}
-                            onChange={(e) =>
-                              setEditingClinicInfo((prev) => ({
-                                ...prev,
-                                website: e.target.value,
-                              }))
-                            }
-                            placeholder="Enter website URL"
-                          />
-                        </div>
-                        <div className="flex justify-end space-x-2">
-                          <Button
-                            variant="ghost"
-                            className="border transition-all duration-200"
-                            style={{
-                              backgroundColor: "white",
-                              borderColor: "#e5e7eb",
-                              color: "black",
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor = "#A3A8FC";
-                              e.currentTarget.style.borderColor = "#A3A8FC";
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = "white";
-                              e.currentTarget.style.borderColor = "#e5e7eb";
-                            }}
-                            onClick={() => setShowEditClinic(false)}
-                          >
-                            Cancel
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            className="border transition-all duration-200"
-                            style={{
-                              backgroundColor: "white",
-                              borderColor: "#e5e7eb",
-                              color: "black",
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor = "#A3A8FC";
-                              e.currentTarget.style.borderColor = "#A3A8FC";
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = "white";
-                              e.currentTarget.style.borderColor = "#e5e7eb";
-                            }}
-                            onClick={saveClinicInfo}
-                          >
-                            Save Changes
-                          </Button>
-                        </div>
+                {/* Edit Button - Available for all header options */}
+                <Dialog
+                  open={showEditClinic}
+                  onOpenChange={setShowEditClinic}
+                >
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="absolute top-2 right-2 border transition-all duration-200"
+                      style={{
+                        backgroundColor: "white",
+                        borderColor: "#e5e7eb",
+                        color: "black",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = "#A3A8FC";
+                        e.currentTarget.style.borderColor = "#A3A8FC";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "white";
+                        e.currentTarget.style.borderColor = "#e5e7eb";
+                      }}
+                      onClick={() => {
+                        setEditingClinicInfo({
+                          name: selectedHeader === "your-clinic" ? clinicInfo.name : 
+                                selectedHeader
+                                  .replace("-", " ")
+                                  .replace(/\b\w/g, (l) => l.toUpperCase()),
+                          address: clinicInfo.address,
+                          phone: clinicInfo.phone,
+                          email: clinicInfo.email,
+                          website: clinicInfo.website,
+                        });
+                        setShowEditClinic(true);
+                      }}
+                    >
+                      <Edit className="h-4 w-4 mr-1" />
+                      Edit Clinic Info
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Edit Clinic Information</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="clinic-name">Clinic Name</Label>
+                        <Input
+                          id="clinic-name"
+                          value={editingClinicInfo.name}
+                          onChange={(e) =>
+                            setEditingClinicInfo((prev) => ({
+                              ...prev,
+                              name: e.target.value,
+                            }))
+                          }
+                          placeholder="Enter clinic name"
+                        />
                       </div>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              ) : (
-                <div>
-                  <div className="text-[hsl(var(--cura-bluewave))] dark:text-[hsl(var(--cura-bluewave))] text-lg font-semibold">
-                    🏥{" "}
-                    {selectedHeader
-                      .replace("-", " ")
-                      .replace(/\b\w/g, (l) => l.toUpperCase())}
-                  </div>
-                  <div className="text-xs text-gray-600 dark:text-gray-300 mt-1">
-                    Header preview will appear here
-                  </div>
-                </div>
-              )}
+                      <div>
+                        <Label htmlFor="clinic-address">Address</Label>
+                        <Input
+                          id="clinic-address"
+                          value={editingClinicInfo.address}
+                          onChange={(e) =>
+                            setEditingClinicInfo((prev) => ({
+                              ...prev,
+                              address: e.target.value,
+                            }))
+                          }
+                          placeholder="Enter clinic address"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="clinic-phone">Phone</Label>
+                        <Input
+                          id="clinic-phone"
+                          value={editingClinicInfo.phone}
+                          onChange={(e) =>
+                            setEditingClinicInfo((prev) => ({
+                              ...prev,
+                              phone: e.target.value,
+                            }))
+                          }
+                          placeholder="Enter phone number"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="clinic-email">Email</Label>
+                        <Input
+                          id="clinic-email"
+                          value={editingClinicInfo.email}
+                          onChange={(e) =>
+                            setEditingClinicInfo((prev) => ({
+                              ...prev,
+                              email: e.target.value,
+                            }))
+                          }
+                          placeholder="Enter email address"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="clinic-website">Website</Label>
+                        <Input
+                          id="clinic-website"
+                          value={editingClinicInfo.website}
+                          onChange={(e) =>
+                            setEditingClinicInfo((prev) => ({
+                              ...prev,
+                              website: e.target.value,
+                            }))
+                          }
+                          placeholder="Enter website URL"
+                        />
+                      </div>
+                      <div className="flex justify-end space-x-2">
+                        <Button
+                          variant="ghost"
+                          className="border transition-all duration-200"
+                          style={{
+                            backgroundColor: "white",
+                            borderColor: "#e5e7eb",
+                            color: "black",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = "#A3A8FC";
+                            e.currentTarget.style.borderColor = "#A3A8FC";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = "white";
+                            e.currentTarget.style.borderColor = "#e5e7eb";
+                          }}
+                          onClick={() => setShowEditClinic(false)}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          className="border transition-all duration-200"
+                          style={{
+                            backgroundColor: "white",
+                            borderColor: "#e5e7eb",
+                            color: "black",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = "#A3A8FC";
+                            e.currentTarget.style.borderColor = "#A3A8FC";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = "white";
+                            e.currentTarget.style.borderColor = "#e5e7eb";
+                          }}
+                          onClick={handleSaveClinicInfo}
+                        >
+                          Save Changes
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+
+                {/* Add New Clinic Info Button */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="absolute top-2 right-32 border transition-all duration-200"
+                  style={{
+                    backgroundColor: "white",
+                    borderColor: "#e5e7eb",
+                    color: "black",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#6CFFEB";
+                    e.currentTarget.style.borderColor = "#6CFFEB";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "white";
+                    e.currentTarget.style.borderColor = "#e5e7eb";
+                  }}
+                  onClick={() => {
+                    setEditingClinicInfo({
+                      name: "",
+                      address: "",
+                      phone: "",
+                      email: "",
+                      website: "",
+                    });
+                    setShowEditClinic(true);
+                  }}
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add New Clinic Info
+                </Button>
+              </div>
             </div>
           </div>
         </div>
