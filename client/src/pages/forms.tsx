@@ -130,6 +130,7 @@ export default function Forms() {
   const [addFooter, setAddFooter] = useState(false);
   const [showClinicPositionDialog, setShowClinicPositionDialog] = useState(false);
   const [tempClinicHeaderType, setTempClinicHeaderType] = useState("");
+  const [isComingFromClinicButton, setIsComingFromClinicButton] = useState(false);
   
   // Additional preview states for other template types
   const [showOtherTemplatePreviewDialog, setShowOtherTemplatePreviewDialog] = useState(false);
@@ -2305,6 +2306,7 @@ Coverage Details: [Insurance Coverage]`;
     }
   };
   const handleClinic = () => {
+    setIsComingFromClinicButton(true);
     setShowClinicDialog(true);
   };
 
@@ -4724,7 +4726,40 @@ Coverage Details: [Insurance Coverage]`;
                 </SelectContent>
               </Select>
             </div>
-
+            {/* Add New Clinic Info Button */}
+            <div className="bg-white-100 px-4 py-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute top-2 right-32 border transition-all duration-200"
+              style={{
+                backgroundColor: "white",
+                borderColor: "#e5e7eb",
+                color: "black",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#6CFFEB";
+                e.currentTarget.style.borderColor = "#6CFFEB";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "white";
+                e.currentTarget.style.borderColor = "#e5e7eb";
+              }}
+              onClick={() => {
+                setEditingClinicInfo({
+                  name: "",
+                  address: "",
+                  phone: "",
+                  email: "",
+                  website: "",
+                });
+                setShowEditClinic(true);
+              }}
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              Add New Clinic Info
+            </Button>
+              </div>
             {/* Header Preview Area */}
             <div
               className="mt-4 p-6 bg-blue-50 dark:bg-[hsl(var(--cura-midnight))] border border-blue-200 dark:border-[hsl(var(--cura-steel))] rounded text-center relative"
@@ -4925,38 +4960,7 @@ Coverage Details: [Insurance Coverage]`;
                   </DialogContent>
                 </Dialog>
 
-                {/* Add New Clinic Info Button */}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="absolute top-2 right-32 border transition-all duration-200"
-                  style={{
-                    backgroundColor: "white",
-                    borderColor: "#e5e7eb",
-                    color: "black",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "#6CFFEB";
-                    e.currentTarget.style.borderColor = "#6CFFEB";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "white";
-                    e.currentTarget.style.borderColor = "#e5e7eb";
-                  }}
-                  onClick={() => {
-                    setEditingClinicInfo({
-                      name: "",
-                      address: "",
-                      phone: "",
-                      email: "",
-                      website: "",
-                    });
-                    setShowEditClinic(true);
-                  }}
-                >
-                  <Plus className="h-4 w-4 mr-1" />
-                  Add New Clinic Info
-                </Button>
+            
               </div>
             </div>
           </div>
@@ -6111,15 +6115,13 @@ Registration No: [Number]`
       <Dialog open={showClinicDialog} onOpenChange={setShowClinicDialog}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Insert Clinic Information</DialogTitle>
+            <DialogTitle> Clinic Information Templates</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-1 gap-4 max-h-96 overflow-y-auto">
               {/* Clinic Information Options */}
               <div>
-                <h3 className="font-semibold mb-2">
-                  Clinic Information Templates
-                </h3>
+              
                 <div className="space-y-2">
                   <Button
                     variant="outline"
@@ -6131,7 +6133,7 @@ Registration No: [Number]`
                     }}
                   >
                     <div>
-                      <div className="font-medium">Full Header</div>
+                      <div className="font-small">Full Header</div>
                       <div className="text-sm text-gray-500">
                         Complete clinic header with name, address, phone, email,
                         and website
@@ -6554,15 +6556,13 @@ Registration No: [Number]`
       <Dialog open={showRecipientDialog} onOpenChange={setShowRecipientDialog}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Insert Recipient Information</DialogTitle>
+            <DialogTitle> Recipient Information Templates</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-1 gap-4 max-h-96 overflow-y-auto">
               {/* Recipient Information Options */}
               <div>
-                <h3 className="font-semibold mb-2">
-                  Recipient Information Templates
-                </h3>
+               
                 <div className="space-y-2">
                   <Button
                     variant="outline"
@@ -6715,15 +6715,13 @@ Registration No: [Number]`
       >
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Insert Appointment Information</DialogTitle>
+            <DialogTitle>  Appointment Information Templates</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-1 gap-4 max-h-96 overflow-y-auto">
               {/* Appointment Information Options */}
               <div>
-                <h3 className="font-semibold mb-2">
-                  Appointment Information Templates
-                </h3>
+              
                 <div className="space-y-2">
                   <Button
                     variant="outline"
@@ -6852,15 +6850,13 @@ Registration No: [Number]`
       <Dialog open={showLabsDialog} onOpenChange={setShowLabsDialog}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Insert Laboratory Information</DialogTitle>
+            <DialogTitle>      Laboratory Information Templates</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-1 gap-4 max-h-96 overflow-y-auto">
               {/* Lab Information Options */}
               <div>
-                <h3 className="font-semibold mb-2">
-                  Laboratory Information Templates
-                </h3>
+             
                 <div className="space-y-2">
                   <Button
                     variant="outline"
@@ -6994,15 +6990,13 @@ Registration No: [Number]`
       >
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Insert Patient Records Information</DialogTitle>
+            <DialogTitle>  Patient info Records Templates</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-1 gap-4 max-h-96 overflow-y-auto">
               {/* Patient Records Options */}
               <div>
-                <h3 className="font-semibold mb-2">
-                  Patient Records Templates
-                </h3>
+              
                 <div className="space-y-2">
                   <div className="flex gap-2">
                     <Button
@@ -9493,13 +9487,21 @@ Registration No: [Number]`
               </Button>
               <Button 
                 onClick={() => {
-                  setAddClinicHeader(true);
-                  setSelectedClinicHeaderType(tempClinicHeaderType);
-                  setShowClinicPositionDialog(false);
-                  setShowOtherTemplatePreviewDialog(true);
+                  if (isComingFromClinicButton) {
+                    // Direct load into editor when coming from Clinic button
+                    insertClinicInfo(tempClinicHeaderType);
+                    setShowClinicPositionDialog(false);
+                    setIsComingFromClinicButton(false);
+                  } else {
+                    // Original behavior for other flows
+                    setAddClinicHeader(true);
+                    setSelectedClinicHeaderType(tempClinicHeaderType);
+                    setShowClinicPositionDialog(false);
+                    setShowOtherTemplatePreviewDialog(true);
+                  }
                 }}
               >
-                OK
+                {isComingFromClinicButton ? "Load" : "OK"}
               </Button>
             </div>
           </div>
