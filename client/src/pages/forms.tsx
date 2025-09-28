@@ -7428,22 +7428,34 @@ Registration No: [Number]`
               <h4 className="text-sm font-medium text-gray-700 mb-3">Additional Options:</h4>
               <div className="space-y-4">
                 <div className="flex items-center gap-4">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowLogoTemplatesDialog(true)}
-                    className="bg-white"
-                  >
-                    Add Logo
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowClinicHeaderDialog(true)}
-                    className="bg-white"
-                  >
-                    Clinic Header Templates
-                  </Button>
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={addLogo}
+                      onChange={(e) => {
+                        setAddLogo(e.target.checked);
+                        if (e.target.checked) {
+                          setShowLogoTemplatesDialog(true);
+                        }
+                      }}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">Add Logo</span>
+                  </label>
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={addClinicHeader}
+                      onChange={(e) => {
+                        setAddClinicHeader(e.target.checked);
+                        if (e.target.checked) {
+                          setShowClinicHeaderDialog(true);
+                        }
+                      }}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">Clinic Header Templates</span>
+                  </label>
                 </div>
                 
                 {addLogo && (
