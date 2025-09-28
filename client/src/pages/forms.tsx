@@ -5007,9 +5007,55 @@ Coverage Details: [Insurance Coverage]`;
           </div>
         </div>
 
-
+        {/* Add New Clinic Info Button */}
+        <div className="bg-white-100 px-4 py-4">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="absolute top-2 right-32 border transition-all duration-200"
+          style={{
+            backgroundColor: "white",
+            borderColor: "#e5e7eb",
+            color: "black",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = "#6CFFEB";
+            e.currentTarget.style.borderColor = "#6CFFEB";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = "white";
+            e.currentTarget.style.borderColor = "#e5e7eb";
+          }}
+          onClick={() => {
+            setEditingClinicInfo({
+              name: "",
+              address: "",
+              phone: "",
+              email: "",
+              website: "",
+            });
+            setShowEditClinic(true);
+          }}
+        >
+          <Plus className="h-4 w-4 mr-1" />
+          Add New Clinic Info
+        </Button>
+          </div>
+        {/* Toolbar - medical theme colors */}
+        <div className="bg-gray-50 border-b border-gray-200 px-4 py-3 flex-shrink-0">
+     
+       
           {/* Save, Download, Print and View buttons - medical theme colors */}
           <div className="flex justify-center items-center gap-1 flex-wrap">
+
+            <Button
+              size="sm"
+              className="text-xs h-7 px-4 py-2 mt-5"
+              onClick={() => setShowAllTemplatesDialog(true)}
+            >
+              Templates
+            </Button>
+            
             <Button
               size="sm"
               className="text-xs h-7 px-4 py-2 mt-5"
@@ -9855,7 +9901,7 @@ Registration No: [Number]`
 
       {/* Clinic Display Dialog */}
       <Dialog open={showClinicDisplayDialog} onOpenChange={setShowClinicDisplayDialog}>
-        <DialogContent className="max-w-full">
+        <DialogContent className="max-w-xl">
           <div className="space-y-4">
             {/* Display the clinic info like in the attached image */}
             <div className="p-6 bg-blue-50 dark:bg-[hsl(var(--cura-midnight))] border border-blue-200 dark:border-[hsl(var(--cura-steel))] rounded text-center relative">
