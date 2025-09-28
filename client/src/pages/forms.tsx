@@ -1528,7 +1528,8 @@ Coverage Details: [Insurance Coverage]`;
   };
 
   const handleSaveAsDraft = () => {
-    toast({ title: "Save as Draft", description: "Document saved as draft." });
+    refetchDrafts(); // Refresh drafts list
+    setShowDraftsDialog(true); // Open drafts dialog to show all saved drafts
   };
 
   const handleBold = () => {
@@ -4638,7 +4639,7 @@ Coverage Details: [Insurance Coverage]`;
                 }}
                 onClick={handleSaveAsDraft}
               >
-                Save as draft
+                View Draft
               </Button>
             </div>
 
@@ -7668,7 +7669,7 @@ Registration No: [Number]`
                     className="px-6"
                     data-testid="button-drafts"
                   >
-                    Drafts
+                 Save Drafts
                   </Button>
                   <Button
                     onClick={async () => {
