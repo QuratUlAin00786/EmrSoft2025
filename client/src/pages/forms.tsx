@@ -119,6 +119,7 @@ export default function Forms() {
   const [previewTemplateName, setPreviewTemplateName] = useState("");
   const [addLogo, setAddLogo] = useState(false);
   const [logoPosition, setLogoPosition] = useState("right"); // left, right, center
+  const [selectedLogoTemplate, setSelectedLogoTemplate] = useState("");
   const [addClinicHeader, setAddClinicHeader] = useState(false);
   const [selectedClinicHeaderType, setSelectedClinicHeaderType] = useState("");
   const [showLogoTemplatesDialog, setShowLogoTemplatesDialog] = useState(false);
@@ -858,20 +859,55 @@ Dr. [Name]`
         };
 
 
-        const logoContent = `
-          <div style="width: 80px; height: 80px; background-color: #2563eb; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-            <span style="color: white; font-weight: bold; font-size: 14px;">LOGO</span>
-          </div>
-        `;
+        const getLogoContent = () => {
+          switch (selectedLogoTemplate) {
+            case "modern-clinic":
+              return `
+                <div style="width: 80px; height: 80px; background-color: #ddd6fe; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                  <span style="color: #7c3aed; font-weight: bold; font-size: 12px;">🏥</span>
+                </div>
+              `;
+            case "professional":
+              return `
+                <div style="width: 80px; height: 80px; border: 2px solid #14b8a6; border-radius: 8px; display: flex; align-items: center; justify-content: center; background-color: white;">
+                  <span style="color: #14b8a6; font-weight: bold; font-size: 10px;">MEDICAL</span>
+                </div>
+              `;
+            case "minimal":
+              return `
+                <div style="width: 80px; height: 80px; background-color: #e5e7eb; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                  <span style="color: #6b7280; font-weight: bold; font-size: 8px;">PRACTICE</span>
+                </div>
+              `;
+            case "medical-cross":
+              return `
+                <div style="width: 80px; height: 80px; background-color: #fecaca; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                  <span style="color: #dc2626; font-size: 20px;">✚</span>
+                </div>
+              `;
+            default:
+              return `
+                <div style="width: 80px; height: 80px; background-color: #2563eb; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                  <span style="color: white; font-weight: bold; font-size: 14px;">LOGO</span>
+                </div>
+              `;
+          }
+        };
+
+        const logoContent = getLogoContent();
 
         if (logoPosition === "center" && addLogo && !addClinicHeader) {
           finalHtml += `<div style="text-align: center; margin-bottom: 20px;">${logoContent}</div>`;
         } else if (logoPosition === "center" && addClinicHeader && !addLogo) {
           finalHtml += `<div style="margin-bottom: 20px;">${getClinicHeaderContent()}</div>`;
         } else if (logoPosition === "center" && addLogo && addClinicHeader) {
-          // Logo centered above clinic header
-          finalHtml += `<div style="text-align: center; margin-bottom: 10px;">${logoContent}</div>`;
-          finalHtml += `<div style="margin-bottom: 20px;">${getClinicHeaderContent()}</div>`;
+          // Logo and clinic header in a row when center is selected
+          finalHtml += `
+            <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 20px; gap: 20px;">
+              <div>${logoContent}</div>
+              <div>${getClinicHeaderContent()}</div>
+            </div>
+          `;
         } else {
           finalHtml += '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">';
           
@@ -933,6 +969,7 @@ Dr. [Name]`
       setLogoPosition("right");
       setAddFooter(false);
       setClinicHeaderPosition("center");
+      setSelectedLogoTemplate("");
       
       toast({
         title: "Template Loaded",
@@ -7490,8 +7527,15 @@ Registration No: [Number]`
                   </label>
                 </div>
                 
-                {addLogo && (
+                {addLogo && selectedLogoTemplate && (
                   <div className="bg-white p-3 rounded border">
+                    <h5 className="text-sm font-medium text-gray-700 mb-1">Selected Logo Template:</h5>
+                    <p className="text-sm text-gray-600 mb-3">
+                      {selectedLogoTemplate === "modern-clinic" && "Modern Clinic - Icon with clinic name"}
+                      {selectedLogoTemplate === "professional" && "Professional - Boxed design"}
+                      {selectedLogoTemplate === "minimal" && "Minimal - Clean typography"}
+                      {selectedLogoTemplate === "medical-cross" && "Medical Cross - Classic red cross"}
+                    </p>
                     <h5 className="text-sm font-medium text-gray-700 mb-2">Logo Position:</h5>
                     <div className="flex gap-3">
                       <label className="flex items-center space-x-2 cursor-pointer">
@@ -7591,43 +7635,91 @@ Registration No: [Number]`
                     <>
                       {logoPosition === "center" && addLogo && !addClinicHeader ? (
                         <div className="text-center mb-4">
-                          <div className="w-16 h-16 bg-blue-600 rounded flex items-center justify-center mx-auto">
-                            <span className="text-white font-bold text-xs">LOGO</span>
-                          </div>
-                        </div>
-                      ) : logoPosition === "center" && addLogo && addClinicHeader ? (
-                        <div className="mb-4">
-                          <div className="text-center mb-2">
+                          {selectedLogoTemplate === "modern-clinic" && (
+                            <div className="w-16 h-16 bg-purple-200 rounded flex items-center justify-center mx-auto">
+                              <span className="text-purple-600 text-xs font-bold">🏥</span>
+                            </div>
+                          )}
+                          {selectedLogoTemplate === "professional" && (
+                            <div className="w-16 h-16 border-2 border-teal-500 rounded flex items-center justify-center bg-white mx-auto">
+                              <span className="text-teal-600 text-xs font-bold">MEDICAL</span>
+                            </div>
+                          )}
+                          {selectedLogoTemplate === "minimal" && (
+                            <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center mx-auto">
+                              <span className="text-gray-600 text-xs font-bold">PRACTICE</span>
+                            </div>
+                          )}
+                          {selectedLogoTemplate === "medical-cross" && (
+                            <div className="w-16 h-16 bg-red-100 rounded flex items-center justify-center mx-auto">
+                              <span className="text-red-600 text-lg">✚</span>
+                            </div>
+                          )}
+                          {!selectedLogoTemplate && (
                             <div className="w-16 h-16 bg-blue-600 rounded flex items-center justify-center mx-auto">
                               <span className="text-white font-bold text-xs">LOGO</span>
                             </div>
+                          )}
+                        </div>
+                      ) : logoPosition === "center" && addLogo && addClinicHeader ? (
+                        <div className="mb-4">
+                          <div className="flex justify-center items-center gap-4">
+                            <div>
+                              {selectedLogoTemplate === "modern-clinic" && (
+                                <div className="w-16 h-16 bg-purple-200 rounded flex items-center justify-center">
+                                  <span className="text-purple-600 text-xs font-bold">🏥</span>
+                                </div>
+                              )}
+                              {selectedLogoTemplate === "professional" && (
+                                <div className="w-16 h-16 border-2 border-teal-500 rounded flex items-center justify-center bg-white">
+                                  <span className="text-teal-600 text-xs font-bold">MEDICAL</span>
+                                </div>
+                              )}
+                              {selectedLogoTemplate === "minimal" && (
+                                <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center">
+                                  <span className="text-gray-600 text-xs font-bold">PRACTICE</span>
+                                </div>
+                              )}
+                              {selectedLogoTemplate === "medical-cross" && (
+                                <div className="w-16 h-16 bg-red-100 rounded flex items-center justify-center">
+                                  <span className="text-red-600 text-lg">✚</span>
+                                </div>
+                              )}
+                              {!selectedLogoTemplate && (
+                                <div className="w-16 h-16 bg-blue-600 rounded flex items-center justify-center">
+                                  <span className="text-white font-bold text-xs">LOGO</span>
+                                </div>
+                              )}
+                            </div>
+                            <div>
+                              {selectedClinicHeaderType === "full-header" && (
+                                <div className={`${clinicHeaderPosition === 'left' ? 'text-left' : clinicHeaderPosition === 'right' ? 'text-right' : 'text-center'}`}>
+                                  <h1 className="text-xl font-bold text-blue-600 mb-1">Demo Healthcare Clinic</h1>
+                                  <p className="text-xs text-gray-600">123 Healthcare Street, Medical City, MC 12345</p>
+                                  <p className="text-xs text-gray-600">+44 20 1234 5678 • info@yourdlinic.com</p>
+                                  <p className="text-xs text-gray-600">www.yourdlinic.com</p>
+                                </div>
+                              )}
+                              {selectedClinicHeaderType === "professional-letterhead" && (
+                                <div className={`${clinicHeaderPosition === 'left' ? 'text-left' : clinicHeaderPosition === 'right' ? 'text-right' : 'text-center'} border-b-2 border-blue-600 pb-2`}>
+                                  <h1 className="text-xl font-bold text-blue-600 mb-1">Demo Healthcare Clinic</h1>
+                                  <p className="text-xs text-gray-600 italic">Excellence in Healthcare</p>
+                                </div>
+                              )}
+                              {selectedClinicHeaderType === "clinic-name-only" && (
+                                <div className={`${clinicHeaderPosition === 'left' ? 'text-left' : clinicHeaderPosition === 'right' ? 'text-right' : 'text-center'}`}>
+                                  <h1 className="text-xl font-bold text-blue-600">Demo Healthcare Clinic</h1>
+                                </div>
+                              )}
+                              {selectedClinicHeaderType === "contact-info-block" && (
+                                <div className={`${clinicHeaderPosition === 'left' ? 'text-left' : clinicHeaderPosition === 'right' ? 'text-right' : 'text-center'} bg-gray-50 p-2 rounded`}>
+                                  <p className="text-xs text-gray-600"><strong>Phone:</strong> +44 20 1234 5678</p>
+                                  <p className="text-xs text-gray-600"><strong>Email:</strong> info@yourdlinic.com</p>
+                                  <p className="text-xs text-gray-600"><strong>Address:</strong> 123 Healthcare Street, Medical City, MC 12345</p>
+                                </div>
+                              )}
+                            </div>
                           </div>
-                          {selectedClinicHeaderType === "full-header" && (
-                            <div className={`${clinicHeaderPosition === 'left' ? 'text-left' : clinicHeaderPosition === 'right' ? 'text-right' : 'text-center'}`}>
-                              <h1 className="text-xl font-bold text-blue-600 mb-1">Demo Healthcare Clinic</h1>
-                              <p className="text-xs text-gray-600">123 Healthcare Street, Medical City, MC 12345</p>
-                              <p className="text-xs text-gray-600">+44 20 1234 5678 • info@yourdlinic.com</p>
-                              <p className="text-xs text-gray-600">www.yourdlinic.com</p>
-                            </div>
-                          )}
-                          {selectedClinicHeaderType === "professional-letterhead" && (
-                            <div className={`${clinicHeaderPosition === 'left' ? 'text-left' : clinicHeaderPosition === 'right' ? 'text-right' : 'text-center'} border-b-2 border-blue-600 pb-2`}>
-                              <h1 className="text-xl font-bold text-blue-600 mb-1">Demo Healthcare Clinic</h1>
-                              <p className="text-xs text-gray-600 italic">Excellence in Healthcare</p>
-                            </div>
-                          )}
-                          {selectedClinicHeaderType === "clinic-name-only" && (
-                            <div className={`${clinicHeaderPosition === 'left' ? 'text-left' : clinicHeaderPosition === 'right' ? 'text-right' : 'text-center'}`}>
-                              <h1 className="text-xl font-bold text-blue-600">Demo Healthcare Clinic</h1>
-                            </div>
-                          )}
-                          {selectedClinicHeaderType === "contact-info-block" && (
-                            <div className={`${clinicHeaderPosition === 'left' ? 'text-left' : clinicHeaderPosition === 'right' ? 'text-right' : 'text-center'} bg-gray-50 p-2 rounded`}>
-                              <p className="text-xs text-gray-600"><strong>Phone:</strong> +44 20 1234 5678</p>
-                              <p className="text-xs text-gray-600"><strong>Email:</strong> info@yourdlinic.com</p>
-                              <p className="text-xs text-gray-600"><strong>Address:</strong> 123 Healthcare Street, Medical City, MC 12345</p>
-                            </div>
-                          )}
                         </div>
                       ) : logoPosition === "center" && addClinicHeader && !addLogo ? (
                         <div className="mb-4">
@@ -7663,9 +7755,31 @@ Registration No: [Number]`
                           {/* Left side */}
                           {logoPosition === "left" && addLogo ? (
                             <div className="text-left">
-                              <div className="w-16 h-16 bg-blue-600 rounded flex items-center justify-center">
-                                <span className="text-white font-bold text-xs">LOGO</span>
-                              </div>
+                              {selectedLogoTemplate === "modern-clinic" && (
+                                <div className="w-16 h-16 bg-purple-200 rounded flex items-center justify-center">
+                                  <span className="text-purple-600 text-xs font-bold">🏥</span>
+                                </div>
+                              )}
+                              {selectedLogoTemplate === "professional" && (
+                                <div className="w-16 h-16 border-2 border-teal-500 rounded flex items-center justify-center bg-white">
+                                  <span className="text-teal-600 text-xs font-bold">MEDICAL</span>
+                                </div>
+                              )}
+                              {selectedLogoTemplate === "minimal" && (
+                                <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center">
+                                  <span className="text-gray-600 text-xs font-bold">PRACTICE</span>
+                                </div>
+                              )}
+                              {selectedLogoTemplate === "medical-cross" && (
+                                <div className="w-16 h-16 bg-red-100 rounded flex items-center justify-center">
+                                  <span className="text-red-600 text-lg">✚</span>
+                                </div>
+                              )}
+                              {!selectedLogoTemplate && (
+                                <div className="w-16 h-16 bg-blue-600 rounded flex items-center justify-center">
+                                  <span className="text-white font-bold text-xs">LOGO</span>
+                                </div>
+                              )}
                             </div>
                           ) : (
                             <div className="flex-1"></div>
@@ -7703,9 +7817,31 @@ Registration No: [Number]`
                             </div>
                           ) : logoPosition === "center" && addLogo ? (
                             <div className="flex-2 text-center">
-                              <div className="w-16 h-16 bg-blue-600 rounded flex items-center justify-center mx-auto">
-                                <span className="text-white font-bold text-xs">LOGO</span>
-                              </div>
+                              {selectedLogoTemplate === "modern-clinic" && (
+                                <div className="w-16 h-16 bg-purple-200 rounded flex items-center justify-center mx-auto">
+                                  <span className="text-purple-600 text-xs font-bold">🏥</span>
+                                </div>
+                              )}
+                              {selectedLogoTemplate === "professional" && (
+                                <div className="w-16 h-16 border-2 border-teal-500 rounded flex items-center justify-center bg-white mx-auto">
+                                  <span className="text-teal-600 text-xs font-bold">MEDICAL</span>
+                                </div>
+                              )}
+                              {selectedLogoTemplate === "minimal" && (
+                                <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center mx-auto">
+                                  <span className="text-gray-600 text-xs font-bold">PRACTICE</span>
+                                </div>
+                              )}
+                              {selectedLogoTemplate === "medical-cross" && (
+                                <div className="w-16 h-16 bg-red-100 rounded flex items-center justify-center mx-auto">
+                                  <span className="text-red-600 text-lg">✚</span>
+                                </div>
+                              )}
+                              {!selectedLogoTemplate && (
+                                <div className="w-16 h-16 bg-blue-600 rounded flex items-center justify-center mx-auto">
+                                  <span className="text-white font-bold text-xs">LOGO</span>
+                                </div>
+                              )}
                             </div>
                           ) : (
                             <div className="flex-2"></div>
@@ -7714,9 +7850,31 @@ Registration No: [Number]`
                           {/* Right side */}
                           {logoPosition === "right" && addLogo ? (
                             <div className="text-right">
-                              <div className="w-16 h-16 bg-blue-600 rounded flex items-center justify-center">
-                                <span className="text-white font-bold text-xs">LOGO</span>
-                              </div>
+                              {selectedLogoTemplate === "modern-clinic" && (
+                                <div className="w-16 h-16 bg-purple-200 rounded flex items-center justify-center">
+                                  <span className="text-purple-600 text-xs font-bold">🏥</span>
+                                </div>
+                              )}
+                              {selectedLogoTemplate === "professional" && (
+                                <div className="w-16 h-16 border-2 border-teal-500 rounded flex items-center justify-center bg-white">
+                                  <span className="text-teal-600 text-xs font-bold">MEDICAL</span>
+                                </div>
+                              )}
+                              {selectedLogoTemplate === "minimal" && (
+                                <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center">
+                                  <span className="text-gray-600 text-xs font-bold">PRACTICE</span>
+                                </div>
+                              )}
+                              {selectedLogoTemplate === "medical-cross" && (
+                                <div className="w-16 h-16 bg-red-100 rounded flex items-center justify-center">
+                                  <span className="text-red-600 text-lg">✚</span>
+                                </div>
+                              )}
+                              {!selectedLogoTemplate && (
+                                <div className="w-16 h-16 bg-blue-600 rounded flex items-center justify-center">
+                                  <span className="text-white font-bold text-xs">LOGO</span>
+                                </div>
+                              )}
                             </div>
                           ) : (
                             <div className="flex-1"></div>
@@ -7764,6 +7922,7 @@ Registration No: [Number]`
                   setLogoPosition("right");
                   setAddFooter(false);
                   setClinicHeaderPosition("center");
+                  setSelectedLogoTemplate("");
                 }}
               >
                 Cancel
@@ -7787,7 +7946,10 @@ Registration No: [Number]`
             <h2 className="text-2xl font-bold text-gray-800 mt-2">Clinic Logo Templates</h2>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-4 mt-4">
-            <div className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
+            <div 
+              className={`border rounded-lg p-4 hover:bg-gray-50 cursor-pointer ${selectedLogoTemplate === "modern-clinic" ? "bg-blue-50 border-blue-500" : ""}`}
+              onClick={() => setSelectedLogoTemplate("modern-clinic")}
+            >
               <div className="flex flex-col items-center">
                 <div className="w-16 h-16 bg-purple-200 rounded-lg flex items-center justify-center mb-2">
                   <span className="text-purple-600 text-xs font-bold">🏥</span>
@@ -7797,7 +7959,10 @@ Registration No: [Number]`
               </div>
             </div>
             
-            <div className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
+            <div 
+              className={`border rounded-lg p-4 hover:bg-gray-50 cursor-pointer ${selectedLogoTemplate === "professional" ? "bg-blue-50 border-blue-500" : ""}`}
+              onClick={() => setSelectedLogoTemplate("professional")}
+            >
               <div className="flex flex-col items-center">
                 <div className="w-16 h-16 border-2 border-teal-500 rounded-lg flex items-center justify-center mb-2">
                   <span className="text-teal-600 text-sm font-bold">MEDICAL</span>
@@ -7807,7 +7972,10 @@ Registration No: [Number]`
               </div>
             </div>
             
-            <div className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
+            <div 
+              className={`border rounded-lg p-4 hover:bg-gray-50 cursor-pointer ${selectedLogoTemplate === "minimal" ? "bg-blue-50 border-blue-500" : ""}`}
+              onClick={() => setSelectedLogoTemplate("minimal")}
+            >
               <div className="flex flex-col items-center">
                 <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center mb-2">
                   <span className="text-gray-600 text-xs font-bold">PRACTICE</span>
@@ -7817,7 +7985,10 @@ Registration No: [Number]`
               </div>
             </div>
             
-            <div className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
+            <div 
+              className={`border rounded-lg p-4 hover:bg-gray-50 cursor-pointer ${selectedLogoTemplate === "medical-cross" ? "bg-blue-50 border-blue-500" : ""}`}
+              onClick={() => setSelectedLogoTemplate("medical-cross")}
+            >
               <div className="flex flex-col items-center">
                 <div className="w-16 h-16 bg-red-100 rounded-lg flex items-center justify-center mb-2">
                   <span className="text-red-600 text-xl">✚</span>
