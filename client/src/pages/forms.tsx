@@ -4937,6 +4937,20 @@ Coverage Details: [Insurance Coverage]`;
             <Button
               size="sm"
               className="text-xs h-7 px-4 py-2 mt-5"
+              onClick={handleInsertLogo}
+            >
+              Logo
+            </Button>
+            <Button
+              size="sm"
+              className="text-xs h-7 px-4 py-2 mt-5"
+              onClick={handleClinic}
+            >
+              Clinic
+            </Button>
+            <Button
+              size="sm"
+              className="text-xs h-7 px-4 py-2 mt-5"
               onClick={() => setShowSavedTemplatesDialog(true)}
             >
               View Saved Templates
