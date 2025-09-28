@@ -1,5 +1,5 @@
 import { 
-  organizations, users, patients, medicalRecords, appointments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages, clinicalPhotos, labResults, claims, revenueRecords, insuranceVerifications, clinicalProcedures, emergencyProtocols, medicationsDatabase, roles, staffShifts, gdprConsents, gdprDataRequests, gdprAuditTrail, gdprProcessingActivities, conversations as conversationsTable, messages, voiceNotes, saasOwners, saasPackages, saasSubscriptions, saasPayments, saasInvoices, saasSettings, chatbotConfigs, chatbotSessions, chatbotMessages, chatbotAnalytics, musclePositions,
+  organizations, users, patients, medicalRecords, appointments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages, clinicalPhotos, labResults, claims, revenueRecords, insuranceVerifications, clinicalProcedures, emergencyProtocols, medicationsDatabase, roles, staffShifts, gdprConsents, gdprDataRequests, gdprAuditTrail, gdprProcessingActivities, conversations as conversationsTable, messages, voiceNotes, saasOwners, saasPackages, saasSubscriptions, saasPayments, saasInvoices, saasSettings, chatbotConfigs, chatbotSessions, chatbotMessages, chatbotAnalytics, musclePositions, userDocumentPreferences,
   type Organization, type InsertOrganization,
   type User, type InsertUser,
   type Role, type InsertRole,
@@ -40,7 +40,8 @@ import {
   type ChatbotSession, type InsertChatbotSession,
   type ChatbotMessage, type InsertChatbotMessage,
   type ChatbotAnalytics, type InsertChatbotAnalytics,
-  type MusclePosition, type InsertMusclePosition
+  type MusclePosition, type InsertMusclePosition,
+  type UserDocumentPreferences, type InsertUserDocumentPreferences, type UpdateUserDocumentPreferences
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, count, not, sql, gte, lt, lte, isNotNull, or, ilike, ne } from "drizzle-orm";
@@ -433,6 +434,11 @@ export interface IStorage {
   createVoiceNote(voiceNote: InsertVoiceNote): Promise<VoiceNote>;
   updateVoiceNote(id: string, organizationId: number, updates: Partial<InsertVoiceNote>): Promise<VoiceNote | undefined>;
   deleteVoiceNote(id: string, organizationId: number): Promise<boolean>;
+
+  // User Document Preferences
+  getUserDocumentPreferences(userId: number, organizationId: number): Promise<UserDocumentPreferences | undefined>;
+  createUserDocumentPreferences(preferences: InsertUserDocumentPreferences): Promise<UserDocumentPreferences>;
+  updateUserDocumentPreferences(userId: number, organizationId: number, updates: UpdateUserDocumentPreferences): Promise<UserDocumentPreferences | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -5277,6 +5283,33 @@ export class DatabaseStorage implements IStorage {
       .delete(voiceNotes)
       .where(and(eq(voiceNotes.id, id), eq(voiceNotes.organizationId, organizationId)));
     return result.rowCount > 0;
+  }
+
+  // User Document Preferences Methods
+  async getUserDocumentPreferences(userId: number, organizationId: number): Promise<UserDocumentPreferences | undefined> {
+    const [preferences] = await db
+      .select()
+      .from(userDocumentPreferences)
+      .where(and(eq(userDocumentPreferences.userId, userId), eq(userDocumentPreferences.organizationId, organizationId)));
+    return preferences || undefined;
+  }
+
+  async createUserDocumentPreferences(preferences: InsertUserDocumentPreferences): Promise<UserDocumentPreferences> {
+    const [created] = await db.insert(userDocumentPreferences).values([preferences]).returning();
+    return created;
+  }
+
+  async updateUserDocumentPreferences(userId: number, organizationId: number, updates: UpdateUserDocumentPreferences): Promise<UserDocumentPreferences | undefined> {
+    const updateData = {
+      ...updates,
+      updatedAt: new Date()
+    };
+    const [updated] = await db
+      .update(userDocumentPreferences)
+      .set(updateData)
+      .where(and(eq(userDocumentPreferences.userId, userId), eq(userDocumentPreferences.organizationId, organizationId)))
+      .returning();
+    return updated || undefined;
   }
 }
 
