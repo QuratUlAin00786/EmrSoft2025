@@ -21,6 +21,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import { Toaster } from "@/components/ui/toaster";
 import {
   ArrowLeft,
@@ -99,6 +100,349 @@ export default function Forms() {
     doctor: "",
     header: "your-clinic"
   });
+
+  // Patient template states
+  const [showPatientTemplateDialog, setShowPatientTemplateDialog] = useState(false);
+  const [selectedTemplateCategory, setSelectedTemplateCategory] = useState("");
+  const [showCategoryOptionsDialog, setShowCategoryOptionsDialog] = useState(false);
+  const [selectedCategoryData, setSelectedCategoryData] = useState<any>(null);
+
+  // Get current user
+  const { user } = useAuth();
+
+  // Patient letter templates data
+  const patientTemplates = {
+    "1. Appointment-Related": {
+      options: [
+        "a) Request for a new appointment",
+        "b) Rescheduling or canceling an appointment", 
+        "c) Confirmation of an upcoming appointment"
+      ],
+      templates: {
+        "a) Request for a new appointment": {
+          subject: "Request for Appointment",
+          body: `Dear Dr. [Doctor's Name],
+
+I would like to schedule a new appointment at your earliest availability. Please let me know a convenient date and time.
+
+Thank you for your assistance.
+
+Sincerely,
+[Patient Name]`
+        },
+        "b) Rescheduling or canceling an appointment": {
+          subject: "Request to Reschedule Appointment",
+          body: `Dear Dr. [Doctor's Name],
+
+I am unable to attend my appointment on [original date/time]. Could you kindly reschedule it to another suitable time?
+
+Thank you for your understanding.
+
+Best regards,
+[Patient Name]`
+        },
+        "c) Confirmation of an upcoming appointment": {
+          subject: "Appointment Confirmation", 
+          body: `Dear Dr. [Doctor's Name],
+
+I am writing to confirm my appointment scheduled for [date/time]. Please let me know if any preparation is required beforehand.
+
+Sincerely,
+[Patient Name]`
+        }
+      }
+    },
+    "2. Prescription & Medication": {
+      options: [
+        "a) Requesting prescription refills",
+        "b) Questions about dosage, side effects, or alternatives",
+        "c) Reporting issues with prescribed medication"
+      ],
+      templates: {
+        "a) Requesting prescription refills": {
+          subject: "Prescription Refill Request",
+          body: `Dear Dr. [Doctor's Name],
+
+I am running low on my prescribed medication ([medication name]). Could you please provide me with a refill prescription?
+
+Thank you,
+[Patient Name]`
+        },
+        "b) Questions about dosage, side effects, or alternatives": {
+          subject: "Medication Inquiry", 
+          body: `Dear Dr. [Doctor's Name],
+
+I have some concerns about the dosage and possible side effects of my current medication ([medication name]). Could you please provide guidance or suggest alternatives?
+
+Best regards,
+[Patient Name]`
+        },
+        "c) Reporting issues with prescribed medication": {
+          subject: "Medication Side Effects",
+          body: `Dear Dr. [Doctor's Name],
+
+Since starting [medication name], I have been experiencing [describe symptoms]. Should I continue this medication or consider alternatives?
+
+Sincerely,
+[Patient Name]`
+        }
+      }
+    },
+    "3. Lab Results & Reports": {
+      options: [
+        "a) Request for lab/test results",
+        "b) Questions about interpretation of results", 
+        "c) Follow-up on pending results"
+      ],
+      templates: {
+        "a) Request for lab/test results": {
+          subject: "Request for Lab Results",
+          body: `Dear Dr. [Doctor's Name],
+
+I recently underwent [test name] on [date]. Could you please share my results with me at your earliest convenience?
+
+Thank you,
+[Patient Name]`
+        },
+        "b) Questions about interpretation of results": {
+          subject: "Clarification on Lab Results",
+          body: `Dear Dr. [Doctor's Name],
+
+I have received my lab results but would like your explanation regarding [specific test/parameter]. Could you help me understand what this means for my health?
+
+Sincerely,
+[Patient Name]`
+        },
+        "c) Follow-up on pending results": {
+          subject: "Pending Lab Results",
+          body: `Dear Dr. [Doctor's Name],
+
+I am following up to check the status of my [test name] conducted on [date]. Could you kindly update me on when the results will be available?
+
+Thank you,
+[Patient Name]`
+        }
+      }
+    },
+    "4. Medical Condition Updates": {
+      options: [
+        "a) Reporting new symptoms",
+        "b) Providing updates on ongoing treatment progress",
+        "c) Sharing self-monitoring data (BP, sugar, etc.)"
+      ],
+      templates: {
+        "a) Reporting new symptoms": {
+          subject: "New Symptoms Report",
+          body: `Dear Dr. [Doctor's Name],
+
+I have recently started experiencing [describe symptoms]. Please advise me on whether I should schedule an appointment or adjust my treatment.
+
+Sincerely,
+[Patient Name]`
+        },
+        "b) Providing updates on ongoing treatment progress": {
+          subject: "Treatment Progress Update",
+          body: `Dear Dr. [Doctor's Name],
+
+I would like to update you on my current treatment for [condition]. I have noticed [improvements/symptoms/concerns] over the past [timeframe]. Please advise on the next steps.
+
+Best regards,
+[Patient Name]`
+        },
+        "c) Sharing self-monitoring data (BP, sugar, etc.)": {
+          subject: "Self-Monitoring Data Submission",
+          body: `Dear Dr. [Doctor's Name],
+
+I am sharing my recent self-monitoring data:
+
+Blood Pressure: [value]
+
+Blood Sugar: [value]
+
+Weight: [value]
+
+Please let me know if these values require any adjustments to my treatment.
+
+Thank you,
+[Patient Name]`
+        }
+      }
+    },
+    "5. Treatment & Follow-up": {
+      options: [
+        "a) Request for treatment plan details",
+        "b) Asking about post-surgery/post-treatment care",
+        "c) Request for follow-up visit scheduling"
+      ],
+      templates: {
+        "a) Request for treatment plan details": {
+          subject: "Treatment Plan Request",
+          body: `Dear Dr. [Doctor's Name],
+
+Could you please share more details regarding my treatment plan for [condition]? I would like to better understand the steps involved and expected outcomes.
+
+Sincerely,
+[Patient Name]`
+        },
+        "b) Asking about post-surgery/post-treatment care": {
+          subject: "Post-Treatment Care Guidance",
+          body: `Dear Dr. [Doctor's Name],
+
+Following my [surgery/treatment], I would like your guidance on recovery, diet, activity, and follow-up visits.
+
+Best regards,
+[Patient Name]`
+        },
+        "c) Request for follow-up visit scheduling": {
+          subject: "Request for Follow-up Appointment",
+          body: `Dear Dr. [Doctor's Name],
+
+I would like to schedule a follow-up visit regarding my recent [treatment/consultation]. Please suggest a suitable time.
+
+Thank you,
+[Patient Name]`
+        }
+      }
+    },
+    "6. Administrative / Documentation": {
+      options: [
+        "a) Request for medical records",
+        "b) Insurance or claim-related queries",
+        "c) Request for referral letters or medical certificates"
+      ],
+      templates: {
+        "a) Request for medical records": {
+          subject: "Request for Medical Records",
+          body: `Dear Dr. [Doctor's Name],
+
+I would like to request a copy of my medical records for personal use and future reference. Please let me know the procedure.
+
+Thank you,
+[Patient Name]`
+        },
+        "b) Insurance or claim-related queries": {
+          subject: "Insurance/Claim Assistance", 
+          body: `Dear Dr. [Doctor's Name],
+
+I require documentation regarding my recent treatment for insurance purposes. Could you kindly provide the necessary details?
+
+Sincerely,
+[Patient Name]`
+        },
+        "c) Request for referral letters or medical certificates": {
+          subject: "Request for Referral/Certificate",
+          body: `Dear Dr. [Doctor's Name],
+
+I would like to request a referral letter for [specialist/clinic] or a medical certificate for [reason]. Please let me know the next steps.
+
+Thank you,
+[Patient Name]`
+        }
+      }
+    },
+    "7. Emergency / Urgent Care": {
+      options: [
+        "a) Urgent symptoms needing immediate advice",
+        "b) Questions about whether to visit ER",
+        "c) Reporting sudden deterioration in health"
+      ],
+      templates: {
+        "a) Urgent symptoms needing immediate advice": {
+          subject: "Urgent Medical Concern",
+          body: `Dear Dr. [Doctor's Name],
+
+I am experiencing urgent symptoms including [describe symptoms]. Please advise if I should seek immediate medical attention.
+
+Sincerely,
+[Patient Name]`
+        },
+        "b) Questions about whether to visit ER": {
+          subject: "ER Visit Guidance",
+          body: `Dear Dr. [Doctor's Name],
+
+I am unsure whether my current condition ([briefly describe]) requires an ER visit. Could you please advise urgently?
+
+Thank you,
+[Patient Name]`
+        },
+        "c) Reporting sudden deterioration in health": {
+          subject: "Health Condition Worsening",
+          body: `Dear Dr. [Doctor's Name],
+
+My health condition has suddenly worsened with [describe changes]. Please advise me on immediate steps to take.
+
+Sincerely,
+[Patient Name]`
+        }
+      }
+    },
+    "8. General Health Advice": {
+      options: [
+        "a) Lifestyle, diet, or exercise questions",
+        "b) Preventive care inquiries (vaccinations, screenings)",
+        "c) Clarification about chronic condition management"
+      ],
+      templates: {
+        "a) Lifestyle, diet, or exercise questions": {
+          subject: "Lifestyle & Wellness Guidance",
+          body: `Dear Dr. [Doctor's Name],
+
+I would like your advice regarding lifestyle improvements including diet, exercise, and daily habits to better manage my health.
+
+Thank you,
+[Patient Name]`
+        },
+        "b) Preventive care inquiries (vaccinations, screenings)": {
+          subject: "Preventive Care Inquiry",
+          body: `Dear Dr. [Doctor's Name],
+
+Could you please advise me regarding recommended preventive care such as vaccinations and regular screenings for my age group?
+
+Sincerely,
+[Patient Name]`
+        },
+        "c) Clarification about chronic condition management": {
+          subject: "Chronic Condition Management",
+          body: `Dear Dr. [Doctor's Name],
+
+I have some questions about the long-term management of my [condition]. Could you provide guidance on medication, monitoring, and lifestyle changes?
+
+Thank you,
+[Patient Name]`
+        }
+      }
+    }
+  };
+
+  // Handler functions for patient templates
+  const handlePatientTemplateSelect = (category: string) => {
+    setSelectedTemplateCategory(category);
+    setSelectedCategoryData(patientTemplates[category as keyof typeof patientTemplates]);
+    setShowPatientTemplateDialog(false);
+    setShowCategoryOptionsDialog(true);
+  };
+
+  const handleTemplateOptionSelect = (option: string) => {
+    const categoryData = selectedCategoryData;
+    if (categoryData && categoryData.templates[option]) {
+      const template = categoryData.templates[option];
+      const fullTemplate = `Subject: ${template.subject}\n\n${template.body}`;
+      
+      // Load template into editor
+      if (textareaRef) {
+        textareaRef.innerHTML = fullTemplate.replace(/\n/g, '<br>');
+        setDocumentContent(fullTemplate);
+      }
+      
+      setShowCategoryOptionsDialog(false);
+      
+      toast({
+        title: "Template Loaded",
+        description: `${option} template has been loaded into the editor.`,
+        duration: 3000,
+      });
+    }
+  };
 
   // Fetch doctors from database
   const { data: users = [], isLoading: usersLoading } = useQuery<User[]>({
@@ -3416,6 +3760,40 @@ export default function Forms() {
               >
                 Share this...
               </Button>
+              
+              {/* Patient Template Dropdown - Only show for patients */}
+              {user?.role === "patient" && (
+                <>
+                  <div className="h-8 w-px bg-white/30 mx-1"></div>
+                  <Button
+                    className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
+                    style={{
+                      backgroundColor: "white",
+                      color: "black",
+                      borderColor: "#e5e7eb",
+                      borderRadius: "10px",
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = "#f9fafb";
+                      e.currentTarget.style.borderColor = "#d1d5db";
+                      e.currentTarget.style.transform = "translateY(-2px)";
+                      e.currentTarget.style.boxShadow =
+                        "0 6px 16px rgba(0,0,0,0.15)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = "white";
+                      e.currentTarget.style.borderColor = "#e5e7eb";
+                      e.currentTarget.style.transform = "translateY(0px)";
+                      e.currentTarget.style.boxShadow =
+                        "0 4px 12px rgba(0,0,0,0.1)";
+                    }}
+                    onClick={() => setShowPatientTemplateDialog(true)}
+                  >
+                    Patient Templates
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -3873,7 +4251,7 @@ export default function Forms() {
               className="h-6 w-6 p-0 border transition-all duration-200"
               style={{
                 backgroundColor: "white",
-                borderColor: "#e5e7eb",
+                borderColor: "white",
                 color: "black",
               }}
               onMouseEnter={(e) => {
@@ -3882,7 +4260,7 @@ export default function Forms() {
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = "white";
-                e.currentTarget.style.borderColor = "#e5e7eb";
+                e.currentTarget.style.borderColor = "white";
               }}
               onClick={handleBold}
             >
@@ -3893,17 +4271,17 @@ export default function Forms() {
               size="sm"
               className="h-6 w-6 p-0 border transition-all duration-200"
               style={{
-                backgroundColor: "#7279FB",
-                borderColor: "#7279FB",
+                backgroundColor: "white",
+                borderColor: "white",
                 color: "black",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "white";
+                e.currentTarget.style.backgroundColor = "#7279FB";
                 e.currentTarget.style.borderColor = "#e5e7eb";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "#7279FB";
-                e.currentTarget.style.borderColor = "#7279FB";
+                e.currentTarget.style.backgroundColor = "white";
+                e.currentTarget.style.borderColor = "white";
               }}
               onClick={handleItalic}
             >
@@ -3915,7 +4293,7 @@ export default function Forms() {
               className="h-6 w-6 p-0 border transition-all duration-200"
               style={{
                 backgroundColor: "white",
-                borderColor: "#e5e7eb",
+                borderColor: "white",
                 color: "black",
               }}
               onMouseEnter={(e) => {
@@ -3924,7 +4302,7 @@ export default function Forms() {
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = "white";
-                e.currentTarget.style.borderColor = "#e5e7eb";
+                e.currentTarget.style.borderColor = "white";
               }}
               onClick={handleUnderline}
             >
@@ -3939,17 +4317,17 @@ export default function Forms() {
               size="sm"
               className="h-6 w-6 p-0 border transition-all duration-200"
               style={{
-                backgroundColor: "#7279FB",
-                borderColor: "#7279FB",
+                backgroundColor: "white",
+                borderColor: "white",
                 color: "black",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "white";
+                e.currentTarget.style.backgroundColor = "#7279FB";
                 e.currentTarget.style.borderColor = "#e5e7eb";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "#7279FB";
-                e.currentTarget.style.borderColor = "#7279FB";
+                e.currentTarget.style.backgroundColor = "white";
+                e.currentTarget.style.borderColor = "white";
               }}
               onClick={handleBulletList}
             >
@@ -3961,7 +4339,7 @@ export default function Forms() {
               className="h-6 w-6 p-0 border transition-all duration-200"
               style={{
                 backgroundColor: "white",
-                borderColor: "#e5e7eb",
+                borderColor: "white",
                 color: "black",
               }}
               onMouseEnter={(e) => {
@@ -3970,7 +4348,7 @@ export default function Forms() {
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = "white";
-                e.currentTarget.style.borderColor = "#e5e7eb";
+                e.currentTarget.style.borderColor = "white";
               }}
               onClick={handleNumberedList}
             >
@@ -3985,17 +4363,17 @@ export default function Forms() {
               size="sm"
               className="h-6 w-6 p-0 border transition-all duration-200"
               style={{
-                backgroundColor: "#7279FB",
-                borderColor: "#7279FB",
+                backgroundColor: "white",
+                borderColor: "white",
                 color: "black",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "white";
+                e.currentTarget.style.backgroundColor = "#7279FB";
                 e.currentTarget.style.borderColor = "#e5e7eb";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "#7279FB";
-                e.currentTarget.style.borderColor = "#7279FB";
+                e.currentTarget.style.backgroundColor = "white";
+                e.currentTarget.style.borderColor = "white";
               }}
               onClick={handleAlignLeft}
             >
@@ -4016,7 +4394,7 @@ export default function Forms() {
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = "white";
-                e.currentTarget.style.borderColor = "#e5e7eb";
+                e.currentTarget.style.borderColor = "white";
               }}
               onClick={handleAlignCenter}
             >
@@ -4027,17 +4405,17 @@ export default function Forms() {
               size="sm"
               className="h-6 w-6 p-0 border transition-all duration-200"
               style={{
-                backgroundColor: "#7279FB",
-                borderColor: "#7279FB",
+                backgroundColor: "white",
+                borderColor: "white",
                 color: "black",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "white";
+                e.currentTarget.style.backgroundColor = "#7279FB";
                 e.currentTarget.style.borderColor = "#e5e7eb";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "#7279FB";
-                e.currentTarget.style.borderColor = "#7279FB";
+                e.currentTarget.style.backgroundColor = "white";
+                e.currentTarget.style.borderColor = "white";
               }}
               onClick={handleAlignRight}
             >
@@ -4049,7 +4427,7 @@ export default function Forms() {
               className="h-6 w-6 p-0 border transition-all duration-200"
               style={{
                 backgroundColor: "white",
-                borderColor: "#e5e7eb",
+                borderColor: "white",
                 color: "black",
               }}
               onMouseEnter={(e) => {
@@ -4058,7 +4436,7 @@ export default function Forms() {
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = "white";
-                e.currentTarget.style.borderColor = "#e5e7eb";
+                e.currentTarget.style.borderColor = "white";
               }}
               onClick={handleAlignJustify}
             >
@@ -4167,7 +4545,7 @@ export default function Forms() {
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = "white";
-                e.currentTarget.style.borderColor = "#e5e7eb";
+                e.currentTarget.style.borderColor = "white";
               }}
               onClick={handleHighlight}
             >
@@ -4181,17 +4559,17 @@ export default function Forms() {
               size="sm"
               className="h-6 w-6 p-0 border transition-all duration-200"
               style={{
-                backgroundColor: "#7279FB",
-                borderColor: "#7279FB",
+                backgroundColor: "white",
+                borderColor: "white",
                 color: "black",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "white";
+                e.currentTarget.style.backgroundColor = "#7279FB";
                 e.currentTarget.style.borderColor = "#e5e7eb";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "#7279FB";
-                e.currentTarget.style.borderColor = "#7279FB";
+                e.currentTarget.style.backgroundColor = "white";
+                e.currentTarget.style.borderColor = "white";
               }}
               onClick={handleClock}
             >
@@ -4203,7 +4581,7 @@ export default function Forms() {
               className="h-6 w-6 p-0 border transition-all duration-200"
               style={{
                 backgroundColor: "white",
-                borderColor: "#e5e7eb",
+                borderColor: "white",
                 color: "black",
               }}
               onMouseEnter={(e) => {
@@ -4212,7 +4590,7 @@ export default function Forms() {
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = "white";
-                e.currentTarget.style.borderColor = "#e5e7eb";
+                e.currentTarget.style.borderColor = "white";
               }}
               onClick={handleTable}
             >
@@ -4223,17 +4601,17 @@ export default function Forms() {
               size="sm"
               className="h-6 w-6 p-0 border transition-all duration-200"
               style={{
-                backgroundColor: "#7279FB",
-                borderColor: "#7279FB",
+                backgroundColor: "white",
+                borderColor: "white",
                 color: "black",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "white";
+                e.currentTarget.style.backgroundColor = "#7279FB";
                 e.currentTarget.style.borderColor = "#e5e7eb";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "#7279FB";
-                e.currentTarget.style.borderColor = "#7279FB";
+                e.currentTarget.style.backgroundColor = "white";
+                e.currentTarget.style.borderColor = "white";
               }}
               onClick={handleAttachFile}
             >
@@ -4245,7 +4623,7 @@ export default function Forms() {
               className="h-6 w-6 p-0 border transition-all duration-200"
               style={{
                 backgroundColor: "white",
-                borderColor: "#e5e7eb",
+                borderColor: "white",
                 color: "black",
               }}
               onMouseEnter={(e) => {
@@ -4254,7 +4632,7 @@ export default function Forms() {
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = "white";
-                e.currentTarget.style.borderColor = "#e5e7eb";
+                e.currentTarget.style.borderColor = "white";
               }}
               onClick={handleImage}
             >
@@ -4265,17 +4643,17 @@ export default function Forms() {
               size="sm"
               className="h-6 w-6 p-0 border transition-all duration-200"
               style={{
-                backgroundColor: "#7279FB",
-                borderColor: "#7279FB",
+                backgroundColor: "white",
+                borderColor: "white",
                 color: "black",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "white";
+                e.currentTarget.style.backgroundColor = "#7279FB";
                 e.currentTarget.style.borderColor = "#e5e7eb";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "#7279FB";
-                e.currentTarget.style.borderColor = "#7279FB";
+                e.currentTarget.style.backgroundColor = "white";
+                e.currentTarget.style.borderColor = "white";
               }}
               onClick={handleLink}
             >
@@ -4434,7 +4812,7 @@ export default function Forms() {
               {/* Saved Templates */}
               {templates && templates.length > 0 && (
                 <div>
-                  <h3 className="font-semibold mb-2">Saved Templates</h3>
+                  <h3 className="font-semibold mb-2">Saved Templates 1</h3>
                   <div className="space-y-2">
                     {templates.map((template: any) => (
                       <Button
@@ -6003,7 +6381,7 @@ export default function Forms() {
       >
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Saved Templates</DialogTitle>
+            <DialogTitle>Saved Templates 2</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             {templates && templates.length > 0 ? (
@@ -6012,7 +6390,7 @@ export default function Forms() {
                   <div key={template.id} className="border rounded-lg p-4">
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
-                        <h3 className="font-medium">{template.name}</h3>
+                        <h6 className="font-small">{template.name}</h6>
                         <p className="text-sm text-gray-500">
                           Created:{" "}
                           {new Date(template.createdAt).toLocaleDateString()}
@@ -6326,6 +6704,76 @@ export default function Forms() {
                   </Button>
                 </div>
               </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Patient Template Category Selection Dialog */}
+      <Dialog open={showPatientTemplateDialog} onOpenChange={setShowPatientTemplateDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Select Letter Template Category</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-gray-600">Choose a category for your letter template:</p>
+            <div className="grid gap-3">
+              {Object.keys(patientTemplates).map((category) => (
+                <Button
+                  key={category}
+                  variant="outline"
+                  className="h-12 justify-start text-left p-4 hover:bg-blue-50"
+                  onClick={() => handlePatientTemplateSelect(category)}
+                >
+                  {category}
+                </Button>
+              ))}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Patient Template Options Dialog */}
+      <Dialog open={showCategoryOptionsDialog} onOpenChange={setShowCategoryOptionsDialog}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>{selectedTemplateCategory}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-gray-600">Choose a specific template option:</p>
+            <div className="grid gap-3">
+              {selectedCategoryData?.options.map((option: string) => (
+                <Button
+                  key={option}
+                  variant="outline"
+                  className="h-auto justify-start text-left p-4 hover:bg-blue-50 whitespace-normal"
+                  onClick={() => handleTemplateOptionSelect(option)}
+                >
+                  <div>
+                    <div className="font-medium">{option}</div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      {selectedCategoryData?.templates[option]?.subject}
+                    </div>
+                  </div>
+                </Button>
+              ))}
+            </div>
+            <div className="flex justify-end gap-2 pt-4 border-t">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setShowCategoryOptionsDialog(false);
+                  setShowPatientTemplateDialog(true);
+                }}
+              >
+                Back to Categories
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowCategoryOptionsDialog(false)}
+              >
+                Cancel
+              </Button>
             </div>
           </div>
         </DialogContent>
