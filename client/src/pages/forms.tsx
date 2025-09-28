@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
-import type { User } from "@shared/schema";
+import type { User, Patient } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -1293,6 +1293,21 @@ Coverage Details: [Insurance Coverage]`;
   const { data: users = [], isLoading: usersLoading } = useQuery<User[]>({
     queryKey: ["/api/users"],
     enabled: true,
+  });
+
+  // Fetch patients from patients table
+  const { data: patientsFromTable = [], isLoading: patientsLoading } = useQuery<Patient[]>({
+    queryKey: ["/api/patients"],
+    queryFn: async () => {
+      const response = await fetch("/api/patients", {
+        headers: { 
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+        },
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return response.json();
+    },
   });
 
   // Filter users to get only doctors and patients
@@ -7482,28 +7497,18 @@ Registration No: [Number]`
                     <SelectValue placeholder="Select recipient" />
                   </SelectTrigger>
                   <SelectContent>
-                    {usersLoading ? (
-                      <SelectItem value="loading" disabled>Loading recipients...</SelectItem>
-                    ) : user?.role === "patient" ? (
-                      doctors.length > 0 ? (
-                        doctors.map((doctor) => (
-                          <SelectItem key={doctor.id} value={doctor.email}>
-                            Dr. {doctor.firstName} {doctor.lastName} ({doctor.email})
-                          </SelectItem>
-                        ))
-                      ) : (
-                        <SelectItem value="no-doctors" disabled>No doctors available</SelectItem>
-                      )
+                    {patientsLoading ? (
+                      <SelectItem value="loading" disabled>Loading patients...</SelectItem>
+                    ) : patientsFromTable.length > 0 ? (
+                      patientsFromTable
+                        .filter((patient) => patient.email && patient.email.trim() !== "")
+                        .map((patient) => (
+                        <SelectItem key={patient.id} value={patient.email!}>
+                          {patient.firstName} {patient.lastName} ({patient.email})
+                        </SelectItem>
+                      ))
                     ) : (
-                      patients.length > 0 ? (
-                        patients.map((patient) => (
-                          <SelectItem key={patient.id} value={patient.email}>
-                            {patient.firstName} {patient.lastName} ({patient.email})
-                          </SelectItem>
-                        ))
-                      ) : (
-                        <SelectItem value="no-patients" disabled>No patients available</SelectItem>
-                      )
+                      <SelectItem value="no-patients" disabled>No patients available</SelectItem>
                     )}
                   </SelectContent>
                 </Select>
