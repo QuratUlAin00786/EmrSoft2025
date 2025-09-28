@@ -7143,6 +7143,7 @@ Dr. [Name]`
                   variant="outline"
                   className="h-auto justify-start text-left p-4 hover:bg-blue-50 whitespace-normal"
                   onClick={() => handleTemplateOptionSelect(option)}
+                  data-testid={`button-template-${option.toLowerCase().replace(/\s+/g, '-')}`}
                 >
                   <div>
                     <div className="font-medium">{option}</div>
@@ -7213,6 +7214,7 @@ Dr. [Name]`
                   variant="outline"
                   className="h-auto justify-start text-left p-4 hover:bg-blue-50 whitespace-normal"
                   onClick={() => handleDoctorTemplateOptionSelect(option)}
+                  data-testid={`button-doctor-template-${option.toLowerCase().replace(/\s+/g, '-')}`}
                 >
                   <div>
                     <div className="font-medium">{option}</div>
