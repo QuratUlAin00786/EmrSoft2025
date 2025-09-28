@@ -128,6 +128,8 @@ export default function Forms() {
   const [tempLogoPosition, setTempLogoPosition] = useState("right");
   const [clinicHeaderPosition, setClinicHeaderPosition] = useState("center");
   const [addFooter, setAddFooter] = useState(false);
+  const [showClinicPositionDialog, setShowClinicPositionDialog] = useState(false);
+  const [tempClinicHeaderType, setTempClinicHeaderType] = useState("");
   
   // Additional preview states for other template types
   const [showOtherTemplatePreviewDialog, setShowOtherTemplatePreviewDialog] = useState(false);
@@ -6052,7 +6054,11 @@ Registration No: [Number]`
                   <Button
                     variant="outline"
                     className="w-full text-left justify-start h-auto p-4"
-                    onClick={() => insertClinicInfo("full-header")}
+                    onClick={() => {
+                      setTempClinicHeaderType("full-header");
+                      setShowClinicPositionDialog(true);
+                      setShowClinicDialog(false);
+                    }}
                   >
                     <div>
                       <div className="font-medium">Full Header</div>
@@ -6066,7 +6072,11 @@ Registration No: [Number]`
                   <Button
                     variant="outline"
                     className="w-full text-left justify-start h-auto p-4"
-                    onClick={() => insertClinicInfo("letterhead")}
+                    onClick={() => {
+                      setTempClinicHeaderType("letterhead");
+                      setShowClinicPositionDialog(true);
+                      setShowClinicDialog(false);
+                    }}
                   >
                     <div>
                       <div className="font-medium">Professional Letterhead</div>
@@ -6079,7 +6089,11 @@ Registration No: [Number]`
                   <Button
                     variant="outline"
                     className="w-full text-left justify-start h-auto p-4"
-                    onClick={() => insertClinicInfo("name-only")}
+                    onClick={() => {
+                      setTempClinicHeaderType("name-only");
+                      setShowClinicPositionDialog(true);
+                      setShowClinicDialog(false);
+                    }}
                   >
                     <div>
                       <div className="font-medium">Clinic Name Only</div>
@@ -6092,7 +6106,11 @@ Registration No: [Number]`
                   <Button
                     variant="outline"
                     className="w-full text-left justify-start h-auto p-4"
-                    onClick={() => insertClinicInfo("contact-info")}
+                    onClick={() => {
+                      setTempClinicHeaderType("contact-info");
+                      setShowClinicPositionDialog(true);
+                      setShowClinicDialog(false);
+                    }}
                   >
                     <div>
                       <div className="font-medium">
@@ -9109,6 +9127,90 @@ Registration No: [Number]`
             <Button variant="outline" onClick={() => setShowClinicHeaderDialog(false)}>
               Cancel
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Clinic Header Position Selection Dialog */}
+      <Dialog open={showClinicPositionDialog} onOpenChange={setShowClinicPositionDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Clinic Header Preview & Position</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {/* Header Preview */}
+            <div className="border rounded-lg p-4 bg-gray-50">
+              <h4 className="font-medium mb-2">Selected Header:</h4>
+              <div className="text-sm text-gray-600">
+                {tempClinicHeaderType === "full-header" && "Full Header - Complete clinic header with name, address, phone, email, and website"}
+                {tempClinicHeaderType === "letterhead" && "Professional Letterhead - Formal letterhead design with clinic branding"}
+                {tempClinicHeaderType === "name-only" && "Clinic Name Only - Just the clinic name in bold text"}
+                {tempClinicHeaderType === "contact-info" && "Contact Information Block - Formatted contact details section"}
+              </div>
+            </div>
+
+            {/* Position Selection */}
+            <div>
+              <h4 className="font-medium mb-3">Header Position:</h4>
+              <div className="flex gap-3">
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="tempClinicPosition"
+                    value="left"
+                    checked={clinicHeaderPosition === "left"}
+                    onChange={(e) => setClinicHeaderPosition(e.target.value)}
+                    className="text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">Left</span>
+                </label>
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="tempClinicPosition"
+                    value="center"
+                    checked={clinicHeaderPosition === "center"}
+                    onChange={(e) => setClinicHeaderPosition(e.target.value)}
+                    className="text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">Center</span>
+                </label>
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="tempClinicPosition"
+                    value="right"
+                    checked={clinicHeaderPosition === "right"}
+                    onChange={(e) => setClinicHeaderPosition(e.target.value)}
+                    className="text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">Right</span>
+                </label>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex justify-end gap-2 pt-4 border-t">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setShowClinicPositionDialog(false);
+                  setShowClinicDialog(true);
+                }}
+              >
+                Back
+              </Button>
+              <Button 
+                onClick={() => {
+                  setAddClinicHeader(true);
+                  setSelectedClinicHeaderType(tempClinicHeaderType);
+                  setShowClinicPositionDialog(false);
+                  setShowTemplatePreviewDialog(true);
+                }}
+              >
+                Add to Preview
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
