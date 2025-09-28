@@ -9135,7 +9135,7 @@ Registration No: [Number]`
       <Dialog open={showClinicPositionDialog} onOpenChange={setShowClinicPositionDialog}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Clinic Header Preview & Position</DialogTitle>
+            <DialogTitle>Clinic Header Preview</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             {/* Header Preview */}
@@ -9162,7 +9162,7 @@ Registration No: [Number]`
                     onChange={(e) => setClinicHeaderPosition(e.target.value)}
                     className="text-blue-600 focus:ring-blue-500"
                   />
-                  <span className="text-sm text-gray-700">Left</span>
+                  <span className="text-sm text-gray-700">Left (Top)</span>
                 </label>
                 <label className="flex items-center space-x-2 cursor-pointer">
                   <input
@@ -9173,7 +9173,7 @@ Registration No: [Number]`
                     onChange={(e) => setClinicHeaderPosition(e.target.value)}
                     className="text-blue-600 focus:ring-blue-500"
                   />
-                  <span className="text-sm text-gray-700">Center</span>
+                  <span className="text-sm text-gray-700">Center (Top)</span>
                 </label>
                 <label className="flex items-center space-x-2 cursor-pointer">
                   <input
@@ -9184,7 +9184,7 @@ Registration No: [Number]`
                     onChange={(e) => setClinicHeaderPosition(e.target.value)}
                     className="text-blue-600 focus:ring-blue-500"
                   />
-                  <span className="text-sm text-gray-700">Right</span>
+                  <span className="text-sm text-gray-700">Right (Top)</span>
                 </label>
               </div>
             </div>
