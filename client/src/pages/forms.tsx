@@ -130,7 +130,6 @@ export default function Forms() {
   const [addFooter, setAddFooter] = useState(false);
   const [showClinicPositionDialog, setShowClinicPositionDialog] = useState(false);
   const [tempClinicHeaderType, setTempClinicHeaderType] = useState("");
-  const [isComingFromClinicButton, setIsComingFromClinicButton] = useState(false);
   
   // Additional preview states for other template types
   const [showOtherTemplatePreviewDialog, setShowOtherTemplatePreviewDialog] = useState(false);
@@ -2306,7 +2305,6 @@ Coverage Details: [Insurance Coverage]`;
     }
   };
   const handleClinic = () => {
-    setIsComingFromClinicButton(true);
     setShowClinicDialog(true);
   };
 
@@ -4692,74 +4690,70 @@ Coverage Details: [Insurance Coverage]`;
 
       
         {/* Clinical Header Selection - Create the Letter */}
-        <div className="bg-white-100 px-4 py-4">
-          <div className="flex flex-col items-center">
-            <h4 className="text-md font-medium text-[hsl(var(--cura-midnight))] dark:text-white mb-3">
-              Create the Letter
-            </h4>
-            <div>
-              <label className="block text-xs font-medium text-[hsl(var(--cura-midnight))] dark:text-white mb-2 text-center">
-                Select Header
-              </label>
-              <Select value={selectedHeader} onValueChange={setSelectedHeader}>
-                <SelectTrigger style={{ width: "700px" }}>
-                  <SelectValue placeholder="Your Clinic" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="your-clinic">Your Clinic</SelectItem>
-                  <SelectItem value="main-hospital">Main Hospital</SelectItem>
-                  <SelectItem value="cardiology-dept">
-                    Cardiology Department
-                  </SelectItem>
-                  <SelectItem value="neurology-dept">
-                    Neurology Department
-                  </SelectItem>
-                  <SelectItem value="orthopedic-dept">
-                    Orthopedic Department
-                  </SelectItem>
-                  <SelectItem value="pediatrics-dept">
-                    Pediatrics Department
-                  </SelectItem>
-                  <SelectItem value="emergency-dept">
-                    Emergency Department
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            {/* Add New Clinic Info Button */}
             <div className="bg-white-100 px-4 py-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="absolute top-2 right-32 border transition-all duration-200"
-              style={{
-                backgroundColor: "white",
-                borderColor: "#e5e7eb",
-                color: "black",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#6CFFEB";
-                e.currentTarget.style.borderColor = "#6CFFEB";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "white";
-                e.currentTarget.style.borderColor = "#e5e7eb";
-              }}
-              onClick={() => {
-                setEditingClinicInfo({
-                  name: "",
-                  address: "",
-                  phone: "",
-                  email: "",
-                  website: "",
-                });
-                setShowEditClinic(true);
-              }}
-            >
-              <Plus className="h-4 w-4 mr-1" />
-              Add New Clinic Info
-            </Button>
+              <div className="flex flex-col items-center">
+                <h4 className="text-md font-medium text-[hsl(var(--cura-midnight))] dark:text-white mb-3">
+                  Create the Letter
+                </h4>
+
+                {/* Row container for Header Select + Add New Clinic Info Button */}
+                <div className="flex items-center gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-[hsl(var(--cura-midnight))] dark:text-white mb-2">
+                      Select Header
+                    </label>
+                    <Select value={selectedHeader} onValueChange={setSelectedHeader}>
+                      <SelectTrigger style={{ width: "400px" }}>
+                        <SelectValue placeholder="Your Clinic" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="your-clinic">Your Clinic</SelectItem>
+                        <SelectItem value="main-hospital">Main Hospital</SelectItem>
+                        <SelectItem value="cardiology-dept">Cardiology Department</SelectItem>
+                        <SelectItem value="neurology-dept">Neurology Department</SelectItem>
+                        <SelectItem value="orthopedic-dept">Orthopedic Department</SelectItem>
+                        <SelectItem value="pediatrics-dept">Pediatrics Department</SelectItem>
+                        <SelectItem value="emergency-dept">Emergency Department</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Add New Clinic Info Button */}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="border transition-all duration-200"
+                    style={{
+                      backgroundColor: "white",
+                      borderColor: "#e5e7eb",
+                      color: "black",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = "#6CFFEB";
+                      e.currentTarget.style.borderColor = "#6CFFEB";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = "white";
+                      e.currentTarget.style.borderColor = "#e5e7eb";
+                    }}
+                    onClick={() => {
+                      setEditingClinicInfo({
+                        name: "",
+                        address: "",
+                        phone: "",
+                        email: "",
+                        website: "",
+                      });
+                      setShowEditClinic(true);
+                    }}
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add New Clinic Info
+                  </Button>
+                </div>
               </div>
+            </div>
+
             {/* Header Preview Area */}
             <div
               className="mt-4 p-6 bg-blue-50 dark:bg-[hsl(var(--cura-midnight))] border border-blue-200 dark:border-[hsl(var(--cura-steel))] rounded text-center relative"
@@ -9487,21 +9481,13 @@ Registration No: [Number]`
               </Button>
               <Button 
                 onClick={() => {
-                  if (isComingFromClinicButton) {
-                    // Direct load into editor when coming from Clinic button
-                    insertClinicInfo(tempClinicHeaderType);
-                    setShowClinicPositionDialog(false);
-                    setIsComingFromClinicButton(false);
-                  } else {
-                    // Original behavior for other flows
-                    setAddClinicHeader(true);
-                    setSelectedClinicHeaderType(tempClinicHeaderType);
-                    setShowClinicPositionDialog(false);
-                    setShowOtherTemplatePreviewDialog(true);
-                  }
+                  setAddClinicHeader(true);
+                  setSelectedClinicHeaderType(tempClinicHeaderType);
+                  setShowClinicPositionDialog(false);
+                  setShowOtherTemplatePreviewDialog(true);
                 }}
               >
-                {isComingFromClinicButton ? "Load" : "OK"}
+                OK
               </Button>
             </div>
           </div>
