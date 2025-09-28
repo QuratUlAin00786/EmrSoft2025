@@ -9213,7 +9213,6 @@ Registration No: [Number]`
                   setAddClinicHeader(true);
                   setSelectedClinicHeaderType(tempClinicHeaderType);
                   setShowClinicPositionDialog(false);
-                  setShowOtherTemplatePreviewDialog(true);
                 }}
               >
                 OK
