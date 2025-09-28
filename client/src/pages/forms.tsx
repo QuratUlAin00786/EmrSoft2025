@@ -7612,9 +7612,58 @@ Registration No: [Number]`
                   </Button>
                   <Button
                     variant="outline"
-                    onClick={() => {
-                      setShowShareDialog(false);
-                      setShowDraftsDialog(true);
+                    onClick={async () => {
+                      // Save current letter as draft
+                      if (!documentContent || documentContent.trim() === '') {
+                        toast({
+                          title: "Error", 
+                          description: "Please create document content before saving draft.",
+                          variant: "destructive"
+                        });
+                        return;
+                      }
+
+                      try {
+                        const response = await fetch("/api/letter-drafts", {
+                          method: "POST",
+                          headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+                          },
+                          body: JSON.stringify({
+                            subject: shareFormData.subject || "Untitled Letter",
+                            recipient: shareFormData.recipient || "No recipient",
+                            doctorEmail: shareFormData.doctor,
+                            location: shareFormData.location,
+                            copiedRecipients: shareFormData.copiedRecipients,
+                            header: shareFormData.header,
+                            documentContent: documentContent,
+                          }),
+                        });
+
+                        if (response.ok) {
+                          toast({
+                            title: "Draft Saved",
+                            description: "Letter has been saved as draft successfully.",
+                          });
+                          refetchDrafts(); // Refresh drafts list
+                          setShowShareDialog(false);
+                          setShowDraftsDialog(true);
+                        } else {
+                          toast({
+                            title: "Error",
+                            description: "Failed to save draft. Please try again.",
+                            variant: "destructive"
+                          });
+                        }
+                      } catch (error) {
+                        console.error("Error saving draft:", error);
+                        toast({
+                          title: "Error",
+                          description: "Failed to save draft. Please try again.",
+                          variant: "destructive"
+                        });
+                      }
                     }}
                     className="px-6"
                     data-testid="button-drafts"
