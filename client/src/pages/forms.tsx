@@ -4395,41 +4395,6 @@ Coverage Details: [Insurance Coverage]`;
         <div className="px-6 py-4 flex-shrink-0 bg-white dark:bg-[hsl(var(--cura-midnight))] border-b-2 border-gray-200 dark:border-[hsl(var(--cura-steel))]">
           <div className="flex items-center justify-between gap-8">
             <div className="flex items-center gap-4">
-              <Button
-                className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
-                style={{
-                  backgroundColor: "white",
-                  color: "black",
-                  borderColor: "#e5e7eb",
-                  borderRadius: "10px",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#f9fafb";
-                  e.currentTarget.style.borderColor = "#d1d5db";
-                  e.currentTarget.style.transform = "translateY(-2px)";
-                  e.currentTarget.style.boxShadow =
-                    "0 6px 16px rgba(0,0,0,0.15)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "white";
-                  e.currentTarget.style.borderColor = "#e5e7eb";
-                  e.currentTarget.style.transform = "translateY(0px)";
-                  e.currentTarget.style.boxShadow =
-                    "0 4px 12px rgba(0,0,0,0.1)";
-                }}
-                onClick={() =>
-                  toast({
-                    title: "Letters",
-                    description: "Navigating back to letters list.",
-                  })
-                }
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                <span>Letters</span>
-              </Button>
-
-              <div className="h-8 w-px bg-white/30 mx-1"></div>
 
               <Button
                 className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
@@ -4626,7 +4591,7 @@ Coverage Details: [Insurance Coverage]`;
                     }}
                     onClick={() => setShowPatientTemplateDialog(true)}
                   >
-                    Patient Templates
+                    Letters
                   </Button>
                 </>
               )}
@@ -9135,7 +9100,7 @@ Registration No: [Number]`
       <Dialog open={showClinicPositionDialog} onOpenChange={setShowClinicPositionDialog}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Clinic Header Preview</DialogTitle>
+            <DialogTitle>Header Preview</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             {/* Header Preview */}
@@ -9208,7 +9173,7 @@ Registration No: [Number]`
                   setShowTemplatePreviewDialog(true);
                 }}
               >
-                Add to Preview
+                OK
               </Button>
             </div>
           </div>
