@@ -104,7 +104,7 @@ interface RevenueData {
 
 interface Claim {
   id: string;
-  patientId: string;
+  patientId: number;
   patientName: string;
   insuranceProvider: string;
   claimNumber: string;
@@ -781,7 +781,7 @@ export default function FinancialIntelligence() {
   const mockClaims: Claim[] = [
     {
       id: "claim_3",
-      patientId: "patient_3",
+      patientId: 3,
       patientName: "Emma Davis",
       insuranceProvider: "United Healthcare",
       claimNumber: "CLM-2024-001236",
@@ -1602,7 +1602,7 @@ export default function FinancialIntelligence() {
 
                       // Submit the claim using the mutation
                       submitClaimMutation.mutate({
-                        patientId: claimFormData.patient,
+                        patientId: parseInt(claimFormData.patient),
                         patientName: patientName,
                         claimNumber: claimNumber,
                         insuranceProvider: claimFormData.insuranceProvider,
