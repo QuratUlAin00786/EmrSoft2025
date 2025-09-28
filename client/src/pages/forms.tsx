@@ -9043,8 +9043,8 @@ Registration No: [Number]`
             <div 
               className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer" 
               onClick={() => {
-                setAddClinicHeader(true);
-                setSelectedClinicHeaderType("full-header");
+                setTempClinicHeaderType("full-header");
+                setShowClinicPositionDialog(true);
                 setShowClinicHeaderDialog(false);
               }}
             >
@@ -9055,8 +9055,8 @@ Registration No: [Number]`
             <div 
               className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer"
               onClick={() => {
-                setAddClinicHeader(true);
-                setSelectedClinicHeaderType("professional-letterhead");
+                setTempClinicHeaderType("letterhead");
+                setShowClinicPositionDialog(true);
                 setShowClinicHeaderDialog(false);
               }}
             >
@@ -9067,8 +9067,8 @@ Registration No: [Number]`
             <div 
               className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer"
               onClick={() => {
-                setAddClinicHeader(true);
-                setSelectedClinicHeaderType("clinic-name-only");
+                setTempClinicHeaderType("name-only");
+                setShowClinicPositionDialog(true);
                 setShowClinicHeaderDialog(false);
               }}
             >
@@ -9079,8 +9079,8 @@ Registration No: [Number]`
             <div 
               className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer"
               onClick={() => {
-                setAddClinicHeader(true);
-                setSelectedClinicHeaderType("contact-info-block");
+                setTempClinicHeaderType("contact-info");
+                setShowClinicPositionDialog(true);
                 setShowClinicHeaderDialog(false);
               }}
             >
@@ -9170,7 +9170,7 @@ Registration No: [Number]`
                   setAddClinicHeader(true);
                   setSelectedClinicHeaderType(tempClinicHeaderType);
                   setShowClinicPositionDialog(false);
-                  setShowTemplatePreviewDialog(true);
+                  setShowOtherTemplatePreviewDialog(true);
                 }}
               >
                 OK
