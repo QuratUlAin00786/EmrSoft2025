@@ -136,6 +136,10 @@ export default function Forms() {
   const [previewOtherTemplate, setPreviewOtherTemplate] = useState<any>(null);
   const [previewOtherTemplateName, setPreviewOtherTemplateName] = useState("");
   const [previewTemplateType, setPreviewTemplateType] = useState("");
+  
+  // Saved template preview states
+  const [showSavedTemplatePreviewDialog, setShowSavedTemplatePreviewDialog] = useState(false);
+  const [selectedSavedTemplate, setSelectedSavedTemplate] = useState<any>(null);
 
   // Get current user
   const { user } = useAuth();
@@ -7442,11 +7446,11 @@ Registration No: [Number]`
                           variant="outline"
                           size="sm"
                           onClick={() => {
-                            loadTemplate(template.id);
-                            setShowSavedTemplatesDialog(false);
+                            setSelectedSavedTemplate(template);
+                            setShowSavedTemplatePreviewDialog(true);
                           }}
                         >
-                          Load
+                          Preview
                         </Button>
                         <Button
                           variant="outline"
@@ -7524,6 +7528,59 @@ Registration No: [Number]`
                 Close
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Saved Template Preview Dialog */}
+      <Dialog open={showSavedTemplatePreviewDialog} onOpenChange={setShowSavedTemplatePreviewDialog}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Template Preview</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {selectedSavedTemplate && (
+              <>
+                <div className="border-b pb-4">
+                  <h3 className="text-lg font-semibold">{selectedSavedTemplate.name}</h3>
+                  <p className="text-sm text-gray-500">
+                    Created: {new Date(selectedSavedTemplate.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+                
+                <div className="border rounded-lg p-4 bg-gray-50 max-h-96 overflow-y-auto">
+                  <div 
+                    dangerouslySetInnerHTML={{ __html: selectedSavedTemplate.content }}
+                    className="prose max-w-none"
+                  />
+                </div>
+                
+                <div className="flex justify-end gap-2 pt-4 border-t">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowSavedTemplatePreviewDialog(false);
+                      setSelectedSavedTemplate(null);
+                    }}
+                  >
+                    Back
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      if (selectedSavedTemplate) {
+                        loadTemplate(selectedSavedTemplate.id);
+                        setShowSavedTemplatePreviewDialog(false);
+                        setShowSavedTemplatesDialog(false);
+                        setSelectedSavedTemplate(null);
+                      }
+                    }}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    Load
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
         </DialogContent>
       </Dialog>
