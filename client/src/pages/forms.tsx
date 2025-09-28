@@ -9104,13 +9104,45 @@ Registration No: [Number]`
           </DialogHeader>
           <div className="space-y-4">
             {/* Header Preview */}
-            <div className="border rounded-lg p-4 bg-gray-50">
-              <h4 className="font-medium mb-2">Selected Header:</h4>
-              <div className="text-sm text-gray-600">
-                {tempClinicHeaderType === "full-header" && "Full Header - Complete clinic header with name, address, phone, email, and website"}
-                {tempClinicHeaderType === "letterhead" && "Professional Letterhead - Formal letterhead design with clinic branding"}
-                {tempClinicHeaderType === "name-only" && "Clinic Name Only - Just the clinic name in bold text"}
-                {tempClinicHeaderType === "contact-info" && "Contact Information Block - Formatted contact details section"}
+            <div className="border rounded-lg p-4 bg-white">
+              <h4 className="font-medium mb-3">Preview:</h4>
+              <div className={`text-${clinicHeaderPosition} border rounded p-3 bg-blue-50`}>
+                {tempClinicHeaderType === "full-header" && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-8 h-8 bg-purple-200 rounded flex items-center justify-center">
+                        <span className="text-purple-800 text-xs font-bold">📋</span>
+                      </div>
+                      <h3 className="text-lg font-bold text-blue-700">Demo Healthcare Clinic</h3>
+                    </div>
+                    <div className="text-sm text-gray-700">
+                      <div>123 Healthcare Street, Medical City, MC 12345</div>
+                      <div>+44 20 1234 5678 • info@yourclinic.com</div>
+                      <div>www.yourclinic.com</div>
+                    </div>
+                  </div>
+                )}
+                {tempClinicHeaderType === "letterhead" && (
+                  <div>
+                    <h3 className="text-xl font-bold text-blue-700 mb-1">Demo Healthcare Clinic</h3>
+                    <div className="text-sm text-gray-600 border-b pb-2">
+                      Professional Medical Services
+                    </div>
+                  </div>
+                )}
+                {tempClinicHeaderType === "name-only" && (
+                  <div>
+                    <h3 className="text-lg font-bold text-blue-700">Demo Healthcare Clinic</h3>
+                  </div>
+                )}
+                {tempClinicHeaderType === "contact-info" && (
+                  <div className="text-sm text-gray-700">
+                    <div>📍 123 Healthcare Street, Medical City, MC 12345</div>
+                    <div>📞 +44 20 1234 5678</div>
+                    <div>✉️ info@yourclinic.com</div>
+                    <div>🌐 www.yourclinic.com</div>
+                  </div>
+                )}
               </div>
             </div>
 
