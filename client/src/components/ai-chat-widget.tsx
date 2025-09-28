@@ -25,7 +25,9 @@ import {
   Mic,
   MicOff,
   ChevronRight,
-  CheckCircle
+  CheckCircle,
+  RotateCcw,
+  ArrowLeft
 } from "lucide-react";
 import { format } from "date-fns";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -1534,17 +1536,6 @@ export function AIChatWidget() {
     }, 0);
   };
 
-  const handleSendMessage = () => {
-    if (!input.trim() || isLoading) return;
-    sendMessageWithText(input.trim());
-  };
-
-  const handleKeyPress = (e: any) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
 
   const sendMessageWithText = async (messageText: string) => {
     if (!messageText || isLoading) return;
