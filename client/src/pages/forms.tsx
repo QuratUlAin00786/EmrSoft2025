@@ -127,6 +127,12 @@ export default function Forms() {
   const [tempLogoPosition, setTempLogoPosition] = useState("right");
   const [clinicHeaderPosition, setClinicHeaderPosition] = useState("center");
   const [addFooter, setAddFooter] = useState(false);
+  
+  // Additional preview states for other template types
+  const [showOtherTemplatePreviewDialog, setShowOtherTemplatePreviewDialog] = useState(false);
+  const [previewOtherTemplate, setPreviewOtherTemplate] = useState<any>(null);
+  const [previewOtherTemplateName, setPreviewOtherTemplateName] = useState("");
+  const [previewTemplateType, setPreviewTemplateType] = useState("");
 
   // Get current user
   const { user } = useAuth();
@@ -814,6 +820,298 @@ Dr. [Name]`
   };
 
   // Handler for loading template from preview
+  // Helper functions to generate template content for each type
+  const getPatientTemplateContent = (infoType: string) => {
+    switch (infoType) {
+      case "full-details":
+        return `Patient Name: [Patient Name]
+Date of Birth: [Date of Birth]
+Patient ID: [Patient ID]
+Address: [Patient Address]
+Phone: [Patient Phone]
+Email: [Patient Email]`;
+      case "name-dob":
+        return `Patient: [Patient Name] | DOB: [Date of Birth]`;
+      case "contact-info":
+        return `Patient Contact Information:
+Name: [Patient Name]
+Phone: [Patient Phone]
+Email: [Patient Email]
+Address: [Patient Address]`;
+      case "demographics":
+        return `Patient Demographics:
+Name: [Patient Name]
+Age: [Patient Age]
+Gender: [Patient Gender]
+Date of Birth: [Date of Birth]
+Insurance: [Insurance Information]`;
+      case "emergency-contact":
+        return `Emergency Contact Information:
+Contact Name: [Emergency Contact Name]
+Relationship: [Emergency Contact Relationship]
+Phone: [Emergency Contact Phone]
+Address: [Emergency Contact Address]`;
+      default:
+        return "Patient Information Template";
+    }
+  };
+
+  const getRecipientTemplateContent = (infoType: string) => {
+    switch (infoType) {
+      case "doctor-details":
+        return `Doctor Information:
+Name: [Doctor Name]
+Specialty: [Doctor Specialty]
+Address: [Doctor Address]
+Phone: [Doctor Phone]
+Email: [Doctor Email]`;
+      case "specialist-referral":
+        return `Specialist Referral:
+To: [Specialist Name]
+Department: [Department Name]
+Specialty: [Specialty]
+Reason for Referral: [Referral Reason]
+Contact: [Specialist Contact]`;
+      case "insurance-company":
+        return `Insurance Company Information:
+Company: [Insurance Company]
+Policy Number: [Policy Number]
+Group Number: [Group Number]
+Member ID: [Member ID]
+Contact: [Insurance Contact]`;
+      case "patient-family":
+        return `Patient Family Member:
+Name: [Family Member Name]
+Relationship: [Relationship to Patient]
+Phone: [Family Member Phone]
+Email: [Family Member Email]
+Address: [Family Member Address]`;
+      case "pharmacy":
+        return `Pharmacy Information:
+Name: [Pharmacy Name]
+Address: [Pharmacy Address]
+Phone: [Pharmacy Phone]
+Fax: [Pharmacy Fax]
+License: [Pharmacy License]`;
+      default:
+        return "Recipient Information Template";
+    }
+  };
+
+  const getAppointmentTemplateContent = (infoType: string) => {
+    switch (infoType) {
+      case "appointment-details":
+        return `Appointment Details:
+Date: [Appointment Date]
+Time: [Appointment Time]
+Provider: [Provider Name]
+Department: [Department]
+Location: [Location]
+Purpose: [Visit Purpose]`;
+      case "next-appointment":
+        return `Next Appointment:
+Date: [Appointment Date]
+Time: [Appointment Time]
+Doctor: [Doctor Name]
+Purpose: [Appointment Purpose]
+Location: [Appointment Location]`;
+      case "appointment-history":
+        return `Appointment History:
+Last Visit: [Last Visit Date]
+Next Visit: [Next Visit Date]
+Frequency: [Visit Frequency]
+Notes: [Appointment Notes]`;
+      case "follow-up":
+        return `Follow-up Appointment:
+Scheduled Date: [Follow-up Date]
+Recommended Time: [Follow-up Time]
+Reason: [Follow-up Reason]
+Instructions: [Follow-up Instructions]`;
+      case "appointment-reminder":
+        return `Appointment Reminder:
+Patient: [Patient Name]
+Date: [Appointment Date]
+Time: [Appointment Time]
+Provider: [Provider Name]
+Please arrive 15 minutes early for check-in.`;
+      default:
+        return "Appointment Information Template";
+    }
+  };
+
+  const getLaboratoryTemplateContent = (infoType: string) => {
+    switch (infoType) {
+      case "lab-results":
+        return `Laboratory Test Results:
+Test Name: [Test Name]
+Result: [Test Result]
+Reference Range: [Reference Range]
+Status: [Test Status]
+Date Collected: [Collection Date]
+Date Reported: [Report Date]`;
+      case "blood-work":
+        return `Blood Work Results:
+Complete Blood Count: [CBC Results]
+Glucose: [Glucose Level]
+Cholesterol: [Cholesterol Level]
+Hemoglobin: [Hemoglobin Level]
+Additional Tests: [Other Results]`;
+      case "urine-analysis":
+        return `Urinalysis Results:
+Color: [Urine Color]
+Clarity: [Urine Clarity]
+Protein: [Protein Level]
+Glucose: [Glucose Level]
+White Blood Cells: [WBC Count]
+Red Blood Cells: [RBC Count]`;
+      case "culture-results":
+        return `Culture Results:
+Specimen Type: [Specimen Type]
+Organism Identified: [Organism Name]
+Sensitivity: [Antibiotic Sensitivity]
+Resistance: [Antibiotic Resistance]
+Collection Date: [Collection Date]
+Final Report Date: [Report Date]`;
+      case "pending-labs":
+        return `Pending Laboratory Tests:
+Ordered Tests: [Test Names]
+Order Date: [Order Date]
+Priority: [Test Priority]
+Expected Results: [Expected Date]
+Special Instructions: [Lab Instructions]`;
+      default:
+        return "Laboratory Information Template";
+    }
+  };
+
+  const getPatientRecordsTemplateContent = (infoType: string) => {
+    switch (infoType) {
+      case "medical-history":
+        return `Complete Medical History:
+Chief Complaint: [Chief Complaint]
+Present Illness: [Present Illness]
+Past Medical History: [Past Medical History]
+Surgical History: [Surgical History]
+Family History: [Family History]
+Social History: [Social History]
+Allergies: [Known Allergies]`;
+      case "current-medications":
+        return `Current Medications:
+Medication 1: [Medication Name] - [Dosage] - [Frequency]
+Medication 2: [Medication Name] - [Dosage] - [Frequency]
+Medication 3: [Medication Name] - [Dosage] - [Frequency]
+Additional Medications: [Other Medications]
+Over-the-Counter: [OTC Medications]`;
+      case "allergies":
+        return `Allergies & Reactions:
+Drug Allergies: [Drug Allergies]
+Food Allergies: [Food Allergies]
+Environmental Allergies: [Environmental Allergies]
+Reaction Type: [Reaction Severity]
+Previous Reactions: [Previous Reaction History]`;
+      case "vital-signs":
+        return `Latest Vital Signs:
+Blood Pressure: [BP Reading]
+Heart Rate: [Heart Rate]
+Temperature: [Temperature]
+Respiratory Rate: [Respiratory Rate]
+Oxygen Saturation: [O2 Saturation]
+Weight: [Patient Weight]
+Height: [Patient Height]
+Date Taken: [Vital Signs Date]`;
+      case "diagnosis-history":
+        return `Diagnosis History:
+Primary Diagnosis: [Primary Diagnosis] - ICD-10: [ICD Code]
+Secondary Diagnoses: [Secondary Diagnoses]
+Past Diagnoses: [Previous Diagnoses]
+Treatment History: [Treatment History]
+Current Status: [Current Treatment Status]`;
+      default:
+        return "Patient Records Template";
+    }
+  };
+
+  const getProductTemplateContent = (infoType: string) => {
+    switch (infoType) {
+      case "medication":
+        return `Medication Information:
+Product Name: [Medication Name]
+Generic Name: [Generic Name]
+Strength: [Medication Strength]
+Form: [Dosage Form]
+Manufacturer: [Manufacturer]
+NDC Number: [NDC Number]
+Pricing: [Unit Price]`;
+      case "medical-device":
+        return `Medical Device Information:
+Device Name: [Device Name]
+Model Number: [Model Number]
+Manufacturer: [Manufacturer]
+Category: [Device Category]
+FDA Approval: [FDA Status]
+Warranty: [Warranty Information]`;
+      case "medical-supplies":
+        return `Medical Supplies Information:
+Product: [Supply Name]
+Brand: [Brand Name]
+Quantity: [Quantity]
+Unit Pricing: [Unit Price]
+Sterility: [Sterility Status]
+Expiration: [Expiration Date]`;
+      case "laboratory-test":
+        return `Laboratory Test Information:
+Test Name: [Test Name]
+Test Code: [Test Code]
+Test Type: [Test Type]
+Processing Time: [Processing Time]
+Pricing: [Test Price]
+Special Requirements: [Special Requirements]`;
+      case "treatment-package":
+        return `Treatment Package Information:
+Package Name: [Package Name]
+Services: [Included Services]
+Duration: [Treatment Duration]
+Provider: [Healthcare Provider]
+Pricing: [Package Price]
+Coverage Details: [Insurance Coverage]`;
+      default:
+        return "Product Information Template";
+    }
+  };
+
+  const handlePreviewOtherTemplate = (infoType: string, templateName: string, templateType: string) => {
+    // Create template object based on type and infoType
+    let template: any = { subject: templateName, body: "" };
+    
+    switch (templateType) {
+      case "patient":
+        template.body = getPatientTemplateContent(infoType);
+        break;
+      case "recipient":
+        template.body = getRecipientTemplateContent(infoType);
+        break;
+      case "appointment":
+        template.body = getAppointmentTemplateContent(infoType);
+        break;
+      case "laboratory":
+        template.body = getLaboratoryTemplateContent(infoType);
+        break;
+      case "patient-records":
+        template.body = getPatientRecordsTemplateContent(infoType);
+        break;
+      case "product":
+        template.body = getProductTemplateContent(infoType);
+        break;
+      default:
+        template.body = "Template content";
+    }
+    
+    setPreviewOtherTemplate(template);
+    setPreviewOtherTemplateName(templateName);
+    setPreviewTemplateType(templateType);
+    setShowOtherTemplatePreviewDialog(true);
+  };
+
   const handleLoadTemplateFromPreview = () => {
     if (previewTemplate) {
       let finalHtml = '';
@@ -6086,74 +6384,124 @@ Registration No: [Number]`
                   Patient Information Templates
                 </h3>
                 <div className="space-y-2">
-                  <Button
-                    variant="outline"
-                    className="w-full text-left justify-start h-auto p-4"
-                    onClick={() => insertPatientInfo("full-details")}
-                  >
-                    <div>
-                      <div className="font-medium">Full Patient Details</div>
-                      <div className="text-sm text-gray-500">
-                        Complete patient information including name, DOB, ID,
-                        address, phone, and email
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1 text-left justify-start h-auto p-4"
+                      onClick={() => handlePreviewOtherTemplate("full-details", "Full Patient Details", "patient")}
+                    >
+                      <div>
+                        <div className="font-medium">Full Patient Details</div>
+                        <div className="text-sm text-gray-500">
+                          Complete patient information including name, DOB, ID,
+                          address, phone, and email
+                        </div>
                       </div>
-                    </div>
-                  </Button>
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="px-3"
+                      onClick={() => insertPatientInfo("full-details")}
+                    >
+                      Insert
+                    </Button>
+                  </div>
 
-                  <Button
-                    variant="outline"
-                    className="w-full text-left justify-start h-auto p-4"
-                    onClick={() => insertPatientInfo("name-dob")}
-                  >
-                    <div>
-                      <div className="font-medium">Name & Date of Birth</div>
-                      <div className="text-sm text-gray-500">
-                        Essential patient identification - name and DOB only
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1 text-left justify-start h-auto p-4"
+                      onClick={() => handlePreviewOtherTemplate("name-dob", "Name & Date of Birth", "patient")}
+                    >
+                      <div>
+                        <div className="font-medium">Name & Date of Birth</div>
+                        <div className="text-sm text-gray-500">
+                          Essential patient identification - name and DOB only
+                        </div>
                       </div>
-                    </div>
-                  </Button>
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="px-3"
+                      onClick={() => insertPatientInfo("name-dob")}
+                    >
+                      Insert
+                    </Button>
+                  </div>
 
-                  <Button
-                    variant="outline"
-                    className="w-full text-left justify-start h-auto p-4"
-                    onClick={() => insertPatientInfo("contact-info")}
-                  >
-                    <div>
-                      <div className="font-medium">Contact Information</div>
-                      <div className="text-sm text-gray-500">
-                        Patient contact details including phone, email, and
-                        address
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1 text-left justify-start h-auto p-4"
+                      onClick={() => handlePreviewOtherTemplate("contact-info", "Contact Information", "patient")}
+                    >
+                      <div>
+                        <div className="font-medium">Contact Information</div>
+                        <div className="text-sm text-gray-500">
+                          Patient contact details including phone, email, and
+                          address
+                        </div>
                       </div>
-                    </div>
-                  </Button>
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="px-3"
+                      onClick={() => insertPatientInfo("contact-info")}
+                    >
+                      Insert
+                    </Button>
+                  </div>
 
-                  <Button
-                    variant="outline"
-                    className="w-full text-left justify-start h-auto p-4"
-                    onClick={() => insertPatientInfo("demographics")}
-                  >
-                    <div>
-                      <div className="font-medium">Demographics</div>
-                      <div className="text-sm text-gray-500">
-                        Patient demographics including age, gender, DOB, and
-                        insurance
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1 text-left justify-start h-auto p-4"
+                      onClick={() => handlePreviewOtherTemplate("demographics", "Demographics", "patient")}
+                    >
+                      <div>
+                        <div className="font-medium">Demographics</div>
+                        <div className="text-sm text-gray-500">
+                          Patient demographics including age, gender, DOB, and
+                          insurance
+                        </div>
                       </div>
-                    </div>
-                  </Button>
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="px-3"
+                      onClick={() => insertPatientInfo("demographics")}
+                    >
+                      Insert
+                    </Button>
+                  </div>
 
-                  <Button
-                    variant="outline"
-                    className="w-full text-left justify-start h-auto p-4"
-                    onClick={() => insertPatientInfo("emergency-contact")}
-                  >
-                    <div>
-                      <div className="font-medium">Emergency Contact</div>
-                      <div className="text-sm text-gray-500">
-                        Emergency contact information with relationship and
-                        phone
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1 text-left justify-start h-auto p-4"
+                      onClick={() => handlePreviewOtherTemplate("emergency-contact", "Emergency Contact", "patient")}
+                    >
+                      <div>
+                        <div className="font-medium">Emergency Contact</div>
+                        <div className="text-sm text-gray-500">
+                          Emergency contact information with relationship and
+                          phone
+                        </div>
                       </div>
-                    </div>
-                  </Button>
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="px-3"
+                      onClick={() => insertPatientInfo("emergency-contact")}
+                    >
+                      Insert
+                    </Button>
+                  </div>
                 </div>
               </div>
 
@@ -6213,75 +6561,125 @@ Registration No: [Number]`
                   Recipient Information Templates
                 </h3>
                 <div className="space-y-2">
-                  <Button
-                    variant="outline"
-                    className="w-full text-left justify-start h-auto p-4"
-                    onClick={() => insertRecipientInfo("doctor-details")}
-                  >
-                    <div>
-                      <div className="font-medium">Doctor Details</div>
-                      <div className="text-sm text-gray-500">
-                        Complete doctor information including name, specialty,
-                        clinic, and contact details
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1 text-left justify-start h-auto p-4"
+                      onClick={() => handlePreviewOtherTemplate("doctor-details", "Doctor Details", "recipient")}
+                    >
+                      <div>
+                        <div className="font-medium">Doctor Details</div>
+                        <div className="text-sm text-gray-500">
+                          Complete doctor information including name, specialty,
+                          clinic, and contact details
+                        </div>
                       </div>
-                    </div>
-                  </Button>
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="px-3"
+                      onClick={() => insertRecipientInfo("doctor-details")}
+                    >
+                      Insert
+                    </Button>
+                  </div>
 
-                  <Button
-                    variant="outline"
-                    className="w-full text-left justify-start h-auto p-4"
-                    onClick={() => insertRecipientInfo("specialist-referral")}
-                  >
-                    <div>
-                      <div className="font-medium">Specialist Referral</div>
-                      <div className="text-sm text-gray-500">
-                        Referral header for specialist consultations with
-                        department and reason
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1 text-left justify-start h-auto p-4"
+                      onClick={() => handlePreviewOtherTemplate("specialist-referral", "Specialist Referral", "recipient")}
+                    >
+                      <div>
+                        <div className="font-medium">Specialist Referral</div>
+                        <div className="text-sm text-gray-500">
+                          Referral header for specialist consultations with
+                          department and reason
+                        </div>
                       </div>
-                    </div>
-                  </Button>
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="px-3"
+                      onClick={() => insertRecipientInfo("specialist-referral")}
+                    >
+                      Insert
+                    </Button>
+                  </div>
 
-                  <Button
-                    variant="outline"
-                    className="w-full text-left justify-start h-auto p-4"
-                    onClick={() => insertRecipientInfo("insurance-company")}
-                  >
-                    <div>
-                      <div className="font-medium">Insurance Company</div>
-                      <div className="text-sm text-gray-500">
-                        Insurance company details with policy and member
-                        information
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1 text-left justify-start h-auto p-4"
+                      onClick={() => handlePreviewOtherTemplate("insurance-company", "Insurance Company", "recipient")}
+                    >
+                      <div>
+                        <div className="font-medium">Insurance Company</div>
+                        <div className="text-sm text-gray-500">
+                          Insurance company details with policy and member
+                          information
+                        </div>
                       </div>
-                    </div>
-                  </Button>
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="px-3"
+                      onClick={() => insertRecipientInfo("insurance-company")}
+                    >
+                      Insert
+                    </Button>
+                  </div>
 
-                  <Button
-                    variant="outline"
-                    className="w-full text-left justify-start h-auto p-4"
-                    onClick={() => insertRecipientInfo("patient-family")}
-                  >
-                    <div>
-                      <div className="font-medium">Patient Family Member</div>
-                      <div className="text-sm text-gray-500">
-                        Family member contact information with relationship
-                        details
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1 text-left justify-start h-auto p-4"
+                      onClick={() => handlePreviewOtherTemplate("patient-family", "Patient Family Member", "recipient")}
+                    >
+                      <div>
+                        <div className="font-medium">Patient Family Member</div>
+                        <div className="text-sm text-gray-500">
+                          Family member contact information with relationship
+                          details
+                        </div>
                       </div>
-                    </div>
-                  </Button>
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="px-3"
+                      onClick={() => insertRecipientInfo("patient-family")}
+                    >
+                      Insert
+                    </Button>
+                  </div>
 
-                  <Button
-                    variant="outline"
-                    className="w-full text-left justify-start h-auto p-4"
-                    onClick={() => insertRecipientInfo("pharmacy")}
-                  >
-                    <div>
-                      <div className="font-medium">Pharmacy</div>
-                      <div className="text-sm text-gray-500">
-                        Pharmacy details including address, phone, fax, and
-                        license information
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1 text-left justify-start h-auto p-4"
+                      onClick={() => handlePreviewOtherTemplate("pharmacy", "Pharmacy", "recipient")}
+                    >
+                      <div>
+                        <div className="font-medium">Pharmacy</div>
+                        <div className="text-sm text-gray-500">
+                          Pharmacy details including address, phone, fax, and
+                          license information
+                        </div>
                       </div>
-                    </div>
-                  </Button>
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="px-3"
+                      onClick={() => insertRecipientInfo("pharmacy")}
+                    >
+                      Insert
+                    </Button>
+                  </div>
                 </div>
               </div>
 
@@ -6345,76 +6743,124 @@ Registration No: [Number]`
                   Appointment Information Templates
                 </h3>
                 <div className="space-y-2">
-                  <Button
-                    variant="outline"
-                    className="w-full text-left justify-start h-auto p-4"
-                    onClick={() => insertAppointmentInfo("appointment-details")}
-                  >
-                    <div>
-                      <div className="font-medium">Appointment Details</div>
-                      <div className="text-sm text-gray-500">
-                        Complete appointment information including date, time,
-                        provider, and location
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1 text-left justify-start h-auto p-4"
+                      onClick={() => handlePreviewOtherTemplate("appointment-details", "Appointment Details", "appointment")}
+                    >
+                      <div>
+                        <div className="font-medium">Appointment Details</div>
+                        <div className="text-sm text-gray-500">
+                          Complete appointment information including date, time,
+                          provider, and location
+                        </div>
                       </div>
-                    </div>
-                  </Button>
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="px-3"
+                      onClick={() => insertAppointmentInfo("appointment-details")}
+                    >
+                      Insert
+                    </Button>
+                  </div>
 
-                  <Button
-                    variant="outline"
-                    className="w-full text-left justify-start h-auto p-4"
-                    onClick={() => insertAppointmentInfo("next-appointment")}
-                  >
-                    <div>
-                      <div className="font-medium">Next Appointment</div>
-                      <div className="text-sm text-gray-500">
-                        Information about the patient's next scheduled
-                        appointment
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1 text-left justify-start h-auto p-4"
+                      onClick={() => handlePreviewOtherTemplate("next-appointment", "Next Appointment", "appointment")}
+                    >
+                      <div>
+                        <div className="font-medium">Next Appointment</div>
+                        <div className="text-sm text-gray-500">
+                          Information about the patient's next scheduled
+                          appointment
+                        </div>
                       </div>
-                    </div>
-                  </Button>
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="px-3"
+                      onClick={() => insertAppointmentInfo("next-appointment")}
+                    >
+                      Insert
+                    </Button>
+                  </div>
 
-                  <Button
-                    variant="outline"
-                    className="w-full text-left justify-start h-auto p-4"
-                    onClick={() => insertAppointmentInfo("appointment-history")}
-                  >
-                    <div>
-                      <div className="font-medium">Appointment History</div>
-                      <div className="text-sm text-gray-500">
-                        List of recent appointments with dates and providers
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1 text-left justify-start h-auto p-4"
+                      onClick={() => handlePreviewOtherTemplate("appointment-history", "Appointment History", "appointment")}
+                    >
+                      <div>
+                        <div className="font-medium">Appointment History</div>
+                        <div className="text-sm text-gray-500">
+                          List of recent appointments with dates and providers
+                        </div>
                       </div>
-                    </div>
-                  </Button>
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="px-3"
+                      onClick={() => insertAppointmentInfo("appointment-history")}
+                    >
+                      Insert
+                    </Button>
+                  </div>
 
-                  <Button
-                    variant="outline"
-                    className="w-full text-left justify-start h-auto p-4"
-                    onClick={() => insertAppointmentInfo("follow-up")}
-                  >
-                    <div>
-                      <div className="font-medium">Follow-up Required</div>
-                      <div className="text-sm text-gray-500">
-                        Follow-up appointment recommendation with timeframe and
-                        purpose
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1 text-left justify-start h-auto p-4"
+                      onClick={() => handlePreviewOtherTemplate("follow-up", "Follow-up Required", "appointment")}
+                    >
+                      <div>
+                        <div className="font-medium">Follow-up Required</div>
+                        <div className="text-sm text-gray-500">
+                          Follow-up appointment recommendation with timeframe and
+                          purpose
+                        </div>
                       </div>
-                    </div>
-                  </Button>
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="px-3"
+                      onClick={() => insertAppointmentInfo("follow-up")}
+                    >
+                      Insert
+                    </Button>
+                  </div>
 
-                  <Button
-                    variant="outline"
-                    className="w-full text-left justify-start h-auto p-4"
-                    onClick={() =>
-                      insertAppointmentInfo("appointment-reminder")
-                    }
-                  >
-                    <div>
-                      <div className="font-medium">Appointment Reminder</div>
-                      <div className="text-sm text-gray-500">
-                        Patient reminder with appointment details and
-                        instructions
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1 text-left justify-start h-auto p-4"
+                      onClick={() => handlePreviewOtherTemplate("appointment-reminder", "Appointment Reminder", "appointment")}
+                    >
+                      <div>
+                        <div className="font-medium">Appointment Reminder</div>
+                        <div className="text-sm text-gray-500">
+                          Patient reminder with appointment details and
+                          instructions
+                        </div>
                       </div>
-                    </div>
-                  </Button>
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="px-3"
+                      onClick={() => insertAppointmentInfo("appointment-reminder")}
+                    >
+                      Insert
+                    </Button>
+                  </div>
                 </div>
               </div>
 
@@ -6475,77 +6921,127 @@ Registration No: [Number]`
                   Laboratory Information Templates
                 </h3>
                 <div className="space-y-2">
-                  <Button
-                    variant="outline"
-                    className="w-full text-left justify-start h-auto p-4"
-                    onClick={() => insertLabInfo("lab-results")}
-                  >
-                    <div>
-                      <div className="font-medium">Laboratory Results</div>
-                      <div className="text-sm text-gray-500">
-                        Complete lab results with test type, values, and
-                        reference ranges
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1 text-left justify-start h-auto p-4"
+                      onClick={() => handlePreviewOtherTemplate("lab-results", "Laboratory Results", "laboratory")}
+                    >
+                      <div>
+                        <div className="font-medium">Laboratory Results</div>
+                        <div className="text-sm text-gray-500">
+                          Complete lab results with test type, values, and
+                          reference ranges
+                        </div>
                       </div>
-                    </div>
-                  </Button>
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="px-3"
+                      onClick={() => insertLabInfo("lab-results")}
+                    >
+                      Insert
+                    </Button>
+                  </div>
 
-                  <Button
-                    variant="outline"
-                    className="w-full text-left justify-start h-auto p-4"
-                    onClick={() => insertLabInfo("blood-work")}
-                  >
-                    <div>
-                      <div className="font-medium">Blood Work Results</div>
-                      <div className="text-sm text-gray-500">
-                        Blood test results including CBC, glucose, cholesterol,
-                        and hemoglobin
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1 text-left justify-start h-auto p-4"
+                      onClick={() => handlePreviewOtherTemplate("blood-work", "Blood Work Results", "laboratory")}
+                    >
+                      <div>
+                        <div className="font-medium">Blood Work Results</div>
+                        <div className="text-sm text-gray-500">
+                          Blood test results including CBC, glucose, cholesterol,
+                          and hemoglobin
+                        </div>
                       </div>
-                    </div>
-                  </Button>
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="px-3"
+                      onClick={() => insertLabInfo("blood-work")}
+                    >
+                      Insert
+                    </Button>
+                  </div>
 
-                  <Button
-                    variant="outline"
-                    className="w-full text-left justify-start h-auto p-4"
-                    onClick={() => insertLabInfo("urine-analysis")}
-                  >
-                    <div>
-                      <div className="font-medium">Urinalysis Results</div>
-                      <div className="text-sm text-gray-500">
-                        Urine test results including color, clarity, protein,
-                        glucose, and cell counts
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1 text-left justify-start h-auto p-4"
+                      onClick={() => handlePreviewOtherTemplate("urine-analysis", "Urinalysis Results", "laboratory")}
+                    >
+                      <div>
+                        <div className="font-medium">Urinalysis Results</div>
+                        <div className="text-sm text-gray-500">
+                          Urine test results including color, clarity, protein,
+                          glucose, and cell counts
+                        </div>
                       </div>
-                    </div>
-                  </Button>
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="px-3"
+                      onClick={() => insertLabInfo("urine-analysis")}
+                    >
+                      Insert
+                    </Button>
+                  </div>
 
-                  <Button
-                    variant="outline"
-                    className="w-full text-left justify-start h-auto p-4"
-                    onClick={() => insertLabInfo("culture-results")}
-                  >
-                    <div>
-                      <div className="font-medium">Culture Results</div>
-                      <div className="text-sm text-gray-500">
-                        Microbiology culture results with organism
-                        identification and sensitivity
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1 text-left justify-start h-auto p-4"
+                      onClick={() => handlePreviewOtherTemplate("culture-results", "Culture Results", "laboratory")}
+                    >
+                      <div>
+                        <div className="font-medium">Culture Results</div>
+                        <div className="text-sm text-gray-500">
+                          Microbiology culture results with organism
+                          identification and sensitivity
+                        </div>
                       </div>
-                    </div>
-                  </Button>
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="px-3"
+                      onClick={() => insertLabInfo("culture-results")}
+                    >
+                      Insert
+                    </Button>
+                  </div>
 
-                  <Button
-                    variant="outline"
-                    className="w-full text-left justify-start h-auto p-4"
-                    onClick={() => insertLabInfo("pending-labs")}
-                  >
-                    <div>
-                      <div className="font-medium">
-                        Pending Laboratory Tests
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1 text-left justify-start h-auto p-4"
+                      onClick={() => handlePreviewOtherTemplate("pending-labs", "Pending Laboratory Tests", "laboratory")}
+                    >
+                      <div>
+                        <div className="font-medium">
+                          Pending Laboratory Tests
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          List of pending lab tests with order dates and expected
+                          results
+                        </div>
                       </div>
-                      <div className="text-sm text-gray-500">
-                        List of pending lab tests with order dates and expected
-                        results
-                      </div>
-                    </div>
-                  </Button>
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="px-3"
+                      onClick={() => insertLabInfo("pending-labs")}
+                    >
+                      Insert
+                    </Button>
+                  </div>
                 </div>
               </div>
 
@@ -6608,80 +7104,126 @@ Registration No: [Number]`
                   Patient Records Templates
                 </h3>
                 <div className="space-y-2">
-                  <Button
-                    variant="outline"
-                    className="w-full text-left justify-start h-auto p-4"
-                    onClick={() => insertPatientRecordsInfo("medical-history")}
-                  >
-                    <div>
-                      <div className="font-medium">
-                        Complete Medical History
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1 text-left justify-start h-auto p-4"
+                      onClick={() => handlePreviewOtherTemplate("medical-history", "Complete Medical History", "patient-records")}
+                    >
+                      <div>
+                        <div className="font-medium">
+                          Complete Medical History
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          Comprehensive medical history including past conditions,
+                          surgeries, family history, and allergies
+                        </div>
                       </div>
-                      <div className="text-sm text-gray-500">
-                        Comprehensive medical history including past conditions,
-                        surgeries, family history, and allergies
-                      </div>
-                    </div>
-                  </Button>
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="px-3"
+                      onClick={() => insertPatientRecordsInfo("medical-history")}
+                    >
+                      Insert
+                    </Button>
+                  </div>
 
-                  <Button
-                    variant="outline"
-                    className="w-full text-left justify-start h-auto p-4"
-                    onClick={() =>
-                      insertPatientRecordsInfo("current-medications")
-                    }
-                  >
-                    <div>
-                      <div className="font-medium">Current Medications</div>
-                      <div className="text-sm text-gray-500">
-                        List of current medications with dosages and frequencies
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1 text-left justify-start h-auto p-4"
+                      onClick={() => handlePreviewOtherTemplate("current-medications", "Current Medications", "patient-records")}
+                    >
+                      <div>
+                        <div className="font-medium">Current Medications</div>
+                        <div className="text-sm text-gray-500">
+                          List of current medications with dosages and frequencies
+                        </div>
                       </div>
-                    </div>
-                  </Button>
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="px-3"
+                      onClick={() => insertPatientRecordsInfo("current-medications")}
+                    >
+                      Insert
+                    </Button>
+                  </div>
 
-                  <Button
-                    variant="outline"
-                    className="w-full text-left justify-start h-auto p-4"
-                    onClick={() => insertPatientRecordsInfo("allergies")}
-                  >
-                    <div>
-                      <div className="font-medium">Allergies & Reactions</div>
-                      <div className="text-sm text-gray-500">
-                        Known allergies including drugs, foods, environmental
-                        triggers, and reaction severity
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1 text-left justify-start h-auto p-4"
+                      onClick={() => handlePreviewOtherTemplate("allergies", "Allergies & Reactions", "patient-records")}
+                    >
+                      <div>
+                        <div className="font-medium">Allergies & Reactions</div>
+                        <div className="text-sm text-gray-500">
+                          Known allergies including drugs, foods, environmental
+                          triggers, and reaction severity
+                        </div>
                       </div>
-                    </div>
-                  </Button>
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="px-3"
+                      onClick={() => insertPatientRecordsInfo("allergies")}
+                    >
+                      Insert
+                    </Button>
+                  </div>
 
-                  <Button
-                    variant="outline"
-                    className="w-full text-left justify-start h-auto p-4"
-                    onClick={() => insertPatientRecordsInfo("vital-signs")}
-                  >
-                    <div>
-                      <div className="font-medium">Latest Vital Signs</div>
-                      <div className="text-sm text-gray-500">
-                        Recent vital signs measurements including blood
-                        pressure, heart rate, and temperature
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1 text-left justify-start h-auto p-4"
+                      onClick={() => handlePreviewOtherTemplate("vital-signs", "Latest Vital Signs", "patient-records")}
+                    >
+                      <div>
+                        <div className="font-medium">Latest Vital Signs</div>
+                        <div className="text-sm text-gray-500">
+                          Recent vital signs measurements including blood
+                          pressure, heart rate, and temperature
+                        </div>
                       </div>
-                    </div>
-                  </Button>
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="px-3"
+                      onClick={() => insertPatientRecordsInfo("vital-signs")}
+                    >
+                      Insert
+                    </Button>
+                  </div>
 
-                  <Button
-                    variant="outline"
-                    className="w-full text-left justify-start h-auto p-4"
-                    onClick={() =>
-                      insertPatientRecordsInfo("diagnosis-history")
-                    }
-                  >
-                    <div>
-                      <div className="font-medium">Diagnosis History</div>
-                      <div className="text-sm text-gray-500">
-                        Current and past diagnoses with ICD-10 codes and
-                        treatment history
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1 text-left justify-start h-auto p-4"
+                      onClick={() => handlePreviewOtherTemplate("diagnosis-history", "Diagnosis History", "patient-records")}
+                    >
+                      <div>
+                        <div className="font-medium">Diagnosis History</div>
+                        <div className="text-sm text-gray-500">
+                          Current and past diagnoses with ICD-10 codes and
+                          treatment history
+                        </div>
                       </div>
-                    </div>
-                  </Button>
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="px-3"
+                      onClick={() => insertPatientRecordsInfo("diagnosis-history")}
+                    >
+                      Insert
+                    </Button>
+                  </div>
                 </div>
               </div>
 
@@ -6745,75 +7287,125 @@ Registration No: [Number]`
                   Product Information Templates
                 </h3>
                 <div className="space-y-2">
-                  <Button
-                    variant="outline"
-                    className="w-full text-left justify-start h-auto p-4"
-                    onClick={() => insertProductInfo("medication")}
-                  >
-                    <div>
-                      <div className="font-medium">Medication Information</div>
-                      <div className="text-sm text-gray-500">
-                        Complete medication details including generic name,
-                        strength, form, manufacturer, NDC, and pricing
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1 text-left justify-start h-auto p-4"
+                      onClick={() => handlePreviewOtherTemplate("medication", "Medication Information", "product")}
+                    >
+                      <div>
+                        <div className="font-medium">Medication Information</div>
+                        <div className="text-sm text-gray-500">
+                          Complete medication details including generic name,
+                          strength, form, manufacturer, NDC, and pricing
+                        </div>
                       </div>
-                    </div>
-                  </Button>
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="px-3"
+                      onClick={() => insertProductInfo("medication")}
+                    >
+                      Insert
+                    </Button>
+                  </div>
 
-                  <Button
-                    variant="outline"
-                    className="w-full text-left justify-start h-auto p-4"
-                    onClick={() => insertProductInfo("medical-device")}
-                  >
-                    <div>
-                      <div className="font-medium">Medical Device</div>
-                      <div className="text-sm text-gray-500">
-                        Medical device specifications including model number,
-                        manufacturer, category, FDA approval, and warranty
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1 text-left justify-start h-auto p-4"
+                      onClick={() => handlePreviewOtherTemplate("medical-device", "Medical Device", "product")}
+                    >
+                      <div>
+                        <div className="font-medium">Medical Device</div>
+                        <div className="text-sm text-gray-500">
+                          Medical device specifications including model number,
+                          manufacturer, category, FDA approval, and warranty
+                        </div>
                       </div>
-                    </div>
-                  </Button>
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="px-3"
+                      onClick={() => insertProductInfo("medical-device")}
+                    >
+                      Insert
+                    </Button>
+                  </div>
 
-                  <Button
-                    variant="outline"
-                    className="w-full text-left justify-start h-auto p-4"
-                    onClick={() => insertProductInfo("medical-supplies")}
-                  >
-                    <div>
-                      <div className="font-medium">Medical Supplies</div>
-                      <div className="text-sm text-gray-500">
-                        Medical supplies information including brand, quantity,
-                        unit pricing, sterility, and expiration
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1 text-left justify-start h-auto p-4"
+                      onClick={() => handlePreviewOtherTemplate("medical-supplies", "Medical Supplies", "product")}
+                    >
+                      <div>
+                        <div className="font-medium">Medical Supplies</div>
+                        <div className="text-sm text-gray-500">
+                          Medical supplies information including brand, quantity,
+                          unit pricing, sterility, and expiration
+                        </div>
                       </div>
-                    </div>
-                  </Button>
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="px-3"
+                      onClick={() => insertProductInfo("medical-supplies")}
+                    >
+                      Insert
+                    </Button>
+                  </div>
 
-                  <Button
-                    variant="outline"
-                    className="w-full text-left justify-start h-auto p-4"
-                    onClick={() => insertProductInfo("laboratory-test")}
-                  >
-                    <div>
-                      <div className="font-medium">Laboratory Test</div>
-                      <div className="text-sm text-gray-500">
-                        Lab test details including test code, type, processing
-                        time, pricing, and special requirements
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1 text-left justify-start h-auto p-4"
+                      onClick={() => handlePreviewOtherTemplate("laboratory-test", "Laboratory Test", "product")}
+                    >
+                      <div>
+                        <div className="font-medium">Laboratory Test</div>
+                        <div className="text-sm text-gray-500">
+                          Lab test details including test code, type, processing
+                          time, pricing, and special requirements
+                        </div>
                       </div>
-                    </div>
-                  </Button>
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="px-3"
+                      onClick={() => insertProductInfo("laboratory-test")}
+                    >
+                      Insert
+                    </Button>
+                  </div>
 
-                  <Button
-                    variant="outline"
-                    className="w-full text-left justify-start h-auto p-4"
-                    onClick={() => insertProductInfo("treatment-package")}
-                  >
-                    <div>
-                      <div className="font-medium">Treatment Package</div>
-                      <div className="text-sm text-gray-500">
-                        Treatment package information including services,
-                        duration, provider, pricing, and coverage details
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1 text-left justify-start h-auto p-4"
+                      onClick={() => handlePreviewOtherTemplate("treatment-package", "Treatment Package", "product")}
+                    >
+                      <div>
+                        <div className="font-medium">Treatment Package</div>
+                        <div className="text-sm text-gray-500">
+                          Treatment package information including services,
+                          duration, provider, pricing, and coverage details
+                        </div>
                       </div>
-                    </div>
-                  </Button>
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="px-3"
+                      onClick={() => insertProductInfo("treatment-package")}
+                    >
+                      Insert
+                    </Button>
+                  </div>
                 </div>
               </div>
 
@@ -7929,6 +8521,629 @@ Registration No: [Number]`
               </Button>
               <Button 
                 onClick={handleLoadTemplateFromPreview}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                Load
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Other Templates Preview Dialog */}
+      <Dialog open={showOtherTemplatePreviewDialog} onOpenChange={setShowOtherTemplatePreviewDialog}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{previewOtherTemplateName}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {/* Additional Options */}
+            <div className="bg-gray-50 p-4 rounded-lg border">
+              <h4 className="text-sm font-medium text-gray-700 mb-3">Additional Options:</h4>
+              <div className="flex gap-4 flex-wrap">
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={addLogo}
+                    onChange={(e) => {
+                      setAddLogo(e.target.checked);
+                      if (e.target.checked) {
+                        setShowLogoTemplatesDialog(true);
+                      }
+                    }}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">Add Logo</span>
+                </label>
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={addClinicHeader}
+                    onChange={(e) => {
+                      setAddClinicHeader(e.target.checked);
+                      if (e.target.checked) {
+                        setShowClinicHeaderDialog(true);
+                      }
+                    }}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">Clinic Header Templates</span>
+                </label>
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={addFooter}
+                    onChange={(e) => setAddFooter(e.target.checked)}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">Footer</span>
+                </label>
+              </div>
+              
+              {addLogo && selectedLogoTemplate && (
+                <div className="bg-white p-3 rounded border mt-3">
+                  <h5 className="text-sm font-medium text-gray-700 mb-1">Selected Logo Template:</h5>
+                  <p className="text-sm text-gray-600 mb-3">
+                    {selectedLogoTemplate === "modern-clinic" && "Modern Clinic - Icon with clinic name"}
+                    {selectedLogoTemplate === "professional" && "Professional - Boxed design"}
+                    {selectedLogoTemplate === "minimal" && "Minimal - Clean typography"}
+                    {selectedLogoTemplate === "medical-cross" && "Medical Cross - Classic red cross"}
+                  </p>
+                  <h5 className="text-sm font-medium text-gray-700 mb-2">Logo Position:</h5>
+                  <div className="flex gap-3">
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="logoPosition"
+                        value="left"
+                        checked={logoPosition === "left"}
+                        onChange={(e) => setLogoPosition(e.target.value)}
+                        className="text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700">Left</span>
+                    </label>
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="logoPosition"
+                        value="center"
+                        checked={logoPosition === "center"}
+                        onChange={(e) => setLogoPosition(e.target.value)}
+                        className="text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700">Center</span>
+                    </label>
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="logoPosition"
+                        value="right"
+                        checked={logoPosition === "right"}
+                        onChange={(e) => setLogoPosition(e.target.value)}
+                        className="text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700">Right</span>
+                    </label>
+                  </div>
+                </div>
+              )}
+              
+              {addClinicHeader && selectedClinicHeaderType && (
+                <div className="bg-white p-3 rounded border mt-3">
+                  <h5 className="text-sm font-medium text-gray-700 mb-1">Selected Clinic Header:</h5>
+                  <p className="text-sm text-gray-600 mb-3">
+                    {selectedClinicHeaderType === "full-header" && "Full Header - Complete clinic header with name, address, phone, email, and website"}
+                    {selectedClinicHeaderType === "professional-letterhead" && "Professional Letterhead - Formal letterhead design with clinic branding"}
+                    {selectedClinicHeaderType === "clinic-name-only" && "Clinic Name Only - Just the clinic name in bold text"}
+                    {selectedClinicHeaderType === "contact-info-block" && "Contact Information Block - Formatted contact details section"}
+                  </p>
+                  <h5 className="text-sm font-medium text-gray-700 mb-2">Header Position:</h5>
+                  <div className="flex gap-3">
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="clinicHeaderPosition"
+                        value="left"
+                        checked={clinicHeaderPosition === "left"}
+                        onChange={(e) => setClinicHeaderPosition(e.target.value)}
+                        className="text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700">Left</span>
+                    </label>
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="clinicHeaderPosition"
+                        value="center"
+                        checked={clinicHeaderPosition === "center"}
+                        onChange={(e) => setClinicHeaderPosition(e.target.value)}
+                        className="text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700">Center</span>
+                    </label>
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="clinicHeaderPosition"
+                        value="right"
+                        checked={clinicHeaderPosition === "right"}
+                        onChange={(e) => setClinicHeaderPosition(e.target.value)}
+                        className="text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700">Right</span>
+                    </label>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Preview Section */}
+            {previewOtherTemplate && (
+              <div className="bg-gray-50 p-4 rounded-lg border">
+                <h4 className="text-sm font-medium text-gray-700 mb-3">Preview:</h4>
+                <div className="bg-white p-4 rounded border">
+                  {/* Header Preview */}
+                  {(addLogo || addClinicHeader) && (
+                    <>
+                      {logoPosition === "center" && addLogo && !addClinicHeader ? (
+                        <div className="text-center mb-4">
+                          {selectedLogoTemplate === "modern-clinic" && (
+                            <div className="w-16 h-16 bg-purple-200 rounded flex items-center justify-center mx-auto">
+                              <span className="text-purple-600 text-xs font-bold">🏥</span>
+                            </div>
+                          )}
+                          {selectedLogoTemplate === "professional" && (
+                            <div className="w-16 h-16 border-2 border-teal-500 rounded flex items-center justify-center bg-white mx-auto">
+                              <span className="text-teal-600 text-xs font-bold">MEDICAL</span>
+                            </div>
+                          )}
+                          {selectedLogoTemplate === "minimal" && (
+                            <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center mx-auto">
+                              <span className="text-gray-600 text-xs font-bold">PRACTICE</span>
+                            </div>
+                          )}
+                          {selectedLogoTemplate === "medical-cross" && (
+                            <div className="w-16 h-16 bg-red-100 rounded flex items-center justify-center mx-auto">
+                              <span className="text-red-600 text-lg">✚</span>
+                            </div>
+                          )}
+                          {!selectedLogoTemplate && (
+                            <div className="w-16 h-16 bg-blue-600 rounded flex items-center justify-center mx-auto">
+                              <span className="text-white font-bold text-xs">LOGO</span>
+                            </div>
+                          )}
+                        </div>
+                      ) : logoPosition === "center" && addLogo && addClinicHeader ? (
+                        <div className="mb-4">
+                          <div className="flex justify-center items-center gap-4">
+                            <div>
+                              {selectedLogoTemplate === "modern-clinic" && (
+                                <div className="w-16 h-16 bg-purple-200 rounded flex items-center justify-center">
+                                  <span className="text-purple-600 text-xs font-bold">🏥</span>
+                                </div>
+                              )}
+                              {selectedLogoTemplate === "professional" && (
+                                <div className="w-16 h-16 border-2 border-teal-500 rounded flex items-center justify-center bg-white">
+                                  <span className="text-teal-600 text-xs font-bold">MEDICAL</span>
+                                </div>
+                              )}
+                              {selectedLogoTemplate === "minimal" && (
+                                <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center">
+                                  <span className="text-gray-600 text-xs font-bold">PRACTICE</span>
+                                </div>
+                              )}
+                              {selectedLogoTemplate === "medical-cross" && (
+                                <div className="w-16 h-16 bg-red-100 rounded flex items-center justify-center">
+                                  <span className="text-red-600 text-lg">✚</span>
+                                </div>
+                              )}
+                              {!selectedLogoTemplate && (
+                                <div className="w-16 h-16 bg-blue-600 rounded flex items-center justify-center">
+                                  <span className="text-white font-bold text-xs">LOGO</span>
+                                </div>
+                              )}
+                            </div>
+                            <div>
+                              {selectedClinicHeaderType === "full-header" && (
+                                <div className={`${clinicHeaderPosition === 'left' ? 'text-left' : clinicHeaderPosition === 'right' ? 'text-right' : 'text-center'}`}>
+                                  <h1 className="text-xl font-bold text-blue-600 mb-1">Demo Healthcare Clinic</h1>
+                                  <p className="text-xs text-gray-600">123 Healthcare Street, Medical City, MC 12345</p>
+                                  <p className="text-xs text-gray-600">+44 20 1234 5678 • info@yourdlinic.com</p>
+                                  <p className="text-xs text-gray-600">www.yourdlinic.com</p>
+                                </div>
+                              )}
+                              {selectedClinicHeaderType === "professional-letterhead" && (
+                                <div className={`${clinicHeaderPosition === 'left' ? 'text-left' : clinicHeaderPosition === 'right' ? 'text-right' : 'text-center'} border-b-2 border-blue-600 pb-2`}>
+                                  <h1 className="text-xl font-bold text-blue-600 mb-1">Demo Healthcare Clinic</h1>
+                                  <p className="text-xs text-gray-600 italic">Excellence in Healthcare</p>
+                                </div>
+                              )}
+                              {selectedClinicHeaderType === "clinic-name-only" && (
+                                <div className={`${clinicHeaderPosition === 'left' ? 'text-left' : clinicHeaderPosition === 'right' ? 'text-right' : 'text-center'}`}>
+                                  <h1 className="text-xl font-bold text-blue-600">Demo Healthcare Clinic</h1>
+                                </div>
+                              )}
+                              {selectedClinicHeaderType === "contact-info-block" && (
+                                <div className={`${clinicHeaderPosition === 'left' ? 'text-left' : clinicHeaderPosition === 'right' ? 'text-right' : 'text-center'} bg-gray-50 p-2 rounded`}>
+                                  <p className="text-xs text-gray-600"><strong>Phone:</strong> +44 20 1234 5678</p>
+                                  <p className="text-xs text-gray-600"><strong>Email:</strong> info@yourdlinic.com</p>
+                                  <p className="text-xs text-gray-600"><strong>Address:</strong> 123 Healthcare Street, Medical City, MC 12345</p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ) : logoPosition === "center" && addClinicHeader && !addLogo ? (
+                        <div className="mb-4">
+                          {selectedClinicHeaderType === "full-header" && (
+                            <div className={`${clinicHeaderPosition === 'left' ? 'text-left' : clinicHeaderPosition === 'right' ? 'text-right' : 'text-center'}`}>
+                              <h1 className="text-xl font-bold text-blue-600 mb-1">Demo Healthcare Clinic</h1>
+                              <p className="text-xs text-gray-600">123 Healthcare Street, Medical City, MC 12345</p>
+                              <p className="text-xs text-gray-600">+44 20 1234 5678 • info@yourdlinic.com</p>
+                              <p className="text-xs text-gray-600">www.yourdlinic.com</p>
+                            </div>
+                          )}
+                          {selectedClinicHeaderType === "professional-letterhead" && (
+                            <div className={`${clinicHeaderPosition === 'left' ? 'text-left' : clinicHeaderPosition === 'right' ? 'text-right' : 'text-center'} border-b-2 border-blue-600 pb-2`}>
+                              <h1 className="text-2xl font-bold text-blue-600">Demo Healthcare Clinic</h1>
+                              <p className="text-xs text-gray-600 italic">Excellence in Healthcare</p>
+                            </div>
+                          )}
+                          {selectedClinicHeaderType === "clinic-name-only" && (
+                            <div className={`${clinicHeaderPosition === 'left' ? 'text-left' : clinicHeaderPosition === 'right' ? 'text-right' : 'text-center'}`}>
+                              <h1 className="text-xl font-bold text-blue-600">Demo Healthcare Clinic</h1>
+                            </div>
+                          )}
+                          {selectedClinicHeaderType === "contact-info-block" && (
+                            <div className={`${clinicHeaderPosition === 'left' ? 'text-left' : clinicHeaderPosition === 'right' ? 'text-right' : 'text-center'} bg-gray-50 p-2 rounded`}>
+                              <p className="text-xs text-gray-600"><strong>Phone:</strong> +44 20 1234 5678</p>
+                              <p className="text-xs text-gray-600"><strong>Email:</strong> info@yourdlinic.com</p>
+                              <p className="text-xs text-gray-600"><strong>Address:</strong> 123 Healthcare Street, Medical City, MC 12345</p>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="flex justify-between items-center mb-4">
+                          {/* Left side */}
+                          {logoPosition === "left" && addLogo ? (
+                            <div className="text-left">
+                              {selectedLogoTemplate === "modern-clinic" && (
+                                <div className="w-16 h-16 bg-purple-200 rounded flex items-center justify-center">
+                                  <span className="text-purple-600 text-xs font-bold">🏥</span>
+                                </div>
+                              )}
+                              {selectedLogoTemplate === "professional" && (
+                                <div className="w-16 h-16 border-2 border-teal-500 rounded flex items-center justify-center bg-white">
+                                  <span className="text-teal-600 text-xs font-bold">MEDICAL</span>
+                                </div>
+                              )}
+                              {selectedLogoTemplate === "minimal" && (
+                                <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center">
+                                  <span className="text-gray-600 text-xs font-bold">PRACTICE</span>
+                                </div>
+                              )}
+                              {selectedLogoTemplate === "medical-cross" && (
+                                <div className="w-16 h-16 bg-red-100 rounded flex items-center justify-center">
+                                  <span className="text-red-600 text-lg">✚</span>
+                                </div>
+                              )}
+                              {!selectedLogoTemplate && (
+                                <div className="w-16 h-16 bg-blue-600 rounded flex items-center justify-center">
+                                  <span className="text-white font-bold text-xs">LOGO</span>
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="flex-1"></div>
+                          )}
+                          
+                          {/* Center */}
+                          {addClinicHeader ? (
+                            <div className={`flex-2 ${clinicHeaderPosition === 'left' ? 'text-left' : clinicHeaderPosition === 'right' ? 'text-right' : 'text-center'}`}>
+                              {selectedClinicHeaderType === "full-header" && (
+                                <div>
+                                  <h1 className="text-xl font-bold text-blue-600 mb-1">Demo Healthcare Clinic</h1>
+                                  <p className="text-xs text-gray-600">123 Healthcare Street, Medical City, MC 12345</p>
+                                  <p className="text-xs text-gray-600">+44 20 1234 5678 • info@yourdlinic.com</p>
+                                  <p className="text-xs text-gray-600">www.yourdlinic.com</p>
+                                </div>
+                              )}
+                              {selectedClinicHeaderType === "professional-letterhead" && (
+                                <div className="border-b-2 border-blue-600 pb-2">
+                                  <h1 className="text-2xl font-bold text-blue-600">Demo Healthcare Clinic</h1>
+                                  <p className="text-xs text-gray-600 italic">Excellence in Healthcare</p>
+                                </div>
+                              )}
+                              {selectedClinicHeaderType === "clinic-name-only" && (
+                                <div>
+                                  <h1 className="text-xl font-bold text-blue-600">Demo Healthcare Clinic</h1>
+                                </div>
+                              )}
+                              {selectedClinicHeaderType === "contact-info-block" && (
+                                <div className="bg-gray-50 p-2 rounded">
+                                  <p className="text-xs text-gray-600"><strong>Phone:</strong> +44 20 1234 5678</p>
+                                  <p className="text-xs text-gray-600"><strong>Email:</strong> info@yourdlinic.com</p>
+                                  <p className="text-xs text-gray-600"><strong>Address:</strong> 123 Healthcare Street, Medical City, MC 12345</p>
+                                </div>
+                              )}
+                            </div>
+                          ) : logoPosition === "center" && addLogo ? (
+                            <div className="flex-2 text-center">
+                              {selectedLogoTemplate === "modern-clinic" && (
+                                <div className="w-16 h-16 bg-purple-200 rounded flex items-center justify-center mx-auto">
+                                  <span className="text-purple-600 text-xs font-bold">🏥</span>
+                                </div>
+                              )}
+                              {selectedLogoTemplate === "professional" && (
+                                <div className="w-16 h-16 border-2 border-teal-500 rounded flex items-center justify-center bg-white mx-auto">
+                                  <span className="text-teal-600 text-xs font-bold">MEDICAL</span>
+                                </div>
+                              )}
+                              {selectedLogoTemplate === "minimal" && (
+                                <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center mx-auto">
+                                  <span className="text-gray-600 text-xs font-bold">PRACTICE</span>
+                                </div>
+                              )}
+                              {selectedLogoTemplate === "medical-cross" && (
+                                <div className="w-16 h-16 bg-red-100 rounded flex items-center justify-center mx-auto">
+                                  <span className="text-red-600 text-lg">✚</span>
+                                </div>
+                              )}
+                              {!selectedLogoTemplate && (
+                                <div className="w-16 h-16 bg-blue-600 rounded flex items-center justify-center mx-auto">
+                                  <span className="text-white font-bold text-xs">LOGO</span>
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="flex-2"></div>
+                          )}
+                          
+                          {/* Right side */}
+                          {logoPosition === "right" && addLogo ? (
+                            <div className="text-right">
+                              {selectedLogoTemplate === "modern-clinic" && (
+                                <div className="w-16 h-16 bg-purple-200 rounded flex items-center justify-center">
+                                  <span className="text-purple-600 text-xs font-bold">🏥</span>
+                                </div>
+                              )}
+                              {selectedLogoTemplate === "professional" && (
+                                <div className="w-16 h-16 border-2 border-teal-500 rounded flex items-center justify-center bg-white">
+                                  <span className="text-teal-600 text-xs font-bold">MEDICAL</span>
+                                </div>
+                              )}
+                              {selectedLogoTemplate === "minimal" && (
+                                <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center">
+                                  <span className="text-gray-600 text-xs font-bold">PRACTICE</span>
+                                </div>
+                              )}
+                              {selectedLogoTemplate === "medical-cross" && (
+                                <div className="w-16 h-16 bg-red-100 rounded flex items-center justify-center">
+                                  <span className="text-red-600 text-lg">✚</span>
+                                </div>
+                              )}
+                              {!selectedLogoTemplate && (
+                                <div className="w-16 h-16 bg-blue-600 rounded flex items-center justify-center">
+                                  <span className="text-white font-bold text-xs">LOGO</span>
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="flex-1"></div>
+                          )}
+                        </div>
+                      )}
+                      <hr className="mb-4 border-gray-300" />
+                    </>
+                  )}
+                  
+                  {/* Template Content Preview */}
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Subject:</label>
+                      <p className="text-gray-900 font-medium mt-1">{previewOtherTemplate.subject}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Body:</label>
+                      <div className="text-gray-900 mt-1 whitespace-pre-wrap bg-gray-50 p-3 rounded border">
+                        {previewOtherTemplate.body}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Footer Preview */}
+                  {addFooter && (
+                    <div className="mt-8 pt-4 border-t border-gray-300 text-center text-xs text-gray-600">
+                      <p className="font-bold text-gray-800 mb-1">Demo Healthcare Clinic</p>
+                      <p>123 Healthcare Street, Medical City, MC 12345</p>
+                      <p>Phone: +44 20 1234 5678 | Email: info@yourdlinic.com</p>
+                      <p>www.yourdlinic.com</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            <div className="flex justify-end gap-2 pt-4 border-t">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setShowOtherTemplatePreviewDialog(false);
+                  setAddLogo(false);
+                  setAddClinicHeader(false);
+                  setSelectedClinicHeaderType("");
+                  setLogoPosition("right");
+                  setAddFooter(false);
+                  setClinicHeaderPosition("center");
+                  setSelectedLogoTemplate("");
+                }}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={() => {
+                  // Load template with the same functionality as Patient Letter Templates
+                  if (previewOtherTemplate) {
+                    let finalHtml = '';
+                    
+                    // Add header section with logo and clinic header if selected
+                    if (addLogo || addClinicHeader) {
+                      const getLogoContent = () => {
+                        switch (selectedLogoTemplate) {
+                          case "modern-clinic":
+                            return `
+                              <div style="width: 80px; height: 80px; background-color: #ddd6fe; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                <span style="color: #7c3aed; font-weight: bold; font-size: 12px;">🏥</span>
+                              </div>
+                            `;
+                          case "professional":
+                            return `
+                              <div style="width: 80px; height: 80px; border: 2px solid #14b8a6; border-radius: 8px; display: flex; align-items: center; justify-content: center; background-color: white;">
+                                <span style="color: #14b8a6; font-weight: bold; font-size: 10px;">MEDICAL</span>
+                              </div>
+                            `;
+                          case "minimal":
+                            return `
+                              <div style="width: 80px; height: 80px; background-color: #e5e7eb; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                <span style="color: #6b7280; font-weight: bold; font-size: 8px;">PRACTICE</span>
+                              </div>
+                            `;
+                          case "medical-cross":
+                            return `
+                              <div style="width: 80px; height: 80px; background-color: #fecaca; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                <span style="color: #dc2626; font-size: 20px;">✚</span>
+                              </div>
+                            `;
+                          default:
+                            return `
+                              <div style="width: 80px; height: 80px; background-color: #2563eb; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                <span style="color: white; font-weight: bold; font-size: 14px;">LOGO</span>
+                              </div>
+                            `;
+                        }
+                      };
+
+                      const getClinicHeaderContent = () => {
+                        const textAlign = clinicHeaderPosition;
+                        switch (selectedClinicHeaderType) {
+                          case "full-header":
+                            return `
+                              <div style="text-align: ${textAlign};">
+                                <h1 style="font-size: 24px; font-weight: bold; margin: 0; color: #2563eb;">Demo Healthcare Clinic</h1>
+                                <p style="margin: 5px 0; color: #666;">123 Healthcare Street, Medical City, MC 12345</p>
+                                <p style="margin: 5px 0; color: #666;">+44 20 1234 5678 • info@yourdlinic.com</p>
+                                <p style="margin: 5px 0; color: #666;">www.yourdlinic.com</p>
+                              </div>
+                            `;
+                          case "professional-letterhead":
+                            return `
+                              <div style="text-align: ${textAlign}; border-bottom: 2px solid #2563eb; padding-bottom: 10px;">
+                                <h1 style="font-size: 28px; font-weight: bold; margin: 0; color: #2563eb;">Demo Healthcare Clinic</h1>
+                                <p style="margin: 5px 0; color: #666; font-style: italic;">Excellence in Healthcare</p>
+                              </div>
+                            `;
+                          case "clinic-name-only":
+                            return `
+                              <div style="text-align: ${textAlign};">
+                                <h1 style="font-size: 24px; font-weight: bold; margin: 0; color: #2563eb;">Demo Healthcare Clinic</h1>
+                              </div>
+                            `;
+                          case "contact-info-block":
+                            return `
+                              <div style="text-align: ${textAlign}; background-color: #f8fafc; padding: 10px; border-radius: 8px;">
+                                <p style="margin: 2px 0; color: #666;"><strong>Phone:</strong> +44 20 1234 5678</p>
+                                <p style="margin: 2px 0; color: #666;"><strong>Email:</strong> info@yourdlinic.com</p>
+                                <p style="margin: 2px 0; color: #666;"><strong>Address:</strong> 123 Healthcare Street, Medical City, MC 12345</p>
+                              </div>
+                            `;
+                          default:
+                            return "";
+                        }
+                      };
+
+                      const logoContent = getLogoContent();
+
+                      if (logoPosition === "center" && addLogo && !addClinicHeader) {
+                        finalHtml += `<div style="text-align: center; margin-bottom: 20px;">${logoContent}</div>`;
+                      } else if (logoPosition === "center" && addClinicHeader && !addLogo) {
+                        finalHtml += `<div style="margin-bottom: 20px;">${getClinicHeaderContent()}</div>`;
+                      } else if (logoPosition === "center" && addLogo && addClinicHeader) {
+                        // Logo and clinic header in a row when center is selected
+                        finalHtml += `
+                          <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 20px; gap: 20px;">
+                            <div>${logoContent}</div>
+                            <div>${getClinicHeaderContent()}</div>
+                          </div>
+                        `;
+                      } else {
+                        finalHtml += '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">';
+                        
+                        // Left side
+                        if (logoPosition === "left" && addLogo) {
+                          finalHtml += `<div style="text-align: left;">${logoContent}</div>`;
+                        } else {
+                          finalHtml += '<div style="flex: 1;"></div>';
+                        }
+                        
+                        // Center
+                        if (addClinicHeader) {
+                          finalHtml += `<div style="flex: 2;">${getClinicHeaderContent()}</div>`;
+                        } else if (logoPosition === "center" && addLogo) {
+                          finalHtml += `<div style="flex: 2; text-align: center;">${logoContent}</div>`;
+                        } else {
+                          finalHtml += '<div style="flex: 2;"></div>';
+                        }
+                        
+                        // Right side
+                        if (logoPosition === "right" && addLogo) {
+                          finalHtml += `<div style="text-align: right;">${logoContent}</div>`;
+                        } else {
+                          finalHtml += '<div style="flex: 1;"></div>';
+                        }
+                        
+                        finalHtml += '</div>';
+                      }
+                      
+                      finalHtml += '<hr style="margin: 20px 0; border: 1px solid #e5e7eb;">';
+                    }
+                    
+                    // Add the main template content
+                    const templateHtml = `<p style="margin: 0 0 12px; line-height: 1.6;"><strong>Subject:</strong> ${previewOtherTemplate.subject}</p><div style="margin: 12px 0; line-height: 1.6; white-space: pre-wrap;">${previewOtherTemplate.body.replace(/\n/g, '<br>')}</div>`;
+                    finalHtml += templateHtml;
+                    
+                    // Add footer if selected
+                    if (addFooter) {
+                      finalHtml += `
+                        <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center; font-size: 12px; color: #666;">
+                          <p style="margin: 2px 0;"><strong>Demo Healthcare Clinic</strong></p>
+                          <p style="margin: 2px 0;">123 Healthcare Street, Medical City, MC 12345</p>
+                          <p style="margin: 2px 0;">Phone: +44 20 1234 5678 | Email: info@yourdlinic.com</p>
+                          <p style="margin: 2px 0;">www.yourdlinic.com</p>
+                        </div>
+                      `;
+                    }
+                    
+                    // Load template into editor with proper HTML formatting
+                    if (textareaRef) {
+                      textareaRef.innerHTML = finalHtml;
+                      setDocumentContent(finalHtml);
+                    }
+                    
+                    setShowOtherTemplatePreviewDialog(false);
+                    setAddLogo(false);
+                    setAddClinicHeader(false);
+                    setSelectedClinicHeaderType("");
+                    setLogoPosition("right");
+                    setAddFooter(false);
+                    setClinicHeaderPosition("center");
+                    setSelectedLogoTemplate("");
+                    
+                    toast({
+                      title: "Template Loaded",
+                      description: `${previewOtherTemplateName} template has been loaded into the editor.`,
+                      duration: 3000,
+                    });
+                  }
+                }}
                 className="bg-blue-600 hover:bg-blue-700 text-white"
               >
                 Load
