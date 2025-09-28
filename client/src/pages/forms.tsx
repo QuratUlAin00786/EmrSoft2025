@@ -9131,8 +9131,8 @@ Registration No: [Number]`
       <Dialog open={showClinicHeaderDialog} onOpenChange={setShowClinicHeaderDialog}>
         <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Insert Clinic Information</DialogTitle>
-            <h2 className="text-2xl font-bold text-gray-800 mt-2">Clinic Information Templates</h2>
+            <DialogTitle>Clinic Information Templates</DialogTitle>
+          
           </DialogHeader>
           <div className="space-y-4 mt-4">
             <div 
@@ -9143,7 +9143,7 @@ Registration No: [Number]`
                 setShowClinicHeaderDialog(false);
               }}
             >
-              <h3 className="font-semibold text-gray-800">Full Header</h3>
+              <h6 className="font-semibold text-gray-800">Full Header</h6>
               <p className="text-sm text-gray-600">Complete clinic header with name, address, phone, email, and website</p>
             </div>
             
@@ -9155,7 +9155,7 @@ Registration No: [Number]`
                 setShowClinicHeaderDialog(false);
               }}
             >
-              <h3 className="font-semibold text-gray-800">Professional Letterhead</h3>
+              <h6 className="font-semibold text-gray-800">Professional Letterhead</h6>
               <p className="text-sm text-gray-600">Formal letterhead design with clinic branding</p>
             </div>
             
@@ -9626,7 +9626,7 @@ Registration No: [Number]`
 
       {/* Clinic Display Dialog */}
       <Dialog open={showClinicDisplayDialog} onOpenChange={setShowClinicDisplayDialog}>
-        <DialogContent className="w-[700px]">
+        <DialogContent className="max-w-full">
           <div className="space-y-4">
             {/* Display the clinic info like in the attached image */}
             <div className="p-6 bg-blue-50 dark:bg-[hsl(var(--cura-midnight))] border border-blue-200 dark:border-[hsl(var(--cura-steel))] rounded text-center relative">
