@@ -183,6 +183,8 @@ export default function FinancialIntelligence() {
   const [addInsuranceOpen, setAddInsuranceOpen] = useState(false);
   const [patientSearchOpen, setPatientSearchOpen] = useState(false);
   const [selectedInsurance, setSelectedInsurance] = useState<any>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successClaimData, setSuccessClaimData] = useState<any>(null);
   const [verificationFormData, setVerificationFormData] = useState({
     patientName: "",
     insuranceProvider: "",
@@ -357,6 +359,10 @@ export default function FinancialIntelligence() {
       await queryClient.invalidateQueries({ queryKey: ["/api/financial/revenue"] });
       await queryClient.invalidateQueries({ queryKey: ["/api/financial/insurance"] });
       await queryClient.invalidateQueries({ queryKey: ["/api/patients"] });
+      
+      // Show success modal
+      setSuccessClaimData(data);
+      setShowSuccessModal(true);
       
       toast({ 
         title: "Claim Submitted",
@@ -3482,6 +3488,56 @@ export default function FinancialIntelligence() {
                 {deleteInsuranceMutation.isPending ? "Deleting..." : "Delete"}
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Success Modal */}
+      <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CheckCircle className="w-6 h-6 text-green-500" />
+              Claim Submitted Successfully!
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="text-center space-y-2">
+              <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                Claim Number: {successClaimData?.claimNumber}
+              </p>
+              <p className="text-gray-600 dark:text-gray-400">
+                Your insurance claim has been successfully submitted and is now pending review.
+              </p>
+            </div>
+            <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg space-y-2">
+              <div className="flex justify-between">
+                <span className="text-sm font-medium">Patient:</span>
+                <span className="text-sm">{successClaimData?.patientName}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm font-medium">Provider:</span>
+                <span className="text-sm">{successClaimData?.insuranceProvider}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm font-medium">Amount:</span>
+                <span className="text-sm">${successClaimData?.amount?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm font-medium">Status:</span>
+                <Badge variant="secondary">Pending</Badge>
+              </div>
+            </div>
+            <Button 
+              className="w-full" 
+              onClick={() => {
+                setShowSuccessModal(false);
+                setSuccessClaimData(null);
+              }}
+              data-testid="button-close-success-modal"
+            >
+              Close
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

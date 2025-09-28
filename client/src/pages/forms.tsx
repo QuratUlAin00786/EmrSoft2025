@@ -6427,14 +6427,7 @@ Registration No: [Number]`
                         </div>
                       </div>
                     </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="px-3"
-                      onClick={() => insertRecipientInfo("patient-family")}
-                    >
-                      Insert
-                    </Button>
+               
                   </div>
 
                   <div className="flex gap-2">
@@ -6451,14 +6444,7 @@ Registration No: [Number]`
                         </div>
                       </div>
                     </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="px-3"
-                      onClick={() => insertRecipientInfo("pharmacy")}
-                    >
-                      Insert
-                    </Button>
+                  
                   </div>
                 </div>
               </div>
@@ -9556,7 +9542,7 @@ Registration No: [Number]`
 
       {/* Clinic Display Dialog */}
       <Dialog open={showClinicDisplayDialog} onOpenChange={setShowClinicDisplayDialog}>
-        <DialogContent className="w-[600px]">
+        <DialogContent className="max-w-full">
           <div className="space-y-4">
             {/* Display the clinic info like in the attached image */}
             <div className="p-6 bg-blue-50 dark:bg-[hsl(var(--cura-midnight))] border border-blue-200 dark:border-[hsl(var(--cura-steel))] rounded text-center relative">
