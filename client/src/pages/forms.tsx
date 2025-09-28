@@ -1133,20 +1133,20 @@ Coverage Details: [Insurance Coverage]`;
                   <p style="margin: 5px 0; color: #666;">www.yourdlinic.com</p>
                 </div>
               `;
-            case "professional-letterhead":
+            case "letterhead":
               return `
                 <div style="text-align: ${textAlign}; border-bottom: 2px solid #2563eb; padding-bottom: 10px;">
                   <h1 style="font-size: 28px; font-weight: bold; margin: 0; color: #2563eb;">Demo Healthcare Clinic</h1>
                   <p style="margin: 5px 0; color: #666; font-style: italic;">Excellence in Healthcare</p>
                 </div>
               `;
-            case "clinic-name-only":
+            case "name-only":
               return `
                 <div style="text-align: ${textAlign};">
                   <h1 style="font-size: 24px; font-weight: bold; margin: 0; color: #2563eb;">Demo Healthcare Clinic</h1>
                 </div>
               `;
-            case "contact-info-block":
+            case "contact-info":
               return `
                 <div style="text-align: ${textAlign}; background-color: #f8fafc; padding: 10px; border-radius: 8px;">
                   <p style="margin: 2px 0; color: #666;"><strong>Phone:</strong> +44 20 1234 5678</p>
