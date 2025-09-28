@@ -9430,6 +9430,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Send Letter with PDF attachment
+  app.post("/api/email/send-letter", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const emailData = z.object({
+        to: z.string().email(),
+        subject: z.string(),
+        documentContent: z.string(),
+        doctorEmail: z.string().email().optional(),
+      }).parse(req.body);
+
+      // Import necessary libraries for PDF conversion
+      const puppeteer = require('puppeteer');
+      
+      // Convert HTML content to PDF
+      const browser = await puppeteer.launch({
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+      });
+      const page = await browser.newPage();
+      await page.setContent(emailData.documentContent, { waitUntil: 'networkidle0' });
+      const pdfBuffer = await page.pdf({
+        format: 'A4',
+        printBackground: true,
+        margin: {
+          top: '20mm',
+          right: '20mm',
+          bottom: '20mm',
+          left: '20mm'
+        }
+      });
+      await browser.close();
+
+      // Convert PDF to base64 for email attachment
+      const pdfBase64 = pdfBuffer.toString('base64');
+
+      // Send email with PDF attachment
+      const success = await emailService.sendEmail({
+        to: emailData.to,
+        subject: emailData.subject,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #2563eb; border-bottom: 2px solid #2563eb; padding-bottom: 10px;">
+              Medical Document
+            </h2>
+            <p>Please find the attached medical document.</p>
+            <p>This document was generated from your healthcare provider's system.</p>
+            <br>
+            <p style="color: #666; font-size: 12px;">
+              This is an automated message. Please do not reply to this email.
+            </p>
+          </div>
+        `,
+        attachments: [{
+          content: pdfBase64,
+          filename: `medical-document-${Date.now()}.pdf`,
+          type: 'application/pdf',
+          disposition: 'attachment'
+        }]
+      });
+
+      if (success) {
+        res.json({ success: true, message: "Letter sent successfully" });
+      } else {
+        res.status(500).json({ error: "Failed to send letter" });
+      }
+    } catch (error) {
+      console.error("Error sending letter:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: error.errors.map(e => `${e.path.join('.')}: ${e.message}`)
+        });
+      }
+      res.status(500).json({ error: "Failed to send letter" });
+    }
+  });
+
   // PDF Email endpoint for prescriptions with file attachments
   app.post("/api/prescriptions/:id/send-pdf", authMiddleware, upload.array('attachments', 5), async (req: TenantRequest, res) => {
     try {

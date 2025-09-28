@@ -1286,8 +1286,9 @@ Coverage Details: [Insurance Coverage]`;
     enabled: true,
   });
 
-  // Filter users to get only doctors
+  // Filter users to get only doctors and patients
   const doctors = users.filter((user) => user.role === 'doctor' && user.isActive);
+  const patients = users.filter((user) => user.role === 'patient' && user.isActive);
   const [editingClinicInfo, setEditingClinicInfo] = useState({
     name: "",
     address: "",
@@ -7599,15 +7600,41 @@ Registration No: [Number]`
                 <Label htmlFor="share-recipient" className="text-sm font-medium">
                   Recipient (optional)
                 </Label>
-                <Input
-                  id="share-recipient"
+                <Select
                   value={shareFormData.recipient}
-                  onChange={(e) =>
-                    setShareFormData((prev) => ({ ...prev, recipient: e.target.value }))
+                  onValueChange={(value) =>
+                    setShareFormData((prev) => ({ ...prev, recipient: value }))
                   }
-                  placeholder="Enter recipient"
-                  className="w-full mt-1"
-                />
+                >
+                  <SelectTrigger className="w-full mt-1">
+                    <SelectValue placeholder="Select recipient" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {usersLoading ? (
+                      <SelectItem value="loading" disabled>Loading recipients...</SelectItem>
+                    ) : user?.role === "patient" ? (
+                      doctors.length > 0 ? (
+                        doctors.map((doctor) => (
+                          <SelectItem key={doctor.id} value={doctor.email}>
+                            Dr. {doctor.firstName} {doctor.lastName} ({doctor.email})
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="no-doctors" disabled>No doctors available</SelectItem>
+                      )
+                    ) : (
+                      patients.length > 0 ? (
+                        patients.map((patient) => (
+                          <SelectItem key={patient.id} value={patient.email}>
+                            {patient.firstName} {patient.lastName} ({patient.email})
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="no-patients" disabled>No patients available</SelectItem>
+                      )
+                    )}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -7670,8 +7697,8 @@ Registration No: [Number]`
                       <SelectItem value="loading" disabled>Loading doctors...</SelectItem>
                     ) : doctors.length > 0 ? (
                       doctors.map((doctor) => (
-                        <SelectItem key={doctor.id} value={doctor.id.toString()}>
-                          Dr. {doctor.firstName} {doctor.lastName}
+                        <SelectItem key={doctor.id} value={doctor.email}>
+                          Dr. {doctor.firstName} {doctor.lastName} ({doctor.email})
                         </SelectItem>
                       ))
                     ) : (
@@ -7717,13 +7744,71 @@ Registration No: [Number]`
                     Cancel
                   </Button>
                   <Button
-                    onClick={() => {
-                      // Handle creating the letter
-                      toast({
-                        title: "Letter Created",
-                        description: "Letter has been created with the specified details.",
-                      });
-                      setShowShareDialog(false);
+                    onClick={async () => {
+                      if (!shareFormData.recipient) {
+                        toast({
+                          title: "Error",
+                          description: "Please select a recipient to send the letter.",
+                          variant: "destructive"
+                        });
+                        return;
+                      }
+
+                      if (!documentContent || documentContent.trim() === '') {
+                        toast({
+                          title: "Error", 
+                          description: "Please create document content before sending.",
+                          variant: "destructive"
+                        });
+                        return;
+                      }
+
+                      try {
+                        const response = await fetch("/api/email/send-letter", {
+                          method: "POST",
+                          headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+                          },
+                          body: JSON.stringify({
+                            to: shareFormData.recipient,
+                            subject: shareFormData.subject || "Medical Document",
+                            documentContent: documentContent,
+                            doctorEmail: shareFormData.doctor,
+                          }),
+                        });
+
+                        if (response.ok) {
+                          toast({
+                            title: "Letter Sent",
+                            description: `Letter has been sent successfully to ${shareFormData.recipient}`,
+                          });
+                          setShowShareDialog(false);
+                          // Reset form
+                          setShareFormData({
+                            subject: "",
+                            recipient: "",
+                            location: "",
+                            copiedRecipients: "",
+                            doctor: "",
+                            header: "",
+                          });
+                        } else {
+                          const errorData = await response.json();
+                          toast({
+                            title: "Error",
+                            description: errorData.error || "Failed to send letter",
+                            variant: "destructive"
+                          });
+                        }
+                      } catch (error) {
+                        console.error("Error sending letter:", error);
+                        toast({
+                          title: "Error",
+                          description: "Failed to send letter. Please try again.",
+                          variant: "destructive"
+                        });
+                      }
                     }}
                     className="px-6"
                     style={{
