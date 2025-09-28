@@ -2300,6 +2300,28 @@ export const insertMusclePositionSchema = createInsertSchema(musclePositions).om
   updatedAt: true,
 });
 
+// Letter Drafts - For saving letter drafts when email sending fails
+export const letterDrafts = pgTable("letter_drafts", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  userId: integer("user_id").notNull(),
+  subject: text("subject").notNull(),
+  recipient: text("recipient").notNull(),
+  doctorEmail: text("doctor_email"),
+  location: text("location"),
+  copiedRecipients: text("copied_recipients"),
+  header: text("header"),
+  documentContent: text("document_content").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertLetterDraftSchema = createInsertSchema(letterDrafts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Messaging Types
 export type Conversation = typeof conversations.$inferSelect;
 export type InsertConversation = z.infer<typeof insertConversationSchema>;
@@ -2345,3 +2367,7 @@ export type InsertSaaSSettings = typeof saasSettings.$inferInsert;
 // Muscle Position Types
 export type MusclePosition = typeof musclePositions.$inferSelect;
 export type InsertMusclePosition = z.infer<typeof insertMusclePositionSchema>;
+
+// Letter Draft Types
+export type LetterDraft = typeof letterDrafts.$inferSelect;
+export type InsertLetterDraft = z.infer<typeof insertLetterDraftSchema>;

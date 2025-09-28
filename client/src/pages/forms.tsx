@@ -4599,87 +4599,11 @@ Coverage Details: [Insurance Coverage]`;
             </div>
 
             <div className="flex items-center gap-4">
-              <Button
-                className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
-                style={{
-                  backgroundColor: "white",
-                  color: "black",
-                  borderColor: "#e5e7eb",
-                  borderRadius: "10px",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#f9fafb";
-                  e.currentTarget.style.borderColor = "#d1d5db";
-                  e.currentTarget.style.transform = "translateY(-2px)";
-                  e.currentTarget.style.boxShadow =
-                    "0 6px 16px rgba(0,0,0,0.15)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "white";
-                  e.currentTarget.style.borderColor = "#e5e7eb";
-                  e.currentTarget.style.transform = "translateY(0px)";
-                  e.currentTarget.style.boxShadow =
-                    "0 4px 12px rgba(0,0,0,0.1)";
-                }}
-              >
-                Letter body
-              </Button>
+            
 
               <div className="h-8 w-px bg-white/30 mx-1"></div>
 
-              <Button
-                className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
-                style={{
-                  backgroundColor: "white",
-                  color: "black",
-                  borderColor: "#e5e7eb",
-                  borderRadius: "10px",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#f9fafb";
-                  e.currentTarget.style.borderColor = "#d1d5db";
-                  e.currentTarget.style.transform = "translateY(-2px)";
-                  e.currentTarget.style.boxShadow =
-                    "0 6px 16px rgba(0,0,0,0.15)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "white";
-                  e.currentTarget.style.borderColor = "#e5e7eb";
-                  e.currentTarget.style.transform = "translateY(0px)";
-                  e.currentTarget.style.boxShadow =
-                    "0 4px 12px rgba(0,0,0,0.1)";
-                }}
-              >
-                Select Patient...
-              </Button>
-              <Button
-                className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
-                style={{
-                  backgroundColor: "white",
-                  color: "black",
-                  borderColor: "#e5e7eb",
-                  borderRadius: "10px",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#f9fafb";
-                  e.currentTarget.style.borderColor = "#d1d5db";
-                  e.currentTarget.style.transform = "translateY(-2px)";
-                  e.currentTarget.style.boxShadow =
-                    "0 6px 16px rgba(0,0,0,0.15)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "white";
-                  e.currentTarget.style.borderColor = "#e5e7eb";
-                  e.currentTarget.style.transform = "translateY(0px)";
-                  e.currentTarget.style.boxShadow =
-                    "0 4px 12px rgba(0,0,0,0.1)";
-                }}
-              >
-                New Chris...
-              </Button>
+          
               <Button
                 className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
                 style={{
