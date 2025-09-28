@@ -146,6 +146,11 @@ export default function Forms() {
   const [showSavedTemplatePreviewDialog, setShowSavedTemplatePreviewDialog] = useState(false);
   const [selectedSavedTemplate, setSelectedSavedTemplate] = useState<any>(null);
 
+  // Draft functionality states
+  const [showDraftsDialog, setShowDraftsDialog] = useState(false);
+  const [showDraftDetailsDialog, setShowDraftDetailsDialog] = useState(false);
+  const [selectedDraft, setSelectedDraft] = useState<any>(null);
+
   // Get current user
   const { user } = useAuth();
 
@@ -1361,6 +1366,21 @@ Coverage Details: [Insurance Coverage]`;
     queryKey: ["/api/documents/templates"],
     queryFn: async () => {
       const response = await fetch("/api/documents?templates=true", {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+        },
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return response.json();
+    },
+  });
+
+  // Fetch letter drafts
+  const { data: drafts = [], refetch: refetchDrafts } = useQuery({
+    queryKey: ["/api/letter-drafts"],
+    queryFn: async () => {
+      const response = await fetch("/api/letter-drafts", {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
@@ -7545,6 +7565,17 @@ Registration No: [Number]`
                     Cancel
                   </Button>
                   <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowShareDialog(false);
+                      setShowDraftsDialog(true);
+                    }}
+                    className="px-6"
+                    data-testid="button-drafts"
+                  >
+                    Drafts
+                  </Button>
+                  <Button
                     onClick={async () => {
                       if (!shareFormData.recipient) {
                         toast({
@@ -7576,31 +7607,58 @@ Registration No: [Number]`
                             subject: shareFormData.subject || "Medical Document",
                             documentContent: documentContent,
                             doctorEmail: shareFormData.doctor,
+                            location: shareFormData.location,
+                            copiedRecipients: shareFormData.copiedRecipients,
+                            header: shareFormData.header,
                           }),
                         });
 
+                        const responseData = await response.json();
+                        
                         if (response.ok) {
-                          toast({
-                            title: "Letter Sent",
-                            description: `Letter has been sent successfully to ${shareFormData.recipient}`,
-                          });
-                          setShowShareDialog(false);
-                          // Reset form
-                          setShareFormData({
-                            subject: "",
-                            recipient: "",
-                            location: "",
-                            copiedRecipients: "",
-                            doctor: "",
-                            header: "",
-                          });
+                          if (responseData.success) {
+                            // Email sent successfully
+                            toast({
+                              title: "Letter Sent",
+                              description: `Letter has been sent successfully to ${shareFormData.recipient}`,
+                            });
+                            setShowShareDialog(false);
+                            // Reset form
+                            setShareFormData({
+                              subject: "",
+                              recipient: "",
+                              location: "",
+                              copiedRecipients: "",
+                              doctor: "",
+                              header: "",
+                            });
+                          } else if (responseData.savedAsDraft) {
+                            // Email failed but saved as draft
+                            refetchDrafts(); // Refresh drafts list
+                            toast({
+                              title: "Saved as Draft",
+                              description: responseData.message || "Email delivery failed but letter saved as draft.",
+                              variant: "default"
+                            });
+                            setShowShareDialog(false);
+                            // Don't reset form - user might want to retry
+                          }
                         } else {
-                          const errorData = await response.json();
-                          toast({
-                            title: "Error",
-                            description: errorData.error || "Failed to send letter",
-                            variant: "destructive"
-                          });
+                          if (responseData.savedAsDraft) {
+                            // Error occurred but saved as draft
+                            refetchDrafts(); // Refresh drafts list
+                            toast({
+                              title: "Error - Saved as Draft",
+                              description: responseData.message || "Error occurred but letter saved as draft.",
+                              variant: "default"
+                            });
+                          } else {
+                            toast({
+                              title: "Error",
+                              description: responseData.error || "Failed to send letter",
+                              variant: "destructive"
+                            });
+                          }
                         }
                       } catch (error) {
                         console.error("Error sending letter:", error);
@@ -9698,6 +9756,211 @@ Registration No: [Number]`
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Drafts List Dialog */}
+      <Dialog open={showDraftsDialog} onOpenChange={setShowDraftsDialog}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Letter Drafts</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {drafts.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-gray-500">No drafts saved yet.</p>
+                <p className="text-sm text-gray-400 mt-2">
+                  Drafts are automatically saved when email sending fails.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {drafts.map((draft: any) => (
+                  <div
+                    key={draft.id}
+                    className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer"
+                    onClick={() => {
+                      setSelectedDraft(draft);
+                      setShowDraftDetailsDialog(true);
+                    }}
+                    data-testid={`draft-item-${draft.id}`}
+                  >
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <h3 className="font-medium text-gray-900">{draft.subject}</h3>
+                        <p className="text-sm text-gray-600 mt-1">To: {draft.recipient}</p>
+                        {draft.doctorEmail && (
+                          <p className="text-sm text-gray-600">Doctor: {draft.doctorEmail}</p>
+                        )}
+                        <p className="text-xs text-gray-500 mt-2">
+                          Saved: {new Date(draft.createdAt).toLocaleString()}
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // Load draft into current form
+                            setShareFormData({
+                              subject: draft.subject,
+                              recipient: draft.recipient,
+                              location: draft.location || "",
+                              copiedRecipients: draft.copiedRecipients || "",
+                              doctor: draft.doctorEmail || "",
+                              header: draft.header || "your-clinic"
+                            });
+                            setDocumentContent(draft.documentContent);
+                            setShowDraftsDialog(false);
+                            setShowShareDialog(true);
+                            toast({
+                              title: "Draft Loaded",
+                              description: "Draft has been loaded into the letter form.",
+                            });
+                          }}
+                          data-testid={`button-load-draft-${draft.id}`}
+                        >
+                          Load
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            try {
+                              const response = await fetch(`/api/letter-drafts/${draft.id}`, {
+                                method: "DELETE",
+                                headers: {
+                                  Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+                                },
+                              });
+                              
+                              if (response.ok) {
+                                refetchDrafts();
+                                toast({
+                                  title: "Draft Deleted",
+                                  description: "Draft has been deleted successfully.",
+                                });
+                              } else {
+                                toast({
+                                  title: "Error",
+                                  description: "Failed to delete draft.",
+                                  variant: "destructive",
+                                });
+                              }
+                            } catch (error) {
+                              console.error("Error deleting draft:", error);
+                              toast({
+                                title: "Error",
+                                description: "Failed to delete draft.",
+                                variant: "destructive",
+                              });
+                            }
+                          }}
+                          data-testid={`button-delete-draft-${draft.id}`}
+                        >
+                          Delete
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="flex justify-end">
+            <Button
+              variant="outline"
+              onClick={() => setShowDraftsDialog(false)}
+            >
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Draft Details Dialog */}
+      <Dialog open={showDraftDetailsDialog} onOpenChange={setShowDraftDetailsDialog}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Draft Details</DialogTitle>
+          </DialogHeader>
+          {selectedDraft && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Subject:</Label>
+                  <p className="font-medium">{selectedDraft.subject}</p>
+                </div>
+                <div>
+                  <Label>Recipient:</Label>
+                  <p className="font-medium">{selectedDraft.recipient}</p>
+                </div>
+                {selectedDraft.doctorEmail && (
+                  <div>
+                    <Label>Doctor Email:</Label>
+                    <p className="font-medium">{selectedDraft.doctorEmail}</p>
+                  </div>
+                )}
+                {selectedDraft.location && (
+                  <div>
+                    <Label>Location:</Label>
+                    <p className="font-medium">{selectedDraft.location}</p>
+                  </div>
+                )}
+                {selectedDraft.copiedRecipients && (
+                  <div>
+                    <Label>CC Recipients:</Label>
+                    <p className="font-medium">{selectedDraft.copiedRecipients}</p>
+                  </div>
+                )}
+                <div>
+                  <Label>Created:</Label>
+                  <p className="font-medium">{new Date(selectedDraft.createdAt).toLocaleString()}</p>
+                </div>
+              </div>
+              <div>
+                <Label>Content:</Label>
+                <div 
+                  className="border rounded-lg p-4 mt-2 max-h-96 overflow-y-auto bg-gray-50"
+                  dangerouslySetInnerHTML={{ __html: selectedDraft.documentContent }}
+                />
+              </div>
+              <div className="flex justify-end gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowDraftDetailsDialog(false)}
+                >
+                  Close
+                </Button>
+                <Button
+                  onClick={() => {
+                    // Load draft into current form
+                    setShareFormData({
+                      subject: selectedDraft.subject,
+                      recipient: selectedDraft.recipient,
+                      location: selectedDraft.location || "",
+                      copiedRecipients: selectedDraft.copiedRecipients || "",
+                      doctor: selectedDraft.doctorEmail || "",
+                      header: selectedDraft.header || "your-clinic"
+                    });
+                    setDocumentContent(selectedDraft.documentContent);
+                    setShowDraftDetailsDialog(false);
+                    setShowDraftsDialog(false);
+                    setShowShareDialog(true);
+                    toast({
+                      title: "Draft Loaded",
+                      description: "Draft has been loaded into the letter form.",
+                    });
+                  }}
+                  data-testid="button-load-draft-details"
+                >
+                  Load Draft
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 
