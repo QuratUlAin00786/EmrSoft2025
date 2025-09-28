@@ -7606,7 +7606,7 @@ Registration No: [Number]`
             {/* Create the Letter Section */}
             <div className="border-t pt-4 mt-6">
               <div className="text-center">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Create the Letter</h3>
+               
                 <div className="flex justify-center gap-3">
                   <Button
                     variant="outline"
@@ -7689,7 +7689,7 @@ Registration No: [Number]`
                       color: "black",
                     }}
                   >
-                    Create Letter
+                    Send Letter
                   </Button>
                 </div>
               </div>
