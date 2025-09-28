@@ -6420,15 +6420,13 @@ Registration No: [Number]`
       <Dialog open={showPatientDialog} onOpenChange={setShowPatientDialog}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Insert Patient Information</DialogTitle>
+            <DialogTitle>Patient Information Templates</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-1 gap-4 max-h-96 overflow-y-auto">
               {/* Patient Information Options */}
               <div>
-                <h3 className="font-semibold mb-2">
-                  Patient Information Templates
-                </h3>
+              
                 <div className="space-y-2">
                   <Button
                     variant="outline"
