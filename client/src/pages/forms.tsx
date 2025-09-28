@@ -414,6 +414,16 @@ Thank you,
     }
   };
 
+  // Convert template to semantic HTML with proper formatting
+  const templateToHtml = (template: { subject: string; body: string }) => {
+    const paragraphs = template.body.split(/\n\n+/);
+    const bodyHtml = paragraphs
+      .map(para => `<p style="margin: 0 0 12px; line-height: 1.6; white-space: normal;">${para.replace(/\n/g, '<br>')}</p>`)
+      .join('');
+    
+    return `<p style="margin: 0 0 12px; line-height: 1.6;"><strong>Subject:</strong> ${template.subject}</p>${bodyHtml}`;
+  };
+
   // Handler functions for patient templates
   const handlePatientTemplateSelect = (category: string) => {
     setSelectedTemplateCategory(category);
@@ -426,12 +436,14 @@ Thank you,
     const categoryData = selectedCategoryData;
     if (categoryData && categoryData.templates[option]) {
       const template = categoryData.templates[option];
-      const fullTemplate = `Subject: ${template.subject}\n\n${template.body}`;
       
-      // Load template into editor
+      // Convert template to semantic HTML
+      const templateHtml = templateToHtml(template);
+      
+      // Load template into editor with proper HTML formatting
       if (textareaRef) {
-        textareaRef.innerHTML = fullTemplate.replace(/\n/g, '<br>');
-        setDocumentContent(fullTemplate);
+        textareaRef.innerHTML = templateHtml;
+        setDocumentContent(templateHtml);
       }
       
       setShowCategoryOptionsDialog(false);
