@@ -133,6 +133,7 @@ export default function Forms() {
   const [isComingFromClinicButton, setIsComingFromClinicButton] = useState(false);
   const [showClinicalHeaderDialog, setShowClinicalHeaderDialog] = useState(false);
   const [showAddClinicInfoDialog, setShowAddClinicInfoDialog] = useState(false);
+  const [showClinicDisplayDialog, setShowClinicDisplayDialog] = useState(false);
   const [selectedClinicalHeader, setSelectedClinicalHeader] = useState("");
   
   // Additional preview states for other template types
@@ -9639,7 +9640,7 @@ Registration No: [Number]`
                     email: clinicInfo.email || "info@yourclinic.com",
                     website: clinicInfo.website || "www.yourclinic.com",
                   });
-                  setShowAddClinicInfoDialog(true);
+                  setShowClinicDisplayDialog(true);
                   setShowClinicalHeaderDialog(false);
                 }}
               >
@@ -9658,7 +9659,7 @@ Registration No: [Number]`
                     email: clinicInfo.email || "info@yourclinic.com",
                     website: clinicInfo.website || "www.yourclinic.com",
                   });
-                  setShowAddClinicInfoDialog(true);
+                  setShowClinicDisplayDialog(true);
                   setShowClinicalHeaderDialog(false);
                 }}
               >
@@ -9677,7 +9678,7 @@ Registration No: [Number]`
                     email: clinicInfo.email || "info@yourclinic.com",
                     website: clinicInfo.website || "www.yourclinic.com",
                   });
-                  setShowAddClinicInfoDialog(true);
+                  setShowClinicDisplayDialog(true);
                   setShowClinicalHeaderDialog(false);
                 }}
               >
@@ -9696,7 +9697,7 @@ Registration No: [Number]`
                     email: clinicInfo.email || "info@yourclinic.com",
                     website: clinicInfo.website || "www.yourclinic.com",
                   });
-                  setShowAddClinicInfoDialog(true);
+                  setShowClinicDisplayDialog(true);
                   setShowClinicalHeaderDialog(false);
                 }}
               >
@@ -9715,7 +9716,7 @@ Registration No: [Number]`
                     email: clinicInfo.email || "info@yourclinic.com",
                     website: clinicInfo.website || "www.yourclinic.com",
                   });
-                  setShowAddClinicInfoDialog(true);
+                  setShowClinicDisplayDialog(true);
                   setShowClinicalHeaderDialog(false);
                 }}
               >
@@ -9734,7 +9735,7 @@ Registration No: [Number]`
                     email: clinicInfo.email || "info@yourclinic.com",
                     website: clinicInfo.website || "www.yourclinic.com",
                   });
-                  setShowAddClinicInfoDialog(true);
+                  setShowClinicDisplayDialog(true);
                   setShowClinicalHeaderDialog(false);
                 }}
               >
@@ -9893,6 +9894,88 @@ Registration No: [Number]`
                 onClick={handleSaveClinicalHeader}
               >
                 Save Changes
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Clinic Display Dialog */}
+      <Dialog open={showClinicDisplayDialog} onOpenChange={setShowClinicDisplayDialog}>
+        <DialogContent className="max-w-md">
+          <div className="space-y-4">
+            {/* Display the clinic info like in the attached image */}
+            <div className="p-6 bg-blue-50 dark:bg-[hsl(var(--cura-midnight))] border border-blue-200 dark:border-[hsl(var(--cura-steel))] rounded text-center relative">
+              <div className="text-[hsl(var(--cura-bluewave))] dark:text-[hsl(var(--cura-bluewave))] text-lg font-semibold mb-2 flex items-center justify-center gap-2">
+                🏥 {editingClinicInfo.name || "Demo Healthcare Clinic 2"}
+              </div>
+              <div className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                {editingClinicInfo.address || "123 Healthcare Street, Medical City, MC 12345"}
+              </div>
+              <div className="text-sm text-gray-600 dark:text-gray-300">
+                {editingClinicInfo.phone || "+44 20 1234 5678"} • {editingClinicInfo.email || "guratulain@averox.com"}
+              </div>
+              <div className="text-sm text-gray-600 dark:text-gray-300">
+                {editingClinicInfo.website || "www.yourclinic.com"}
+              </div>
+
+              {/* Edit Clinic Info Button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute top-2 right-2 border transition-all duration-200"
+                style={{
+                  backgroundColor: "white",
+                  borderColor: "#e5e7eb",
+                  color: "black",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#A3A8FC";
+                  e.currentTarget.style.borderColor = "#A3A8FC";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "white";
+                  e.currentTarget.style.borderColor = "#e5e7eb";
+                }}
+                onClick={() => {
+                  setShowClinicDisplayDialog(false);
+                  setShowAddClinicInfoDialog(true);
+                }}
+              >
+                <Edit className="h-4 w-4 mr-1" />
+                Edit Clinic Info
+              </Button>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4 border-t">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowClinicDisplayDialog(false);
+                  setShowClinicalHeaderDialog(true);
+                }}
+              >
+                Back
+              </Button>
+              <Button
+                variant="outline"
+                className="border transition-all duration-200"
+                style={{
+                  backgroundColor: "white",
+                  borderColor: "#e5e7eb",
+                  color: "black",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#6CFFEB";
+                  e.currentTarget.style.borderColor = "#6CFFEB";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "white";
+                  e.currentTarget.style.borderColor = "#e5e7eb";
+                }}
+                onClick={handleLoadClinicalHeader}
+              >
+                Load
               </Button>
             </div>
           </div>
