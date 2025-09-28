@@ -6821,14 +6821,7 @@ Registration No: [Number]`
                         </div>
                       </div>
                     </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="px-3"
-                      onClick={() => insertPatientRecordsInfo("medical-history")}
-                    >
-                      Insert
-                    </Button>
+                  
                   </div>
 
                   <div className="flex gap-2">
@@ -6844,14 +6837,7 @@ Registration No: [Number]`
                         </div>
                       </div>
                     </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="px-3"
-                      onClick={() => insertPatientRecordsInfo("current-medications")}
-                    >
-                      Insert
-                    </Button>
+                   
                   </div>
 
                   <div className="flex gap-2">
@@ -6868,14 +6854,7 @@ Registration No: [Number]`
                         </div>
                       </div>
                     </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="px-3"
-                      onClick={() => insertPatientRecordsInfo("allergies")}
-                    >
-                      Insert
-                    </Button>
+                   
                   </div>
 
                   <div className="flex gap-2">
@@ -6892,14 +6871,7 @@ Registration No: [Number]`
                         </div>
                       </div>
                     </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="px-3"
-                      onClick={() => insertPatientRecordsInfo("vital-signs")}
-                    >
-                      Insert
-                    </Button>
+                
                   </div>
 
                   <div className="flex gap-2">
@@ -6916,14 +6888,7 @@ Registration No: [Number]`
                         </div>
                       </div>
                     </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="px-3"
-                      onClick={() => insertPatientRecordsInfo("diagnosis-history")}
-                    >
-                      Insert
-                    </Button>
+                
                   </div>
                 </div>
               </div>
@@ -7011,14 +6976,7 @@ Registration No: [Number]`
                         </div>
                       </div>
                     </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="px-3"
-                      onClick={() => insertProductInfo("medication")}
-                    >
-                      Insert
-                    </Button>
+                   
                   </div>
 
                   <div className="flex gap-2">
@@ -7035,14 +6993,7 @@ Registration No: [Number]`
                         </div>
                       </div>
                     </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="px-3"
-                      onClick={() => insertProductInfo("medical-device")}
-                    >
-                      Insert
-                    </Button>
+                   
                   </div>
 
                   <div className="flex gap-2">
@@ -7059,14 +7010,7 @@ Registration No: [Number]`
                         </div>
                       </div>
                     </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="px-3"
-                      onClick={() => insertProductInfo("medical-supplies")}
-                    >
-                      Insert
-                    </Button>
+                   
                   </div>
 
                   <div className="flex gap-2">
@@ -7083,14 +7027,7 @@ Registration No: [Number]`
                         </div>
                       </div>
                     </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="px-3"
-                      onClick={() => insertProductInfo("laboratory-test")}
-                    >
-                      Insert
-                    </Button>
+                  
                   </div>
 
                   <div className="flex gap-2">
@@ -7107,14 +7044,7 @@ Registration No: [Number]`
                         </div>
                       </div>
                     </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="px-3"
-                      onClick={() => insertProductInfo("treatment-package")}
-                    >
-                      Insert
-                    </Button>
+                  
                   </div>
                 </div>
               </div>
@@ -7984,7 +7914,7 @@ Registration No: [Number]`
                       {selectedLogoTemplate === "minimal" && "Minimal - Clean typography"}
                       {selectedLogoTemplate === "medical-cross" && "Medical Cross - Classic red cross"}
                     </p>
-                    <h5 className="text-sm font-medium text-gray-700 mb-2">Logo Position:</h5>
+                    <h5 className="text-sm font-medium text-gray-700 mb-2">Logo & header Position:</h5>
                     <div className="flex gap-3">
                       <label className="flex items-center space-x-2 cursor-pointer">
                         <input
@@ -9167,7 +9097,7 @@ Registration No: [Number]`
                 setShowClinicHeaderDialog(false);
               }}
             >
-              <h3 className="font-semibold text-gray-800">Clinic Name Only</h3>
+              <h6 className="font-semibold text-gray-800">Clinic Name Only</h6>
               <p className="text-sm text-gray-600">Just the clinic name in bold text</p>
             </div>
             
@@ -9179,7 +9109,7 @@ Registration No: [Number]`
                 setShowClinicHeaderDialog(false);
               }}
             >
-              <h3 className="font-semibold text-gray-800">Contact Information Block</h3>
+              <h6 className="font-semibold text-gray-800">Contact Information Block</h6>
               <p className="text-sm text-gray-600">Formatted contact details section</p>
             </div>
           </div>
@@ -9626,7 +9556,7 @@ Registration No: [Number]`
 
       {/* Clinic Display Dialog */}
       <Dialog open={showClinicDisplayDialog} onOpenChange={setShowClinicDisplayDialog}>
-        <DialogContent className="max-w-full">
+        <DialogContent className="w-[600px]">
           <div className="space-y-4">
             {/* Display the clinic info like in the attached image */}
             <div className="p-6 bg-blue-50 dark:bg-[hsl(var(--cura-midnight))] border border-blue-200 dark:border-[hsl(var(--cura-steel))] rounded text-center relative">
