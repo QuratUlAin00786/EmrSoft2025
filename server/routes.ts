@@ -9583,6 +9583,130 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Letter Drafts endpoints
+  app.get("/api/letter-drafts", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const drafts = await storage.getLetterDraftsByUser(req.user!.id, req.tenant!.id);
+      res.json(drafts);
+    } catch (error) {
+      console.error("Error getting letter drafts:", error);
+      res.status(500).json({ error: "Failed to get letter drafts" });
+    }
+  });
+
+  app.post("/api/letter-drafts", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const draftData = z.object({
+        subject: z.string(),
+        recipient: z.string(),
+        doctorEmail: z.string().optional(),
+        location: z.string().optional(),
+        copiedRecipients: z.string().optional(),
+        header: z.string().optional(),
+        documentContent: z.string(),
+      }).parse(req.body);
+
+      const draft = await storage.createLetterDraft({
+        ...draftData,
+        organizationId: req.tenant!.id,
+        userId: req.user!.id,
+      });
+
+      res.json(draft);
+    } catch (error) {
+      console.error("Error creating letter draft:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: error.errors.map(e => `${e.path.join('.')}: ${e.message}`)
+        });
+      }
+      res.status(500).json({ error: "Failed to create letter draft" });
+    }
+  });
+
+  app.get("/api/letter-drafts/:id", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const draft = await storage.getLetterDraft(id, req.tenant!.id);
+      
+      if (!draft) {
+        return res.status(404).json({ error: "Draft not found" });
+      }
+
+      // Check if the user owns the draft
+      if (draft.userId !== req.user!.id) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+
+      res.json(draft);
+    } catch (error) {
+      console.error("Error getting letter draft:", error);
+      res.status(500).json({ error: "Failed to get letter draft" });
+    }
+  });
+
+  app.put("/api/letter-drafts/:id", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updateData = z.object({
+        subject: z.string().optional(),
+        recipient: z.string().optional(),
+        doctorEmail: z.string().optional(),
+        location: z.string().optional(),
+        copiedRecipients: z.string().optional(),
+        header: z.string().optional(),
+        documentContent: z.string().optional(),
+      }).parse(req.body);
+
+      // Check if the draft exists and user owns it
+      const existingDraft = await storage.getLetterDraft(id, req.tenant!.id);
+      if (!existingDraft) {
+        return res.status(404).json({ error: "Draft not found" });
+      }
+      if (existingDraft.userId !== req.user!.id) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+
+      const updatedDraft = await storage.updateLetterDraft(id, req.tenant!.id, updateData);
+      res.json(updatedDraft);
+    } catch (error) {
+      console.error("Error updating letter draft:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: error.errors.map(e => `${e.path.join('.')}: ${e.message}`)
+        });
+      }
+      res.status(500).json({ error: "Failed to update letter draft" });
+    }
+  });
+
+  app.delete("/api/letter-drafts/:id", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      // Check if the draft exists and user owns it
+      const existingDraft = await storage.getLetterDraft(id, req.tenant!.id);
+      if (!existingDraft) {
+        return res.status(404).json({ error: "Draft not found" });
+      }
+      if (existingDraft.userId !== req.user!.id) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+
+      const deleted = await storage.deleteLetterDraft(id, req.tenant!.id);
+      if (deleted) {
+        res.json({ success: true, message: "Draft deleted successfully" });
+      } else {
+        res.status(500).json({ error: "Failed to delete draft" });
+      }
+    } catch (error) {
+      console.error("Error deleting letter draft:", error);
+      res.status(500).json({ error: "Failed to delete letter draft" });
+    }
+  });
+
   // PDF Email endpoint for prescriptions with file attachments
   app.post("/api/prescriptions/:id/send-pdf", authMiddleware, upload.array('attachments', 5), async (req: TenantRequest, res) => {
     try {

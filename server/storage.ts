@@ -1,5 +1,5 @@
 import { 
-  organizations, users, patients, medicalRecords, appointments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages, clinicalPhotos, labResults, claims, revenueRecords, insuranceVerifications, clinicalProcedures, emergencyProtocols, medicationsDatabase, roles, staffShifts, gdprConsents, gdprDataRequests, gdprAuditTrail, gdprProcessingActivities, conversations as conversationsTable, messages, voiceNotes, saasOwners, saasPackages, saasSubscriptions, saasPayments, saasInvoices, saasSettings, chatbotConfigs, chatbotSessions, chatbotMessages, chatbotAnalytics, musclePositions, userDocumentPreferences,
+  organizations, users, patients, medicalRecords, appointments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages, clinicalPhotos, labResults, claims, revenueRecords, insuranceVerifications, clinicalProcedures, emergencyProtocols, medicationsDatabase, roles, staffShifts, gdprConsents, gdprDataRequests, gdprAuditTrail, gdprProcessingActivities, conversations as conversationsTable, messages, voiceNotes, saasOwners, saasPackages, saasSubscriptions, saasPayments, saasInvoices, saasSettings, chatbotConfigs, chatbotSessions, chatbotMessages, chatbotAnalytics, musclePositions, userDocumentPreferences, letterDrafts,
   type Organization, type InsertOrganization,
   type User, type InsertUser,
   type Role, type InsertRole,
@@ -41,7 +41,8 @@ import {
   type ChatbotMessage, type InsertChatbotMessage,
   type ChatbotAnalytics, type InsertChatbotAnalytics,
   type MusclePosition, type InsertMusclePosition,
-  type UserDocumentPreferences, type InsertUserDocumentPreferences, type UpdateUserDocumentPreferences
+  type UserDocumentPreferences, type InsertUserDocumentPreferences, type UpdateUserDocumentPreferences,
+  type LetterDraft, type InsertLetterDraft
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, count, not, sql, gte, lt, lte, isNotNull, or, ilike, ne } from "drizzle-orm";
@@ -439,6 +440,13 @@ export interface IStorage {
   getUserDocumentPreferences(userId: number, organizationId: number): Promise<UserDocumentPreferences | undefined>;
   createUserDocumentPreferences(preferences: InsertUserDocumentPreferences): Promise<UserDocumentPreferences>;
   updateUserDocumentPreferences(userId: number, organizationId: number, updates: UpdateUserDocumentPreferences): Promise<UserDocumentPreferences | undefined>;
+
+  // Letter Drafts
+  getLetterDraft(id: number, organizationId: number): Promise<LetterDraft | undefined>;
+  getLetterDraftsByUser(userId: number, organizationId: number): Promise<LetterDraft[]>;
+  createLetterDraft(draft: InsertLetterDraft): Promise<LetterDraft>;
+  updateLetterDraft(id: number, organizationId: number, updates: Partial<InsertLetterDraft>): Promise<LetterDraft | undefined>;
+  deleteLetterDraft(id: number, organizationId: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -5310,6 +5318,48 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(userDocumentPreferences.userId, userId), eq(userDocumentPreferences.organizationId, organizationId)))
       .returning();
     return updated || undefined;
+  }
+
+  // Letter Draft Methods
+  async getLetterDraft(id: number, organizationId: number): Promise<LetterDraft | undefined> {
+    const [draft] = await db
+      .select()
+      .from(letterDrafts)
+      .where(and(eq(letterDrafts.id, id), eq(letterDrafts.organizationId, organizationId)));
+    return draft || undefined;
+  }
+
+  async getLetterDraftsByUser(userId: number, organizationId: number): Promise<LetterDraft[]> {
+    return await db
+      .select()
+      .from(letterDrafts)
+      .where(and(eq(letterDrafts.userId, userId), eq(letterDrafts.organizationId, organizationId)))
+      .orderBy(desc(letterDrafts.createdAt));
+  }
+
+  async createLetterDraft(draft: InsertLetterDraft): Promise<LetterDraft> {
+    const [created] = await db.insert(letterDrafts).values([draft]).returning();
+    return created;
+  }
+
+  async updateLetterDraft(id: number, organizationId: number, updates: Partial<InsertLetterDraft>): Promise<LetterDraft | undefined> {
+    const updateData = {
+      ...updates,
+      updatedAt: new Date()
+    };
+    const [updated] = await db
+      .update(letterDrafts)
+      .set(updateData)
+      .where(and(eq(letterDrafts.id, id), eq(letterDrafts.organizationId, organizationId)))
+      .returning();
+    return updated || undefined;
+  }
+
+  async deleteLetterDraft(id: number, organizationId: number): Promise<boolean> {
+    const result = await db
+      .delete(letterDrafts)
+      .where(and(eq(letterDrafts.id, id), eq(letterDrafts.organizationId, organizationId)));
+    return result.rowCount > 0;
   }
 }
 
