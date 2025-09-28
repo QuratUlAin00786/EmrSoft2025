@@ -9519,32 +9519,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         header: z.string().optional(),
       }).parse(req.body);
 
-      // Import necessary libraries for PDF conversion
-      const puppeteer = await import('puppeteer');
-      
-      // Convert HTML content to PDF
-      const browser = await puppeteer.default.launch({
-        headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
-      });
-      const page = await browser.newPage();
-      await page.setContent(emailData.documentContent, { waitUntil: 'networkidle0' });
-      const pdfBuffer = await page.pdf({
-        format: 'A4',
-        printBackground: true,
-        margin: {
-          top: '20mm',
-          right: '20mm',
-          bottom: '20mm',
-          left: '20mm'
-        }
-      });
-      await browser.close();
-
-      // Convert PDF to base64 for email attachment
-      const pdfBase64 = pdfBuffer.toString('base64');
-
-      // Send email with PDF attachment
+      // Send email with HTML content directly
       const success = await emailService.sendEmail({
         to: emailData.to,
         subject: emailData.subject,
@@ -9553,20 +9528,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             <h2 style="color: #2563eb; border-bottom: 2px solid #2563eb; padding-bottom: 10px;">
               Medical Document
             </h2>
-            <p>Please find the attached medical document.</p>
-            <p>This document was generated from your healthcare provider's system.</p>
-            <br>
-            <p style="color: #666; font-size: 12px;">
+            <div style="margin: 20px 0; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px;">
+              ${emailData.documentContent}
+            </div>
+            <p style="color: #666; font-size: 12px; margin-top: 30px; border-top: 1px solid #e5e7eb; padding-top: 15px;">
+              This document was generated from your healthcare provider's system.<br>
               This is an automated message. Please do not reply to this email.
             </p>
           </div>
-        `,
-        attachments: [{
-          content: pdfBase64,
-          filename: `medical-document-${Date.now()}.pdf`,
-          type: 'application/pdf',
-          disposition: 'attachment'
-        }]
+        `
       });
 
       if (success) {
