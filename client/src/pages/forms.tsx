@@ -6328,124 +6328,74 @@ Registration No: [Number]`
                   Patient Information Templates
                 </h3>
                 <div className="space-y-2">
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      className="flex-1 text-left justify-start h-auto p-4"
-                      onClick={() => handlePreviewOtherTemplate("full-details", "Full Patient Details", "patient")}
-                    >
-                      <div>
-                        <div className="font-medium">Full Patient Details</div>
-                        <div className="text-sm text-gray-500">
-                          Complete patient information including name, DOB, ID,
-                          address, phone, and email
-                        </div>
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => handlePreviewOtherTemplate("full-details", "Full Patient Details", "patient")}
+                  >
+                    <div>
+                      <div className="font-medium">Full Patient Details</div>
+                      <div className="text-sm text-gray-500">
+                        Complete patient information including name, DOB, ID,
+                        address, phone, and email
                       </div>
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="px-3"
-                      onClick={() => insertPatientInfo("full-details")}
-                    >
-                      Insert
-                    </Button>
-                  </div>
+                    </div>
+                  </Button>
 
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      className="flex-1 text-left justify-start h-auto p-4"
-                      onClick={() => handlePreviewOtherTemplate("name-dob", "Name & Date of Birth", "patient")}
-                    >
-                      <div>
-                        <div className="font-medium">Name & Date of Birth</div>
-                        <div className="text-sm text-gray-500">
-                          Essential patient identification - name and DOB only
-                        </div>
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => handlePreviewOtherTemplate("name-dob", "Name & Date of Birth", "patient")}
+                  >
+                    <div>
+                      <div className="font-medium">Name & Date of Birth</div>
+                      <div className="text-sm text-gray-500">
+                        Essential patient identification - name and DOB only
                       </div>
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="px-3"
-                      onClick={() => insertPatientInfo("name-dob")}
-                    >
-                      Insert
-                    </Button>
-                  </div>
+                    </div>
+                  </Button>
 
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      className="flex-1 text-left justify-start h-auto p-4"
-                      onClick={() => handlePreviewOtherTemplate("contact-info", "Contact Information", "patient")}
-                    >
-                      <div>
-                        <div className="font-medium">Contact Information</div>
-                        <div className="text-sm text-gray-500">
-                          Patient contact details including phone, email, and
-                          address
-                        </div>
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => handlePreviewOtherTemplate("contact-info", "Contact Information", "patient")}
+                  >
+                    <div>
+                      <div className="font-medium">Contact Information</div>
+                      <div className="text-sm text-gray-500">
+                        Patient contact details including phone, email, and
+                        address
                       </div>
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="px-3"
-                      onClick={() => insertPatientInfo("contact-info")}
-                    >
-                      Insert
-                    </Button>
-                  </div>
+                    </div>
+                  </Button>
 
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      className="flex-1 text-left justify-start h-auto p-4"
-                      onClick={() => handlePreviewOtherTemplate("demographics", "Demographics", "patient")}
-                    >
-                      <div>
-                        <div className="font-medium">Demographics</div>
-                        <div className="text-sm text-gray-500">
-                          Patient demographics including age, gender, DOB, and
-                          insurance
-                        </div>
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => handlePreviewOtherTemplate("demographics", "Demographics", "patient")}
+                  >
+                    <div>
+                      <div className="font-medium">Demographics</div>
+                      <div className="text-sm text-gray-500">
+                        Patient demographics including age, gender, DOB, and
+                        insurance
                       </div>
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="px-3"
-                      onClick={() => insertPatientInfo("demographics")}
-                    >
-                      Insert
-                    </Button>
-                  </div>
+                    </div>
+                  </Button>
 
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      className="flex-1 text-left justify-start h-auto p-4"
-                      onClick={() => handlePreviewOtherTemplate("emergency-contact", "Emergency Contact", "patient")}
-                    >
-                      <div>
-                        <div className="font-medium">Emergency Contact</div>
-                        <div className="text-sm text-gray-500">
-                          Emergency contact information with relationship and
-                          phone
-                        </div>
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => handlePreviewOtherTemplate("emergency-contact", "Emergency Contact", "patient")}
+                  >
+                    <div>
+                      <div className="font-medium">Emergency Contact</div>
+                      <div className="text-sm text-gray-500">
+                        Emergency contact information with relationship and
+                        phone
                       </div>
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="px-3"
-                      onClick={() => insertPatientInfo("emergency-contact")}
-                    >
-                      Insert
-                    </Button>
-                  </div>
+                    </div>
+                  </Button>
                 </div>
               </div>
 
@@ -6505,77 +6455,47 @@ Registration No: [Number]`
                   Recipient Information Templates
                 </h3>
                 <div className="space-y-2">
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      className="flex-1 text-left justify-start h-auto p-4"
-                      onClick={() => handlePreviewOtherTemplate("doctor-details", "Doctor Details", "recipient")}
-                    >
-                      <div>
-                        <div className="font-medium">Doctor Details</div>
-                        <div className="text-sm text-gray-500">
-                          Complete doctor information including name, specialty,
-                          clinic, and contact details
-                        </div>
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => handlePreviewOtherTemplate("doctor-details", "Doctor Details", "recipient")}
+                  >
+                    <div>
+                      <div className="font-medium">Doctor Details</div>
+                      <div className="text-sm text-gray-500">
+                        Complete doctor information including name, specialty,
+                        clinic, and contact details
                       </div>
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="px-3"
-                      onClick={() => insertRecipientInfo("doctor-details")}
-                    >
-                      Insert
-                    </Button>
-                  </div>
+                    </div>
+                  </Button>
 
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      className="flex-1 text-left justify-start h-auto p-4"
-                      onClick={() => handlePreviewOtherTemplate("specialist-referral", "Specialist Referral", "recipient")}
-                    >
-                      <div>
-                        <div className="font-medium">Specialist Referral</div>
-                        <div className="text-sm text-gray-500">
-                          Referral header for specialist consultations with
-                          department and reason
-                        </div>
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => handlePreviewOtherTemplate("specialist-referral", "Specialist Referral", "recipient")}
+                  >
+                    <div>
+                      <div className="font-medium">Specialist Referral</div>
+                      <div className="text-sm text-gray-500">
+                        Referral header for specialist consultations with
+                        department and reason
                       </div>
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="px-3"
-                      onClick={() => insertRecipientInfo("specialist-referral")}
-                    >
-                      Insert
-                    </Button>
-                  </div>
+                    </div>
+                  </Button>
 
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      className="flex-1 text-left justify-start h-auto p-4"
-                      onClick={() => handlePreviewOtherTemplate("insurance-company", "Insurance Company", "recipient")}
-                    >
-                      <div>
-                        <div className="font-medium">Insurance Company</div>
-                        <div className="text-sm text-gray-500">
-                          Insurance company details with policy and member
-                          information
-                        </div>
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => handlePreviewOtherTemplate("insurance-company", "Insurance Company", "recipient")}
+                  >
+                    <div>
+                      <div className="font-medium">Insurance Company</div>
+                      <div className="text-sm text-gray-500">
+                        Insurance company details with policy and member
+                        information
                       </div>
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="px-3"
-                      onClick={() => insertRecipientInfo("insurance-company")}
-                    >
-                      Insert
-                    </Button>
-                  </div>
+                    </div>
+                  </Button>
 
                   <div className="flex gap-2">
                     <Button
@@ -6687,124 +6607,74 @@ Registration No: [Number]`
                   Appointment Information Templates
                 </h3>
                 <div className="space-y-2">
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      className="flex-1 text-left justify-start h-auto p-4"
-                      onClick={() => handlePreviewOtherTemplate("appointment-details", "Appointment Details", "appointment")}
-                    >
-                      <div>
-                        <div className="font-medium">Appointment Details</div>
-                        <div className="text-sm text-gray-500">
-                          Complete appointment information including date, time,
-                          provider, and location
-                        </div>
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => handlePreviewOtherTemplate("appointment-details", "Appointment Details", "appointment")}
+                  >
+                    <div>
+                      <div className="font-medium">Appointment Details</div>
+                      <div className="text-sm text-gray-500">
+                        Complete appointment information including date, time,
+                        provider, and location
                       </div>
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="px-3"
-                      onClick={() => insertAppointmentInfo("appointment-details")}
-                    >
-                      Insert
-                    </Button>
-                  </div>
+                    </div>
+                  </Button>
 
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      className="flex-1 text-left justify-start h-auto p-4"
-                      onClick={() => handlePreviewOtherTemplate("next-appointment", "Next Appointment", "appointment")}
-                    >
-                      <div>
-                        <div className="font-medium">Next Appointment</div>
-                        <div className="text-sm text-gray-500">
-                          Information about the patient's next scheduled
-                          appointment
-                        </div>
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => handlePreviewOtherTemplate("next-appointment", "Next Appointment", "appointment")}
+                  >
+                    <div>
+                      <div className="font-medium">Next Appointment</div>
+                      <div className="text-sm text-gray-500">
+                        Information about the patient's next scheduled
+                        appointment
                       </div>
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="px-3"
-                      onClick={() => insertAppointmentInfo("next-appointment")}
-                    >
-                      Insert
-                    </Button>
-                  </div>
+                    </div>
+                  </Button>
 
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      className="flex-1 text-left justify-start h-auto p-4"
-                      onClick={() => handlePreviewOtherTemplate("appointment-history", "Appointment History", "appointment")}
-                    >
-                      <div>
-                        <div className="font-medium">Appointment History</div>
-                        <div className="text-sm text-gray-500">
-                          List of recent appointments with dates and providers
-                        </div>
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => handlePreviewOtherTemplate("appointment-history", "Appointment History", "appointment")}
+                  >
+                    <div>
+                      <div className="font-medium">Appointment History</div>
+                      <div className="text-sm text-gray-500">
+                        List of recent appointments with dates and providers
                       </div>
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="px-3"
-                      onClick={() => insertAppointmentInfo("appointment-history")}
-                    >
-                      Insert
-                    </Button>
-                  </div>
+                    </div>
+                  </Button>
 
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      className="flex-1 text-left justify-start h-auto p-4"
-                      onClick={() => handlePreviewOtherTemplate("follow-up", "Follow-up Required", "appointment")}
-                    >
-                      <div>
-                        <div className="font-medium">Follow-up Required</div>
-                        <div className="text-sm text-gray-500">
-                          Follow-up appointment recommendation with timeframe and
-                          purpose
-                        </div>
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => handlePreviewOtherTemplate("follow-up", "Follow-up Required", "appointment")}
+                  >
+                    <div>
+                      <div className="font-medium">Follow-up Required</div>
+                      <div className="text-sm text-gray-500">
+                        Follow-up appointment recommendation with timeframe and
+                        purpose
                       </div>
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="px-3"
-                      onClick={() => insertAppointmentInfo("follow-up")}
-                    >
-                      Insert
-                    </Button>
-                  </div>
+                    </div>
+                  </Button>
 
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      className="flex-1 text-left justify-start h-auto p-4"
-                      onClick={() => handlePreviewOtherTemplate("appointment-reminder", "Appointment Reminder", "appointment")}
-                    >
-                      <div>
-                        <div className="font-medium">Appointment Reminder</div>
-                        <div className="text-sm text-gray-500">
-                          Patient reminder with appointment details and
-                          instructions
-                        </div>
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => handlePreviewOtherTemplate("appointment-reminder", "Appointment Reminder", "appointment")}
+                  >
+                    <div>
+                      <div className="font-medium">Appointment Reminder</div>
+                      <div className="text-sm text-gray-500">
+                        Patient reminder with appointment details and
+                        instructions
                       </div>
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="px-3"
-                      onClick={() => insertAppointmentInfo("appointment-reminder")}
-                    >
-                      Insert
-                    </Button>
-                  </div>
+                    </div>
+                  </Button>
                 </div>
               </div>
 
@@ -6865,127 +6735,77 @@ Registration No: [Number]`
                   Laboratory Information Templates
                 </h3>
                 <div className="space-y-2">
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      className="flex-1 text-left justify-start h-auto p-4"
-                      onClick={() => handlePreviewOtherTemplate("lab-results", "Laboratory Results", "laboratory")}
-                    >
-                      <div>
-                        <div className="font-medium">Laboratory Results</div>
-                        <div className="text-sm text-gray-500">
-                          Complete lab results with test type, values, and
-                          reference ranges
-                        </div>
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => handlePreviewOtherTemplate("lab-results", "Laboratory Results", "laboratory")}
+                  >
+                    <div>
+                      <div className="font-medium">Laboratory Results</div>
+                      <div className="text-sm text-gray-500">
+                        Complete lab results with test type, values, and
+                        reference ranges
                       </div>
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="px-3"
-                      onClick={() => insertLabInfo("lab-results")}
-                    >
-                      Insert
-                    </Button>
-                  </div>
+                    </div>
+                  </Button>
 
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      className="flex-1 text-left justify-start h-auto p-4"
-                      onClick={() => handlePreviewOtherTemplate("blood-work", "Blood Work Results", "laboratory")}
-                    >
-                      <div>
-                        <div className="font-medium">Blood Work Results</div>
-                        <div className="text-sm text-gray-500">
-                          Blood test results including CBC, glucose, cholesterol,
-                          and hemoglobin
-                        </div>
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => handlePreviewOtherTemplate("blood-work", "Blood Work Results", "laboratory")}
+                  >
+                    <div>
+                      <div className="font-medium">Blood Work Results</div>
+                      <div className="text-sm text-gray-500">
+                        Blood test results including CBC, glucose, cholesterol,
+                        and hemoglobin
                       </div>
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="px-3"
-                      onClick={() => insertLabInfo("blood-work")}
-                    >
-                      Insert
-                    </Button>
-                  </div>
+                    </div>
+                  </Button>
 
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      className="flex-1 text-left justify-start h-auto p-4"
-                      onClick={() => handlePreviewOtherTemplate("urine-analysis", "Urinalysis Results", "laboratory")}
-                    >
-                      <div>
-                        <div className="font-medium">Urinalysis Results</div>
-                        <div className="text-sm text-gray-500">
-                          Urine test results including color, clarity, protein,
-                          glucose, and cell counts
-                        </div>
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => handlePreviewOtherTemplate("urine-analysis", "Urinalysis Results", "laboratory")}
+                  >
+                    <div>
+                      <div className="font-medium">Urinalysis Results</div>
+                      <div className="text-sm text-gray-500">
+                        Urine test results including color, clarity, protein,
+                        glucose, and cell counts
                       </div>
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="px-3"
-                      onClick={() => insertLabInfo("urine-analysis")}
-                    >
-                      Insert
-                    </Button>
-                  </div>
+                    </div>
+                  </Button>
 
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      className="flex-1 text-left justify-start h-auto p-4"
-                      onClick={() => handlePreviewOtherTemplate("culture-results", "Culture Results", "laboratory")}
-                    >
-                      <div>
-                        <div className="font-medium">Culture Results</div>
-                        <div className="text-sm text-gray-500">
-                          Microbiology culture results with organism
-                          identification and sensitivity
-                        </div>
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => handlePreviewOtherTemplate("culture-results", "Culture Results", "laboratory")}
+                  >
+                    <div>
+                      <div className="font-medium">Culture Results</div>
+                      <div className="text-sm text-gray-500">
+                        Microbiology culture results with organism
+                        identification and sensitivity
                       </div>
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="px-3"
-                      onClick={() => insertLabInfo("culture-results")}
-                    >
-                      Insert
-                    </Button>
-                  </div>
+                    </div>
+                  </Button>
 
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      className="flex-1 text-left justify-start h-auto p-4"
-                      onClick={() => handlePreviewOtherTemplate("pending-labs", "Pending Laboratory Tests", "laboratory")}
-                    >
-                      <div>
-                        <div className="font-medium">
-                          Pending Laboratory Tests
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          List of pending lab tests with order dates and expected
-                          results
-                        </div>
+                  <Button
+                    variant="outline"
+                    className="w-full text-left justify-start h-auto p-4"
+                    onClick={() => handlePreviewOtherTemplate("pending-labs", "Pending Laboratory Tests", "laboratory")}
+                  >
+                    <div>
+                      <div className="font-medium">
+                        Pending Laboratory Tests
                       </div>
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="px-3"
-                      onClick={() => insertLabInfo("pending-labs")}
-                    >
-                      Insert
-                    </Button>
-                  </div>
+                      <div className="text-sm text-gray-500">
+                        List of pending lab tests with order dates and expected
+                        results
+                      </div>
+                    </div>
+                  </Button>
                 </div>
               </div>
 
@@ -9292,22 +9112,6 @@ Registration No: [Number]`
             <div className="grid grid-cols-1 gap-4 max-h-96 overflow-y-auto">
               {/* Templates Grid */}
               <div className="grid grid-cols-2 gap-4">
-                <Button
-                  variant="outline"
-                  className="h-auto p-4 text-left justify-start"
-                  onClick={() => {
-                    handleInsertTemplate();
-                    setShowAllTemplatesDialog(false);
-                  }}
-                >
-                  <div>
-                    <div className="font-medium">General & Medical Letter Template</div>
-                    <div className="text-sm text-gray-500">
-                      Professional letter templates for medical documentation
-                    </div>
-                  </div>
-                </Button>
-
                 <Button
                   variant="outline"
                   className="h-auto p-4 text-left justify-start"
