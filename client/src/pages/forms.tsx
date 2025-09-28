@@ -4718,7 +4718,16 @@ Coverage Details: [Insurance Coverage]`;
                           e.currentTarget.style.backgroundColor = "white";
                           e.currentTarget.style.borderColor = "#e5e7eb";
                         }}
-                        onClick={() => setShowEditClinic(true)}
+                        onClick={() => {
+                          setEditingClinicInfo({
+                            name: clinicInfo.name,
+                            address: clinicInfo.address,
+                            phone: clinicInfo.phone,
+                            email: clinicInfo.email,
+                            website: clinicInfo.website,
+                          });
+                          setShowEditClinic(true);
+                        }}
                       >
                         <Edit className="h-4 w-4 mr-1" />
                         Edit Clinic Info
@@ -4733,9 +4742,9 @@ Coverage Details: [Insurance Coverage]`;
                           <Label htmlFor="clinic-name">Clinic Name</Label>
                           <Input
                             id="clinic-name"
-                            value={clinicInfo.name}
+                            value={editingClinicInfo.name}
                             onChange={(e) =>
-                              setClinicInfo((prev) => ({
+                              setEditingClinicInfo((prev) => ({
                                 ...prev,
                                 name: e.target.value,
                               }))
@@ -4747,9 +4756,9 @@ Coverage Details: [Insurance Coverage]`;
                           <Label htmlFor="clinic-address">Address</Label>
                           <Input
                             id="clinic-address"
-                            value={clinicInfo.address}
+                            value={editingClinicInfo.address}
                             onChange={(e) =>
-                              setClinicInfo((prev) => ({
+                              setEditingClinicInfo((prev) => ({
                                 ...prev,
                                 address: e.target.value,
                               }))
@@ -4761,9 +4770,9 @@ Coverage Details: [Insurance Coverage]`;
                           <Label htmlFor="clinic-phone">Phone</Label>
                           <Input
                             id="clinic-phone"
-                            value={clinicInfo.phone}
+                            value={editingClinicInfo.phone}
                             onChange={(e) =>
-                              setClinicInfo((prev) => ({
+                              setEditingClinicInfo((prev) => ({
                                 ...prev,
                                 phone: e.target.value,
                               }))
@@ -4775,9 +4784,9 @@ Coverage Details: [Insurance Coverage]`;
                           <Label htmlFor="clinic-email">Email</Label>
                           <Input
                             id="clinic-email"
-                            value={clinicInfo.email}
+                            value={editingClinicInfo.email}
                             onChange={(e) =>
-                              setClinicInfo((prev) => ({
+                              setEditingClinicInfo((prev) => ({
                                 ...prev,
                                 email: e.target.value,
                               }))
@@ -4789,9 +4798,9 @@ Coverage Details: [Insurance Coverage]`;
                           <Label htmlFor="clinic-website">Website</Label>
                           <Input
                             id="clinic-website"
-                            value={clinicInfo.website}
+                            value={editingClinicInfo.website}
                             onChange={(e) =>
-                              setClinicInfo((prev) => ({
+                              setEditingClinicInfo((prev) => ({
                                 ...prev,
                                 website: e.target.value,
                               }))
@@ -4836,7 +4845,7 @@ Coverage Details: [Insurance Coverage]`;
                               e.currentTarget.style.backgroundColor = "white";
                               e.currentTarget.style.borderColor = "#e5e7eb";
                             }}
-                            onClick={handleSaveClinicInfo}
+                            onClick={saveClinicInfo}
                           >
                             Save Changes
                           </Button>
