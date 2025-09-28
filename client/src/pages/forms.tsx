@@ -5235,22 +5235,38 @@ Dr. [Name]`
                       <Button
                         variant="outline"
                         className="w-full text-left justify-start h-auto p-4"
-                        onClick={() =>
-                          insertTemplate(`
-                          <h2 style="font-size: 18px; font-weight: bold; margin: 6px 0;">Appointment Confirmation</h2>
-                          <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
-                          <p>Dear [Patient Name],</p>
-                          <p>This letter confirms your upcoming appointment:</p>
-                          <p><strong>Date:</strong> [Appointment Date]<br>
-                          <strong>Time:</strong> [Appointment Time]<br>
-                          <strong>Location:</strong> [Clinic Address]<br>
-                          <strong>Provider:</strong> [Doctor Name]</p>
-                          <p><strong>Please bring:</strong><br>• Photo ID<br>• Insurance card<br>• List of current medications<br>• Previous test results (if applicable)</p>
-                          <p>If you need to reschedule, please contact us at least 24 hours in advance.</p>
-                          <p>We look forward to seeing you.</p>
-                          <p>Best regards,<br>[Clinic Name]</p>
-                        `)
-                        }
+                        onClick={() => {
+                          const template = {
+                            subject: "Appointment Confirmation",
+                            body: `Date: ${new Date().toLocaleDateString()}
+
+Dear [Patient Name],
+
+This letter confirms your upcoming appointment:
+
+Date: [Appointment Date]
+Time: [Appointment Time]
+Location: [Clinic Address]
+Provider: [Doctor Name]
+
+Please bring:
+• Photo ID
+• Insurance card
+• List of current medications
+• Previous test results (if applicable)
+
+If you need to reschedule, please contact us at least 24 hours in advance.
+
+We look forward to seeing you.
+
+Best regards,
+[Clinic Name]`
+                          };
+                          setPreviewTemplate(template);
+                          setPreviewTemplateName("Appointment Confirmation");
+                          setShowTemplateDialog(false);
+                          setShowTemplatePreviewDialog(true);
+                        }}
                       >
                         <div>
                           <div className="font-medium">
