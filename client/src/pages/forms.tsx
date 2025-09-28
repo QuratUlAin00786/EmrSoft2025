@@ -2317,6 +2317,45 @@ Coverage Details: [Insurance Coverage]`;
     setShowClinicalHeaderDialog(true);
   };
 
+  const handleSaveClinicalHeader = async () => {
+    try {
+      const response = await fetch("/api/me/preferences", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+        },
+        body: JSON.stringify({
+          clinicName: selectedClinicalHeader 
+            ? selectedClinicalHeader.replace("-", " ").replace(/\b\w/g, (l) => l.toUpperCase())
+            : "Cardiology Dept",
+          clinicAddress: clinicInfo.address || "123 Healthcare Street, Medical City, MC 12345",
+          clinicPhone: clinicInfo.phone || "+44 20 1234 5678",
+          clinicEmail: clinicInfo.email || "info@yourclinic.com",
+          clinicWebsite: clinicInfo.website || "www.yourclinic.com",
+        }),
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: "Clinical header information saved successfully",
+          duration: 3000,
+        });
+        setShowAddClinicInfoDialog(false);
+      } else {
+        throw new Error("Failed to save");
+      }
+    } catch (error) {
+      console.error("Error saving clinical header info:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save clinical header information",
+        duration: 3000,
+      });
+    }
+  };
+
   const insertClinicInfo = (infoType: string) => {
     if (!textareaRef) {
       toast({
@@ -9705,6 +9744,26 @@ Registration No: [Number]`
                 }}
               >
                 Back
+              </Button>
+              <Button
+                variant="outline"
+                className="border transition-all duration-200"
+                style={{
+                  backgroundColor: "white",
+                  borderColor: "#e5e7eb",
+                  color: "black",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#A3A8FC";
+                  e.currentTarget.style.borderColor = "#A3A8FC";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "white";
+                  e.currentTarget.style.borderColor = "#e5e7eb";
+                }}
+                onClick={handleSaveClinicalHeader}
+              >
+                Save
               </Button>
               <Button
                 onClick={() => {
