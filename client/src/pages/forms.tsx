@@ -123,6 +123,9 @@ export default function Forms() {
   const [selectedClinicHeaderType, setSelectedClinicHeaderType] = useState("");
   const [showLogoTemplatesDialog, setShowLogoTemplatesDialog] = useState(false);
   const [showClinicHeaderDialog, setShowClinicHeaderDialog] = useState(false);
+  const [tempLogoPosition, setTempLogoPosition] = useState("right");
+  const [clinicHeaderPosition, setClinicHeaderPosition] = useState("center");
+  const [addFooter, setAddFooter] = useState(false);
 
   // Get current user
   const { user } = useAuth();
@@ -817,10 +820,11 @@ Dr. [Name]`
       // Add header section with logo and clinic header if selected
       if (addLogo || addClinicHeader) {
         const getClinicHeaderContent = () => {
+          const textAlign = clinicHeaderPosition;
           switch (selectedClinicHeaderType) {
             case "full-header":
               return `
-                <div style="text-align: center;">
+                <div style="text-align: ${textAlign};">
                   <h1 style="font-size: 24px; font-weight: bold; margin: 0; color: #2563eb;">Demo Healthcare Clinic</h1>
                   <p style="margin: 5px 0; color: #666;">123 Healthcare Street, Medical City, MC 12345</p>
                   <p style="margin: 5px 0; color: #666;">+44 20 1234 5678 • info@yourdlinic.com</p>
@@ -829,20 +833,20 @@ Dr. [Name]`
               `;
             case "professional-letterhead":
               return `
-                <div style="text-align: center; border-bottom: 2px solid #2563eb; padding-bottom: 10px;">
+                <div style="text-align: ${textAlign}; border-bottom: 2px solid #2563eb; padding-bottom: 10px;">
                   <h1 style="font-size: 28px; font-weight: bold; margin: 0; color: #2563eb;">Demo Healthcare Clinic</h1>
                   <p style="margin: 5px 0; color: #666; font-style: italic;">Excellence in Healthcare</p>
                 </div>
               `;
             case "clinic-name-only":
               return `
-                <div style="text-align: center;">
+                <div style="text-align: ${textAlign};">
                   <h1 style="font-size: 24px; font-weight: bold; margin: 0; color: #2563eb;">Demo Healthcare Clinic</h1>
                 </div>
               `;
             case "contact-info-block":
               return `
-                <div style="text-align: center; background-color: #f8fafc; padding: 10px; border-radius: 8px;">
+                <div style="text-align: ${textAlign}; background-color: #f8fafc; padding: 10px; border-radius: 8px;">
                   <p style="margin: 2px 0; color: #666;"><strong>Phone:</strong> +44 20 1234 5678</p>
                   <p style="margin: 2px 0; color: #666;"><strong>Email:</strong> info@yourdlinic.com</p>
                   <p style="margin: 2px 0; color: #666;"><strong>Address:</strong> 123 Healthcare Street, Medical City, MC 12345</p>
@@ -852,6 +856,7 @@ Dr. [Name]`
               return "";
           }
         };
+
 
         const logoContent = `
           <div style="width: 80px; height: 80px; background-color: #2563eb; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
@@ -899,6 +904,18 @@ Dr. [Name]`
       const templateHtml = templateToHtml(previewTemplate);
       finalHtml += templateHtml;
       
+      // Add footer if selected
+      if (addFooter) {
+        finalHtml += `
+          <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center; font-size: 12px; color: #666;">
+            <p style="margin: 2px 0;"><strong>Demo Healthcare Clinic</strong></p>
+            <p style="margin: 2px 0;">123 Healthcare Street, Medical City, MC 12345</p>
+            <p style="margin: 2px 0;">Phone: +44 20 1234 5678 | Email: info@yourdlinic.com</p>
+            <p style="margin: 2px 0;">www.yourdlinic.com</p>
+          </div>
+        `;
+      }
+      
       // Load template into editor with proper HTML formatting
       if (textareaRef) {
         textareaRef.innerHTML = finalHtml;
@@ -910,6 +927,8 @@ Dr. [Name]`
       setAddClinicHeader(false);
       setSelectedClinicHeaderType("");
       setLogoPosition("right");
+      setAddFooter(false);
+      setClinicHeaderPosition("center");
       
       toast({
         title: "Template Loaded",
@@ -7456,6 +7475,15 @@ Registration No: [Number]`
                     />
                     <span className="text-sm text-gray-700">Clinic Header Templates</span>
                   </label>
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={addFooter}
+                      onChange={(e) => setAddFooter(e.target.checked)}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">Footer</span>
+                  </label>
                 </div>
                 
                 {addLogo && (
@@ -7502,12 +7530,48 @@ Registration No: [Number]`
                 {addClinicHeader && selectedClinicHeaderType && (
                   <div className="bg-white p-3 rounded border">
                     <h5 className="text-sm font-medium text-gray-700 mb-1">Selected Clinic Header:</h5>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 mb-3">
                       {selectedClinicHeaderType === "full-header" && "Full Header - Complete clinic header with name, address, phone, email, and website"}
                       {selectedClinicHeaderType === "professional-letterhead" && "Professional Letterhead - Formal letterhead design with clinic branding"}
                       {selectedClinicHeaderType === "clinic-name-only" && "Clinic Name Only - Just the clinic name in bold text"}
                       {selectedClinicHeaderType === "contact-info-block" && "Contact Information Block - Formatted contact details section"}
                     </p>
+                    <h5 className="text-sm font-medium text-gray-700 mb-2">Header Position:</h5>
+                    <div className="flex gap-3">
+                      <label className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="clinicHeaderPosition"
+                          value="left"
+                          checked={clinicHeaderPosition === "left"}
+                          onChange={(e) => setClinicHeaderPosition(e.target.value)}
+                          className="text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-gray-700">Left</span>
+                      </label>
+                      <label className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="clinicHeaderPosition"
+                          value="center"
+                          checked={clinicHeaderPosition === "center"}
+                          onChange={(e) => setClinicHeaderPosition(e.target.value)}
+                          className="text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-gray-700">Center</span>
+                      </label>
+                      <label className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="clinicHeaderPosition"
+                          value="right"
+                          checked={clinicHeaderPosition === "right"}
+                          onChange={(e) => setClinicHeaderPosition(e.target.value)}
+                          className="text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-gray-700">Right</span>
+                      </label>
+                    </div>
                   </div>
                 )}
               </div>
@@ -7638,6 +7702,16 @@ Registration No: [Number]`
                       </div>
                     </div>
                   </div>
+                  
+                  {/* Footer Preview */}
+                  {addFooter && (
+                    <div className="mt-8 pt-4 border-t border-gray-300 text-center text-xs text-gray-600">
+                      <p className="font-bold text-gray-800 mb-1">Demo Healthcare Clinic</p>
+                      <p>123 Healthcare Street, Medical City, MC 12345</p>
+                      <p>Phone: +44 20 1234 5678 | Email: info@yourdlinic.com</p>
+                      <p>www.yourdlinic.com</p>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -7650,6 +7724,8 @@ Registration No: [Number]`
                   setAddClinicHeader(false);
                   setSelectedClinicHeaderType("");
                   setLogoPosition("right");
+                  setAddFooter(false);
+                  setClinicHeaderPosition("center");
                 }}
               >
                 Cancel
@@ -7673,7 +7749,7 @@ Registration No: [Number]`
             <h2 className="text-2xl font-bold text-gray-800 mt-2">Clinic Logo Templates</h2>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-4 mt-4">
-            <div className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer" onClick={() => {setAddLogo(true); setShowLogoTemplatesDialog(false);}}>
+            <div className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
               <div className="flex flex-col items-center">
                 <div className="w-16 h-16 bg-purple-200 rounded-lg flex items-center justify-center mb-2">
                   <span className="text-purple-600 text-xs font-bold">🏥</span>
@@ -7683,7 +7759,7 @@ Registration No: [Number]`
               </div>
             </div>
             
-            <div className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer" onClick={() => {setAddLogo(true); setShowLogoTemplatesDialog(false);}}>
+            <div className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
               <div className="flex flex-col items-center">
                 <div className="w-16 h-16 border-2 border-teal-500 rounded-lg flex items-center justify-center mb-2">
                   <span className="text-teal-600 text-sm font-bold">MEDICAL</span>
@@ -7693,7 +7769,7 @@ Registration No: [Number]`
               </div>
             </div>
             
-            <div className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer" onClick={() => {setAddLogo(true); setShowLogoTemplatesDialog(false);}}>
+            <div className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
               <div className="flex flex-col items-center">
                 <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center mb-2">
                   <span className="text-gray-600 text-xs font-bold">PRACTICE</span>
@@ -7703,7 +7779,7 @@ Registration No: [Number]`
               </div>
             </div>
             
-            <div className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer" onClick={() => {setAddLogo(true); setShowLogoTemplatesDialog(false);}}>
+            <div className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
               <div className="flex flex-col items-center">
                 <div className="w-16 h-16 bg-red-100 rounded-lg flex items-center justify-center mb-2">
                   <span className="text-red-600 text-xl">✚</span>
@@ -7713,9 +7789,59 @@ Registration No: [Number]`
               </div>
             </div>
           </div>
+          
+          <div className="mt-6 p-4 bg-blue-50 rounded-lg border">
+            <h4 className="text-sm font-medium text-gray-700 mb-3">Logo Position:</h4>
+            <div className="flex gap-3">
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="tempLogoPosition"
+                  value="left"
+                  checked={tempLogoPosition === "left"}
+                  onChange={(e) => setTempLogoPosition(e.target.value)}
+                  className="text-blue-600 focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-700">Left</span>
+              </label>
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="tempLogoPosition"
+                  value="center"
+                  checked={tempLogoPosition === "center"}
+                  onChange={(e) => setTempLogoPosition(e.target.value)}
+                  className="text-blue-600 focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-700">Center</span>
+              </label>
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="tempLogoPosition"
+                  value="right"
+                  checked={tempLogoPosition === "right"}
+                  onChange={(e) => setTempLogoPosition(e.target.value)}
+                  className="text-blue-600 focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-700">Right</span>
+              </label>
+            </div>
+          </div>
+          
           <div className="flex justify-end gap-2 pt-4 border-t mt-6">
             <Button variant="outline" onClick={() => setShowLogoTemplatesDialog(false)}>
               Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                setAddLogo(true);
+                setLogoPosition(tempLogoPosition);
+                setShowLogoTemplatesDialog(false);
+              }}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              OK
             </Button>
           </div>
         </DialogContent>
