@@ -6412,7 +6412,16 @@ Registration No: [Number]`
               </div>
             </div>
 
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowPatientDialog(false);
+                  setShowAllTemplatesDialog(true);
+                }}
+              >
+                Back
+              </Button>
               <Button
                 variant="ghost"
                 className="border transition-all duration-200"
@@ -6561,7 +6570,16 @@ Registration No: [Number]`
               </div>
             </div>
 
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowRecipientDialog(false);
+                  setShowAllTemplatesDialog(true);
+                }}
+              >
+                Back
+              </Button>
               <Button
                 variant="ghost"
                 className="border transition-all duration-200"
@@ -6692,7 +6710,16 @@ Registration No: [Number]`
               </div>
             </div>
 
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowAppointmentsDialog(false);
+                  setShowAllTemplatesDialog(true);
+                }}
+              >
+                Back
+              </Button>
               <Button
                 variant="ghost"
                 className="border transition-all duration-200"
@@ -6822,7 +6849,16 @@ Registration No: [Number]`
               </div>
             </div>
 
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowLabsDialog(false);
+                  setShowAllTemplatesDialog(true);
+                }}
+              >
+                Back
+              </Button>
               <Button
                 variant="ghost"
                 className="border transition-all duration-200"
@@ -7005,7 +7041,16 @@ Registration No: [Number]`
               </div>
             </div>
 
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowPatientRecordsDialog(false);
+                  setShowAllTemplatesDialog(true);
+                }}
+              >
+                Back
+              </Button>
               <Button
                 variant="ghost"
                 className="border transition-all duration-200"
@@ -7187,7 +7232,16 @@ Registration No: [Number]`
               </div>
             </div>
 
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowInsertProductDialog(false);
+                  setShowAllTemplatesDialog(true);
+                }}
+              >
+                Back
+              </Button>
               <Button
                 variant="ghost"
                 className="border transition-all duration-200"
