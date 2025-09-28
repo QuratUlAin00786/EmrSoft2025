@@ -118,7 +118,11 @@ export default function Forms() {
   const [previewTemplate, setPreviewTemplate] = useState<any>(null);
   const [previewTemplateName, setPreviewTemplateName] = useState("");
   const [addLogo, setAddLogo] = useState(false);
+  const [logoPosition, setLogoPosition] = useState("right"); // left, right, center
   const [addClinicHeader, setAddClinicHeader] = useState(false);
+  const [selectedClinicHeaderType, setSelectedClinicHeaderType] = useState("");
+  const [showLogoTemplatesDialog, setShowLogoTemplatesDialog] = useState(false);
+  const [showClinicHeaderDialog, setShowClinicHeaderDialog] = useState(false);
 
   // Get current user
   const { user } = useAuth();
@@ -812,32 +816,83 @@ Dr. [Name]`
       
       // Add header section with logo and clinic header if selected
       if (addLogo || addClinicHeader) {
-        finalHtml += '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">';
-        
-        if (addClinicHeader) {
-          finalHtml += `
-            <div style="text-align: center; flex: 1;">
-              <h1 style="font-size: 24px; font-weight: bold; margin: 0; color: #2563eb;">Demo Healthcare Clinic</h1>
-              <p style="margin: 5px 0; color: #666;">123 Healthcare Street, Medical City, MC 12345</p>
-              <p style="margin: 5px 0; color: #666;">+44 20 1234 5678 • info@yourdlinic.com</p>
-              <p style="margin: 5px 0; color: #666;">www.yourdlinic.com</p>
-            </div>
-          `;
+        const getClinicHeaderContent = () => {
+          switch (selectedClinicHeaderType) {
+            case "full-header":
+              return `
+                <div style="text-align: center;">
+                  <h1 style="font-size: 24px; font-weight: bold; margin: 0; color: #2563eb;">Demo Healthcare Clinic</h1>
+                  <p style="margin: 5px 0; color: #666;">123 Healthcare Street, Medical City, MC 12345</p>
+                  <p style="margin: 5px 0; color: #666;">+44 20 1234 5678 • info@yourdlinic.com</p>
+                  <p style="margin: 5px 0; color: #666;">www.yourdlinic.com</p>
+                </div>
+              `;
+            case "professional-letterhead":
+              return `
+                <div style="text-align: center; border-bottom: 2px solid #2563eb; padding-bottom: 10px;">
+                  <h1 style="font-size: 28px; font-weight: bold; margin: 0; color: #2563eb;">Demo Healthcare Clinic</h1>
+                  <p style="margin: 5px 0; color: #666; font-style: italic;">Excellence in Healthcare</p>
+                </div>
+              `;
+            case "clinic-name-only":
+              return `
+                <div style="text-align: center;">
+                  <h1 style="font-size: 24px; font-weight: bold; margin: 0; color: #2563eb;">Demo Healthcare Clinic</h1>
+                </div>
+              `;
+            case "contact-info-block":
+              return `
+                <div style="text-align: center; background-color: #f8fafc; padding: 10px; border-radius: 8px;">
+                  <p style="margin: 2px 0; color: #666;"><strong>Phone:</strong> +44 20 1234 5678</p>
+                  <p style="margin: 2px 0; color: #666;"><strong>Email:</strong> info@yourdlinic.com</p>
+                  <p style="margin: 2px 0; color: #666;"><strong>Address:</strong> 123 Healthcare Street, Medical City, MC 12345</p>
+                </div>
+              `;
+            default:
+              return "";
+          }
+        };
+
+        const logoContent = `
+          <div style="width: 80px; height: 80px; background-color: #2563eb; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+            <span style="color: white; font-weight: bold; font-size: 14px;">LOGO</span>
+          </div>
+        `;
+
+        if (logoPosition === "center" && addLogo && !addClinicHeader) {
+          finalHtml += `<div style="text-align: center; margin-bottom: 20px;">${logoContent}</div>`;
+        } else if (logoPosition === "center" && addClinicHeader && !addLogo) {
+          finalHtml += `<div style="margin-bottom: 20px;">${getClinicHeaderContent()}</div>`;
         } else {
-          finalHtml += '<div style="flex: 1;"></div>';
+          finalHtml += '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">';
+          
+          // Left side
+          if (logoPosition === "left" && addLogo) {
+            finalHtml += `<div style="text-align: left;">${logoContent}</div>`;
+          } else {
+            finalHtml += '<div style="flex: 1;"></div>';
+          }
+          
+          // Center
+          if (addClinicHeader) {
+            finalHtml += `<div style="flex: 2; text-align: center;">${getClinicHeaderContent()}</div>`;
+          } else if (logoPosition === "center" && addLogo) {
+            finalHtml += `<div style="flex: 2; text-align: center;">${logoContent}</div>`;
+          } else {
+            finalHtml += '<div style="flex: 2;"></div>';
+          }
+          
+          // Right side
+          if (logoPosition === "right" && addLogo) {
+            finalHtml += `<div style="text-align: right;">${logoContent}</div>`;
+          } else {
+            finalHtml += '<div style="flex: 1;"></div>';
+          }
+          
+          finalHtml += '</div>';
         }
         
-        if (addLogo) {
-          finalHtml += `
-            <div style="text-align: right;">
-              <div style="width: 80px; height: 80px; background-color: #2563eb; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-left: 20px;">
-                <span style="color: white; font-weight: bold; font-size: 14px;">LOGO</span>
-              </div>
-            </div>
-          `;
-        }
-        
-        finalHtml += '</div><hr style="margin: 20px 0; border: 1px solid #e5e7eb;">';
+        finalHtml += '<hr style="margin: 20px 0; border: 1px solid #e5e7eb;">';
       }
       
       // Add the main template content
@@ -853,6 +908,8 @@ Dr. [Name]`
       setShowTemplatePreviewDialog(false);
       setAddLogo(false);
       setAddClinicHeader(false);
+      setSelectedClinicHeaderType("");
+      setLogoPosition("right");
       
       toast({
         title: "Template Loaded",
@@ -7369,25 +7426,78 @@ Registration No: [Number]`
             {/* Options Section */}
             <div className="bg-blue-50 p-4 rounded-lg border">
               <h4 className="text-sm font-medium text-gray-700 mb-3">Additional Options:</h4>
-              <div className="flex gap-6">
-                <label className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={addLogo}
-                    onChange={(e) => setAddLogo(e.target.checked)}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-gray-700">Add Logo</span>
-                </label>
-                <label className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={addClinicHeader}
-                    onChange={(e) => setAddClinicHeader(e.target.checked)}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-gray-700">Clinic Header Templates</span>
-                </label>
+              <div className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowLogoTemplatesDialog(true)}
+                    className="bg-white"
+                  >
+                    Add Logo
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowClinicHeaderDialog(true)}
+                    className="bg-white"
+                  >
+                    Clinic Header Templates
+                  </Button>
+                </div>
+                
+                {addLogo && (
+                  <div className="bg-white p-3 rounded border">
+                    <h5 className="text-sm font-medium text-gray-700 mb-2">Logo Position:</h5>
+                    <div className="flex gap-3">
+                      <label className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="logoPosition"
+                          value="left"
+                          checked={logoPosition === "left"}
+                          onChange={(e) => setLogoPosition(e.target.value)}
+                          className="text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-gray-700">Left</span>
+                      </label>
+                      <label className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="logoPosition"
+                          value="center"
+                          checked={logoPosition === "center"}
+                          onChange={(e) => setLogoPosition(e.target.value)}
+                          className="text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-gray-700">Center</span>
+                      </label>
+                      <label className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="logoPosition"
+                          value="right"
+                          checked={logoPosition === "right"}
+                          onChange={(e) => setLogoPosition(e.target.value)}
+                          className="text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-gray-700">Right</span>
+                      </label>
+                    </div>
+                  </div>
+                )}
+                
+                {addClinicHeader && selectedClinicHeaderType && (
+                  <div className="bg-white p-3 rounded border">
+                    <h5 className="text-sm font-medium text-gray-700 mb-1">Selected Clinic Header:</h5>
+                    <p className="text-sm text-gray-600">
+                      {selectedClinicHeaderType === "full-header" && "Full Header - Complete clinic header with name, address, phone, email, and website"}
+                      {selectedClinicHeaderType === "professional-letterhead" && "Professional Letterhead - Formal letterhead design with clinic branding"}
+                      {selectedClinicHeaderType === "clinic-name-only" && "Clinic Name Only - Just the clinic name in bold text"}
+                      {selectedClinicHeaderType === "contact-info-block" && "Contact Information Block - Formatted contact details section"}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -7399,25 +7509,106 @@ Registration No: [Number]`
                   {/* Header Preview */}
                   {(addLogo || addClinicHeader) && (
                     <>
-                      <div className="flex justify-between items-center mb-4">
-                        {addClinicHeader ? (
-                          <div className="text-center flex-1">
-                            <h1 className="text-xl font-bold text-blue-600 mb-1">Demo Healthcare Clinic</h1>
-                            <p className="text-xs text-gray-600">123 Healthcare Street, Medical City, MC 12345</p>
-                            <p className="text-xs text-gray-600">+44 20 1234 5678 • info@yourdlinic.com</p>
-                            <p className="text-xs text-gray-600">www.yourdlinic.com</p>
+                      {logoPosition === "center" && addLogo && !addClinicHeader ? (
+                        <div className="text-center mb-4">
+                          <div className="w-16 h-16 bg-blue-600 rounded flex items-center justify-center mx-auto">
+                            <span className="text-white font-bold text-xs">LOGO</span>
                           </div>
-                        ) : (
-                          <div className="flex-1"></div>
-                        )}
-                        {addLogo && (
-                          <div className="text-right">
-                            <div className="w-16 h-16 bg-blue-600 rounded flex items-center justify-center ml-4">
-                              <span className="text-white font-bold text-xs">LOGO</span>
+                        </div>
+                      ) : logoPosition === "center" && addClinicHeader && !addLogo ? (
+                        <div className="mb-4">
+                          {selectedClinicHeaderType === "full-header" && (
+                            <div className="text-center">
+                              <h1 className="text-xl font-bold text-blue-600 mb-1">Demo Healthcare Clinic</h1>
+                              <p className="text-xs text-gray-600">123 Healthcare Street, Medical City, MC 12345</p>
+                              <p className="text-xs text-gray-600">+44 20 1234 5678 • info@yourdlinic.com</p>
+                              <p className="text-xs text-gray-600">www.yourdlinic.com</p>
                             </div>
-                          </div>
-                        )}
-                      </div>
+                          )}
+                          {selectedClinicHeaderType === "professional-letterhead" && (
+                            <div className="text-center border-b-2 border-blue-600 pb-2">
+                              <h1 className="text-2xl font-bold text-blue-600">Demo Healthcare Clinic</h1>
+                              <p className="text-xs text-gray-600 italic">Excellence in Healthcare</p>
+                            </div>
+                          )}
+                          {selectedClinicHeaderType === "clinic-name-only" && (
+                            <div className="text-center">
+                              <h1 className="text-xl font-bold text-blue-600">Demo Healthcare Clinic</h1>
+                            </div>
+                          )}
+                          {selectedClinicHeaderType === "contact-info-block" && (
+                            <div className="text-center bg-gray-50 p-2 rounded">
+                              <p className="text-xs text-gray-600"><strong>Phone:</strong> +44 20 1234 5678</p>
+                              <p className="text-xs text-gray-600"><strong>Email:</strong> info@yourdlinic.com</p>
+                              <p className="text-xs text-gray-600"><strong>Address:</strong> 123 Healthcare Street, Medical City, MC 12345</p>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="flex justify-between items-center mb-4">
+                          {/* Left side */}
+                          {logoPosition === "left" && addLogo ? (
+                            <div className="text-left">
+                              <div className="w-16 h-16 bg-blue-600 rounded flex items-center justify-center">
+                                <span className="text-white font-bold text-xs">LOGO</span>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex-1"></div>
+                          )}
+                          
+                          {/* Center */}
+                          {addClinicHeader ? (
+                            <div className="flex-2 text-center">
+                              {selectedClinicHeaderType === "full-header" && (
+                                <div>
+                                  <h1 className="text-xl font-bold text-blue-600 mb-1">Demo Healthcare Clinic</h1>
+                                  <p className="text-xs text-gray-600">123 Healthcare Street, Medical City, MC 12345</p>
+                                  <p className="text-xs text-gray-600">+44 20 1234 5678 • info@yourdlinic.com</p>
+                                  <p className="text-xs text-gray-600">www.yourdlinic.com</p>
+                                </div>
+                              )}
+                              {selectedClinicHeaderType === "professional-letterhead" && (
+                                <div className="border-b-2 border-blue-600 pb-2">
+                                  <h1 className="text-2xl font-bold text-blue-600">Demo Healthcare Clinic</h1>
+                                  <p className="text-xs text-gray-600 italic">Excellence in Healthcare</p>
+                                </div>
+                              )}
+                              {selectedClinicHeaderType === "clinic-name-only" && (
+                                <div>
+                                  <h1 className="text-xl font-bold text-blue-600">Demo Healthcare Clinic</h1>
+                                </div>
+                              )}
+                              {selectedClinicHeaderType === "contact-info-block" && (
+                                <div className="bg-gray-50 p-2 rounded">
+                                  <p className="text-xs text-gray-600"><strong>Phone:</strong> +44 20 1234 5678</p>
+                                  <p className="text-xs text-gray-600"><strong>Email:</strong> info@yourdlinic.com</p>
+                                  <p className="text-xs text-gray-600"><strong>Address:</strong> 123 Healthcare Street, Medical City, MC 12345</p>
+                                </div>
+                              )}
+                            </div>
+                          ) : logoPosition === "center" && addLogo ? (
+                            <div className="flex-2 text-center">
+                              <div className="w-16 h-16 bg-blue-600 rounded flex items-center justify-center mx-auto">
+                                <span className="text-white font-bold text-xs">LOGO</span>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex-2"></div>
+                          )}
+                          
+                          {/* Right side */}
+                          {logoPosition === "right" && addLogo ? (
+                            <div className="text-right">
+                              <div className="w-16 h-16 bg-blue-600 rounded flex items-center justify-center">
+                                <span className="text-white font-bold text-xs">LOGO</span>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex-1"></div>
+                          )}
+                        </div>
+                      )}
                       <hr className="mb-4 border-gray-300" />
                     </>
                   )}
@@ -7445,6 +7636,8 @@ Registration No: [Number]`
                   setShowTemplatePreviewDialog(false);
                   setAddLogo(false);
                   setAddClinicHeader(false);
+                  setSelectedClinicHeaderType("");
+                  setLogoPosition("right");
                 }}
               >
                 Cancel
@@ -7456,6 +7649,126 @@ Registration No: [Number]`
                 Load
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Logo Templates Dialog */}
+      <Dialog open={showLogoTemplatesDialog} onOpenChange={setShowLogoTemplatesDialog}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Insert Logo</DialogTitle>
+            <h2 className="text-2xl font-bold text-gray-800 mt-2">Clinic Logo Templates</h2>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-4 mt-4">
+            <div className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer" onClick={() => {setAddLogo(true); setShowLogoTemplatesDialog(false);}}>
+              <div className="flex flex-col items-center">
+                <div className="w-16 h-16 bg-purple-200 rounded-lg flex items-center justify-center mb-2">
+                  <span className="text-purple-600 text-xs font-bold">🏥</span>
+                </div>
+                <h3 className="font-semibold text-gray-800">Modern Clinic</h3>
+                <p className="text-sm text-gray-600 text-center">Icon with clinic name</p>
+              </div>
+            </div>
+            
+            <div className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer" onClick={() => {setAddLogo(true); setShowLogoTemplatesDialog(false);}}>
+              <div className="flex flex-col items-center">
+                <div className="w-16 h-16 border-2 border-teal-500 rounded-lg flex items-center justify-center mb-2">
+                  <span className="text-teal-600 text-sm font-bold">MEDICAL</span>
+                </div>
+                <h3 className="font-semibold text-gray-800">Professional</h3>
+                <p className="text-sm text-gray-600 text-center">Boxed design</p>
+              </div>
+            </div>
+            
+            <div className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer" onClick={() => {setAddLogo(true); setShowLogoTemplatesDialog(false);}}>
+              <div className="flex flex-col items-center">
+                <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center mb-2">
+                  <span className="text-gray-600 text-xs font-bold">PRACTICE</span>
+                </div>
+                <h3 className="font-semibold text-gray-800">Minimal</h3>
+                <p className="text-sm text-gray-600 text-center">Clean typography</p>
+              </div>
+            </div>
+            
+            <div className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer" onClick={() => {setAddLogo(true); setShowLogoTemplatesDialog(false);}}>
+              <div className="flex flex-col items-center">
+                <div className="w-16 h-16 bg-red-100 rounded-lg flex items-center justify-center mb-2">
+                  <span className="text-red-600 text-xl">✚</span>
+                </div>
+                <h3 className="font-semibold text-gray-800">Medical Cross</h3>
+                <p className="text-sm text-gray-600 text-center">Classic red cross</p>
+              </div>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 pt-4 border-t mt-6">
+            <Button variant="outline" onClick={() => setShowLogoTemplatesDialog(false)}>
+              Cancel
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Clinic Header Templates Dialog */}
+      <Dialog open={showClinicHeaderDialog} onOpenChange={setShowClinicHeaderDialog}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Insert Clinic Information</DialogTitle>
+            <h2 className="text-2xl font-bold text-gray-800 mt-2">Clinic Information Templates</h2>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div 
+              className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer" 
+              onClick={() => {
+                setAddClinicHeader(true);
+                setSelectedClinicHeaderType("full-header");
+                setShowClinicHeaderDialog(false);
+              }}
+            >
+              <h3 className="font-semibold text-gray-800">Full Header</h3>
+              <p className="text-sm text-gray-600">Complete clinic header with name, address, phone, email, and website</p>
+            </div>
+            
+            <div 
+              className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer"
+              onClick={() => {
+                setAddClinicHeader(true);
+                setSelectedClinicHeaderType("professional-letterhead");
+                setShowClinicHeaderDialog(false);
+              }}
+            >
+              <h3 className="font-semibold text-gray-800">Professional Letterhead</h3>
+              <p className="text-sm text-gray-600">Formal letterhead design with clinic branding</p>
+            </div>
+            
+            <div 
+              className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer"
+              onClick={() => {
+                setAddClinicHeader(true);
+                setSelectedClinicHeaderType("clinic-name-only");
+                setShowClinicHeaderDialog(false);
+              }}
+            >
+              <h3 className="font-semibold text-gray-800">Clinic Name Only</h3>
+              <p className="text-sm text-gray-600">Just the clinic name in bold text</p>
+            </div>
+            
+            <div 
+              className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer"
+              onClick={() => {
+                setAddClinicHeader(true);
+                setSelectedClinicHeaderType("contact-info-block");
+                setShowClinicHeaderDialog(false);
+              }}
+            >
+              <h3 className="font-semibold text-gray-800">Contact Information Block</h3>
+              <p className="text-sm text-gray-600">Formatted contact details section</p>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 pt-4 border-t mt-6">
+            <Button variant="outline" onClick={() => setShowClinicHeaderDialog(false)}>
+              Cancel
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
