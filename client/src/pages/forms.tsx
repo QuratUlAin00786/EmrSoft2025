@@ -868,6 +868,10 @@ Dr. [Name]`
           finalHtml += `<div style="text-align: center; margin-bottom: 20px;">${logoContent}</div>`;
         } else if (logoPosition === "center" && addClinicHeader && !addLogo) {
           finalHtml += `<div style="margin-bottom: 20px;">${getClinicHeaderContent()}</div>`;
+        } else if (logoPosition === "center" && addLogo && addClinicHeader) {
+          // Logo centered above clinic header
+          finalHtml += `<div style="text-align: center; margin-bottom: 10px;">${logoContent}</div>`;
+          finalHtml += `<div style="margin-bottom: 20px;">${getClinicHeaderContent()}</div>`;
         } else {
           finalHtml += '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">';
           
@@ -880,7 +884,7 @@ Dr. [Name]`
           
           // Center
           if (addClinicHeader) {
-            finalHtml += `<div style="flex: 2; text-align: center;">${getClinicHeaderContent()}</div>`;
+            finalHtml += `<div style="flex: 2;">${getClinicHeaderContent()}</div>`;
           } else if (logoPosition === "center" && addLogo) {
             finalHtml += `<div style="flex: 2; text-align: center;">${logoContent}</div>`;
           } else {
@@ -7591,10 +7595,15 @@ Registration No: [Number]`
                             <span className="text-white font-bold text-xs">LOGO</span>
                           </div>
                         </div>
-                      ) : logoPosition === "center" && addClinicHeader && !addLogo ? (
+                      ) : logoPosition === "center" && addLogo && addClinicHeader ? (
                         <div className="mb-4">
+                          <div className="text-center mb-2">
+                            <div className="w-16 h-16 bg-blue-600 rounded flex items-center justify-center mx-auto">
+                              <span className="text-white font-bold text-xs">LOGO</span>
+                            </div>
+                          </div>
                           {selectedClinicHeaderType === "full-header" && (
-                            <div className="text-center">
+                            <div className={`${clinicHeaderPosition === 'left' ? 'text-left' : clinicHeaderPosition === 'right' ? 'text-right' : 'text-center'}`}>
                               <h1 className="text-xl font-bold text-blue-600 mb-1">Demo Healthcare Clinic</h1>
                               <p className="text-xs text-gray-600">123 Healthcare Street, Medical City, MC 12345</p>
                               <p className="text-xs text-gray-600">+44 20 1234 5678 • info@yourdlinic.com</p>
@@ -7602,18 +7611,47 @@ Registration No: [Number]`
                             </div>
                           )}
                           {selectedClinicHeaderType === "professional-letterhead" && (
-                            <div className="text-center border-b-2 border-blue-600 pb-2">
+                            <div className={`${clinicHeaderPosition === 'left' ? 'text-left' : clinicHeaderPosition === 'right' ? 'text-right' : 'text-center'} border-b-2 border-blue-600 pb-2`}>
+                              <h1 className="text-xl font-bold text-blue-600 mb-1">Demo Healthcare Clinic</h1>
+                              <p className="text-xs text-gray-600 italic">Excellence in Healthcare</p>
+                            </div>
+                          )}
+                          {selectedClinicHeaderType === "clinic-name-only" && (
+                            <div className={`${clinicHeaderPosition === 'left' ? 'text-left' : clinicHeaderPosition === 'right' ? 'text-right' : 'text-center'}`}>
+                              <h1 className="text-xl font-bold text-blue-600">Demo Healthcare Clinic</h1>
+                            </div>
+                          )}
+                          {selectedClinicHeaderType === "contact-info-block" && (
+                            <div className={`${clinicHeaderPosition === 'left' ? 'text-left' : clinicHeaderPosition === 'right' ? 'text-right' : 'text-center'} bg-gray-50 p-2 rounded`}>
+                              <p className="text-xs text-gray-600"><strong>Phone:</strong> +44 20 1234 5678</p>
+                              <p className="text-xs text-gray-600"><strong>Email:</strong> info@yourdlinic.com</p>
+                              <p className="text-xs text-gray-600"><strong>Address:</strong> 123 Healthcare Street, Medical City, MC 12345</p>
+                            </div>
+                          )}
+                        </div>
+                      ) : logoPosition === "center" && addClinicHeader && !addLogo ? (
+                        <div className="mb-4">
+                          {selectedClinicHeaderType === "full-header" && (
+                            <div className={`${clinicHeaderPosition === 'left' ? 'text-left' : clinicHeaderPosition === 'right' ? 'text-right' : 'text-center'}`}>
+                              <h1 className="text-xl font-bold text-blue-600 mb-1">Demo Healthcare Clinic</h1>
+                              <p className="text-xs text-gray-600">123 Healthcare Street, Medical City, MC 12345</p>
+                              <p className="text-xs text-gray-600">+44 20 1234 5678 • info@yourdlinic.com</p>
+                              <p className="text-xs text-gray-600">www.yourdlinic.com</p>
+                            </div>
+                          )}
+                          {selectedClinicHeaderType === "professional-letterhead" && (
+                            <div className={`${clinicHeaderPosition === 'left' ? 'text-left' : clinicHeaderPosition === 'right' ? 'text-right' : 'text-center'} border-b-2 border-blue-600 pb-2`}>
                               <h1 className="text-2xl font-bold text-blue-600">Demo Healthcare Clinic</h1>
                               <p className="text-xs text-gray-600 italic">Excellence in Healthcare</p>
                             </div>
                           )}
                           {selectedClinicHeaderType === "clinic-name-only" && (
-                            <div className="text-center">
+                            <div className={`${clinicHeaderPosition === 'left' ? 'text-left' : clinicHeaderPosition === 'right' ? 'text-right' : 'text-center'}`}>
                               <h1 className="text-xl font-bold text-blue-600">Demo Healthcare Clinic</h1>
                             </div>
                           )}
                           {selectedClinicHeaderType === "contact-info-block" && (
-                            <div className="text-center bg-gray-50 p-2 rounded">
+                            <div className={`${clinicHeaderPosition === 'left' ? 'text-left' : clinicHeaderPosition === 'right' ? 'text-right' : 'text-center'} bg-gray-50 p-2 rounded`}>
                               <p className="text-xs text-gray-600"><strong>Phone:</strong> +44 20 1234 5678</p>
                               <p className="text-xs text-gray-600"><strong>Email:</strong> info@yourdlinic.com</p>
                               <p className="text-xs text-gray-600"><strong>Address:</strong> 123 Healthcare Street, Medical City, MC 12345</p>
@@ -7635,7 +7673,7 @@ Registration No: [Number]`
                           
                           {/* Center */}
                           {addClinicHeader ? (
-                            <div className="flex-2 text-center">
+                            <div className={`flex-2 ${clinicHeaderPosition === 'left' ? 'text-left' : clinicHeaderPosition === 'right' ? 'text-right' : 'text-center'}`}>
                               {selectedClinicHeaderType === "full-header" && (
                                 <div>
                                   <h1 className="text-xl font-bold text-blue-600 mb-1">Demo Healthcare Clinic</h1>
