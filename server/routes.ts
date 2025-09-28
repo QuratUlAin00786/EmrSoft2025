@@ -9520,10 +9520,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }).parse(req.body);
 
       // Import necessary libraries for PDF conversion
-      const puppeteer = require('puppeteer');
+      const puppeteer = await import('puppeteer');
       
       // Convert HTML content to PDF
-      const browser = await puppeteer.launch({
+      const browser = await puppeteer.default.launch({
         headless: true,
         args: ['--no-sandbox', '--disable-setuid-sandbox']
       });
