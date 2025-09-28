@@ -113,6 +113,11 @@ export default function Forms() {
   const [showDoctorCategoryOptionsDialog, setShowDoctorCategoryOptionsDialog] = useState(false);
   const [selectedDoctorCategoryData, setSelectedDoctorCategoryData] = useState<any>(null);
 
+  // Template preview states
+  const [showTemplatePreviewDialog, setShowTemplatePreviewDialog] = useState(false);
+  const [previewTemplate, setPreviewTemplate] = useState<any>(null);
+  const [previewTemplateName, setPreviewTemplateName] = useState("");
+
   // Get current user
   const { user } = useAuth();
 
@@ -769,22 +774,11 @@ Dr. [Name]`
     if (categoryData && categoryData.templates[option]) {
       const template = categoryData.templates[option];
       
-      // Convert template to semantic HTML
-      const templateHtml = templateToHtml(template);
-      
-      // Load template into editor with proper HTML formatting
-      if (textareaRef) {
-        textareaRef.innerHTML = templateHtml;
-        setDocumentContent(templateHtml);
-      }
-      
+      // Show preview dialog instead of directly loading
+      setPreviewTemplate(template);
+      setPreviewTemplateName(option);
       setShowCategoryOptionsDialog(false);
-      
-      toast({
-        title: "Template Loaded",
-        description: `${option} template has been loaded into the editor.`,
-        duration: 3000,
-      });
+      setShowTemplatePreviewDialog(true);
     }
   };
 
@@ -801,8 +795,19 @@ Dr. [Name]`
     if (categoryData && categoryData.templates[option]) {
       const template = categoryData.templates[option];
       
+      // Show preview dialog instead of directly loading
+      setPreviewTemplate(template);
+      setPreviewTemplateName(option);
+      setShowDoctorCategoryOptionsDialog(false);
+      setShowTemplatePreviewDialog(true);
+    }
+  };
+
+  // Handler for loading template from preview
+  const handleLoadTemplateFromPreview = () => {
+    if (previewTemplate) {
       // Convert template to semantic HTML
-      const templateHtml = templateToHtml(template);
+      const templateHtml = templateToHtml(previewTemplate);
       
       // Load template into editor with proper HTML formatting
       if (textareaRef) {
@@ -810,11 +815,11 @@ Dr. [Name]`
         setDocumentContent(templateHtml);
       }
       
-      setShowDoctorCategoryOptionsDialog(false);
+      setShowTemplatePreviewDialog(false);
       
       toast({
         title: "Template Loaded",
-        description: `${option} template has been loaded into the editor.`,
+        description: `${previewTemplateName} template has been loaded into the editor.`,
         duration: 3000,
       });
     }
@@ -4442,63 +4447,64 @@ Dr. [Name]`
               className="text-xs px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
               onClick={handleInsertTemplate}
             >
-              Insert template
+              General & Medical Letter template
             </Button>
             <Button
               size="sm"
               className="text-xs px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
               onClick={handleInsertLogo}
             >
-              Insert logo
+               logo
             </Button>
             <Button
               size="sm"
               className="text-xs px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
               onClick={handleClinic}
             >
-              Clinic
+              Clinic Header Templates
+
             </Button>
             <Button
               size="sm"
               className="text-xs px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
               onClick={handlePatient}
             >
-              Patient
+              Patient Information Templates
             </Button>
             <Button
               size="sm"
               className="text-xs px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
               onClick={handleRecipient}
             >
-              Recipient
+              Recipient Information Templates
             </Button>
             <Button
               size="sm"
               className="text-xs px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
               onClick={handleAppointments}
             >
-              Appointments
+              Appointment Information Templates
             </Button>
             <Button
               size="sm"
               className="text-xs px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
               onClick={handleLabs}
             >
-              Labs
+              Laboratory Information Templates
             </Button>
             <Button
               size="sm"
               className="text-xs px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
               onClick={handlePatientRecords}
             >
-              Patient records
+              Patient Records Templates
             </Button>
             <Button
               size="sm"
               className="text-xs px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200"
               onClick={handleInsertProduct}
             >
-              Insert product
+              Product Information Templates
             </Button>
           </div>
 
@@ -4520,16 +4526,17 @@ Dr. [Name]`
               data-testid="button-download"
             >
               <Download className="h-3 w-3 mr-1" />
-              Download
+             
             </Button>
             <Button
+              data-bluewave="true"
               size="sm"
               className="text-xs h-7 px-4 py-2 mt-5"
               onClick={handlePrint}
               data-testid="button-print"
             >
               <Printer className="h-3 w-3 mr-1" />
-              Print
+             
             </Button>
             <Button
               size="sm"
@@ -5215,38 +5222,88 @@ Dr. [Name]`
       <Dialog open={showTemplateDialog} onOpenChange={setShowTemplateDialog}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Insert Template</DialogTitle>
+            <DialogTitle>General & Medical Letter Template</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-1 gap-4 max-h-96 overflow-y-auto">
-              {/* Saved Templates */}
-              {templates && templates.length > 0 && (
-                <div>
-                  <h3 className="font-semibold mb-2">Saved Templates 1</h3>
-                  <div className="space-y-2">
-                    {templates.map((template: any) => (
+              {/* Saved Templates removed*/}
+           
+              {/* General Templates */}
+                  <div>
+                    <h4 className="font-semibold mb-2">General Letter Templates</h4>
+                    <div className="space-y-2">
                       <Button
-                        key={template.id}
                         variant="outline"
                         className="w-full text-left justify-start h-auto p-4"
-                        onClick={() => loadTemplate(template.id)}
+                        onClick={() =>
+                          insertTemplate(`
+                          <h2 style="font-size: 18px; font-weight: bold; margin: 6px 0;">Appointment Confirmation</h2>
+                          <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+                          <p>Dear [Patient Name],</p>
+                          <p>This letter confirms your upcoming appointment:</p>
+                          <p><strong>Date:</strong> [Appointment Date]<br>
+                          <strong>Time:</strong> [Appointment Time]<br>
+                          <strong>Location:</strong> [Clinic Address]<br>
+                          <strong>Provider:</strong> [Doctor Name]</p>
+                          <p><strong>Please bring:</strong><br>• Photo ID<br>• Insurance card<br>• List of current medications<br>• Previous test results (if applicable)</p>
+                          <p>If you need to reschedule, please contact us at least 24 hours in advance.</p>
+                          <p>We look forward to seeing you.</p>
+                          <p>Best regards,<br>[Clinic Name]</p>
+                        `)
+                        }
                       >
                         <div>
-                          <div className="font-medium">{template.name}</div>
+                          <div className="font-medium">
+                            Appointment Confirmation
+                          </div>
                           <div className="text-sm text-gray-500">
-                            Created:{" "}
-                            {new Date(template.createdAt).toLocaleDateString()}
+                            Patient appointment confirmation
                           </div>
                         </div>
                       </Button>
-                    ))}
+
+                      <Button
+                        variant="outline"
+                        className="w-full text-left justify-start h-auto p-4"
+                        onClick={() =>
+                          insertTemplate(`
+                          <h2 style="font-size: 18px; font-weight: bold; margin: 6px 0;">Treatment Plan</h2>
+                          <p><strong>Patient:</strong> [Patient Name]</p>
+                          <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+                          <p><strong>Diagnosis:</strong> [Primary Diagnosis]</p>
+                          <p><strong>Treatment Goals:</strong></p>
+                          <ul style="margin-left: 20px; list-style-type: disc;">
+                            <li>[Goal 1]</li>
+                            <li>[Goal 2]</li>
+                            <li>[Goal 3]</li>
+                          </ul>
+                          <p><strong>Treatment Plan:</strong></p>
+                          <ol style="margin-left: 20px; list-style-type: decimal;">
+                            <li><strong>Medications:</strong> [Specify medications and dosages]</li>
+                            <li><strong>Therapy:</strong> [Specify therapy type and frequency]</li>
+                            <li><strong>Lifestyle Modifications:</strong> [Specify recommendations]</li>
+                            <li><strong>Follow-up:</strong> [Specify follow-up schedule]</li>
+                          </ol>
+                          <p><strong>Next Review:</strong> [Date]</p>
+                        `)
+                        }
+                      >
+                        <div>
+                          <div className="font-medium">Treatment Plan</div>
+                          <div className="text-sm text-gray-500">
+                            Comprehensive treatment planning template
+                          </div>
+                        </div>
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              )}
 
+              
+              </div>
               {/* Medical Letter Templates */}
               <div>
-                <h3 className="font-semibold mb-2">Medical Letter Templates</h3>
+                <h4 className="font-semibold mb-2">Medical Letter Templates</h4>
                 <div className="space-y-2">
                   <Button
                     variant="outline"
@@ -5328,101 +5385,29 @@ Dr. [Name]`
                   </Button>
                 </div>
               </div>
-
-              {/* General Templates */}
-              <div>
-                <h3 className="font-semibold mb-2">General Templates</h3>
-                <div className="space-y-2">
-                  <Button
-                    variant="outline"
-                    className="w-full text-left justify-start h-auto p-4"
-                    onClick={() =>
-                      insertTemplate(`
-                      <h2 style="font-size: 18px; font-weight: bold; margin: 6px 0;">Appointment Confirmation</h2>
-                      <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
-                      <p>Dear [Patient Name],</p>
-                      <p>This letter confirms your upcoming appointment:</p>
-                      <p><strong>Date:</strong> [Appointment Date]<br>
-                      <strong>Time:</strong> [Appointment Time]<br>
-                      <strong>Location:</strong> [Clinic Address]<br>
-                      <strong>Provider:</strong> [Doctor Name]</p>
-                      <p><strong>Please bring:</strong><br>• Photo ID<br>• Insurance card<br>• List of current medications<br>• Previous test results (if applicable)</p>
-                      <p>If you need to reschedule, please contact us at least 24 hours in advance.</p>
-                      <p>We look forward to seeing you.</p>
-                      <p>Best regards,<br>[Clinic Name]</p>
-                    `)
-                    }
-                  >
-                    <div>
-                      <div className="font-medium">
-                        Appointment Confirmation
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        Patient appointment confirmation
-                      </div>
-                    </div>
-                  </Button>
-
-                  <Button
-                    variant="outline"
-                    className="w-full text-left justify-start h-auto p-4"
-                    onClick={() =>
-                      insertTemplate(`
-                      <h2 style="font-size: 18px; font-weight: bold; margin: 6px 0;">Treatment Plan</h2>
-                      <p><strong>Patient:</strong> [Patient Name]</p>
-                      <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
-                      <p><strong>Diagnosis:</strong> [Primary Diagnosis]</p>
-                      <p><strong>Treatment Goals:</strong></p>
-                      <ul style="margin-left: 20px; list-style-type: disc;">
-                        <li>[Goal 1]</li>
-                        <li>[Goal 2]</li>
-                        <li>[Goal 3]</li>
-                      </ul>
-                      <p><strong>Treatment Plan:</strong></p>
-                      <ol style="margin-left: 20px; list-style-type: decimal;">
-                        <li><strong>Medications:</strong> [Specify medications and dosages]</li>
-                        <li><strong>Therapy:</strong> [Specify therapy type and frequency]</li>
-                        <li><strong>Lifestyle Modifications:</strong> [Specify recommendations]</li>
-                        <li><strong>Follow-up:</strong> [Specify follow-up schedule]</li>
-                      </ol>
-                      <p><strong>Next Review:</strong> [Date]</p>
-                    `)
-                    }
-                  >
-                    <div>
-                      <div className="font-medium">Treatment Plan</div>
-                      <div className="text-sm text-gray-500">
-                        Comprehensive treatment planning template
-                      </div>
-                    </div>
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex justify-end">
-              <Button
-                variant="ghost"
-                className="border transition-all duration-200"
-                style={{
-                  backgroundColor: "white",
-                  borderColor: "#e5e7eb",
-                  color: "black",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#A3A8FC";
-                  e.currentTarget.style.borderColor = "#A3A8FC";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "white";
-                  e.currentTarget.style.borderColor = "#e5e7eb";
-                }}
-                onClick={() => setShowTemplateDialog(false)}
-              >
-                Cancel
-              </Button>
-            </div>
+          <div className="flex justify-end">
+            <Button
+              variant="ghost"
+              className="border transition-all duration-200"
+              style={{
+                backgroundColor: "white",
+                borderColor: "#e5e7eb",
+                color: "black",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#A3A8FC";
+                e.currentTarget.style.borderColor = "#A3A8FC";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "white";
+                e.currentTarget.style.borderColor = "#e5e7eb";
+              }}
+              onClick={() => setShowTemplateDialog(false)}
+            >
+              Cancel
+            </Button>
           </div>
+           
         </DialogContent>
       </Dialog>
 
@@ -6520,7 +6505,7 @@ Dr. [Name]`
       >
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Insert Product Information</DialogTitle>
+            <DialogTitle> Product Information</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-1 gap-4 max-h-96 overflow-y-auto">
@@ -7253,6 +7238,47 @@ Dr. [Name]`
                 onClick={() => setShowDoctorCategoryOptionsDialog(false)}
               >
                 Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Template Preview Dialog */}
+      <Dialog open={showTemplatePreviewDialog} onOpenChange={setShowTemplatePreviewDialog}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{previewTemplateName}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {previewTemplate && (
+              <div className="bg-gray-50 p-4 rounded-lg border">
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Subject:</label>
+                    <p className="text-gray-900 font-medium mt-1">{previewTemplate.subject}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Body:</label>
+                    <div className="text-gray-900 mt-1 whitespace-pre-wrap bg-white p-3 rounded border">
+                      {previewTemplate.body}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            <div className="flex justify-end gap-2 pt-4 border-t">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowTemplatePreviewDialog(false)}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleLoadTemplateFromPreview}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                Load
               </Button>
             </div>
           </div>
