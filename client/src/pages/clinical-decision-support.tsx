@@ -52,6 +52,7 @@ import {
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useAiInsightsEvents } from "@/hooks/use-ai-insights-events";
+import { useAuth } from "@/hooks/use-auth";
 
 // Use the actual database schema for form validation, excluding server-managed fields
 const createInsightSchema = insertAiInsightSchema.omit({
@@ -2163,6 +2164,7 @@ function AddDrugInteractionDialog({ open, onClose, onSuccess }: {
   const [notes, setNotes] = React.useState("");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   // Fetch patients for dropdown
   const { data: patientsData } = useQuery({
@@ -2191,64 +2193,76 @@ function AddDrugInteractionDialog({ open, onClose, onSuccess }: {
 
     setIsSubmitting(true);
 
-    try {
-      const payload = {
-        patientId: parseInt(selectedPatientId),
-        medication1Name,
-        medication1Dosage,
-        medication1Frequency,
-        medication2Name,
-        medication2Dosage,
-        medication2Frequency,
-        severity,
-        description,
-        warnings: warnings ? warnings.split('\n').filter(w => w.trim()) : [],
-        recommendations: recommendations ? recommendations.split('\n').filter(r => r.trim()) : [],
-        notes
-      };
+    // Check if user role is admin before saving to database
+    if (user?.role === 'admin') {
+      try {
+        const payload = {
+          patientId: parseInt(selectedPatientId),
+          medication1Name,
+          medication1Dosage,
+          medication1Frequency,
+          medication2Name,
+          medication2Dosage,
+          medication2Frequency,
+          severity,
+          description,
+          warnings: warnings ? warnings.split('\n').filter(w => w.trim()) : [],
+          recommendations: recommendations ? recommendations.split('\n').filter(r => r.trim()) : [],
+          notes
+        };
 
-      const response = await fetch('/api/clinical/patient-drug-interactions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      });
+        const response = await fetch('/api/clinical/patient-drug-interactions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to add drug interaction');
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to add drug interaction');
+        }
+
+        toast({
+          title: "Success",
+          description: "Drug interaction added successfully."
+        });
+      } catch (error: any) {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to add drug interaction",
+          variant: "destructive"
+        });
+        setIsSubmitting(false);
+        return;
       }
-
+    } else {
       toast({
-        title: "Success",
-        description: "Drug interaction added successfully."
-      });
-
-      // Reset form
-      setSelectedPatientId("");
-      setMedication1Name("");
-      setMedication1Dosage("");
-      setMedication1Frequency("");
-      setMedication2Name("");
-      setMedication2Dosage("");
-      setMedication2Frequency("");
-      setSeverity("medium");
-      setDescription("");
-      setWarnings("");
-      setRecommendations("");
-      setNotes("");
-
-      onSuccess();
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to add drug interaction",
+        title: "Access Denied",
+        description: "Only admin users can save drug interactions to the database.",
         variant: "destructive"
       });
-    } finally {
       setIsSubmitting(false);
+      return;
     }
+
+    // Reset form
+    setSelectedPatientId("");
+    setMedication1Name("");
+    setMedication1Dosage("");
+    setMedication1Frequency("");
+    setMedication2Name("");
+    setMedication2Dosage("");
+    setMedication2Frequency("");
+    setSeverity("medium");
+    setDescription("");
+    setWarnings("");
+    setRecommendations("");
+    setNotes("");
+
+    onSuccess();
+    setIsSubmitting(false);
   };
 
   const handleClose = () => {
