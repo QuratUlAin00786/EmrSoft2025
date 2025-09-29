@@ -7768,7 +7768,7 @@ Registration No: [Number]`
                     className="px-6"
                     style={{
                       backgroundColor: "white",
-                   
+                      borderColor: "grey",
                       color: "black",
                     }}
                   >
