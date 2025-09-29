@@ -2471,6 +2471,15 @@ export function PatientList({ onSelectPatient, showActiveOnly = true }: PatientL
                           {patient.insuranceInfo.provider.toUpperCase()}
                         </Badge>
                       )}
+                      {patient.isInsured && (
+                        <Badge
+                          className="text-xs text-white"
+                          style={{ backgroundColor: "#4A7DFF" }}
+                          data-testid={`badge-insured-${patient.id}`}
+                        >
+                          Insured
+                        </Badge>
+                      )}
                       {/* Active Status Badge with Toggle */}
                       <div className="flex items-center gap-2">
                         <Badge
