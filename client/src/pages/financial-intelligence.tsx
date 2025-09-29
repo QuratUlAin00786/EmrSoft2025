@@ -228,6 +228,7 @@ export default function FinancialIntelligence() {
   });
   const [newInsuranceFormData, setNewInsuranceFormData] = useState({
     patientName: "",
+    patientId: "",
     provider: "",
     policyNumber: "",
     groupNumber: "",
@@ -671,6 +672,7 @@ export default function FinancialIntelligence() {
         credentials: "include",
         body: JSON.stringify({
           ...data,
+          patientId: data.patientId,
           memberNumber: data.memberNumber || "",
           nhsNumber: data.nhsNumber || "",
           planType: data.planType || "",
@@ -695,6 +697,7 @@ export default function FinancialIntelligence() {
       setAddInsuranceOpen(false);
       setNewInsuranceFormData({
         patientName: "",
+        patientId: "",
         provider: "",
         policyNumber: "",
         groupNumber: "",
@@ -3084,6 +3087,7 @@ export default function FinancialIntelligence() {
                                 setNewInsuranceFormData((prev) => ({
                                   ...prev,
                                   patientName: `${patient.firstName} ${patient.lastName}`,
+                                  patientId: patient.id.toString(),
                                 }));
                                 setPatientSearchOpen(false);
                               }}

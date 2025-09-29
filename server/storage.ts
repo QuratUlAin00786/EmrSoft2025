@@ -907,6 +907,17 @@ export class DatabaseStorage implements IStorage {
     return updated || undefined;
   }
 
+  async updatePatientInsuranceStatus(patientId: number, organizationId: number, isInsured: boolean): Promise<Patient | undefined> {
+    const [updated] = await db.update(patients)
+      .set({ 
+        isInsured,
+        updatedAt: new Date()
+      })
+      .where(and(eq(patients.id, patientId), eq(patients.organizationId, organizationId)))
+      .returning();
+    return updated || undefined;
+  }
+
   async deletePatient(id: number, organizationId: number): Promise<boolean> {
     try {
       // First delete related records (cascade delete)

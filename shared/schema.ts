@@ -353,6 +353,7 @@ export const patients = pgTable("patients", {
     emergencyContactOnly?: boolean;
   }>().default({}),
   isActive: boolean("is_active").notNull().default(true),
+  isInsured: boolean("is_insured").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

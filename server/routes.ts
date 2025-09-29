@@ -3234,25 +3234,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`[FINANCIAL] New insurance record creation requested:`, insuranceData);
       
-      // Find patient by name to get patientId
-      const patients = await storage.getPatientsByOrganization(organizationId);
-      const patient = patients.find(p => `${p.firstName} ${p.lastName}` === insuranceData.patientName);
-      
-      if (!patient) {
-        return res.status(400).json({
-          success: false,
-          message: "Patient not found"
-        });
+      // Use provided patientId or find patient by name as fallback
+      let patientId;
+      if (insuranceData.patientId) {
+        patientId = parseInt(insuranceData.patientId);
+      } else {
+        // Fallback: Find patient by name
+        const patients = await storage.getPatientsByOrganization(organizationId);
+        const patient = patients.find(p => `${p.firstName} ${p.lastName}` === insuranceData.patientName);
+        
+        if (!patient) {
+          return res.status(400).json({
+            success: false,
+            message: "Patient not found"
+          });
+        }
+        patientId = patient.id;
       }
       
       // Create insurance record for database
       const insuranceRecord = {
         organizationId,
-        patientId: patient.id,
+        patientId: patientId,
         patientName: insuranceData.patientName,
         provider: insuranceData.provider,
         policyNumber: insuranceData.policyNumber,
         groupNumber: insuranceData.groupNumber,
+        memberNumber: insuranceData.memberNumber,
+        nhsNumber: insuranceData.nhsNumber,
+        planType: insuranceData.planType,
+        effectiveDate: insuranceData.effectiveDate,
         status: insuranceData.status || "active",
         coverageType: insuranceData.coverageType || "primary",
         eligibilityStatus: insuranceData.eligibilityStatus || "pending",
@@ -3270,7 +3281,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Save to database
       const newInsurance = await storage.createInsuranceVerification(insuranceRecord);
       
-      console.log(`[FINANCIAL] New insurance record created:`, newInsurance);
+      // Update patient's is_insured status to true
+      await storage.updatePatientInsuranceStatus(patientId, organizationId, true);
+      
+      console.log(`[FINANCIAL] New insurance record created and patient insurance status updated:`, newInsurance);
       
       res.json({
         success: true,
