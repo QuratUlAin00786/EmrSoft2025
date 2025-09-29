@@ -893,6 +893,63 @@ export const insuranceVerifications = pgTable("insurance_verifications", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Financial Forecasting Models
+export const forecastModels = pgTable("forecast_models", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
+  name: text("name").notNull(),
+  type: varchar("type", { length: 30 }).notNull(), // revenue, expenses, collections, claims
+  algorithm: varchar("algorithm", { length: 20 }).notNull().default("linear"), // linear, seasonal, exponential
+  parameters: jsonb("parameters").$type<{
+    lookbackMonths?: number;
+    seasonalityFactor?: number;
+    trendWeight?: number;
+    volatilityAdjustment?: number;
+    customFactors?: Array<{
+      name: string;
+      weight: number;
+      description: string;
+    }>;
+  }>().default({}),
+  accuracy: decimal("accuracy", { precision: 5, scale: 2 }), // 0.00 to 100.00 percentage
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Financial Forecasts
+export const financialForecasts = pgTable("financial_forecasts", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
+  category: text("category").notNull(), // "Monthly Revenue", "Collection Rate", "Claim Volume", "Operating Expenses"
+  forecastPeriod: varchar("forecast_period", { length: 7 }).notNull(), // YYYY-MM format for the predicted period
+  generatedAt: timestamp("generated_at").defaultNow().notNull(),
+  currentValue: decimal("current_value", { precision: 12, scale: 2 }).notNull(),
+  projectedValue: decimal("projected_value", { precision: 12, scale: 2 }).notNull(),
+  variance: decimal("variance", { precision: 12, scale: 2 }).notNull(),
+  trend: varchar("trend", { length: 10 }).notNull(), // up, down, stable
+  confidence: integer("confidence").notNull(), // 0-100 percentage
+  methodology: varchar("methodology", { length: 30 }).notNull().default("historical_trend"), // historical_trend, seasonal_analysis, regression
+  keyFactors: jsonb("key_factors").$type<Array<{
+    factor: string;
+    impact: "positive" | "negative" | "neutral";
+    weight: number;
+    description: string;
+  }>>().default([]),
+  modelId: integer("model_id").references(() => forecastModels.id),
+  metadata: jsonb("metadata").$type<{
+    basedOnMonths?: number;
+    dataPoints?: number;
+    correlationCoeff?: number;
+    seasonalComponent?: number;
+    externalFactors?: string[];
+    assumptions?: string[];
+  }>().default({}),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Clinical Procedures
 export const clinicalProcedures = pgTable("clinical_procedures", {
   id: serial("id").primaryKey(),
@@ -2396,3 +2453,13 @@ export type InsertMusclePosition = z.infer<typeof insertMusclePositionSchema>;
 // Letter Draft Types
 export type LetterDraft = typeof letterDrafts.$inferSelect;
 export type InsertLetterDraft = z.infer<typeof insertLetterDraftSchema>;
+
+// Financial Forecasting Insert Schemas
+export const insertForecastModelSchema = createInsertSchema(forecastModels).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertFinancialForecastSchema = createInsertSchema(financialForecasts).omit({ id: true, generatedAt: true, createdAt: true, updatedAt: true });
+
+// Financial Forecasting Types
+export type ForecastModel = typeof forecastModels.$inferSelect;
+export type InsertForecastModel = z.infer<typeof insertForecastModelSchema>;
+export type FinancialForecast = typeof financialForecasts.$inferSelect;
+export type InsertFinancialForecast = z.infer<typeof insertFinancialForecastSchema>;
