@@ -155,6 +155,23 @@ interface FinancialForecast {
 
 export default function FinancialIntelligence() {
   const [location, setLocation] = useLocation();
+
+  // Insurance provider options for dropdown
+  const insuranceProviders = [
+    "NHS (National Health Service)",
+    "Bupa",
+    "AXA PPP Healthcare", 
+    "Vitality Health",
+    "Aviva Health",
+    "Simply Health",
+    "WPA",
+    "Benenden Health",
+    "Healix Health Services",
+    "Sovereign Health Care",
+    "Exeter Friendly Society",
+    "Self-Pay",
+    "Other"
+  ];
   const [activeTab, setActiveTab] = useState("overview");
   const [dateRange, setDateRange] = useState("last_3_months");
   const [selectedClaim, setSelectedClaim] = useState<Claim | null>(null);
@@ -182,6 +199,7 @@ export default function FinancialIntelligence() {
   const [viewBenefitsOpen, setViewBenefitsOpen] = useState(false);
   const [addInsuranceOpen, setAddInsuranceOpen] = useState(false);
   const [patientSearchOpen, setPatientSearchOpen] = useState(false);
+  const [insuranceProviderOpen, setInsuranceProviderOpen] = useState(false);
   const [selectedInsurance, setSelectedInsurance] = useState<any>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successClaimData, setSuccessClaimData] = useState<any>(null);
@@ -2951,17 +2969,59 @@ export default function FinancialIntelligence() {
                 <label className="text-sm font-medium">
                   Insurance Provider
                 </label>
-                <Input
-                  value={newInsuranceFormData.provider}
-                  onChange={(e) =>
-                    setNewInsuranceFormData((prev) => ({
-                      ...prev,
-                      provider: e.target.value,
-                    }))
-                  }
-                  placeholder="Enter insurance provider"
-                  data-testid="input-new-provider"
-                />
+                <Popover
+                  open={insuranceProviderOpen}
+                  onOpenChange={setInsuranceProviderOpen}
+                >
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={insuranceProviderOpen}
+                      className="w-full justify-between"
+                      data-testid="button-select-provider"
+                    >
+                      {newInsuranceFormData.provider || "Select insurance provider..."}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0">
+                    <Command>
+                      <CommandInput
+                        placeholder="Search insurance providers..."
+                        className="h-9"
+                      />
+                      <CommandList>
+                        <CommandEmpty>No insurance provider found.</CommandEmpty>
+                        <CommandGroup>
+                          {insuranceProviders.map((provider) => (
+                            <CommandItem
+                              key={provider}
+                              value={provider}
+                              onSelect={() => {
+                                setNewInsuranceFormData((prev) => ({
+                                  ...prev,
+                                  provider: provider,
+                                }));
+                                setInsuranceProviderOpen(false);
+                              }}
+                              data-testid={`option-provider-${provider.toLowerCase().replace(/[^a-z0-9]/g, '-')}`}
+                            >
+                              <Check
+                                className={`mr-2 h-4 w-4 ${
+                                  newInsuranceFormData.provider === provider
+                                    ? "opacity-100"
+                                    : "opacity-0"
+                                }`}
+                              />
+                              {provider}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
 
