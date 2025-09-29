@@ -7518,18 +7518,36 @@ Registration No: [Number]`
                     <SelectValue placeholder="Select recipient" />
                   </SelectTrigger>
                   <SelectContent>
-                    {patientsLoading ? (
-                      <SelectItem value="loading" disabled>Loading patients...</SelectItem>
-                    ) : patientsFromTable.length > 0 ? (
-                      patientsFromTable
-                        .filter((patient) => patient.email && patient.email.trim() !== "")
-                        .map((patient) => (
-                        <SelectItem key={patient.id} value={patient.email!}>
-                          {patient.firstName} {patient.lastName} ({patient.email})
-                        </SelectItem>
-                      ))
+                    {user?.role === 'patient' ? (
+                      // For patient role, show doctors from users table
+                      usersLoading ? (
+                        <SelectItem value="loading" disabled>Loading doctors...</SelectItem>
+                      ) : users.filter(u => u.role === 'doctor').length > 0 ? (
+                        users
+                          .filter((doctor) => doctor.role === 'doctor' && doctor.email && doctor.email.trim() !== "")
+                          .map((doctor) => (
+                            <SelectItem key={doctor.id} value={doctor.email!}>
+                              Dr. {doctor.firstName} {doctor.lastName} ({doctor.email})
+                            </SelectItem>
+                          ))
+                      ) : (
+                        <SelectItem value="no-doctors" disabled>No doctors available</SelectItem>
+                      )
                     ) : (
-                      <SelectItem value="no-patients" disabled>No patients available</SelectItem>
+                      // For other roles, show patients
+                      patientsLoading ? (
+                        <SelectItem value="loading" disabled>Loading patients...</SelectItem>
+                      ) : patientsFromTable.length > 0 ? (
+                        patientsFromTable
+                          .filter((patient) => patient.email && patient.email.trim() !== "")
+                          .map((patient) => (
+                          <SelectItem key={patient.id} value={patient.email!}>
+                            {patient.firstName} {patient.lastName} ({patient.email})
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="no-patients" disabled>No patients available</SelectItem>
+                      )
                     )}
                   </SelectContent>
                 </Select>
