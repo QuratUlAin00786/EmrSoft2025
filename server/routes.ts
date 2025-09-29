@@ -3226,6 +3226,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get insurance verifications by patient ID
+  app.get("/api/insurance-verifications", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const organizationId = requireOrgId(req);
+      const patientId = req.query.patientId;
+
+      if (!patientId) {
+        return res.status(400).json({ error: "Patient ID is required" });
+      }
+
+      console.log(`[FINANCIAL] Fetching insurance verifications for patient: ${patientId}`);
+
+      const insuranceVerifications = await storage.getInsuranceVerificationsByPatient(parseInt(patientId as string), organizationId);
+
+      console.log(`[FINANCIAL] Found ${insuranceVerifications.length} insurance verifications for patient ${patientId}`);
+      res.json(insuranceVerifications);
+    } catch (error) {
+      console.error(`[FINANCIAL] Error fetching insurance verifications:`, error);
+      handleRouteError(error, "fetch insurance verifications by patient", res);
+    }
+  });
+
   // Create new insurance record
   app.post("/api/financial/insurance", authMiddleware, requireRole(["admin", "finance", "doctor", "nurse"]), async (req: TenantRequest, res) => {
     try {
