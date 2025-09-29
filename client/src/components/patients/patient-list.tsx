@@ -2428,8 +2428,8 @@ export function PatientList({ onSelectPatient, showActiveOnly = true }: PatientL
                       )}
                       {patient.isInsured && (
                         <Badge
-                          className="text-xs text-white"
-                          style={{ backgroundColor: "#4A7DFF" }}
+                          className="text-xs text-black"
+                          style={{ backgroundColor: "#FFFACD" }}
                           data-testid={`badge-insured-${patient.id}`}
                         >
                           Insured
