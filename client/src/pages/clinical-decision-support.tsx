@@ -214,6 +214,93 @@ export default function ClinicalDecisionSupport() {
           ]
         }
       ]
+    },
+    'gold-copd': {
+      id: 'gold-copd',
+      title: 'GOLD Guidelines: COPD Management',
+      description: 'Global strategy for diagnosis, management and prevention of COPD',
+      organization: 'Global Initiative for Chronic Obstructive Lung Disease',
+      updated: 'February 2024',
+      evidenceLevel: 'A',
+      category: 'Respiratory',
+      sections: [
+        {
+          title: 'Diagnosis and Assessment',
+          content: [
+            'Spirometry is required to make the diagnosis of COPD',
+            'Post-bronchodilator FEV1/FVC < 0.70 confirms airflow limitation',
+            'Consider COPD in patients over 40 with dyspnea, chronic cough, or sputum production',
+            'Assess symptom burden and exacerbation risk'
+          ]
+        },
+        {
+          title: 'Treatment Approach',
+          content: [
+            'Bronchodilators are central to symptom management',
+            'LABA/LAMA combination for patients with persistent symptoms',
+            'Add ICS for patients with history of exacerbations',
+            'Pulmonary rehabilitation for all appropriate patients'
+          ]
+        }
+      ]
+    },
+    'who-amr': {
+      id: 'who-amr',
+      title: 'WHO Guidelines: Antimicrobial Resistance',
+      description: 'Updated recommendations for preventing and containing antimicrobial resistance',
+      organization: 'World Health Organization',
+      updated: 'April 2024',
+      evidenceLevel: 'B',
+      category: 'Infectious Disease',
+      sections: [
+        {
+          title: 'Prevention Strategies',
+          content: [
+            'Implement infection prevention and control measures',
+            'Promote rational use of antimicrobials',
+            'Strengthen surveillance systems',
+            'Invest in research and development of new antibiotics'
+          ]
+        },
+        {
+          title: 'Clinical Practice',
+          content: [
+            'Use antimicrobials only when prescribed by certified healthcare professionals',
+            'Complete the full course even if feeling better',
+            'Never share or use leftover antibiotics',
+            'Follow local antimicrobial stewardship guidelines'
+          ]
+        }
+      ]
+    },
+    'esc-heart-failure': {
+      id: 'esc-heart-failure',
+      title: 'ESC Guidelines: Heart Failure',
+      description: 'European Society of Cardiology guidelines for acute and chronic heart failure',
+      organization: 'European Society of Cardiology',
+      updated: 'March 2024',
+      evidenceLevel: 'A',
+      category: 'Cardiology',
+      sections: [
+        {
+          title: 'Diagnosis',
+          content: [
+            'Clinical assessment including history and physical examination',
+            'ECG and chest X-ray in all patients',
+            'Echocardiography to assess cardiac structure and function',
+            'Natriuretic peptides (BNP/NT-proBNP) for diagnosis'
+          ]
+        },
+        {
+          title: 'Treatment',
+          content: [
+            'ACE inhibitors or ARBs as first-line therapy',
+            'Beta-blockers for all patients with HFrEF',
+            'Diuretics for fluid retention',
+            'Consider SGLT2 inhibitors in appropriate patients'
+          ]
+        }
+      ]
     }
   };
 
@@ -1435,12 +1522,7 @@ export default function ClinicalDecisionSupport() {
                                   <Button 
                                     size="sm" 
                                     variant="outline"
-                                    onClick={() => {
-                                      toast({
-                                        title: "Guideline Opened",
-                                        description: "GOLD Guidelines: COPD Management - Opening detailed guideline view...",
-                                      });
-                                    }}
+                                    onClick={() => viewGuideline('gold-copd')}
                                   >
                                     View
                                   </Button>
@@ -1471,12 +1553,7 @@ export default function ClinicalDecisionSupport() {
                                   <Button 
                                     size="sm" 
                                     variant="outline"
-                                    onClick={() => {
-                                      toast({
-                                        title: "Guideline Opened",
-                                        description: "WHO Guidelines: Antimicrobial Resistance - Opening detailed guideline view...",
-                                      });
-                                    }}
+                                    onClick={() => viewGuideline('who-amr')}
                                   >
                                     View
                                   </Button>
@@ -1501,12 +1578,7 @@ export default function ClinicalDecisionSupport() {
                                   <Button 
                                     size="sm" 
                                     variant="outline"
-                                    onClick={() => {
-                                      toast({
-                                        title: "Guideline Opened",
-                                        description: "ESC Guidelines: Heart Failure - Opening detailed guideline view...",
-                                      });
-                                    }}
+                                    onClick={() => viewGuideline('esc-heart-failure')}
                                   >
                                     View
                                   </Button>
