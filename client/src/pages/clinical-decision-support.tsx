@@ -14,6 +14,8 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -43,7 +45,9 @@ import {
   RotateCcw,
   Info,
   AlertCircle,
-  User
+  User,
+  Check,
+  ChevronsUpDown
 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -2073,6 +2077,7 @@ function AddDrugInteractionDialog({ open, onClose, onSuccess }: {
   onSuccess: () => void;
 }) {
   const [selectedPatientId, setSelectedPatientId] = React.useState<string>("");
+  const [patientComboboxOpen, setPatientComboboxOpen] = React.useState(false);
   const [medication1Name, setMedication1Name] = React.useState("");
   const [medication1Dosage, setMedication1Dosage] = React.useState("");
   const [medication1Frequency, setMedication1Frequency] = React.useState("");
@@ -2197,18 +2202,48 @@ function AddDrugInteractionDialog({ open, onClose, onSuccess }: {
           {/* Patient Selection */}
           <div>
             <Label htmlFor="patient-select">Patient *</Label>
-            <Select value={selectedPatientId} onValueChange={setSelectedPatientId}>
-              <SelectTrigger id="patient-select">
-                <SelectValue placeholder="Select patient..." />
-              </SelectTrigger>
-              <SelectContent>
-                {patients.map((patient: any) => (
-                  <SelectItem key={patient.id} value={patient.id.toString()}>
-                    {patient.firstName} {patient.lastName}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Popover open={patientComboboxOpen} onOpenChange={setPatientComboboxOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={patientComboboxOpen}
+                  className="w-full justify-between"
+                >
+                  {selectedPatientId
+                    ? patients.find((patient: any) => patient.id.toString() === selectedPatientId)?.firstName + " " + patients.find((patient: any) => patient.id.toString() === selectedPatientId)?.lastName
+                    : "Select patient..."}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                <Command>
+                  <CommandInput placeholder="Search patients..." />
+                  <CommandList>
+                    <CommandEmpty>No patient found.</CommandEmpty>
+                    <CommandGroup>
+                      {patients.map((patient: any) => (
+                        <CommandItem
+                          key={patient.id}
+                          value={`${patient.firstName} ${patient.lastName}`}
+                          onSelect={() => {
+                            setSelectedPatientId(patient.id.toString());
+                            setPatientComboboxOpen(false);
+                          }}
+                        >
+                          <Check
+                            className={`mr-2 h-4 w-4 ${
+                              selectedPatientId === patient.id.toString() ? "opacity-100" : "opacity-0"
+                            }`}
+                          />
+                          {patient.firstName} {patient.lastName}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
 
           {/* Medication 1 */}
