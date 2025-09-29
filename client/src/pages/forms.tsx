@@ -2442,6 +2442,7 @@ Coverage Details: [Insurance Coverage]`;
     }
     
     setShowAddClinicInfoDialog(false);
+    setShowClinicDisplayDialog(false);
   };
 
   const insertClinicInfo = (infoType: string) => {
@@ -9624,7 +9625,7 @@ Registration No: [Number]`
 
       {/* Clinic Display Dialog */}
       <Dialog open={showClinicDisplayDialog} onOpenChange={setShowClinicDisplayDialog}>
-        <DialogContent className="max-w-full">
+        <DialogContent className="max-w-md">
           <div className="space-y-4">
             {/* Display the clinic info like in the attached image */}
             <div className="p-6 bg-blue-50 dark:bg-[hsl(var(--cura-midnight))] border border-blue-200 dark:border-[hsl(var(--cura-steel))] rounded text-center relative">
