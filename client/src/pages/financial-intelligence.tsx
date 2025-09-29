@@ -333,7 +333,7 @@ export default function FinancialIntelligence() {
 
   // Generate financial forecasts mutation
   const generateForecastsMutation = useMutation({
-    mutationFn: () => apiRequest("/api/financial-forecasting/generate", "POST"),
+    mutationFn: () => apiRequest("POST", "/api/financial-forecasting/generate"),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/financial-forecasting"] });
       toast({
