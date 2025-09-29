@@ -4613,7 +4613,7 @@ Coverage Details: [Insurance Coverage]`;
                 }}
                 onClick={handlePreview}
               >
-                Save and preview
+                Preview
               </Button>
               <Button
                 className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
