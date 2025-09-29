@@ -4787,7 +4787,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Drug Interactions API endpoint
-  app.get("/api/clinical/drug-interactions", async (req: TenantRequest, res) => {
+  app.get("/api/clinical/drug-interactions", authMiddleware, async (req: TenantRequest, res) => {
     try {
       // Check role authorization - only non-patient roles can access
       if (req.user?.role === "patient") {
@@ -4926,7 +4926,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Patient Drug Interactions API endpoints
-  app.post("/api/clinical/patient-drug-interactions", async (req: TenantRequest, res) => {
+  app.post("/api/clinical/patient-drug-interactions", authMiddleware, async (req: TenantRequest, res) => {
     try {
       // Check role authorization - only non-patient roles can access
       if (req.user?.role === "patient") {
