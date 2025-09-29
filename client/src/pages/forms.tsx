@@ -104,6 +104,7 @@ export default function Forms() {
   const [showSavedTemplatesDialog, setShowSavedTemplatesDialog] =
     useState(false);
   const [showEmptyContentDialog, setShowEmptyContentDialog] = useState(false);
+  const [showDocumentPreviewDialog, setShowDocumentPreviewDialog] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [selectedDoctorId, setSelectedDoctorId] = useState("");
   const [shareFormData, setShareFormData] = useState({
@@ -1521,10 +1522,16 @@ Coverage Details: [Insurance Coverage]`;
   };
 
   const handlePreview = () => {
-    toast({
-      title: "Save and Preview",
-      description: "Document saved and preview opened.",
-    });
+    if (
+      !documentContent ||
+      documentContent.trim() === "" ||
+      documentContent.replace(/<[^>]*>/g, "").trim() === ""
+    ) {
+      setShowEmptyContentDialog(true);
+      return;
+    }
+    
+    setShowDocumentPreviewDialog(true);
   };
 
   const handleSaveAsDraft = () => {
@@ -7423,6 +7430,50 @@ Registration No: [Number]`
               data-testid="button-close-empty-dialog"
             >
               OK
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Document Preview Dialog */}
+      <Dialog
+        open={showDocumentPreviewDialog}
+        onOpenChange={setShowDocumentPreviewDialog}
+      >
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              Document Preview
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <div className="border rounded-lg p-4 bg-white min-h-96 max-h-96 overflow-y-auto">
+              <div 
+                dangerouslySetInnerHTML={{ __html: documentContent }}
+                className="prose prose-sm max-w-none"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button
+              onClick={() => setShowDocumentPreviewDialog(false)}
+              className="transition-all duration-200"
+              style={{
+                backgroundColor: "white",
+                borderColor: "#e5e7eb",
+                color: "black",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#7279FB";
+                e.currentTarget.style.borderColor = "#7279FB";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "white";
+                e.currentTarget.style.borderColor = "#e5e7eb";
+              }}
+              data-testid="button-close-preview-dialog"
+            >
+              Close
             </Button>
           </div>
         </DialogContent>
