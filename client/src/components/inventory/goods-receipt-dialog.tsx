@@ -40,11 +40,9 @@ interface ReceiptItem {
 
 // Validation schema for goods receipt form
 const goodsReceiptSchema = z.object({
-  supplierId: z.number().min(1, "Supplier is required"),
-  deliveryDate: z.string().min(1, "Delivery date is required"),
-  receivedBy: z.string().min(1, "Received by field is required"),
+  purchaseOrderId: z.number().min(1, "Purchase order is required"),
+  receivedDate: z.string().min(1, "Received date is required"),
   notes: z.string().optional(),
-  invoiceNumber: z.string().optional(),
 });
 
 // Validation schema for adding new items
@@ -70,11 +68,9 @@ export default function GoodsReceiptDialog({ open, onOpenChange, items }: GoodsR
   const form = useForm<GoodsReceiptFormData>({
     resolver: zodResolver(goodsReceiptSchema),
     defaultValues: {
-      supplierId: 1,
-      deliveryDate: new Date().toISOString().split('T')[0],
-      receivedBy: "",
+      purchaseOrderId: 1,
+      receivedDate: new Date().toISOString().split('T')[0],
       notes: "",
-      invoiceNumber: "",
     },
   });
   
@@ -155,12 +151,19 @@ export default function GoodsReceiptDialog({ open, onOpenChange, items }: GoodsR
       return;
     }
 
-    const totalAmount = calculateTotalAmount();
+    // Map receipt items to backend expected format
+    const mappedItems = receiptItems.map(item => ({
+      itemId: item.itemId,
+      quantityReceived: item.quantityReceived,
+      batchNumber: item.batchNumber || undefined,
+      expiryDate: item.expiryDate || undefined
+    }));
 
     createReceiptMutation.mutate({
-      ...data,
-      totalAmount,
-      items: receiptItems
+      purchaseOrderId: data.purchaseOrderId,
+      receivedDate: data.receivedDate,
+      notes: data.notes,
+      items: mappedItems
     });
   };
 
@@ -178,19 +181,19 @@ export default function GoodsReceiptDialog({ open, onOpenChange, items }: GoodsR
               <div className="grid grid-cols-3 gap-4">
                 <FormField
                   control={form.control}
-                  name="supplierId"
+                  name="purchaseOrderId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Supplier</FormLabel>
+                      <FormLabel>Purchase Order</FormLabel>
                       <FormControl>
                         <Select value={field.value.toString()} onValueChange={(value) => field.onChange(parseInt(value))}>
-                          <SelectTrigger data-testid="select-supplier">
-                            <SelectValue placeholder="Select supplier" />
+                          <SelectTrigger data-testid="select-purchase-order">
+                            <SelectValue placeholder="Select purchase order" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="1">Halo Pharmacy</SelectItem>
-                            <SelectItem value="2">MedSupply Co.</SelectItem>
-                            <SelectItem value="3">Healthcare Solutions</SelectItem>
+                            <SelectItem value="1">PO-001</SelectItem>
+                            <SelectItem value="2">PO-002</SelectItem>
+                            <SelectItem value="3">PO-003</SelectItem>
                           </SelectContent>
                         </Select>
                       </FormControl>
@@ -200,31 +203,14 @@ export default function GoodsReceiptDialog({ open, onOpenChange, items }: GoodsR
                 />
                 <FormField
                   control={form.control}
-                  name="deliveryDate"
+                  name="receivedDate"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Delivery Date</FormLabel>
+                      <FormLabel>Received Date</FormLabel>
                       <FormControl>
                         <Input
                           type="date"
-                          data-testid="input-delivery-date"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="receivedBy"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Received By</FormLabel>
-                      <FormControl>
-                        <Input
-                          data-testid="input-received-by"
-                          placeholder="Name of person who received"
+                          data-testid="input-received-date"
                           {...field}
                         />
                       </FormControl>
@@ -234,17 +220,17 @@ export default function GoodsReceiptDialog({ open, onOpenChange, items }: GoodsR
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <FormField
                   control={form.control}
-                  name="invoiceNumber"
+                  name="notes"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Invoice Number</FormLabel>
+                      <FormLabel>Notes</FormLabel>
                       <FormControl>
-                        <Input
-                          data-testid="input-invoice-number"
-                          placeholder="Supplier invoice number"
+                        <Textarea
+                          data-testid="textarea-notes"
+                          placeholder="Additional notes about this goods receipt..."
                           {...field}
                         />
                       </FormControl>
@@ -252,10 +238,6 @@ export default function GoodsReceiptDialog({ open, onOpenChange, items }: GoodsR
                     </FormItem>
                   )}
                 />
-                <div>
-                  <Label>Total Amount</Label>
-                  <Input value={`£${calculateTotalAmount()}`} disabled />
-                </div>
               </div>
 
               {/* Add Items Section */}
