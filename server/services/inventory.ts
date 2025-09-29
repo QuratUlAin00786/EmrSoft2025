@@ -705,7 +705,7 @@ Cura Healthcare Team
           .returning();
 
         // Update item stock
-        await this.updateItemStock(
+        await this.updateStock(
           item.itemId,
           receiptData.organizationId,
           item.quantityReceived,
