@@ -874,6 +874,7 @@ export const insuranceVerifications = pgTable("insurance_verifications", {
   policyNumber: text("policy_number").notNull(),
   groupNumber: text("group_number"),
   memberNumber: text("member_number"),
+  nhsNumber: text("nhs_number"),
   planType: text("plan_type"),
   coverageType: varchar("coverage_type", { length: 20 }).notNull().default("primary"), // primary, secondary
   status: varchar("status", { length: 20 }).notNull().default("active"), // active, inactive, pending, expired

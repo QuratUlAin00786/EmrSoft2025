@@ -231,6 +231,10 @@ export default function FinancialIntelligence() {
     provider: "",
     policyNumber: "",
     groupNumber: "",
+    memberNumber: "",
+    nhsNumber: "",
+    planType: "",
+    effectiveDate: "",
     coverageType: "primary",
     status: "active",
     eligibilityStatus: "pending",
@@ -328,7 +332,13 @@ export default function FinancialIntelligence() {
   // Fetch financial forecasts
   const { data: forecasts, isLoading: forecastsLoading, refetch: refetchForecasts } = useQuery({
     queryKey: ["/api/financial-forecasting"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/financial-forecasting");
+      return response.json();
+    },
     enabled: true,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
   });
 
   // Generate financial forecasts mutation
@@ -661,6 +671,10 @@ export default function FinancialIntelligence() {
         credentials: "include",
         body: JSON.stringify({
           ...data,
+          memberNumber: data.memberNumber || "",
+          nhsNumber: data.nhsNumber || "",
+          planType: data.planType || "",
+          effectiveDate: data.effectiveDate || null,
           lastVerified: new Date().toISOString(),
           id: `ins_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           benefits: {
@@ -684,6 +698,10 @@ export default function FinancialIntelligence() {
         provider: "",
         policyNumber: "",
         groupNumber: "",
+        memberNumber: "",
+        nhsNumber: "",
+        planType: "",
+        effectiveDate: "",
         coverageType: "primary",
         status: "active",
         eligibilityStatus: "pending",
@@ -977,6 +995,10 @@ export default function FinancialIntelligence() {
       provider: insurance.provider || "",
       policyNumber: insurance.policyNumber || "",
       groupNumber: insurance.groupNumber || "",
+      memberNumber: insurance.memberNumber || "",
+      nhsNumber: insurance.nhsNumber || "",
+      planType: insurance.planType || "",
+      effectiveDate: insurance.effectiveDate || "",
       coverageType: insurance.coverageType || "primary",
       status: insurance.status || "active",
       eligibilityStatus: insurance.eligibilityStatus || "pending",
@@ -1962,6 +1984,10 @@ export default function FinancialIntelligence() {
                   provider: "",
                   policyNumber: "",
                   groupNumber: "",
+                  memberNumber: "",
+                  nhsNumber: "",
+                  planType: "",
+                  effectiveDate: "",
                   coverageType: "primary",
                   status: "active",
                   eligibilityStatus: "pending",
@@ -3168,6 +3194,104 @@ export default function FinancialIntelligence() {
                   placeholder="Enter group number"
                   data-testid="input-new-group-number"
                 />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Member Number</label>
+                <Input
+                  value={newInsuranceFormData.memberNumber}
+                  onChange={(e) =>
+                    setNewInsuranceFormData((prev) => ({
+                      ...prev,
+                      memberNumber: e.target.value,
+                    }))
+                  }
+                  placeholder="Enter member number"
+                  data-testid="input-new-member-number"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">NHS Number</label>
+                <Input
+                  value={newInsuranceFormData.nhsNumber}
+                  onChange={(e) => {
+                    // Format NHS number as XXX XXX XXXX
+                    let value = e.target.value.replace(/\D/g, '');
+                    if (value.length > 10) value = value.slice(0, 10);
+                    if (value.length > 6) value = value.replace(/(\d{3})(\d{3})(\d+)/, '$1 $2 $3');
+                    else if (value.length > 3) value = value.replace(/(\d{3})(\d+)/, '$1 $2');
+                    
+                    setNewInsuranceFormData((prev) => ({
+                      ...prev,
+                      nhsNumber: value,
+                    }));
+                  }}
+                  placeholder="485 777 3456"
+                  data-testid="input-new-nhs-number"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Plan Type</label>
+                <Select
+                  value={newInsuranceFormData.planType}
+                  onValueChange={(value) =>
+                    setNewInsuranceFormData((prev) => ({
+                      ...prev,
+                      planType: value,
+                    }))
+                  }
+                >
+                  <SelectTrigger data-testid="select-new-plan-type">
+                    <SelectValue placeholder="Select plan type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="comprehensive">Comprehensive</SelectItem>
+                    <SelectItem value="standard">Standard</SelectItem>
+                    <SelectItem value="basic">Basic</SelectItem>
+                    <SelectItem value="dental-only">Dental Only</SelectItem>
+                    <SelectItem value="optical-only">Optical Only</SelectItem>
+                    <SelectItem value="mental-health">Mental Health</SelectItem>
+                    <SelectItem value="maternity">Maternity</SelectItem>
+                    <SelectItem value="specialist">Specialist</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Effective Date</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start text-left font-normal"
+                      data-testid="button-effective-date"
+                    >
+                      <Calendar className="mr-2 h-4 w-4" />
+                      {newInsuranceFormData.effectiveDate
+                        ? format(new Date(newInsuranceFormData.effectiveDate), "PPP")
+                        : "Select effective date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <div className="p-3">
+                      <Input
+                        type="date"
+                        value={newInsuranceFormData.effectiveDate}
+                        onChange={(e) =>
+                          setNewInsuranceFormData((prev) => ({
+                            ...prev,
+                            effectiveDate: e.target.value,
+                          }))
+                        }
+                        data-testid="input-effective-date"
+                      />
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
 
