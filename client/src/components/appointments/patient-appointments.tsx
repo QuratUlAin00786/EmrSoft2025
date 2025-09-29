@@ -183,7 +183,11 @@ export default function PatientAppointments({
           user.firstName &&
           patient.firstName.toLowerCase() === user.firstName.toLowerCase(),
       ) ||
-      // 4. If user role is patient, take the first patient (fallback for demo)
+      // 4. Production fallback: Try to match by user ID as patient ID
+      patientsData.find(
+        (patient: any) => patient.id === user.id
+      ) ||
+      // 5. If user role is patient, take the first patient (fallback for demo/production)
       (user.role === "patient" && patientsData.length > 0
         ? patientsData[0]
         : null);
