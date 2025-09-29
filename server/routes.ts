@@ -9935,6 +9935,223 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Financial Forecasting endpoints
+  app.get("/api/financial-forecasting", authMiddleware, requireRole(["admin", "doctor"]), async (req: TenantRequest, res) => {
+    try {
+      const forecasts = await storage.getFinancialForecasts(req.tenant!.id);
+      res.json(forecasts);
+    } catch (error) {
+      console.error("Error getting financial forecasts:", error);
+      res.status(500).json({ error: "Failed to get financial forecasts" });
+    }
+  });
+
+  app.get("/api/financial-forecasting/:id", authMiddleware, requireRole(["admin", "doctor"]), async (req: TenantRequest, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid forecast ID" });
+      }
+
+      const forecast = await storage.getFinancialForecast(id, req.tenant!.id);
+      if (!forecast) {
+        return res.status(404).json({ error: "Forecast not found" });
+      }
+
+      res.json(forecast);
+    } catch (error) {
+      console.error("Error getting financial forecast:", error);
+      res.status(500).json({ error: "Failed to get financial forecast" });
+    }
+  });
+
+  app.post("/api/financial-forecasting/generate", authMiddleware, requireRole(["admin", "doctor"]), async (req: TenantRequest, res) => {
+    try {
+      const forecasts = await storage.generateFinancialForecasts(req.tenant!.id);
+      res.json(forecasts);
+    } catch (error) {
+      console.error("Error generating financial forecasts:", error);
+      res.status(500).json({ error: "Failed to generate financial forecasts" });
+    }
+  });
+
+  app.put("/api/financial-forecasting/:id", authMiddleware, requireRole(["admin", "doctor"]), async (req: TenantRequest, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid forecast ID" });
+      }
+
+      const updateData = z.object({
+        category: z.string().optional(),
+        forecastPeriod: z.string().optional(),
+        currentValue: z.number().optional(),
+        projectedValue: z.number().optional(),
+        variance: z.number().optional(),
+        trend: z.enum(['up', 'down', 'stable']).optional(),
+        confidence: z.number().min(0).max(100).optional(),
+        methodology: z.string().optional(),
+        keyFactors: z.array(z.object({
+          factor: z.string(),
+          impact: z.enum(['positive', 'negative', 'neutral']),
+          weight: z.number(),
+          description: z.string()
+        })).optional(),
+        metadata: z.record(z.any()).optional(),
+        isActive: z.boolean().optional()
+      }).parse(req.body);
+
+      const updatedForecast = await storage.updateFinancialForecast(id, req.tenant!.id, updateData);
+      if (!updatedForecast) {
+        return res.status(404).json({ error: "Forecast not found" });
+      }
+
+      res.json(updatedForecast);
+    } catch (error) {
+      console.error("Error updating financial forecast:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: error.errors.map(e => `${e.path.join('.')}: ${e.message}`)
+        });
+      }
+      res.status(500).json({ error: "Failed to update financial forecast" });
+    }
+  });
+
+  app.delete("/api/financial-forecasting/:id", authMiddleware, requireRole(["admin", "doctor"]), async (req: TenantRequest, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid forecast ID" });
+      }
+
+      const deleted = await storage.deleteFinancialForecast(id, req.tenant!.id);
+      if (deleted) {
+        res.json({ success: true, message: "Forecast deleted successfully" });
+      } else {
+        res.status(404).json({ error: "Forecast not found" });
+      }
+    } catch (error) {
+      console.error("Error deleting financial forecast:", error);
+      res.status(500).json({ error: "Failed to delete financial forecast" });
+    }
+  });
+
+  // Forecast Models endpoints
+  app.get("/api/forecast-models", authMiddleware, requireRole(["admin", "doctor"]), async (req: TenantRequest, res) => {
+    try {
+      const models = await storage.getForecastModels(req.tenant!.id);
+      res.json(models);
+    } catch (error) {
+      console.error("Error getting forecast models:", error);
+      res.status(500).json({ error: "Failed to get forecast models" });
+    }
+  });
+
+  app.get("/api/forecast-models/:id", authMiddleware, requireRole(["admin", "doctor"]), async (req: TenantRequest, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid model ID" });
+      }
+
+      const model = await storage.getForecastModel(id, req.tenant!.id);
+      if (!model) {
+        return res.status(404).json({ error: "Model not found" });
+      }
+
+      res.json(model);
+    } catch (error) {
+      console.error("Error getting forecast model:", error);
+      res.status(500).json({ error: "Failed to get forecast model" });
+    }
+  });
+
+  app.post("/api/forecast-models", authMiddleware, requireRole(["admin", "doctor"]), async (req: TenantRequest, res) => {
+    try {
+      const modelData = z.object({
+        name: z.string().min(1),
+        description: z.string().optional(),
+        modelType: z.enum(['regression', 'arima', 'exponential_smoothing', 'neural_network', 'ensemble']),
+        parameters: z.record(z.any()),
+        dataRequirements: z.array(z.string()),
+        accuracy: z.number().min(0).max(100).optional(),
+        isActive: z.boolean().default(true)
+      }).parse(req.body);
+
+      const model = await storage.createForecastModel({
+        ...modelData,
+        organizationId: req.tenant!.id
+      });
+
+      res.status(201).json(model);
+    } catch (error) {
+      console.error("Error creating forecast model:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: error.errors.map(e => `${e.path.join('.')}: ${e.message}`)
+        });
+      }
+      res.status(500).json({ error: "Failed to create forecast model" });
+    }
+  });
+
+  app.put("/api/forecast-models/:id", authMiddleware, requireRole(["admin", "doctor"]), async (req: TenantRequest, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid model ID" });
+      }
+
+      const updateData = z.object({
+        name: z.string().min(1).optional(),
+        description: z.string().optional(),
+        modelType: z.enum(['regression', 'arima', 'exponential_smoothing', 'neural_network', 'ensemble']).optional(),
+        parameters: z.record(z.any()).optional(),
+        dataRequirements: z.array(z.string()).optional(),
+        accuracy: z.number().min(0).max(100).optional(),
+        isActive: z.boolean().optional()
+      }).parse(req.body);
+
+      const updatedModel = await storage.updateForecastModel(id, req.tenant!.id, updateData);
+      if (!updatedModel) {
+        return res.status(404).json({ error: "Model not found" });
+      }
+
+      res.json(updatedModel);
+    } catch (error) {
+      console.error("Error updating forecast model:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: error.errors.map(e => `${e.path.join('.')}: ${e.message}`)
+        });
+      }
+      res.status(500).json({ error: "Failed to update forecast model" });
+    }
+  });
+
+  app.delete("/api/forecast-models/:id", authMiddleware, requireRole(["admin", "doctor"]), async (req: TenantRequest, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid model ID" });
+      }
+
+      const deleted = await storage.deleteForecastModel(id, req.tenant!.id);
+      if (deleted) {
+        res.json({ success: true, message: "Model deleted successfully" });
+      } else {
+        res.status(404).json({ error: "Model not found" });
+      }
+    } catch (error) {
+      console.error("Error deleting forecast model:", error);
+      res.status(500).json({ error: "Failed to delete forecast model" });
+    }
+  });
+
   // PDF Email endpoint for prescriptions with file attachments
   app.post("/api/prescriptions/:id/send-pdf", authMiddleware, upload.array('attachments', 5), async (req: TenantRequest, res) => {
     try {
