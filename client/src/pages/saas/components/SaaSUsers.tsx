@@ -41,11 +41,23 @@ export default function SaaSUsers() {
   // Fetch all users across organizations
   const { data: users, isLoading } = useQuery({
     queryKey: ['/api/saas/users', searchTerm, selectedOrganization],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (searchTerm) params.append('search', searchTerm);
+      if (selectedOrganization !== 'all') params.append('organizationId', selectedOrganization);
+      
+      const response = await saasApiRequest('GET', `/api/saas/users?${params.toString()}`);
+      return response.json();
+    },
   });
 
   // Fetch organizations for filter
   const { data: organizations } = useQuery({
     queryKey: ['/api/saas/organizations'],
+    queryFn: async () => {
+      const response = await saasApiRequest('GET', '/api/saas/organizations');
+      return response.json();
+    },
   });
 
   const resetPasswordMutation = useMutation({
