@@ -4767,7 +4767,7 @@ Coverage Details: [Insurance Coverage]`;
 
             <Button
               size="sm"
-              className="text-xs h-7 px-4 py-2 mt-5"
+              className="text-xs h-7 px-4 py-2 mt-5 bg-white text-black  border border-lightgray-400"
               onClick={() => setShowAllTemplatesDialog(true)}
             >
               Templates
@@ -4775,7 +4775,7 @@ Coverage Details: [Insurance Coverage]`;
             
             <Button
               size="sm"
-              className="text-xs h-7 px-4 py-2 mt-5"
+              className="text-xs h-7 px-4 py-2 mt-5 bg-white text-black  border border-lightgray-400"
               onClick={handleSave}
               data-testid="button-save-template"
             >
@@ -4803,21 +4803,21 @@ Coverage Details: [Insurance Coverage]`;
             </Button>
             <Button
               size="sm"
-              className="text-xs h-7 px-4 py-2 mt-5"
+              className="text-xs h-7 px-4 py-2 mt-5 bg-white text-black  border border-lightgray-400"
               onClick={handleInsertLogo}
             >
               Logo
             </Button>
             <Button
               size="sm"
-              className="text-xs h-7 px-4 py-2 mt-5"
+              className="text-xs h-7 px-4 py-2 mt-5 bg-white text-black  border border-lightgray-400"
               onClick={handleClinic}
             >
               Clinic
             </Button>
             <Button
               size="sm"
-              className="text-xs h-7 px-4 py-2 mt-5"
+              className="text-xs h-7 px-4 py-2 mt-5 bg-white text-black  border border-lightgray-400"
               onClick={handleClinicalHeader}
               data-testid="button-clinical-header"
             >
@@ -4825,7 +4825,7 @@ Coverage Details: [Insurance Coverage]`;
             </Button>
             <Button
               size="sm"
-              className="text-xs h-7 px-4 py-2 mt-5"
+              className="text-xs h-7 px-4 py-2 mt-5 bg-white text-black  border border-lightgray-400"
               onClick={() => setShowSavedTemplatesDialog(true)}
             >
               View Saved Templates
@@ -4841,9 +4841,21 @@ Coverage Details: [Insurance Coverage]`;
                 console.log("Dropdown changed to:", value);
                 setTextStyle(value);
                 setTimeout(() => {
-                  if (value === "paragraph") handleParagraph();
-                  else if (value === "heading1") handleH1();
-                  else if (value === "heading2") handleH2();
+                  if (value === "paragraph") {
+                    handleParagraph();
+                  } else if (value === "heading1") {
+                    handleH1();
+                  } else if (value === "heading2") {
+                    handleH2();
+                  } else if (value === "heading3") {
+                  
+                  } else if (value === "heading4") {
+                   
+                  } else if (value === "heading5") {
+                  
+                  } else if (value === "heading6") {
+                   
+                  }
                 }, 100);
               }}
             >
@@ -4854,8 +4866,13 @@ Coverage Details: [Insurance Coverage]`;
                 <SelectItem value="paragraph">Paragraph</SelectItem>
                 <SelectItem value="heading1">H1</SelectItem>
                 <SelectItem value="heading2">H2</SelectItem>
+                <SelectItem value="heading3">H3</SelectItem>
+                <SelectItem value="heading4">H4</SelectItem>
+                <SelectItem value="heading5">H5</SelectItem>
+                <SelectItem value="heading6">H6</SelectItem>
               </SelectContent>
             </Select>
+
 
             <Select
               value={fontFamily}

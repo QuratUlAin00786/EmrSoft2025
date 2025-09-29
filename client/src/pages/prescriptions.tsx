@@ -1531,6 +1531,23 @@ export default function PrescriptionsPage() {
     }
   };
 
+  // For summary statistics - only apply search filter, not status filter
+  const searchFilteredPrescriptions = Array.isArray(prescriptions)
+    ? prescriptions.filter((prescription: any) => {
+        const matchesSearch =
+          !searchQuery ||
+          prescription.patientName
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
+          prescription.medications.some((med: any) =>
+            med.name.toLowerCase().includes(searchQuery.toLowerCase()),
+          );
+
+        return matchesSearch;
+      })
+    : [];
+
+  // For display area - apply both search and status filters
   const filteredPrescriptions = Array.isArray(prescriptions)
     ? prescriptions.filter((prescription: any) => {
         const matchesSearch =
@@ -1595,7 +1612,7 @@ export default function PrescriptionsPage() {
                     </p>
                     <p className="text-xl sm:text-2xl font-bold">
                       {
-                        filteredPrescriptions.filter(
+                        searchFilteredPrescriptions.filter(
                           (p: any) => p.status === "active",
                         ).length
                       }
@@ -1615,7 +1632,7 @@ export default function PrescriptionsPage() {
                     </p>
                     <p className="text-xl sm:text-2xl font-bold">
                       {
-                        filteredPrescriptions.filter(
+                        searchFilteredPrescriptions.filter(
                           (p: any) => p.status === "pending",
                         ).length
                       }
@@ -1635,7 +1652,7 @@ export default function PrescriptionsPage() {
                     </p>
                     <p className="text-xl sm:text-2xl font-bold">
                       {
-                        filteredPrescriptions.filter(
+                        searchFilteredPrescriptions.filter(
                           (p: any) =>
                             p.interactions && p.interactions.length > 0,
                         ).length
@@ -1655,7 +1672,7 @@ export default function PrescriptionsPage() {
                       Total Prescriptions
                     </p>
                     <p className="text-xl sm:text-2xl font-bold">
-                      {filteredPrescriptions.length}
+                      {searchFilteredPrescriptions.length}
                     </p>
                   </div>
                   <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600" />
