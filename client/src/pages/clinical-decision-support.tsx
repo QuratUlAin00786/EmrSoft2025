@@ -2170,7 +2170,13 @@ function AddDrugInteractionDialog({ open, onClose, onSuccess }: {
   const { data: patientsData } = useQuery({
     queryKey: ['/api/patients'],
     queryFn: async () => {
-      const response = await fetch('/api/patients');
+      const response = await fetch('/api/patients', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+          'X-Tenant-Subdomain': 'demo'
+        },
+        credentials: 'include'
+      });
       const data = await response.json();
       console.log('Patients data received:', data);
       return data;
@@ -2214,8 +2220,11 @@ function AddDrugInteractionDialog({ open, onClose, onSuccess }: {
         const response = await fetch('/api/clinical/patient-drug-interactions', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+            'X-Tenant-Subdomain': 'demo'
           },
+          credentials: 'include',
           body: JSON.stringify(payload)
         });
 
