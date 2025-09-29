@@ -875,6 +875,44 @@ export function registerSaaSRoutes(app: Express) {
   });
 
   // Organizations/Customers Management
+  // Users Management - Get all users across organizations
+  app.get('/api/saas/users', verifySaaSToken, async (req: Request, res: Response) => {
+    try {
+      const { search, organizationId } = req.query;
+      
+      // Get all users with organization information
+      const users = await storage.getAllUsers(search as string, organizationId as string);
+      res.json(users);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      res.status(500).json({ message: 'Failed to fetch users' });
+    }
+  });
+
+  // User Status Management
+  app.patch('/api/saas/users/status', verifySaaSToken, async (req: Request, res: Response) => {
+    try {
+      const { userId, isActive } = req.body;
+      const result = await storage.updateUserStatus(userId, isActive);
+      res.json(result);
+    } catch (error) {
+      console.error('Error updating user status:', error);
+      res.status(500).json({ message: 'Failed to update user status' });
+    }
+  });
+
+  // User Password Reset
+  app.post('/api/saas/users/reset-password', verifySaaSToken, async (req: Request, res: Response) => {
+    try {
+      const { userId } = req.body;
+      const result = await storage.resetUserPassword(userId);
+      res.json(result);
+    } catch (error) {
+      console.error('Error resetting user password:', error);
+      res.status(500).json({ message: 'Failed to reset user password' });
+    }
+  });
+
   app.get('/api/saas/organizations', verifySaaSToken, async (req: Request, res: Response) => {
     try {
       const organizations = await storage.getAllOrganizations();
