@@ -200,6 +200,7 @@ export default function FinancialIntelligence() {
   const [addInsuranceOpen, setAddInsuranceOpen] = useState(false);
   const [patientSearchOpen, setPatientSearchOpen] = useState(false);
   const [insuranceProviderOpen, setInsuranceProviderOpen] = useState(false);
+  const [claimInsuranceProviderOpen, setClaimInsuranceProviderOpen] = useState(false);
   const [selectedInsurance, setSelectedInsurance] = useState<any>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successClaimData, setSuccessClaimData] = useState<any>(null);
@@ -1399,30 +1400,59 @@ export default function FinancialIntelligence() {
                     <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
                       Insurance Provider
                     </label>
-                    <Select
-                      value={claimFormData.insuranceProvider}
-                      onValueChange={(value) =>
-                        setClaimFormData((prev) => ({
-                          ...prev,
-                          insuranceProvider: value,
-                        }))
-                      }
+                    <Popover
+                      open={claimInsuranceProviderOpen}
+                      onOpenChange={setClaimInsuranceProviderOpen}
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select insurance provider" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="United Healthcare">United Healthcare</SelectItem>
-                        <SelectItem value="Blue Cross Blue Shield">Blue Cross Blue Shield</SelectItem>
-                        <SelectItem value="Aetna">Aetna</SelectItem>
-                        <SelectItem value="Cigna">Cigna</SelectItem>
-                        <SelectItem value="Humana">Humana</SelectItem>
-                        <SelectItem value="Kaiser Permanente">Kaiser Permanente</SelectItem>
-                        <SelectItem value="Anthem">Anthem</SelectItem>
-                        <SelectItem value="Medicare">Medicare</SelectItem>
-                        <SelectItem value="Medicaid">Medicaid</SelectItem>
-                      </SelectContent>
-                    </Select>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={claimInsuranceProviderOpen}
+                          className="w-full justify-between"
+                          data-testid="button-claim-select-provider"
+                        >
+                          {claimFormData.insuranceProvider || "Select insurance provider..."}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-full p-0">
+                        <Command>
+                          <CommandInput
+                            placeholder="Search insurance providers..."
+                            className="h-9"
+                          />
+                          <CommandList>
+                            <CommandEmpty>No insurance provider found.</CommandEmpty>
+                            <CommandGroup>
+                              {insuranceProviders.map((provider) => (
+                                <CommandItem
+                                  key={provider}
+                                  value={provider}
+                                  onSelect={() => {
+                                    setClaimFormData((prev) => ({
+                                      ...prev,
+                                      insuranceProvider: provider,
+                                    }));
+                                    setClaimInsuranceProviderOpen(false);
+                                  }}
+                                  data-testid={`option-claim-provider-${provider.toLowerCase().replace(/[^a-z0-9]/g, '-')}`}
+                                >
+                                  <Check
+                                    className={`mr-2 h-4 w-4 ${
+                                      claimFormData.insuranceProvider === provider
+                                        ? "opacity-100"
+                                        : "opacity-0"
+                                    }`}
+                                  />
+                                  {provider}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                   </div>
 
                   {/* Service Date */}
