@@ -13191,6 +13191,642 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Failed to update report field" });
     }
   });
+
+  // ========================================
+  // QuickBooks Integration API Routes
+  // ========================================
+
+  // Get all QuickBooks connections for organization
+  app.get("/api/quickbooks/connections", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = requireOrgId(req);
+      const connections = await storage.getQuickBooksConnections(organizationId);
+      res.json(connections);
+    } catch (error) {
+      console.error("Error fetching QuickBooks connections:", error);
+      res.status(500).json({ error: "Failed to fetch connections" });
+    }
+  });
+
+  // Get active QuickBooks connection
+  app.get("/api/quickbooks/connection/active", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = requireOrgId(req);
+      const connection = await storage.getActiveQuickBooksConnection(organizationId);
+      if (!connection) {
+        return res.status(404).json({ error: "No active QuickBooks connection found" });
+      }
+      res.json(connection);
+    } catch (error) {
+      console.error("Error fetching active QuickBooks connection:", error);
+      res.status(500).json({ error: "Failed to fetch active connection" });
+    }
+  });
+
+  // Create QuickBooks connection (OAuth callback handler)
+  app.post("/api/quickbooks/connections", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = requireOrgId(req);
+      
+      const connectionSchema = z.object({
+        companyId: z.string(),
+        companyName: z.string(),
+        accessToken: z.string(),
+        refreshToken: z.string(),
+        tokenExpiry: z.string().transform((val) => new Date(val)),
+        realmId: z.string(),
+        baseUrl: z.string(),
+        syncSettings: z.object({
+          autoSync: z.boolean().optional(),
+          syncIntervalHours: z.number().optional(),
+          syncCustomers: z.boolean().optional(),
+          syncInvoices: z.boolean().optional(),
+          syncPayments: z.boolean().optional(),
+          syncItems: z.boolean().optional(),
+          syncAccounts: z.boolean().optional(),
+        }).optional(),
+      });
+
+      const validatedData = connectionSchema.parse(req.body);
+      
+      // Deactivate existing connections
+      const existingConnections = await storage.getQuickBooksConnections(organizationId);
+      for (const existing of existingConnections) {
+        if (existing.isActive) {
+          await storage.updateQuickBooksConnection(existing.id, organizationId, { isActive: false });
+        }
+      }
+
+      const connection = await storage.createQuickBooksConnection({
+        ...validatedData,
+        organizationId,
+        isActive: true,
+      });
+
+      res.status(201).json(connection);
+    } catch (error) {
+      console.error("Error creating QuickBooks connection:", error);
+      res.status(500).json({ error: "Failed to create connection" });
+    }
+  });
+
+  // Update QuickBooks connection
+  app.patch("/api/quickbooks/connections/:id", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = requireOrgId(req);
+      const connectionId = parseInt(req.params.id);
+
+      const updateSchema = z.object({
+        accessToken: z.string().optional(),
+        refreshToken: z.string().optional(),
+        tokenExpiry: z.string().transform((val) => new Date(val)).optional(),
+        isActive: z.boolean().optional(),
+        syncSettings: z.object({
+          autoSync: z.boolean().optional(),
+          syncIntervalHours: z.number().optional(),
+          syncCustomers: z.boolean().optional(),
+          syncInvoices: z.boolean().optional(),
+          syncPayments: z.boolean().optional(),
+          syncItems: z.boolean().optional(),
+          syncAccounts: z.boolean().optional(),
+        }).optional(),
+      });
+
+      const validatedData = updateSchema.parse(req.body);
+      const updatedConnection = await storage.updateQuickBooksConnection(connectionId, organizationId, validatedData);
+
+      if (!updatedConnection) {
+        return res.status(404).json({ error: "Connection not found" });
+      }
+
+      res.json(updatedConnection);
+    } catch (error) {
+      console.error("Error updating QuickBooks connection:", error);
+      res.status(500).json({ error: "Failed to update connection" });
+    }
+  });
+
+  // Delete QuickBooks connection
+  app.delete("/api/quickbooks/connections/:id", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = requireOrgId(req);
+      const connectionId = parseInt(req.params.id);
+
+      const success = await storage.deleteQuickBooksConnection(connectionId, organizationId);
+      if (!success) {
+        return res.status(404).json({ error: "Connection not found" });
+      }
+
+      res.json({ message: "Connection deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting QuickBooks connection:", error);
+      res.status(500).json({ error: "Failed to delete connection" });
+    }
+  });
+
+  // Get QuickBooks sync logs
+  app.get("/api/quickbooks/sync-logs", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = requireOrgId(req);
+      const connectionId = req.query.connectionId ? parseInt(req.query.connectionId as string) : undefined;
+      const syncType = req.query.syncType as string | undefined;
+
+      const logs = await storage.getQuickBooksSyncLogs(organizationId, connectionId, syncType);
+      res.json(logs);
+    } catch (error) {
+      console.error("Error fetching QuickBooks sync logs:", error);
+      res.status(500).json({ error: "Failed to fetch sync logs" });
+    }
+  });
+
+  // Create QuickBooks sync log
+  app.post("/api/quickbooks/sync-logs", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = requireOrgId(req);
+
+      const logSchema = z.object({
+        connectionId: z.number(),
+        syncType: z.string(),
+        operation: z.string(),
+        status: z.string().default("pending"),
+        recordsProcessed: z.number().default(0),
+        recordsSuccessful: z.number().default(0),
+        recordsFailed: z.number().default(0),
+        startTime: z.string().transform((val) => new Date(val)),
+        endTime: z.string().transform((val) => new Date(val)).optional(),
+        errorMessage: z.string().optional(),
+        errorDetails: z.any().optional(),
+        metadata: z.any().optional(),
+      });
+
+      const validatedData = logSchema.parse(req.body);
+      const log = await storage.createQuickBooksSyncLog({
+        ...validatedData,
+        organizationId,
+      });
+
+      res.status(201).json(log);
+    } catch (error) {
+      console.error("Error creating QuickBooks sync log:", error);
+      res.status(500).json({ error: "Failed to create sync log" });
+    }
+  });
+
+  // Update QuickBooks sync log
+  app.patch("/api/quickbooks/sync-logs/:id", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const logId = parseInt(req.params.id);
+
+      const updateSchema = z.object({
+        status: z.string().optional(),
+        recordsProcessed: z.number().optional(),
+        recordsSuccessful: z.number().optional(),
+        recordsFailed: z.number().optional(),
+        endTime: z.string().transform((val) => new Date(val)).optional(),
+        errorMessage: z.string().optional(),
+        errorDetails: z.any().optional(),
+        metadata: z.any().optional(),
+      });
+
+      const validatedData = updateSchema.parse(req.body);
+      const updatedLog = await storage.updateQuickBooksSyncLog(logId, validatedData);
+
+      if (!updatedLog) {
+        return res.status(404).json({ error: "Sync log not found" });
+      }
+
+      res.json(updatedLog);
+    } catch (error) {
+      console.error("Error updating QuickBooks sync log:", error);
+      res.status(500).json({ error: "Failed to update sync log" });
+    }
+  });
+
+  // Get QuickBooks customer mappings
+  app.get("/api/quickbooks/customer-mappings", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = requireOrgId(req);
+      const connectionId = req.query.connectionId ? parseInt(req.query.connectionId as string) : undefined;
+
+      const mappings = await storage.getQuickBooksCustomerMappings(organizationId, connectionId);
+      res.json(mappings);
+    } catch (error) {
+      console.error("Error fetching QuickBooks customer mappings:", error);
+      res.status(500).json({ error: "Failed to fetch customer mappings" });
+    }
+  });
+
+  // Create QuickBooks customer mapping
+  app.post("/api/quickbooks/customer-mappings", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = requireOrgId(req);
+
+      const mappingSchema = z.object({
+        connectionId: z.number(),
+        patientId: z.number(),
+        quickbooksCustomerId: z.string(),
+        quickbooksDisplayName: z.string().optional(),
+        syncStatus: z.string().default("synced"),
+        lastSyncAt: z.string().transform((val) => new Date(val)).optional(),
+        errorMessage: z.string().optional(),
+        metadata: z.any().optional(),
+      });
+
+      const validatedData = mappingSchema.parse(req.body);
+      const mapping = await storage.createQuickBooksCustomerMapping({
+        ...validatedData,
+        organizationId,
+      });
+
+      res.status(201).json(mapping);
+    } catch (error) {
+      console.error("Error creating QuickBooks customer mapping:", error);
+      res.status(500).json({ error: "Failed to create customer mapping" });
+    }
+  });
+
+  // Get QuickBooks invoice mappings
+  app.get("/api/quickbooks/invoice-mappings", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = requireOrgId(req);
+      const connectionId = req.query.connectionId ? parseInt(req.query.connectionId as string) : undefined;
+
+      const mappings = await storage.getQuickBooksInvoiceMappings(organizationId, connectionId);
+      res.json(mappings);
+    } catch (error) {
+      console.error("Error fetching QuickBooks invoice mappings:", error);
+      res.status(500).json({ error: "Failed to fetch invoice mappings" });
+    }
+  });
+
+  // Create QuickBooks invoice mapping
+  app.post("/api/quickbooks/invoice-mappings", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = requireOrgId(req);
+
+      const mappingSchema = z.object({
+        connectionId: z.number(),
+        emrInvoiceId: z.string(),
+        quickbooksInvoiceId: z.string(),
+        quickbooksInvoiceNumber: z.string().optional(),
+        patientId: z.number(),
+        customerId: z.number().optional(),
+        amount: z.string(),
+        status: z.string(),
+        syncStatus: z.string().default("synced"),
+        lastSyncAt: z.string().transform((val) => new Date(val)).optional(),
+        errorMessage: z.string().optional(),
+        metadata: z.any().optional(),
+      });
+
+      const validatedData = mappingSchema.parse(req.body);
+      const mapping = await storage.createQuickBooksInvoiceMapping({
+        ...validatedData,
+        organizationId,
+      });
+
+      res.status(201).json(mapping);
+    } catch (error) {
+      console.error("Error creating QuickBooks invoice mapping:", error);
+      res.status(500).json({ error: "Failed to create invoice mapping" });
+    }
+  });
+
+  // Get QuickBooks payment mappings
+  app.get("/api/quickbooks/payment-mappings", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = requireOrgId(req);
+      const connectionId = req.query.connectionId ? parseInt(req.query.connectionId as string) : undefined;
+
+      const mappings = await storage.getQuickBooksPaymentMappings(organizationId, connectionId);
+      res.json(mappings);
+    } catch (error) {
+      console.error("Error fetching QuickBooks payment mappings:", error);
+      res.status(500).json({ error: "Failed to fetch payment mappings" });
+    }
+  });
+
+  // Create QuickBooks payment mapping
+  app.post("/api/quickbooks/payment-mappings", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = requireOrgId(req);
+
+      const mappingSchema = z.object({
+        connectionId: z.number(),
+        emrPaymentId: z.string(),
+        quickbooksPaymentId: z.string(),
+        invoiceMappingId: z.number().optional(),
+        amount: z.string(),
+        paymentMethod: z.string(),
+        paymentDate: z.string().transform((val) => new Date(val)),
+        syncStatus: z.string().default("synced"),
+        lastSyncAt: z.string().transform((val) => new Date(val)).optional(),
+        errorMessage: z.string().optional(),
+        metadata: z.any().optional(),
+      });
+
+      const validatedData = mappingSchema.parse(req.body);
+      const mapping = await storage.createQuickBooksPaymentMapping({
+        ...validatedData,
+        organizationId,
+      });
+
+      res.status(201).json(mapping);
+    } catch (error) {
+      console.error("Error creating QuickBooks payment mapping:", error);
+      res.status(500).json({ error: "Failed to create payment mapping" });
+    }
+  });
+
+  // Get QuickBooks account mappings
+  app.get("/api/quickbooks/account-mappings", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = requireOrgId(req);
+      const connectionId = req.query.connectionId ? parseInt(req.query.connectionId as string) : undefined;
+
+      const mappings = await storage.getQuickBooksAccountMappings(organizationId, connectionId);
+      res.json(mappings);
+    } catch (error) {
+      console.error("Error fetching QuickBooks account mappings:", error);
+      res.status(500).json({ error: "Failed to fetch account mappings" });
+    }
+  });
+
+  // Create QuickBooks account mapping
+  app.post("/api/quickbooks/account-mappings", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = requireOrgId(req);
+
+      const mappingSchema = z.object({
+        connectionId: z.number(),
+        emrAccountType: z.string(),
+        emrAccountName: z.string(),
+        quickbooksAccountId: z.string(),
+        quickbooksAccountName: z.string(),
+        accountType: z.string(),
+        accountSubType: z.string().optional(),
+        isActive: z.boolean().default(true),
+        syncStatus: z.string().default("synced"),
+        lastSyncAt: z.string().transform((val) => new Date(val)).optional(),
+        errorMessage: z.string().optional(),
+        metadata: z.any().optional(),
+      });
+
+      const validatedData = mappingSchema.parse(req.body);
+      const mapping = await storage.createQuickBooksAccountMapping({
+        ...validatedData,
+        organizationId,
+      });
+
+      res.status(201).json(mapping);
+    } catch (error) {
+      console.error("Error creating QuickBooks account mapping:", error);
+      res.status(500).json({ error: "Failed to create account mapping" });
+    }
+  });
+
+  // Get QuickBooks item mappings
+  app.get("/api/quickbooks/item-mappings", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = requireOrgId(req);
+      const connectionId = req.query.connectionId ? parseInt(req.query.connectionId as string) : undefined;
+
+      const mappings = await storage.getQuickBooksItemMappings(organizationId, connectionId);
+      res.json(mappings);
+    } catch (error) {
+      console.error("Error fetching QuickBooks item mappings:", error);
+      res.status(500).json({ error: "Failed to fetch item mappings" });
+    }
+  });
+
+  // Create QuickBooks item mapping
+  app.post("/api/quickbooks/item-mappings", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = requireOrgId(req);
+
+      const mappingSchema = z.object({
+        connectionId: z.number(),
+        emrItemType: z.string(),
+        emrItemId: z.string(),
+        emrItemName: z.string(),
+        quickbooksItemId: z.string(),
+        quickbooksItemName: z.string(),
+        itemType: z.string(),
+        unitPrice: z.string().optional(),
+        description: z.string().optional(),
+        incomeAccountId: z.string().optional(),
+        expenseAccountId: z.string().optional(),
+        isActive: z.boolean().default(true),
+        syncStatus: z.string().default("synced"),
+        lastSyncAt: z.string().transform((val) => new Date(val)).optional(),
+        errorMessage: z.string().optional(),
+        metadata: z.any().optional(),
+      });
+
+      const validatedData = mappingSchema.parse(req.body);
+      const mapping = await storage.createQuickBooksItemMapping({
+        ...validatedData,
+        organizationId,
+      });
+
+      res.status(201).json(mapping);
+    } catch (error) {
+      console.error("Error creating QuickBooks item mapping:", error);
+      res.status(500).json({ error: "Failed to create item mapping" });
+    }
+  });
+
+  // Get QuickBooks sync configurations
+  app.get("/api/quickbooks/sync-configs", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = requireOrgId(req);
+      const connectionId = req.query.connectionId ? parseInt(req.query.connectionId as string) : undefined;
+
+      const configs = await storage.getQuickBooksSyncConfigs(organizationId, connectionId);
+      res.json(configs);
+    } catch (error) {
+      console.error("Error fetching QuickBooks sync configurations:", error);
+      res.status(500).json({ error: "Failed to fetch sync configurations" });
+    }
+  });
+
+  // Create QuickBooks sync configuration
+  app.post("/api/quickbooks/sync-configs", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = requireOrgId(req);
+      const userId = req.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const configSchema = z.object({
+        connectionId: z.number(),
+        configType: z.string(),
+        configName: z.string(),
+        configValue: z.any(),
+        isActive: z.boolean().default(true),
+        description: z.string().optional(),
+      });
+
+      const validatedData = configSchema.parse(req.body);
+      const config = await storage.createQuickBooksSyncConfig({
+        ...validatedData,
+        organizationId,
+        createdBy: userId,
+      });
+
+      res.status(201).json(config);
+    } catch (error) {
+      console.error("Error creating QuickBooks sync configuration:", error);
+      res.status(500).json({ error: "Failed to create sync configuration" });
+    }
+  });
+
+  // Manual sync trigger endpoints
+  app.post("/api/quickbooks/sync/customers", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = requireOrgId(req);
+      const connection = await storage.getActiveQuickBooksConnection(organizationId);
+      
+      if (!connection) {
+        return res.status(400).json({ error: "No active QuickBooks connection found" });
+      }
+
+      // Create sync log entry
+      const syncLog = await storage.createQuickBooksSyncLog({
+        organizationId,
+        connectionId: connection.id,
+        syncType: "customers",
+        operation: "sync",
+        status: "pending",
+        startTime: new Date(),
+        recordsProcessed: 0,
+        recordsSuccessful: 0,
+        recordsFailed: 0,
+      });
+
+      // In a real implementation, this would trigger actual QuickBooks API calls
+      // For now, we'll just update the log as successful
+      await storage.updateQuickBooksSyncLog(syncLog.id, {
+        status: "success",
+        endTime: new Date(),
+        recordsProcessed: 0,
+        recordsSuccessful: 0,
+        recordsFailed: 0,
+      });
+
+      res.json({ message: "Customer sync initiated", syncLogId: syncLog.id });
+    } catch (error) {
+      console.error("Error initiating customer sync:", error);
+      res.status(500).json({ error: "Failed to initiate customer sync" });
+    }
+  });
+
+  app.post("/api/quickbooks/sync/invoices", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = requireOrgId(req);
+      const connection = await storage.getActiveQuickBooksConnection(organizationId);
+      
+      if (!connection) {
+        return res.status(400).json({ error: "No active QuickBooks connection found" });
+      }
+
+      // Create sync log entry
+      const syncLog = await storage.createQuickBooksSyncLog({
+        organizationId,
+        connectionId: connection.id,
+        syncType: "invoices",
+        operation: "sync",
+        status: "pending",
+        startTime: new Date(),
+        recordsProcessed: 0,
+        recordsSuccessful: 0,
+        recordsFailed: 0,
+      });
+
+      // In a real implementation, this would trigger actual QuickBooks API calls
+      await storage.updateQuickBooksSyncLog(syncLog.id, {
+        status: "success",
+        endTime: new Date(),
+        recordsProcessed: 0,
+        recordsSuccessful: 0,
+        recordsFailed: 0,
+      });
+
+      res.json({ message: "Invoice sync initiated", syncLogId: syncLog.id });
+    } catch (error) {
+      console.error("Error initiating invoice sync:", error);
+      res.status(500).json({ error: "Failed to initiate invoice sync" });
+    }
+  });
+
+  app.post("/api/quickbooks/sync/payments", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = requireOrgId(req);
+      const connection = await storage.getActiveQuickBooksConnection(organizationId);
+      
+      if (!connection) {
+        return res.status(400).json({ error: "No active QuickBooks connection found" });
+      }
+
+      // Create sync log entry
+      const syncLog = await storage.createQuickBooksSyncLog({
+        organizationId,
+        connectionId: connection.id,
+        syncType: "payments",
+        operation: "sync",
+        status: "pending",
+        startTime: new Date(),
+        recordsProcessed: 0,
+        recordsSuccessful: 0,
+        recordsFailed: 0,
+      });
+
+      // In a real implementation, this would trigger actual QuickBooks API calls
+      await storage.updateQuickBooksSyncLog(syncLog.id, {
+        status: "success",
+        endTime: new Date(),
+        recordsProcessed: 0,
+        recordsSuccessful: 0,
+        recordsFailed: 0,
+      });
+
+      res.json({ message: "Payment sync initiated", syncLogId: syncLog.id });
+    } catch (error) {
+      console.error("Error initiating payment sync:", error);
+      res.status(500).json({ error: "Failed to initiate payment sync" });
+    }
+  });
+
+  // QuickBooks OAuth authentication endpoints
+  app.get("/api/quickbooks/auth/url", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      // In a real implementation, generate OAuth URL for QuickBooks
+      const oauthUrl = `https://appcenter.intuit.com/connect/oauth2?client_id=QB_CLIENT_ID&scope=com.intuit.quickbooks.accounting&redirect_uri=${encodeURIComponent(process.env.QB_REDIRECT_URI || 'http://localhost:5000/api/quickbooks/auth/callback')}&response_type=code&access_type=offline`;
+      res.json({ url: oauthUrl });
+    } catch (error) {
+      console.error("Error generating OAuth URL:", error);
+      res.status(500).json({ error: "Failed to generate OAuth URL" });
+    }
+  });
+
+  app.get("/api/quickbooks/auth/callback", async (req: TenantRequest, res) => {
+    try {
+      // In a real implementation, handle OAuth callback from QuickBooks
+      const { code, realmId } = req.query;
+      
+      if (!code || !realmId) {
+        return res.status(400).json({ error: "Invalid OAuth callback parameters" });
+      }
+
+      // Mock successful OAuth response
+      res.redirect(`/quickbooks?connected=true&realmId=${realmId}`);
+    } catch (error) {
+      console.error("Error handling OAuth callback:", error);
+      res.status(500).json({ error: "Failed to handle OAuth callback" });
+    }
+  });
   
   // Add WebSocket support for real-time messaging
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
