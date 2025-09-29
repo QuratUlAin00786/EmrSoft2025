@@ -2136,6 +2136,8 @@ function DrugInteractionsTab() {
         onClose={() => setShowAddInteractionDialog(false)}
         onSuccess={() => {
           setShowAddInteractionDialog(false);
+          // Invalidate and refetch drug interactions data
+          queryClient.invalidateQueries({ queryKey: ['/api/clinical/drug-interactions'] });
           refetch();
         }}
       />
