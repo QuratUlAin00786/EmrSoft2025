@@ -135,6 +135,7 @@ export const organizations = pgTable("organizations", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   subdomain: varchar("subdomain", { length: 50 }).notNull().unique(),
+  email: text("email").notNull(),
   region: varchar("region", { length: 10 }).notNull().default("UK"), // UK, EU, ME, SA, US
   brandName: text("brand_name").notNull(),
   settings: jsonb("settings").$type<{
