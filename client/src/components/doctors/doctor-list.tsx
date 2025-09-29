@@ -710,8 +710,7 @@ export function DoctorList({
                   <SelectContent>
                     <SelectItem value="Consultation">Consultation</SelectItem>
                     <SelectItem value="Follow-up">Follow-up</SelectItem>
-                    <SelectItem value="Check-up">Check-up</SelectItem>
-                    <SelectItem value="Emergency">Emergency</SelectItem>
+                    <SelectItem value="Procedure">Procedure</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
