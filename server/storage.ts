@@ -4404,6 +4404,7 @@ export class DatabaseStorage implements IStorage {
           name: customerData.name,
           brandName: customerData.brandName || customerData.name,
           subdomain: customerData.subdomain,
+          email: customerData.adminEmail, // Add the admin email to organization
           region: 'UK',
           subscriptionStatus: customerData.billingPackageId ? 'active' : 'trial',
           features: customerData.features || {},
