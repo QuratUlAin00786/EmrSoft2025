@@ -2095,10 +2095,15 @@ function AddDrugInteractionDialog({ open, onClose, onSuccess }: {
   // Fetch patients for dropdown
   const { data: patientsData } = useQuery({
     queryKey: ['/api/patients'],
-    queryFn: () => fetch('/api/patients').then(res => res.json())
+    queryFn: async () => {
+      const response = await fetch('/api/patients');
+      const data = await response.json();
+      console.log('Patients data received:', data);
+      return data;
+    }
   });
 
-  const patients = patientsData?.patients || [];
+  const patients = Array.isArray(patientsData) ? patientsData : (patientsData?.patients || []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -2210,9 +2215,10 @@ function AddDrugInteractionDialog({ open, onClose, onSuccess }: {
                   aria-expanded={patientComboboxOpen}
                   className="w-full justify-between"
                 >
-                  {selectedPatientId
-                    ? patients.find((patient: any) => patient.id.toString() === selectedPatientId)?.firstName + " " + patients.find((patient: any) => patient.id.toString() === selectedPatientId)?.lastName
-                    : "Select patient..."}
+                  {selectedPatientId ? (() => {
+                    const selectedPatient = patients.find((patient: any) => patient.id.toString() === selectedPatientId);
+                    return selectedPatient ? `${selectedPatient.firstName} ${selectedPatient.lastName} - ${selectedPatient.email}` : "Select patient...";
+                  })() : "Select patient..."}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
@@ -2225,7 +2231,7 @@ function AddDrugInteractionDialog({ open, onClose, onSuccess }: {
                       {patients.map((patient: any) => (
                         <CommandItem
                           key={patient.id}
-                          value={`${patient.firstName} ${patient.lastName}`}
+                          value={`${patient.firstName} ${patient.lastName} ${patient.email}`}
                           onSelect={() => {
                             setSelectedPatientId(patient.id.toString());
                             setPatientComboboxOpen(false);
@@ -2236,7 +2242,10 @@ function AddDrugInteractionDialog({ open, onClose, onSuccess }: {
                               selectedPatientId === patient.id.toString() ? "opacity-100" : "opacity-0"
                             }`}
                           />
-                          {patient.firstName} {patient.lastName}
+                          <div className="flex flex-col">
+                            <span className="font-medium">{patient.firstName} {patient.lastName}</span>
+                            <span className="text-sm text-gray-500">{patient.email}</span>
+                          </div>
                         </CommandItem>
                       ))}
                     </CommandGroup>
