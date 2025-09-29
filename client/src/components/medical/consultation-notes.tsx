@@ -289,7 +289,7 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
         treatment: selectedTreatment ? selectedTreatment.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : undefined
       };
 
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       const response = await fetch(`/api/patients/${patientId}/records`, {
         method: 'POST',
         headers: {
@@ -422,7 +422,7 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
       if (!patientId) return;
       
       try {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('auth_token');
         const response = await fetch(`/api/patients/${patientId}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -484,7 +484,7 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
         }
       };
       
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       const response = await fetch(`/api/patients/${patientId}/records`, {
         method: 'POST',
         headers: {
@@ -608,7 +608,7 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
   // Update vital signs in record
   const updateVitalSigns = async (recordId: number, updatedVitals: any) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       const response = await fetch(`/api/patients/${patientId}/records/${recordId}`, {
         method: 'PATCH',
         headers: {
@@ -651,7 +651,7 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
   // Delete medical record
   const deleteRecord = async (recordId: number) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       const response = await fetch(`/api/patients/${patientId}/records/${recordId}`, {
         method: 'DELETE',
         headers: {
