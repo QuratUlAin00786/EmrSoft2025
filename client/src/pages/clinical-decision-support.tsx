@@ -1859,11 +1859,25 @@ function DrugInteractionsTab() {
     refetch 
   } = useQuery({
     queryKey: ['/api/clinical/drug-interactions', selectedPatient],
-    queryFn: () => {
+    queryFn: async () => {
       const url = selectedPatient !== "all" 
         ? `/api/clinical/drug-interactions?patientId=${selectedPatient}`
         : '/api/clinical/drug-interactions';
-      return fetch(url).then(res => res.json());
+      
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+          'X-Tenant-Subdomain': 'demo',
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      return response.json();
     }
   });
 
