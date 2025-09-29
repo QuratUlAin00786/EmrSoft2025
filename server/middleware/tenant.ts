@@ -161,6 +161,20 @@ export function requireRole(roles: string[]) {
   };
 }
 
+export function requireNonPatientRole() {
+  return (req: TenantRequest, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return res.status(401).json({ error: "Authentication required" });
+    }
+
+    if (req.user.role === "patient") {
+      return res.status(403).json({ error: "Insufficient permissions" });
+    }
+
+    next();
+  };
+}
+
 export function gdprComplianceMiddleware(req: TenantRequest, res: Response, next: NextFunction) {
   if (!req.tenant) {
     return next();

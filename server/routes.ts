@@ -10,7 +10,7 @@ import { storage } from "./storage";
 import { authService } from "./services/auth";
 import { aiService } from "./services/ai";
 import { registerSaaSRoutes } from "./saas-routes";
-import { tenantMiddleware, authMiddleware, requireRole, gdprComplianceMiddleware, type TenantRequest } from "./middleware/tenant";
+import { tenantMiddleware, authMiddleware, requireRole, requireNonPatientRole, gdprComplianceMiddleware, type TenantRequest } from "./middleware/tenant";
 import { multiTenantEnforcer, validateOrganizationFilter, withTenantIsolation } from "./middleware/multi-tenant-enforcer";
 import { initializeMultiTenantPackage, getMultiTenantPackage } from "./packages/multi-tenant-core";
 import { messagingService } from "./messaging-service";
@@ -4751,7 +4751,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Drug Interactions API endpoint
-  app.get("/api/clinical/drug-interactions", requireRole(["doctor", "nurse", "admin"]), async (req: TenantRequest, res) => {
+  app.get("/api/clinical/drug-interactions", requireNonPatientRole(), async (req: TenantRequest, res) => {
     try {
       const patientId = req.query.patientId ? parseInt(req.query.patientId as string) : null;
       
@@ -4885,7 +4885,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Patient Drug Interactions API endpoints
-  app.post("/api/clinical/patient-drug-interactions", requireRole(["doctor", "nurse", "admin"]), async (req: TenantRequest, res) => {
+  app.post("/api/clinical/patient-drug-interactions", requireNonPatientRole(), async (req: TenantRequest, res) => {
     try {
       const interactionData = z.object({
         patientId: z.number(),
