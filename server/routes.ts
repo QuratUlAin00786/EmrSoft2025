@@ -4751,7 +4751,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Drug Interactions API endpoint
-  app.get("/api/clinical/drug-interactions", authMiddleware, requireNonPatientRole(), async (req: TenantRequest, res) => {
+  app.get("/api/clinical/drug-interactions", requireNonPatientRole(), async (req: TenantRequest, res) => {
     try {
       const patientId = req.query.patientId ? parseInt(req.query.patientId as string) : null;
       
@@ -4885,7 +4885,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Patient Drug Interactions API endpoints
-  app.post("/api/clinical/patient-drug-interactions", authMiddleware, requireNonPatientRole(), async (req: TenantRequest, res) => {
+  app.post("/api/clinical/patient-drug-interactions", requireNonPatientRole(), async (req: TenantRequest, res) => {
     try {
       const interactionData = z.object({
         patientId: z.number(),
