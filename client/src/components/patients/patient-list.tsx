@@ -416,11 +416,11 @@ function PatientDetailsModal({
     enabled: !!patient?.id && open,
   });
 
-  // Fetch health insurance information by patient ID
-  const { data: insuranceInfo = {}, isLoading: insuranceLoading } = useQuery({
-    queryKey: ["/api/patients", patient?.id, "insurance"],
+  // Fetch health insurance information by patient ID from insurance_verifications table
+  const { data: insuranceInfo = [], isLoading: insuranceLoading } = useQuery({
+    queryKey: ["/api/insurance-verifications", patient?.id],
     queryFn: async () => {
-      if (!patient?.id) return {};
+      if (!patient?.id) return [];
       const token = localStorage.getItem("auth_token");
       const headers: Record<string, string> = {
         "X-Tenant-Subdomain": "demo",
@@ -429,7 +429,7 @@ function PatientDetailsModal({
         headers["Authorization"] = `Bearer ${token}`;
       }
 
-      const response = await fetch(`/api/patients/${patient.id}/insurance`, {
+      const response = await fetch(`/api/insurance-verifications?patientId=${patient.id}`, {
         headers,
         credentials: "include",
       });
@@ -1398,155 +1398,110 @@ function PatientDetailsModal({
                   <div className="text-center py-4">
                     Loading insurance information...
                   </div>
+                ) : insuranceInfo.length > 0 ? (
+                  <div className="space-y-6">
+                    {insuranceInfo.map((insurance: any, index: number) => (
+                      <Card key={index} className="border-l-4 border-l-blue-500">
+                        <CardContent className="p-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Insurance Provider
+                              </p>
+                              <p className="text-lg">
+                                {insurance.provider || "Not available"}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Policy Number
+                              </p>
+                              <p className="text-lg">
+                                {insurance.policyNumber || "Not available"}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Member Number
+                              </p>
+                              <p>
+                                {insurance.memberNumber || "Not available"}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                NHS Number
+                              </p>
+                              <p>
+                                {insurance.nhsNumber || "Not available"}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Plan Type
+                              </p>
+                              <p>
+                                {insurance.planType || "Not available"}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Effective Date
+                              </p>
+                              <p>
+                                {insurance.effectiveDate
+                                  ? format(
+                                      new Date(insurance.effectiveDate),
+                                      "MMM dd, yyyy",
+                                    )
+                                  : "Not available"}
+                              </p>
+                            </div>
+                            {insurance.status && (
+                              <div>
+                                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                  Status
+                                </p>
+                                <Badge 
+                                  variant={insurance.status === 'active' ? 'default' : 'secondary'}
+                                  className="text-xs"
+                                >
+                                  {insurance.status}
+                                </Badge>
+                              </div>
+                            )}
+                            {insurance.verificationDate && (
+                              <div>
+                                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                  Verification Date
+                                </p>
+                                <p>
+                                  {format(
+                                    new Date(insurance.verificationDate),
+                                    "MMM dd, yyyy",
+                                  )}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                          {insurance.notes && (
+                            <div className="mt-4">
+                              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Notes
+                              </p>
+                              <p className="text-sm text-gray-600 dark:text-gray-300">
+                                {insurance.notes}
+                              </p>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
                 ) : (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                          Insurance Provider
-                        </p>
-                        <p className="text-lg">
-                          {insuranceInfo.provider ||
-                            patient.insuranceInfo?.provider ||
-                            "Not available"}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                          Policy Number
-                        </p>
-                        <p className="text-lg">
-                          {insuranceInfo.policyNumber ||
-                            patient.insuranceInfo?.policyNumber ||
-                            "Not available"}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                          Group Number
-                        </p>
-                        <p>
-                          {insuranceInfo.groupNumber ||
-                            patient.insuranceInfo?.groupNumber ||
-                            "Not available"}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                          Member ID
-                        </p>
-                        <p>
-                          {insuranceInfo.memberId ||
-                            patient.insuranceInfo?.memberId ||
-                            "Not available"}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                          Coverage Type
-                        </p>
-                        <p>
-                          {insuranceInfo.coverageType ||
-                            patient.insuranceInfo?.coverageType ||
-                            "Not available"}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                          Plan Type
-                        </p>
-                        <p>
-                          {insuranceInfo.planType ||
-                            patient.insuranceInfo?.planType ||
-                            "Not available"}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                          Effective Date
-                        </p>
-                        <p>
-                          {insuranceInfo.effectiveDate
-                            ? format(
-                                new Date(insuranceInfo.effectiveDate),
-                                "MMM dd, yyyy",
-                              )
-                            : patient.insuranceInfo?.effectiveDate
-                              ? format(
-                                  new Date(patient.insuranceInfo.effectiveDate),
-                                  "MMM dd, yyyy",
-                                )
-                              : "Not available"}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                          Expiration Date
-                        </p>
-                        <p>
-                          {insuranceInfo.expirationDate
-                            ? format(
-                                new Date(insuranceInfo.expirationDate),
-                                "MMM dd, yyyy",
-                              )
-                            : patient.insuranceInfo?.expirationDate
-                              ? format(
-                                  new Date(
-                                    patient.insuranceInfo.expirationDate,
-                                  ),
-                                  "MMM dd, yyyy",
-                                )
-                              : "Not available"}
-                        </p>
-                      </div>
-                    </div>
-
-                    {(insuranceInfo.copayAmount ||
-                      patient.insuranceInfo?.copayAmount) && (
-                      <div>
-                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                          Copay Amount
-                        </p>
-                        <p className="text-lg font-semibold text-green-600">
-                          $
-                          {insuranceInfo.copayAmount ||
-                            patient.insuranceInfo?.copayAmount}
-                        </p>
-                      </div>
-                    )}
-
-                    {(insuranceInfo.deductible ||
-                      patient.insuranceInfo?.deductible) && (
-                      <div>
-                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                          Deductible
-                        </p>
-                        <p className="text-lg">
-                          $
-                          {insuranceInfo.deductible ||
-                            patient.insuranceInfo?.deductible}
-                        </p>
-                      </div>
-                    )}
-
-                    {(insuranceInfo.notes || patient.insuranceInfo?.notes) && (
-                      <div>
-                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                          Notes
-                        </p>
-                        <p className="text-sm text-gray-600 dark:text-gray-300">
-                          {insuranceInfo.notes || patient.insuranceInfo?.notes}
-                        </p>
-                      </div>
-                    )}
-
-                    {!insuranceInfo.provider &&
-                      !patient.insuranceInfo?.provider && (
-                        <div className="text-center py-8 text-gray-500">
-                          <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                          <p>No insurance information available</p>
-                        </div>
-                      )}
+                  <div className="text-center py-8 text-gray-500">
+                    <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>No insurance information available</p>
                   </div>
                 )}
               </CardContent>
