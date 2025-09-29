@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
@@ -15,7 +15,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
@@ -39,7 +39,11 @@ import {
   Plus,
   Trash2,
   Save,
-  Edit
+  Edit,
+  RotateCcw,
+  Info,
+  AlertCircle,
+  User
 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -1309,12 +1313,7 @@ export default function ClinicalDecisionSupport() {
         </TabsContent>
 
         <TabsContent value="interactions" className="space-y-4">
-          <Alert>
-            <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>
-              No active drug interactions detected for current patients.
-            </AlertDescription>
-          </Alert>
+          <DrugInteractionsTab />
         </TabsContent>
 
         <TabsContent value="guidelines" className="space-y-4">
@@ -1764,6 +1763,283 @@ Generated on ${new Date().toLocaleDateString()}
           )}
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+// Drug Interactions Tab Component
+function DrugInteractionsTab() {
+  const [selectedPatient, setSelectedPatient] = React.useState<string>("all");
+  const [selectedSeverity, setSelectedSeverity] = React.useState<string>("all");
+  const { toast } = useToast();
+
+  // Fetch drug interactions data
+  const { 
+    data: interactionsData, 
+    isLoading, 
+    error, 
+    refetch 
+  } = useQuery({
+    queryKey: ['/api/clinical/drug-interactions', selectedPatient],
+    queryFn: () => {
+      const url = selectedPatient !== "all" 
+        ? `/api/clinical/drug-interactions?patientId=${selectedPatient}`
+        : '/api/clinical/drug-interactions';
+      return fetch(url).then(res => res.json());
+    }
+  });
+
+  const interactions = interactionsData?.interactions || [];
+  const totalInteractions = interactionsData?.totalInteractions || 0;
+  const patientsScanned = interactionsData?.patientsScanned || 0;
+
+  // Filter interactions by severity
+  const filteredInteractions = React.useMemo(() => {
+    if (selectedSeverity === "all") return interactions;
+    return interactions.filter((interaction: any) => interaction.severity === selectedSeverity);
+  }, [interactions, selectedSeverity]);
+
+  // Get unique patients for filter dropdown
+  const uniquePatients = React.useMemo(() => {
+    const patients = interactions.reduce((acc: any[], interaction: any) => {
+      const existing = acc.find(p => p.id === interaction.patientId);
+      if (!existing) {
+        acc.push({
+          id: interaction.patientId,
+          name: interaction.patientName
+        });
+      }
+      return acc;
+    }, []);
+    return patients;
+  }, [interactions]);
+
+  const getSeverityColor = (severity: string) => {
+    switch (severity.toLowerCase()) {
+      case 'high': return 'text-red-600 bg-red-50 border-red-200';
+      case 'medium': return 'text-orange-600 bg-orange-50 border-orange-200';
+      case 'low': return 'text-yellow-600 bg-yellow-50 border-yellow-200';
+      default: return 'text-gray-600 bg-gray-50 border-gray-200';
+    }
+  };
+
+  const getSeverityIcon = (severity: string) => {
+    switch (severity.toLowerCase()) {
+      case 'high': return <AlertCircle className="w-4 h-4" />;
+      case 'medium': return <AlertTriangle className="w-4 h-4" />;
+      case 'low': return <Info className="w-4 h-4" />;
+      default: return <Info className="w-4 h-4" />;
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-semibold">Drug Interactions Analysis</h3>
+          <div className="flex space-x-2">
+            <div className="h-8 w-32 bg-gray-200 animate-pulse rounded" />
+            <div className="h-8 w-32 bg-gray-200 animate-pulse rounded" />
+          </div>
+        </div>
+        <div className="grid gap-4">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="h-32 bg-gray-200 animate-pulse rounded-lg" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <Alert className="border-red-200 bg-red-50">
+        <AlertCircle className="h-4 w-4 text-red-600" />
+        <AlertTitle className="text-red-800">Error Loading Drug Interactions</AlertTitle>
+        <AlertDescription className="text-red-700">
+          Failed to load drug interactions data. Please try refreshing or contact support.
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => refetch()}
+            className="ml-2 h-6"
+          >
+            Retry
+          </Button>
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Header with Summary */}
+      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border">
+        <div className="flex justify-between items-start mb-4">
+          <div>
+            <h3 className="text-lg font-semibold mb-2">Drug Interactions Analysis</h3>
+            <div className="flex gap-6 text-sm text-gray-600 dark:text-gray-400">
+              <span>{totalInteractions} interactions detected</span>
+              <span>{patientsScanned} patients scanned</span>
+              <span>Last updated: {interactionsData?.timestamp ? new Date(interactionsData.timestamp).toLocaleTimeString() : 'N/A'}</span>
+            </div>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => refetch()}
+            className="flex items-center gap-2"
+          >
+            <RotateCcw className="w-4 h-4" />
+            Refresh
+          </Button>
+        </div>
+
+        {/* Filters */}
+        <div className="flex gap-4">
+          <div className="flex-1">
+            <Label htmlFor="patient-filter">Patient</Label>
+            <Select value={selectedPatient} onValueChange={setSelectedPatient}>
+              <SelectTrigger id="patient-filter">
+                <SelectValue placeholder="Select patient..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Patients</SelectItem>
+                {uniquePatients.map(patient => (
+                  <SelectItem key={patient.id} value={patient.id.toString()}>
+                    {patient.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex-1">
+            <Label htmlFor="severity-filter">Severity</Label>
+            <Select value={selectedSeverity} onValueChange={setSelectedSeverity}>
+              <SelectTrigger id="severity-filter">
+                <SelectValue placeholder="Select severity..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Severities</SelectItem>
+                <SelectItem value="high">High Risk</SelectItem>
+                <SelectItem value="medium">Medium Risk</SelectItem>
+                <SelectItem value="low">Low Risk</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
+
+      {/* Interactions List */}
+      {filteredInteractions.length === 0 ? (
+        <Alert className="border-green-200 bg-green-50">
+          <CheckCircle className="h-4 w-4 text-green-600" />
+          <AlertTitle className="text-green-800">No Drug Interactions Detected</AlertTitle>
+          <AlertDescription className="text-green-700">
+            {selectedPatient === "all" 
+              ? "No active drug interactions found for any patients in the current filters."
+              : "No active drug interactions found for the selected patient with the current filters."}
+          </AlertDescription>
+        </Alert>
+      ) : (
+        <div className="space-y-4">
+          {filteredInteractions.map((interaction: any) => (
+            <Card key={interaction.id} className={`border-l-4 ${
+              interaction.severity === 'high' ? 'border-l-red-500' :
+              interaction.severity === 'medium' ? 'border-l-orange-500' :
+              'border-l-yellow-500'
+            }`}>
+              <CardHeader className="pb-3">
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <CardTitle className="text-base flex items-center gap-2 mb-2">
+                      <User className="w-4 h-4 text-blue-600" />
+                      {interaction.patientName}
+                    </CardTitle>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {interaction.description}
+                    </p>
+                  </div>
+                  <div className={`px-2 py-1 rounded-full text-xs border ${getSeverityColor(interaction.severity)}`}>
+                    <div className="flex items-center gap-1">
+                      {getSeverityIcon(interaction.severity)}
+                      {interaction.severity.toUpperCase()}
+                    </div>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Medications */}
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="bg-red-50 dark:bg-red-900/20 p-3 rounded-lg border border-red-200 dark:border-red-800">
+                    <h5 className="font-medium text-sm mb-1 text-red-800 dark:text-red-200">
+                      Medication 1
+                    </h5>
+                    <p className="font-semibold text-red-900 dark:text-red-100">
+                      {interaction.medication1.name}
+                    </p>
+                    <p className="text-xs text-red-700 dark:text-red-300">
+                      {interaction.medication1.dosage}
+                    </p>
+                  </div>
+                  <div className="bg-red-50 dark:bg-red-900/20 p-3 rounded-lg border border-red-200 dark:border-red-800">
+                    <h5 className="font-medium text-sm mb-1 text-red-800 dark:text-red-200">
+                      Medication 2
+                    </h5>
+                    <p className="font-semibold text-red-900 dark:text-red-100">
+                      {interaction.medication2.name}
+                    </p>
+                    <p className="text-xs text-red-700 dark:text-red-300">
+                      {interaction.medication2.dosage}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Warnings */}
+                {interaction.warnings && interaction.warnings.length > 0 && (
+                  <div>
+                    <h5 className="font-medium text-sm mb-2 flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4 text-orange-600" />
+                      Warnings
+                    </h5>
+                    <ul className="space-y-1">
+                      {interaction.warnings.map((warning: string, idx: number) => (
+                        <li key={idx} className="text-sm text-gray-700 dark:text-gray-300 flex items-start gap-2">
+                          <span className="w-1 h-1 bg-orange-500 rounded-full mt-2 flex-shrink-0" />
+                          {warning}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Recommendations */}
+                {interaction.recommendations && interaction.recommendations.length > 0 && (
+                  <div>
+                    <h5 className="font-medium text-sm mb-2 flex items-center gap-2">
+                      <Target className="w-4 h-4 text-blue-600" />
+                      Clinical Recommendations
+                    </h5>
+                    <ul className="space-y-1">
+                      {interaction.recommendations.map((recommendation: string, idx: number) => (
+                        <li key={idx} className="text-sm text-gray-700 dark:text-gray-300 flex items-start gap-2">
+                          <span className="w-1 h-1 bg-blue-500 rounded-full mt-2 flex-shrink-0" />
+                          {recommendation}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Detection Time */}
+                <div className="text-xs text-gray-500 dark:text-gray-400 pt-2 border-t">
+                  Detected: {new Date(interaction.detectedAt).toLocaleString()}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

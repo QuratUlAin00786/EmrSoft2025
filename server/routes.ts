@@ -16,7 +16,9 @@ import { initializeMultiTenantPackage, getMultiTenantPackage } from "./packages/
 import { messagingService } from "./messaging-service";
 import { createPaypalOrder, capturePaypalOrder, loadPaypalDefault } from "./paypal";
 import { gdprComplianceService } from "./services/gdpr-compliance";
-import { insertGdprConsentSchema, insertGdprDataRequestSchema, updateMedicalImageReportFieldSchema, insertAiInsightSchema, type Appointment } from "../shared/schema";
+import { insertGdprConsentSchema, insertGdprDataRequestSchema, updateMedicalImageReportFieldSchema, insertAiInsightSchema, medicationsDatabase, type Appointment } from "../shared/schema";
+import { db } from "./db";
+import { and, eq, sql } from "drizzle-orm";
 import { processAppointmentBookingChat, generateAppointmentSummary } from "./anthropic";
 import { inventoryService } from "./services/inventory";
 import { emailService } from "./services/email";
@@ -4745,6 +4747,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Clinical insight update error:", error);
       res.status(500).json({ error: "Failed to update clinical insight" });
+    }
+  });
+
+  // Drug Interactions API endpoint
+  app.get("/api/clinical/drug-interactions", requireRole(["doctor", "nurse", "admin"]), async (req: TenantRequest, res) => {
+    try {
+      const patientId = req.query.patientId ? parseInt(req.query.patientId as string) : null;
+      
+      // Get all patients if no specific patient ID provided
+      let patients = [];
+      if (patientId) {
+        const patient = await storage.getPatient(patientId, req.tenant!.id);
+        if (patient) patients = [patient];
+      } else {
+        patients = await storage.getPatientsByOrganization(req.tenant!.id);
+      }
+
+      const interactions = [];
+      
+      for (const patient of patients) {
+        if (patient.medicalHistory?.medications && patient.medicalHistory.medications.length > 0) {
+          const patientMeds = patient.medicalHistory.medications;
+          
+          // Check for interactions between patient's medications
+          for (let i = 0; i < patientMeds.length; i++) {
+            for (let j = i + 1; j < patientMeds.length; j++) {
+              const med1 = patientMeds[i];
+              const med2 = patientMeds[j];
+              
+              // Query medications database for interaction data
+              const [medication1] = await db
+                .select()
+                .from(medicationsDatabase)
+                .where(and(
+                  eq(medicationsDatabase.organizationId, req.tenant!.id),
+                  sql`LOWER(${medicationsDatabase.name}) = LOWER(${med1.name})`
+                ));
+              
+              if (medication1 && medication1.interactions) {
+                const interacts = medication1.interactions.some((interaction: string) => 
+                  interaction.toLowerCase().includes(med2.name.toLowerCase())
+                );
+                
+                if (interacts) {
+                  interactions.push({
+                    id: `${patient.id}-${i}-${j}`,
+                    patientId: patient.id,
+                    patientName: `${patient.firstName} ${patient.lastName}`,
+                    medication1: {
+                      name: med1.name,
+                      dosage: med1.dosage || 'Not specified'
+                    },
+                    medication2: {
+                      name: med2.name,
+                      dosage: med2.dosage || 'Not specified'
+                    },
+                    severity: medication1.severity,
+                    description: `Potential interaction between ${med1.name} and ${med2.name}`,
+                    warnings: medication1.warnings || [],
+                    recommendations: [
+                      'Monitor patient closely for adverse effects',
+                      'Consider alternative medications if possible',
+                      'Adjust dosage if necessary',
+                      'Consult with pharmacist for guidance'
+                    ],
+                    detectedAt: new Date().toISOString()
+                  });
+                }
+              }
+            }
+          }
+        }
+      }
+
+      res.json({
+        success: true,
+        interactions,
+        totalInteractions: interactions.length,
+        patientsScanned: patients.length,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error("Drug interactions check error:", error);
+      res.status(500).json({ error: "Failed to check drug interactions" });
     }
   });
 
