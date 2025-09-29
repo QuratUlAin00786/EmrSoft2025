@@ -1,5 +1,5 @@
 import { 
-  organizations, users, patients, medicalRecords, appointments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages, clinicalPhotos, labResults, claims, revenueRecords, insuranceVerifications, clinicalProcedures, emergencyProtocols, medicationsDatabase, roles, staffShifts, gdprConsents, gdprDataRequests, gdprAuditTrail, gdprProcessingActivities, conversations as conversationsTable, messages, voiceNotes, saasOwners, saasPackages, saasSubscriptions, saasPayments, saasInvoices, saasSettings, chatbotConfigs, chatbotSessions, chatbotMessages, chatbotAnalytics, musclePositions, userDocumentPreferences, letterDrafts, forecastModels, financialForecasts,
+  organizations, users, patients, medicalRecords, appointments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages, clinicalPhotos, labResults, claims, revenueRecords, insuranceVerifications, clinicalProcedures, emergencyProtocols, medicationsDatabase, roles, staffShifts, gdprConsents, gdprDataRequests, gdprAuditTrail, gdprProcessingActivities, conversations as conversationsTable, messages, voiceNotes, saasOwners, saasPackages, saasSubscriptions, saasPayments, saasInvoices, saasSettings, chatbotConfigs, chatbotSessions, chatbotMessages, chatbotAnalytics, musclePositions, userDocumentPreferences, letterDrafts, forecastModels, financialForecasts, quickbooksConnections, quickbooksSyncLogs, quickbooksCustomerMappings, quickbooksInvoiceMappings, quickbooksPaymentMappings, quickbooksAccountMappings, quickbooksItemMappings, quickbooksSyncConfigs,
   type Organization, type InsertOrganization,
   type User, type InsertUser,
   type Role, type InsertRole,
@@ -44,7 +44,15 @@ import {
   type UserDocumentPreferences, type InsertUserDocumentPreferences, type UpdateUserDocumentPreferences,
   type LetterDraft, type InsertLetterDraft,
   type ForecastModel, type InsertForecastModel,
-  type FinancialForecast, type InsertFinancialForecast
+  type FinancialForecast, type InsertFinancialForecast,
+  type QuickBooksConnection, type InsertQuickBooksConnection,
+  type QuickBooksSyncLog, type InsertQuickBooksSyncLog,
+  type QuickBooksCustomerMapping, type InsertQuickBooksCustomerMapping,
+  type QuickBooksInvoiceMapping, type InsertQuickBooksInvoiceMapping,
+  type QuickBooksPaymentMapping, type InsertQuickBooksPaymentMapping,
+  type QuickBooksAccountMapping, type InsertQuickBooksAccountMapping,
+  type QuickBooksItemMapping, type InsertQuickBooksItemMapping,
+  type QuickBooksSyncConfig, type InsertQuickBooksSyncConfig
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, count, not, sql, gte, lt, lte, isNotNull, or, ilike, ne } from "drizzle-orm";
@@ -464,6 +472,62 @@ export interface IStorage {
   createForecastModel(model: InsertForecastModel): Promise<ForecastModel>;
   updateForecastModel(id: number, organizationId: number, updates: Partial<InsertForecastModel>): Promise<ForecastModel | undefined>;
   deleteForecastModel(id: number, organizationId: number): Promise<boolean>;
+
+  // QuickBooks Integration
+  // Connections
+  getQuickBooksConnections(organizationId: number): Promise<QuickBooksConnection[]>;
+  getQuickBooksConnection(id: number, organizationId: number): Promise<QuickBooksConnection | undefined>;
+  getActiveQuickBooksConnection(organizationId: number): Promise<QuickBooksConnection | undefined>;
+  createQuickBooksConnection(connection: InsertQuickBooksConnection): Promise<QuickBooksConnection>;
+  updateQuickBooksConnection(id: number, organizationId: number, updates: Partial<InsertQuickBooksConnection>): Promise<QuickBooksConnection | undefined>;
+  deleteQuickBooksConnection(id: number, organizationId: number): Promise<boolean>;
+  
+  // Sync Logs
+  getQuickBooksSyncLogs(organizationId: number, connectionId?: number, syncType?: string): Promise<QuickBooksSyncLog[]>;
+  createQuickBooksSyncLog(log: InsertQuickBooksSyncLog): Promise<QuickBooksSyncLog>;
+  updateQuickBooksSyncLog(id: number, updates: Partial<InsertQuickBooksSyncLog>): Promise<QuickBooksSyncLog | undefined>;
+  
+  // Customer Mappings
+  getQuickBooksCustomerMappings(organizationId: number, connectionId?: number): Promise<QuickBooksCustomerMapping[]>;
+  getQuickBooksCustomerMapping(patientId: number, organizationId: number): Promise<QuickBooksCustomerMapping | undefined>;
+  createQuickBooksCustomerMapping(mapping: InsertQuickBooksCustomerMapping): Promise<QuickBooksCustomerMapping>;
+  updateQuickBooksCustomerMapping(id: number, organizationId: number, updates: Partial<InsertQuickBooksCustomerMapping>): Promise<QuickBooksCustomerMapping | undefined>;
+  deleteQuickBooksCustomerMapping(id: number, organizationId: number): Promise<boolean>;
+  
+  // Invoice Mappings
+  getQuickBooksInvoiceMappings(organizationId: number, connectionId?: number): Promise<QuickBooksInvoiceMapping[]>;
+  getQuickBooksInvoiceMapping(emrInvoiceId: string, organizationId: number): Promise<QuickBooksInvoiceMapping | undefined>;
+  createQuickBooksInvoiceMapping(mapping: InsertQuickBooksInvoiceMapping): Promise<QuickBooksInvoiceMapping>;
+  updateQuickBooksInvoiceMapping(id: number, organizationId: number, updates: Partial<InsertQuickBooksInvoiceMapping>): Promise<QuickBooksInvoiceMapping | undefined>;
+  deleteQuickBooksInvoiceMapping(id: number, organizationId: number): Promise<boolean>;
+  
+  // Payment Mappings
+  getQuickBooksPaymentMappings(organizationId: number, connectionId?: number): Promise<QuickBooksPaymentMapping[]>;
+  getQuickBooksPaymentMapping(emrPaymentId: string, organizationId: number): Promise<QuickBooksPaymentMapping | undefined>;
+  createQuickBooksPaymentMapping(mapping: InsertQuickBooksPaymentMapping): Promise<QuickBooksPaymentMapping>;
+  updateQuickBooksPaymentMapping(id: number, organizationId: number, updates: Partial<InsertQuickBooksPaymentMapping>): Promise<QuickBooksPaymentMapping | undefined>;
+  deleteQuickBooksPaymentMapping(id: number, organizationId: number): Promise<boolean>;
+  
+  // Account Mappings
+  getQuickBooksAccountMappings(organizationId: number, connectionId?: number): Promise<QuickBooksAccountMapping[]>;
+  getQuickBooksAccountMapping(emrAccountType: string, organizationId: number): Promise<QuickBooksAccountMapping | undefined>;
+  createQuickBooksAccountMapping(mapping: InsertQuickBooksAccountMapping): Promise<QuickBooksAccountMapping>;
+  updateQuickBooksAccountMapping(id: number, organizationId: number, updates: Partial<InsertQuickBooksAccountMapping>): Promise<QuickBooksAccountMapping | undefined>;
+  deleteQuickBooksAccountMapping(id: number, organizationId: number): Promise<boolean>;
+  
+  // Item Mappings
+  getQuickBooksItemMappings(organizationId: number, connectionId?: number): Promise<QuickBooksItemMapping[]>;
+  getQuickBooksItemMapping(emrItemId: string, organizationId: number): Promise<QuickBooksItemMapping | undefined>;
+  createQuickBooksItemMapping(mapping: InsertQuickBooksItemMapping): Promise<QuickBooksItemMapping>;
+  updateQuickBooksItemMapping(id: number, organizationId: number, updates: Partial<InsertQuickBooksItemMapping>): Promise<QuickBooksItemMapping | undefined>;
+  deleteQuickBooksItemMapping(id: number, organizationId: number): Promise<boolean>;
+  
+  // Sync Configurations
+  getQuickBooksSyncConfigs(organizationId: number, connectionId?: number): Promise<QuickBooksSyncConfig[]>;
+  getQuickBooksSyncConfig(id: number, organizationId: number): Promise<QuickBooksSyncConfig | undefined>;
+  createQuickBooksSyncConfig(config: InsertQuickBooksSyncConfig): Promise<QuickBooksSyncConfig>;
+  updateQuickBooksSyncConfig(id: number, organizationId: number, updates: Partial<InsertQuickBooksSyncConfig>): Promise<QuickBooksSyncConfig | undefined>;
+  deleteQuickBooksSyncConfig(id: number, organizationId: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -5632,6 +5696,373 @@ export class DatabaseStorage implements IStorage {
     const result = await db
       .delete(forecastModels)
       .where(and(eq(forecastModels.id, id), eq(forecastModels.organizationId, organizationId)));
+    return result.rowCount > 0;
+  }
+
+  // QuickBooks Integration Implementation
+
+  // QuickBooks Connections
+  async getQuickBooksConnections(organizationId: number): Promise<QuickBooksConnection[]> {
+    return await db
+      .select()
+      .from(quickbooksConnections)
+      .where(eq(quickbooksConnections.organizationId, organizationId))
+      .orderBy(desc(quickbooksConnections.createdAt));
+  }
+
+  async getQuickBooksConnection(id: number, organizationId: number): Promise<QuickBooksConnection | undefined> {
+    const [connection] = await db
+      .select()
+      .from(quickbooksConnections)
+      .where(and(eq(quickbooksConnections.id, id), eq(quickbooksConnections.organizationId, organizationId)));
+    return connection || undefined;
+  }
+
+  async getActiveQuickBooksConnection(organizationId: number): Promise<QuickBooksConnection | undefined> {
+    const [connection] = await db
+      .select()
+      .from(quickbooksConnections)
+      .where(and(
+        eq(quickbooksConnections.organizationId, organizationId),
+        eq(quickbooksConnections.isActive, true)
+      ))
+      .orderBy(desc(quickbooksConnections.createdAt))
+      .limit(1);
+    return connection || undefined;
+  }
+
+  async createQuickBooksConnection(connection: InsertQuickBooksConnection): Promise<QuickBooksConnection> {
+    const [created] = await db.insert(quickbooksConnections).values([connection]).returning();
+    return created;
+  }
+
+  async updateQuickBooksConnection(id: number, organizationId: number, updates: Partial<InsertQuickBooksConnection>): Promise<QuickBooksConnection | undefined> {
+    const updateData = { ...updates, updatedAt: new Date() };
+    const [updated] = await db
+      .update(quickbooksConnections)
+      .set(updateData)
+      .where(and(eq(quickbooksConnections.id, id), eq(quickbooksConnections.organizationId, organizationId)))
+      .returning();
+    return updated || undefined;
+  }
+
+  async deleteQuickBooksConnection(id: number, organizationId: number): Promise<boolean> {
+    const result = await db
+      .delete(quickbooksConnections)
+      .where(and(eq(quickbooksConnections.id, id), eq(quickbooksConnections.organizationId, organizationId)));
+    return result.rowCount > 0;
+  }
+
+  // QuickBooks Sync Logs
+  async getQuickBooksSyncLogs(organizationId: number, connectionId?: number, syncType?: string): Promise<QuickBooksSyncLog[]> {
+    let query = db
+      .select()
+      .from(quickbooksSyncLogs)
+      .where(eq(quickbooksSyncLogs.organizationId, organizationId));
+
+    if (connectionId) {
+      query = query.where(eq(quickbooksSyncLogs.connectionId, connectionId));
+    }
+
+    if (syncType) {
+      query = query.where(eq(quickbooksSyncLogs.syncType, syncType));
+    }
+
+    return await query.orderBy(desc(quickbooksSyncLogs.createdAt)).limit(100);
+  }
+
+  async createQuickBooksSyncLog(log: InsertQuickBooksSyncLog): Promise<QuickBooksSyncLog> {
+    const [created] = await db.insert(quickbooksSyncLogs).values([log]).returning();
+    return created;
+  }
+
+  async updateQuickBooksSyncLog(id: number, updates: Partial<InsertQuickBooksSyncLog>): Promise<QuickBooksSyncLog | undefined> {
+    const [updated] = await db
+      .update(quickbooksSyncLogs)
+      .set(updates)
+      .where(eq(quickbooksSyncLogs.id, id))
+      .returning();
+    return updated || undefined;
+  }
+
+  // QuickBooks Customer Mappings
+  async getQuickBooksCustomerMappings(organizationId: number, connectionId?: number): Promise<QuickBooksCustomerMapping[]> {
+    let query = db
+      .select()
+      .from(quickbooksCustomerMappings)
+      .where(eq(quickbooksCustomerMappings.organizationId, organizationId));
+
+    if (connectionId) {
+      query = query.where(eq(quickbooksCustomerMappings.connectionId, connectionId));
+    }
+
+    return await query.orderBy(desc(quickbooksCustomerMappings.createdAt));
+  }
+
+  async getQuickBooksCustomerMapping(patientId: number, organizationId: number): Promise<QuickBooksCustomerMapping | undefined> {
+    const [mapping] = await db
+      .select()
+      .from(quickbooksCustomerMappings)
+      .where(and(
+        eq(quickbooksCustomerMappings.patientId, patientId),
+        eq(quickbooksCustomerMappings.organizationId, organizationId)
+      ));
+    return mapping || undefined;
+  }
+
+  async createQuickBooksCustomerMapping(mapping: InsertQuickBooksCustomerMapping): Promise<QuickBooksCustomerMapping> {
+    const [created] = await db.insert(quickbooksCustomerMappings).values([mapping]).returning();
+    return created;
+  }
+
+  async updateQuickBooksCustomerMapping(id: number, organizationId: number, updates: Partial<InsertQuickBooksCustomerMapping>): Promise<QuickBooksCustomerMapping | undefined> {
+    const updateData = { ...updates, updatedAt: new Date() };
+    const [updated] = await db
+      .update(quickbooksCustomerMappings)
+      .set(updateData)
+      .where(and(eq(quickbooksCustomerMappings.id, id), eq(quickbooksCustomerMappings.organizationId, organizationId)))
+      .returning();
+    return updated || undefined;
+  }
+
+  async deleteQuickBooksCustomerMapping(id: number, organizationId: number): Promise<boolean> {
+    const result = await db
+      .delete(quickbooksCustomerMappings)
+      .where(and(eq(quickbooksCustomerMappings.id, id), eq(quickbooksCustomerMappings.organizationId, organizationId)));
+    return result.rowCount > 0;
+  }
+
+  // QuickBooks Invoice Mappings
+  async getQuickBooksInvoiceMappings(organizationId: number, connectionId?: number): Promise<QuickBooksInvoiceMapping[]> {
+    let query = db
+      .select()
+      .from(quickbooksInvoiceMappings)
+      .where(eq(quickbooksInvoiceMappings.organizationId, organizationId));
+
+    if (connectionId) {
+      query = query.where(eq(quickbooksInvoiceMappings.connectionId, connectionId));
+    }
+
+    return await query.orderBy(desc(quickbooksInvoiceMappings.createdAt));
+  }
+
+  async getQuickBooksInvoiceMapping(emrInvoiceId: string, organizationId: number): Promise<QuickBooksInvoiceMapping | undefined> {
+    const [mapping] = await db
+      .select()
+      .from(quickbooksInvoiceMappings)
+      .where(and(
+        eq(quickbooksInvoiceMappings.emrInvoiceId, emrInvoiceId),
+        eq(quickbooksInvoiceMappings.organizationId, organizationId)
+      ));
+    return mapping || undefined;
+  }
+
+  async createQuickBooksInvoiceMapping(mapping: InsertQuickBooksInvoiceMapping): Promise<QuickBooksInvoiceMapping> {
+    const [created] = await db.insert(quickbooksInvoiceMappings).values([mapping]).returning();
+    return created;
+  }
+
+  async updateQuickBooksInvoiceMapping(id: number, organizationId: number, updates: Partial<InsertQuickBooksInvoiceMapping>): Promise<QuickBooksInvoiceMapping | undefined> {
+    const updateData = { ...updates, updatedAt: new Date() };
+    const [updated] = await db
+      .update(quickbooksInvoiceMappings)
+      .set(updateData)
+      .where(and(eq(quickbooksInvoiceMappings.id, id), eq(quickbooksInvoiceMappings.organizationId, organizationId)))
+      .returning();
+    return updated || undefined;
+  }
+
+  async deleteQuickBooksInvoiceMapping(id: number, organizationId: number): Promise<boolean> {
+    const result = await db
+      .delete(quickbooksInvoiceMappings)
+      .where(and(eq(quickbooksInvoiceMappings.id, id), eq(quickbooksInvoiceMappings.organizationId, organizationId)));
+    return result.rowCount > 0;
+  }
+
+  // QuickBooks Payment Mappings
+  async getQuickBooksPaymentMappings(organizationId: number, connectionId?: number): Promise<QuickBooksPaymentMapping[]> {
+    let query = db
+      .select()
+      .from(quickbooksPaymentMappings)
+      .where(eq(quickbooksPaymentMappings.organizationId, organizationId));
+
+    if (connectionId) {
+      query = query.where(eq(quickbooksPaymentMappings.connectionId, connectionId));
+    }
+
+    return await query.orderBy(desc(quickbooksPaymentMappings.createdAt));
+  }
+
+  async getQuickBooksPaymentMapping(emrPaymentId: string, organizationId: number): Promise<QuickBooksPaymentMapping | undefined> {
+    const [mapping] = await db
+      .select()
+      .from(quickbooksPaymentMappings)
+      .where(and(
+        eq(quickbooksPaymentMappings.emrPaymentId, emrPaymentId),
+        eq(quickbooksPaymentMappings.organizationId, organizationId)
+      ));
+    return mapping || undefined;
+  }
+
+  async createQuickBooksPaymentMapping(mapping: InsertQuickBooksPaymentMapping): Promise<QuickBooksPaymentMapping> {
+    const [created] = await db.insert(quickbooksPaymentMappings).values([mapping]).returning();
+    return created;
+  }
+
+  async updateQuickBooksPaymentMapping(id: number, organizationId: number, updates: Partial<InsertQuickBooksPaymentMapping>): Promise<QuickBooksPaymentMapping | undefined> {
+    const updateData = { ...updates, updatedAt: new Date() };
+    const [updated] = await db
+      .update(quickbooksPaymentMappings)
+      .set(updateData)
+      .where(and(eq(quickbooksPaymentMappings.id, id), eq(quickbooksPaymentMappings.organizationId, organizationId)))
+      .returning();
+    return updated || undefined;
+  }
+
+  async deleteQuickBooksPaymentMapping(id: number, organizationId: number): Promise<boolean> {
+    const result = await db
+      .delete(quickbooksPaymentMappings)
+      .where(and(eq(quickbooksPaymentMappings.id, id), eq(quickbooksPaymentMappings.organizationId, organizationId)));
+    return result.rowCount > 0;
+  }
+
+  // QuickBooks Account Mappings
+  async getQuickBooksAccountMappings(organizationId: number, connectionId?: number): Promise<QuickBooksAccountMapping[]> {
+    let query = db
+      .select()
+      .from(quickbooksAccountMappings)
+      .where(eq(quickbooksAccountMappings.organizationId, organizationId));
+
+    if (connectionId) {
+      query = query.where(eq(quickbooksAccountMappings.connectionId, connectionId));
+    }
+
+    return await query.orderBy(desc(quickbooksAccountMappings.createdAt));
+  }
+
+  async getQuickBooksAccountMapping(emrAccountType: string, organizationId: number): Promise<QuickBooksAccountMapping | undefined> {
+    const [mapping] = await db
+      .select()
+      .from(quickbooksAccountMappings)
+      .where(and(
+        eq(quickbooksAccountMappings.emrAccountType, emrAccountType),
+        eq(quickbooksAccountMappings.organizationId, organizationId)
+      ));
+    return mapping || undefined;
+  }
+
+  async createQuickBooksAccountMapping(mapping: InsertQuickBooksAccountMapping): Promise<QuickBooksAccountMapping> {
+    const [created] = await db.insert(quickbooksAccountMappings).values([mapping]).returning();
+    return created;
+  }
+
+  async updateQuickBooksAccountMapping(id: number, organizationId: number, updates: Partial<InsertQuickBooksAccountMapping>): Promise<QuickBooksAccountMapping | undefined> {
+    const updateData = { ...updates, updatedAt: new Date() };
+    const [updated] = await db
+      .update(quickbooksAccountMappings)
+      .set(updateData)
+      .where(and(eq(quickbooksAccountMappings.id, id), eq(quickbooksAccountMappings.organizationId, organizationId)))
+      .returning();
+    return updated || undefined;
+  }
+
+  async deleteQuickBooksAccountMapping(id: number, organizationId: number): Promise<boolean> {
+    const result = await db
+      .delete(quickbooksAccountMappings)
+      .where(and(eq(quickbooksAccountMappings.id, id), eq(quickbooksAccountMappings.organizationId, organizationId)));
+    return result.rowCount > 0;
+  }
+
+  // QuickBooks Item Mappings
+  async getQuickBooksItemMappings(organizationId: number, connectionId?: number): Promise<QuickBooksItemMapping[]> {
+    let query = db
+      .select()
+      .from(quickbooksItemMappings)
+      .where(eq(quickbooksItemMappings.organizationId, organizationId));
+
+    if (connectionId) {
+      query = query.where(eq(quickbooksItemMappings.connectionId, connectionId));
+    }
+
+    return await query.orderBy(desc(quickbooksItemMappings.createdAt));
+  }
+
+  async getQuickBooksItemMapping(emrItemId: string, organizationId: number): Promise<QuickBooksItemMapping | undefined> {
+    const [mapping] = await db
+      .select()
+      .from(quickbooksItemMappings)
+      .where(and(
+        eq(quickbooksItemMappings.emrItemId, emrItemId),
+        eq(quickbooksItemMappings.organizationId, organizationId)
+      ));
+    return mapping || undefined;
+  }
+
+  async createQuickBooksItemMapping(mapping: InsertQuickBooksItemMapping): Promise<QuickBooksItemMapping> {
+    const [created] = await db.insert(quickbooksItemMappings).values([mapping]).returning();
+    return created;
+  }
+
+  async updateQuickBooksItemMapping(id: number, organizationId: number, updates: Partial<InsertQuickBooksItemMapping>): Promise<QuickBooksItemMapping | undefined> {
+    const updateData = { ...updates, updatedAt: new Date() };
+    const [updated] = await db
+      .update(quickbooksItemMappings)
+      .set(updateData)
+      .where(and(eq(quickbooksItemMappings.id, id), eq(quickbooksItemMappings.organizationId, organizationId)))
+      .returning();
+    return updated || undefined;
+  }
+
+  async deleteQuickBooksItemMapping(id: number, organizationId: number): Promise<boolean> {
+    const result = await db
+      .delete(quickbooksItemMappings)
+      .where(and(eq(quickbooksItemMappings.id, id), eq(quickbooksItemMappings.organizationId, organizationId)));
+    return result.rowCount > 0;
+  }
+
+  // QuickBooks Sync Configurations
+  async getQuickBooksSyncConfigs(organizationId: number, connectionId?: number): Promise<QuickBooksSyncConfig[]> {
+    let query = db
+      .select()
+      .from(quickbooksSyncConfigs)
+      .where(eq(quickbooksSyncConfigs.organizationId, organizationId));
+
+    if (connectionId) {
+      query = query.where(eq(quickbooksSyncConfigs.connectionId, connectionId));
+    }
+
+    return await query
+      .where(eq(quickbooksSyncConfigs.isActive, true))
+      .orderBy(desc(quickbooksSyncConfigs.createdAt));
+  }
+
+  async getQuickBooksSyncConfig(id: number, organizationId: number): Promise<QuickBooksSyncConfig | undefined> {
+    const [config] = await db
+      .select()
+      .from(quickbooksSyncConfigs)
+      .where(and(eq(quickbooksSyncConfigs.id, id), eq(quickbooksSyncConfigs.organizationId, organizationId)));
+    return config || undefined;
+  }
+
+  async createQuickBooksSyncConfig(config: InsertQuickBooksSyncConfig): Promise<QuickBooksSyncConfig> {
+    const [created] = await db.insert(quickbooksSyncConfigs).values([config]).returning();
+    return created;
+  }
+
+  async updateQuickBooksSyncConfig(id: number, organizationId: number, updates: Partial<InsertQuickBooksSyncConfig>): Promise<QuickBooksSyncConfig | undefined> {
+    const updateData = { ...updates, updatedAt: new Date() };
+    const [updated] = await db
+      .update(quickbooksSyncConfigs)
+      .set(updateData)
+      .where(and(eq(quickbooksSyncConfigs.id, id), eq(quickbooksSyncConfigs.organizationId, organizationId)))
+      .returning();
+    return updated || undefined;
+  }
+
+  async deleteQuickBooksSyncConfig(id: number, organizationId: number): Promise<boolean> {
+    const result = await db
+      .delete(quickbooksSyncConfigs)
+      .where(and(eq(quickbooksSyncConfigs.id, id), eq(quickbooksSyncConfigs.organizationId, organizationId)));
     return result.rowCount > 0;
   }
 }
