@@ -35,7 +35,7 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Plus, Edit, Trash2, UserPlus, Shield, Stethoscope, Users, Calendar, User, TestTube, Lock, BookOpen } from "lucide-react";
+import { Plus, Edit, Trash2, UserPlus, Shield, Stethoscope, Users, Calendar, User, TestTube, Lock, BookOpen, X, Check } from "lucide-react";
 import { Link } from "wouter";
 import { toast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -300,6 +300,10 @@ export default function UserManagement() {
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
   const [editingRole, setEditingRole] = useState<Role | null>(null);
   const [activeTab, setActiveTab] = useState<"users" | "roles">("users");
+  
+  // Email validation states
+  const [emailValidationStatus, setEmailValidationStatus] = useState<'idle' | 'checking' | 'available' | 'exists'>('idle');
+  const [emailCheckTimeout, setEmailCheckTimeout] = useState<NodeJS.Timeout | null>(null);
 
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -321,6 +325,55 @@ export default function UserManagement() {
   };
 
   const refetch = fetchUsers;
+  
+  // Email validation function
+  const checkEmailAvailability = async (email: string) => {
+    if (!email || !email.includes('@')) {
+      setEmailValidationStatus('idle');
+      return;
+    }
+    
+    try {
+      setEmailValidationStatus('checking');
+      const response = await apiRequest("GET", "/api/users");
+      const userData = await response.json();
+      
+      // Check if email exists in users
+      const existingUser = userData.find((user: any) => 
+        user.email && user.email.toLowerCase() === email.toLowerCase()
+      );
+      
+      if (existingUser) {
+        setEmailValidationStatus('exists');
+      } else {
+        setEmailValidationStatus('available');
+      }
+    } catch (error) {
+      console.error("Error checking email availability:", error);
+      setEmailValidationStatus('idle');
+    }
+  };
+
+  // Debounced email check function
+  const handleEmailChange = (email: string) => {
+    // Clear existing timeout
+    if (emailCheckTimeout) {
+      clearTimeout(emailCheckTimeout);
+    }
+    
+    // Reset validation status if email is empty
+    if (!email) {
+      setEmailValidationStatus('idle');
+      return;
+    }
+    
+    // Set new timeout for delayed check
+    const timeout = setTimeout(() => {
+      checkEmailAvailability(email);
+    }, 800); // 800ms delay
+    
+    setEmailCheckTimeout(timeout);
+  };
 
   // Debug logging
   console.log("Users query - loading:", isLoading, "error:", error, "users count:", users?.length);
@@ -917,7 +970,13 @@ export default function UserManagement() {
           
           <div className="flex gap-2">
             <Button 
-              onClick={() => setIsCreateModalOpen(true)} 
+              onClick={() => {
+                setIsCreateModalOpen(true);
+                setEmailValidationStatus('idle');
+                if (emailCheckTimeout) {
+                  clearTimeout(emailCheckTimeout);
+                }
+              }} 
               variant="default" 
               className="flex items-center gap-2 bg-gray-800 text-white hover:bg-gray-700"
             >
@@ -939,6 +998,10 @@ export default function UserManagement() {
               setEditingUser(null);
               setSelectedRole("doctor");
               form.reset();
+              setEmailValidationStatus('idle');
+              if (emailCheckTimeout) {
+                clearTimeout(emailCheckTimeout);
+              }
             }
           }}>
             <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
@@ -986,11 +1049,31 @@ export default function UserManagement() {
                   <Input
                     id="email"
                     type="email"
-                    {...form.register("email")}
+                    {...form.register("email", {
+                      onChange: (e) => {
+                        handleEmailChange(e.target.value);
+                      }
+                    })}
                     className={form.formState.errors.email ? "border-red-500" : ""}
                   />
                   {form.formState.errors.email && (
                     <p className="text-sm text-red-500">{form.formState.errors.email.message}</p>
+                  )}
+                  {/* Email availability status */}
+                  {emailValidationStatus === 'checking' && (
+                    <p className="text-sm text-gray-500">Checking availability...</p>
+                  )}
+                  {emailValidationStatus === 'available' && (
+                    <p className="text-sm text-green-600 flex items-center gap-1">
+                      <Check className="h-4 w-4" />
+                      Available
+                    </p>
+                  )}
+                  {emailValidationStatus === 'exists' && (
+                    <p className="text-sm text-red-600 flex items-center gap-1">
+                      <X className="h-4 w-4" />
+                      Email already exists
+                    </p>
                   )}
                 </div>
                 
@@ -1391,6 +1474,10 @@ export default function UserManagement() {
                       setEditingUser(null);
                       setSelectedRole("doctor");
                       form.reset();
+                      setEmailValidationStatus('idle');
+                      if (emailCheckTimeout) {
+                        clearTimeout(emailCheckTimeout);
+                      }
                     }}
                   >
                     Cancel
