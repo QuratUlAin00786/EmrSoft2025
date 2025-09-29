@@ -451,21 +451,6 @@ export function PatientModal({ open, onOpenChange, editMode = false, editPatient
                       )}
                     />
                     
-                    {tenant?.region === "UK" && (
-                      <FormField
-                        control={form.control}
-                        name="nhsNumber"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>NHS Number</FormLabel>
-                            <FormControl>
-                              <Input {...field} placeholder="000 000 0000" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    )}
                   </div>
                 </CardContent>
               </Card>
