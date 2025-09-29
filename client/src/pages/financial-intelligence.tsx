@@ -2173,6 +2173,24 @@ export default function FinancialIntelligence() {
                       <div className="font-medium">{insurance.groupNumber}</div>
                     </div>
                     <div>
+                      <div className="text-sm text-gray-500">Member Number</div>
+                      <div className="font-medium">{insurance.memberNumber}</div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-500">NHS Number</div>
+                      <div className="font-medium">{insurance.nhsNumber}</div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-500">Plan Type</div>
+                      <div className="font-medium">{insurance.planType}</div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-500">Effective Date</div>
+                      <div className="font-medium">
+                        {insurance.effectiveDate ? format(new Date(insurance.effectiveDate), "MMM dd, yyyy") : "N/A"}
+                      </div>
+                    </div>
+                    <div>
                       <div className="text-sm text-gray-500">Coverage Type</div>
                       <div className="font-medium capitalize">
                         {insurance.coverageType}
