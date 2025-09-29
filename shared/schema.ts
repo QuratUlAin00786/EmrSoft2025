@@ -2454,6 +2454,269 @@ export type InsertMusclePosition = z.infer<typeof insertMusclePositionSchema>;
 export type LetterDraft = typeof letterDrafts.$inferSelect;
 export type InsertLetterDraft = z.infer<typeof insertLetterDraftSchema>;
 
+// QuickBooks Integration Tables
+
+// QuickBooks Connections - Store OAuth tokens and company info
+export const quickbooksConnections = pgTable("quickbooks_connections", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  companyId: text("company_id").notNull(), // QuickBooks Company ID
+  companyName: text("company_name").notNull(),
+  accessToken: text("access_token").notNull(),
+  refreshToken: text("refresh_token").notNull(),
+  tokenExpiry: timestamp("token_expiry").notNull(),
+  realmId: text("realm_id").notNull(), // QuickBooks Company/Realm ID
+  baseUrl: text("base_url").notNull(), // sandbox or production URL
+  isActive: boolean("is_active").notNull().default(true),
+  lastSyncAt: timestamp("last_sync_at"),
+  syncSettings: jsonb("sync_settings").$type<{
+    autoSync?: boolean;
+    syncIntervalHours?: number;
+    syncCustomers?: boolean;
+    syncInvoices?: boolean;
+    syncPayments?: boolean;
+    syncItems?: boolean;
+    syncAccounts?: boolean;
+  }>().default({}),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// QuickBooks Sync Logs - Track all sync operations
+export const quickbooksSyncLogs = pgTable("quickbooks_sync_logs", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  connectionId: integer("connection_id").notNull(),
+  syncType: varchar("sync_type", { length: 50 }).notNull(), // customers, invoices, payments, items, accounts
+  operation: varchar("operation", { length: 20 }).notNull(), // create, update, delete, sync
+  status: varchar("status", { length: 20 }).notNull().default("pending"), // pending, success, failed, partial
+  recordsProcessed: integer("records_processed").default(0),
+  recordsSuccessful: integer("records_successful").default(0),
+  recordsFailed: integer("records_failed").default(0),
+  startTime: timestamp("start_time").notNull(),
+  endTime: timestamp("end_time"),
+  errorMessage: text("error_message"),
+  errorDetails: jsonb("error_details"),
+  metadata: jsonb("metadata").$type<{
+    lastCursor?: string;
+    totalRecords?: number;
+    batchSize?: number;
+    retryCount?: number;
+  }>().default({}),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// QuickBooks Customer Mappings - Map EMR patients to QB customers
+export const quickbooksCustomerMappings = pgTable("quickbooks_customer_mappings", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  connectionId: integer("connection_id").notNull(),
+  patientId: integer("patient_id").notNull(),
+  quickbooksCustomerId: text("quickbooks_customer_id").notNull(),
+  quickbooksDisplayName: text("quickbooks_display_name"),
+  syncStatus: varchar("sync_status", { length: 20 }).notNull().default("synced"), // synced, pending, failed
+  lastSyncAt: timestamp("last_sync_at"),
+  errorMessage: text("error_message"),
+  metadata: jsonb("metadata").$type<{
+    quickbooksData?: any;
+    lastModified?: string;
+    customFields?: Record<string, any>;
+  }>().default({}),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// QuickBooks Invoice Mappings - Map EMR invoices to QB invoices
+export const quickbooksInvoiceMappings = pgTable("quickbooks_invoice_mappings", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  connectionId: integer("connection_id").notNull(),
+  emrInvoiceId: text("emr_invoice_id").notNull(), // EMR internal invoice ID
+  quickbooksInvoiceId: text("quickbooks_invoice_id").notNull(),
+  quickbooksInvoiceNumber: text("quickbooks_invoice_number"),
+  patientId: integer("patient_id").notNull(),
+  customerId: integer("customer_id"), // Reference to QB customer mapping
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  status: varchar("status", { length: 20 }).notNull(), // draft, sent, paid, cancelled
+  syncStatus: varchar("sync_status", { length: 20 }).notNull().default("synced"),
+  lastSyncAt: timestamp("last_sync_at"),
+  errorMessage: text("error_message"),
+  metadata: jsonb("metadata").$type<{
+    quickbooksData?: any;
+    lastModified?: string;
+    lineItems?: any[];
+    taxes?: any[];
+  }>().default({}),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// QuickBooks Payment Mappings - Map EMR payments to QB payments
+export const quickbooksPaymentMappings = pgTable("quickbooks_payment_mappings", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  connectionId: integer("connection_id").notNull(),
+  emrPaymentId: text("emr_payment_id").notNull(),
+  quickbooksPaymentId: text("quickbooks_payment_id").notNull(),
+  invoiceMappingId: integer("invoice_mapping_id"), // Reference to invoice mapping
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  paymentMethod: varchar("payment_method", { length: 50 }).notNull(),
+  paymentDate: timestamp("payment_date").notNull(),
+  syncStatus: varchar("sync_status", { length: 20 }).notNull().default("synced"),
+  lastSyncAt: timestamp("last_sync_at"),
+  errorMessage: text("error_message"),
+  metadata: jsonb("metadata").$type<{
+    quickbooksData?: any;
+    lastModified?: string;
+    depositTo?: string;
+    paymentRefNum?: string;
+  }>().default({}),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// QuickBooks Chart of Accounts Mappings
+export const quickbooksAccountMappings = pgTable("quickbooks_account_mappings", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  connectionId: integer("connection_id").notNull(),
+  emrAccountType: varchar("emr_account_type", { length: 50 }).notNull(), // revenue, expense, asset, liability
+  emrAccountName: text("emr_account_name").notNull(),
+  quickbooksAccountId: text("quickbooks_account_id").notNull(),
+  quickbooksAccountName: text("quickbooks_account_name").notNull(),
+  accountType: varchar("account_type", { length: 50 }).notNull(),
+  accountSubType: varchar("account_sub_type", { length: 50 }),
+  isActive: boolean("is_active").notNull().default(true),
+  syncStatus: varchar("sync_status", { length: 20 }).notNull().default("synced"),
+  lastSyncAt: timestamp("last_sync_at"),
+  errorMessage: text("error_message"),
+  metadata: jsonb("metadata").$type<{
+    quickbooksData?: any;
+    lastModified?: string;
+    parentAccount?: string;
+  }>().default({}),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// QuickBooks Item Mappings - Map EMR services/products to QB items
+export const quickbooksItemMappings = pgTable("quickbooks_item_mappings", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  connectionId: integer("connection_id").notNull(),
+  emrItemType: varchar("emr_item_type", { length: 50 }).notNull(), // service, product, medication
+  emrItemId: text("emr_item_id").notNull(),
+  emrItemName: text("emr_item_name").notNull(),
+  quickbooksItemId: text("quickbooks_item_id").notNull(),
+  quickbooksItemName: text("quickbooks_item_name").notNull(),
+  itemType: varchar("item_type", { length: 20 }).notNull(), // Service, Inventory, NonInventory
+  unitPrice: decimal("unit_price", { precision: 10, scale: 2 }),
+  description: text("description"),
+  incomeAccountId: text("income_account_id"),
+  expenseAccountId: text("expense_account_id"),
+  isActive: boolean("is_active").notNull().default(true),
+  syncStatus: varchar("sync_status", { length: 20 }).notNull().default("synced"),
+  lastSyncAt: timestamp("last_sync_at"),
+  errorMessage: text("error_message"),
+  metadata: jsonb("metadata").$type<{
+    quickbooksData?: any;
+    lastModified?: string;
+    taxCode?: string;
+    sku?: string;
+  }>().default({}),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// QuickBooks Sync Configurations
+export const quickbooksSyncConfigs = pgTable("quickbooks_sync_configs", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  connectionId: integer("connection_id").notNull(),
+  configType: varchar("config_type", { length: 50 }).notNull(), // mapping, sync_rules, field_mapping
+  configName: text("config_name").notNull(),
+  configValue: jsonb("config_value").notNull(),
+  isActive: boolean("is_active").notNull().default(true),
+  description: text("description"),
+  createdBy: integer("created_by").notNull(),
+  updatedBy: integer("updated_by"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// QuickBooks Insert Schemas
+export const insertQuickBooksConnectionSchema = createInsertSchema(quickbooksConnections).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertQuickBooksSyncLogSchema = createInsertSchema(quickbooksSyncLogs).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertQuickBooksCustomerMappingSchema = createInsertSchema(quickbooksCustomerMappings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertQuickBooksInvoiceMappingSchema = createInsertSchema(quickbooksInvoiceMappings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertQuickBooksPaymentMappingSchema = createInsertSchema(quickbooksPaymentMappings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertQuickBooksAccountMappingSchema = createInsertSchema(quickbooksAccountMappings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertQuickBooksItemMappingSchema = createInsertSchema(quickbooksItemMappings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertQuickBooksSyncConfigSchema = createInsertSchema(quickbooksSyncConfigs).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// QuickBooks Types
+export type QuickBooksConnection = typeof quickbooksConnections.$inferSelect;
+export type InsertQuickBooksConnection = z.infer<typeof insertQuickBooksConnectionSchema>;
+
+export type QuickBooksSyncLog = typeof quickbooksSyncLogs.$inferSelect;
+export type InsertQuickBooksSyncLog = z.infer<typeof insertQuickBooksSyncLogSchema>;
+
+export type QuickBooksCustomerMapping = typeof quickbooksCustomerMappings.$inferSelect;
+export type InsertQuickBooksCustomerMapping = z.infer<typeof insertQuickBooksCustomerMappingSchema>;
+
+export type QuickBooksInvoiceMapping = typeof quickbooksInvoiceMappings.$inferSelect;
+export type InsertQuickBooksInvoiceMapping = z.infer<typeof insertQuickBooksInvoiceMappingSchema>;
+
+export type QuickBooksPaymentMapping = typeof quickbooksPaymentMappings.$inferSelect;
+export type InsertQuickBooksPaymentMapping = z.infer<typeof insertQuickBooksPaymentMappingSchema>;
+
+export type QuickBooksAccountMapping = typeof quickbooksAccountMappings.$inferSelect;
+export type InsertQuickBooksAccountMapping = z.infer<typeof insertQuickBooksAccountMappingSchema>;
+
+export type QuickBooksItemMapping = typeof quickbooksItemMappings.$inferSelect;
+export type InsertQuickBooksItemMapping = z.infer<typeof insertQuickBooksItemMappingSchema>;
+
+export type QuickBooksSyncConfig = typeof quickbooksSyncConfigs.$inferSelect;
+export type InsertQuickBooksSyncConfig = z.infer<typeof insertQuickBooksSyncConfigSchema>;
+
 // Financial Forecasting Insert Schemas
 export const insertForecastModelSchema = createInsertSchema(forecastModels).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertFinancialForecastSchema = createInsertSchema(financialForecasts).omit({ id: true, generatedAt: true, createdAt: true, updatedAt: true });
