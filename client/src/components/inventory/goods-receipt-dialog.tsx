@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -12,14 +12,25 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandInput, CommandItem, CommandEmpty, CommandGroup } from "@/components/ui/command";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface InventoryItem {
   id: number;
   name: string;
   purchasePrice: string;
   unitOfMeasurement: string;
+}
+
+interface PurchaseOrder {
+  id: number;
+  poNumber: string;
+  supplierName: string;
+  status: string;
+  totalAmount: string;
 }
 
 interface GoodsReceiptDialogProps {
@@ -63,6 +74,13 @@ export default function GoodsReceiptDialog({ open, onOpenChange, items }: GoodsR
   const queryClient = useQueryClient();
   
   const [receiptItems, setReceiptItems] = useState<ReceiptItem[]>([]);
+  const [purchaseOrderOpen, setPurchaseOrderOpen] = useState(false);
+
+  // Fetch purchase orders
+  const { data: purchaseOrders = [], isLoading: purchaseOrdersLoading } = useQuery<PurchaseOrder[]>({
+    queryKey: ["/api/inventory/purchase-orders"],
+    enabled: true,
+  });
   
   // Main form for receipt details
   const form = useForm<GoodsReceiptFormData>({
@@ -182,24 +200,62 @@ export default function GoodsReceiptDialog({ open, onOpenChange, items }: GoodsR
                 <FormField
                   control={form.control}
                   name="purchaseOrderId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Purchase Order</FormLabel>
-                      <FormControl>
-                        <Select value={field.value.toString()} onValueChange={(value) => field.onChange(parseInt(value))}>
-                          <SelectTrigger data-testid="select-purchase-order">
-                            <SelectValue placeholder="Select purchase order" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="1">PO-001</SelectItem>
-                            <SelectItem value="2">PO-002</SelectItem>
-                            <SelectItem value="3">PO-003</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    const selectedPO = purchaseOrders.find(po => po.id === field.value);
+                    return (
+                      <FormItem>
+                        <FormLabel>Purchase Order</FormLabel>
+                        <FormControl>
+                          <Popover open={purchaseOrderOpen} onOpenChange={setPurchaseOrderOpen}>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                aria-expanded={purchaseOrderOpen}
+                                className="w-full justify-between"
+                                data-testid="select-purchase-order"
+                              >
+                                {selectedPO ? selectedPO.poNumber : "Select purchase order..."}
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-full p-0" align="start">
+                              <Command>
+                                <CommandInput placeholder="Search purchase orders..." />
+                                <CommandEmpty>No purchase order found.</CommandEmpty>
+                                <CommandGroup>
+                                  {purchaseOrders.map((po) => (
+                                    <CommandItem
+                                      key={po.id}
+                                      value={po.poNumber}
+                                      onSelect={() => {
+                                        field.onChange(po.id);
+                                        setPurchaseOrderOpen(false);
+                                      }}
+                                    >
+                                      <Check
+                                        className={cn(
+                                          "mr-2 h-4 w-4",
+                                          field.value === po.id ? "opacity-100" : "opacity-0"
+                                        )}
+                                      />
+                                      <div className="flex flex-col">
+                                        <span className="font-medium">{po.poNumber}</span>
+                                        <span className="text-sm text-gray-500">
+                                          {po.supplierName} - {po.status} - £{po.totalAmount}
+                                        </span>
+                                      </div>
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
                 />
                 <FormField
                   control={form.control}
@@ -405,24 +461,6 @@ export default function GoodsReceiptDialog({ open, onOpenChange, items }: GoodsR
             </div>
           )}
 
-              {/* Notes */}
-              <FormField
-                control={form.control}
-                name="notes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Notes</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        data-testid="textarea-notes"
-                        placeholder="Additional notes about the delivery"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
 
               {/* Form-level error message */}
               {form.formState.errors.root && (
