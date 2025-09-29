@@ -447,20 +447,22 @@ export function DoctorList({
           {availableStaff.map((doctor: Doctor) => (
             <div
               key={doctor.id}
-              className="flex items-start justify-between p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+              className="p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
             >
-              <div className="flex items-start gap-3 flex-1">
-                <Avatar>
-                  <AvatarFallback className="bg-blue-100 text-blue-700">
-                    {getInitials(doctor.firstName, doctor.lastName)}
-                  </AvatarFallback>
-                </Avatar>
+              <div className="flex items-start gap-3 w-full">
+                <div className="flex-shrink-0">
+                  <Avatar>
+                    <AvatarFallback className="bg-blue-100 text-blue-700">
+                      {getInitials(doctor.firstName, doctor.lastName)}
+                    </AvatarFallback>
+                  </Avatar>
+                </div>
 
-                <div className="flex-1 min-w-0 space-y-2">
+                <div className="flex-1 min-w-0 space-y-2 overflow-hidden">
                   {/* Row 1: Name */}
                   <div className="mb-1">
                     <h4
-                      className="font-semibold text-gray-900 dark:text-gray-100 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors break-words"
+                      className="font-semibold text-gray-900 dark:text-gray-100 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-wrap"
                       onClick={() => openScheduleDialog(doctor)}
                     >
                       {doctor.firstName} {doctor.lastName}
@@ -469,8 +471,8 @@ export function DoctorList({
 
                   {/* Row 2: Email */}
                   {doctor.email && (
-                    <div className="flex items-center gap-1">
-                      <span className="text-sm text-gray-600 dark:text-gray-300 break-all">
+                    <div className="w-full">
+                      <span className="text-sm text-gray-600 dark:text-gray-300 block truncate">
                         {doctor.email}
                       </span>
                     </div>
@@ -478,8 +480,8 @@ export function DoctorList({
 
                   {/* Row 3: Medical Specialty Category */}
                   {doctor.medicalSpecialtyCategory && (
-                    <div className="flex items-center">
-                      <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 break-words">
+                    <div className="w-full">
+                      <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 max-w-full truncate inline-block">
                         {doctor.medicalSpecialtyCategory}
                       </Badge>
                     </div>
@@ -487,10 +489,10 @@ export function DoctorList({
 
                   {/* Row 4: Sub-specialty */}
                   {doctor.subSpecialty && (
-                    <div className="flex items-center">
+                    <div className="w-full">
                       <Badge
                         variant="outline"
-                        className="bg-green-100 text-green-800 border-green-200 dark:bg-green-900 dark:text-green-200 dark:border-green-700 break-words"
+                        className="bg-green-100 text-green-800 border-green-200 dark:bg-green-900 dark:text-green-200 dark:border-green-700 max-w-full truncate inline-block"
                       >
                         {doctor.subSpecialty}
                       </Badge>
@@ -501,9 +503,9 @@ export function DoctorList({
                   {doctor.workingDays &&
                     doctor.workingDays.length > 0 &&
                     doctor.workingHours && (
-                      <div className="flex items-center gap-1">
-                        <Clock className="h-3 w-3 text-blue-500 dark:text-blue-400" />
-                        <span className="text-sm text-blue-700 dark:text-blue-300 font-medium break-words">
+                      <div className="flex items-start gap-1 w-full">
+                        <Clock className="h-3 w-3 text-blue-500 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                        <span className="text-sm text-blue-700 dark:text-blue-300 font-medium flex-1 min-w-0">
                           {doctor.workingDays.slice(0, 3).join(", ")}
                           {doctor.workingDays.length > 3 &&
                             ` +${doctor.workingDays.length - 3} more`}
@@ -516,9 +518,9 @@ export function DoctorList({
 
                   {/* Row 6: Last Active */}
                   {doctor.lastLoginAt && (
-                    <div className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
-                      <Clock className="h-3 w-3" />
-                      <span className="break-words">
+                    <div className="flex items-start gap-1 text-sm text-gray-500 dark:text-gray-400 w-full">
+                      <Clock className="h-3 w-3 flex-shrink-0 mt-0.5" />
+                      <span className="flex-1 min-w-0">
                         Last active:{" "}
                         {new Date(doctor.lastLoginAt).toLocaleDateString()}
                       </span>
@@ -526,7 +528,7 @@ export function DoctorList({
                   )}
 
                   {/* Row 7: Action Buttons */}
-                  <div className="flex items-center gap-2 pt-2">
+                  <div className="flex items-center gap-2 pt-2 flex-wrap">
                     {showAppointmentButton && (
                       <Button
                         size="sm"
@@ -535,6 +537,7 @@ export function DoctorList({
                           e.stopPropagation();
                           openBookingDialog(doctor);
                         }}
+                        className="flex-shrink-0"
                       >
                         Book
                       </Button>
@@ -547,6 +550,7 @@ export function DoctorList({
                           e.stopPropagation();
                           openScheduleDialog(doctor);
                         }}
+                        className="flex-shrink-0"
                       >
                         <Edit className="h-3 w-3 mr-1" />
                         Edit Schedule
@@ -555,7 +559,7 @@ export function DoctorList({
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="bg-white hover:bg-gray-50 border border-gray-200"
+                      className="bg-white hover:bg-gray-50 border border-gray-200 flex-shrink-0"
                       onClick={(e) => {
                         e.stopPropagation();
                         setLocation(`/staff/${doctor.id}`);
