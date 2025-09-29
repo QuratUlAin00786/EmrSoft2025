@@ -1175,6 +1175,10 @@ export default function ClinicalDecisionSupport() {
                 <CardHeader className="pb-3">
                   <div className="flex justify-between items-start">
                     <div className="space-y-1">
+                      <h3 className="text-lg font-semibold">{insight.title}</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">
+                        {insight.patientName} • {format(new Date(insight.createdAt), 'MMM dd, yyyy HH:mm')}
+                      </p>
                       <div className="flex items-center gap-2">
                         <div className="flex items-center gap-1">
                           {editingSeverity === insight.id.toString() ? (
@@ -1238,10 +1242,6 @@ export default function ClinicalDecisionSupport() {
                           </Badge>
                         )}
                       </div>
-                      <h3 className="text-lg font-semibold">{insight.title}</h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-300">
-                        {insight.patientName} • {format(new Date(insight.createdAt), 'MMM dd, yyyy HH:mm')}
-                      </p>
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="text-right">
