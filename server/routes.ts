@@ -4751,8 +4751,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Drug Interactions API endpoint
-  app.get("/api/clinical/drug-interactions", requireNonPatientRole(), async (req: TenantRequest, res) => {
+  app.get("/api/clinical/drug-interactions", async (req: TenantRequest, res) => {
     try {
+      // Check role authorization - only non-patient roles can access
+      if (req.user?.role === "patient") {
+        return res.status(403).json({ error: "Insufficient permissions" });
+      }
+
       const patientId = req.query.patientId ? parseInt(req.query.patientId as string) : null;
       
       // Get all patients if no specific patient ID provided
@@ -4885,8 +4890,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Patient Drug Interactions API endpoints
-  app.post("/api/clinical/patient-drug-interactions", requireNonPatientRole(), async (req: TenantRequest, res) => {
+  app.post("/api/clinical/patient-drug-interactions", async (req: TenantRequest, res) => {
     try {
+      // Check role authorization - only non-patient roles can access
+      if (req.user?.role === "patient") {
+        return res.status(403).json({ error: "Insufficient permissions" });
+      }
+
       const interactionData = z.object({
         patientId: z.number(),
         medication1Name: z.string(),
