@@ -71,6 +71,8 @@ interface ConsultationNotesProps {
 export default function ConsultationNotes({ patientId, patientName, patientNumber }: ConsultationNotesProps) {
   const [isAddingNote, setIsAddingNote] = useState(false);
   const [editingRecord, setEditingRecord] = useState<any>(null);
+  const [isEditingVitals, setIsEditingVitals] = useState(false);
+  const [editingVitalsData, setEditingVitalsData] = useState<any>({});
   const [activeTab, setActiveTab] = useState("vitals");
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -542,6 +544,153 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
     saveRecord(form.getValues(), false);
   };
 
+  // Parse vital signs from record
+  const parseVitalSigns = (record: any) => {
+    if (record.metadata?.vitals) {
+      return record.metadata.vitals;
+    }
+    
+    // Parse from notes if metadata is not available
+    const notes = record.notes || '';
+    const vitalSigns = {
+      bloodPressureSystolic: '',
+      bloodPressureDiastolic: '',
+      heartRate: '',
+      temperature: '',
+      respiratoryRate: '',
+      oxygenSaturation: '',
+      weight: '',
+      height: '',
+      bmi: ''
+    };
+
+    const patterns = {
+      bloodPressure: /Blood Pressure: (\d+)\/(\d+)/,
+      heartRate: /Heart Rate: (\d+)/,
+      temperature: /Temperature: ([\d.]+)/,
+      respiratoryRate: /Respiratory Rate: (\d+)/,
+      oxygenSaturation: /O2 Saturation: (\d+)/,
+      weight: /Weight: ([\d.]+)/,
+      height: /Height: ([\d.]+)/,
+      bmi: /BMI: ([\d.]+)/
+    };
+
+    const bpMatch = notes.match(patterns.bloodPressure);
+    if (bpMatch) {
+      vitalSigns.bloodPressureSystolic = bpMatch[1];
+      vitalSigns.bloodPressureDiastolic = bpMatch[2];
+    }
+
+    const hrMatch = notes.match(patterns.heartRate);
+    if (hrMatch) vitalSigns.heartRate = hrMatch[1];
+
+    const tempMatch = notes.match(patterns.temperature);
+    if (tempMatch) vitalSigns.temperature = tempMatch[1];
+
+    const rrMatch = notes.match(patterns.respiratoryRate);
+    if (rrMatch) vitalSigns.respiratoryRate = rrMatch[1];
+
+    const o2Match = notes.match(patterns.oxygenSaturation);
+    if (o2Match) vitalSigns.oxygenSaturation = o2Match[1];
+
+    const weightMatch = notes.match(patterns.weight);
+    if (weightMatch) vitalSigns.weight = weightMatch[1];
+
+    const heightMatch = notes.match(patterns.height);
+    if (heightMatch) vitalSigns.height = heightMatch[1];
+
+    const bmiMatch = notes.match(patterns.bmi);
+    if (bmiMatch) vitalSigns.bmi = bmiMatch[1];
+
+    return vitalSigns;
+  };
+
+  // Update vital signs in record
+  const updateVitalSigns = async (recordId: number, updatedVitals: any) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/api/patients/${patientId}/records/${recordId}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'X-Tenant-Subdomain': 'demo'
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          metadata: {
+            ...(editingRecord.metadata || {}),
+            vitals: updatedVitals
+          },
+          notes: `CONSULTATION RECORD\n\nPatient: ${patientName}\nDate: ${format(new Date(editingRecord.createdAt), 'MMMM dd, yyyy')}\nStatus: Updated\n\nVITAL SIGNS:\n- Blood Pressure: ${updatedVitals.bloodPressureSystolic}/${updatedVitals.bloodPressureDiastolic} mmHg\n- Heart Rate: ${updatedVitals.heartRate} bpm\n- Temperature: ${updatedVitals.temperature}°C\n- Respiratory Rate: ${updatedVitals.respiratoryRate} /min\n- O2 Saturation: ${updatedVitals.oxygenSaturation}%\n- Weight: ${updatedVitals.weight} kg\n- Height: ${updatedVitals.height} cm\n- BMI: ${updatedVitals.bmi}`
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['/api/patients', patientId, 'records'] });
+      
+      toast({
+        title: "Vital Signs Updated",
+        description: "The vital signs have been successfully updated.",
+      });
+
+      setIsEditingVitals(false);
+      setEditingRecord(null);
+    } catch (error: any) {
+      toast({
+        title: "Update Failed",
+        description: error.message || "Failed to update vital signs. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Delete medical record
+  const deleteRecord = async (recordId: number) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/api/patients/${patientId}/records/${recordId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': 'demo'
+        },
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['/api/patients', patientId, 'records'] });
+      
+      toast({
+        title: "Record Deleted",
+        description: "The medical record has been successfully deleted.",
+      });
+
+      setIsEditingVitals(false);
+      setEditingRecord(null);
+    } catch (error: any) {
+      toast({
+        title: "Delete Failed",
+        description: error.message || "Failed to delete record. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Handle edit vital signs
+  const handleEditVitalSigns = (record: any) => {
+    setEditingRecord(record);
+    const vitals = parseVitalSigns(record);
+    setEditingVitalsData(vitals);
+    setIsEditingVitals(true);
+  };
+
   const handleCancel = () => {
     setIsAddingNote(false);
     setEditingRecord(null);
@@ -709,8 +858,7 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        setEditingRecord(record);
-                        setIsAddingNote(true);
+                        handleEditVitalSigns(record);
                       }}
                     >
                       Edit Medical Record
@@ -742,6 +890,187 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
           )}
         </div>
       </CardContent>
+
+      {/* Vital Signs Edit Dialog */}
+      <Dialog open={isEditingVitals} onOpenChange={setIsEditingVitals}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Activity className="h-5 w-5" />
+              Edit Vital Signs - {editingRecord?.title || 'Medical Record'}
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+              {/* Blood Pressure */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <Heart className="h-4 w-4" />
+                  Blood Pressure (mmHg)
+                </Label>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Systolic"
+                    value={editingVitalsData.bloodPressureSystolic || ''}
+                    onChange={(e) => setEditingVitalsData((prev: any) => ({ ...prev, bloodPressureSystolic: e.target.value }))}
+                  />
+                  <span className="text-2xl self-center">/</span>
+                  <Input
+                    placeholder="Diastolic"
+                    value={editingVitalsData.bloodPressureDiastolic || ''}
+                    onChange={(e) => setEditingVitalsData((prev: any) => ({ ...prev, bloodPressureDiastolic: e.target.value }))}
+                  />
+                </div>
+              </div>
+
+              {/* Heart Rate */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <Heart className="h-4 w-4" />
+                  Heart Rate (bpm)
+                </Label>
+                <Input
+                  placeholder="72"
+                  value={editingVitalsData.heartRate || ''}
+                  onChange={(e) => setEditingVitalsData((prev: any) => ({ ...prev, heartRate: e.target.value }))}
+                />
+              </div>
+
+              {/* Temperature */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <Thermometer className="h-4 w-4" />
+                  Temperature (°C)
+                </Label>
+                <Input
+                  placeholder="36.5"
+                  value={editingVitalsData.temperature || ''}
+                  onChange={(e) => setEditingVitalsData((prev: any) => ({ ...prev, temperature: e.target.value }))}
+                />
+              </div>
+
+              {/* Respiratory Rate */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <Activity className="h-4 w-4" />
+                  Respiratory Rate (/min)
+                </Label>
+                <Input
+                  placeholder="16"
+                  value={editingVitalsData.respiratoryRate || ''}
+                  onChange={(e) => setEditingVitalsData((prev: any) => ({ ...prev, respiratoryRate: e.target.value }))}
+                />
+              </div>
+
+              {/* Oxygen Saturation */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <Activity className="h-4 w-4" />
+                  O2 Saturation (%)
+                </Label>
+                <Input
+                  placeholder="98"
+                  value={editingVitalsData.oxygenSaturation || ''}
+                  onChange={(e) => setEditingVitalsData((prev: any) => ({ ...prev, oxygenSaturation: e.target.value }))}
+                />
+              </div>
+
+              {/* Weight */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <Weight className="h-4 w-4" />
+                  Weight (kg)
+                </Label>
+                <Input
+                  placeholder="70"
+                  value={editingVitalsData.weight || ''}
+                  onChange={(e) => setEditingVitalsData((prev: any) => ({ ...prev, weight: e.target.value }))}
+                />
+              </div>
+
+              {/* Height */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <Ruler className="h-4 w-4" />
+                  Height (cm)
+                </Label>
+                <Input
+                  placeholder="175"
+                  value={editingVitalsData.height || ''}
+                  onChange={(e) => setEditingVitalsData((prev: any) => ({ ...prev, height: e.target.value }))}
+                />
+              </div>
+
+              {/* BMI */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <Calculator className="h-4 w-4" />
+                  BMI
+                </Label>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Calculated automatically"
+                    value={editingVitalsData.bmi || ''}
+                    onChange={(e) => setEditingVitalsData((prev: any) => ({ ...prev, bmi: e.target.value }))}
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const heightInCm = parseFloat(editingVitalsData.height);
+                      const weightInKg = parseFloat(editingVitalsData.weight);
+                      
+                      if (heightInCm > 0 && weightInKg > 0) {
+                        const heightInM = heightInCm / 100;
+                        const bmiValue = (weightInKg / (heightInM * heightInM)).toFixed(1);
+                        setEditingVitalsData((prev: any) => ({ ...prev, bmi: bmiValue }));
+                      }
+                    }}
+                  >
+                    Calculate
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center justify-between pt-4 border-t">
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  if (confirm('Are you sure you want to delete this medical record? This action cannot be undone.')) {
+                    deleteRecord(editingRecord?.id);
+                  }
+                }}
+                className="flex items-center gap-2"
+              >
+                <X className="h-4 w-4" />
+                Delete Record
+              </Button>
+              
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setIsEditingVitals(false);
+                    setEditingRecord(null);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => updateVitalSigns(editingRecord?.id, editingVitalsData)}
+                  className="flex items-center gap-2"
+                >
+                  <Save className="h-4 w-4" />
+                  Save Changes
+                </Button>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
