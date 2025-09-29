@@ -16,7 +16,7 @@ import { initializeMultiTenantPackage, getMultiTenantPackage } from "./packages/
 import { messagingService } from "./messaging-service";
 import { createPaypalOrder, capturePaypalOrder, loadPaypalDefault } from "./paypal";
 import { gdprComplianceService } from "./services/gdpr-compliance";
-import { insertGdprConsentSchema, insertGdprDataRequestSchema, updateMedicalImageReportFieldSchema, insertAiInsightSchema, medicationsDatabase, type Appointment } from "../shared/schema";
+import { insertGdprConsentSchema, insertGdprDataRequestSchema, updateMedicalImageReportFieldSchema, insertAiInsightSchema, medicationsDatabase, patientDrugInteractions, type Appointment } from "../shared/schema";
 import { db } from "./db";
 import { and, eq, sql } from "drizzle-orm";
 import { processAppointmentBookingChat, generateAppointmentSummary } from "./anthropic";
@@ -4766,6 +4766,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const interactions = [];
       
+      // First, get manually added patient drug interactions from the new table
+      let manualInteractions = [];
+      if (patientId) {
+        manualInteractions = await db
+          .select()
+          .from(patientDrugInteractions)
+          .where(and(
+            eq(patientDrugInteractions.organizationId, req.tenant!.id),
+            eq(patientDrugInteractions.patientId, patientId),
+            eq(patientDrugInteractions.status, 'active'),
+            eq(patientDrugInteractions.isActive, true)
+          ));
+      } else {
+        manualInteractions = await db
+          .select()
+          .from(patientDrugInteractions)
+          .where(and(
+            eq(patientDrugInteractions.organizationId, req.tenant!.id),
+            eq(patientDrugInteractions.status, 'active'),
+            eq(patientDrugInteractions.isActive, true)
+          ));
+      }
+
+      // Add manual interactions to results
+      for (const manualInteraction of manualInteractions) {
+        const patient = patients.find(p => p.id === manualInteraction.patientId);
+        if (patient) {
+          interactions.push({
+            id: `manual-${manualInteraction.id}`,
+            patientId: patient.id,
+            patientName: `${patient.firstName} ${patient.lastName}`,
+            medication1: {
+              name: manualInteraction.medication1Name,
+              dosage: manualInteraction.medication1Dosage || 'Not specified'
+            },
+            medication2: {
+              name: manualInteraction.medication2Name,
+              dosage: manualInteraction.medication2Dosage || 'Not specified'
+            },
+            severity: manualInteraction.severity,
+            description: manualInteraction.description || `Interaction between ${manualInteraction.medication1Name} and ${manualInteraction.medication2Name}`,
+            warnings: manualInteraction.warnings || [],
+            recommendations: manualInteraction.recommendations || [],
+            detectedAt: manualInteraction.reportedAt?.toISOString() || manualInteraction.createdAt?.toISOString(),
+            source: 'manual'
+          });
+        }
+      }
+      
+      // Then check for automatic interactions from patient medications
       for (const patient of patients) {
         if (patient.medicalHistory?.medications && patient.medicalHistory.medications.length > 0) {
           const patientMeds = patient.medicalHistory.medications;
@@ -4831,6 +4881,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Drug interactions check error:", error);
       res.status(500).json({ error: "Failed to check drug interactions" });
+    }
+  });
+
+  // Patient Drug Interactions API endpoints
+  app.post("/api/clinical/patient-drug-interactions", requireRole(["doctor", "nurse", "admin"]), async (req: TenantRequest, res) => {
+    try {
+      const interactionData = z.object({
+        patientId: z.number(),
+        medication1Name: z.string(),
+        medication1Dosage: z.string().optional(),
+        medication1Frequency: z.string().optional(),
+        medication2Name: z.string(),
+        medication2Dosage: z.string().optional(),
+        medication2Frequency: z.string().optional(),
+        severity: z.enum(["low", "medium", "high"]).default("medium"),
+        description: z.string().optional(),
+        warnings: z.array(z.string()).default([]),
+        recommendations: z.array(z.string()).default([]),
+        notes: z.string().optional()
+      }).parse(req.body);
+
+      // Verify patient exists and belongs to organization
+      const patient = await storage.getPatient(interactionData.patientId, req.tenant!.id);
+      if (!patient) {
+        return res.status(404).json({ error: "Patient not found" });
+      }
+
+      // Insert into patient_drug_interactions table
+      const [newInteraction] = await db
+        .insert(patientDrugInteractions)
+        .values({
+          organizationId: req.tenant!.id,
+          patientId: interactionData.patientId,
+          medication1Name: interactionData.medication1Name,
+          medication1Dosage: interactionData.medication1Dosage || "",
+          medication1Frequency: interactionData.medication1Frequency,
+          medication2Name: interactionData.medication2Name,
+          medication2Dosage: interactionData.medication2Dosage || "",
+          medication2Frequency: interactionData.medication2Frequency,
+          severity: interactionData.severity,
+          description: interactionData.description,
+          warnings: interactionData.warnings,
+          recommendations: interactionData.recommendations,
+          reportedBy: req.user?.id,
+          notes: interactionData.notes
+        })
+        .returning();
+
+      res.json({
+        success: true,
+        interaction: newInteraction,
+        message: "Drug interaction added successfully"
+      });
+    } catch (error) {
+      console.error("Add patient drug interaction error:", error);
+      res.status(500).json({ error: "Failed to add drug interaction" });
     }
   });
 

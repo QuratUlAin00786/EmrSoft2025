@@ -1771,6 +1771,7 @@ Generated on ${new Date().toLocaleDateString()}
 function DrugInteractionsTab() {
   const [selectedPatient, setSelectedPatient] = React.useState<string>("all");
   const [selectedSeverity, setSelectedSeverity] = React.useState<string>("all");
+  const [showAddInteractionDialog, setShowAddInteractionDialog] = React.useState(false);
   const { toast } = useToast();
 
   // Fetch drug interactions data
@@ -1884,15 +1885,26 @@ function DrugInteractionsTab() {
               <span>Last updated: {interactionsData?.timestamp ? new Date(interactionsData.timestamp).toLocaleTimeString() : 'N/A'}</span>
             </div>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => refetch()}
-            className="flex items-center gap-2"
-          >
-            <RotateCcw className="w-4 h-4" />
-            Refresh
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => setShowAddInteractionDialog(true)}
+              className="flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              Add Drug Interaction
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => refetch()}
+              className="flex items-center gap-2"
+            >
+              <RotateCcw className="w-4 h-4" />
+              Refresh
+            </Button>
+          </div>
         </div>
 
         {/* Filters */}
@@ -2040,6 +2052,317 @@ function DrugInteractionsTab() {
           ))}
         </div>
       )}
+
+      {/* Add Drug Interaction Dialog */}
+      <AddDrugInteractionDialog 
+        open={showAddInteractionDialog}
+        onClose={() => setShowAddInteractionDialog(false)}
+        onSuccess={() => {
+          setShowAddInteractionDialog(false);
+          refetch();
+        }}
+      />
     </div>
+  );
+}
+
+// Add Drug Interaction Dialog Component
+function AddDrugInteractionDialog({ open, onClose, onSuccess }: {
+  open: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const [selectedPatientId, setSelectedPatientId] = React.useState<string>("");
+  const [medication1Name, setMedication1Name] = React.useState("");
+  const [medication1Dosage, setMedication1Dosage] = React.useState("");
+  const [medication1Frequency, setMedication1Frequency] = React.useState("");
+  const [medication2Name, setMedication2Name] = React.useState("");
+  const [medication2Dosage, setMedication2Dosage] = React.useState("");
+  const [medication2Frequency, setMedication2Frequency] = React.useState("");
+  const [severity, setSeverity] = React.useState("medium");
+  const [description, setDescription] = React.useState("");
+  const [warnings, setWarnings] = React.useState("");
+  const [recommendations, setRecommendations] = React.useState("");
+  const [notes, setNotes] = React.useState("");
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const { toast } = useToast();
+
+  // Fetch patients for dropdown
+  const { data: patientsData } = useQuery({
+    queryKey: ['/api/patients'],
+    queryFn: () => fetch('/api/patients').then(res => res.json())
+  });
+
+  const patients = patientsData?.patients || [];
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!selectedPatientId || !medication1Name || !medication2Name) {
+      toast({
+        title: "Required fields missing",
+        description: "Please fill in patient, medication 1 name, and medication 2 name.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const payload = {
+        patientId: parseInt(selectedPatientId),
+        medication1Name,
+        medication1Dosage,
+        medication1Frequency,
+        medication2Name,
+        medication2Dosage,
+        medication2Frequency,
+        severity,
+        description,
+        warnings: warnings ? warnings.split('\n').filter(w => w.trim()) : [],
+        recommendations: recommendations ? recommendations.split('\n').filter(r => r.trim()) : [],
+        notes
+      };
+
+      const response = await fetch('/api/clinical/patient-drug-interactions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to add drug interaction');
+      }
+
+      toast({
+        title: "Success",
+        description: "Drug interaction added successfully."
+      });
+
+      // Reset form
+      setSelectedPatientId("");
+      setMedication1Name("");
+      setMedication1Dosage("");
+      setMedication1Frequency("");
+      setMedication2Name("");
+      setMedication2Dosage("");
+      setMedication2Frequency("");
+      setSeverity("medium");
+      setDescription("");
+      setWarnings("");
+      setRecommendations("");
+      setNotes("");
+
+      onSuccess();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to add drug interaction",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleClose = () => {
+    // Reset form when closing
+    setSelectedPatientId("");
+    setMedication1Name("");
+    setMedication1Dosage("");
+    setMedication1Frequency("");
+    setMedication2Name("");
+    setMedication2Dosage("");
+    setMedication2Frequency("");
+    setSeverity("medium");
+    setDescription("");
+    setWarnings("");
+    setRecommendations("");
+    setNotes("");
+    onClose();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Add Drug Interaction</DialogTitle>
+        </DialogHeader>
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Patient Selection */}
+          <div>
+            <Label htmlFor="patient-select">Patient *</Label>
+            <Select value={selectedPatientId} onValueChange={setSelectedPatientId}>
+              <SelectTrigger id="patient-select">
+                <SelectValue placeholder="Select patient..." />
+              </SelectTrigger>
+              <SelectContent>
+                {patients.map((patient: any) => (
+                  <SelectItem key={patient.id} value={patient.id.toString()}>
+                    {patient.firstName} {patient.lastName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Medication 1 */}
+          <div className="grid md:grid-cols-3 gap-4">
+            <div>
+              <Label htmlFor="med1-name">Medication 1 Name *</Label>
+              <Input
+                id="med1-name"
+                value={medication1Name}
+                onChange={(e) => setMedication1Name(e.target.value)}
+                placeholder="e.g., Warfarin"
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="med1-dosage">Dosage</Label>
+              <Input
+                id="med1-dosage"
+                value={medication1Dosage}
+                onChange={(e) => setMedication1Dosage(e.target.value)}
+                placeholder="e.g., 5mg"
+              />
+            </div>
+            <div>
+              <Label htmlFor="med1-frequency">Frequency</Label>
+              <Input
+                id="med1-frequency"
+                value={medication1Frequency}
+                onChange={(e) => setMedication1Frequency(e.target.value)}
+                placeholder="e.g., Daily"
+              />
+            </div>
+          </div>
+
+          {/* Medication 2 */}
+          <div className="grid md:grid-cols-3 gap-4">
+            <div>
+              <Label htmlFor="med2-name">Medication 2 Name *</Label>
+              <Input
+                id="med2-name"
+                value={medication2Name}
+                onChange={(e) => setMedication2Name(e.target.value)}
+                placeholder="e.g., Aspirin"
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="med2-dosage">Dosage</Label>
+              <Input
+                id="med2-dosage"
+                value={medication2Dosage}
+                onChange={(e) => setMedication2Dosage(e.target.value)}
+                placeholder="e.g., 75mg"
+              />
+            </div>
+            <div>
+              <Label htmlFor="med2-frequency">Frequency</Label>
+              <Input
+                id="med2-frequency"
+                value={medication2Frequency}
+                onChange={(e) => setMedication2Frequency(e.target.value)}
+                placeholder="e.g., Daily"
+              />
+            </div>
+          </div>
+
+          {/* Severity */}
+          <div>
+            <Label htmlFor="severity-select">Severity</Label>
+            <Select value={severity} onValueChange={setSeverity}>
+              <SelectTrigger id="severity-select">
+                <SelectValue placeholder="Select severity..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="low">Low</SelectItem>
+                <SelectItem value="medium">Medium</SelectItem>
+                <SelectItem value="high">High</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Description */}
+          <div>
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Describe the drug interaction..."
+              rows={2}
+            />
+          </div>
+
+          {/* Warnings */}
+          <div>
+            <Label htmlFor="warnings">Warnings (one per line)</Label>
+            <Textarea
+              id="warnings"
+              value={warnings}
+              onChange={(e) => setWarnings(e.target.value)}
+              placeholder="Increased bleeding risk&#10;Monitor INR levels"
+              rows={3}
+            />
+          </div>
+
+          {/* Recommendations */}
+          <div>
+            <Label htmlFor="recommendations">Clinical Recommendations (one per line)</Label>
+            <Textarea
+              id="recommendations"
+              value={recommendations}
+              onChange={(e) => setRecommendations(e.target.value)}
+              placeholder="Monitor patient closely&#10;Consider alternative medications&#10;Adjust dosage if necessary"
+              rows={3}
+            />
+          </div>
+
+          {/* Notes */}
+          <div>
+            <Label htmlFor="notes">Additional Notes</Label>
+            <Textarea
+              id="notes"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Any additional clinical notes..."
+              rows={2}
+            />
+          </div>
+
+          {/* Form Actions */}
+          <div className="flex gap-2 pt-4 border-t">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleClose}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="flex items-center gap-2"
+            >
+              {isSubmitting ? (
+                <RotateCcw className="w-4 h-4 animate-spin" />
+              ) : (
+                <Plus className="w-4 h-4" />
+              )}
+              {isSubmitting ? 'Adding...' : 'Add Drug Interaction'}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

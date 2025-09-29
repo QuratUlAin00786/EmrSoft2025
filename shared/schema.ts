@@ -933,6 +933,31 @@ export const medicationsDatabase = pgTable("medications_database", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Patient Drug Interactions
+export const patientDrugInteractions = pgTable("patient_drug_interactions", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
+  patientId: integer("patient_id").notNull().references(() => patients.id),
+  medication1Name: text("medication1_name").notNull(),
+  medication1Dosage: text("medication1_dosage").notNull(),
+  medication1Frequency: text("medication1_frequency"),
+  medication2Name: text("medication2_name").notNull(),
+  medication2Dosage: text("medication2_dosage").notNull(),
+  medication2Frequency: text("medication2_frequency"),
+  interactionType: varchar("interaction_type", { length: 50 }), // drug-drug, drug-food, drug-condition
+  severity: varchar("severity", { length: 20 }).notNull().default("medium"), // low, medium, high
+  description: text("description"),
+  warnings: jsonb("warnings").$type<string[]>().default([]),
+  recommendations: jsonb("recommendations").$type<string[]>().default([]),
+  reportedBy: integer("reported_by").references(() => users.id),
+  reportedAt: timestamp("reported_at").defaultNow().notNull(),
+  status: varchar("status", { length: 20 }).notNull().default("active"), // active, resolved, dismissed
+  notes: text("notes"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Inventory Management System
 export const inventoryCategories = pgTable("inventory_categories", {
   id: serial("id").primaryKey(),
