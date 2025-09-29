@@ -749,15 +749,21 @@ Cura Healthcare Team
         itemId: inventoryBatches.itemId,
         itemName: inventoryItems.name,
         batchNumber: inventoryBatches.batchNumber,
-        quantity: inventoryBatches.quantity,
-        remainingQuantity: inventoryBatches.remainingQuantity,
+        quantityAvailable: inventoryBatches.remainingQuantity,
+        location: sql<string>`'Pharmacy'`.as('location'), // Default location
         expiryDate: inventoryBatches.expiryDate,
+        manufactureDate: inventoryBatches.manufactureDate,
+        supplierId: inventoryBatches.supplierId,
+        supplierName: inventorySuppliers.name,
+        purchasePrice: inventoryBatches.purchasePrice,
         receivedDate: inventoryBatches.receivedDate,
+        isExpired: inventoryBatches.isExpired,
         status: inventoryBatches.status,
         createdAt: inventoryBatches.createdAt
       })
       .from(inventoryBatches)
       .leftJoin(inventoryItems, eq(inventoryBatches.itemId, inventoryItems.id))
+      .leftJoin(inventorySuppliers, eq(inventoryBatches.supplierId, inventorySuppliers.id))
       .where(eq(inventoryBatches.organizationId, organizationId))
       .orderBy(desc(inventoryBatches.createdAt));
 
