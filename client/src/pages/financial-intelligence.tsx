@@ -144,13 +144,26 @@ interface Insurance {
 }
 
 interface FinancialForecast {
+  id: number;
+  organizationId: number;
   category: string;
-  currentMonth: number;
-  projectedNext: number;
+  forecastPeriod: string;
+  currentValue: number;
+  projectedValue: number;
   variance: number;
   trend: "up" | "down" | "stable";
   confidence: number;
-  factors: string[];
+  methodology: string;
+  keyFactors: Array<{
+    factor: string;
+    impact: "positive" | "negative" | "neutral";
+    weight: number;
+    description: string;
+  }>;
+  metadata: Record<string, any>;
+  isActive: boolean;
+  generatedAt: string;
+  updatedAt: string;
 }
 
 export default function FinancialIntelligence() {
@@ -313,9 +326,29 @@ export default function FinancialIntelligence() {
   });
 
   // Fetch financial forecasts
-  const { data: forecasts, isLoading: forecastsLoading } = useQuery({
-    queryKey: ["/api/financial/forecasts"],
+  const { data: forecasts, isLoading: forecastsLoading, refetch: refetchForecasts } = useQuery({
+    queryKey: ["/api/financial-forecasting"],
     enabled: true,
+  });
+
+  // Generate financial forecasts mutation
+  const generateForecastsMutation = useMutation({
+    mutationFn: () => apiRequest("/api/financial-forecasting/generate", "POST"),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/financial-forecasting"] });
+      toast({
+        title: "Forecasts Generated",
+        description: "Financial forecasts have been generated successfully.",
+      });
+    },
+    onError: (error: any) => {
+      console.error("Error generating forecasts:", error);
+      toast({
+        title: "Error",
+        description: "Failed to generate forecasts. Please try again.",
+        variant: "destructive",
+      });
+    },
   });
 
   // Fetch patients for claim submission
@@ -821,42 +854,8 @@ export default function FinancialIntelligence() {
 
   const mockInsurances: Insurance[] = [];
 
-  const mockForecasts: FinancialForecast[] = [
-    {
-      category: "Monthly Revenue",
-      currentMonth: 162000,
-      projectedNext: 168000,
-      variance: 6000,
-      trend: "up",
-      confidence: 85,
-      factors: [
-        "Increased patient volume",
-        "New insurance contracts",
-        "Seasonal trend",
-      ],
-    },
-    {
-      category: "Collection Rate",
-      currentMonth: 94,
-      projectedNext: 95,
-      variance: 1,
-      trend: "up",
-      confidence: 78,
-      factors: [
-        "Improved prior authorization process",
-        "Better claim submission timing",
-      ],
-    },
-    {
-      category: "Operating Expenses",
-      currentMonth: 98000,
-      projectedNext: 102000,
-      variance: 4000,
-      trend: "up",
-      confidence: 92,
-      factors: ["Staff salary increases", "Equipment maintenance", "Inflation"],
-    },
-  ];
+  // Financial forecasts data from API
+  const forecastData = forecasts || [];
 
   const profitabilityData = [
     {
@@ -2270,70 +2269,156 @@ export default function FinancialIntelligence() {
         </TabsContent>
 
         <TabsContent value="forecasting" className="space-y-4">
-          <div className="grid gap-4">
-            {mockForecasts.map((forecast, idx) => (
-              <Card key={idx}>
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <span>{forecast.category}</span>
-                    <Badge className="bg-blue-100 text-blue-800">
-                      {forecast.confidence}% confidence
-                    </Badge>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-gray-900">
-                        {forecast.category.includes("Rate")
-                          ? `${forecast.currentMonth}%`
-                          : formatCurrency(forecast.currentMonth)}
-                      </div>
-                      <div className="text-sm text-gray-500">Current</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-blue-600">
-                        {forecast.category.includes("Rate")
-                          ? `${forecast.projectedNext}%`
-                          : formatCurrency(forecast.projectedNext)}
-                      </div>
-                      <div className="text-sm text-gray-500">Projected</div>
-                    </div>
-                    <div className="text-center">
-                      <div
-                        className={`text-2xl font-bold ${getTrendColor(forecast.trend)}`}
-                      >
-                        {forecast.trend === "up"
-                          ? "+"
-                          : forecast.trend === "down"
-                            ? "-"
-                            : ""}
-                        {forecast.category.includes("Rate")
-                          ? `${Math.abs(forecast.variance)}%`
-                          : formatCurrency(Math.abs(forecast.variance))}
-                      </div>
-                      <div className="text-sm text-gray-500">Variance</div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <h4 className="font-medium text-sm mb-2">Key Factors</h4>
-                    <ul className="space-y-1">
-                      {forecast.factors.map((factor, factorIdx) => (
-                        <li
-                          key={factorIdx}
-                          className="flex items-center gap-2 text-sm"
-                        >
-                          <CheckCircle className="w-4 h-4 text-green-500" />
-                          <span>{factor}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold">Financial Forecasting</h3>
+            <Button
+              onClick={() => generateForecastsMutation.mutate()}
+              disabled={generateForecastsMutation.isPending}
+              className="bg-blue-600 hover:bg-blue-700"
+              data-testid="button-generate-forecasts"
+            >
+              {generateForecastsMutation.isPending ? (
+                <>
+                  <Calculator className="w-4 h-4 mr-2 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Calculator className="w-4 h-4 mr-2" />
+                  Generate Forecasts
+                </>
+              )}
+            </Button>
           </div>
+
+          {forecastsLoading ? (
+            <div className="flex justify-center items-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <span className="ml-2">Loading forecasts...</span>
+            </div>
+          ) : forecastData.length === 0 ? (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-8">
+                <Calculator className="w-12 h-12 text-gray-400 mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  No Forecasts Available
+                </h3>
+                <p className="text-gray-500 text-center mb-4">
+                  Generate financial forecasts based on your historical data to get insights into future revenue, expenses, and collections.
+                </p>
+                <Button
+                  onClick={() => generateForecastsMutation.mutate()}
+                  disabled={generateForecastsMutation.isPending}
+                  className="bg-blue-600 hover:bg-blue-700"
+                  data-testid="button-generate-first-forecasts"
+                >
+                  <Calculator className="w-4 h-4 mr-2" />
+                  Generate Your First Forecasts
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-4">
+              {forecastData.map((forecast: FinancialForecast) => (
+                <Card key={forecast.id}>
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      <div>
+                        <span>{forecast.category}</span>
+                        <div className="text-sm text-gray-500 font-normal mt-1">
+                          Period: {forecast.forecastPeriod} • Method: {forecast.methodology}
+                        </div>
+                      </div>
+                      <Badge className="bg-blue-100 text-blue-800">
+                        {forecast.confidence}% confidence
+                      </Badge>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-gray-900">
+                          {forecast.category.includes("Rate")
+                            ? `${forecast.currentValue}%`
+                            : formatCurrency(forecast.currentValue)}
+                        </div>
+                        <div className="text-sm text-gray-500">Current</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-blue-600">
+                          {forecast.category.includes("Rate")
+                            ? `${forecast.projectedValue}%`
+                            : formatCurrency(forecast.projectedValue)}
+                        </div>
+                        <div className="text-sm text-gray-500">Projected</div>
+                      </div>
+                      <div className="text-center">
+                        <div
+                          className={`text-2xl font-bold ${getTrendColor(forecast.trend)}`}
+                        >
+                          {forecast.trend === "up"
+                            ? "+"
+                            : forecast.trend === "down"
+                              ? "-"
+                              : ""}
+                          {forecast.category.includes("Rate")
+                            ? `${Math.abs(forecast.variance)}%`
+                            : formatCurrency(Math.abs(forecast.variance))}
+                        </div>
+                        <div className="text-sm text-gray-500">Variance</div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="font-medium text-sm mb-2">Key Factors</h4>
+                      <ul className="space-y-1">
+                        {forecast.keyFactors.map((factor, factorIdx) => (
+                          <li
+                            key={factorIdx}
+                            className="flex items-start gap-2 text-sm"
+                          >
+                            <div className="flex-shrink-0 mt-0.5">
+                              {factor.impact === "positive" ? (
+                                <CheckCircle className="w-4 h-4 text-green-500" />
+                              ) : factor.impact === "negative" ? (
+                                <XCircle className="w-4 h-4 text-red-500" />
+                              ) : (
+                                <AlertTriangle className="w-4 h-4 text-yellow-500" />
+                              )}
+                            </div>
+                            <div>
+                              <span className="font-medium">{factor.factor}</span>
+                              <span className="text-gray-500"> ({Math.round(factor.weight * 100)}% weight)</span>
+                              <div className="text-xs text-gray-400 mt-1">{factor.description}</div>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {forecast.metadata && Object.keys(forecast.metadata).length > 0 && (
+                      <div className="border-t pt-4">
+                        <h4 className="font-medium text-sm mb-2">Additional Details</h4>
+                        <div className="text-xs text-gray-500 space-y-1">
+                          {forecast.metadata.basedOnMonths && (
+                            <div>Based on {forecast.metadata.basedOnMonths} months of data</div>
+                          )}
+                          {forecast.metadata.correlationCoeff && (
+                            <div>Correlation: {Math.round(forecast.metadata.correlationCoeff * 100)}%</div>
+                          )}
+                          {forecast.metadata.assumptions && Array.isArray(forecast.metadata.assumptions) && (
+                            <div>
+                              <span className="font-medium">Assumptions:</span> {forecast.metadata.assumptions.join(', ')}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="profitability" className="space-y-4">
