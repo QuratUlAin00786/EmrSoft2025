@@ -1208,6 +1208,20 @@ Report generated from Cura EMR System`;
     return `${firstName} ${lastName}`;
   };
 
+  // For summary statistics - only apply search filter, not status filter
+  const searchFilteredResults = Array.isArray(labResults)
+    ? labResults.filter((result: DatabaseLabResult) => {
+        const patientName = getPatientName(result.patientId);
+        const matchesSearch =
+          !searchQuery ||
+          patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          result.testType.toLowerCase().includes(searchQuery.toLowerCase());
+
+        return matchesSearch;
+      })
+    : [];
+
+  // For display area - apply both search and status filters
   const filteredResults = Array.isArray(labResults)
     ? labResults.filter((result: DatabaseLabResult) => {
         const patientName = getPatientName(result.patientId);
@@ -1301,7 +1315,7 @@ Report generated from Cura EMR System`;
                     </p>
                     <p className="text-2xl font-bold">
                       {
-                        filteredResults.filter((r) => r.status === "pending")
+                        searchFilteredResults.filter((r) => r.status === "pending")
                           .length
                       }
                     </p>
@@ -1320,7 +1334,7 @@ Report generated from Cura EMR System`;
                     </p>
                     <p className="text-2xl font-bold">
                       {
-                        filteredResults.filter(
+                        searchFilteredResults.filter(
                           (r) =>
                             r.notes?.toLowerCase().includes("critical") ||
                             r.value?.toLowerCase().includes("high"),
@@ -1342,7 +1356,7 @@ Report generated from Cura EMR System`;
                     </p>
                     <p className="text-2xl font-bold">
                       {
-                        filteredResults.filter(
+                        searchFilteredResults.filter(
                           (r) =>
                             r.status === "completed" &&
                             new Date(r.createdAt || "").toDateString() ===
@@ -1364,7 +1378,7 @@ Report generated from Cura EMR System`;
                       Total Results
                     </p>
                     <p className="text-2xl font-bold">
-                      {filteredResults.length}
+                      {searchFilteredResults.length}
                     </p>
                   </div>
                   <FileText className="h-8 w-8 text-blue-600" />
