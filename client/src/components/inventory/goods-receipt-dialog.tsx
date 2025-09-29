@@ -299,7 +299,7 @@ export default function GoodsReceiptDialog({ open, onOpenChange, items }: GoodsR
               {/* Add Items Section */}
               <Form {...addItemForm}>
                 <div className="border rounded-lg p-4">
-                  <h3 className="font-medium mb-3">Add Received Items</h3>
+                  <h6 className="font-medium mb-3">Add Received Items</h6>
                   <div className="grid grid-cols-7 gap-3 items-end">
                     <FormField
                       control={addItemForm.control}
