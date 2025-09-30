@@ -49,7 +49,7 @@ function RecentPatientsList() {
 
   if (error || patients.length === 0) {
     return <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
-      {error || "No patients found."}
+      No recent patients available
     </div>;
   }
 
