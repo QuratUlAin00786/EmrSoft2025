@@ -49,8 +49,8 @@ export default function LoginPage() {
 
       const data = await response.json();
       
-      // Store token in localStorage (same as login hook does)
-      localStorage.setItem('token', data.token);
+      // Store token in localStorage (same key as auth context uses)
+      localStorage.setItem('auth_token', data.token);
       
       // Store subdomain for tenant context
       const subdomain = data.organization.subdomain;
