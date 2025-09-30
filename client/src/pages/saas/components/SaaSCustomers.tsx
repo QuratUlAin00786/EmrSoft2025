@@ -279,7 +279,7 @@ export default function SaaSCustomers() {
                       <h3 className="font-semibold text-sm text-gray-700">Organization Details</h3>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <Label htmlFor="name"className="mb-[10px]">Organization Name *</Label>
+                          <Label htmlFor="name">Organization Name *</Label>
                           <Input 
                             id="name" 
                             placeholder="e.g., Metro Medical Center" 
@@ -288,7 +288,7 @@ export default function SaaSCustomers() {
                           />
                         </div>
                         <div>
-                          <Label htmlFor="brandName"className="mb-[10px]">Brand Name</Label>
+                          <Label htmlFor="brandName">Brand Name</Label>
                           <Input 
                             id="brandName" 
                             placeholder="e.g., Metro Health" 
