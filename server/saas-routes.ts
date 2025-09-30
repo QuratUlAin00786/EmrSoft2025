@@ -579,11 +579,13 @@ export function registerSaaSRoutes(app: Express) {
 
       const result: { usernameAvailable?: boolean; emailAvailable?: boolean } = {};
 
+      // Check username globally (usernames are globally unique across all organizations)
       if (username) {
-        const existingUser = await storage.getUserByUsername(username as string, parseInt(organizationId as string));
+        const existingUser = await storage.getUserByUsernameGlobal(username as string);
         result.usernameAvailable = !existingUser;
       }
 
+      // Check email within organization (emails are unique per organization)
       if (email) {
         const existingEmail = await storage.getUserByEmail(email as string, parseInt(organizationId as string));
         result.emailAvailable = !existingEmail;

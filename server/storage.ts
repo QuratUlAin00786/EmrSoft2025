@@ -159,6 +159,7 @@ export interface IStorage {
   getUserByEmail(email: string, organizationId: number): Promise<User | undefined>;
   getUserByEmailGlobal(email: string): Promise<User | undefined>; // For universal login
   getUserByUsername(username: string, organizationId: number): Promise<User | undefined>;
+  getUserByUsernameGlobal(username: string): Promise<User | undefined>; // For global username checks
   getUsersByOrganization(organizationId: number): Promise<User[]>;
   getUsersByRole(role: string, organizationId: number): Promise<User[]>;
   createUser(user: InsertUser): Promise<User>;
@@ -629,6 +630,11 @@ export class DatabaseStorage implements IStorage {
 
   async getUserByUsername(username: string, organizationId: number): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(and(eq(users.username, username), eq(users.organizationId, organizationId)));
+    return user || undefined;
+  }
+
+  async getUserByUsernameGlobal(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
     return user || undefined;
   }
 
