@@ -262,7 +262,7 @@ export default function SaaSCustomers() {
                           onChange={(e) => setNewCustomer({...newCustomer, subdomain: e.target.value})}
                         />
                         <p className="text-xs text-gray-500 mt-1">
-                          Will be: {newCustomer.subdomain || 'subdomain'}.cura.local
+                          Subdomain: {newCustomer.subdomain || 'subdomain'}
                         </p>
                         <p className="text-xs text-amber-600 mt-1">
                           Note: Subdomain must be unique across all customers
@@ -522,7 +522,7 @@ export default function SaaSCustomers() {
                     </TableCell>
                     <TableCell>
                       <code className="text-sm bg-gray-100 px-2 py-1 rounded">
-                        {customer.subdomain}.cura.local
+                        {customer.subdomain}
                       </code>
                     </TableCell>
                     <TableCell>
