@@ -538,7 +538,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getOrganizationBySubdomain(subdomain: string): Promise<Organization | undefined> {
-    const [organization] = await db.select().from(organizations).where(eq(organizations.subdomain, subdomain));
+    const [organization] = await db.select().from(organizations).where(ilike(organizations.subdomain, subdomain));
     return organization || undefined;
   }
 
