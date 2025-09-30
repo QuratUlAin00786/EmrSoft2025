@@ -16,7 +16,8 @@ import {
   Shield,
   Activity,
   TrendingUp,
-  AlertTriangle
+  AlertTriangle,
+  CheckCircle
 } from 'lucide-react';
 import curaLogoPath from '@assets/Cura Logo Main AI_1755589894912.png';
 import SaaSUsers from './components/SaaSUsers';
@@ -320,7 +321,7 @@ export default function SaaSDashboard({ onLogout }: SaaSDashboardProps) {
                   <div className="space-y-4">
                     {!systemAlerts || systemAlerts.length === 0 ? (
                       <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                        <AlertTriangle className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                        <CheckCircle className="h-8 w-8 mx-auto mb-2 text-green-500" />
                         All systems operational
                       </div>
                     ) : (
