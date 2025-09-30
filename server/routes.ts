@@ -1171,6 +1171,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update last login - remove this for now due to schema issues
       // await storage.updateUser(user.id, user.organizationId, { lastLoginAt: new Date() });
 
+      // Get organization subdomain to include in response
+      const organization = await storage.getOrganization(user.organizationId);
+
       res.json({
         token,
         user: {
@@ -1179,8 +1182,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           firstName: user.firstName,
           lastName: user.lastName,
           role: user.role,
-          department: user.department
-        }
+          department: user.department,
+          organizationId: user.organizationId
+        },
+        organization: organization ? {
+          id: organization.id,
+          name: organization.name,
+          subdomain: organization.subdomain
+        } : null
       });
     } catch (error) {
       console.error("Login error:", error);
@@ -1208,6 +1217,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "User not found or inactive" });
       }
 
+      // Get organization subdomain to include in response
+      const organization = await storage.getOrganization(user.organizationId);
+
       res.json({
         user: {
           id: user.id,
@@ -1215,8 +1227,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           firstName: user.firstName,
           lastName: user.lastName,
           role: user.role,
-          department: user.department
-        }
+          department: user.department,
+          organizationId: user.organizationId
+        },
+        organization: organization ? {
+          id: organization.id,
+          name: organization.name,
+          subdomain: organization.subdomain
+        } : null
       });
     } catch (error) {
       console.error("Token validation error:", error);

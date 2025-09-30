@@ -4,7 +4,13 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 
 // Helper function to get the correct tenant subdomain
 function getTenantSubdomain(): string {
-  // Check for subdomain query parameter first (for development)
+  // PRIORITY 1: Check for user's stored subdomain (from their organization)
+  const storedSubdomain = localStorage.getItem('user_subdomain');
+  if (storedSubdomain) {
+    return storedSubdomain;
+  }
+  
+  // PRIORITY 2: Check for subdomain query parameter (for development)
   const urlParams = new URLSearchParams(window.location.search);
   const subdomainParam = urlParams.get('subdomain');
   if (subdomainParam) {
@@ -13,18 +19,18 @@ function getTenantSubdomain(): string {
   
   const hostname = window.location.hostname;
   
-  // For development/replit environments, use 'demo'
+  // PRIORITY 3: For development/replit environments, use 'demo'
   if (hostname.includes('.replit.app') || hostname.includes('localhost') || hostname.includes('replit.dev') || hostname.includes('127.0.0.1')) {
     return 'demo';
   }
   
-  // For production environments, extract subdomain from hostname
+  // PRIORITY 4: For production environments, extract subdomain from hostname
   const parts = hostname.split('.');
   if (parts.length >= 2) {
     return parts[0] || 'demo';
   }
   
-  // Fallback to 'demo'
+  // PRIORITY 5: Fallback to 'demo'
   return 'demo';
 }
 
@@ -64,36 +70,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const userData = await response.json();
         setUser(userData.user);
         
-        // Fetch and store user's organization subdomain if not already stored
-        if (userData.user && userData.user.organizationId && !localStorage.getItem('user_subdomain')) {
-          try {
-            const orgResponse = await fetch(`/api/organizations/${userData.user.organizationId}`, {
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'X-Tenant-Subdomain': 'demo' // Use demo to fetch org info
-              }
-            });
-            
-            if (orgResponse.ok) {
-              const orgData = await orgResponse.json();
-              if (orgData.subdomain) {
-                localStorage.setItem('user_subdomain', orgData.subdomain);
-                console.log('🔐 SUBDOMAIN: Stored user subdomain on validation:', orgData.subdomain);
-                // Clear cache to force all queries to use the new subdomain
-                queryClient.clear();
-              }
-            }
-          } catch (orgError) {
-            console.error('Failed to fetch organization subdomain:', orgError);
+        // Store user's organization subdomain from the response
+        if (userData.organization && userData.organization.subdomain) {
+          const currentSubdomain = localStorage.getItem('user_subdomain');
+          if (currentSubdomain !== userData.organization.subdomain) {
+            localStorage.setItem('user_subdomain', userData.organization.subdomain);
+            console.log('🔐 SUBDOMAIN: Updated user subdomain on validation:', userData.organization.subdomain);
+            // Clear cache to force all queries to use the new subdomain
+            queryClient.clear();
           }
         }
       } else {
+        console.log('🔐 Token validation failed - clearing auth data and forcing re-login');
         localStorage.removeItem('auth_token');
         localStorage.removeItem('user_subdomain');
+        queryClient.clear();
       }
     } catch (error) {
       console.error('Token validation error:', error);
       localStorage.removeItem('auth_token');
+      localStorage.removeItem('user_subdomain');
+      queryClient.clear();
     } finally {
       setLoading(false);
     }
@@ -103,6 +100,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       // First clear any existing token and cache
       localStorage.removeItem('auth_token');
+      localStorage.removeItem('user_subdomain');
       queryClient.clear();
       setUser(null);
       
@@ -117,26 +115,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem('auth_token', data.token);
       setUser(data.user);
       
-      // Fetch and store user's organization subdomain
-      if (data.user && data.user.organizationId) {
-        try {
-          const orgResponse = await fetch(`/api/organizations/${data.user.organizationId}`, {
-            headers: {
-              'Authorization': `Bearer ${data.token}`,
-              'X-Tenant-Subdomain': 'demo' // Use demo to fetch org info
-            }
-          });
-          
-          if (orgResponse.ok) {
-            const orgData = await orgResponse.json();
-            if (orgData.subdomain) {
-              localStorage.setItem('user_subdomain', orgData.subdomain);
-              console.log('🔐 SUBDOMAIN: Stored user subdomain:', orgData.subdomain);
-            }
-          }
-        } catch (orgError) {
-          console.error('Failed to fetch organization subdomain:', orgError);
-        }
+      // Store user's organization subdomain from the response
+      if (data.organization && data.organization.subdomain) {
+        localStorage.setItem('user_subdomain', data.organization.subdomain);
+        console.log('🔐 SUBDOMAIN: Stored user subdomain:', data.organization.subdomain);
       }
       
       // Clear React Query cache again to force fresh API calls with new token
