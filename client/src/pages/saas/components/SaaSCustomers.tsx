@@ -823,7 +823,7 @@ export default function SaaSCustomers() {
                             padding: '6px 12px',
                             fontSize: '13px',
                             fontWeight: '600',
-                            display: 'inline-flex',
+                            display: isAddDialogOpen ? 'none' : 'inline-flex',
                             alignItems: 'center',
                             gap: '4px',
                             cursor: 'pointer',
