@@ -105,18 +105,24 @@ export default function CreateUser() {
       let cleanErrorMessage = 'An error occurred while creating the user.';
       
       if (error.message) {
-        // Check if error message has format "400: {...}"
-        const match = error.message.match(/^\d+:\s*(.+)$/);
-        if (match) {
-          const jsonPart = match[1];
-          try {
-            const errorObj = JSON.parse(jsonPart);
-            cleanErrorMessage = errorObj.error || errorObj.message || cleanErrorMessage;
-          } catch {
-            cleanErrorMessage = jsonPart;
+        // First, try to parse the message as JSON directly
+        try {
+          const errorObj = JSON.parse(error.message);
+          cleanErrorMessage = errorObj.error || errorObj.message || cleanErrorMessage;
+        } catch {
+          // Check if error message has format "400: {...}"
+          const match = error.message.match(/^\d+:\s*(.+)$/);
+          if (match) {
+            const jsonPart = match[1];
+            try {
+              const errorObj = JSON.parse(jsonPart);
+              cleanErrorMessage = errorObj.error || errorObj.message || cleanErrorMessage;
+            } catch {
+              cleanErrorMessage = jsonPart;
+            }
+          } else {
+            cleanErrorMessage = error.message;
           }
-        } else {
-          cleanErrorMessage = error.message;
         }
       }
       
