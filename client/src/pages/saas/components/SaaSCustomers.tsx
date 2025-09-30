@@ -225,7 +225,7 @@ export default function SaaSCustomers() {
                     <span>Add Customer</span>
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto z-[9999]">
                   <DialogHeader>
                     <DialogTitle>Add New Customer Organization</DialogTitle>
                   </DialogHeader>
@@ -815,7 +815,7 @@ export default function SaaSCustomers() {
 
       {/* Success Modal */}
       <Dialog open={isSuccessModalOpen} onOpenChange={setIsSuccessModalOpen}>
-        <DialogContent>
+        <DialogContent className="z-[9999]">
           <DialogHeader>
             <DialogTitle>Customer Created Successfully</DialogTitle>
           </DialogHeader>
@@ -834,7 +834,7 @@ export default function SaaSCustomers() {
 
       {/* Error Modal */}
       <Dialog open={isErrorModalOpen} onOpenChange={setIsErrorModalOpen}>
-        <DialogContent>
+        <DialogContent className="z-[9999]">
           <DialogHeader>
             <DialogTitle>Customer Creation Failed</DialogTitle>
           </DialogHeader>

@@ -4431,7 +4431,7 @@ export class DatabaseStorage implements IStorage {
           organizationId: organization.id,
           email: customerData.adminEmail,
           username: customerData.adminEmail, // Use email as username
-          password: hashedPassword,
+          passwordHash: hashedPassword,
           firstName: firstName,
           lastName: lastName,
           role: 'admin',
