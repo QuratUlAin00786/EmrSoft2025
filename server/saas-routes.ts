@@ -581,7 +581,14 @@ export function registerSaaSRoutes(app: Express) {
 
       // Check username globally (usernames are globally unique across all organizations)
       if (username) {
+        console.log('[AVAILABILITY-CHECK] Checking username globally:', username);
         const existingUser = await storage.getUserByUsernameGlobal(username as string);
+        console.log('[AVAILABILITY-CHECK] Username check result:', {
+          username,
+          found: !!existingUser,
+          userId: existingUser?.id,
+          orgId: existingUser?.organizationId
+        });
         result.usernameAvailable = !existingUser;
       }
 
