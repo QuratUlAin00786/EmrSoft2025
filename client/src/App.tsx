@@ -274,7 +274,8 @@ function AppRouter() {
     }
 
     const isLandingPage = location.startsWith('/landing') || 
-                         location.startsWith('/auth/login') || 
+                         location.startsWith('/auth/login') ||
+                         location.includes('/auth/login') || 
                          location.startsWith('/legal') || 
                          location === '/';
 
@@ -303,7 +304,8 @@ function AppRouter() {
   }
 
   const isLandingPage = location.startsWith('/landing') || 
-                       location.startsWith('/auth/login') || 
+                       location.startsWith('/auth/login') ||
+                       location.includes('/auth/login') || 
                        location.startsWith('/legal') || 
                        location === '/';
 
@@ -319,6 +321,7 @@ function AppRouter() {
         <Route path="/landing/pricing" component={PricingPage} />
         <Route path="/landing/help" component={HelpCentre} />
         <Route path="/auth/login" component={LoginPage} />
+        <Route path="/:subdomain/auth/login" component={LoginPage} />
         <Route path="/legal/privacy" component={PrivacyPolicy} />
         <Route path="/legal/terms" component={TermsOfService} />
         <Route path="/legal/gdpr" component={GDPRCompliancePage} />

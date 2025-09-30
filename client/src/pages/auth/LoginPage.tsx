@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useLocation } from "wouter";
+import { useState, useEffect } from "react";
+import { useLocation, useParams } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -19,12 +19,21 @@ import curaLogoPath from "@assets/Cura Logo Main_1751893631982.png";
 
 export default function LoginPage() {
   const [, setLocation] = useLocation();
+  const params = useParams();
   const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Extract subdomain from URL path and store it
+  useEffect(() => {
+    if (params.subdomain) {
+      localStorage.setItem('user_subdomain', params.subdomain);
+      console.log('🔐 LOGIN: Subdomain from URL path:', params.subdomain);
+    }
+  }, [params.subdomain]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

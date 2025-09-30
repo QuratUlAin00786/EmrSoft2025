@@ -10,7 +10,17 @@ function getTenantSubdomain(): string {
     return storedSubdomain;
   }
   
-  // PRIORITY 2: Check for subdomain query parameter (for development)
+  // PRIORITY 2: Check for subdomain in URL path (e.g., /medicare/auth/login)
+  const pathname = window.location.pathname;
+  const pathParts = pathname.split('/').filter(Boolean);
+  if (pathParts.length >= 2 && pathParts[1] === 'auth' && pathParts[2] === 'login') {
+    const subdomainFromPath = pathParts[0];
+    if (subdomainFromPath) {
+      return subdomainFromPath;
+    }
+  }
+  
+  // PRIORITY 3: Check for subdomain query parameter (for backward compatibility)
   const urlParams = new URLSearchParams(window.location.search);
   const subdomainParam = urlParams.get('subdomain');
   if (subdomainParam) {
