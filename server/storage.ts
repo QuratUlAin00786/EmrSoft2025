@@ -4455,10 +4455,7 @@ export class DatabaseStorage implements IStorage {
           await db.insert(subscriptions).values({
             organizationId: organization.id,
             plan: selectedPackage[0].name,
-            planName: selectedPackage[0].name,
             status: 'active',
-            startDate: new Date(),
-            endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
           });
           console.log('✅ [CUSTOMER-CREATE] Billing subscription created for package:', selectedPackage[0].name);
         }
@@ -4521,10 +4518,7 @@ export class DatabaseStorage implements IStorage {
             await db.update(subscriptions)
               .set({
                 plan: selectedPackage[0].name,
-                planName: selectedPackage[0].name,
                 status: 'active',
-                startDate: new Date(),
-                endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
               })
               .where(eq(subscriptions.organizationId, organizationId));
           } else {
@@ -4532,10 +4526,7 @@ export class DatabaseStorage implements IStorage {
             await db.insert(subscriptions).values({
               organizationId: organizationId,
               plan: selectedPackage[0].name,
-              planName: selectedPackage[0].name,
               status: 'active',
-              startDate: new Date(),
-              endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
             });
           }
           

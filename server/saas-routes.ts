@@ -951,8 +951,7 @@ export function registerSaaSRoutes(app: Express) {
       
       const result = await storage.createCustomerOrganization(customerData);
       
-      // Send welcome email with credentials
-      
+      // Send welcome email with credentials (don't fail if email fails)
       if (result.success && result.adminUser) {
         try {
           console.log('📧 Sending welcome email to:', result.adminUser.email);
@@ -964,7 +963,8 @@ export function registerSaaSRoutes(app: Express) {
         }
       }
       
-      res.json(result);
+      // Return success response
+      return res.json(result);
     } catch (error: any) {
       console.error('Error creating customer:', error);
       
