@@ -568,6 +568,34 @@ export function registerSaaSRoutes(app: Express) {
     }
   });
 
+  // Check username/email availability
+  app.get('/api/saas/users/check-availability', verifySaaSToken, async (req: Request, res: Response) => {
+    try {
+      const { username, email, organizationId } = req.query;
+
+      if (!organizationId) {
+        return res.status(400).json({ error: 'Organization ID is required' });
+      }
+
+      const result: { usernameAvailable?: boolean; emailAvailable?: boolean } = {};
+
+      if (username) {
+        const existingUser = await storage.getUserByUsername(username as string, parseInt(organizationId as string));
+        result.usernameAvailable = !existingUser;
+      }
+
+      if (email) {
+        const existingEmail = await storage.getUserByEmail(email as string, parseInt(organizationId as string));
+        result.emailAvailable = !existingEmail;
+      }
+
+      res.json(result);
+    } catch (error) {
+      console.error('Error checking availability:', error);
+      res.status(500).json({ error: 'Failed to check availability' });
+    }
+  });
+
   // SaaS diagnostic endpoint for production debugging
   // Test email connection
   app.get('/api/saas/test-email', verifySaaSToken, async (req: Request, res: Response) => {

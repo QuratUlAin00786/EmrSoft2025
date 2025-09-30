@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -41,6 +41,10 @@ export default function CreateUser() {
     title: string;
     description: string;
   } | null>(null);
+  
+  // Availability checking states
+  const [usernameAvailability, setUsernameAvailability] = useState<'checking' | 'available' | 'taken' | null>(null);
+  const [emailAvailability, setEmailAvailability] = useState<'checking' | 'available' | 'taken' | null>(null);
 
   // Fetch organizations
   const { data: organizations, isLoading: orgLoading } = useQuery({
@@ -64,6 +68,74 @@ export default function CreateUser() {
       organizationId: "",
     },
   });
+
+  // Debounced availability check
+  const checkAvailability = useCallback(
+    async (type: 'username' | 'email', value: string, organizationId: string) => {
+      if (!value || !organizationId) return;
+
+      if (type === 'username') {
+        setUsernameAvailability('checking');
+      } else {
+        setEmailAvailability('checking');
+      }
+
+      try {
+        const params = new URLSearchParams({ organizationId });
+        if (type === 'username') {
+          params.append('username', value);
+        } else {
+          params.append('email', value);
+        }
+
+        const response = await saasApiRequest('GET', `/api/saas/users/check-availability?${params.toString()}`);
+        const result = await response.json();
+
+        if (type === 'username') {
+          setUsernameAvailability(result.usernameAvailable ? 'available' : 'taken');
+        } else {
+          setEmailAvailability(result.emailAvailable ? 'available' : 'taken');
+        }
+      } catch (error) {
+        console.error('Error checking availability:', error);
+        if (type === 'username') {
+          setUsernameAvailability(null);
+        } else {
+          setEmailAvailability(null);
+        }
+      }
+    },
+    []
+  );
+
+  // Watch form fields for availability checking
+  const watchedUsername = form.watch('username');
+  const watchedEmail = form.watch('email');
+  const watchedOrganizationId = form.watch('organizationId');
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (watchedUsername && watchedUsername.length >= 3 && watchedOrganizationId) {
+        checkAvailability('username', watchedUsername, watchedOrganizationId);
+      } else {
+        setUsernameAvailability(null);
+      }
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [watchedUsername, watchedOrganizationId, checkAvailability]);
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (watchedEmail && watchedEmail.includes('@') && watchedOrganizationId) {
+        checkAvailability('email', watchedEmail, watchedOrganizationId);
+      } else {
+        setEmailAvailability(null);
+      }
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [watchedEmail, watchedOrganizationId, checkAvailability]);
 
   // Create user mutation
   const createUserMutation = useMutation({
@@ -221,6 +293,15 @@ export default function CreateUser() {
                         {...form.register("email")}
                         placeholder="user@example.com"
                       />
+                      {emailAvailability === 'checking' && (
+                        <p className="text-sm text-gray-600">Checking availability...</p>
+                      )}
+                      {emailAvailability === 'available' && (
+                        <p className="text-sm text-green-600 font-medium">✓ Available</p>
+                      )}
+                      {emailAvailability === 'taken' && (
+                        <p className="text-sm text-red-600 font-medium">✗ Already exists</p>
+                      )}
                       {form.formState.errors.email && (
                         <p className="text-sm text-red-600">
                           {form.formState.errors.email.message}
@@ -240,6 +321,15 @@ export default function CreateUser() {
                           {...form.register("username")}
                           placeholder="Enter username"
                         />
+                        {usernameAvailability === 'checking' && (
+                          <p className="text-sm text-gray-600">Checking availability...</p>
+                        )}
+                        {usernameAvailability === 'available' && (
+                          <p className="text-sm text-green-600 font-medium">✓ Available</p>
+                        )}
+                        {usernameAvailability === 'taken' && (
+                          <p className="text-sm text-red-600 font-medium">✗ Already exists</p>
+                        )}
                         {form.formState.errors.username && (
                           <p className="text-sm text-red-600">
                             {form.formState.errors.username.message}
