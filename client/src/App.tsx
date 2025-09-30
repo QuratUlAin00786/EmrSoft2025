@@ -258,6 +258,23 @@ function ProtectedApp() {
   );
 }
 
+function SubdomainRedirect({ params }: { params: { subdomain: string } }) {
+  const [, setLocation] = useLocation();
+  
+  useEffect(() => {
+    if (params.subdomain) {
+      const subdomain = params.subdomain;
+      // Don't redirect if it's a known public route path
+      const publicPaths = ['landing', 'auth', 'legal', 'saas'];
+      if (!publicPaths.includes(subdomain)) {
+        setLocation(`/${subdomain}/auth/login`);
+      }
+    }
+  }, [params.subdomain, setLocation]);
+  
+  return null;
+}
+
 function AppRouter() {
   const { isAuthenticated, loading } = useAuth();
   const [location, setLocation] = useLocation();
@@ -273,10 +290,16 @@ function AppRouter() {
       return;
     }
 
+    // Check if this is a subdomain route (e.g., /sundas or /sundas/auth/login)
+    const pathParts = location.split('/').filter(Boolean);
+    const isSubdomainRoute = pathParts.length >= 1 && 
+                             !['landing', 'auth', 'legal', 'saas'].includes(pathParts[0]);
+
     const isLandingPage = location.startsWith('/landing') || 
                          location.startsWith('/auth/login') ||
                          location.includes('/auth/login') || 
                          location.startsWith('/legal') || 
+                         isSubdomainRoute ||
                          location === '/';
 
     // If user is authenticated and on a public page, redirect to dashboard
@@ -326,6 +349,7 @@ function AppRouter() {
         <Route path="/legal/terms" component={TermsOfService} />
         <Route path="/legal/gdpr" component={GDPRCompliancePage} />
         <Route path="/legal/press" component={Press} />
+        <Route path="/:subdomain" component={SubdomainRedirect} />
         <Route component={LandingPage} />
       </Switch>
     );
