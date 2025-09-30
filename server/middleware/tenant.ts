@@ -38,8 +38,9 @@ export async function tenantMiddleware(req: TenantRequest, res: Response, next: 
     // Path is already stripped by Express mounting at /api, so we process all paths
     console.log(`[TENANT-MIDDLEWARE] Processing API path: ${req.path} (original URL: ${req.originalUrl})`);
 
-    // ALWAYS use demo organization for production deployment cache fix
-    let subdomain = "demo";
+    // Extract subdomain from host header or use X-Tenant-Subdomain header
+    let subdomain = req.get("X-Tenant-Subdomain") || extractSubdomainFromHost(req.get("host")) || "demo";
+    console.log(`[TENANT-MIDDLEWARE] Detected subdomain: ${subdomain} from host: ${req.get("host")}`);
     
     let organization = await storage.getOrganizationBySubdomain(subdomain);
     
