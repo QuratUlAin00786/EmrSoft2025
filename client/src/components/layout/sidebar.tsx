@@ -33,6 +33,7 @@ import {
   Activity
 } from "lucide-react";
 import { useTenant } from "@/hooks/use-tenant";
+import { getActiveSubdomain } from "@/lib/subdomain-utils";
 import curaLogoPath from "@assets/Cura Logo Main_1751893631982.png";
 import { useAuth } from "@/hooks/use-auth";
 import { useRolePermissions } from "@/hooks/use-role-permissions";
@@ -186,11 +187,14 @@ export function Sidebar() {
       <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
         <div className="sidebar-nav">
           {filteredNavigation.map((item) => {
-            const isActive = location === item.href;
+            // Prefix href with subdomain - use tenant subdomain or fallback to active subdomain from URL
+            const subdomain = tenant?.subdomain || getActiveSubdomain();
+            const prefixedHref = `/${subdomain}${item.href}`;
+            const isActive = location === prefixedHref || location === item.href;
             return (
               <Link 
                 key={item.name} 
-                href={item.href}
+                href={prefixedHref}
                 className={cn(
                   "sidebar-nav-item",
                   isActive && "active"
@@ -216,11 +220,14 @@ export function Sidebar() {
               </p>
               <div className="sidebar-nav">
                 {filteredAdminNavigation.map((item) => {
-                  const isActive = location === item.href;
+                  // Prefix href with subdomain - use tenant subdomain or fallback to active subdomain from URL
+                  const subdomain = tenant?.subdomain || getActiveSubdomain();
+                  const prefixedHref = `/${subdomain}${item.href}`;
+                  const isActive = location === prefixedHref || location === item.href;
                   return (
                     <Link 
                       key={item.name} 
-                      href={item.href}
+                      href={prefixedHref}
                       className={cn(
                         "sidebar-nav-item",
                         isActive && "active"
@@ -279,13 +286,13 @@ export function Sidebar() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <Link href="/settings" className="flex items-center">
+              <Link href={`/${tenant?.subdomain || getActiveSubdomain()}/settings`} className="flex items-center">
                 <User className="mr-2 h-4 w-4" />
                 <span>Profile Settings</span>
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link href="/settings" className="flex items-center">
+              <Link href={`/${tenant?.subdomain || getActiveSubdomain()}/settings`} className="flex items-center">
                 <SettingsIcon className="mr-2 h-4 w-4" />
                 <span>Account Settings</span>
               </Link>

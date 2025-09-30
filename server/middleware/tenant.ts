@@ -64,6 +64,7 @@ export async function tenantMiddleware(req: TenantRequest, res: Response, next: 
       organization = {
         id: 1,
         name: "Halo Healthcare",
+        email: "admin@demo.com",
         subdomain: "demo",
         region: "UK",
         brandName: "Cura",

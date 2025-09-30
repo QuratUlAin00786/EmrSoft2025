@@ -9,6 +9,7 @@ import { ThemeProvider } from "@/hooks/use-theme";
 import { Sidebar } from "@/components/layout/sidebar";
 import { LoadingPage } from "@/components/common/loading-spinner";
 import { AIChatWidget } from "@/components/ai-chat-widget";
+import { getActiveSubdomain } from "@/lib/subdomain-utils";
 
 import { useAuth } from "@/hooks/use-auth";
 import { useEffect } from "react";
@@ -71,6 +72,34 @@ import ChatbotPage from "@/pages/ChatbotPage";
 import Press from "@/pages/legal/Press";
 
 // SaaS Administration - removed duplicate import
+
+// Legacy route redirect component
+function LegacyRouteRedirect() {
+  const [, setLocation] = useLocation();
+  const { isAuthenticated } = useAuth();
+  
+  useEffect(() => {
+    // Get subdomain ignoring current path (since we're on a legacy path)
+    const subdomain = getActiveSubdomain({ ignorePath: true });
+    
+    // Preserve full path including dynamic segments and query strings
+    const currentPath = window.location.pathname;
+    const search = window.location.search;
+    
+    if (isAuthenticated) {
+      const newPath = `/${subdomain}${currentPath}${search}`;
+      console.log(`🔄 Redirecting legacy route ${currentPath} to ${newPath}`);
+      setLocation(newPath);
+    } else {
+      // Always redirect unauthenticated users to tenant login when subdomain is resolved
+      const loginPath = `/${subdomain}/auth/login`;
+      console.log(`🔄 Redirecting unauthenticated user to ${loginPath}`);
+      setLocation(loginPath);
+    }
+  }, [isAuthenticated, setLocation]);
+  
+  return <LoadingPage />;
+}
 
 function ProtectedApp() {
   // Load and apply theme from organization settings
@@ -206,48 +235,69 @@ function ProtectedApp() {
       <Sidebar />
       <main className="flex-1 flex flex-col overflow-y-auto lg:ml-0">
         <Switch>
-          <Route path="/" component={Dashboard} />
-          <Route path="/dashboard" component={Dashboard} />
-          <Route path="/patients" component={Patients} />
-          <Route path="/patients/:id" component={Patients} />
-          <Route path="/patients/:id/records" component={Patients} />
-          <Route path="/calendar" component={CalendarPage} />
-          <Route path="/appointments" component={CalendarPage} />
-          <Route path="/prescriptions" component={PrescriptionsPage} />
-          <Route path="/lab-results" component={LabResultsPage} />
-          <Route path="/imaging" component={ImagingPage} />
-          <Route path="/forms" component={FormsPage} />
-          <Route path="/messaging" component={MessagingPage} />
-          <Route path="/integrations" component={IntegrationsPage} />
-          <Route path="/billing" component={BillingPage} />
-          <Route path="/analytics" component={AnalyticsPage} />
-          <Route path="/automation" component={AutomationPage} />
-          <Route path="/patient-portal" component={PatientPortal} />
-          <Route path="/ai-insights" component={AiInsights} />
-          <Route path="/chatbot" component={ChatbotPage} />
-          <Route path="/clinical-decision-support" component={ClinicalDecisionSupport} />
-          <Route path="/telemedicine" component={Telemedicine} />
-          <Route path="/population-health" component={PopulationHealth} />
-          <Route path="/mobile-health" component={MobileHealth} />
-          <Route path="/voice-documentation" component={VoiceDocumentation} />
-          <Route path="/financial-intelligence" component={FinancialIntelligence} />
-          <Route path="/emergency-protocols" component={EmergencyProtocols} />
-          <Route path="/medication-guide" component={MedicationGuide} />
-          <Route path="/prevention-guidelines" component={PreventionGuidelines} />
-          <Route path="/clinical-procedures" component={ClinicalProcedures} />
-          <Route path="/inventory" component={Inventory} />
-          <Route path="/gdpr-compliance" component={GDPRCompliance} />
-          <Route path="/ai-agent" component={AiAgent} />
-          <Route path="/quickbooks" component={QuickBooks} />
-          <Route path="/font-test" component={FontTest} />
-          <Route path="/tech-spec-export" component={TechSpecExport} />
-          <Route path="/users" component={UserManagement} />
-          <Route path="/user-management" component={UserManagement} />
-          <Route path="/shifts" component={ShiftsPage} />
-          <Route path="/permissions-reference" component={PermissionsReference} />
-          <Route path="/staff/:id" component={StaffProfile} />
-          <Route path="/subscription" component={Subscription} />
-          <Route path="/settings" component={Settings} />
+          {/* Subdomain-prefixed routes */}
+          <Route path="/:subdomain" component={Dashboard} />
+          <Route path="/:subdomain/dashboard" component={Dashboard} />
+          <Route path="/:subdomain/patients" component={Patients} />
+          <Route path="/:subdomain/patients/:id" component={Patients} />
+          <Route path="/:subdomain/patients/:id/records" component={Patients} />
+          <Route path="/:subdomain/calendar" component={CalendarPage} />
+          <Route path="/:subdomain/appointments" component={CalendarPage} />
+          <Route path="/:subdomain/prescriptions" component={PrescriptionsPage} />
+          <Route path="/:subdomain/lab-results" component={LabResultsPage} />
+          <Route path="/:subdomain/imaging" component={ImagingPage} />
+          <Route path="/:subdomain/forms" component={FormsPage} />
+          <Route path="/:subdomain/messaging" component={MessagingPage} />
+          <Route path="/:subdomain/integrations" component={IntegrationsPage} />
+          <Route path="/:subdomain/billing" component={BillingPage} />
+          <Route path="/:subdomain/analytics" component={AnalyticsPage} />
+          <Route path="/:subdomain/automation" component={AutomationPage} />
+          <Route path="/:subdomain/patient-portal" component={PatientPortal} />
+          <Route path="/:subdomain/ai-insights" component={AiInsights} />
+          <Route path="/:subdomain/chatbot" component={ChatbotPage} />
+          <Route path="/:subdomain/clinical-decision-support" component={ClinicalDecisionSupport} />
+          <Route path="/:subdomain/telemedicine" component={Telemedicine} />
+          <Route path="/:subdomain/population-health" component={PopulationHealth} />
+          <Route path="/:subdomain/mobile-health" component={MobileHealth} />
+          <Route path="/:subdomain/voice-documentation" component={VoiceDocumentation} />
+          <Route path="/:subdomain/financial-intelligence" component={FinancialIntelligence} />
+          <Route path="/:subdomain/emergency-protocols" component={EmergencyProtocols} />
+          <Route path="/:subdomain/medication-guide" component={MedicationGuide} />
+          <Route path="/:subdomain/prevention-guidelines" component={PreventionGuidelines} />
+          <Route path="/:subdomain/clinical-procedures" component={ClinicalProcedures} />
+          <Route path="/:subdomain/inventory" component={Inventory} />
+          <Route path="/:subdomain/gdpr-compliance" component={GDPRCompliance} />
+          <Route path="/:subdomain/ai-agent" component={AiAgent} />
+          <Route path="/:subdomain/quickbooks" component={QuickBooks} />
+          <Route path="/:subdomain/font-test" component={FontTest} />
+          <Route path="/:subdomain/tech-spec-export" component={TechSpecExport} />
+          <Route path="/:subdomain/users" component={UserManagement} />
+          <Route path="/:subdomain/user-management" component={UserManagement} />
+          <Route path="/:subdomain/shifts" component={ShiftsPage} />
+          <Route path="/:subdomain/permissions-reference" component={PermissionsReference} />
+          <Route path="/:subdomain/staff/:id" component={StaffProfile} />
+          <Route path="/:subdomain/subscription" component={Subscription} />
+          <Route path="/:subdomain/settings" component={Settings} />
+          
+          {/* Legacy routes without subdomain - redirect to subdomain-prefixed versions */}
+          <Route path="/dashboard" component={LegacyRouteRedirect} />
+          <Route path="/patients" component={LegacyRouteRedirect} />
+          <Route path="/appointments" component={LegacyRouteRedirect} />
+          <Route path="/prescriptions" component={LegacyRouteRedirect} />
+          <Route path="/lab-results" component={LegacyRouteRedirect} />
+          <Route path="/imaging" component={LegacyRouteRedirect} />
+          <Route path="/forms" component={LegacyRouteRedirect} />
+          <Route path="/messaging" component={LegacyRouteRedirect} />
+          <Route path="/integrations" component={LegacyRouteRedirect} />
+          <Route path="/billing" component={LegacyRouteRedirect} />
+          <Route path="/analytics" component={LegacyRouteRedirect} />
+          <Route path="/automation" component={LegacyRouteRedirect} />
+          <Route path="/patient-portal" component={LegacyRouteRedirect} />
+          <Route path="/users" component={LegacyRouteRedirect} />
+          <Route path="/settings" component={LegacyRouteRedirect} />
+          
+          {/* Root redirect */}
+          <Route path="/" component={LegacyRouteRedirect} />
           <Route component={NotFound} />
         </Switch>
       </main>
@@ -290,26 +340,32 @@ function AppRouter() {
       return;
     }
 
-    // Check if this is a subdomain route (e.g., /sundas or /sundas/auth/login)
+    // Extract subdomain from current location
     const pathParts = location.split('/').filter(Boolean);
-    const isSubdomainRoute = pathParts.length >= 1 && 
-                             !['landing', 'auth', 'legal', 'saas'].includes(pathParts[0]);
+    const potentialSubdomain = pathParts[0];
+    const isPublicRoute = ['landing', 'auth', 'legal', 'saas'].includes(potentialSubdomain);
+    
+    // Determine if this is a subdomain route
+    const isSubdomainRoute = pathParts.length >= 1 && !isPublicRoute;
+    const subdomain = isSubdomainRoute ? potentialSubdomain : null;
 
     const isLandingPage = location.startsWith('/landing') || 
                          location.startsWith('/auth/login') ||
                          location.includes('/auth/login') || 
                          location.startsWith('/legal') || 
-                         isSubdomainRoute ||
                          location === '/';
 
-    // If user is authenticated and on a public page, redirect to dashboard
-    if (isAuthenticated && isLandingPage) {
-      setLocation('/dashboard');
+    // If user is authenticated and on a public/login page, redirect to dashboard with subdomain
+    if (isAuthenticated && (isLandingPage || location.includes('/auth/login'))) {
+      const dashboardPath = subdomain ? `/${subdomain}/dashboard` : '/demo/dashboard';
+      console.log('🔄 Redirecting authenticated user to:', dashboardPath);
+      setLocation(dashboardPath);
       return;
     }
 
     // If user is not authenticated and not on a public page, redirect to landing
-    if (!isAuthenticated && !isLandingPage) {
+    if (!isAuthenticated && !isLandingPage && !location.includes('/auth/login')) {
+      console.log('🔄 Redirecting unauthenticated user to landing');
       setLocation('/landing');
       return;
     }

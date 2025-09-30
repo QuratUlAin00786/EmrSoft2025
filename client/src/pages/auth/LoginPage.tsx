@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/hooks/use-auth";
 import { Link } from "wouter";
+import { storeSubdomain, getActiveSubdomain } from "@/lib/subdomain-utils";
 import { 
   ArrowLeft,
   Mail,
@@ -30,7 +31,7 @@ export default function LoginPage() {
   // Extract subdomain from URL path and store it
   useEffect(() => {
     if (params.subdomain) {
-      localStorage.setItem('user_subdomain', params.subdomain);
+      storeSubdomain(params.subdomain);
       console.log('🔐 LOGIN: Subdomain from URL path:', params.subdomain);
     }
   }, [params.subdomain]);
@@ -42,7 +43,10 @@ export default function LoginPage() {
 
     try {
       await login(email, password);
-      setLocation("/"); // Redirect to main dashboard
+      // Redirect to dashboard with subdomain preserved - use params first, then active subdomain
+      const subdomain = params.subdomain || getActiveSubdomain({ ignorePath: true });
+      console.log('🔐 LOGIN SUCCESS: Redirecting to dashboard with subdomain:', subdomain);
+      setLocation(`/${subdomain}/dashboard`);
     } catch (err: any) {
       setError(err.message || "Login failed. Please try again.");
     } finally {
