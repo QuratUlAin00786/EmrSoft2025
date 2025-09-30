@@ -1138,7 +1138,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerSaaSRoutes(app);
 
   // Universal login endpoint (no tenant required - determines subdomain from user's organization)
-  app.post("/api/auth/universal-login", async (req: Request, res) => {
+  app.post("/api/auth/universal-login", async (req: express.Request, res: express.Response) => {
     try {
       const { email, password } = z.object({
         email: z.string(),

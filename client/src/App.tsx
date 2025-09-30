@@ -91,8 +91,8 @@ function LegacyRouteRedirect() {
       console.log(`🔄 Redirecting legacy route ${currentPath} to ${newPath}`);
       setLocation(newPath);
     } else {
-      // Always redirect unauthenticated users to tenant login when subdomain is resolved
-      const loginPath = `/${subdomain}/auth/login`;
+      // Redirect unauthenticated users to universal login (no subdomain)
+      const loginPath = `/auth/login`;
       console.log(`🔄 Redirecting unauthenticated user to ${loginPath}`);
       setLocation(loginPath);
     }

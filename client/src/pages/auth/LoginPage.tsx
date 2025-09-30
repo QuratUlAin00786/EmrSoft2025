@@ -1,13 +1,12 @@
-import { useState, useEffect } from "react";
-import { useLocation, useParams } from "wouter";
+import { useState } from "react";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useAuth } from "@/hooks/use-auth";
 import { Link } from "wouter";
-import { storeSubdomain, getActiveSubdomain } from "@/lib/subdomain-utils";
+import { storeSubdomain } from "@/lib/subdomain-utils";
 import { 
   ArrowLeft,
   Mail,
@@ -20,21 +19,11 @@ import curaLogoPath from "@assets/Cura Logo Main_1751893631982.png";
 
 export default function LoginPage() {
   const [, setLocation] = useLocation();
-  const params = useParams();
-  const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
-  // Extract subdomain from URL path and store it
-  useEffect(() => {
-    if (params.subdomain) {
-      storeSubdomain(params.subdomain);
-      console.log('🔐 LOGIN: Subdomain from URL path:', params.subdomain);
-    }
-  }, [params.subdomain]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,11 +31,42 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      await login(email, password);
-      // Redirect to dashboard with subdomain preserved - use params first, then active subdomain
-      const subdomain = params.subdomain || getActiveSubdomain({ ignorePath: true });
-      console.log('🔐 LOGIN SUCCESS: Redirecting to dashboard with subdomain:', subdomain);
+      console.log('🔐 UNIVERSAL LOGIN: Attempting login for:', email);
+      
+      // Use universal login API that determines subdomain from user's organization
+      const response = await fetch('/api/auth/universal-login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Login failed');
+      }
+
+      const data = await response.json();
+      
+      // Store token in localStorage (same as login hook does)
+      localStorage.setItem('token', data.token);
+      
+      // Store subdomain for tenant context
+      const subdomain = data.organization.subdomain;
+      storeSubdomain(subdomain);
+      
+      console.log('🔐 UNIVERSAL LOGIN SUCCESS:', {
+        user: data.user.email,
+        organization: data.organization.name,
+        subdomain: subdomain
+      });
+
+      // Redirect to dashboard with organization's subdomain
       setLocation(`/${subdomain}/dashboard`);
+      
+      // Reload to ensure auth context is updated
+      window.location.href = `/${subdomain}/dashboard`;
     } catch (err: any) {
       setError(err.message || "Login failed. Please try again.");
     } finally {
