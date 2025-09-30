@@ -43,6 +43,8 @@ export default function SaaSCustomers() {
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [editingCustomer, setEditingCustomer] = useState<any>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [customerToDelete, setCustomerToDelete] = useState<any>(null);
   const [newCustomer, setNewCustomer] = useState({
     name: '',
     brandName: '',
@@ -763,10 +765,8 @@ export default function SaaSCustomers() {
                           type="button"
                           onClick={() => {
                             console.log('🗑️ DELETE button clicked for customer:', customer.id, customer.name);
-                            if (window.confirm(`Are you sure you want to delete ${customer.name}? This cannot be undone.`)) {
-                              console.log('🗑️ User confirmed deletion, calling API...');
-                              deleteCustomerMutation.mutate(customer.id);
-                            }
+                            setCustomerToDelete(customer);
+                            setIsDeleteDialogOpen(true);
                           }}
                           style={{
                             backgroundColor: '#dc2626',
@@ -846,6 +846,43 @@ export default function SaaSCustomers() {
           <div className="flex justify-center">
             <Button onClick={() => setIsErrorModalOpen(false)} variant="destructive">
               OK
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Modal */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="z-[9999]">
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-center text-gray-700">
+              Are you sure you want to delete <strong>{customerToDelete?.name}</strong>? This cannot be undone.
+            </p>
+          </div>
+          <div className="flex justify-center gap-3">
+            <Button 
+              onClick={() => {
+                setIsDeleteDialogOpen(false);
+                setCustomerToDelete(null);
+              }}
+              variant="outline"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                console.log('🗑️ User confirmed deletion, calling API...');
+                deleteCustomerMutation.mutate(customerToDelete.id);
+                setIsDeleteDialogOpen(false);
+                setCustomerToDelete(null);
+              }}
+              variant="destructive"
+              disabled={deleteCustomerMutation.isPending}
+            >
+              {deleteCustomerMutation.isPending ? 'Deleting...' : 'OK'}
             </Button>
           </div>
         </DialogContent>
