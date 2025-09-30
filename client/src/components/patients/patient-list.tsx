@@ -56,6 +56,38 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { useTenant } from "@/hooks/use-tenant";
 
+// Helper function to get the correct tenant subdomain
+function getTenantSubdomain(): string {
+  // PRIORITY 1: Check for user's stored subdomain (from their organization)
+  const storedSubdomain = localStorage.getItem('user_subdomain');
+  if (storedSubdomain) {
+    return storedSubdomain;
+  }
+  
+  // PRIORITY 2: Check for subdomain query parameter (for development)
+  const urlParams = new URLSearchParams(window.location.search);
+  const subdomainParam = urlParams.get('subdomain');
+  if (subdomainParam) {
+    return subdomainParam;
+  }
+  
+  const hostname = window.location.hostname;
+  
+  // PRIORITY 3: For development/replit environments, use 'demo'
+  if (hostname.includes('.replit.app') || hostname.includes('localhost') || hostname.includes('replit.dev') || hostname.includes('127.0.0.1')) {
+    return 'demo';
+  }
+  
+  // PRIORITY 4: For production environments, extract subdomain from hostname
+  const parts = hostname.split('.');
+  if (parts.length >= 2) {
+    return parts[0] || 'demo';
+  }
+  
+  // PRIORITY 5: Fallback to 'demo'
+  return 'demo';
+}
+
 function getPatientInitials(firstName: string, lastName: string): string {
   return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
 }
@@ -177,7 +209,7 @@ function PatientDetailsModal({
     mutationFn: async ({ patientId, riskLevel }: { patientId: number; riskLevel: string }) => {
       const token = localStorage.getItem("auth_token");
       const headers: Record<string, string> = {
-        "X-Tenant-Subdomain": "demo",
+        "X-Tenant-Subdomain": getTenantSubdomain(),
         "Content-Type": "application/json",
       };
 
@@ -222,7 +254,7 @@ function PatientDetailsModal({
     mutationFn: async ({ patientId, isActive }: { patientId: number; isActive: boolean }) => {
       const token = localStorage.getItem("auth_token");
       const headers: Record<string, string> = {
-        "X-Tenant-Subdomain": "demo",
+        "X-Tenant-Subdomain": getTenantSubdomain(),
         "Content-Type": "application/json",
       };
 
@@ -296,7 +328,7 @@ function PatientDetailsModal({
       if (!patient?.id) return [];
       const token = localStorage.getItem("auth_token");
       const headers: Record<string, string> = {
-        "X-Tenant-Subdomain": "demo",
+        "X-Tenant-Subdomain": getTenantSubdomain(),
       };
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
@@ -320,7 +352,7 @@ function PatientDetailsModal({
       if (!patient?.id) return {};
       const token = localStorage.getItem("auth_token");
       const headers: Record<string, string> = {
-        "X-Tenant-Subdomain": "demo",
+        "X-Tenant-Subdomain": getTenantSubdomain(),
       };
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
@@ -372,7 +404,7 @@ function PatientDetailsModal({
       if (!patient?.id) return [];
       const token = localStorage.getItem("auth_token");
       const headers: Record<string, string> = {
-        "X-Tenant-Subdomain": "demo",
+        "X-Tenant-Subdomain": getTenantSubdomain(),
       };
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
@@ -396,7 +428,7 @@ function PatientDetailsModal({
       if (!patient?.id) return [];
       const token = localStorage.getItem("auth_token");
       const headers: Record<string, string> = {
-        "X-Tenant-Subdomain": "demo",
+        "X-Tenant-Subdomain": getTenantSubdomain(),
       };
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
@@ -423,7 +455,7 @@ function PatientDetailsModal({
       if (!patient?.id) return [];
       const token = localStorage.getItem("auth_token");
       const headers: Record<string, string> = {
-        "X-Tenant-Subdomain": "demo",
+        "X-Tenant-Subdomain": getTenantSubdomain(),
       };
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
@@ -447,7 +479,7 @@ function PatientDetailsModal({
       if (!patient?.id) return {};
       const token = localStorage.getItem("auth_token");
       const headers: Record<string, string> = {
-        "X-Tenant-Subdomain": "demo",
+        "X-Tenant-Subdomain": getTenantSubdomain(),
       };
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
@@ -1871,7 +1903,7 @@ export function PatientList({ onSelectPatient, showActiveOnly = true }: PatientL
     mutationFn: async ({ patientId, riskLevel }: { patientId: number; riskLevel: string }) => {
       const token = localStorage.getItem("auth_token");
       const headers: Record<string, string> = {
-        "X-Tenant-Subdomain": tenant?.subdomain || "demo",
+        "X-Tenant-Subdomain": getTenantSubdomain(),
         "Content-Type": "application/json",
       };
 
@@ -1936,7 +1968,7 @@ export function PatientList({ onSelectPatient, showActiveOnly = true }: PatientL
     mutationFn: async ({ patientId, isActive }: { patientId: number; isActive: boolean }) => {
       const token = localStorage.getItem("auth_token");
       const headers: Record<string, string> = {
-        "X-Tenant-Subdomain": tenant?.subdomain || "demo",
+        "X-Tenant-Subdomain": getTenantSubdomain(),
         "Content-Type": "application/json",
       };
 
@@ -2013,7 +2045,7 @@ export function PatientList({ onSelectPatient, showActiveOnly = true }: PatientL
       try {
         const token = localStorage.getItem("auth_token");
         const headers: Record<string, string> = {
-          "X-Tenant-Subdomain": tenant?.subdomain || "demo",
+          "X-Tenant-Subdomain": getTenantSubdomain(),
         };
 
         if (token) {
