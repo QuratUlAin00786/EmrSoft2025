@@ -31,7 +31,8 @@ export function multiTenantEnforcer(config: Partial<MultiTenantEnforcementConfig
   return async (req: TenantRequest, res: Response, next: NextFunction) => {
     try {
       // Ensure tenant context exists
-      if (enforcementConfig.enforceOrganizationId && !req.organizationId) {
+      // Allow organizationId: 0 for system-wide SaaS operations
+      if (enforcementConfig.enforceOrganizationId && (req.organizationId === null || req.organizationId === undefined)) {
         console.error(`[MULTI-TENANT] Missing organization context for path: ${req.path}, organizationId: ${req.organizationId}, tenant: ${JSON.stringify(req.tenant)}`);
         return res.status(400).json({ 
           error: "Multi-tenant context required",
