@@ -4403,6 +4403,13 @@ export class DatabaseStorage implements IStorage {
         throw new Error(`Subdomain '${customerData.subdomain}' is already taken`);
       }
 
+      // Check if admin email/username already exists
+      const existingUser = await db.select().from(users).where(eq(users.username, customerData.adminEmail)).limit(1);
+      if (existingUser.length > 0) {
+        console.log('❌ [CUSTOMER-CREATE] Admin email already exists:', customerData.adminEmail);
+        throw new Error(`Admin email '${customerData.adminEmail}' is already in use. Please use a different email address.`);
+      }
+
       // Create organization - match database column names (snake_case)
       console.log('🏢 [CUSTOMER-CREATE] Creating organization...');
       const [organization] = await db.insert(organizations)

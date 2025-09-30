@@ -971,6 +971,11 @@ export function registerSaaSRoutes(app: Express) {
     } catch (error: any) {
       console.error('Error creating customer:', error);
       
+      // Handle specific errors with appropriate status codes
+      if (error.message?.includes('already taken') || error.message?.includes('already in use')) {
+        return res.status(400).json({ message: error.message });
+      }
+      
       // Handle specific database errors
       if (error.code === '23505' && error.detail?.includes('subdomain')) {
         return res.status(400).json({ message: `Subdomain '${req.body.subdomain}' is already taken. Please choose a different subdomain.` });
