@@ -79,6 +79,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               if (orgData.subdomain) {
                 localStorage.setItem('user_subdomain', orgData.subdomain);
                 console.log('🔐 SUBDOMAIN: Stored user subdomain on validation:', orgData.subdomain);
+                // Clear cache to force all queries to use the new subdomain
+                queryClient.clear();
               }
             }
           } catch (orgError) {
