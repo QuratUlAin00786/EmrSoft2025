@@ -40,6 +40,7 @@ export default function SaaSCustomers() {
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [editingCustomer, setEditingCustomer] = useState<any>(null);
@@ -132,7 +133,12 @@ export default function SaaSCustomers() {
           telemedicineEnabled: true, billingEnabled: true, analyticsEnabled: true
         }
       });
-      // Show success modal
+      // Show success modal with appropriate message
+      if (data.emailSent === false) {
+        setSuccessMessage('Customer created successfully but email sending failed.');
+      } else {
+        setSuccessMessage('Customer created successfully!');
+      }
       setIsSuccessModalOpen(true);
     },
     onError: (error: any) => {
@@ -870,7 +876,7 @@ export default function SaaSCustomers() {
           </DialogHeader>
           <div className="py-4">
             <p className="text-center text-gray-700">
-              The customer has been created successfully!
+              {successMessage}
             </p>
           </div>
           <div className="flex justify-center">

@@ -952,19 +952,22 @@ export function registerSaaSRoutes(app: Express) {
       const result = await storage.createCustomerOrganization(customerData);
       
       // Send welcome email with credentials (don't fail if email fails)
+      let emailSent = false;
       if (result.success && result.adminUser) {
         try {
           console.log('📧 Sending welcome email to:', result.adminUser.email);
           await sendWelcomeEmail(result.organization, result.adminUser);
           console.log('📧 ✅ Welcome email sent successfully to:', result.adminUser.email);
+          emailSent = true;
         } catch (emailError: any) {
           console.error('📧 ❌ Failed to send welcome email:', emailError);
           // Don't fail the customer creation if email fails
+          emailSent = false;
         }
       }
       
-      // Return success response
-      return res.json(result);
+      // Return success response with email status
+      return res.json({ ...result, emailSent });
     } catch (error: any) {
       console.error('Error creating customer:', error);
       
