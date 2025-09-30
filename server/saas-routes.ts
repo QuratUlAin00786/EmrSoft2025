@@ -551,8 +551,19 @@ export function registerSaaSRoutes(app: Express) {
       const { passwordHash: _, ...userWithoutPassword } = newUser;
       
       res.status(201).json(userWithoutPassword);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating user:', error);
+      
+      // Handle specific database constraint errors
+      if (error.code === '23505') {
+        if (error.detail?.includes('username')) {
+          return res.status(400).json({ error: 'Username already exists' });
+        }
+        if (error.detail?.includes('email')) {
+          return res.status(400).json({ error: 'Email already exists' });
+        }
+      }
+      
       res.status(500).json({ error: 'Failed to create user' });
     }
   });
