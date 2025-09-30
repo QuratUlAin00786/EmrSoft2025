@@ -21,6 +21,7 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { saasApiRequest } from '@/lib/saasQueryClient';
 import { useToast } from '@/hooks/use-toast';
+import { Link } from 'wouter';
 import { 
   Search, 
   UserPlus, 
@@ -139,9 +140,17 @@ export default function SaaSUsers() {
               <Shield className="h-5 w-5 text-blue-600" />
               <span>User Management</span>
             </CardTitle>
-            <Badge variant="secondary">
-              {users?.length || 0} Total Users
-            </Badge>
+            <div className="flex items-center gap-3">
+              <Badge variant="secondary">
+                {users?.length || 0} Total Users
+              </Badge>
+              <Link href="/saas/users/create">
+                <Button className="flex items-center gap-2">
+                  <UserPlus className="h-4 w-4" />
+                  Create User
+                </Button>
+              </Link>
+            </div>
           </div>
         </CardHeader>
         

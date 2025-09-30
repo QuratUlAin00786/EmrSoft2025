@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Route, Switch, useLocation } from 'wouter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -23,6 +24,7 @@ import SaaSCustomers from './components/SaaSCustomers';
 import SaaSBilling from './components/SaaSBilling';
 import SaaSPackages from './components/SaaSPackages';
 import SaaSSettings from './components/SaaSSettings';
+import CreateUser from './CreateUser';
 
 interface SaaSDashboardProps {
   onLogout: () => void;
@@ -91,43 +93,86 @@ export default function SaaSDashboard({ onLogout }: SaaSDashboardProps) {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
-      <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-4">
-              <img 
-                src={curaLogoPath} 
-                alt="Cura Software Limited" 
-                className="h-10 w-auto"
-              />
-              <div className="flex items-center space-x-2">
-                <Shield className="h-5 w-5 text-red-600" />
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                  SaaS Administration Portal
-                </h1>
+    <Switch>
+      {/* Create User Page Route */}
+      <Route path="/saas/users/create">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+          {/* Header */}
+          <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex justify-between items-center h-16">
+                <div className="flex items-center space-x-4">
+                  <img 
+                    src={curaLogoPath} 
+                    alt="Cura Software Limited" 
+                    className="h-10 w-auto"
+                  />
+                  <div className="flex items-center space-x-2">
+                    <Shield className="h-5 w-5 text-red-600" />
+                    <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+                      SaaS Administration Portal
+                    </h1>
+                  </div>
+                  <Badge variant="destructive" className="text-xs">
+                    OWNER ONLY
+                  </Badge>
+                </div>
+                
+                <Button 
+                  onClick={handleLogout}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center space-x-2"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span>Logout</span>
+                </Button>
               </div>
-              <Badge variant="destructive" className="text-xs">
-                OWNER ONLY
-              </Badge>
             </div>
-            
-            <Button 
-              onClick={handleLogout}
-              variant="outline"
-              size="sm"
-              className="flex items-center space-x-2"
-            >
-              <LogOut className="h-4 w-4" />
-              <span>Logout</span>
-            </Button>
           </div>
+          <CreateUser />
         </div>
-      </div>
+      </Route>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Main Dashboard Route (default) */}
+      <Route>
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+          {/* Header */}
+          <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex justify-between items-center h-16">
+                <div className="flex items-center space-x-4">
+                  <img 
+                    src={curaLogoPath} 
+                    alt="Cura Software Limited" 
+                    className="h-10 w-auto"
+                  />
+                  <div className="flex items-center space-x-2">
+                    <Shield className="h-5 w-5 text-red-600" />
+                    <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+                      SaaS Administration Portal
+                    </h1>
+                  </div>
+                  <Badge variant="destructive" className="text-xs">
+                    OWNER ONLY
+                  </Badge>
+                </div>
+                
+                <Button 
+                  onClick={handleLogout}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center space-x-2"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span>Logout</span>
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Main Content */}
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="overview" className="flex items-center space-x-2">
@@ -344,7 +389,9 @@ export default function SaaSDashboard({ onLogout }: SaaSDashboardProps) {
             <SaaSSettings />
           </TabsContent>
         </Tabs>
-      </div>
-    </div>
+          </div>
+        </div>
+      </Route>
+    </Switch>
   );
 }
