@@ -21,6 +21,7 @@ export const ROLE_PERMISSIONS = {
     automation: { view: true, create: true, edit: true, delete: true },
     population_health: { view: true, create: true, edit: true, delete: true },
     mobile_health: { view: true, create: true, edit: true, delete: true },
+    patient_portal: { view: true, create: true, edit: true, delete: true },
     inventory: { view: true, create: true, edit: true, delete: true },
     gdpr_compliance: { view: true, create: true, edit: true, delete: true },
     user_management: { view: true, create: true, edit: true, delete: true },
