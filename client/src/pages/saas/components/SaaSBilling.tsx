@@ -69,6 +69,9 @@ export default function SaaSBilling() {
   const [showCreatePayment, setShowCreatePayment] = useState(false);
   const [showInvoiceDialog, setShowInvoiceDialog] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
   const { toast } = useToast();
   const invoiceRef = useRef<HTMLDivElement>(null);
 
@@ -114,13 +117,15 @@ export default function SaaSBilling() {
       return response.json();
     },
     onSuccess: () => {
-      toast({ title: "Success", description: "Payment created successfully" });
       refetchData();
       refetchStats();
       setShowCreatePayment(false);
+      setModalMessage("Payment created successfully");
+      setIsSuccessModalOpen(true);
     },
     onError: (error: Error) => {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      setModalMessage(error.message || "Failed to create payment");
+      setIsErrorModalOpen(true);
     },
   });
 
@@ -305,6 +310,36 @@ export default function SaaSBilling() {
           {selectedInvoice && (
             <InvoiceTemplate ref={invoiceRef} invoice={selectedInvoice} />
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Success Modal */}
+      <Dialog open={isSuccessModalOpen} onOpenChange={setIsSuccessModalOpen}>
+        <DialogContent className="sm:max-w-md z-[9999]">
+          <DialogHeader>
+            <DialogTitle className="text-green-600 dark:text-green-400">Success</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-gray-700 dark:text-gray-300">{modalMessage}</p>
+          </div>
+          <div className="flex justify-end">
+            <Button onClick={() => setIsSuccessModalOpen(false)}>OK</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Error Modal */}
+      <Dialog open={isErrorModalOpen} onOpenChange={setIsErrorModalOpen}>
+        <DialogContent className="sm:max-w-md z-[9999]">
+          <DialogHeader>
+            <DialogTitle className="text-red-600 dark:text-red-400">Error</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-gray-700 dark:text-gray-300">{modalMessage}</p>
+          </div>
+          <div className="flex justify-end">
+            <Button onClick={() => setIsErrorModalOpen(false)} variant="destructive">OK</Button>
+          </div>
         </DialogContent>
       </Dialog>
 
