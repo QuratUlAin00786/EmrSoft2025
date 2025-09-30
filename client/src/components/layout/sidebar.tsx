@@ -163,11 +163,11 @@ export function Sidebar() {
 
       {/* Sidebar */}
       <aside className={cn(
-        "bg-white dark:bg-card shadow-lg flex flex-col h-screen transition-transform duration-300 ease-in-out z-40",
+        "bg-white dark:bg-card shadow-lg flex flex-col h-screen transition-transform duration-300 ease-in-out",
         // Desktop
-        "lg:w-64 lg:relative lg:translate-x-0",
+        "lg:w-64 lg:relative lg:translate-x-0 lg:z-30",
         // Mobile
-        "fixed w-64 lg:w-64",
+        "fixed w-64 lg:w-64 z-50",
         isMobile && !isMobileMenuOpen && "-translate-x-full",
         isMobile && isMobileMenuOpen && "translate-x-0"
       )}>

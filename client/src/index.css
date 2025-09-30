@@ -507,7 +507,8 @@ button[data-testid="delete-customer-button"] {
   }
   
   .sidebar-nav-item {
-    @apply flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors;
+    @apply flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer;
+    pointer-events: auto !important;
   }
   
   .sidebar-nav-item.active {
