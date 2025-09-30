@@ -298,7 +298,7 @@ export default function SaaSCustomers() {
                         </div>
                       </div>
                       <div>
-                        <Label>Generated Subdomain *</Label>
+                        <Label>Title</Label>
                         <div className="mt-2 p-3 bg-gray-50 border border-gray-200 rounded-md">
                           <code className="text-sm font-medium text-gray-800">
                             {newCustomer.subdomain || 'will-be-generated-from-organization-name'}
@@ -311,7 +311,7 @@ export default function SaaSCustomers() {
                         )}
                         {!subdomainError && newCustomer.subdomain && (
                           <p className="text-xs text-green-600 mt-2">
-                            ✓ Subdomain is available
+                            ✓ Title is available
                           </p>
                         )}
                       </div>
@@ -550,7 +550,7 @@ export default function SaaSCustomers() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Organization</TableHead>
-                  <TableHead>Subdomain</TableHead>
+                  <TableHead>Title</TableHead>
                   <TableHead>Users</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Package</TableHead>
