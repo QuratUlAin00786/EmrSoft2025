@@ -1137,6 +1137,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register remaining SaaS administration routes
   registerSaaSRoutes(app);
 
+  // Universal login endpoint (no tenant required - determines subdomain from user's organization)
+  app.post("/api/auth/universal-login", async (req: Request, res) => {
+    try {
+      const { email, password } = z.object({
+        email: z.string(),
+        password: z.string().min(3)
+      }).parse(req.body);
+
+      console.log(`[UNIVERSAL LOGIN] Attempt for: ${email}`);
+
+      // Lookup user globally (no organization filter)
+      let user = await storage.getUserByEmailGlobal(email);
+      
+      if (!user || !user.isActive) {
+        console.log(`[UNIVERSAL LOGIN] User not found or inactive: ${email}`);
+        return res.status(401).json({ error: "Invalid credentials" });
+      }
+
+      console.log(`[UNIVERSAL LOGIN] Found user: ${user.email} - Org ID: ${user.organizationId}`);
+
+      const isValidPassword = await authService.comparePassword(password, user.passwordHash);
+      if (!isValidPassword) {
+        console.log(`[UNIVERSAL LOGIN] Invalid password for user: ${email}`);
+        return res.status(401).json({ error: "Invalid credentials" });
+      }
+
+      const token = authService.generateToken(user);
+      
+      // Get organization subdomain to include in response
+      const organization = await storage.getOrganization(user.organizationId);
+
+      if (!organization) {
+        console.error(`[UNIVERSAL LOGIN] Organization not found for user ${email}, org ID: ${user.organizationId}`);
+        return res.status(500).json({ error: "Organization not found" });
+      }
+
+      console.log(`[UNIVERSAL LOGIN] Success! User: ${user.email}, Subdomain: ${organization.subdomain}`);
+
+      res.json({
+        token,
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role,
+          department: user.department,
+          organizationId: user.organizationId
+        },
+        organization: {
+          id: organization.id,
+          name: organization.name,
+          subdomain: organization.subdomain
+        }
+      });
+    } catch (error) {
+      console.error("[UNIVERSAL LOGIN] Error:", error);
+      res.status(500).json({ error: "Login failed" });
+    }
+  });
+
   // Authentication routes (no auth required)
   app.post("/api/auth/login", async (req: TenantRequest, res) => {
     try {
