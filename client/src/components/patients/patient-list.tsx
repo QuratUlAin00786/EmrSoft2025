@@ -2034,6 +2034,13 @@ export function PatientList({ onSelectPatient, showActiveOnly = true }: PatientL
         if (!response.ok) {
           const errorText = await response.text();
           console.error("Patients fetch failed:", response.status, errorText);
+          
+          // If 403 error (access denied), treat as no patients instead of error
+          if (response.status === 403) {
+            console.log("Access denied - treating as no patients available");
+            return [];
+          }
+          
           throw new Error(
             `Failed to fetch patients: ${response.status} ${errorText}`,
           );
