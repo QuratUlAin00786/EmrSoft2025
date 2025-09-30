@@ -568,8 +568,8 @@ export function registerSaaSRoutes(app: Express) {
     }
   });
 
-  // Check username/email availability
-  app.get('/api/saas/users/check-availability', verifySaaSToken, async (req: Request, res: Response) => {
+  // Check username/email availability (no auth required - needed during user creation)
+  app.get('/api/saas/users/check-availability', async (req: Request, res: Response) => {
     try {
       const { username, email, organizationId } = req.query;
 
