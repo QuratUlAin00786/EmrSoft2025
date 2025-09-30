@@ -4461,6 +4461,7 @@ export class DatabaseStorage implements IStorage {
         if (selectedPackage.length > 0) {
           await db.insert(subscriptions).values({
             organizationId: organization.id,
+            planName: selectedPackage[0].name,
             plan: selectedPackage[0].name,
             status: 'active',
           });

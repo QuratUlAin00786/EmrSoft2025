@@ -450,7 +450,8 @@ export const documents = pgTable("documents", {
 export const subscriptions = pgTable("subscriptions", {
   id: serial("id").primaryKey(),
   organizationId: integer("organization_id").notNull(),
-  plan: varchar("plan", { length: 20 }).notNull(), // starter, professional, enterprise
+  planName: text("plan_name").notNull(),
+  plan: varchar("plan", { length: 20 }), // starter, professional, enterprise
   status: varchar("status", { length: 20 }).notNull().default("trial"), // trial, active, suspended, cancelled
   userLimit: integer("user_limit").notNull().default(5),
   currentUsers: integer("current_users").notNull().default(0),
