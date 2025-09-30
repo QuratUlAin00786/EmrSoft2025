@@ -297,24 +297,26 @@ export default function SaaSCustomers() {
                           />
                         </div>
                       </div>
-                      <div>
-                        <Label>Title</Label>
-                        <div className="mt-2 p-3 bg-gray-50 border border-gray-200 rounded-md">
-                          <code className="text-sm font-medium text-gray-800">
-                            {newCustomer.subdomain || 'will-be-generated-from-organization-name'}
-                          </code>
+                      {newCustomer.subdomain && (
+                        <div>
+                          <Label>Title</Label>
+                          <div className="mt-2 p-3 bg-gray-50 border border-gray-200 rounded-md">
+                            <code className="text-sm font-medium text-gray-800">
+                              {newCustomer.subdomain}
+                            </code>
+                          </div>
+                          {subdomainError && (
+                            <p className="text-xs text-red-600 mt-2 font-medium">
+                              {subdomainError}
+                            </p>
+                          )}
+                          {!subdomainError && (
+                            <p className="text-xs text-green-600 mt-2">
+                              ✓ Title is available
+                            </p>
+                          )}
                         </div>
-                        {subdomainError && (
-                          <p className="text-xs text-red-600 mt-2 font-medium">
-                            {subdomainError}
-                          </p>
-                        )}
-                        {!subdomainError && newCustomer.subdomain && (
-                          <p className="text-xs text-green-600 mt-2">
-                            ✓ Title is available
-                          </p>
-                        )}
-                      </div>
+                      )}
                       
                       <div>
                         <Label>Billing Package</Label>
