@@ -38,9 +38,10 @@ export async function tenantMiddleware(req: TenantRequest, res: Response, next: 
     // Path is already stripped by Express mounting at /api, so we process all paths
     console.log(`[TENANT-MIDDLEWARE] Processing API path: ${req.path} (original URL: ${req.originalUrl})`);
 
-    // Extract subdomain from: query param (dev mode), header, or host
-    let subdomain = req.query.subdomain as string || req.get("X-Tenant-Subdomain") || extractSubdomainFromHost(req.get("host")) || "demo";
-    console.log(`[TENANT-MIDDLEWARE] Detected subdomain: ${subdomain} from host: ${req.get("host")}`);
+    // Extract subdomain from: header (priority), query param (dev mode), or default to demo
+    // DO NOT use hostname extraction in Replit environment as it extracts replit subdomain instead of tenant
+    let subdomain = req.get("X-Tenant-Subdomain") || req.query.subdomain as string || "demo";
+    console.log(`[TENANT-MIDDLEWARE] Detected subdomain: ${subdomain} from header/query`);
     
     let organization = await storage.getOrganizationBySubdomain(subdomain);
     
