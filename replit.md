@@ -22,6 +22,18 @@ Complete legal framework implemented for Cura Software Limited:
 - **Benefits**: Unified authentication, simplified management, better security isolation
 - **Status**: Fully operational with elegant system-wide user management integration
 
+## Subdomain-Based Organizational Routing (September 2025)
+**COMPLETE SUBDOMAIN-SCOPED ROUTING SYSTEM - PRODUCTION READY**
+- **Architecture**: All protected routes now use `/:subdomain/*` pattern (e.g., `/demo/patients`, `/sundas/dashboard`)
+- **Subdomain Resolution**: Centralized `getActiveSubdomain()` utility with RESERVED_ROUTES list prevents legacy path misidentification
+- **Navigation**: Sidebar links automatically prefixed with tenant subdomain for seamless organizational context
+- **Legacy Route Handling**: Comprehensive redirect system preserves full paths, query strings, and dynamic segments when migrating from unscoped URLs
+- **Authentication Flow**: Login redirects preserve subdomain context, unauthenticated users routed to `/:subdomain/auth/login`
+- **Tenant Isolation**: Each organization's data accessed exclusively through their subdomain URL structure
+- **API Integration**: Tenant middleware detects subdomain from `X-Tenant-Subdomain` header for consistent data filtering
+- **Status**: PRODUCTION READY - All edge cases handled, architect-verified as deployment-ready
+- **Implementation Date**: September 30, 2025
+
 ## Facial Muscle Analysis System Enhancement (September 2025)
 **32-POSITION MUSCLE ANALYSIS SYSTEM IMPLEMENTED**
 - **Expansion**: Successfully expanded from 15 to 32 facial muscle positions for comprehensive analysis
