@@ -76,9 +76,20 @@ export default function CreateUser() {
         return result;
       }
       
-      // If not successful, throw an error
+      // If not successful, parse the error properly
       const errorText = await response.text();
-      throw new Error(errorText || 'Failed to create user');
+      let errorMessage = 'Failed to create user';
+      
+      try {
+        // Try to parse as JSON
+        const errorJson = JSON.parse(errorText);
+        errorMessage = errorJson.error || errorJson.message || errorMessage;
+      } catch {
+        // If not JSON, use the text as-is (but clean it up)
+        errorMessage = errorText || errorMessage;
+      }
+      
+      throw new Error(errorMessage);
     },
     onSuccess: (newUser: any) => {
       setModalContent({
