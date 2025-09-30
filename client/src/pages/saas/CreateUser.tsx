@@ -8,8 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import { UserPlus, Building2, Shield, ArrowLeft } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { UserPlus, Building2, Shield, ArrowLeft, CheckCircle, AlertTriangle } from "lucide-react";
 import { saasApiRequest, saasQueryClient } from "@/lib/saasQueryClient";
 import { Link } from "wouter";
 
@@ -35,7 +35,12 @@ const roleOptions = [
 ];
 
 export default function CreateUser() {
-  const { toast } = useToast();
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalContent, setModalContent] = useState<{
+    type: 'success' | 'error';
+    title: string;
+    description: string;
+  } | null>(null);
 
   // Fetch organizations
   const { data: organizations, isLoading: orgLoading } = useQuery({
@@ -67,19 +72,22 @@ export default function CreateUser() {
       return response.json();
     },
     onSuccess: (newUser: any) => {
-      toast({
-        title: "User Created Successfully",
+      setModalContent({
+        type: 'success',
+        title: 'User Created Successfully',
         description: `${newUser.firstName} ${newUser.lastName} has been added to the system.`,
       });
+      setModalOpen(true);
       saasQueryClient.invalidateQueries({ queryKey: ["/api/saas/users"] });
       form.reset();
     },
     onError: (error: any) => {
-      toast({
-        title: "Failed to Create User",
-        description: error.message || "An error occurred while creating the user.",
-        variant: "destructive",
+      setModalContent({
+        type: 'error',
+        title: 'Failed to Create User',
+        description: error.message || 'An error occurred while creating the user.',
       });
+      setModalOpen(true);
     },
   });
 
@@ -342,6 +350,30 @@ export default function CreateUser() {
           </div>
         </div>
       </div>
+
+      {/* Success/Error Modal */}
+      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+        <DialogContent className="sm:max-w-md z-[9999]">
+          <DialogHeader>
+            <div className="flex items-center gap-3">
+              {modalContent?.type === 'success' ? (
+                <CheckCircle className="h-8 w-8 text-green-500" />
+              ) : (
+                <AlertTriangle className="h-8 w-8 text-red-500" />
+              )}
+              <DialogTitle>{modalContent?.title}</DialogTitle>
+            </div>
+            <DialogDescription className="pt-2">
+              {modalContent?.description}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-3 mt-4">
+            <Button onClick={() => setModalOpen(false)}>
+              OK
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
