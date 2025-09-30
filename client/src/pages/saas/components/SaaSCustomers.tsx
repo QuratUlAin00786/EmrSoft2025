@@ -40,6 +40,8 @@ export default function SaaSCustomers() {
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const [editingCustomer, setEditingCustomer] = useState<any>(null);
   const [newCustomer, setNewCustomer] = useState({
     name: '',
@@ -103,17 +105,9 @@ export default function SaaSCustomers() {
       setIsSuccessModalOpen(true);
     },
     onError: (error: any) => {
-      const errorMessage = error.message || "Failed to create customer";
-      // Check if error is about subdomain conflict
-      if (errorMessage.toLowerCase().includes('subdomain') && errorMessage.toLowerCase().includes('exist')) {
-        alert('Sub domain already exist please select another name.');
-      } else {
-        toast({
-          title: "Customer Creation Failed",
-          description: errorMessage,
-          variant: "destructive",
-        });
-      }
+      const errMsg = error.message || "Failed to create customer";
+      setErrorMessage(errMsg);
+      setIsErrorModalOpen(true);
     },
   });
 
@@ -832,6 +826,25 @@ export default function SaaSCustomers() {
           </div>
           <div className="flex justify-center">
             <Button onClick={() => setIsSuccessModalOpen(false)}>
+              OK
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Error Modal */}
+      <Dialog open={isErrorModalOpen} onOpenChange={setIsErrorModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Customer Creation Failed</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-center text-gray-700">
+              {errorMessage}
+            </p>
+          </div>
+          <div className="flex justify-center">
+            <Button onClick={() => setIsErrorModalOpen(false)} variant="destructive">
               OK
             </Button>
           </div>
