@@ -39,6 +39,7 @@ export default function SaaSCustomers() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<any>(null);
   const [newCustomer, setNewCustomer] = useState({
     name: '',
@@ -98,18 +99,21 @@ export default function SaaSCustomers() {
           telemedicineEnabled: true, billingEnabled: true, analyticsEnabled: true
         }
       });
-      toast({
-        title: "Customer Created Successfully",
-        description: `Organization: ${data.organization.name} | Admin Password: ${data.adminUser.tempPassword}`,
-      });
+      // Show success modal
+      setIsSuccessModalOpen(true);
     },
     onError: (error: any) => {
       const errorMessage = error.message || "Failed to create customer";
-      toast({
-        title: "Customer Creation Failed",
-        description: errorMessage,
-        variant: "destructive",
-      });
+      // Check if error is about subdomain conflict
+      if (errorMessage.toLowerCase().includes('subdomain') && errorMessage.toLowerCase().includes('exist')) {
+        alert('Sub domain already exist please select another name.');
+      } else {
+        toast({
+          title: "Customer Creation Failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
     },
   });
 
@@ -814,6 +818,25 @@ export default function SaaSCustomers() {
           )}
         </CardContent>
       </Card>
+
+      {/* Success Modal */}
+      <Dialog open={isSuccessModalOpen} onOpenChange={setIsSuccessModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Customer Created Successfully</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-center text-gray-700">
+              The customer has been created successfully!
+            </p>
+          </div>
+          <div className="flex justify-center">
+            <Button onClick={() => setIsSuccessModalOpen(false)}>
+              OK
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
