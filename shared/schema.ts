@@ -450,9 +450,15 @@ export const documents = pgTable("documents", {
 export const subscriptions = pgTable("subscriptions", {
   id: serial("id").primaryKey(),
   organizationId: integer("organization_id").notNull(),
-  plan: varchar("plan", { length: 20 }).notNull(), // starter, professional, enterprise
+  planName: varchar("plan_name", { length: 50 }).notNull(), // Full plan name (e.g., "Silver", "Gold", "Platinum")
   status: varchar("status", { length: 20 }).notNull().default("trial"), // trial, active, suspended, cancelled
+  startDate: timestamp("start_date"),
+  endDate: timestamp("end_date"),
+  plan: varchar("plan", { length: 20 }).notNull(), // starter, professional, enterprise
   userLimit: integer("user_limit").notNull().default(5),
+  storageLimit: integer("storage_limit").notNull().default(100),
+  appointmentLimit: integer("appointment_limit").notNull().default(1000),
+  billingCycle: varchar("billing_cycle", { length: 20 }),
   currentUsers: integer("current_users").notNull().default(0),
   monthlyPrice: decimal("monthly_price", { precision: 10, scale: 2 }),
   trialEndsAt: timestamp("trial_ends_at"),

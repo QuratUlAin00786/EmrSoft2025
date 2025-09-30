@@ -3648,7 +3648,7 @@ export default function FinancialIntelligence() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium">Copay ($)</label>
+                <label className="text-sm font-medium">Copay (£)</label>
                 <Input
                   type="number"
                   value={newInsuranceFormData.copay}
@@ -3679,7 +3679,7 @@ export default function FinancialIntelligence() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium">Deductible ($)</label>
+                <label className="text-sm font-medium">Deductible (£)</label>
                 <Input
                   type="number"
                   value={newInsuranceFormData.deductible}
@@ -3693,7 +3693,7 @@ export default function FinancialIntelligence() {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">Deductible Met ($)</label>
+                <label className="text-sm font-medium">Deductible Met (£)</label>
                 <Input
                   type="number"
                   value={newInsuranceFormData.deductibleMet}
@@ -3710,7 +3710,7 @@ export default function FinancialIntelligence() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium">Out-of-Pocket Max ($)</label>
+                <label className="text-sm font-medium">Out-of-Pocket Max (£)</label>
                 <Input
                   type="number"
                   value={newInsuranceFormData.outOfPocketMax}
@@ -3724,7 +3724,7 @@ export default function FinancialIntelligence() {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">Out-of-Pocket Met ($)</label>
+                <label className="text-sm font-medium">Out-of-Pocket Met (£)</label>
                 <Input
                   type="number"
                   value={newInsuranceFormData.outOfPocketMet}
