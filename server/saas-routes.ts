@@ -591,6 +591,11 @@ export function registerSaaSRoutes(app: Express) {
         result.emailAvailable = !existingEmail;
       }
 
+      // Prevent caching of availability checks
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      
       res.json(result);
     } catch (error) {
       console.error('Error checking availability:', error);
