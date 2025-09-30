@@ -808,42 +808,44 @@ export default function SaaSCustomers() {
                           </DialogContent>
                         </Dialog>
 
-                        <button
-                          type="button"
-                          onClick={() => {
-                            console.log('🗑️ DELETE button clicked for customer:', customer.id, customer.name);
-                            setCustomerToDelete(customer);
-                            setIsDeleteDialogOpen(true);
-                          }}
-                          style={{
-                            backgroundColor: '#dc2626',
-                            color: '#ffffff',
-                            border: '1px solid #dc2626',
-                            borderRadius: '6px',
-                            padding: '6px 12px',
-                            fontSize: '13px',
-                            fontWeight: '600',
-                            display: isAddDialogOpen ? 'none' : 'inline-flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                            cursor: 'pointer',
-                            minWidth: '75px',
-                            minHeight: '32px',
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.5px'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = '#b91c1c';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = '#dc2626';
-                          }}
-                          className="production-delete-btn !bg-red-600 !text-white !border-red-600 hover:!bg-red-700"
-                          data-testid="delete-customer-button"
-                        >
-                          <Trash2 className="h-4 w-4" style={{ width: '16px', height: '16px' }} />
-                          DELETE
-                        </button>
+                        {!isAddDialogOpen && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              console.log('🗑️ DELETE button clicked for customer:', customer.id, customer.name);
+                              setCustomerToDelete(customer);
+                              setIsDeleteDialogOpen(true);
+                            }}
+                            style={{
+                              backgroundColor: '#dc2626',
+                              color: '#ffffff',
+                              border: '1px solid #dc2626',
+                              borderRadius: '6px',
+                              padding: '6px 12px',
+                              fontSize: '13px',
+                              fontWeight: '600',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              cursor: 'pointer',
+                              minWidth: '75px',
+                              minHeight: '32px',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.5px'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = '#b91c1c';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = '#dc2626';
+                            }}
+                            className="production-delete-btn !bg-red-600 !text-white !border-red-600 hover:!bg-red-700"
+                            data-testid="delete-customer-button"
+                          >
+                            <Trash2 className="h-4 w-4" style={{ width: '16px', height: '16px' }} />
+                            DELETE
+                          </button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
