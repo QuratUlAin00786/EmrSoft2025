@@ -808,7 +808,7 @@ export default function SaaSCustomers() {
                           </DialogContent>
                         </Dialog>
 
-                        {!isAddDialogOpen && (
+                        {!isAddDialogOpen && !isSuccessModalOpen && (
                           <button
                             type="button"
                             onClick={() => {
