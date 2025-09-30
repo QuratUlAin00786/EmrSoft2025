@@ -9,14 +9,24 @@ async function throwIfResNotOk(res: Response) {
 
 // Helper function to get the correct tenant subdomain
 function getTenantSubdomain(): string {
-  // Check for subdomain query parameter first (for development)
+  // PRIORITY 1: Check for subdomain in URL path (e.g., /aaa/auth/login)
+  const pathname = window.location.pathname;
+  const pathParts = pathname.split('/').filter(Boolean);
+  if (pathParts.length >= 2 && pathParts[1] === 'auth' && pathParts[2] === 'login') {
+    const subdomainFromPath = pathParts[0];
+    if (subdomainFromPath) {
+      return subdomainFromPath;
+    }
+  }
+  
+  // PRIORITY 2: Check for subdomain query parameter (for backward compatibility)
   const urlParams = new URLSearchParams(window.location.search);
   const subdomainParam = urlParams.get('subdomain');
   if (subdomainParam) {
     return subdomainParam;
   }
   
-  // Check localStorage for user's organization subdomain (set during login)
+  // PRIORITY 3: Check localStorage for user's organization subdomain (set during login)
   const userSubdomain = localStorage.getItem('user_subdomain');
   if (userSubdomain) {
     return userSubdomain;
