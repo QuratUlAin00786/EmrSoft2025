@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { UserPlus, Building2, Shield, ArrowLeft } from "lucide-react";
-import { apiRequest } from "@/lib/queryClient";
+import { saasApiRequest, saasQueryClient } from "@/lib/saasQueryClient";
 import { Link } from "wouter";
 
 const createUserSchema = z.object({
@@ -36,11 +36,14 @@ const roleOptions = [
 
 export default function CreateUser() {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
 
   // Fetch organizations
   const { data: organizations, isLoading: orgLoading } = useQuery({
     queryKey: ["/api/saas/organizations"],
+    queryFn: async () => {
+      const response = await saasApiRequest('GET', '/api/saas/organizations');
+      return response.json();
+    },
   });
 
   // Form setup
@@ -60,14 +63,15 @@ export default function CreateUser() {
   // Create user mutation
   const createUserMutation = useMutation({
     mutationFn: async (data: CreateUserFormData) => {
-      return apiRequest("POST", "/api/saas/users/create", data);
+      const response = await saasApiRequest("POST", "/api/saas/users/create", data);
+      return response.json();
     },
     onSuccess: (newUser: any) => {
       toast({
         title: "User Created Successfully",
         description: `${newUser.firstName} ${newUser.lastName} has been added to the system.`,
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/saas/users"] });
+      saasQueryClient.invalidateQueries({ queryKey: ["/api/saas/users"] });
       form.reset();
     },
     onError: (error: any) => {
