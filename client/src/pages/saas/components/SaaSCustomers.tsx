@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -45,6 +45,7 @@ export default function SaaSCustomers() {
   const [editingCustomer, setEditingCustomer] = useState<any>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [customerToDelete, setCustomerToDelete] = useState<any>(null);
+  const [subdomainError, setSubdomainError] = useState('');
   const [newCustomer, setNewCustomer] = useState({
     name: '',
     brandName: '',
@@ -79,6 +80,33 @@ export default function SaaSCustomers() {
     },
   });
 
+  // Auto-generate subdomain from organization name
+  useEffect(() => {
+    if (newCustomer.name) {
+      const generatedSubdomain = newCustomer.name
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9-]/g, '');
+      setNewCustomer(prev => ({ ...prev, subdomain: generatedSubdomain }));
+      
+      // Check if subdomain exists
+      if (generatedSubdomain && customers) {
+        const exists = customers.some((c: any) => 
+          c.subdomain.toLowerCase() === generatedSubdomain.toLowerCase()
+        );
+        if (exists) {
+          setSubdomainError('This subdomain already exists. Please choose a different organization name.');
+        } else {
+          setSubdomainError('');
+        }
+      }
+    } else {
+      setNewCustomer(prev => ({ ...prev, subdomain: '' }));
+      setSubdomainError('');
+    }
+  }, [newCustomer.name, customers]);
+
   // Fetch available billing packages
   const { data: billingPackages } = useQuery({
     queryKey: ['/api/saas/packages'],
@@ -95,6 +123,7 @@ export default function SaaSCustomers() {
       // Clear search filter to show new customer
       setSearchTerm('');
       setSelectedStatus('all');
+      setSubdomainError('');
       setNewCustomer({
         name: '', brandName: '', subdomain: '', adminEmail: '', 
         adminFirstName: '', adminLastName: '', accessLevel: 'full', billingPackageId: '',
@@ -220,7 +249,20 @@ export default function SaaSCustomers() {
               <Badge variant="secondary">
                 {customers?.length || 0} Total Customers
               </Badge>
-              <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+              <Dialog open={isAddDialogOpen} onOpenChange={(open) => {
+                setIsAddDialogOpen(open);
+                if (!open) {
+                  setSubdomainError('');
+                  setNewCustomer({
+                    name: '', brandName: '', subdomain: '', adminEmail: '', 
+                    adminFirstName: '', adminLastName: '', accessLevel: 'full', billingPackageId: '',
+                    features: {
+                      maxUsers: 10, maxPatients: 100, aiEnabled: true, 
+                      telemedicineEnabled: true, billingEnabled: true, analyticsEnabled: true
+                    }
+                  });
+                }
+              }}>
                 <DialogTrigger asChild>
                   <Button size="sm" className="flex items-center space-x-2">
                     <Plus className="h-4 w-4" />
@@ -256,19 +298,22 @@ export default function SaaSCustomers() {
                         </div>
                       </div>
                       <div>
-                        <Label htmlFor="subdomain">Subdomain *</Label>
-                        <Input 
-                          id="subdomain" 
-                          placeholder="e.g., metro-medical" 
-                          value={newCustomer.subdomain}
-                          onChange={(e) => setNewCustomer({...newCustomer, subdomain: e.target.value})}
-                        />
-                        <p className="text-xs text-gray-500 mt-1">
-                          Subdomain: {newCustomer.subdomain || 'subdomain'}
-                        </p>
-                        <p className="text-xs text-amber-600 mt-1">
-                          Note: Subdomain must be unique across all customers
-                        </p>
+                        <Label>Generated Subdomain *</Label>
+                        <div className="mt-2 p-3 bg-gray-50 border border-gray-200 rounded-md">
+                          <code className="text-sm font-medium text-gray-800">
+                            {newCustomer.subdomain || 'will-be-generated-from-organization-name'}
+                          </code>
+                        </div>
+                        {subdomainError && (
+                          <p className="text-xs text-red-600 mt-2 font-medium">
+                            {subdomainError}
+                          </p>
+                        )}
+                        {!subdomainError && newCustomer.subdomain && (
+                          <p className="text-xs text-green-600 mt-2">
+                            ✓ Subdomain is available
+                          </p>
+                        )}
                       </div>
                       
                       <div>
@@ -452,7 +497,7 @@ export default function SaaSCustomers() {
                       </Button>
                       <Button 
                         onClick={() => createCustomerMutation.mutate(newCustomer)}
-                        disabled={createCustomerMutation.isPending || !newCustomer.name || !newCustomer.subdomain || !newCustomer.adminEmail || !newCustomer.adminFirstName || !newCustomer.adminLastName}
+                        disabled={createCustomerMutation.isPending || !newCustomer.name || !newCustomer.subdomain || !newCustomer.adminEmail || !newCustomer.adminFirstName || !newCustomer.adminLastName || !!subdomainError}
                         className="flex-1"
                       >
                         {createCustomerMutation.isPending ? 'Creating...' : 'Create Customer'}
