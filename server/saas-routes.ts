@@ -406,7 +406,7 @@ export function registerSaaSRoutes(app: Express) {
         lastName: 'Administrator', 
         email: 'saas_admin@curaemr.ai',
         username: 'saas_admin',
-        password: hashedPassword,
+        passwordHash: hashedPassword,
         role: 'saas_owner', // Special role for SaaS owners
         organizationId: 0, // 0 = System-wide, hidden from regular organizations
         isActive: true,
@@ -469,7 +469,7 @@ export function registerSaaSRoutes(app: Express) {
       }
 
       // Return owner without password
-      const { password, ...ownerWithoutPassword } = updatedOwner;
+      const { passwordHash, ...ownerWithoutPassword } = updatedOwner;
       res.json(ownerWithoutPassword);
     } catch (error) {
       console.error('Error updating owner profile:', error);
@@ -487,7 +487,7 @@ export function registerSaaSRoutes(app: Express) {
       }
 
       // Verify current password
-      const isCurrentPasswordValid = await bcrypt.compare(currentPassword, saasOwner.password);
+      const isCurrentPasswordValid = await bcrypt.compare(currentPassword, saasOwner.passwordHash);
       if (!isCurrentPasswordValid) {
         return res.status(400).json({ error: 'Current password is incorrect' });
       }
@@ -496,7 +496,7 @@ export function registerSaaSRoutes(app: Express) {
       const hashedNewPassword = await bcrypt.hash(newPassword, 10);
 
       await storage.updateUser(saasOwner.id, 0, {
-        password: hashedNewPassword,
+        passwordHash: hashedNewPassword,
       });
 
       res.json({ message: 'Password updated successfully' });
@@ -541,14 +541,14 @@ export function registerSaaSRoutes(app: Express) {
         lastName,
         email,
         username,
-        password: hashedPassword,
+        passwordHash: hashedPassword,
         role,
         organizationId: parseInt(organizationId),
         isActive: true,
       });
 
       // Return user without password
-      const { password: _, ...userWithoutPassword } = newUser;
+      const { passwordHash: _, ...userWithoutPassword } = newUser;
       
       res.status(201).json(userWithoutPassword);
     } catch (error) {
@@ -682,7 +682,7 @@ export function registerSaaSRoutes(app: Express) {
         const userData = {
           username: 'saas_admin',
           email: 'saas_admin@curaemr.ai',
-          password: hashedPassword,
+          passwordHash: hashedPassword,
           firstName: 'SaaS',
           lastName: 'Administrator',
           role: 'admin',
@@ -698,7 +698,7 @@ export function registerSaaSRoutes(app: Express) {
         // Update existing user to ensure it's properly configured
         const hashedPassword = await bcrypt.hash('admin123', 12);
         await storage.updateUser(saasUser.id, 0, {
-          password: hashedPassword,
+          passwordHash: hashedPassword,
           isActive: true,
           isSaaSOwner: true
         });
@@ -754,7 +754,7 @@ export function registerSaaSRoutes(app: Express) {
       }
 
       console.log('Comparing password for SaaS user:', saasUser.username);
-      const isValidPassword = await bcrypt.compare(password, saasUser.password);
+      const isValidPassword = await bcrypt.compare(password, saasUser.passwordHash);
       console.log('Password valid:', isValidPassword);
       
       if (!isValidPassword) {
