@@ -63,9 +63,7 @@ export default function LoginPage() {
       });
 
       // Redirect to dashboard with organization's subdomain
-      setLocation(`/${subdomain}/dashboard`);
-      
-      // Reload to ensure auth context is updated
+      // Force reload to trigger AuthContext validation
       window.location.href = `/${subdomain}/dashboard`;
     } catch (err: any) {
       setError(err.message || "Login failed. Please try again.");

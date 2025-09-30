@@ -363,10 +363,17 @@ function AppRouter() {
       return;
     }
 
-    // If user is not authenticated and not on a public page, redirect to landing
+    // If user is not authenticated and not on a public page, redirect to universal login
+    // BUT: If on a subdomain route, redirect to universal login instead of landing
     if (!isAuthenticated && !isLandingPage && !location.includes('/auth/login')) {
-      console.log('🔄 Redirecting unauthenticated user to landing');
-      setLocation('/landing');
+      // Check if we're on a subdomain route (e.g., /maryamkhan/dashboard)
+      if (isSubdomainRoute) {
+        console.log('🔄 Redirecting unauthenticated user from subdomain route to universal login');
+        setLocation('/auth/login');
+      } else {
+        console.log('🔄 Redirecting unauthenticated user to landing');
+        setLocation('/landing');
+      }
       return;
     }
   }, [isAuthenticated, loading, location, setLocation]);
