@@ -62,6 +62,13 @@ export default function Login() {
 
   // Helper function to get tenant subdomain (same as in other files)
   const getTenantSubdomain = (): string => {
+    // Check for subdomain query parameter first (for development)
+    const urlParams = new URLSearchParams(window.location.search);
+    const subdomainParam = urlParams.get('subdomain');
+    if (subdomainParam) {
+      return subdomainParam;
+    }
+    
     const hostname = window.location.hostname;
     
     // For development/replit environments, use 'demo'

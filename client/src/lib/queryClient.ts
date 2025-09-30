@@ -9,6 +9,13 @@ async function throwIfResNotOk(res: Response) {
 
 // Helper function to get the correct tenant subdomain
 function getTenantSubdomain(): string {
+  // Check for subdomain query parameter first (for development)
+  const urlParams = new URLSearchParams(window.location.search);
+  const subdomainParam = urlParams.get('subdomain');
+  if (subdomainParam) {
+    return subdomainParam;
+  }
+  
   const hostname = window.location.hostname;
   
   // For development/replit environments, use 'demo'
