@@ -16,6 +16,12 @@ function getTenantSubdomain(): string {
     return subdomainParam;
   }
   
+  // Check localStorage for user's organization subdomain (set during login)
+  const userSubdomain = localStorage.getItem('user_subdomain');
+  if (userSubdomain) {
+    return userSubdomain;
+  }
+  
   const hostname = window.location.hostname;
   
   // For development/replit environments, use 'demo'
