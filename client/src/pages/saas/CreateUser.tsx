@@ -69,7 +69,16 @@ export default function CreateUser() {
   const createUserMutation = useMutation({
     mutationFn: async (data: CreateUserFormData) => {
       const response = await saasApiRequest("POST", "/api/saas/users/create", data);
-      return response.json();
+      
+      // Explicitly check for success status codes (200, 201)
+      if (response.ok && (response.status === 200 || response.status === 201)) {
+        const result = await response.json();
+        return result;
+      }
+      
+      // If not successful, throw an error
+      const errorText = await response.text();
+      throw new Error(errorText || 'Failed to create user');
     },
     onSuccess: (newUser: any) => {
       setModalContent({
