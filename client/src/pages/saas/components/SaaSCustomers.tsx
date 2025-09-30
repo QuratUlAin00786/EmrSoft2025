@@ -96,7 +96,7 @@ export default function SaaSCustomers() {
           c.subdomain.toLowerCase() === generatedSubdomain.toLowerCase()
         );
         if (exists) {
-          setSubdomainError('This subdomain already exists. Please choose a different organization name.');
+          setSubdomainError('This title already exists. Please choose a different organization name.');
         } else {
           setSubdomainError('');
         }
