@@ -47,6 +47,7 @@ export default function SaaSCustomers() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [customerToDelete, setCustomerToDelete] = useState<any>(null);
   const [subdomainError, setSubdomainError] = useState('');
+  const [emailError, setEmailError] = useState('');
   const [newCustomer, setNewCustomer] = useState({
     name: '',
     brandName: '',
@@ -108,6 +109,22 @@ export default function SaaSCustomers() {
     }
   }, [newCustomer.name, customers]);
 
+  // Check email availability
+  useEffect(() => {
+    if (newCustomer.adminEmail && customers) {
+      const exists = customers.some((c: any) => 
+        c.adminEmail?.toLowerCase() === newCustomer.adminEmail.toLowerCase()
+      );
+      if (exists) {
+        setEmailError('Email already exists');
+      } else {
+        setEmailError('');
+      }
+    } else {
+      setEmailError('');
+    }
+  }, [newCustomer.adminEmail, customers]);
+
   // Fetch available billing packages
   const { data: billingPackages } = useQuery({
     queryKey: ['/api/saas/packages'],
@@ -125,6 +142,7 @@ export default function SaaSCustomers() {
       setSearchTerm('');
       setSelectedStatus('all');
       setSubdomainError('');
+      setEmailError('');
       setNewCustomer({
         name: '', brandName: '', subdomain: '', adminEmail: '', 
         adminFirstName: '', adminLastName: '', accessLevel: 'full', billingPackageId: '',
@@ -270,6 +288,7 @@ export default function SaaSCustomers() {
                 setIsAddDialogOpen(open);
                 if (!open) {
                   setSubdomainError('');
+                  setEmailError('');
                   setNewCustomer({
                     name: '', brandName: '', subdomain: '', adminEmail: '', 
                     adminFirstName: '', adminLastName: '', accessLevel: 'full', billingPackageId: '',
@@ -386,6 +405,11 @@ export default function SaaSCustomers() {
                             value={newCustomer.adminEmail}
                             onChange={(e) => setNewCustomer({...newCustomer, adminEmail: e.target.value})}
                           />
+                          {emailError && (
+                            <p className="text-xs text-red-600 mt-1 font-medium">
+                              {emailError}
+                            </p>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -516,7 +540,7 @@ export default function SaaSCustomers() {
                       </Button>
                       <Button 
                         onClick={() => createCustomerMutation.mutate(newCustomer)}
-                        disabled={createCustomerMutation.isPending || !newCustomer.name || !newCustomer.subdomain || !newCustomer.adminEmail || !newCustomer.adminFirstName || !newCustomer.adminLastName || !!subdomainError}
+                        disabled={createCustomerMutation.isPending || !newCustomer.name || !newCustomer.subdomain || !newCustomer.adminEmail || !newCustomer.adminFirstName || !newCustomer.adminLastName || !!subdomainError || !!emailError}
                         className="flex-1"
                       >
                         {createCustomerMutation.isPending ? 'Creating...' : 'Create Customer'}

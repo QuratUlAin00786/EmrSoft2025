@@ -1203,7 +1203,7 @@ export function registerSaaSRoutes(app: Express) {
           return res
             .status(400)
             .json({
-              message: `Subdomain '${customerData.subdomain}' is already taken. Please choose a different subdomain.`,
+              message: `Title '${customerData.subdomain}' is already taken. Please choose a different title.`,
             });
         }
 
@@ -1245,7 +1245,7 @@ export function registerSaaSRoutes(app: Express) {
           return res
             .status(400)
             .json({
-              message: `Subdomain '${req.body.subdomain}' is already taken. Please choose a different subdomain.`,
+              message: `Title '${req.body.subdomain}' is already taken. Please choose a different title.`,
             });
         }
 
