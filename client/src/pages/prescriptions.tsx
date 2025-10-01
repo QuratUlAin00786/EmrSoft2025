@@ -46,6 +46,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { useAuth } from "@/hooks/use-auth";
+import { getActiveSubdomain } from "@/lib/subdomain-utils";
 
 interface Prescription {
   id: string;
@@ -396,7 +397,7 @@ export default function PrescriptionsPage() {
     try {
       const token = localStorage.getItem("auth_token");
       const headers: Record<string, string> = {
-        "X-Tenant-Subdomain": "demo",
+        "X-Tenant-Subdomain": getActiveSubdomain(),
       };
 
       if (token) {
@@ -431,7 +432,7 @@ export default function PrescriptionsPage() {
     try {
       const token = localStorage.getItem("auth_token");
       const headers: Record<string, string> = {
-        "X-Tenant-Subdomain": "demo",
+        "X-Tenant-Subdomain": getActiveSubdomain(),
       };
 
       if (token) {
