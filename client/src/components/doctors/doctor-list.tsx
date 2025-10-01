@@ -382,10 +382,14 @@ export function DoctorList({
     return `${displayHour}:${minutes || '00'} ${ampm}`;
   };
 
-  // Filter to show only available staff members
+  // Filter to show only available doctors (role='doctor')
   // Based on backend logic: staff are available if they have no working days set OR if today is in their working days
   const today = new Date().toLocaleDateString("en-US", { weekday: "long" });
   const availableStaff = medicalStaff.filter((doctor: Doctor) => {
+    // Only show users with role='doctor'
+    if (doctor.role !== 'doctor') {
+      return false;
+    }
     // If no working days are set, staff is considered available (like mobile users)
     if (!doctor.workingDays || doctor.workingDays.length === 0) {
       return true;
