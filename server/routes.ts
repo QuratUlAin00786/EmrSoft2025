@@ -16,7 +16,7 @@ import { initializeMultiTenantPackage, getMultiTenantPackage } from "./packages/
 import { messagingService } from "./messaging-service";
 import { createPaypalOrder, capturePaypalOrder, loadPaypalDefault } from "./paypal";
 import { gdprComplianceService } from "./services/gdpr-compliance";
-import { insertGdprConsentSchema, insertGdprDataRequestSchema, updateMedicalImageReportFieldSchema, insertAiInsightSchema, medicationsDatabase, patientDrugInteractions, type Appointment, organizations, subscriptions } from "../shared/schema";
+import { insertGdprConsentSchema, insertGdprDataRequestSchema, updateMedicalImageReportFieldSchema, insertAiInsightSchema, medicationsDatabase, patientDrugInteractions, type Appointment, organizations, subscriptions, users } from "../shared/schema";
 import { db } from "./db";
 import { and, eq, sql } from "drizzle-orm";
 import { processAppointmentBookingChat, generateAppointmentSummary } from "./anthropic";
@@ -1511,7 +1511,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "No subscription found for this organization" });
       }
       
-      res.json(result[0]);
+      // Count actual users in the organization (excluding SaaS owners)
+      const userCountResult = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(users)
+        .where(and(
+          eq(users.organizationId, organizationId),
+          eq(users.isSaaSOwner, false)
+        ));
+      
+      const actualUserCount = userCountResult[0]?.count || 0;
+      
+      // Return subscription with actual user count
+      res.json({
+        ...result[0],
+        currentUsers: actualUserCount
+      });
     } catch (error) {
       console.error("Subscription fetch error:", error);
       res.status(500).json({ error: "Failed to fetch subscription" });
