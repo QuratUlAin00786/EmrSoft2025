@@ -720,11 +720,11 @@ export function registerSaaSRoutes(app: Express) {
         // Check if email exists in users table
         const existingUser = await storage.getUserByEmailGlobal(email as string);
         
-        // Check if email exists in organizations table (adminEmail field)
+        // Check if email exists in organizations table (email field)
         const [existingOrg] = await db
           .select()
           .from(organizations)
-          .where(eq(organizations.adminEmail, email as string));
+          .where(eq(organizations.email, email as string));
 
         const emailAvailable = !existingUser && !existingOrg;
 
