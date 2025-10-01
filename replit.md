@@ -24,15 +24,27 @@ Complete legal framework implemented for Cura Software Limited:
 
 ## Subdomain-Based Organizational Routing (September 2025)
 **COMPLETE SUBDOMAIN-SCOPED ROUTING SYSTEM - PRODUCTION READY**
-- **Architecture**: All protected routes now use `/:subdomain/*` pattern (e.g., `/demo/patients`, `/sundas/dashboard`)
+
+### Why Subdomain-Based Routing?
+Subdomain routing provides clear **multi-tenant isolation** by giving each organization its own URL namespace:
+- **Data Security**: URLs like `/metro44/patients` vs `/demo/patients` make it immediately visible which organization's data you're accessing
+- **URL Clarity**: Users can clearly see their organization context in every URL (e.g., `https://app.curaemr.ai/metro44/messaging`)
+- **Prevents Accidents**: Makes it harder to accidentally access another organization's data since subdomain is explicit in every route
+- **Bookmarking**: Users can bookmark organization-specific pages and return to the correct tenant context
+- **Navigation Context**: Sidebar automatically shows routes scoped to user's organization (e.g., `/metro44/patients` instead of just `/patients`)
+
+### Implementation Details
+- **Architecture**: All protected routes use `/:subdomain/*` pattern (e.g., `/demo/patients`, `/metro44/dashboard`)
 - **Subdomain Resolution**: Centralized `getActiveSubdomain()` utility with RESERVED_ROUTES list prevents legacy path misidentification
-- **Navigation**: Sidebar links automatically prefixed with tenant subdomain for seamless organizational context
+- **Subdomain Storage**: User's organization subdomain stored in `localStorage.user_subdomain` during login
+- **Navigation**: Sidebar links automatically prefixed with `tenant.subdomain || getActiveSubdomain()` for seamless organizational context
+- **Tenant Hook**: `useTenant` fetches tenant info from API using subdomain from localStorage (set during login)
 - **Legacy Route Handling**: Comprehensive redirect system preserves full paths, query strings, and dynamic segments when migrating from unscoped URLs
-- **Authentication Flow**: Login redirects preserve subdomain context, unauthenticated users routed to `/:subdomain/auth/login`
+- **Authentication Flow**: Login at `/auth/login` stores user's organization subdomain → redirects to `/:subdomain/dashboard`
 - **Tenant Isolation**: Each organization's data accessed exclusively through their subdomain URL structure
 - **API Integration**: Tenant middleware detects subdomain from `X-Tenant-Subdomain` header for consistent data filtering
-- **Status**: PRODUCTION READY - All edge cases handled, architect-verified as deployment-ready
-- **Implementation Date**: September 30, 2025
+- **Status**: PRODUCTION READY - All edge cases handled, including proper subdomain detection from localStorage
+- **Last Updated**: October 1, 2025 (Fixed tenant hook to use localStorage instead of hostname)
 
 ## Facial Muscle Analysis System Enhancement (September 2025)
 **32-POSITION MUSCLE ANALYSIS SYSTEM IMPLEMENTED**

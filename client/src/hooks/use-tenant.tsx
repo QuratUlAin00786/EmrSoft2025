@@ -15,36 +15,16 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Extract tenant from subdomain
-    const hostname = window.location.hostname;
-    const subdomain = hostname.split('.')[0];
+    // Get subdomain from localStorage (set during login) instead of hostname
+    // This ensures we use the user's actual organization subdomain, not the Replit subdomain
+    const subdomain = localStorage.getItem('user_subdomain') || 'demo';
     
-    // For development, we'll use a default tenant
-    if (hostname === 'localhost' || hostname.includes('repl.co')) {
-      setTenant({
-        id: 1,
-        name: "Demo Healthcare Clinic",
-        subdomain: "demo",
-        region: "UK",
-        brandName: "MediCore EMR",
-        settings: {
-          theme: { primaryColor: "#1976D2" },
-          compliance: { gdprEnabled: true, dataResidency: "EU" },
-          features: { aiEnabled: true, billingEnabled: true }
-        }
-      });
-      setLoading(false);
-      return;
-    }
-
-    // In production, this would fetch tenant data from API
-    // based on subdomain
+    // Fetch tenant data from API based on subdomain
     const fetchTenant = async () => {
       try {
         setLoading(true);
         setError(null);
         
-        // This would be a real API call
         const response = await fetch('/api/tenant/info', {
           headers: {
             'X-Tenant-Subdomain': subdomain
