@@ -69,6 +69,32 @@ const roleColors = {
   receptionist: "bg-orange-100 text-orange-800",
 };
 
+// Helper function to get the correct tenant subdomain
+function getTenantSubdomain(): string {
+  const storedSubdomain = localStorage.getItem('user_subdomain');
+  if (storedSubdomain) {
+    return storedSubdomain;
+  }
+  
+  const urlParams = new URLSearchParams(window.location.search);
+  const subdomainParam = urlParams.get('subdomain');
+  if (subdomainParam) {
+    return subdomainParam;
+  }
+  
+  const hostname = window.location.hostname;
+  if (hostname.includes('.replit.app') || hostname.includes('localhost') || hostname.includes('replit.dev') || hostname.includes('127.0.0.1')) {
+    return 'demo';
+  }
+  
+  const parts = hostname.split('.');
+  if (parts.length >= 2) {
+    return parts[0] || 'demo';
+  }
+  
+  return 'demo';
+}
+
 function getInitials(firstName: string, lastName: string): string {
   return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
 }
@@ -566,7 +592,7 @@ export function DoctorList({
                       className="bg-white hover:bg-gray-50 border border-gray-200 flex-shrink-0"
                       onClick={(e) => {
                         e.stopPropagation();
-                        setLocation(`/staff/${doctor.id}`);
+                        setLocation(`/${getTenantSubdomain()}/staff/${doctor.id}`);
                       }}
                     >
                       View Profile
