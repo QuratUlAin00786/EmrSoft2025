@@ -859,7 +859,7 @@ export default function SaaSCustomers() {
                           </DialogContent>
                         </Dialog>
 
-                        {!isAddDialogOpen && !isSuccessModalOpen && (
+                        {!isAddDialogOpen && !isSuccessModalOpen && !editingCustomer && (
                           <button
                             type="button"
                             onClick={() => {

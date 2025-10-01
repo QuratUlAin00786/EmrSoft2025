@@ -4531,7 +4531,8 @@ export class DatabaseStorage implements IStorage {
             // Update existing subscription
             await db.update(subscriptions)
               .set({
-                plan: selectedPackage[0].name,
+                planName: selectedPackage[0].name,
+                plan: selectedPackage[0].name.toLowerCase(),
                 status: 'active',
               })
               .where(eq(subscriptions.organizationId, organizationId));
@@ -4539,7 +4540,8 @@ export class DatabaseStorage implements IStorage {
             // Create new subscription
             await db.insert(subscriptions).values({
               organizationId: organizationId,
-              plan: selectedPackage[0].name,
+              planName: selectedPackage[0].name,
+              plan: selectedPackage[0].name.toLowerCase(),
               status: 'active',
             });
           }
