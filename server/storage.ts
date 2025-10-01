@@ -4470,6 +4470,8 @@ export class DatabaseStorage implements IStorage {
             planName: selectedPackage[0].name,
             plan: selectedPackage[0].name,
             status: 'active',
+            monthlyPrice: selectedPackage[0].price,
+            features: customerData.features || selectedPackage[0].features || {},
           });
           console.log('✅ [CUSTOMER-CREATE] Billing subscription created for package:', selectedPackage[0].name);
         }
@@ -4534,6 +4536,8 @@ export class DatabaseStorage implements IStorage {
                 planName: selectedPackage[0].name,
                 plan: selectedPackage[0].name.toLowerCase(),
                 status: 'active',
+                monthlyPrice: selectedPackage[0].price,
+                features: customerData.features || selectedPackage[0].features || {},
               })
               .where(eq(subscriptions.organizationId, organizationId));
           } else {
@@ -4543,6 +4547,8 @@ export class DatabaseStorage implements IStorage {
               planName: selectedPackage[0].name,
               plan: selectedPackage[0].name.toLowerCase(),
               status: 'active',
+              monthlyPrice: selectedPackage[0].price,
+              features: customerData.features || selectedPackage[0].features || {},
             });
           }
           
