@@ -40,6 +40,7 @@ import { Link } from "wouter";
 import { toast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Header } from "@/components/layout/header";
+import { getActiveSubdomain } from "@/lib/subdomain-utils";
 
 
 const userSchema = z.object({
@@ -983,7 +984,7 @@ export default function UserManagement() {
               <UserPlus className="h-4 w-4" />
               Add New User
             </Button>
-            <Link href="/permissions-reference">
+            <Link href={`/${getActiveSubdomain()}/permissions-reference`}>
               <Button variant="outline" className="flex items-center gap-2">
                 <BookOpen className="h-4 w-4" />
                 View Role Permissions
