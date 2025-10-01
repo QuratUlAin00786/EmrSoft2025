@@ -450,7 +450,11 @@ export default function PrescriptionsPage() {
 
       const data = await response.json();
       console.log("Fetched providers:", data);
-      setProviders(data.staff || []);
+      // Filter out patients and admins - only show doctors, nurses, etc.
+      const filteredProviders = (data.staff || []).filter((provider: any) => 
+        provider.role !== 'patient' && provider.role !== 'admin'
+      );
+      setProviders(filteredProviders);
     } catch (err) {
       console.error("Error fetching providers:", err);
       setProviders([]);
