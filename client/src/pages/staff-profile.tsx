@@ -33,7 +33,7 @@ const roleColors: Record<string, string> = {
 };
 
 export default function StaffProfile() {
-  const [match, params] = useRoute("/staff/:id");
+  const [match, params] = useRoute("/:subdomain/staff/:id");
   const staffId = params?.id;
 
   const { data: staffMember, isLoading, error } = useQuery({
