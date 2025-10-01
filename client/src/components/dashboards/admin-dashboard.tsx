@@ -51,10 +51,17 @@ function RecentPatientsList() {
         setIsLoading(true);
         setError(null);
         
+        const token = localStorage.getItem('auth_token');
+        const headers: Record<string, string> = {
+          'X-Tenant-Subdomain': getTenantSubdomain(),
+        };
+        
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+        
         const response = await fetch('/api/patients', {
-          headers: {
-            'X-Tenant-Subdomain': getTenantSubdomain(),
-          },
+          headers,
           credentials: 'include'
         });
         
