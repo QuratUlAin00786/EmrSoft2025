@@ -1,0 +1,623 @@
+
+/metro44/lab-results
+2
+
+Unexpected error happened 😕
+
+b69b94ad0df2411fba9a8f2f32f9f8ff
+
+
+We're already looking into it! Feel free to reach out to our support team, make sure to copy error ID
+
+syntax error at or near ")"
+Error: syntax error at or near ")"
+    at https://cdn.replit.com/_next/static/chunks/7733-70be891e033e0558.js:1:1565228
+    at Object.next (https://cdn.replit.com/_next/static/chunks/main-a4a4f9c133c2c8b1.js:1:192963)
+    at n (https://cdn.replit.com/_next/static/chunks/main-a4a4f9c133c2c8b1.js:1:59305)
+    at u (https://cdn.replit.com/_next/static/chunks/main-a4a4f9c133c2c8b1.js:1:59502)
+import React, { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import {
+  Calendar,
+  Clock,
+  User,
+  MapPin,
+  Video,
+  Plus,
+  FileText,
+  Edit,
+  Trash2,
+  X,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+import { format, isSameDay, isToday, isFuture, isPast } from "date-fns";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
+
+const statusColors = {
+  scheduled: "#4A7DFF",
+  completed: "#6CFFEB",
+  cancelled: "#162B61",
+  no_show: "#9B9EAF",
+};
+
+export default function PatientAppointments({
+  onNewAppointment,
+}: {
+  onNewAppointment?: () => void;
+}) {
+  const [selectedFilter, setSelectedFilter] = useState<
+    "all" | "upcoming" | "past"
+  >("upcoming");
+  const [editingAppointment, setEditingAppointment] = useState<any>(null);
+  const [deletingAppointmentId, setDeletingAppointmentId] = useState<
+    number | null
+  >(null);
+  const [cancellingAppointmentId, setCancellingAppointmentId] = useState<
+    number | null
+  >(null);
+  const [bookedTimeSlots, setBookedTimeSlots] = useState<string[]>([]);
+
+  // Patient filter states
+  const [patientFilterDate, setPatientFilterDate] = useState<string>("");
+  const [patientFilterSpecialty, setPatientFilterSpecialty] =
+    useState<string>("");
+  const [patientFilterSubSpecialty, setPatientFilterSubSpecialty] =
+    useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<'all'|'scheduled'|'cancelled'|'completed'|'rescheduled'|'no_show'>('scheduled');
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Helper function to normalize status values for case-insensitive filtering
+  const normalizeStatus = (s?: string) => (s || '').toLowerCase().replace(/\s+/g, '_');
+
+  // Fetch patients to find the current user's patient record
+Production
+Status
+salman711 published about 4 hours ago
+Visibility
+Public
+Domain
+https://cura-emr-uk-backup-1-sep-25-salman711.replit.app
+https://app.curaemr.ai
+Type
+Autoscale
+(4 vCPU / 8 GiB RAM / 3 Max)
+See all usage
+Database
+Production database connected
+c86f8409
+SA
+
+salman711
+salman711
+published about 5 hours ago
+4693716e
+SA
+
+salman711
+salman711
+published about 11 hours ago
+41451534
+SA
+
+salman711
+salman711
+published about 21 hours ago
+e72e79d7
+SA
+
+salman711
+salman711
+published about 24 hours ago
+077647a2
+SA
+
+salman711
+salman711
+published 1 day ago
+314fb365
+SA
+
+salman711
+salman711
+published 1 day ago
+d9c11c27
+SA
+
+salman711
+salman711
+published 1 day ago
+8abb6ef4
+SA
+
+salman711
+salman711
+published 1 day ago
+8cf701d0
+SA
+
+salman711
+salman711
+published 2 days ago
+fead555a
+SA
+
+salman711
+salman711
+published 2 days ago
+315d4a48
+SA
+
+salman711
+salman711
+published 2 days ago
+b6d1cf2c
+SA
+
+salman711
+salman711
+published 3 days ago
+306f7652
+SA
+
+salman711
+salman711
+published 7 days ago
+ac4f1a52
+SA
+
+salman711
+salman711
+published 7 days ago
+02c70a07
+SA
+
+salman711
+salman711
+published 7 days ago
+257e3313
+SA
+
+salman711
+salman711
+published 7 days ago
+eb1fa4df
+SA
+
+salman711
+salman711
+published 7 days ago
+056b885f
+SA
+
+salman711
+salman711
+published 7 days ago
+da0da9bb
+SA
+
+salman711
+salman711
+published 7 days ago
+c8faf3a8
+SA
+
+salman711
+salman711
+published 7 days ago
+9a6f5b2e
+SA
+
+salman711
+salman711
+published 7 days ago
+19949a18
+SA
+
+salman711
+salman711
+published 8 days ago
+e337879f
+SA
+
+salman711
+salman711
+published 8 days ago
+278dce4d
+SA
+
+salman711
+salman711
+published 8 days ago
+8822b964
+SA
+
+salman711
+salman711
+published 8 days ago
+6203f31a
+SA
+
+salman711
+salman711
+published 8 days ago
+9121d994
+SA
+
+salman711
+salman711
+published 9 days ago
+3514e351
+SA
+
+salman711
+salman711
+published 9 days ago
+929d628d
+SA
+
+salman711
+salman711
+published 10 days ago
+38e7ac2a
+SA
+
+salman711
+salman711
+published 10 days ago
+620fab84
+SA
+
+salman711
+salman711
+published 11 days ago
+cecebb06
+SA
+
+salman711
+salman711
+published 12 days ago
+2d0bdefe
+SA
+
+salman711
+salman711
+published 12 days ago
+a9c21496
+SA
+
+salman711
+salman711
+published 13 days ago
+a6a671e8
+SA
+
+salman711
+salman711
+published 13 days ago
+6ebce0d9
+SA
+
+salman711
+salman711
+published 13 days ago
+508589dd
+SA
+
+salman711
+salman711
+published 13 days ago
+c0622571
+SA
+
+salman711
+salman711
+published 13 days ago
+902383dc
+SA
+
+salman711
+salman711
+published 13 days ago
+3c434ea2
+SA
+
+salman711
+salman711
+published 14 days ago
+Maximum Patients
+1 / 2
+current match. <Label htmlFor="maxPatients">Maximum Patients</Label> on line 476.
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from '@/components/ui/table';
+import { 
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { saasApiRequest } from '@/lib/saasQueryClient';
+import { useToast } from '@/hooks/use-toast';
+import { 
+  Search, 
+  Building2, 
+  Plus, 
+  Edit, 
+  Eye,
+  Users,
+  Calendar,
+  CreditCard,
+  Settings,
+  Trash2
+} from 'lucide-react';
+
+export default function SaaSCustomers() {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [editingCustomer, setEditingCustomer] = useState<any>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [customerToDelete, setCustomerToDelete] = useState<any>(null);
+  const [subdomainError, setSubdomainError] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [newCustomer, setNewCustomer] = useState({
+    name: '',
+    brandName: '',
+    subdomain: '',
+    adminEmail: '',
+    adminFirstName: '',
+    adminLastName: '',
+    accessLevel: 'full', // full, limited
+    billingPackageId: '',
+    features: {
+      maxUsers: 10,
+      maxPatients: 100,
+      aiEnabled: true,
+      telemedicineEnabled: true,
+      billingEnabled: true,
+      analyticsEnabled: true,
+    }
+  });
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Fetch all organizations/customers
+  const { data: customers, isLoading } = useQuery({
+    queryKey: ['/api/saas/customers', searchTerm, selectedStatus],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (searchTerm) params.append('search', searchTerm);
+      if (selectedStatus && selectedStatus !== 'all') params.append('status', selectedStatus);
+                        className="flex-1"
+Fix customer creation to show correct success and error messages
+
+2 messages & 3 actions
+Now I'll fix the sidebar to hide "Patient Portal" from non-patient users:
+Checkpoint made
+2 hours ago
+Restrict access to specific features for patient role users
+59 seconds of work
+in the file "client/src/pages/saas/components/SaaSCustomers.tsx", under the popup "Add New Customer Organization" rename "Create Customer" to "Create Organization" button. .Please do not change anything else while doing this.
+
+2 hours ago
+
+4 messages & 13 actions
+Let me find and update the "Create Customer" button text:
+Checkpoint made
+1 hour ago
+Update customer creation dialog to use organization terminology
+2 minutes of work
+in saas, in "Organizations" tab, when click on "Add Organization" button.under the popup "Add New Customer Organization" rename "Create Customer" to "Create Organization" button. .Please do not change anything else while doing this.
+
+1 hour ago
+
+3 messages & 9 actions
+I can see in your screenshot that the button says "Create Customer". Let me search more thoroughly for this text:
+Checkpoint made
+1 hour ago
+Update button text to create a new customer organization
+1 minute of work
+in prescription.tsx, when click on "New Prescription" button, "Create New Prescription" popup opens, please add "Patient", "Prescribing Doctor" based on organization id or subdomain..Please do not change anything else while doing this.
+
+24 minutes ago
+
+2 messages & 26 actions
+Let me find and examine the prescription.tsx file to add patient and doctor dropdowns based on organization:
+Checkpoint made
+20 minutes ago
+Add patient and doctor information to new prescription popups
+3 minutes of work
+in prescription.tsx, when click on "New Prescription" button, "Create New Prescription" popup opens, "Prescribing Doctor" based on organization id or subdomain (which role not equals to 'patinet' and 'Administrator')..Please do not change anything else while doing this.
+
+18 minutes ago
+
+2 messages & 6 actions
+Let me check how the providers are being filtered and displayed:
+Checkpoint made
+17 minutes ago
+Update doctor selection to exclude patients and administrators
+57 seconds of work
+in prescription.tsx, when click on "New Prescription" button, "Create New Prescription" popup opens, "Create Prescription" (create prescription based on organization id or subdomain)error "Failed to create prescription: 403". .Please do not change anything else while doing this.
+
+14 minutes ago
+
+3 messages & 8 actions
+Let me check the prescription creation code to find where the 403 error is coming from:
+Checkpoint made
+12 minutes ago
+Update tenant subdomain retrieval for dynamic routing and API calls
+1 minute of work
+if any other function or button need this changes please fix it creation was using hardcoded "demo" subdomain instead of the current organization's subdomain, causing a 403 Forbidden error. check all pages and update it.
+Changes made to client/src/pages/prescriptions.tsx (line 638) made like in others pages also
+Changed from: "X-Tenant-Subdomain": "demo"
+Changed to: "X-Tenant-Subdomain": getActiveSubdomain()
+.Please do not change anything else while doing this.
+
+9 minutes ago
+
+Searched codebase for hardcoded subdomains
+The user wants me to search for all instances of hardcoded "demo" subdomain across all pages and replace them with getActiveSubdomain(). This is exactly what the feedback suggested - I should use the search_codebase tool to find all instances.
+
+Let me search for all occurrences of hardcoded "demo" subdomain in the codebase.
+
+I'll search the entire codebase for all instances of hardcoded "demo" subdomain and replace them with getActiveSubdomain(). Let me start by finding all occurrences:
+
+
+Executed rg -n '"X-Tenant-Subdomain":\s*"demo"' client/src
+
+Decided on import and replacement strategy
+Found many instances! Let me fix them systematically. I'll start by checking which files need the import and then replace all hardcoded "demo" subdomains:
+
+
+Planned file import and fixes
+Now let me fix all the files. I'll start with the remaining instances in prescriptions.tsx, then move to the other files:
+
+
+Figured out prescription code fixes
+Now let me fix all the remaining instances in prescriptions.tsx:
+
+
+Decided on prescription component logic
+Now let me fix the remaining instances in prescriptions.tsx (sendToPharmacyMutation):
+
+
+Opened client/src/pages/prescriptions.tsx
+
+Decided on pharmacy mutation fixes
+
+Edited client/src/pages/prescriptions.tsx
+
+Edited client/src/pages/prescriptions.tsx
+
+Restarted Start application
+
+Decided on prescriptions.tsx completion
+Good! Now let me move on to the other files. Starting with **
+
+
+Planned financial-intelligence file changes
+Great! Now let me fix the other files. Starting with financial-intelligence.tsx:
+
+
+Replaced "demo" instances with getActiveSubdomain
+Now let me replace all hardcoded "demo" instances in financial-intelligence.tsx:
+
+
+Edited client/src/pages/financial-intelligence.tsx
+
+Chose dashboard file next
+Perfect! Now let me fix dashboard.tsx:
+
+
+Chose imaging.tsx focus
+Perfect! Now let me fix imaging.tsx:
+
+
+Planned telemedicine component integration
+Excellent! Now let me fix telemedicine.tsx:
+
+
+Decided on voice-documentation file
+Great! Now let me fix voice-documentation.tsx:
+
+
+Decided on patient-list file
+Perfect! Now let me fix the component files. Starting with patient-list.tsx:
+
+
+Planned recent patients component
+Excellent! Now the final file - recent-patients.tsx:
+
+
+Decided on file cleanup strategy
+Perfect! Let me verify that all hardcoded "demo" subdomains have been replaced:
+
+
+Executed rg -l '"X-Tenant-Subdomain":\s*"demo"' client/src
+
+Diagnosed LSP diagnostics issues
+Excellent! All hardcoded "demo" subdomains have been successfully replaced. Let me check the LSP diagnostics to see if there are any issues:
+
+Checked code issues
+
+Decided on subdomain fix scope (4 seconds)
+✅ All Done!
+
+I've successfully fixed all hardcoded "demo" subdomains across the entire codebase and replaced them with getActiveSubdomain().
+
+Summary of Changes:
+Files Fixed (8 total):
+✅ client/src/pages/prescriptions.tsx - 6 instances fixed
+
+Status update mutation
+Patient prescriptions fetch
+Doctor prescriptions fetch
+All prescriptions fetch
+Create prescription mutation (already done)
+Send to pharmacy mutation
+✅ client/src/pages/financial-intelligence.tsx - 6 instances fixed
+
+✅ client/src/pages/dashboard.tsx - 1 instance fixed
+
+✅ client/src/pages/imaging.tsx - 8 instances fixed
+
+✅ client/src/pages/telemedicine.tsx - 4 instances fixed
+
+✅ client/src/pages/voice-documentation.tsx - 8 instances fixed
+
+✅ client/src/components/patients/patient-list.tsx - 2 instances fixed
+
+✅ client/src/components/dashboard/recent-patients.tsx - 1 instance fixed
+
+What Was Done:
+✅ Added import { getActiveSubdomain } from "@/lib/subdomain-utils"; to all 8 files
+✅ Replaced all "X-Tenant-Subdomain": "demo" with "X-Tenant-Subdomain": getActiveSubdomain()
+✅ Verified no hardcoded "demo" subdomains remain in the codebase
+Result: All API requests now use the correct organization subdomain dynamically, eliminating 403 Forbidden errors caused by hardcoded "demo" values! 🎯

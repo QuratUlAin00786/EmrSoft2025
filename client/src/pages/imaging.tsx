@@ -934,29 +934,10 @@ export default function ImagingPage() {
 
       console.log('📷 CLIENT: Uploading to /api/medical-images/upload with unique naming');
 
-      // Helper function to get the correct tenant subdomain (same as queryClient.ts)
-      function getTenantSubdomain(): string {
-        const hostname = window.location.hostname;
-        
-        // For development/replit environments, use 'demo'
-        if (hostname.includes('.replit.app') || hostname.includes('localhost') || hostname.includes('replit.dev') || hostname.includes('127.0.0.1')) {
-          return 'demo';
-        }
-        
-        // For production environments, extract subdomain from hostname
-        const parts = hostname.split('.');
-        if (parts.length >= 2) {
-          return parts[0] || 'demo';
-        }
-        
-        // Fallback to 'demo'
-        return 'demo';
-      }
-
       // Upload using fetch to handle FormData properly with authentication
       const token = localStorage.getItem('auth_token');
       const headers: Record<string, string> = {
-        'X-Tenant-Subdomain': getTenantSubdomain()
+        'X-Tenant-Subdomain': getActiveSubdomain()
       };
       
       if (token) {
