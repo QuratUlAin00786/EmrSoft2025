@@ -43,6 +43,33 @@ import { queryClient } from "@/lib/queryClient";
 import facialMuscleImage from "@assets/generated_images/Updated_facial_muscle_diagram.png";
 import facialOutlineImage from "@assets/generated_images/Clean_facial_outline_v2.png";
 
+// Helper function to get the correct tenant subdomain
+function getTenantSubdomain(): string {
+  const storedSubdomain = localStorage.getItem('user_subdomain');
+  if (storedSubdomain) {
+    return storedSubdomain;
+  }
+  
+  const urlParams = new URLSearchParams(window.location.search);
+  const subdomainParam = urlParams.get('subdomain');
+  if (subdomainParam) {
+    return subdomainParam;
+  }
+  
+  const hostname = window.location.hostname;
+  
+  if (hostname.includes('.replit.app') || hostname.includes('localhost') || hostname.includes('replit.dev') || hostname.includes('127.0.0.1')) {
+    return 'demo';
+  }
+  
+  const parts = hostname.split('.');
+  if (parts.length >= 2) {
+    return parts[0] || 'demo';
+  }
+  
+  return 'demo';
+}
+
 interface FullConsultationInterfaceProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -98,7 +125,7 @@ export function FullConsultationInterface({ open, onOpenChange, patient, patient
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'demo'
+          'X-Tenant-Subdomain': getTenantSubdomain()
         },
         body: JSON.stringify({
           type: 'vitals',
