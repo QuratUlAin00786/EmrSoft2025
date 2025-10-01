@@ -1393,7 +1393,7 @@ export default function PrescriptionsPage() {
                     <span class="info-label">Sex:</span> M
                   </div>
                   <div class="info-line">
-                    <span class="info-label">Date:</span> ${formatDate(prescription.prescribedAt)}
+                    <span class="info-label">Date:</span> ${formatDate(prescription.prescribedAt || prescription.issuedDate || prescription.createdAt)}
                   </div>
                 </div>
               </div>
@@ -2370,7 +2370,7 @@ export default function PrescriptionsPage() {
                           <p className="text-sm text-gray-800 dark:text-gray-100">
                             <strong>Date:</strong>{" "}
                             {format(
-                              new Date(prescription.prescribedAt),
+                              new Date(prescription.prescribedAt || prescription.issuedDate || prescription.createdAt),
                               "MM/dd/yyyy",
                             )}
                           </p>
