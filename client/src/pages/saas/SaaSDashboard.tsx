@@ -186,7 +186,7 @@ export default function SaaSDashboard({ onLogout }: SaaSDashboardProps) {
             </TabsTrigger>
             <TabsTrigger value="customers" className="flex items-center space-x-2">
               <Building2 className="h-4 w-4" />
-              <span>Customers</span>
+              <span>Organizations</span>
             </TabsTrigger>
             <TabsTrigger value="billing" className="flex items-center space-x-2">
               <CreditCard className="h-4 w-4" />
@@ -205,7 +205,7 @@ export default function SaaSDashboard({ onLogout }: SaaSDashboardProps) {
           <TabsContent value="overview" className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <StatCard
-                title="Total Customers"
+                title="Total Organizations"
                 value={stats?.totalCustomers || 0}
                 icon={Building2}
                 trend={false}

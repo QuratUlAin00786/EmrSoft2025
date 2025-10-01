@@ -288,7 +288,7 @@ export default function SaaSCustomers() {
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center space-x-2">
               <Building2 className="h-5 w-5 text-blue-600" />
-              <span>Customer Management</span>
+              <span>Organization Management</span>
             </CardTitle>
             <div className="flex items-center space-x-2">
               <Badge variant="secondary">
@@ -312,7 +312,7 @@ export default function SaaSCustomers() {
                 <DialogTrigger asChild>
                   <Button size="sm" className="flex items-center space-x-2">
                     <Plus className="h-4 w-4" />
-                    <span>Add Customer</span>
+                    <span>Add Organization</span>
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto z-[9999]">
