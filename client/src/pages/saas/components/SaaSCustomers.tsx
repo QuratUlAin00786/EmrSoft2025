@@ -142,7 +142,18 @@ export default function SaaSCustomers() {
       setIsSuccessModalOpen(true);
     },
     onError: (error: any) => {
-      const errMsg = error.message || "Failed to create customer";
+      let errMsg = error.message || "Failed to create customer";
+      
+      // Parse JSON error message if present
+      try {
+        if (errMsg.startsWith('{') && errMsg.includes('"message"')) {
+          const parsed = JSON.parse(errMsg);
+          errMsg = parsed.message || errMsg;
+        }
+      } catch (e) {
+        // If parsing fails, use the original message
+      }
+      
       setErrorMessage(errMsg);
       setIsErrorModalOpen(true);
     },
