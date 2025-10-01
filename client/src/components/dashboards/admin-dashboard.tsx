@@ -268,7 +268,7 @@ export function AdminDashboard() {
     },
     {
       title: "Revenue (MTD)",
-      value: isLoading ? "--" : `£${(stats?.revenue || 0).toLocaleString()}`,
+      value: isLoading ? "--" : "£0",
       description: isLoading ? "Loading..." : "Month to date revenue",
       icon: CreditCard,
       href: "/billing",
