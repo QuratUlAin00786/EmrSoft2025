@@ -2030,7 +2030,8 @@ export function PatientList({ onSelectPatient, showActiveOnly = true }: PatientL
       title: "Medical Records",
       description: `Opening medical records for ${patient.firstName} ${patient.lastName}`,
     });
-    setLocation(`/patients/${patient.id}/records`);
+    const subdomain = getTenantSubdomain();
+    setLocation(`/${subdomain}/patients/${patient.id}/records`);
   };
 
   const {
@@ -2648,9 +2649,10 @@ export function PatientList({ onSelectPatient, showActiveOnly = true }: PatientL
                       <Button
                         size="default"
                         variant="outline"
-                        onClick={() =>
-                          setLocation(`/patients/${patient.id}/records`)
-                        }
+                        onClick={() => {
+                          const subdomain = getTenantSubdomain();
+                          setLocation(`/${subdomain}/patients/${patient.id}/records`);
+                        }}
                         className="flex-1 text-sm text-white"
                         style={{
                           borderColor: "#4A7DFF",
