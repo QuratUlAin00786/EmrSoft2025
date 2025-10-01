@@ -163,9 +163,9 @@ export default function SaaSCustomers() {
       });
       // Show success modal with appropriate message
       if (data.emailSent === false) {
-        setSuccessMessage('Customer created successfully but email sending failed.');
+        setSuccessMessage('Organization created successfully but email sending failed.');
       } else {
-        setSuccessMessage('Customer created successfully!');
+        setSuccessMessage('Organization created successfully!');
       }
       setIsSuccessModalOpen(true);
     },
@@ -917,7 +917,7 @@ export default function SaaSCustomers() {
       <Dialog open={isSuccessModalOpen} onOpenChange={setIsSuccessModalOpen}>
         <DialogContent className="z-[9999]">
           <DialogHeader>
-            <DialogTitle>Customer Created Successfully</DialogTitle>
+            <DialogTitle>Organization Created Successfully</DialogTitle>
           </DialogHeader>
           <div className="py-4">
             <p className="text-center text-gray-700">
