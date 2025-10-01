@@ -179,7 +179,7 @@ export function FullConsultationInterface({ open, onOpenChange, patient, patient
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'demo',
+          'X-Tenant-Subdomain': getTenantSubdomain(),
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -246,7 +246,7 @@ export function FullConsultationInterface({ open, onOpenChange, patient, patient
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'demo',
+          'X-Tenant-Subdomain': getTenantSubdomain(),
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -311,7 +311,7 @@ export function FullConsultationInterface({ open, onOpenChange, patient, patient
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'demo'
+          'X-Tenant-Subdomain': getTenantSubdomain()
         },
         body: JSON.stringify({
           type: 'assessment',
@@ -370,7 +370,7 @@ export function FullConsultationInterface({ open, onOpenChange, patient, patient
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'demo'
+          'X-Tenant-Subdomain': getTenantSubdomain()
         },
         body: JSON.stringify({
           type: 'summary',
