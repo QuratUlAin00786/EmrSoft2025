@@ -204,8 +204,12 @@ export function PatientModal({ open, onOpenChange, editMode = false, editPatient
         const response = await apiRequest("GET", `/api/patients/check-email?email=${encodeURIComponent(watchedEmail)}`);
         const data = await response.json();
         
-        if (data.associatedWithAnotherOrg) {
-          setEmailError("This email is associated with another Cura's organization.");
+        if (!data.emailAvailable) {
+          if (data.associatedWithAnotherOrg) {
+            setEmailError("This email is associated with another Cura's organization.");
+          } else {
+            setEmailError("This email is already in use.");
+          }
         }
       } catch (error) {
         console.error("Error checking email:", error);

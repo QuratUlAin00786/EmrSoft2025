@@ -1629,12 +1629,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Email is required" });
       }
 
-      // Check if email exists in patients table
-      const patients = await storage.getPatientsByOrganization(0, 1000); // Get all patients globally
-      const existingPatient = patients.find(p => p.email === email && p.organizationId !== currentOrgId);
+      // Check if email exists in patients table (same organization)
+      const patientsInSameOrg = await storage.getPatientsByOrganization(currentOrgId, 1000);
+      const patientInSameOrg = patientsInSameOrg.find(p => p.email === email);
 
-      // Check if email exists in users table
+      // Check if email exists in patients table (other organizations)
+      const allPatients = await storage.getPatientsByOrganization(0, 1000); // Get all patients globally
+      const patientInDifferentOrg = allPatients.find(p => p.email === email && p.organizationId !== currentOrgId);
+
+      // Check if email exists in users table (same organization)
       const existingUser = await storage.getUserByEmailGlobal(email as string);
+      const userInSameOrg = existingUser && existingUser.organizationId === currentOrgId;
       const userInDifferentOrg = existingUser && existingUser.organizationId !== currentOrgId;
 
       // Check if email exists in organizations table
@@ -1644,9 +1649,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .where(eq(organizations.email, email as string));
       const orgIsDifferent = existingOrg && existingOrg.id !== currentOrgId;
 
-      // Determine if email is available and if it's associated with another organization
-      const emailAvailable = !existingPatient && !userInDifferentOrg && !orgIsDifferent;
-      const associatedWithAnotherOrg = existingPatient || userInDifferentOrg || orgIsDifferent;
+      // Determine if email is available
+      const emailAvailable = !patientInSameOrg && !userInSameOrg && !patientInDifferentOrg && !userInDifferentOrg && !orgIsDifferent;
+      const associatedWithAnotherOrg = patientInDifferentOrg || userInDifferentOrg || orgIsDifferent;
 
       // Prevent caching
       res.setHeader(
