@@ -24,6 +24,34 @@ import type { MedicalRecord } from "@/types";
 import anatomicalDiagramImage from "@assets/2_1754469563272.png";
 import facialMuscleImage from "@assets/generated_images/Updated_facial_muscle_diagram.png";
 import facialOutlineImage from "@assets/generated_images/Clean_facial_outline_v2.png";
+
+// Helper function to get the correct tenant subdomain
+function getTenantSubdomain(): string {
+  const storedSubdomain = localStorage.getItem('user_subdomain');
+  if (storedSubdomain) {
+    return storedSubdomain;
+  }
+  
+  const urlParams = new URLSearchParams(window.location.search);
+  const subdomainParam = urlParams.get('subdomain');
+  if (subdomainParam) {
+    return subdomainParam;
+  }
+  
+  const hostname = window.location.hostname;
+  
+  if (hostname.includes('.replit.app') || hostname.includes('localhost') || hostname.includes('replit.dev') || hostname.includes('127.0.0.1')) {
+    return 'demo';
+  }
+  
+  const parts = hostname.split('.');
+  if (parts.length >= 2) {
+    return parts[0] || 'demo';
+  }
+  
+  return 'demo';
+}
+
 const FullConsultationInterface = React.lazy(() => 
   import("@/components/consultation/full-consultation-interface").then(module => ({
     default: module.FullConsultationInterface
@@ -126,7 +154,7 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
     queryFn: async () => {
       const token = localStorage.getItem('auth_token');
       const headers: Record<string, string> = {
-        'X-Tenant-Subdomain': 'demo'
+        'X-Tenant-Subdomain': getTenantSubdomain()
       };
       
       if (token) {
