@@ -244,11 +244,39 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
     },
   });
 
+  // Cancel appointment mutation
+  const cancelAppointmentMutation = useMutation({
+    mutationFn: async (appointmentId: number) => {
+      const response = await apiRequest("PATCH", `/api/appointments/${appointmentId}`, { status: 'cancelled' });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
+      toast({
+        title: "Appointment Cancelled",
+        description: "The appointment has been successfully cancelled.",
+      });
+    },
+    onError: (error) => {
+      console.error("Cancel appointment error:", error);
+      toast({
+        title: "Cancellation Failed",
+        description: "Failed to cancel the appointment. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Handle delete appointment
   const handleDeleteAppointment = (appointmentId: number, appointmentTitle: string) => {
     if (window.confirm(`Are you sure you want to delete "${appointmentTitle}"? This action cannot be undone.`)) {
       deleteAppointmentMutation.mutate(appointmentId);
     }
+  };
+
+  // Handle cancel appointment
+  const handleCancelAppointment = (appointmentId: number) => {
+    cancelAppointmentMutation.mutate(appointmentId);
   };
 
   // Handle edit appointment
@@ -752,6 +780,20 @@ Medical License: [License Number]
                       <div className="font-medium">{appointment.title}</div>
                       <div className="text-sm text-gray-500">Dr. {appointment.providerName}</div>
                     </div>
+                    {appointment.status !== 'cancelled' && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCancelAppointment(appointment.id);
+                        }}
+                        className="text-red-600 hover:text-red-800 hover:bg-red-50 border-red-300"
+                        data-testid={`cancel-appointment-${appointment.id}`}
+                      >
+                        Cancel Appointment
+                      </Button>
+                    )}
                     <div className="flex items-center space-x-1">
                       {canEditAppointments() && (
                         <Button
