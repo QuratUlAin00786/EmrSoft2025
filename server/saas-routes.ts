@@ -671,12 +671,21 @@ export function registerSaaSRoutes(app: Express) {
           result.usernameAvailable = !existingUser;
         }
 
-        // Check email within organization (emails are unique per organization)
+        // Check email globally (independent of organization)
         if (email) {
-          const existingEmail = await storage.getUserByEmail(
-            email as string,
-            parseInt(organizationId as string),
+          console.log(
+            "[AVAILABILITY-CHECK] Checking email globally:",
+            email,
           );
+          const existingEmail = await storage.getUserByEmailGlobal(
+            email as string,
+          );
+          console.log("[AVAILABILITY-CHECK] Email check result:", {
+            email,
+            found: !!existingEmail,
+            userId: existingEmail?.id,
+            orgId: existingEmail?.organizationId,
+          });
           result.emailAvailable = !existingEmail;
         }
 
