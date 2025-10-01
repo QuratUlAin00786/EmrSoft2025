@@ -170,7 +170,7 @@ export default function SaaSCustomers() {
       setIsSuccessModalOpen(true);
     },
     onError: (error: any) => {
-      let errMsg = error.message || "Failed to create customer";
+      let errMsg = error.message || "Failed to create organization";
       
       // Parse JSON error message if present
       try {
@@ -553,7 +553,7 @@ export default function SaaSCustomers() {
                         disabled={createCustomerMutation.isPending || !newCustomer.name || !newCustomer.subdomain || !newCustomer.adminEmail || !newCustomer.adminFirstName || !newCustomer.adminLastName || !!subdomainError || !!emailError}
                         className="flex-1"
                       >
-                        {createCustomerMutation.isPending ? 'Creating...' : 'Create Customer'}
+                        {createCustomerMutation.isPending ? 'Creating...' : 'Create Organization'}
                       </Button>
                     </div>
                   </div>
