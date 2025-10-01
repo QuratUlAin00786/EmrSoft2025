@@ -632,7 +632,7 @@ export default function PrescriptionsPage() {
       const token = localStorage.getItem("auth_token");
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
-        "X-Tenant-Subdomain": "demo",
+        "X-Tenant-Subdomain": getActiveSubdomain(),
       };
 
       if (token) {
