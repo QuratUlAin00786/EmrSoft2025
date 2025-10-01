@@ -109,21 +109,31 @@ export default function SaaSCustomers() {
     }
   }, [newCustomer.name, customers]);
 
-  // Check email availability
+  // Check email availability from database (users and organizations tables)
   useEffect(() => {
-    if (newCustomer.adminEmail && customers) {
-      const exists = customers.some((c: any) => 
-        c.adminEmail?.toLowerCase() === newCustomer.adminEmail.toLowerCase()
-      );
-      if (exists) {
-        setEmailError('Email already exists');
+    const checkEmailAvailability = async () => {
+      if (newCustomer.adminEmail) {
+        try {
+          const response = await saasApiRequest('GET', `/api/saas/customers/check-email?email=${encodeURIComponent(newCustomer.adminEmail)}`);
+          const data = await response.json();
+          
+          if (!data.emailAvailable) {
+            setEmailError('Email already exists');
+          } else {
+            setEmailError('');
+          }
+        } catch (error) {
+          console.error('Error checking email availability:', error);
+          setEmailError('');
+        }
       } else {
         setEmailError('');
       }
-    } else {
-      setEmailError('');
-    }
-  }, [newCustomer.adminEmail, customers]);
+    };
+
+    const timeoutId = setTimeout(checkEmailAvailability, 300);
+    return () => clearTimeout(timeoutId);
+  }, [newCustomer.adminEmail]);
 
   // Fetch available billing packages
   const { data: billingPackages } = useQuery({

@@ -705,6 +705,44 @@ export function registerSaaSRoutes(app: Express) {
     },
   );
 
+  // Check customer email availability in both users and organizations tables (no auth required)
+  app.get(
+    "/api/saas/customers/check-email",
+    async (req: Request, res: Response) => {
+      try {
+        const { email } = req.query;
+
+        if (!email) {
+          return res.status(400).json({ error: "Email is required" });
+        }
+
+        // Check if email exists in users table
+        const existingUser = await storage.getUserByEmailGlobal(email as string);
+        
+        // Check if email exists in organizations table (adminEmail field)
+        const [existingOrg] = await db
+          .select()
+          .from(organizations)
+          .where(eq(organizations.adminEmail, email as string));
+
+        const emailAvailable = !existingUser && !existingOrg;
+
+        // Prevent caching
+        res.setHeader(
+          "Cache-Control",
+          "no-store, no-cache, must-revalidate, proxy-revalidate",
+        );
+        res.setHeader("Pragma", "no-cache");
+        res.setHeader("Expires", "0");
+
+        res.json({ emailAvailable });
+      } catch (error) {
+        console.error("Error checking customer email availability:", error);
+        res.status(500).json({ error: "Failed to check email availability" });
+      }
+    },
+  );
+
   // SaaS diagnostic endpoint for production debugging
   // Test email connection
   app.get(
