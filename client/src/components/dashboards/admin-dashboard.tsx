@@ -408,7 +408,7 @@ export function AdminDashboard() {
           <Card className="h-full">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-lg font-semibold">Recent Patients</CardTitle>
-              <Link href="/patients">
+              <Link href={`/${getTenantSubdomain()}/patients`}>
                 <Button variant="outline" size="sm">View All</Button>
               </Link>
             </CardHeader>
