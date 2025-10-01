@@ -4,7 +4,8 @@ import jwt from "jsonwebtoken";
 import { storage } from "./storage";
 import { db } from "./db";
 import nodemailer from "nodemailer";
-import { saasOwners } from "@shared/schema";
+import { saasOwners, organizations } from "@shared/schema";
+import { eq } from "drizzle-orm";
 import { emailService } from "./services/email";
 
 const SAAS_JWT_SECRET =
