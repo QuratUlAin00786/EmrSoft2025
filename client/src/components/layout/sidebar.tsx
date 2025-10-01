@@ -116,12 +116,20 @@ export function Sidebar() {
   // Items to hide from Patient role users
   const patientHiddenItems = ["Mobile Health", "Financial Intelligence", "QuickBooks", "GDPR Compliance"];
   
+  // Items to show ONLY to Patient role users (hide from all other roles)
+  const patientOnlyItems = ["Patient Portal"];
+  
   const filteredNavigation = ALL_NAVIGATION.filter(item => {
     // First check role permissions
     if (!canAccess(item.module)) return false;
     
     // Hide specific items from Patient role users
     if (currentRole === "patient" && patientHiddenItems.includes(item.name)) {
+      return false;
+    }
+    
+    // Show patient-only items ONLY to patients (hide from admin, doctor, nurse, etc.)
+    if (currentRole !== "patient" && patientOnlyItems.includes(item.name)) {
       return false;
     }
     
