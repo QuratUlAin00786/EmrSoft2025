@@ -9,33 +9,7 @@ import { LoadingSpinner } from "@/components/common/loading-spinner";
 import { apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
 import type { AiInsight, Patient } from "@/types";
-
-// Helper function to get the correct tenant subdomain
-function getTenantSubdomain(): string {
-  const storedSubdomain = localStorage.getItem('user_subdomain');
-  if (storedSubdomain) {
-    return storedSubdomain;
-  }
-  
-  const urlParams = new URLSearchParams(window.location.search);
-  const subdomainParam = urlParams.get('subdomain');
-  if (subdomainParam) {
-    return subdomainParam;
-  }
-  
-  const hostname = window.location.hostname;
-  
-  if (hostname.includes('.replit.app') || hostname.includes('localhost') || hostname.includes('replit.dev') || hostname.includes('127.0.0.1')) {
-    return 'demo';
-  }
-  
-  const parts = hostname.split('.');
-  if (parts.length >= 2) {
-    return parts[0] || 'demo';
-  }
-  
-  return 'demo';
-}
+import { getActiveSubdomain } from "@/lib/subdomain-utils";
 
 const insightIcons = {
   risk_alert: Lightbulb,
@@ -82,7 +56,7 @@ export function AiInsightsPanel() {
       const token = localStorage.getItem('auth_token');
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
-        'X-Tenant-Subdomain': getTenantSubdomain(),
+        'X-Tenant-Subdomain': getActiveSubdomain(),
       };
       
       if (token) {
@@ -110,7 +84,7 @@ export function AiInsightsPanel() {
       const token = localStorage.getItem('auth_token');
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
-        'X-Tenant-Subdomain': getTenantSubdomain(),
+        'X-Tenant-Subdomain': getActiveSubdomain(),
       };
       
       if (token) {

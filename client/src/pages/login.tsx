@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/hooks/use-auth";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
 import curaLogoPath from "@assets/Cura Logo Main_1751893631982.png";
+import { getActiveSubdomain } from "@/lib/subdomain-utils";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -24,7 +25,7 @@ export default function Login() {
       console.log("🔐 Login attempt starting...");
       console.log("📧 Email/Username:", email);
       console.log("🌐 Current hostname:", window.location.hostname);
-      console.log("🏢 Detected tenant:", getTenantSubdomain());
+      console.log("🏢 Detected tenant:", getActiveSubdomain());
       
       await login(email, password);
       console.log("✅ Login successful");
@@ -59,34 +60,6 @@ export default function Login() {
       setIsLoading(false);
     }
   };
-
-  // Helper function to get tenant subdomain (same as in other files)
-  const getTenantSubdomain = (): string => {
-    // Check for subdomain query parameter first (for development)
-    const urlParams = new URLSearchParams(window.location.search);
-    const subdomainParam = urlParams.get('subdomain');
-    if (subdomainParam) {
-      return subdomainParam;
-    }
-    
-    const hostname = window.location.hostname;
-    
-    // For development/replit environments, use 'demo'
-    if (hostname.includes('.replit.app') || hostname.includes('localhost') || hostname.includes('replit.dev') || hostname.includes('127.0.0.1')) {
-      return 'demo';
-    }
-    
-    // For production environments, extract subdomain from hostname
-    const parts = hostname.split('.');
-    if (parts.length >= 2) {
-      return parts[0] || 'demo';
-    }
-    
-    // Fallback to 'demo'
-    return 'demo';
-  };
-
-
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-100 flex items-center justify-center p-4">

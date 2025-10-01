@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { AiInsight, insertAiInsightSchema } from "@shared/schema";
+import { getActiveSubdomain } from "@/lib/subdomain-utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,33 +54,6 @@ import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useAiInsightsEvents } from "@/hooks/use-ai-insights-events";
 import { useAuth } from "@/hooks/use-auth";
-
-// Helper function to get the correct tenant subdomain
-function getTenantSubdomain(): string {
-  const storedSubdomain = localStorage.getItem('user_subdomain');
-  if (storedSubdomain) {
-    return storedSubdomain;
-  }
-  
-  const urlParams = new URLSearchParams(window.location.search);
-  const subdomainParam = urlParams.get('subdomain');
-  if (subdomainParam) {
-    return subdomainParam;
-  }
-  
-  const hostname = window.location.hostname;
-  
-  if (hostname.includes('.replit.app') || hostname.includes('localhost') || hostname.includes('replit.dev') || hostname.includes('127.0.0.1')) {
-    return 'demo';
-  }
-  
-  const parts = hostname.split('.');
-  if (parts.length >= 2) {
-    return parts[0] || 'demo';
-  }
-  
-  return 'demo';
-}
 
 // Use the actual database schema for form validation, excluding server-managed fields
 const createInsightSchema = insertAiInsightSchema.omit({
@@ -150,7 +124,7 @@ export default function ClinicalDecisionSupport() {
       const response = await fetch("/api/patients", {
         headers: {
           "Authorization": `Bearer ${localStorage.getItem('auth_token')}`,
-          "X-Tenant-Subdomain": getTenantSubdomain()
+          "X-Tenant-Subdomain": getActiveSubdomain()
         },
         credentials: "include"
       });
@@ -422,7 +396,7 @@ export default function ClinicalDecisionSupport() {
         headers: { 
           "Content-Type": "application/json",
           "Authorization": `Bearer ${localStorage.getItem('auth_token')}`,
-          "X-Tenant-Subdomain": getTenantSubdomain()
+          "X-Tenant-Subdomain": getActiveSubdomain()
         },
         credentials: "include"
       });
@@ -459,7 +433,7 @@ export default function ClinicalDecisionSupport() {
           headers: { 
             "Content-Type": "application/json",
             "Authorization": `Bearer ${localStorage.getItem('auth_token')}`,
-            "X-Tenant-Subdomain": getTenantSubdomain()
+            "X-Tenant-Subdomain": getActiveSubdomain()
           },
           credentials: "include"
         });
@@ -638,7 +612,7 @@ export default function ClinicalDecisionSupport() {
         headers: { 
           "Content-Type": "application/json",
           "Authorization": `Bearer ${localStorage.getItem('auth_token')}`,
-          "X-Tenant-Subdomain": getTenantSubdomain()
+          "X-Tenant-Subdomain": getActiveSubdomain()
         },
         body: JSON.stringify({ patientId: data.patientId }),
         credentials: "include"
@@ -1894,7 +1868,7 @@ function DrugInteractionsTab() {
       const response = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-          'X-Tenant-Subdomain': getTenantSubdomain(),
+          'X-Tenant-Subdomain': getActiveSubdomain(),
           'Content-Type': 'application/json'
         },
         credentials: 'include'
@@ -2265,7 +2239,7 @@ function AddDrugInteractionDialog({ open, onClose, onSuccess }: {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-            'X-Tenant-Subdomain': getTenantSubdomain()
+            'X-Tenant-Subdomain': getActiveSubdomain()
           },
           credentials: 'include',
           body: JSON.stringify(payload)
