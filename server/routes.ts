@@ -1495,6 +1495,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get current organization's subscription
+  app.get("/api/subscriptions/current", authMiddleware, requireRole(["admin"]), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = req.tenant!.id;
+      
+      // Query the database for the subscription
+      const result = await db
+        .select()
+        .from(subscriptions)
+        .where(eq(subscriptions.organizationId, organizationId))
+        .limit(1);
+      
+      if (result.length === 0) {
+        return res.status(404).json({ error: "No subscription found for this organization" });
+      }
+      
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Subscription fetch error:", error);
+      res.status(500).json({ error: "Failed to fetch subscription" });
+    }
+  });
+
   // Generate new AI insights using OpenAI
   app.post("/api/ai/generate-insights", authMiddleware, requireRole(["admin", "doctor"]), async (req: TenantRequest, res) => {
     try {

@@ -4,8 +4,10 @@ import { useQuery } from "@tanstack/react-query";
 import { Users, Calendar, Brain, CreditCard, Settings, UserCog, Crown, BarChart3, Plus, UserPlus, ClipboardPlus, Pill } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import AppointmentCalendar from "../calendar/appointment-calendar";
 import { AiInsightsPanel } from "../dashboard/ai-insights-panel";
+import { useAuth } from "@/hooks/use-auth";
 
 // Helper function to get the correct tenant subdomain
 function getTenantSubdomain(): string {
@@ -120,6 +122,7 @@ function RecentPatientsList() {
 
 export function AdminDashboard() {
   const [, setLocation] = useLocation();
+  const { user } = useAuth();
   const { data: stats, isLoading, error } = useQuery({
     queryKey: ["/api/dashboard/stats"],
     queryFn: async () => {
@@ -207,6 +210,35 @@ export function AdminDashboard() {
     },
     retry: false,
     staleTime: 0,
+  });
+
+  // Fetch subscription data if user is admin
+  const { data: subscription, isLoading: subscriptionLoading } = useQuery({
+    queryKey: ["/api/subscriptions/current"],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'X-Tenant-Subdomain': getTenantSubdomain()
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch('/api/subscriptions/current', {
+        headers,
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
+      return response.json();
+    },
+    retry: false,
+    staleTime: 0,
+    enabled: user?.role === 'admin' // Only fetch if user is admin
   });
 
   const dashboardCards = [
@@ -301,14 +333,74 @@ export function AdminDashboard() {
           <AiInsightsPanel />
           
           {/* Subscription Info */}
-          <Card>
-            <CardContent className="pt-4">
-              <div className="text-center">
-                <div className="text-sm text-gray-500 dark:text-gray-400 mb-2">Subscription info unavailable</div>
-                <div className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded mx-auto"></div>
-              </div>
-            </CardContent>
-          </Card>
+          {user?.role === 'admin' && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg font-semibold flex items-center justify-between">
+                  Subscription Plan
+                  <Crown className="h-5 w-5 text-yellow-500" />
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {subscriptionLoading ? (
+                  <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
+                    Loading subscription...
+                  </div>
+                ) : subscription ? (
+                  <div className="space-y-3">
+                    <div>
+                      <div className="text-2xl font-bold text-gray-900 dark:text-gray-100 capitalize">
+                        {subscription.plan || subscription.planName}
+                      </div>
+                      <Badge variant={subscription.status === 'active' ? 'default' : subscription.status === 'trial' ? 'secondary' : 'destructive'} className="mt-1">
+                        {subscription.status}
+                      </Badge>
+                    </div>
+                    
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600 dark:text-gray-400">Users:</span>
+                        <span className="font-medium text-gray-900 dark:text-gray-100">
+                          {subscription.currentUsers} / {subscription.userLimit}
+                        </span>
+                      </div>
+                      
+                      {subscription.monthlyPrice && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-600 dark:text-gray-400">Monthly:</span>
+                          <span className="font-medium text-gray-900 dark:text-gray-100">
+                            £{subscription.monthlyPrice}
+                          </span>
+                        </div>
+                      )}
+                      
+                      {subscription.nextBillingAt && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-600 dark:text-gray-400">Next billing:</span>
+                          <span className="font-medium text-gray-900 dark:text-gray-100">
+                            {new Date(subscription.nextBillingAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                      )}
+                      
+                      {subscription.trialEndsAt && subscription.status === 'trial' && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-600 dark:text-gray-400">Trial ends:</span>
+                          <span className="font-medium text-gray-900 dark:text-gray-100">
+                            {new Date(subscription.trialEndsAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
+                    No subscription found
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Second Row - Recent Patients List (same width as appointments) */}
