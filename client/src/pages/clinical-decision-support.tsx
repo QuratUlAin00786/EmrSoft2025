@@ -1894,7 +1894,7 @@ function DrugInteractionsTab() {
       const response = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-          'X-Tenant-Subdomain': 'demo',
+          'X-Tenant-Subdomain': getTenantSubdomain(),
           'Content-Type': 'application/json'
         },
         credentials: 'include'
@@ -2265,7 +2265,7 @@ function AddDrugInteractionDialog({ open, onClose, onSuccess }: {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-            'X-Tenant-Subdomain': 'demo'
+            'X-Tenant-Subdomain': getTenantSubdomain()
           },
           credentials: 'include',
           body: JSON.stringify(payload)
