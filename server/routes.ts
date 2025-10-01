@@ -16,7 +16,7 @@ import { initializeMultiTenantPackage, getMultiTenantPackage } from "./packages/
 import { messagingService } from "./messaging-service";
 import { createPaypalOrder, capturePaypalOrder, loadPaypalDefault } from "./paypal";
 import { gdprComplianceService } from "./services/gdpr-compliance";
-import { insertGdprConsentSchema, insertGdprDataRequestSchema, updateMedicalImageReportFieldSchema, insertAiInsightSchema, medicationsDatabase, patientDrugInteractions, type Appointment } from "../shared/schema";
+import { insertGdprConsentSchema, insertGdprDataRequestSchema, updateMedicalImageReportFieldSchema, insertAiInsightSchema, medicationsDatabase, patientDrugInteractions, type Appointment, organizations } from "../shared/schema";
 import { db } from "./db";
 import { and, eq, sql } from "drizzle-orm";
 import { processAppointmentBookingChat, generateAppointmentSummary } from "./anthropic";
@@ -1616,6 +1616,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Patients fetch error:", error);
       res.status(500).json({ error: "Failed to fetch patients" });
+    }
+  });
+
+  // Check patient email availability - checks if email exists in patients, users, or organizations
+  app.get("/api/patients/check-email", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const { email } = req.query;
+      const currentOrgId = req.tenant!.id;
+
+      if (!email) {
+        return res.status(400).json({ error: "Email is required" });
+      }
+
+      // Check if email exists in patients table
+      const patients = await storage.getPatientsByOrganization(0, 1000); // Get all patients globally
+      const existingPatient = patients.find(p => p.email === email && p.organizationId !== currentOrgId);
+
+      // Check if email exists in users table
+      const existingUser = await storage.getUserByEmailGlobal(email as string);
+      const userInDifferentOrg = existingUser && existingUser.organizationId !== currentOrgId;
+
+      // Check if email exists in organizations table
+      const [existingOrg] = await db
+        .select()
+        .from(organizations)
+        .where(eq(organizations.email, email as string));
+      const orgIsDifferent = existingOrg && existingOrg.id !== currentOrgId;
+
+      // Determine if email is available and if it's associated with another organization
+      const emailAvailable = !existingPatient && !userInDifferentOrg && !orgIsDifferent;
+      const associatedWithAnotherOrg = existingPatient || userInDifferentOrg || orgIsDifferent;
+
+      // Prevent caching
+      res.setHeader(
+        "Cache-Control",
+        "no-store, no-cache, must-revalidate, proxy-revalidate",
+      );
+      res.setHeader("Pragma", "no-cache");
+      res.setHeader("Expires", "0");
+
+      res.json({ 
+        emailAvailable,
+        associatedWithAnotherOrg: !emailAvailable && associatedWithAnotherOrg
+      });
+    } catch (error) {
+      console.error("Error checking patient email availability:", error);
+      res.status(500).json({ error: "Failed to check email availability" });
     }
   });
 

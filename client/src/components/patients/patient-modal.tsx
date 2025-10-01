@@ -78,6 +78,8 @@ export function PatientModal({ open, onOpenChange, editMode = false, editPatient
   const queryClient = useQueryClient();
   const [showAiInsights, setShowAiInsights] = useState(false);
   const [addressSuggestions, setAddressSuggestions] = useState<any[]>([]);
+  const [emailError, setEmailError] = useState<string>("");
+  const [isCheckingEmail, setIsCheckingEmail] = useState(false);
 
   // Function to calculate age from date of birth
   const calculateAge = (dateOfBirth: string): string => {
@@ -183,6 +185,38 @@ export function PatientModal({ open, onOpenChange, editMode = false, editPatient
   const watchedDateOfBirth = form.watch("dateOfBirth");
   const calculatedAge = useMemo(() => calculateAge(watchedDateOfBirth), [watchedDateOfBirth]);
 
+  // Watch for email changes and check availability
+  const watchedEmail = form.watch("email");
+  
+  useEffect(() => {
+    // Don't check in edit mode or if email is empty
+    if (editMode || !watchedEmail || watchedEmail.trim() === "") {
+      setEmailError("");
+      return;
+    }
+
+    // Debounce email check
+    const timeoutId = setTimeout(async () => {
+      try {
+        setIsCheckingEmail(true);
+        setEmailError("");
+        
+        const response = await apiRequest("GET", `/api/patients/check-email?email=${encodeURIComponent(watchedEmail)}`);
+        const data = await response.json();
+        
+        if (data.associatedWithAnotherOrg) {
+          setEmailError("This email is associated with another Cura's organization.");
+        }
+      } catch (error) {
+        console.error("Error checking email:", error);
+      } finally {
+        setIsCheckingEmail(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [watchedEmail, editMode]);
+
   // Reset form when editPatient, editMode, or open state changes
   useEffect(() => {
     const formValues = editMode && editPatient ? {
@@ -264,6 +298,7 @@ export function PatientModal({ open, onOpenChange, editMode = false, editPatient
     };
 
     form.reset(formValues);
+    setEmailError(""); // Clear email error when form resets
   }, [editPatient, editMode, open, tenant?.region, form]);
 
   const patientMutation = useMutation({
@@ -421,6 +456,9 @@ export function PatientModal({ open, onOpenChange, editMode = false, editPatient
                             <Input type="email" {...field} placeholder="patient@email.com" />
                           </FormControl>
                           <FormMessage />
+                          {emailError && (
+                            <p className="text-sm text-red-600 mt-1">{emailError}</p>
+                          )}
                         </FormItem>
                       )}
                     />
