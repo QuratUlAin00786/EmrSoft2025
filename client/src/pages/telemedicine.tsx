@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { queryClient } from "@/lib/queryClient";
+import { getActiveSubdomain } from "@/lib/subdomain-utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -121,7 +122,7 @@ function PatientList() {
         headers: { 
           "Content-Type": "application/json",
           "Authorization": `Bearer ${localStorage.getItem('auth_token')}`,
-          "X-Tenant-Subdomain": "demo"
+          "X-Tenant-Subdomain": getActiveSubdomain()
         },
         body: JSON.stringify({
           meetingName: `Consultation with ${patient.firstName} ${patient.lastName}`,
@@ -179,7 +180,7 @@ function PatientList() {
         headers: { 
           "Content-Type": "application/json",
           "Authorization": `Bearer ${localStorage.getItem('auth_token')}`,
-          "X-Tenant-Subdomain": "demo"
+          "X-Tenant-Subdomain": getActiveSubdomain()
         },
         body: JSON.stringify({
           patientId: patient.id,
@@ -209,7 +210,7 @@ function PatientList() {
         headers: { 
           "Content-Type": "application/json",
           "Authorization": `Bearer ${localStorage.getItem('auth_token')}`,
-          "X-Tenant-Subdomain": "demo"
+          "X-Tenant-Subdomain": getActiveSubdomain()
         },
         body: JSON.stringify({
           meetingName: `Audio Consultation with ${patient.firstName} ${patient.lastName}`,
@@ -269,7 +270,7 @@ function PatientList() {
         headers: { 
           "Content-Type": "application/json",
           "Authorization": `Bearer ${localStorage.getItem('auth_token')}`,
-          "X-Tenant-Subdomain": "demo"
+          "X-Tenant-Subdomain": getActiveSubdomain()
         },
         body: JSON.stringify({
           patientId: patient.id,

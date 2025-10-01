@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
+import { getActiveSubdomain } from "@/lib/subdomain-utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -377,7 +378,7 @@ function PatientDetailsModal({
         if (!patient?.id) return [];
         const token = localStorage.getItem("auth_token");
         const headers: Record<string, string> = {
-          "X-Tenant-Subdomain": "demo",
+          "X-Tenant-Subdomain": getActiveSubdomain(),
         };
         if (token) {
           headers["Authorization"] = `Bearer ${token}`;
@@ -504,7 +505,7 @@ function PatientDetailsModal({
         if (!patient?.id) return {};
         const token = localStorage.getItem("auth_token");
         const headers: Record<string, string> = {
-          "X-Tenant-Subdomain": "demo",
+          "X-Tenant-Subdomain": getActiveSubdomain(),
         };
         if (token) {
           headers["Authorization"] = `Bearer ${token}`;

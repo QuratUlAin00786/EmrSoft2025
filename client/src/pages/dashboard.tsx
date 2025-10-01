@@ -3,6 +3,7 @@ import { RoleBasedDashboard } from "@/components/dashboards/role-based-dashboard
 import { useAuth } from "@/hooks/use-auth";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useQuery } from "@tanstack/react-query";
+import { getActiveSubdomain } from "@/lib/subdomain-utils";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -13,7 +14,7 @@ export default function Dashboard() {
     queryFn: async () => {
       const token = localStorage.getItem("auth_token");
       const headers: Record<string, string> = {
-        "X-Tenant-Subdomain": "demo",
+        "X-Tenant-Subdomain": getActiveSubdomain(),
       };
 
       if (token) {

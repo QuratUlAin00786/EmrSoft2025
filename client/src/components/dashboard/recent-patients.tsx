@@ -9,6 +9,7 @@ import { useLocation, Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import type { Patient } from "@/types";
+import { getActiveSubdomain } from "@/lib/subdomain-utils";
 
 interface RecentPatientsProps {
   onStartConsultation?: (patient: any) => void;
@@ -67,7 +68,7 @@ export function RecentPatients({ onStartConsultation }: RecentPatientsProps = {}
     queryFn: async () => {
       const response = await fetch("/api/patients?limit=10", {
         headers: {
-          "X-Tenant-Subdomain": "demo"
+          "X-Tenant-Subdomain": getActiveSubdomain()
         }
       });
       if (!response.ok) {

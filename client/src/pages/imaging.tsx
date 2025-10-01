@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { getActiveSubdomain } from "@/lib/subdomain-utils";
 import { Header } from "@/components/layout/header";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
@@ -813,7 +814,7 @@ export default function ImagingPage() {
       setPatientsLoading(true);
       const token = localStorage.getItem("auth_token");
       const headers: Record<string, string> = {
-        "X-Tenant-Subdomain": "demo",
+        "X-Tenant-Subdomain": getActiveSubdomain(),
       };
 
       if (token) {
@@ -1254,7 +1255,7 @@ export default function ImagingPage() {
     try {
       // Prepare authentication headers
       const headers: Record<string, string> = {
-        "X-Tenant-Subdomain": "demo",
+        "X-Tenant-Subdomain": getActiveSubdomain(),
       };
 
       // Add authorization token if available
@@ -1308,7 +1309,7 @@ export default function ImagingPage() {
     try {
       // Prepare authentication headers
       const headers: Record<string, string> = {
-        "X-Tenant-Subdomain": "demo",
+        "X-Tenant-Subdomain": getActiveSubdomain(),
       };
 
       // Add authorization token if available
@@ -2171,7 +2172,7 @@ export default function ImagingPage() {
                                       try {
                                         const token = localStorage.getItem("auth_token");
                                         const headers: Record<string, string> = {
-                                          "X-Tenant-Subdomain": "demo",
+                                          "X-Tenant-Subdomain": getActiveSubdomain(),
                                         };
                                         if (token) {
                                           headers["Authorization"] = `Bearer ${token}`;
@@ -2296,7 +2297,7 @@ export default function ImagingPage() {
                                 const token =
                                   localStorage.getItem("auth_token");
                                 const headers: Record<string, string> = {
-                                  "X-Tenant-Subdomain": "demo",
+                                  "X-Tenant-Subdomain": getActiveSubdomain(),
                                 };
 
                                 if (token) {
@@ -2356,7 +2357,7 @@ export default function ImagingPage() {
                                 const token =
                                   localStorage.getItem("auth_token");
                                 const headers: Record<string, string> = {
-                                  "X-Tenant-Subdomain": "demo",
+                                  "X-Tenant-Subdomain": getActiveSubdomain(),
                                 };
 
                                 if (token) {
@@ -2567,7 +2568,7 @@ export default function ImagingPage() {
                         const token = localStorage.getItem("auth_token");
                         const headers: Record<string, string> = {
                           "Content-Type": "application/json",
-                          "X-Tenant-Subdomain": "demo",
+                          "X-Tenant-Subdomain": getActiveSubdomain(),
                         };
                         
                         if (token) {
@@ -3241,7 +3242,7 @@ export default function ImagingPage() {
                               // Fetch image with authentication headers
                               const token = localStorage.getItem("auth_token");
                               const headers: Record<string, string> = {
-                                "X-Tenant-Subdomain": "demo",
+                                "X-Tenant-Subdomain": getActiveSubdomain(),
                               };
                               
                               if (token) {

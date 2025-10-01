@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
+import { getActiveSubdomain } from "@/lib/subdomain-utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -369,7 +370,7 @@ export default function FinancialIntelligence() {
       const response = await fetch("/api/patients", {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-          "X-Tenant-Subdomain": "demo",
+          "X-Tenant-Subdomain": getActiveSubdomain(),
         },
         credentials: "include",
       });
@@ -387,7 +388,7 @@ export default function FinancialIntelligence() {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-          "X-Tenant-Subdomain": "demo",
+          "X-Tenant-Subdomain": getActiveSubdomain(),
         },
         body: JSON.stringify(claimData),
         credentials: "include",
@@ -442,7 +443,7 @@ export default function FinancialIntelligence() {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-          "X-Tenant-Subdomain": "demo",
+          "X-Tenant-Subdomain": getActiveSubdomain(),
         },
         credentials: "include",
       });
@@ -492,7 +493,7 @@ export default function FinancialIntelligence() {
           method: "POST",
           headers: {
             Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-            "X-Tenant-Subdomain": "demo",
+            "X-Tenant-Subdomain": getActiveSubdomain(),
           },
           credentials: "include",
         },
@@ -623,7 +624,7 @@ export default function FinancialIntelligence() {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-          "X-Tenant-Subdomain": "demo",
+          "X-Tenant-Subdomain": getActiveSubdomain(),
         },
         credentials: "include",
         body: JSON.stringify(data),
@@ -667,7 +668,7 @@ export default function FinancialIntelligence() {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-          "X-Tenant-Subdomain": "demo",
+          "X-Tenant-Subdomain": getActiveSubdomain(),
         },
         credentials: "include",
         body: JSON.stringify({

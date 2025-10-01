@@ -231,7 +231,7 @@ export default function PrescriptionsPage() {
     mutationFn: async ({ prescriptionId, status }: { prescriptionId: string; status: string }) => {
       const token = localStorage.getItem("auth_token");
       const headers: Record<string, string> = {
-        "X-Tenant-Subdomain": "demo",
+        "X-Tenant-Subdomain": getActiveSubdomain(),
         "Content-Type": "application/json",
       };
 
@@ -465,7 +465,7 @@ export default function PrescriptionsPage() {
   const fetchPrescriptionsByPatientId = async (patientId: number) => {
     const token = localStorage.getItem("auth_token");
     const headers: Record<string, string> = {
-      "X-Tenant-Subdomain": "demo",
+      "X-Tenant-Subdomain": getActiveSubdomain(),
     };
 
     if (token) {
@@ -487,7 +487,7 @@ export default function PrescriptionsPage() {
   const fetchPrescriptionsByDoctorId = async (doctorId: number) => {
     const token = localStorage.getItem("auth_token");
     const headers: Record<string, string> = {
-      "X-Tenant-Subdomain": "demo",
+      "X-Tenant-Subdomain": getActiveSubdomain(),
     };
 
     if (token) {
@@ -509,7 +509,7 @@ export default function PrescriptionsPage() {
   const fetchAllPrescriptions = async () => {
     const token = localStorage.getItem("auth_token");
     const headers: Record<string, string> = {
-      "X-Tenant-Subdomain": "demo",
+      "X-Tenant-Subdomain": getActiveSubdomain(),
     };
 
     if (token) {
@@ -696,7 +696,7 @@ export default function PrescriptionsPage() {
       const token = localStorage.getItem("auth_token");
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
-        "X-Tenant-Subdomain": "demo",
+        "X-Tenant-Subdomain": getActiveSubdomain(),
       };
 
       if (token) {
@@ -727,7 +727,7 @@ export default function PrescriptionsPage() {
       }
 
       const emailHeaders: Record<string, string> = {
-        "X-Tenant-Subdomain": "demo",
+        "X-Tenant-Subdomain": getActiveSubdomain(),
       };
 
       if (token) {

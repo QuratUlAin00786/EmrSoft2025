@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { queryClient } from "@/lib/queryClient";
+import { getActiveSubdomain } from "@/lib/subdomain-utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -222,7 +223,7 @@ export default function VoiceDocumentation() {
       const response = await fetch("/api/voice-documentation/notes", {
         headers: {
           Authorization: `Bearer ${token}`,
-          "X-Tenant-Subdomain": "demo",
+          "X-Tenant-Subdomain": getActiveSubdomain(),
         },
       });
       if (!response.ok) throw new Error("Failed to fetch voice notes");
@@ -238,7 +239,7 @@ export default function VoiceDocumentation() {
       const response = await fetch("/api/voice-documentation/templates", {
         headers: {
           Authorization: `Bearer ${token}`,
-          "X-Tenant-Subdomain": "demo",
+          "X-Tenant-Subdomain": getActiveSubdomain(),
         },
       });
       if (!response.ok) throw new Error("Failed to fetch templates");
@@ -254,7 +255,7 @@ export default function VoiceDocumentation() {
       const response = await fetch("/api/voice-documentation/photos", {
         headers: {
           Authorization: `Bearer ${token}`,
-          "X-Tenant-Subdomain": "demo",
+          "X-Tenant-Subdomain": getActiveSubdomain(),
         },
       });
       if (!response.ok) throw new Error("Failed to fetch photos");
@@ -270,7 +271,7 @@ export default function VoiceDocumentation() {
       const response = await fetch("/api/patients", {
         headers: {
           Authorization: `Bearer ${token}`,
-          "X-Tenant-Subdomain": "demo",
+          "X-Tenant-Subdomain": getActiveSubdomain(),
         },
       });
       if (!response.ok) throw new Error("Failed to fetch patients");
@@ -307,7 +308,7 @@ export default function VoiceDocumentation() {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
-          "X-Tenant-Subdomain": "demo",
+          "X-Tenant-Subdomain": getActiveSubdomain(),
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -363,7 +364,7 @@ export default function VoiceDocumentation() {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
-          "X-Tenant-Subdomain": "demo",
+          "X-Tenant-Subdomain": getActiveSubdomain(),
         },
       });
       if (!response.ok) {
@@ -402,7 +403,7 @@ export default function VoiceDocumentation() {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
-          "X-Tenant-Subdomain": "demo",
+          "X-Tenant-Subdomain": getActiveSubdomain(),
         },
         body: JSON.stringify({ transcript }),
       });
@@ -452,7 +453,7 @@ export default function VoiceDocumentation() {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
-          "X-Tenant-Subdomain": "demo",
+          "X-Tenant-Subdomain": getActiveSubdomain(),
         },
         body: formData,
       });
@@ -477,7 +478,7 @@ export default function VoiceDocumentation() {
           method: "DELETE",
           headers: {
             Authorization: `Bearer ${token}`,
-            "X-Tenant-Subdomain": "demo",
+            "X-Tenant-Subdomain": getActiveSubdomain(),
           },
         },
       );
