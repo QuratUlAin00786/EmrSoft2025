@@ -2,11 +2,12 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, User, Video, Stethoscope, Plus, ArrowRight } from "lucide-react";
+import { Calendar, Clock, User, Video, Stethoscope, Plus, ArrowRight, Edit } from "lucide-react";
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, isToday, isPast, isFuture, parseISO } from "date-fns";
-import { useQuery } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
 
 const statusColors = {
   scheduled: "#4A7DFF",
@@ -20,6 +21,7 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
   const [viewMode, setViewMode] = useState<"week" | "day">("week");
   const [appointmentFilter, setAppointmentFilter] = useState<"all" | "upcoming" | "past">("upcoming");
   const { user } = useAuth();
+  const { toast } = useToast();
 
   // Fetch appointments for this doctor
   const { data: appointmentsData, isLoading } = useQuery({
@@ -43,6 +45,30 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
   const { data: patientsData } = useQuery({
     queryKey: ["/api/patients"],
     staleTime: 60000,
+  });
+
+  // Cancel appointment mutation
+  const cancelAppointmentMutation = useMutation({
+    mutationFn: async (appointmentId: number) => {
+      const response = await apiRequest('PUT', `/api/appointments/${appointmentId}`, {
+        status: 'cancelled'
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/appointments'] });
+      toast({
+        title: "Appointment Cancelled",
+        description: "The appointment has been successfully cancelled.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to cancel appointment",
+        variant: "destructive",
+      });
+    },
   });
 
   const appointments = appointmentsData || [];
@@ -463,15 +489,30 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
                         </div>
                       </div>
                     </div>
-                    <div className="text-right">
+                    <div className="text-right space-y-2">
                       <div className="font-medium">{appointment.title}</div>
-                      <div className="text-sm text-gray-600 mt-1">Type: {appointment.type}</div>
-                      <Badge 
-                        style={{ backgroundColor: statusColors[appointment.status as keyof typeof statusColors] }}
-                        className="text-white mt-2"
-                      >
-                        {appointment.status.toUpperCase()}
-                      </Badge>
+                      <div className="text-sm text-gray-600">Type: {appointment.type}</div>
+                      <div className="flex flex-col items-end gap-2">
+                        <Badge 
+                          style={{ backgroundColor: statusColors[appointment.status as keyof typeof statusColors] }}
+                          className="text-white"
+                        >
+                          {appointment.status.toUpperCase()}
+                        </Badge>
+                        {appointment.status !== 'cancelled' && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            onClick={() => cancelAppointmentMutation.mutate(appointment.id)}
+                            disabled={cancelAppointmentMutation.isPending}
+                            data-testid={`button-cancel-${appointment.id}`}
+                          >
+                            <Edit className="h-4 w-4" />
+                            Cancel Appointment
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </div>
                   {appointment.description && (
