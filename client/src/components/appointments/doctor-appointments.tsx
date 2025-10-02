@@ -62,9 +62,9 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
       totalPatients: patientsData?.length || 0
     });
 
-    // Filter appointments where doctorId matches current user's id
+    // Filter appointments where providerId matches current user's id (providerId is the doctor)
     const filtered = appointments.filter((apt: any) => {
-      return apt.doctorId === user.id && apt.organizationId === user.organizationId;
+      return apt.providerId === user.id && apt.organizationId === user.organizationId;
     });
 
     console.log('✅ DOCTOR APPOINTMENTS: Filtered', filtered.length, 'appointments for doctor ID', user.id, 'in organization', user.organizationId);
