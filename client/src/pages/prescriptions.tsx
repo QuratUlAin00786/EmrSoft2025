@@ -439,7 +439,7 @@ export default function PrescriptionsPage() {
         headers["Authorization"] = `Bearer ${token}`;
       }
 
-      const response = await fetch("/api/medical-staff", {
+      const response = await fetch("/api/users", {
         headers,
         credentials: "include",
       });
@@ -450,9 +450,9 @@ export default function PrescriptionsPage() {
 
       const data = await response.json();
       console.log("Fetched providers:", data);
-      // Filter out patients and admins - only show doctors, nurses, etc.
-      const filteredProviders = (data.staff || []).filter((provider: any) => 
-        provider.role !== 'patient' && provider.role !== 'admin'
+      // Filter to show only doctors and nurses
+      const filteredProviders = (Array.isArray(data) ? data : []).filter((provider: any) => 
+        provider.role === 'doctor' || provider.role === 'nurse'
       );
       setProviders(filteredProviders);
     } catch (err) {
@@ -1833,14 +1833,18 @@ export default function PrescriptionsPage() {
                               <SelectValue placeholder="Select doctor" />
                             </SelectTrigger>
                             <SelectContent>
-                              {providers.map((provider: any) => (
-                                <SelectItem
-                                  key={provider.id}
-                                  value={provider.id.toString()}
-                                >
-                                  Dr. {provider.firstName} {provider.lastName}
-                                </SelectItem>
-                              ))}
+                              {providers.map((provider: any) => {
+                                const roleCapitalized = provider.role.charAt(0).toUpperCase() + provider.role.slice(1);
+                                const displayValue = `${provider.email}-${roleCapitalized}`;
+                                return (
+                                  <SelectItem
+                                    key={provider.id}
+                                    value={displayValue}
+                                  >
+                                    {displayValue}
+                                  </SelectItem>
+                                );
+                              })}
                             </SelectContent>
                           </Select>
                         </div>
@@ -2169,9 +2173,15 @@ export default function PrescriptionsPage() {
                                 genericAllowed: med.genericAllowed,
                               }));
                             
+                            // Parse email from dropdown value (format: "email-Role")
+                            const providerEmailWithRole = formData.providerId;
+                            const providerEmail = providerEmailWithRole.split('-')[0];
+                            const selectedProvider = providers.find((p: any) => p.email === providerEmail);
+                            const providerId = selectedProvider ? selectedProvider.id : parseInt(formData.providerId);
+                            
                             const prescriptionData = {
                               patientId: parseInt(formData.patientId),
-                              providerId: parseInt(formData.providerId),
+                              providerId: providerId,
                               diagnosis: formData.diagnosis.trim(),
                               pharmacy: {
                                 name: formData.pharmacyName.trim(),
