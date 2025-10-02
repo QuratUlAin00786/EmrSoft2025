@@ -1692,7 +1692,11 @@ export default function PrescriptionsPage() {
 
             <Card 
               className="cursor-pointer hover:bg-gray-50 transition-colors"
-              onClick={() => setLocation('/clinical-decision-support?tab=drug-interactions')}
+              onClick={() => {
+                const subdomain = getActiveSubdomain();
+                console.log('[PRESCRIPTIONS] Navigating to CDS with drug-interactions tab');
+                setLocation(`/${subdomain}/clinical-decision-support?tab=drug-interactions`);
+              }}
               data-testid="card-drug-interactions"
             >
               <CardContent className="p-3 sm:p-4">

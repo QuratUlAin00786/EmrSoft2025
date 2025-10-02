@@ -101,7 +101,10 @@ export default function ClinicalDecisionSupport() {
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const tabParam = params.get('tab');
+    console.log('[CDS] URL search params:', window.location.search);
+    console.log('[CDS] Tab parameter:', tabParam);
     if (tabParam === 'drug-interactions') {
+      console.log('[CDS] Setting active tab to interactions');
       setActiveTab('interactions');
     }
   }, []);

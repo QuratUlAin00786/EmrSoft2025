@@ -65,13 +65,10 @@ const ALL_NAVIGATION = [
   { name: "Analytics", href: "/analytics", icon: BarChart3, module: "analytics" },
   { name: "Automation", href: "/automation", icon: Zap, module: "automation" },
   { name: "Patient Portal", href: "/patient-portal", icon: Globe, module: "patient_portal" },
-  { name: "AI Insights", href: "/ai-insights", icon: Brain, module: "ai_insights" },
   { name: "AI Agent", href: "/ai-agent", icon: Bot, module: "ai_insights" },
-  { name: "AI Chatbot", href: "/chatbot", icon: MessageSquare, module: "ai_insights" },
   { name: "Clinical Decision Support", href: "/clinical-decision-support", icon: Brain, module: "ai_insights" },
   { name: "Telemedicine", href: "/telemedicine", icon: Video, module: "telemedicine" },
   { name: "Population Health", href: "/population-health", icon: Users, module: "population_health" },
-  { name: "Mobile Health", href: "/mobile-health", icon: Smartphone, module: "mobile_health" },
   { name: "Voice Documentation", href: "/voice-documentation", icon: Mic, module: "voice_documentation" },
   { name: "Financial Intelligence", href: "/financial-intelligence", icon: Calculator, module: "billing" },
   { name: "Billing", href: "/billing", icon: Receipt, module: "billing" },
@@ -114,7 +111,7 @@ export function Sidebar() {
   const currentRole = getUserRole();
   
   // Items to hide from Patient role users
-  const patientHiddenItems = ["Mobile Health", "Financial Intelligence", "QuickBooks", "GDPR Compliance"];
+  const patientHiddenItems = ["Financial Intelligence", "QuickBooks", "GDPR Compliance"];
   
   // Items to show ONLY to Patient role users (hide from all other roles)
   const patientOnlyItems = ["Patient Portal"];
