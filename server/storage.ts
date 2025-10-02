@@ -3096,8 +3096,14 @@ export class DatabaseStorage implements IStorage {
 
   async getPrescriptionsByOrganization(organizationId: number, limit: number = 50): Promise<Prescription[]> {
     const allPrescriptions = await db
-      .select()
+      .select({
+        prescription: prescriptions,
+        patient: patients,
+        provider: users,
+      })
       .from(prescriptions)
+      .leftJoin(patients, eq(prescriptions.patientId, patients.id))
+      .leftJoin(users, eq(prescriptions.doctorId, users.id))
       .where(eq(prescriptions.organizationId, organizationId))
       .orderBy(desc(prescriptions.createdAt));
 
@@ -3105,21 +3111,37 @@ export class DatabaseStorage implements IStorage {
     const uniquePrescriptions = [];
     const seenCombinations = new Set();
     
-    for (const prescription of allPrescriptions) {
+    for (const item of allPrescriptions) {
+      const prescription = item.prescription;
+      const patient = item.patient;
+      const provider = item.provider;
+      
       if (prescription.medications && prescription.medications.length > 0) {
         const firstMed = prescription.medications[0];
         const key = `${prescription.patientId}-${firstMed.name || 'unknown'}-${firstMed.dosage || 'unknown'}`;
         
         if (!seenCombinations.has(key)) {
           seenCombinations.add(key);
-          uniquePrescriptions.push(prescription);
+          uniquePrescriptions.push({
+            ...prescription,
+            patientName: patient ? `${patient.firstName} ${patient.lastName}` : 'Unknown Patient',
+            patientDob: patient?.dateOfBirth ? new Date(patient.dateOfBirth).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) : null,
+            patientAge: patient?.dateOfBirth ? Math.floor((new Date().getTime() - new Date(patient.dateOfBirth).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : null,
+            providerName: provider ? `Dr. ${provider.firstName} ${provider.lastName}` : 'Unknown Provider',
+          });
         }
       } else {
         // For prescriptions without medications, use patient + id
         const key = `${prescription.patientId}-no-meds-${prescription.id}`;
         if (!seenCombinations.has(key)) {
           seenCombinations.add(key);
-          uniquePrescriptions.push(prescription);
+          uniquePrescriptions.push({
+            ...prescription,
+            patientName: patient ? `${patient.firstName} ${patient.lastName}` : 'Unknown Patient',
+            patientDob: patient?.dateOfBirth ? new Date(patient.dateOfBirth).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) : null,
+            patientAge: patient?.dateOfBirth ? Math.floor((new Date().getTime() - new Date(patient.dateOfBirth).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : null,
+            providerName: provider ? `Dr. ${provider.firstName} ${provider.lastName}` : 'Unknown Provider',
+          });
         }
       }
     }
@@ -3128,19 +3150,47 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getPrescriptionsByPatient(patientId: number, organizationId: number): Promise<Prescription[]> {
-    return await db
-      .select()
+    const results = await db
+      .select({
+        prescription: prescriptions,
+        patient: patients,
+        provider: users,
+      })
       .from(prescriptions)
+      .leftJoin(patients, eq(prescriptions.patientId, patients.id))
+      .leftJoin(users, eq(prescriptions.doctorId, users.id))
       .where(and(eq(prescriptions.patientId, patientId), eq(prescriptions.organizationId, organizationId)))
       .orderBy(desc(prescriptions.createdAt));
+    
+    return results.map(item => ({
+      ...item.prescription,
+      patientName: item.patient ? `${item.patient.firstName} ${item.patient.lastName}` : 'Unknown Patient',
+      patientDob: item.patient?.dateOfBirth ? new Date(item.patient.dateOfBirth).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) : null,
+      patientAge: item.patient?.dateOfBirth ? Math.floor((new Date().getTime() - new Date(item.patient.dateOfBirth).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : null,
+      providerName: item.provider ? `Dr. ${item.provider.firstName} ${item.provider.lastName}` : 'Unknown Provider',
+    }));
   }
 
   async getPrescriptionsByProvider(providerId: number, organizationId: number): Promise<Prescription[]> {
-    return await db
-      .select()
+    const results = await db
+      .select({
+        prescription: prescriptions,
+        patient: patients,
+        provider: users,
+      })
       .from(prescriptions)
+      .leftJoin(patients, eq(prescriptions.patientId, patients.id))
+      .leftJoin(users, eq(prescriptions.doctorId, users.id))
       .where(and(eq(prescriptions.doctorId, providerId), eq(prescriptions.organizationId, organizationId)))
       .orderBy(desc(prescriptions.createdAt));
+    
+    return results.map(item => ({
+      ...item.prescription,
+      patientName: item.patient ? `${item.patient.firstName} ${item.patient.lastName}` : 'Unknown Patient',
+      patientDob: item.patient?.dateOfBirth ? new Date(item.patient.dateOfBirth).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) : null,
+      patientAge: item.patient?.dateOfBirth ? Math.floor((new Date().getTime() - new Date(item.patient.dateOfBirth).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : null,
+      providerName: item.provider ? `Dr. ${item.provider.firstName} ${item.provider.lastName}` : 'Unknown Provider',
+    }));
   }
 
   async getPrescriptionsByStatus(patientId: number, organizationId: number, status: string): Promise<Prescription[]> {
