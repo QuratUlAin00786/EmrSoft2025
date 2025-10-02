@@ -1486,18 +1486,6 @@ export default function CalendarPage() {
                     <CardContent className="p-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                         <div>
-                          <Label className="text-gray-600 dark:text-gray-400">Medical Specialty</Label>
-                          <p className="font-medium" data-testid="text-summary-specialty">
-                            {selectedSpecialty || "Not selected"}
-                          </p>
-                        </div>
-                        <div>
-                          <Label className="text-gray-600 dark:text-gray-400">Sub-Specialty</Label>
-                          <p className="font-medium" data-testid="text-summary-subspecialty">
-                            {selectedSubSpecialty || "Not selected"}
-                          </p>
-                        </div>
-                        <div>
                           <Label className="text-gray-600 dark:text-gray-400">Patient</Label>
                           <p className="font-medium" data-testid="text-summary-patient">
                             {bookingForm.patientId 
