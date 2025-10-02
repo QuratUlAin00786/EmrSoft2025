@@ -164,10 +164,15 @@ export default function CreateUser() {
       throw new Error(errorMessage);
     },
     onSuccess: (newUser: any) => {
+      const selectedRole = form.getValues('role');
+      const isPatient = selectedRole === 'patient';
+      
       setModalContent({
         type: 'success',
         title: 'User Created Successfully',
-        description: `${newUser.firstName} ${newUser.lastName} has been added to the system.`,
+        description: isPatient 
+          ? `${newUser.firstName} ${newUser.lastName} has been added to the system. A patient record has been automatically created in the patients table with organization ID ${newUser.organizationId}.`
+          : `${newUser.firstName} ${newUser.lastName} has been added to the system.`,
       });
       setModalOpen(true);
       saasQueryClient.invalidateQueries({ queryKey: ["/api/saas/users"] });
