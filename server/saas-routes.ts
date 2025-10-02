@@ -616,6 +616,23 @@ export function registerSaaSRoutes(app: Express) {
           isActive: true,
         });
 
+        // If role is patient, also create a patient record
+        if (role === 'patient') {
+          // Generate patient ID
+          const patientCount = await storage.getPatientsByOrganization(parseInt(organizationId), 999999);
+          const generatedPatientId = `P${(patientCount.length + 1).toString().padStart(6, '0')}`;
+
+          // Create patient record
+          await storage.createPatient({
+            organizationId: parseInt(organizationId),
+            patientId: generatedPatientId,
+            firstName,
+            lastName,
+            email,
+            dateOfBirth: new Date('1900-01-01'), // Placeholder - should be updated by admin
+          });
+        }
+
         // Return user without password
         const { passwordHash: _, ...userWithoutPassword } = newUser;
 
