@@ -629,8 +629,65 @@ export function registerSaaSRoutes(app: Express) {
             firstName,
             lastName,
             email,
-            dateOfBirth: new Date('1900-01-01'), // Placeholder - should be updated by admin
+            dateOfBirth: null,
           });
+
+          // Send email notification to the patient
+          try {
+            await emailService.sendEmail({
+              to: email,
+              subject: 'Your Patient Account Has Been Created Successfully',
+              text: `Dear ${firstName} ${lastName},
+
+Your patient account has been successfully created in the Cura EMR system.
+
+Patient ID: ${generatedPatientId}
+Email: ${email}
+
+You can now log in to access your medical records and appointments.
+
+Best regards,
+The Cura EMR Team`,
+              html: `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; background-color: white; }
+    .header { background: linear-gradient(135deg, #4A7DFF 0%, #7279FB 100%); color: white; padding: 30px 20px; text-align: center; }
+    .content { padding: 30px 20px; }
+    .info-box { background-color: #f8f9fa; border: 2px solid #4A7DFF; border-radius: 10px; padding: 20px; margin: 20px 0; }
+    .footer { background-color: #f8f9fa; color: #666; text-align: center; padding: 20px; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h2>🎉 Patient Account Created</h2>
+    </div>
+    <div class="content">
+      <h3>Dear ${firstName} ${lastName},</h3>
+      <p>Your patient account has been successfully created in the Cura EMR system.</p>
+      <div class="info-box">
+        <p><strong>Patient ID:</strong> ${generatedPatientId}</p>
+        <p><strong>Email:</strong> ${email}</p>
+      </div>
+      <p>You can now log in to access your medical records and appointments.</p>
+      <p>Best regards,<br><strong>The Cura EMR Team</strong></p>
+    </div>
+    <div class="footer">
+      <p>© 2025 Cura Software Limited. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>`,
+            });
+            console.log(`📧 ✅ Patient creation email sent successfully to ${email}`);
+          } catch (emailError) {
+            console.error('📧 ❌ Failed to send patient creation email:', emailError);
+            // Don't fail the entire operation if email fails
+          }
         }
 
         // Return user without password

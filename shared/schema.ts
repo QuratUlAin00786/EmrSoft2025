@@ -290,7 +290,7 @@ export const patients = pgTable("patients", {
   patientId: text("patient_id").notNull(), // Custom patient ID per organization
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
-  dateOfBirth: date("date_of_birth", { mode: 'string' }).notNull(),
+  dateOfBirth: date("date_of_birth", { mode: 'string' }),
   email: text("email"),
   phone: text("phone"),
   nhsNumber: text("nhs_number"), // NHS number for UK patients
@@ -1858,10 +1858,7 @@ export const insertPatientSchema = createInsertSchema(patients).omit({
   firstName: z.string().trim().min(1, "First name is required"),
   lastName: z.string().trim().min(1, "Last name is required"),
   patientId: z.string().trim().min(1, "Patient ID is required"),
-  dateOfBirth: z.coerce.date({
-    required_error: "Date of birth is required",
-    invalid_type_error: "Please enter a valid date"
-  }),
+  dateOfBirth: z.coerce.date().nullable().optional(),
   email: z.string().trim().email("Please enter a valid email address").optional().or(z.literal("")),
   phone: z.string().trim().optional(),
 });
