@@ -600,10 +600,28 @@ export default function CalendarPage() {
   // Auto-detect doctor when modal opens if user is a doctor
   useEffect(() => {
     if (showNewAppointmentModal && user?.role === 'doctor' && allDoctors.length > 0) {
+      console.log('🔍 DOCTOR AUTO-DETECT: Modal opened for doctor role');
+      console.log('📊 DOCTOR AUTO-DETECT: Total doctors fetched from users table:', allDoctors.length);
+      console.log('👤 DOCTOR AUTO-DETECT: Current user ID:', user.id, 'Organization ID:', user.organizationId);
+      console.log('📋 DOCTOR AUTO-DETECT: All doctors from users table (where role=doctor):', allDoctors.map((d: any) => ({ id: d.id, name: `${d.firstName} ${d.lastName}`, organizationId: d.organizationId })));
+      
       const currentUserAsDoctor = allDoctors.find((doctor: any) => doctor.id === user.id);
       if (currentUserAsDoctor && !selectedDoctor) {
-        console.log('Auto-detected doctor from current user:', currentUserAsDoctor);
+        console.log('✅ DOCTOR AUTO-DETECT: Found current user in doctors list from users table:', {
+          id: currentUserAsDoctor.id,
+          name: `${currentUserAsDoctor.firstName} ${currentUserAsDoctor.lastName}`,
+          email: currentUserAsDoctor.email,
+          role: currentUserAsDoctor.role,
+          organizationId: currentUserAsDoctor.organizationId,
+          department: currentUserAsDoctor.department,
+          specialty: currentUserAsDoctor.medicalSpecialtyCategory,
+          subSpecialty: currentUserAsDoctor.subSpecialty
+        });
         setSelectedDoctor(currentUserAsDoctor);
+      } else if (!currentUserAsDoctor) {
+        console.log('❌ DOCTOR AUTO-DETECT: Current user not found in doctors list');
+      } else if (selectedDoctor) {
+        console.log('ℹ️ DOCTOR AUTO-DETECT: Doctor already selected, skipping auto-detect');
       }
     }
   }, [showNewAppointmentModal, user, allDoctors]);

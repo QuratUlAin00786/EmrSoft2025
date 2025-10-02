@@ -3662,10 +3662,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Medical staff endpoint for appointment booking - accessible to authenticated users
   app.get("/api/medical-staff", authMiddleware, async (req: TenantRequest, res) => {
     try {
+      console.log('🏥 MEDICAL STAFF API: Fetching doctors from users table');
+      console.log('🏢 MEDICAL STAFF API: Organization ID from subdomain/tenant:', req.tenant!.id);
+      console.log('📋 MEDICAL STAFF API: Tenant info:', { id: req.tenant!.id, name: req.tenant!.name, subdomain: req.tenant!.subdomain });
+      
       // Get query parameters for specialty filtering
       const { specialty, subSpecialty } = req.query as { specialty?: string; subSpecialty?: string };
       
+      console.log('🔍 MEDICAL STAFF API: Querying users table where organizationId =', req.tenant!.id);
       const users = await storage.getUsersByOrganization(req.tenant!.id);
+      console.log('📊 MEDICAL STAFF API: Found', users.length, 'total users in organization from users table');
       
       // Get today's date for shift checking
       const today = new Date();
@@ -3686,7 +3692,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`=== MEDICAL STAFF DEBUG ===`);
       console.log(`Total users: ${users.length}`);
-      console.log(`Total doctors: ${totalDoctors}`);
+      console.log(`Total doctors (where role='doctor' and isActive=true): ${totalDoctors}`);
+      console.log(`👨‍⚕️ MEDICAL STAFF API: Filtering users table where role = 'doctor'`);
       console.log(`Today shifts count: ${todayShifts.length}`);
       console.log(`Day of week: ${dayOfWeek}`);
       
