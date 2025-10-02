@@ -22,12 +22,12 @@ export const pool = new Pool({
 
 // Wrap pool.query with retry logic to handle transient connection errors
 const originalQuery = pool.query.bind(pool);
-pool.query = (...args: any[]) => {
+pool.query = ((...args: any[]) => {
   return retryDatabaseOperation(
     () => originalQuery(...args), 
     'SQL query'
   );
-};
+}) as typeof pool.query;
 
 // Add pool error listener to prevent crashes from unhandled pool errors
 pool.on('error', (err: any) => {

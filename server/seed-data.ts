@@ -15,6 +15,7 @@ export async function seedDatabase() {
       [org] = await db.insert(organizations).values([{
       name: "Averox Healthcare",
       subdomain: "demo",
+      email: "admin@averox-healthcare.com",
       region: "UK",
       brandName: "MediCore Demo",
       settings: {
@@ -614,6 +615,7 @@ export async function seedDatabase() {
     if (existingSubscription.length === 0) {
       const sampleSubscription = {
         organizationId: org.id,
+        planName: "Professional Plan",
         plan: "professional",
         status: "active",
         currentUsers: 3,
