@@ -1074,11 +1074,22 @@ export default function PrescriptionsPage() {
     };
 
     const formatDate = (dateString: string) => {
-      return new Date(dateString).toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      });
+      const date = new Date(dateString);
+      const day = date.getDate();
+      const month = date.toLocaleDateString("en-GB", { month: "short" });
+      const year = date.getFullYear();
+      
+      const suffix = (day: number) => {
+        if (day > 3 && day < 21) return 'th';
+        switch (day % 10) {
+          case 1: return 'st';
+          case 2: return 'nd';
+          case 3: return 'rd';
+          default: return 'th';
+        }
+      };
+      
+      return `${day}${suffix(day)} ${month} ${year}`;
     };
 
     // Get first medication for main prescription details
@@ -1373,13 +1384,13 @@ export default function PrescriptionsPage() {
                     <span class="info-label">Name:</span> ${prescription.patientName}
                   </div>
                   <div class="info-line">
-                    <span class="info-label">Address:</span> ${patient?.address?.street || "Patient Address"}
+                    <span class="info-label">Address:</span> ${patient?.address ? `${patient.address.street || ''}, ${patient.address.city || ''}, ${patient.address.postcode || ''}, ${patient.address.country || ''}`.replace(/, ,/g, ',').replace(/^,\s*|,\s*$/g, '') : '-'}
                   </div>
                   <div class="info-line">
-                    <span class="info-label">Allergies:</span> ${patient?.medicalHistory?.allergies?.length > 0 ? patient.medicalHistory.allergies.join(", ") : "NKDA"}
+                    <span class="info-label">Allergies:</span> ${patient?.medicalHistory?.allergies?.length > 0 ? patient.medicalHistory.allergies.join(", ") : "-"}
                   </div>
                   <div class="info-line">
-                    <span class="info-label">Weight:</span> 70 kg
+                    <span class="info-label">Weight:</span> ${prescription.patientWeight || '-'}
                   </div>
                 </div>
                 <div class="patient-right">
@@ -2354,24 +2365,24 @@ export default function PrescriptionsPage() {
                             <strong>Name:</strong> {prescription.patientName}
                           </p>
                           <p className="text-sm text-gray-800 dark:text-gray-100">
-                            <strong>Address:</strong> Patient Address
+                            <strong>Address:</strong> {prescription.patientAddress || "-"}
                           </p>
                           <p className="text-sm text-gray-800 dark:text-gray-100">
-                            <strong>Allergies:</strong> NKDA
+                            <strong>Allergies:</strong> {prescription.patientAllergies || "-"}
                           </p>
                           <p className="text-sm text-gray-800 dark:text-gray-100">
                             <strong>Weight:</strong>{" "}
-                            {prescription.patientWeight || "70 kg"}
+                            {prescription.patientWeight || "-"}
                           </p>
                         </div>
                         <div className="text-right">
                           <p className="text-sm text-gray-800 dark:text-gray-100">
                             <strong>DOB:</strong>{" "}
-                            {prescription.patientDob || "01/01/1985"}
+                            {prescription.patientDob || "-"}
                           </p>
                           <p className="text-sm text-gray-800 dark:text-gray-100">
                             <strong>Age:</strong>{" "}
-                            {prescription.patientAge || "39"}
+                            {prescription.patientAge || "-"}
                           </p>
                           <p className="text-sm text-gray-800 dark:text-gray-100">
                             <strong>Sex:</strong>{" "}
@@ -2379,10 +2390,16 @@ export default function PrescriptionsPage() {
                           </p>
                           <p className="text-sm text-gray-800 dark:text-gray-100">
                             <strong>Date:</strong>{" "}
-                            {format(
-                              new Date(prescription.prescribedAt || prescription.issuedDate || prescription.createdAt),
-                              "MM/dd/yyyy",
-                            )}
+                            {prescription.prescribedAt || prescription.issuedDate || prescription.createdAt 
+                              ? (() => {
+                                  const date = new Date(prescription.prescribedAt || prescription.issuedDate || prescription.createdAt);
+                                  const day = date.getDate();
+                                  const month = date.toLocaleDateString("en-GB", { month: "short" });
+                                  const year = date.getFullYear();
+                                  const suffix = day > 3 && day < 21 ? 'th' : ['th', 'st', 'nd', 'rd'][day % 10] || 'th';
+                                  return `${day}${suffix} ${month} ${year}`;
+                                })()
+                              : "-"}
                           </p>
                         </div>
                       </div>

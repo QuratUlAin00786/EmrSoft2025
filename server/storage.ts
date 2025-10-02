@@ -3122,11 +3122,31 @@ export class DatabaseStorage implements IStorage {
         
         if (!seenCombinations.has(key)) {
           seenCombinations.add(key);
+          const formatDateWithSuffix = (dateString: string) => {
+            const date = new Date(dateString);
+            const day = date.getDate();
+            const month = date.toLocaleDateString('en-GB', { month: 'short' });
+            const year = date.getFullYear();
+            const suffix = day > 3 && day < 21 ? 'th' : ['th', 'st', 'nd', 'rd'][day % 10] || 'th';
+            return `${day}${suffix} ${month} ${year}`;
+          };
+          
+          const patientAddress = patient?.address 
+            ? `${patient.address.street || ''}, ${patient.address.city || ''}, ${patient.address.postcode || ''}, ${patient.address.country || ''}`.replace(/, ,/g, ',').replace(/^,\s*|,\s*$/g, '')
+            : '-';
+          
+          const patientAllergies = patient?.medicalHistory?.allergies && patient.medicalHistory.allergies.length > 0 
+            ? patient.medicalHistory.allergies.join(', ') 
+            : '-';
+          
           uniquePrescriptions.push({
             ...prescription,
             patientName: patient ? `${patient.firstName} ${patient.lastName}` : 'Unknown Patient',
-            patientDob: patient?.dateOfBirth ? new Date(patient.dateOfBirth).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) : null,
+            patientDob: patient?.dateOfBirth ? formatDateWithSuffix(patient.dateOfBirth) : null,
             patientAge: patient?.dateOfBirth ? Math.floor((new Date().getTime() - new Date(patient.dateOfBirth).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : null,
+            patientAddress,
+            patientAllergies,
+            patientWeight: null,
             providerName: provider ? `Dr. ${provider.firstName} ${provider.lastName}` : 'Unknown Provider',
           });
         }
@@ -3135,11 +3155,31 @@ export class DatabaseStorage implements IStorage {
         const key = `${prescription.patientId}-no-meds-${prescription.id}`;
         if (!seenCombinations.has(key)) {
           seenCombinations.add(key);
+          const formatDateWithSuffix = (dateString: string) => {
+            const date = new Date(dateString);
+            const day = date.getDate();
+            const month = date.toLocaleDateString('en-GB', { month: 'short' });
+            const year = date.getFullYear();
+            const suffix = day > 3 && day < 21 ? 'th' : ['th', 'st', 'nd', 'rd'][day % 10] || 'th';
+            return `${day}${suffix} ${month} ${year}`;
+          };
+          
+          const patientAddress = patient?.address 
+            ? `${patient.address.street || ''}, ${patient.address.city || ''}, ${patient.address.postcode || ''}, ${patient.address.country || ''}`.replace(/, ,/g, ',').replace(/^,\s*|,\s*$/g, '')
+            : '-';
+          
+          const patientAllergies = patient?.medicalHistory?.allergies && patient.medicalHistory.allergies.length > 0 
+            ? patient.medicalHistory.allergies.join(', ') 
+            : '-';
+          
           uniquePrescriptions.push({
             ...prescription,
             patientName: patient ? `${patient.firstName} ${patient.lastName}` : 'Unknown Patient',
-            patientDob: patient?.dateOfBirth ? new Date(patient.dateOfBirth).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) : null,
+            patientDob: patient?.dateOfBirth ? formatDateWithSuffix(patient.dateOfBirth) : null,
             patientAge: patient?.dateOfBirth ? Math.floor((new Date().getTime() - new Date(patient.dateOfBirth).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : null,
+            patientAddress,
+            patientAllergies,
+            patientWeight: null,
             providerName: provider ? `Dr. ${provider.firstName} ${provider.lastName}` : 'Unknown Provider',
           });
         }
@@ -3162,13 +3202,35 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(prescriptions.patientId, patientId), eq(prescriptions.organizationId, organizationId)))
       .orderBy(desc(prescriptions.createdAt));
     
-    return results.map(item => ({
-      ...item.prescription,
-      patientName: item.patient ? `${item.patient.firstName} ${item.patient.lastName}` : 'Unknown Patient',
-      patientDob: item.patient?.dateOfBirth ? new Date(item.patient.dateOfBirth).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) : null,
-      patientAge: item.patient?.dateOfBirth ? Math.floor((new Date().getTime() - new Date(item.patient.dateOfBirth).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : null,
-      providerName: item.provider ? `Dr. ${item.provider.firstName} ${item.provider.lastName}` : 'Unknown Provider',
-    }));
+    return results.map(item => {
+      const formatDateWithSuffix = (dateString: string) => {
+        const date = new Date(dateString);
+        const day = date.getDate();
+        const month = date.toLocaleDateString('en-GB', { month: 'short' });
+        const year = date.getFullYear();
+        const suffix = day > 3 && day < 21 ? 'th' : ['th', 'st', 'nd', 'rd'][day % 10] || 'th';
+        return `${day}${suffix} ${month} ${year}`;
+      };
+      
+      const patientAddress = item.patient?.address 
+        ? `${item.patient.address.street || ''}, ${item.patient.address.city || ''}, ${item.patient.address.postcode || ''}, ${item.patient.address.country || ''}`.replace(/, ,/g, ',').replace(/^,\s*|,\s*$/g, '')
+        : '-';
+      
+      const patientAllergies = item.patient?.medicalHistory?.allergies?.length > 0 
+        ? item.patient.medicalHistory.allergies.join(', ') 
+        : '-';
+      
+      return {
+        ...item.prescription,
+        patientName: item.patient ? `${item.patient.firstName} ${item.patient.lastName}` : 'Unknown Patient',
+        patientDob: item.patient?.dateOfBirth ? formatDateWithSuffix(item.patient.dateOfBirth) : null,
+        patientAge: item.patient?.dateOfBirth ? Math.floor((new Date().getTime() - new Date(item.patient.dateOfBirth).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : null,
+        patientAddress,
+        patientAllergies,
+        patientWeight: null,
+        providerName: item.provider ? `Dr. ${item.provider.firstName} ${item.provider.lastName}` : 'Unknown Provider',
+      };
+    });
   }
 
   async getPrescriptionsByProvider(providerId: number, organizationId: number): Promise<Prescription[]> {
@@ -3184,13 +3246,35 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(prescriptions.doctorId, providerId), eq(prescriptions.organizationId, organizationId)))
       .orderBy(desc(prescriptions.createdAt));
     
-    return results.map(item => ({
-      ...item.prescription,
-      patientName: item.patient ? `${item.patient.firstName} ${item.patient.lastName}` : 'Unknown Patient',
-      patientDob: item.patient?.dateOfBirth ? new Date(item.patient.dateOfBirth).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) : null,
-      patientAge: item.patient?.dateOfBirth ? Math.floor((new Date().getTime() - new Date(item.patient.dateOfBirth).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : null,
-      providerName: item.provider ? `Dr. ${item.provider.firstName} ${item.provider.lastName}` : 'Unknown Provider',
-    }));
+    return results.map(item => {
+      const formatDateWithSuffix = (dateString: string) => {
+        const date = new Date(dateString);
+        const day = date.getDate();
+        const month = date.toLocaleDateString('en-GB', { month: 'short' });
+        const year = date.getFullYear();
+        const suffix = day > 3 && day < 21 ? 'th' : ['th', 'st', 'nd', 'rd'][day % 10] || 'th';
+        return `${day}${suffix} ${month} ${year}`;
+      };
+      
+      const patientAddress = item.patient?.address 
+        ? `${item.patient.address.street || ''}, ${item.patient.address.city || ''}, ${item.patient.address.postcode || ''}, ${item.patient.address.country || ''}`.replace(/, ,/g, ',').replace(/^,\s*|,\s*$/g, '')
+        : '-';
+      
+      const patientAllergies = item.patient?.medicalHistory?.allergies?.length > 0 
+        ? item.patient.medicalHistory.allergies.join(', ') 
+        : '-';
+      
+      return {
+        ...item.prescription,
+        patientName: item.patient ? `${item.patient.firstName} ${item.patient.lastName}` : 'Unknown Patient',
+        patientDob: item.patient?.dateOfBirth ? formatDateWithSuffix(item.patient.dateOfBirth) : null,
+        patientAge: item.patient?.dateOfBirth ? Math.floor((new Date().getTime() - new Date(item.patient.dateOfBirth).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : null,
+        patientAddress,
+        patientAllergies,
+        patientWeight: null,
+        providerName: item.provider ? `Dr. ${item.provider.firstName} ${item.provider.lastName}` : 'Unknown Provider',
+      };
+    });
   }
 
   async getPrescriptionsByStatus(patientId: number, organizationId: number, status: string): Promise<Prescription[]> {
