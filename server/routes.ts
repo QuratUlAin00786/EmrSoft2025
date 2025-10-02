@@ -14,7 +14,7 @@ import { tenantMiddleware, authMiddleware, requireRole, requireNonPatientRole, g
 import { multiTenantEnforcer, validateOrganizationFilter, withTenantIsolation } from "./middleware/multi-tenant-enforcer";
 import { initializeMultiTenantPackage, getMultiTenantPackage } from "./packages/multi-tenant-core";
 import { messagingService } from "./messaging-service";
-import { createPaypalOrder, capturePaypalOrder, loadPaypalDefault } from "./paypal";
+// PayPal imports moved to dynamic imports to avoid initialization errors when credentials are missing
 import { gdprComplianceService } from "./services/gdpr-compliance";
 import { insertGdprConsentSchema, insertGdprDataRequestSchema, updateMedicalImageReportFieldSchema, insertAiInsightSchema, medicationsDatabase, patientDrugInteractions, type Appointment, organizations, subscriptions, users } from "../shared/schema";
 import { db } from "./db";
@@ -8395,18 +8395,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // PayPal Routes - Real PayPal Integration
+  // PayPal Routes - Real PayPal Integration (conditional on credentials)
   app.get("/api/paypal/setup", async (req, res) => {
-    await loadPaypalDefault(req, res);
+    try {
+      if (!process.env.PAYPAL_CLIENT_ID || !process.env.PAYPAL_CLIENT_SECRET) {
+        return res.status(503).json({ error: "PayPal is not configured. Please set PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET environment variables." });
+      }
+      const { loadPaypalDefault } = await import("./paypal");
+      await loadPaypalDefault(req, res);
+    } catch (error: any) {
+      console.error("PayPal setup error:", error);
+      res.status(500).json({ error: "Failed to setup PayPal" });
+    }
   });
 
   app.post("/api/paypal/order", async (req, res) => {
-    // Request body should contain: { intent, amount, currency }
-    await createPaypalOrder(req, res);
+    try {
+      if (!process.env.PAYPAL_CLIENT_ID || !process.env.PAYPAL_CLIENT_SECRET) {
+        return res.status(503).json({ error: "PayPal is not configured. Please set PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET environment variables." });
+      }
+      const { createPaypalOrder } = await import("./paypal");
+      await createPaypalOrder(req, res);
+    } catch (error: any) {
+      console.error("PayPal order creation error:", error);
+      res.status(500).json({ error: "Failed to create PayPal order" });
+    }
   });
 
   app.post("/api/paypal/order/:orderID/capture", async (req, res) => {
-    await capturePaypalOrder(req, res);
+    try {
+      if (!process.env.PAYPAL_CLIENT_ID || !process.env.PAYPAL_CLIENT_SECRET) {
+        return res.status(503).json({ error: "PayPal is not configured. Please set PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET environment variables." });
+      }
+      const { capturePaypalOrder } = await import("./paypal");
+      await capturePaypalOrder(req, res);
+    } catch (error: any) {
+      console.error("PayPal order capture error:", error);
+      res.status(500).json({ error: "Failed to capture PayPal order" });
+    }
   });
 
   // Website Chatbot API Endpoints - for appointment booking and prescription requests
