@@ -47,6 +47,7 @@ import {
 import { format } from "date-fns";
 import { useAuth } from "@/hooks/use-auth";
 import { getActiveSubdomain } from "@/lib/subdomain-utils";
+import { useLocation } from "wouter";
 
 interface Prescription {
   id: string;
@@ -206,6 +207,7 @@ const getSeverityColor = (severity: string) => {
 
 export default function PrescriptionsPage() {
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedPrescription, setSelectedPrescription] =
@@ -592,6 +594,35 @@ export default function PrescriptionsPage() {
     },
     enabled: !!user && patients.length > 0, // Wait for user and patients data to be loaded
   });
+
+  // Fetch drug interactions count from database
+  const { data: drugInteractionsData } = useQuery({
+    queryKey: ["/api/clinical/patient-drug-interactions"],
+    queryFn: async () => {
+      const token = localStorage.getItem("auth_token");
+      const headers: Record<string, string> = {
+        "X-Tenant-Subdomain": getActiveSubdomain(),
+      };
+
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const response = await fetch("/api/clinical/patient-drug-interactions", {
+        headers,
+        credentials: "include",
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch drug interactions: ${response.status}`);
+      }
+      
+      return response.json();
+    },
+    enabled: !!user,
+  });
+
+  const drugInteractionsCount = drugInteractionsData?.count || 0;
 
   // Create patient and provider name mappings from fetched data
   const patientNames: Record<number, string> = {};
@@ -1659,7 +1690,11 @@ export default function PrescriptionsPage() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card 
+              className="cursor-pointer hover:bg-gray-50 transition-colors"
+              onClick={() => setLocation('/clinical-decision-support?tab=drug-interactions')}
+              data-testid="card-drug-interactions"
+            >
               <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center justify-between">
                   <div>
@@ -1667,12 +1702,7 @@ export default function PrescriptionsPage() {
                       Drug Interactions
                     </p>
                     <p className="text-xl sm:text-2xl font-bold">
-                      {
-                        searchFilteredPrescriptions.filter(
-                          (p: any) =>
-                            p.interactions && p.interactions.length > 0,
-                        ).length
-                      }
+                      {drugInteractionsCount}
                     </p>
                   </div>
                   <AlertTriangle className="h-6 w-6 sm:h-8 sm:w-8 text-red-600" />

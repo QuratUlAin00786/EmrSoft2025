@@ -97,6 +97,15 @@ export default function ClinicalDecisionSupport() {
   const { toast } = useToast();
   const [location, setLocation] = useLocation();
 
+  // Read URL parameters to set active tab
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tabParam = params.get('tab');
+    if (tabParam === 'drug-interactions') {
+      setActiveTab('interactions');
+    }
+  }, []);
+
   // Connect to SSE for real-time AI insight updates
   const { connected: sseConnected } = useAiInsightsEvents();
 

@@ -5155,6 +5155,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // GET endpoint to fetch drug interactions count and list
+  app.get("/api/clinical/patient-drug-interactions", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const organizationId = req.tenant!.id;
+      
+      // Fetch all drug interactions for the organization
+      const interactions = await db
+        .select()
+        .from(patientDrugInteractions)
+        .where(eq(patientDrugInteractions.organizationId, organizationId));
+      
+      res.json({
+        success: true,
+        count: interactions.length,
+        interactions
+      });
+    } catch (error) {
+      console.error("Fetch patient drug interactions error:", error);
+      res.status(500).json({ error: "Failed to fetch drug interactions" });
+    }
+  });
+
   // Organization settings routes
   app.get("/api/organization/settings", requireRole(["admin"]), async (req: TenantRequest, res) => {
     try {
