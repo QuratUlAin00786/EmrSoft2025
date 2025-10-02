@@ -4121,7 +4121,7 @@ Coverage Details: [Insurance Coverage]`;
     }
   };
   const applyTextFormatting = (
-    formatType: "paragraph" | "heading1" | "heading2",
+    formatType: "paragraph" | "heading1" | "heading2" | "heading3" | "heading4" | "heading5" | "heading6",
   ) => {
     console.log("applyTextFormatting called with:", formatType);
 
@@ -4153,7 +4153,15 @@ Coverage Details: [Insurance Coverage]`;
           ? "Heading 1"
           : formatType === "heading2"
             ? "Heading 2"
-            : "Paragraph text";
+            : formatType === "heading3"
+              ? "Heading 3"
+              : formatType === "heading4"
+                ? "Heading 4"
+                : formatType === "heading5"
+                  ? "Heading 5"
+                  : formatType === "heading6"
+                    ? "Heading 6"
+                    : "Paragraph text";
 
       if (selection && selection.rangeCount > 0) {
         range = selection.getRangeAt(0);
@@ -4197,6 +4205,62 @@ Coverage Details: [Insurance Coverage]`;
         element.style.setProperty("color", "#2a2a2a", "important");
         element.style.setProperty("margin", "0", "important");
         element.style.setProperty("line-height", "1.3", "important");
+        element.style.setProperty("display", "inline", "important");
+        element.style.setProperty(
+          "font-family",
+          currentFontFamily,
+          "important",
+        );
+        break;
+      case "heading3":
+        element = document.createElement("h3");
+        element.style.setProperty("font-size", "18px", "important");
+        element.style.setProperty("font-weight", "bold", "important");
+        element.style.setProperty("color", "#2a2a2a", "important");
+        element.style.setProperty("margin", "0", "important");
+        element.style.setProperty("line-height", "1.4", "important");
+        element.style.setProperty("display", "inline", "important");
+        element.style.setProperty(
+          "font-family",
+          currentFontFamily,
+          "important",
+        );
+        break;
+      case "heading4":
+        element = document.createElement("h4");
+        element.style.setProperty("font-size", "16px", "important");
+        element.style.setProperty("font-weight", "bold", "important");
+        element.style.setProperty("color", "#3a3a3a", "important");
+        element.style.setProperty("margin", "0", "important");
+        element.style.setProperty("line-height", "1.5", "important");
+        element.style.setProperty("display", "inline", "important");
+        element.style.setProperty(
+          "font-family",
+          currentFontFamily,
+          "important",
+        );
+        break;
+      case "heading5":
+        element = document.createElement("h5");
+        element.style.setProperty("font-size", "14px", "important");
+        element.style.setProperty("font-weight", "bold", "important");
+        element.style.setProperty("color", "#3a3a3a", "important");
+        element.style.setProperty("margin", "0", "important");
+        element.style.setProperty("line-height", "1.5", "important");
+        element.style.setProperty("display", "inline", "important");
+        element.style.setProperty(
+          "font-family",
+          currentFontFamily,
+          "important",
+        );
+        break;
+      case "heading6":
+        element = document.createElement("h6");
+        element.style.setProperty("font-size", "12px", "important");
+        element.style.setProperty("font-weight", "bold", "important");
+        element.style.setProperty("color", "#4a4a4a", "important");
+        element.style.setProperty("margin", "0", "important");
+        element.style.setProperty("line-height", "1.6", "important");
         element.style.setProperty("display", "inline", "important");
         element.style.setProperty(
           "font-family",
@@ -4263,6 +4327,10 @@ Coverage Details: [Insurance Coverage]`;
           paragraph: "✓ Paragraph",
           heading1: "✓ Heading 1",
           heading2: "✓ Heading 2",
+          heading3: "✓ Heading 3",
+          heading4: "✓ Heading 4",
+          heading5: "✓ Heading 5",
+          heading6: "✓ Heading 6",
         };
 
         toast({
@@ -4294,6 +4362,26 @@ Coverage Details: [Insurance Coverage]`;
   const handleH2 = () => {
     console.log("handleH2 called");
     applyTextFormatting("heading2");
+  };
+
+  const handleH3 = () => {
+    console.log("handleH3 called");
+    applyTextFormatting("heading3");
+  };
+
+  const handleH4 = () => {
+    console.log("handleH4 called");
+    applyTextFormatting("heading4");
+  };
+
+  const handleH5 = () => {
+    console.log("handleH5 called");
+    applyTextFormatting("heading5");
+  };
+
+  const handleH6 = () => {
+    console.log("handleH6 called");
+    applyTextFormatting("heading6");
   };
 
   const getFontFamilyCSS = (fontFamilyValue: string) => {
@@ -4848,13 +4936,13 @@ Coverage Details: [Insurance Coverage]`;
                   } else if (value === "heading2") {
                     handleH2();
                   } else if (value === "heading3") {
-                  
+                    handleH3();
                   } else if (value === "heading4") {
-                   
+                    handleH4();
                   } else if (value === "heading5") {
-                  
+                    handleH5();
                   } else if (value === "heading6") {
-                   
+                    handleH6();
                   }
                 }, 100);
               }}
