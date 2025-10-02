@@ -597,6 +597,16 @@ export default function CalendarPage() {
     }
   }, [location]);
 
+  // Auto-detect doctor when modal opens if user is a doctor
+  useEffect(() => {
+    if (showNewAppointmentModal && user?.role === 'doctor' && allDoctors.length > 0) {
+      const currentUserAsDoctor = allDoctors.find((doctor: any) => doctor.id === user.id);
+      if (currentUserAsDoctor && !selectedDoctor) {
+        console.log('Auto-detected doctor from current user:', currentUserAsDoctor);
+        setSelectedDoctor(currentUserAsDoctor);
+      }
+    }
+  }, [showNewAppointmentModal, user, allDoctors]);
 
   const createAppointmentMutation = useMutation({
     mutationFn: async (appointmentData: any) => {
@@ -1167,123 +1177,8 @@ export default function CalendarPage() {
                 </div>
                 
                 <div className="grid gap-6 lg:grid-cols-2">
-                  {/* Left Column - Filters and Doctor Selection */}
+                  {/* Left Column - Patient Selection */}
                   <div className="space-y-6">
-                    {/* Step 1: Select Specialty */}
-                    <div>
-                      <Label className="text-sm font-medium text-gray-900 dark:text-white">
-                        Select Medical Specialty Category
-                      </Label>
-                      <Popover open={specialtyComboboxOpen} onOpenChange={setSpecialtyComboboxOpen}>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            role="combobox"
-                            aria-expanded={specialtyComboboxOpen}
-                            className="mt-2 w-full justify-between"
-                            data-testid="trigger-specialty-combobox"
-                          >
-                            {selectedSpecialty || "Select Specialty"}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-full p-0">
-                          <Command>
-                            <CommandInput 
-                              placeholder="Search specialties..." 
-                              data-testid="input-search-specialty"
-                            />
-                            <CommandList>
-                              <CommandEmpty>No specialty found.</CommandEmpty>
-                              <CommandGroup>
-                                {getUniqueSpecialties().map((specialty) => (
-                                  <CommandItem
-                                    key={specialty}
-                                    value={specialty}
-                                    onSelect={(currentValue) => {
-                                      // Use the original specialty value instead of normalized currentValue
-                                      const isCurrentlySelected = specialty === selectedSpecialty;
-                                      setSelectedSpecialty(isCurrentlySelected ? "" : specialty);
-                                      setSelectedSubSpecialty(""); // Reset sub-specialty when specialty changes
-                                      setSpecialtyComboboxOpen(false);
-                                    }}
-                                    data-testid={`item-specialty-${specialty.replace(/\s+/g, '-').toLowerCase()}`}
-                                  >
-                                    <Check
-                                      className={`mr-2 h-4 w-4 ${
-                                        specialty === selectedSpecialty ? "opacity-100" : "opacity-0"
-                                      }`}
-                                    />
-                                    {specialty}
-                                  </CommandItem>
-                                ))}
-                              </CommandGroup>
-                            </CommandList>
-                          </Command>
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-
-                    {/* Step 2: Select Sub-Specialty */}
-                    <div>
-                      <Label className="text-sm font-medium text-gray-900 dark:text-white">
-                        Select Sub-Specialty
-                      </Label>
-                      <Select 
-                        value={selectedSubSpecialty} 
-                        onValueChange={setSelectedSubSpecialty}
-                        data-testid="select-subspecialty"
-                      >
-                        <SelectTrigger className="mt-2">
-                          <SelectValue placeholder="Select Sub-Specialty" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {getSubSpecialties(selectedSpecialty).map((subSpecialty) => (
-                            <SelectItem key={subSpecialty} value={subSpecialty}>
-                              {subSpecialty}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {/* Step 3: Select Doctor */}
-                    <div>
-                      <Label className="text-sm font-medium text-gray-900 dark:text-white">
-                        Select Doctor
-                      </Label>
-                      {filteredDoctors.length > 0 ? (
-                        <Select 
-                          value={selectedDoctor?.id?.toString() || ""} 
-                          onValueChange={(value) => {
-                            const doctor = filteredDoctors.find(d => d.id.toString() === value);
-                            setSelectedDoctor(doctor);
-                          }}
-                          data-testid="select-doctor"
-                        >
-                          <SelectTrigger className="mt-2">
-                            <SelectValue placeholder="Select Doctor" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {filteredDoctors.map((doctor) => (
-                              <SelectItem key={doctor.id} value={doctor.id.toString()}>
-                                Dr. {doctor.firstName} {doctor.lastName} 
-                                {doctor.department && ` (${doctor.department})`}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-                          <p className="text-sm text-yellow-800">
-                            {selectedSpecialty ? 
-                              "No doctors found for the selected specialty combination. Please try a different selection." :
-                              "Loading doctors..."}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-
                     {/* Patient Selection */}
                     <div>
                       <Label className="text-sm font-medium text-gray-900 dark:text-white">
@@ -1362,8 +1257,8 @@ export default function CalendarPage() {
                                     }
                                     
                                     const displayName = `${selectedPatient.firstName} ${selectedPatient.lastName}`;
-                                    const patientId = selectedPatient.patientId || `P${selectedPatient.id.toString().padStart(6, '0')}`;
-                                    return `${displayName} (${patientId})`;
+                                    const email = selectedPatient.email ? ` (${selectedPatient.email})` : '';
+                                    return `${displayName}${email}`;
                                   })()
                                 : "Select patient..."}
                               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -1381,12 +1276,13 @@ export default function CalendarPage() {
                                   {patients.map((patient: any) => {
                                     const patientValue = patient.patientId || patient.id.toString();
                                     const patientDisplayName = `${patient.firstName} ${patient.lastName}`;
-                                    const patientWithId = `${patientDisplayName} (${patient.patientId || `P${patient.id.toString().padStart(6, '0')}`})`;
+                                    const patientEmail = patient.email ? ` (${patient.email})` : '';
+                                    const patientWithEmail = `${patientDisplayName}${patientEmail}`;
                                     
                                     return (
                                       <CommandItem
                                         key={patient.id}
-                                        value={patientWithId}
+                                        value={patientWithEmail}
                                         onSelect={(currentValue) => {
                                           setBookingForm(prev => ({ ...prev, patientId: patientValue }));
                                           setPatientComboboxOpen(false);
@@ -1398,7 +1294,10 @@ export default function CalendarPage() {
                                             patientValue === bookingForm.patientId ? "opacity-100" : "opacity-0"
                                           }`}
                                         />
-                                        {patientWithId}
+                                        <div className="flex flex-col">
+                                          <span className="font-medium">{patientDisplayName}</span>
+                                          {patient.email && <span className="text-sm text-gray-600">{patient.email}</span>}
+                                        </div>
                                       </CommandItem>
                                     );
                                   })}
@@ -1570,7 +1469,7 @@ export default function CalendarPage() {
                       ) : (
                         <div className="mt-2 p-3 bg-gray-50 border border-gray-200 rounded-md">
                           <p className="text-sm text-gray-600">
-                            Please select a doctor and date to view available time slots.
+                            Please select a date to view available time slots.
                           </p>
                         </div>
                       )}
