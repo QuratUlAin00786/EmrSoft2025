@@ -214,25 +214,19 @@ export default function CalendarPage() {
         name: `${p.firstName} ${p.lastName}` 
       })));
       
-      // Try multiple matching strategies
+      // Match patient by email (primary) or name (secondary)
+      // Only show patients from same organization (already filtered by API)
       const currentPatient = 
-        // 1. Match by exact email
+        // 1. Match by exact email (primary matching method)
         patients.find((patient: any) => 
           patient.email && user.email && patient.email.toLowerCase() === user.email.toLowerCase()
         ) ||
-        // 2. Match by exact name
+        // 2. Match by exact name (secondary matching method)
         patients.find((patient: any) => 
           patient.firstName && user.firstName && patient.lastName && user.lastName &&
           patient.firstName.toLowerCase() === user.firstName.toLowerCase() && 
           patient.lastName.toLowerCase() === user.lastName.toLowerCase()
-        ) ||
-        // 3. Match by partial name (first name only)
-        patients.find((patient: any) => 
-          patient.firstName && user.firstName &&
-          patient.firstName.toLowerCase() === user.firstName.toLowerCase()
-        ) ||
-        // 4. If user role is patient, take the first patient (fallback for demo)
-        (user.role === 'patient' && patients.length > 0 ? patients[0] : null);
+        );
       
       if (currentPatient) {
         console.log("✅ CALENDAR: Found matching patient:", currentPatient);
