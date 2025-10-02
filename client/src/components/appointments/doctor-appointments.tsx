@@ -424,6 +424,74 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
           </CardContent>
         </Card>
       )}
+
+      {/* Filtered Appointments List */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">
+            {appointmentFilter === 'upcoming' && `Upcoming Appointments (${filteredAppointments.length})`}
+            {appointmentFilter === 'past' && `Past Appointments (${filteredAppointments.length})`}
+            {appointmentFilter === 'all' && `All Appointments (${filteredAppointments.length})`}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {filteredAppointments.map((appointment: any) => (
+              <Card 
+                key={appointment.id} 
+                className="border-l-4" 
+                style={{ borderLeftColor: statusColors[appointment.status as keyof typeof statusColors] }}
+                data-testid={`filtered-appointment-${appointment.id}`}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <div>
+                        <div className="flex items-center space-x-2">
+                          <Calendar className="h-4 w-4 text-gray-400" />
+                          <span className="font-medium">
+                            {format(new Date(appointment.scheduledAt), "EEEE, MMMM d, yyyy")}
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-2 mt-1">
+                          <Clock className="h-4 w-4 text-gray-400" />
+                          <span className="font-medium">{formatTime(appointment.scheduledAt)}</span>
+                        </div>
+                        <div className="flex items-center space-x-2 mt-1">
+                          <User className="h-4 w-4 text-gray-400" />
+                          <span className="text-sm">{getPatientName(appointment.patientId)}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-medium">{appointment.title}</div>
+                      <div className="text-sm text-gray-600 mt-1">Type: {appointment.type}</div>
+                      <Badge 
+                        style={{ backgroundColor: statusColors[appointment.status as keyof typeof statusColors] }}
+                        className="text-white mt-2"
+                      >
+                        {appointment.status.toUpperCase()}
+                      </Badge>
+                    </div>
+                  </div>
+                  {appointment.description && (
+                    <p className="text-sm text-gray-600 mt-2">{appointment.description}</p>
+                  )}
+                  {appointment.location && (
+                    <p className="text-sm text-gray-500 mt-1">Location: {appointment.location}</p>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+            {filteredAppointments.length === 0 && (
+              <div className="text-center py-8 text-gray-500">
+                <Calendar className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                <p>No {appointmentFilter} appointments found</p>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
