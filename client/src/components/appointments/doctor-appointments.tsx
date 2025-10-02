@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, User, Video, Stethoscope, Plus } from "lucide-react";
-import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, isToday } from "date-fns";
+import { Calendar, Clock, User, Video, Stethoscope, Plus, ArrowRight } from "lucide-react";
+import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, isToday, isPast, isFuture, parseISO } from "date-fns";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
@@ -18,6 +18,7 @@ const statusColors = {
 export default function DoctorAppointments({ onNewAppointment }: { onNewAppointment?: () => void }) {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<"week" | "day">("week");
+  const [appointmentFilter, setAppointmentFilter] = useState<"all" | "upcoming" | "past">("upcoming");
   const { user } = useAuth();
 
   // Fetch appointments for this doctor
@@ -46,6 +47,70 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
 
   const appointments = appointmentsData || [];
 
+  // Filter appointments for current doctor based on organizationId and role
+  const doctorAppointments = React.useMemo(() => {
+    if (!user || user.role !== 'doctor') return [];
+    
+    console.log('🩺 DOCTOR APPOINTMENTS: Current user', {
+      id: user.id,
+      role: user.role,
+      organizationId: user.organizationId
+    });
+    
+    console.log('📊 DOCTOR APPOINTMENTS: Fetched data', {
+      totalAppointments: appointments.length,
+      totalPatients: patientsData?.length || 0
+    });
+
+    // Filter appointments where doctorId matches current user's id
+    const filtered = appointments.filter((apt: any) => {
+      return apt.doctorId === user.id && apt.organizationId === user.organizationId;
+    });
+
+    console.log('✅ DOCTOR APPOINTMENTS: Filtered', filtered.length, 'appointments for doctor ID', user.id, 'in organization', user.organizationId);
+    
+    return filtered;
+  }, [appointments, user, patientsData]);
+
+  // Categorize appointments into upcoming and past
+  const categorizedAppointments = React.useMemo(() => {
+    const now = new Date();
+    const upcoming = doctorAppointments.filter((apt: any) => {
+      const aptDate = new Date(apt.scheduledAt);
+      return isFuture(aptDate) || isSameDay(aptDate, now);
+    }).sort((a: any, b: any) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime());
+
+    const past = doctorAppointments.filter((apt: any) => {
+      const aptDate = new Date(apt.scheduledAt);
+      return isPast(aptDate) && !isSameDay(aptDate, now);
+    }).sort((a: any, b: any) => new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime());
+
+    console.log('📅 DOCTOR APPOINTMENTS: Categorized', {
+      upcoming: upcoming.length,
+      past: past.length
+    });
+
+    return { upcoming, past };
+  }, [doctorAppointments]);
+
+  // Get filtered appointments based on selected filter
+  const filteredAppointments = React.useMemo(() => {
+    let result = [];
+    if (appointmentFilter === 'all') {
+      result = doctorAppointments;
+    } else if (appointmentFilter === 'upcoming') {
+      result = categorizedAppointments.upcoming;
+    } else {
+      result = categorizedAppointments.past;
+    }
+
+    console.log('🎯 DOCTOR APPOINTMENTS: Displaying', result.length, 'appointments (filter:', appointmentFilter + ')');
+    return result;
+  }, [doctorAppointments, categorizedAppointments, appointmentFilter]);
+
+  // Get next upcoming appointment
+  const nextAppointment = categorizedAppointments.upcoming[0] || null;
+
   const getPatientName = (patientId: number) => {
     if (!patientsData || !Array.isArray(patientsData)) return `Patient ${patientId}`;
     const patient = patientsData.find((p: any) => p.id === patientId);
@@ -62,7 +127,7 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
   };
 
   const getAppointmentsForDate = (date: Date) => {
-    return appointments.filter((apt: any) => {
+    return doctorAppointments.filter((apt: any) => {
       const appointmentDate = new Date(apt.scheduledAt);
       return isSameDay(appointmentDate, date);
     });
@@ -120,6 +185,35 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
             Schedule Patient
           </Button>
         </div>
+      </div>
+
+      {/* Appointment Filters */}
+      <div className="flex items-center space-x-2 bg-gray-100 dark:bg-gray-800 p-2 rounded-lg">
+        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Filter:</span>
+        <Button
+          variant={appointmentFilter === "upcoming" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setAppointmentFilter("upcoming")}
+          data-testid="filter-upcoming"
+        >
+          Upcoming ({categorizedAppointments.upcoming.length})
+        </Button>
+        <Button
+          variant={appointmentFilter === "past" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setAppointmentFilter("past")}
+          data-testid="filter-past"
+        >
+          Past ({categorizedAppointments.past.length})
+        </Button>
+        <Button
+          variant={appointmentFilter === "all" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setAppointmentFilter("all")}
+          data-testid="filter-all"
+        >
+          All ({doctorAppointments.length})
+        </Button>
       </div>
 
       {/* Weekly View */}
@@ -280,6 +374,56 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
           </div>
         </CardContent>
       </Card>
+
+      {/* Next Upcoming Appointment */}
+      {nextAppointment && (
+        <Card className="border-l-4 border-l-blue-500 bg-blue-50 dark:bg-blue-900/20">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <ArrowRight className="h-5 w-5 text-blue-600" />
+              Next Upcoming Appointment
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <Calendar className="h-5 w-5 text-blue-600" />
+                  <span className="font-semibold text-lg">
+                    {format(new Date(nextAppointment.scheduledAt), "EEEE, MMMM d, yyyy")}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Clock className="h-5 w-5 text-blue-600" />
+                  <span className="font-semibold text-lg">
+                    {formatTime(nextAppointment.scheduledAt)}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <User className="h-5 w-5 text-blue-600" />
+                  <span className="text-gray-700 dark:text-gray-300">
+                    Patient: {getPatientName(nextAppointment.patientId)}
+                  </span>
+                </div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  Type: {nextAppointment.type}
+                </div>
+                {nextAppointment.description && (
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                    {nextAppointment.description}
+                  </div>
+                )}
+              </div>
+              <Badge 
+                style={{ backgroundColor: statusColors[nextAppointment.status as keyof typeof statusColors] }}
+                className="text-white text-lg px-4 py-2"
+              >
+                {nextAppointment.status.toUpperCase()}
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
