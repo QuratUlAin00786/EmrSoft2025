@@ -1411,6 +1411,178 @@ export default function CalendarPage() {
                         })()}
                       </div>
                     )}
+
+                    {/* Doctor Selection Section */}
+                    <div>
+                      <Label className="text-sm font-medium text-gray-900 dark:text-white mb-2 block">
+                        {user?.role === 'doctor' ? 'Doctor Information' : 'Select Doctor'}
+                      </Label>
+                      
+                      {user?.role === 'patient' ? (
+                        /* Patient Role: Show specialty and doctor dropdowns */
+                        <div className="space-y-4">
+                          {/* Medical Specialty Category Dropdown */}
+                          <div>
+                            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">
+                              Select Medical Specialty Category
+                            </Label>
+                            <Popover open={specialtyComboboxOpen} onOpenChange={setSpecialtyComboboxOpen}>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  role="combobox"
+                                  aria-expanded={specialtyComboboxOpen}
+                                  className="w-full justify-between"
+                                  data-testid="trigger-specialty-combobox"
+                                >
+                                  {selectedSpecialty || "Select specialty category..."}
+                                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-full p-0">
+                                <Command>
+                                  <CommandInput 
+                                    placeholder="Search specialty..." 
+                                    data-testid="input-search-specialty"
+                                  />
+                                  <CommandList>
+                                    <CommandEmpty>No specialty found.</CommandEmpty>
+                                    <CommandGroup>
+                                      {Object.keys(medicalSpecialties).map((specialty) => (
+                                        <CommandItem
+                                          key={specialty}
+                                          value={specialty}
+                                          onSelect={(currentValue) => {
+                                            setSelectedSpecialty(currentValue);
+                                            setSelectedSubSpecialty("");
+                                            setSelectedDoctor(null);
+                                            setSpecialtyComboboxOpen(false);
+                                          }}
+                                          data-testid={`item-specialty-${specialty}`}
+                                        >
+                                          <Check
+                                            className={`mr-2 h-4 w-4 ${
+                                              specialty === selectedSpecialty ? "opacity-100" : "opacity-0"
+                                            }`}
+                                          />
+                                          {specialty}
+                                        </CommandItem>
+                                      ))}
+                                    </CommandGroup>
+                                  </CommandList>
+                                </Command>
+                              </PopoverContent>
+                            </Popover>
+                          </div>
+
+                          {/* Sub-Specialty Dropdown */}
+                          {selectedSpecialty && (
+                            <div>
+                              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">
+                                Select Sub-Specialty
+                              </Label>
+                              <Select
+                                value={selectedSubSpecialty}
+                                onValueChange={(value) => {
+                                  setSelectedSubSpecialty(value);
+                                  setSelectedDoctor(null);
+                                }}
+                              >
+                                <SelectTrigger className="w-full" data-testid="trigger-subspecialty-select">
+                                  <SelectValue placeholder="Select sub-specialty..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {Object.keys(medicalSpecialties[selectedSpecialty as keyof typeof medicalSpecialties] || {}).map((subSpecialty) => (
+                                    <SelectItem 
+                                      key={subSpecialty} 
+                                      value={subSpecialty}
+                                      data-testid={`item-subspecialty-${subSpecialty}`}
+                                    >
+                                      {subSpecialty}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          )}
+
+                          {/* Doctor Dropdown - Show all doctors without filter */}
+                          <div>
+                            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">
+                              Select Doctor
+                            </Label>
+                            <Select
+                              value={selectedDoctor?.id?.toString() || ""}
+                              onValueChange={(value) => {
+                                const doctor = allDoctors.find((d: any) => d.id.toString() === value);
+                                setSelectedDoctor(doctor || null);
+                              }}
+                            >
+                              <SelectTrigger className="w-full" data-testid="trigger-doctor-select">
+                                <SelectValue placeholder="Select doctor..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {allDoctors
+                                  .filter((doctor: any) => doctor.role === 'doctor')
+                                  .map((doctor: any) => (
+                                    <SelectItem 
+                                      key={doctor.id} 
+                                      value={doctor.id.toString()}
+                                      data-testid={`item-doctor-${doctor.id}`}
+                                    >
+                                      Dr. {doctor.firstName} {doctor.lastName}
+                                      {doctor.medicalSpecialtyCategory && ` - ${doctor.medicalSpecialtyCategory}`}
+                                    </SelectItem>
+                                  ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      ) : user?.role === 'doctor' ? (
+                        /* Doctor Role: Show doctor's own information */
+                        selectedDoctor ? (
+                          <Card className="mt-2">
+                            <CardContent className="p-4">
+                              <div className="space-y-3">
+                                <div>
+                                  <h3 className="font-semibold text-lg text-gray-900 dark:text-white">
+                                    Dr. {selectedDoctor.firstName} {selectedDoctor.lastName}
+                                  </h3>
+                                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                                    {selectedDoctor.email}
+                                  </p>
+                                </div>
+                                
+                                {selectedDoctor.medicalSpecialtyCategory && (
+                                  <div className="text-sm">
+                                    <span className="font-medium text-gray-700 dark:text-gray-300">Specialty: </span>
+                                    <span className="text-gray-600 dark:text-gray-400">{selectedDoctor.medicalSpecialtyCategory}</span>
+                                  </div>
+                                )}
+                                
+                                {selectedDoctor.subSpecialty && (
+                                  <div className="text-sm">
+                                    <span className="font-medium text-gray-700 dark:text-gray-300">Sub-Specialty: </span>
+                                    <span className="text-gray-600 dark:text-gray-400">{selectedDoctor.subSpecialty}</span>
+                                  </div>
+                                )}
+                                
+                                {selectedDoctor.department && (
+                                  <div className="text-sm">
+                                    <span className="font-medium text-gray-700 dark:text-gray-300">Department: </span>
+                                    <span className="text-gray-600 dark:text-gray-400">{selectedDoctor.department}</span>
+                                  </div>
+                                )}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ) : (
+                          <div className="mt-2 p-4 bg-gray-50 dark:bg-gray-700 rounded-md">
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Loading doctor information...</p>
+                          </div>
+                        )
+                      ) : null}
+                    </div>
                   </div>
 
                   {/* Right Column - Calendar and Time Slots */}
