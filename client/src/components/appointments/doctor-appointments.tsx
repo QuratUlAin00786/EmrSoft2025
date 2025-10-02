@@ -1,146 +1,76 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, User, MapPin, Phone, Mail, Plus } from "lucide-react";
-import { format, isBefore, isAfter, startOfDay, parseISO } from "date-fns";
+import { Calendar, Clock, User, Video, Stethoscope, Plus } from "lucide-react";
+import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, isToday } from "date-fns";
 import { useQuery } from "@tanstack/react-query";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
+import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 
 const statusColors = {
-  scheduled: "bg-blue-100 text-blue-800 border-blue-200",
-  completed: "bg-green-100 text-green-800 border-green-200", 
-  cancelled: "bg-gray-100 text-gray-800 border-gray-200",
-  no_show: "bg-red-100 text-red-800 border-red-200"
+  scheduled: "#4A7DFF",
+  completed: "#6CFFEB", 
+  cancelled: "#162B61",
+  no_show: "#9B9EAF"
 };
 
 export default function DoctorAppointments({ onNewAppointment }: { onNewAppointment?: () => void }) {
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [viewMode, setViewMode] = useState<"week" | "day">("week");
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<"upcoming" | "past" | "all">("upcoming");
-  const [filterDate, setFilterDate] = useState("");
-  const [filterStatus, setFilterStatus] = useState("");
 
-  console.log("🩺 DOCTOR APPOINTMENTS: Current user", { id: user?.id, role: user?.role, organizationId: user?.organizationId });
-
-  // Fetch all appointments
-  const { data: appointmentsData, isLoading: appointmentsLoading } = useQuery({
+  // Fetch appointments for this doctor
+  const { data: appointmentsData, isLoading } = useQuery({
     queryKey: ["/api/appointments"],
     staleTime: 30000,
     refetchInterval: 60000,
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/appointments');
+      const data = await response.json();
+      return data;
+    },
+  });
+
+  // Fetch users for patient names
+  const { data: usersData } = useQuery({
+    queryKey: ["/api/users"],
+    staleTime: 60000,
   });
 
   // Fetch patients
-  const { data: patientsData, isLoading: patientsLoading } = useQuery({
+  const { data: patientsData } = useQuery({
     queryKey: ["/api/patients"],
     staleTime: 60000,
   });
 
-  const allAppointments = appointmentsData || [];
-  const patients = patientsData || [];
+  const appointments = appointmentsData || [];
 
-  console.log("📊 DOCTOR APPOINTMENTS: Fetched data", { 
-    totalAppointments: allAppointments.length, 
-    totalPatients: patients.length 
-  });
+  const getPatientName = (patientId: number) => {
+    if (!patientsData || !Array.isArray(patientsData)) return `Patient ${patientId}`;
+    const patient = patientsData.find((p: any) => p.id === patientId);
+    return patient ? `${patient.firstName} ${patient.lastName}` : `Patient ${patientId}`;
+  };
 
-  // Filter appointments for current doctor based on doctorId and organizationId
-  const doctorAppointments = useMemo(() => {
-    if (!user?.id || !user?.organizationId) {
-      console.log("⚠️ DOCTOR APPOINTMENTS: No user ID or organization ID");
-      return [];
+  const formatTime = (timeString: string) => {
+    try {
+      const date = new Date(timeString);
+      return format(date, "h:mm a");
+    } catch {
+      return "Invalid time";
     }
+  };
 
-    const filtered = allAppointments.filter((apt: any) => {
-      const matchesDoctor = apt.doctorId === user.id;
-      const matchesOrganization = apt.organizationId === user.organizationId;
-      
-      console.log(`🔍 Appointment ID ${apt.id}:`, {
-        doctorId: apt.doctorId,
-        currentUserId: user.id,
-        matchesDoctor,
-        organizationId: apt.organizationId,
-        userOrgId: user.organizationId,
-        matchesOrganization,
-        included: matchesDoctor && matchesOrganization
-      });
-
-      return matchesDoctor && matchesOrganization;
-    });
-
-    console.log(`✅ DOCTOR APPOINTMENTS: Filtered ${filtered.length} appointments for doctor ID ${user.id} in organization ${user.organizationId}`);
-    return filtered;
-  }, [allAppointments, user?.id, user?.organizationId]);
-
-  // Separate appointments into upcoming and past
-  const { upcomingAppointments, pastAppointments } = useMemo(() => {
-    const now = new Date();
-    const upcoming: any[] = [];
-    const past: any[] = [];
-
-    doctorAppointments.forEach((apt: any) => {
+  const getAppointmentsForDate = (date: Date) => {
+    return appointments.filter((apt: any) => {
       const appointmentDate = new Date(apt.scheduledAt);
-      if (isAfter(appointmentDate, now)) {
-        upcoming.push(apt);
-      } else {
-        past.push(apt);
-      }
+      return isSameDay(appointmentDate, date);
     });
-
-    // Sort upcoming by date ascending (soonest first)
-    upcoming.sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime());
-    
-    // Sort past by date descending (most recent first)
-    past.sort((a, b) => new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime());
-
-    console.log("📅 DOCTOR APPOINTMENTS: Categorized", { 
-      upcoming: upcoming.length, 
-      past: past.length 
-    });
-
-    return { upcomingAppointments: upcoming, pastAppointments: past };
-  }, [doctorAppointments]);
-
-  // Get appointments to display based on active tab
-  const displayAppointments = useMemo(() => {
-    let appointments = activeTab === "upcoming" 
-      ? upcomingAppointments 
-      : activeTab === "past" 
-      ? pastAppointments 
-      : doctorAppointments;
-
-    // Apply date filter
-    if (filterDate) {
-      appointments = appointments.filter((apt: any) => {
-        const aptDate = format(new Date(apt.scheduledAt), "yyyy-MM-dd");
-        return aptDate === filterDate;
-      });
-    }
-
-    // Apply status filter
-    if (filterStatus) {
-      appointments = appointments.filter((apt: any) => apt.status === filterStatus);
-    }
-
-    console.log(`🎯 DOCTOR APPOINTMENTS: Displaying ${appointments.length} appointments (tab: ${activeTab}, dateFilter: ${filterDate}, statusFilter: ${filterStatus})`);
-    return appointments;
-  }, [activeTab, upcomingAppointments, pastAppointments, doctorAppointments, filterDate, filterStatus]);
-
-  // Get next upcoming appointment
-  const nextAppointment = upcomingAppointments[0] || null;
-
-  const getPatientInfo = (patientId: number) => {
-    const patient = patients.find((p: any) => p.id === patientId);
-    return patient || null;
   };
 
-  const clearFilters = () => {
-    setFilterDate("");
-    setFilterStatus("");
-  };
-
-  const isLoading = appointmentsLoading || patientsLoading;
+  const weekStart = startOfWeek(selectedDate);
+  const weekEnd = endOfWeek(selectedDate);
+  const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
 
   if (isLoading) {
     return (
@@ -159,240 +89,197 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
     <div className="space-y-6" data-testid="doctor-appointments-view">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">My Appointments</h2>
-          <p className="text-gray-600 dark:text-gray-400">{user?.firstName} {user?.lastName}</p>
+        <div className="flex items-center space-x-4">
+          <Stethoscope className="h-6 w-6 text-blue-600" />
+          <div>
+            <h2 className="text-2xl font-bold text-blue-800">My Schedule</h2>
+            <p className="text-gray-600">Dr. {user?.firstName} {user?.lastName}</p>
+          </div>
         </div>
-        <Button 
-          onClick={() => onNewAppointment?.()}
-          className="flex items-center gap-2"
-          data-testid="button-book-appointment"
-        >
-          <Plus className="h-4 w-4" />
-          Book Appointment
-        </Button>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex items-center gap-2">
-        <Button
-          variant={activeTab === "upcoming" ? "default" : "outline"}
-          onClick={() => setActiveTab("upcoming")}
-          data-testid="tab-upcoming"
-        >
-          Upcoming ({upcomingAppointments.length})
-        </Button>
-        <Button
-          variant={activeTab === "past" ? "default" : "outline"}
-          onClick={() => setActiveTab("past")}
-          data-testid="tab-past"
-        >
-          Past ({pastAppointments.length})
-        </Button>
-        <Button
-          variant={activeTab === "all" ? "default" : "outline"}
-          onClick={() => setActiveTab("all")}
-          data-testid="tab-all"
-        >
-          All ({doctorAppointments.length})
-        </Button>
-      </div>
-
-      {/* Filters */}
-      <div className="flex items-center gap-4">
-        <div className="flex-1">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Filter by Date
-          </label>
-          <Input
-            type="date"
-            value={filterDate}
-            onChange={(e) => setFilterDate(e.target.value)}
-            placeholder="dd/mm/yyyy"
-            data-testid="input-filter-date"
-          />
-        </div>
-        <div className="flex-1">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Filter by Status
-          </label>
-          <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger data-testid="select-filter-status">
-              <SelectValue placeholder="SCHEDULED" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="scheduled">SCHEDULED</SelectItem>
-              <SelectItem value="completed">COMPLETED</SelectItem>
-              <SelectItem value="cancelled">CANCELLED</SelectItem>
-              <SelectItem value="no_show">NO SHOW</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="flex items-end">
-          <Button 
-            variant="outline" 
-            onClick={clearFilters}
-            data-testid="button-clear-filters"
+        <div className="flex space-x-2">
+          <Button
+            variant={viewMode === "week" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setViewMode("week")}
           >
-            Clear Filters
+            Week View
+          </Button>
+          <Button
+            variant={viewMode === "day" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setViewMode("day")}
+          >
+            Day View
+          </Button>
+          <Button 
+            onClick={() => onNewAppointment?.()}
+            className="flex items-center gap-2"
+            data-testid="button-schedule-appointment"
+          >
+            <Plus className="h-3 w-3" />
+            Schedule Patient
           </Button>
         </div>
       </div>
 
-      {/* Appointments List */}
-      <div className="space-y-4">
-        {displayAppointments.length === 0 ? (
-          <Card>
-            <CardContent className="p-12 text-center">
-              <Calendar className="h-16 w-16 mx-auto mb-4 text-gray-300" />
-              <h3 className="text-lg font-semibold text-gray-600 dark:text-gray-400 mb-2">
-                No {activeTab} appointments found
-              </h3>
-              <p className="text-gray-500 dark:text-gray-500">
-                {activeTab === "upcoming" 
-                  ? "You don't have any upcoming appointments scheduled."
-                  : activeTab === "past"
-                  ? "You don't have any past appointments."
-                  : "You don't have any appointments."}
-              </p>
-            </CardContent>
-          </Card>
-        ) : (
-          displayAppointments.map((appointment: any) => {
-            const patient = getPatientInfo(appointment.patientId);
-            const appointmentDate = new Date(appointment.scheduledAt);
-
+      {/* Weekly View */}
+      {viewMode === "week" && (
+        <div className="grid grid-cols-7 gap-4">
+          {weekDays.map((day) => {
+            const dayAppointments = getAppointmentsForDate(day);
+            const isSelected = isSameDay(day, selectedDate);
+            const isCurrentDay = isToday(day);
+            
             return (
-              <Card key={appointment.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-4 flex-1">
-                      {/* Patient Avatar */}
-                      {patient && (
-                        <div className="flex-shrink-0">
-                          <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold text-lg">
-                            {patient.firstName?.[0]}{patient.lastName?.[0]}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Appointment Details */}
-                      <div className="flex-1 space-y-3">
-                        <div>
-                          <h3 className="font-semibold text-lg text-gray-900 dark:text-white">
-                            {patient ? `${patient.firstName} ${patient.lastName}` : `Patient ${appointment.patientId}`}
-                          </h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
-                            {appointment.title || appointment.type}
-                          </p>
-                        </div>
-
-                        {/* Date and Time */}
-                        <div className="flex items-center gap-4 text-sm">
-                          <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                            <Calendar className="h-4 w-4" />
-                            <span>{format(appointmentDate, "EEEE, MMMM d, yyyy")}</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                            <Clock className="h-4 w-4" />
-                            <span>{format(appointmentDate, "h:mm a")}</span>
-                          </div>
-                        </div>
-
-                        {/* Patient Contact Info */}
-                        {patient && (
-                          <div className="flex items-center gap-4 text-sm">
-                            {patient.phoneNumber && (
-                              <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                                <Phone className="h-4 w-4" />
-                                <span>{patient.phoneNumber}</span>
-                              </div>
-                            )}
-                            {patient.email && (
-                              <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                                <Mail className="h-4 w-4" />
-                                <span>{patient.email}</span>
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Description */}
-                        {appointment.description && (
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
-                            {appointment.description}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Status Badge */}
-                    <Badge 
-                      className={`${statusColors[appointment.status as keyof typeof statusColors]} px-3 py-1`}
-                      data-testid={`badge-status-${appointment.id}`}
+              <Card 
+                key={day.toString()} 
+                className={`h-96 cursor-pointer transition-colors ${
+                  isSelected ? 'border-blue-500 bg-blue-50' : ''
+                } ${isCurrentDay ? 'border-yellow-400 bg-yellow-50' : ''}`}
+                onClick={() => setSelectedDate(day)}
+              >
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    {format(day, "EEE")}
+                    <br />
+                    <span className={`text-lg ${isCurrentDay ? 'text-yellow-800 font-bold' : ''}`}>
+                      {format(day, "d")}
+                    </span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0 space-y-1">
+                  {dayAppointments.slice(0, 4).map((appointment: any) => (
+                    <div
+                      key={appointment.id}
+                      className="p-2 rounded text-xs border-l-4"
+                      style={{ borderLeftColor: statusColors[appointment.status as keyof typeof statusColors] }}
+                      data-testid={`appointment-${appointment.id}`}
                     >
-                      {appointment.status.toUpperCase().replace('_', ' ')}
-                    </Badge>
-                  </div>
+                      <div className="font-medium truncate">{formatTime(appointment.scheduledAt)}</div>
+                      <div className="text-gray-600 truncate">{getPatientName(appointment.patientId)}</div>
+                      <div className="text-gray-500 truncate">{appointment.type}</div>
+                    </div>
+                  ))}
+                  {dayAppointments.length > 4 && (
+                    <div className="text-xs text-gray-500 text-center py-1">
+                      +{dayAppointments.length - 4} more
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             );
-          })
-        )}
-      </div>
+          })}
+        </div>
+      )}
 
-      {/* Next Upcoming Appointment */}
-      {nextAppointment && (
-        <Card className="border-blue-500 bg-blue-50 dark:bg-blue-900">
+      {/* Day View */}
+      {viewMode === "day" && (
+        <Card>
           <CardHeader>
-            <CardTitle className="text-lg text-blue-900 dark:text-blue-100">
-              Next Upcoming Appointment
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSelectedDate(new Date(selectedDate.getTime() - 24 * 60 * 60 * 1000))}
+                >
+                  Previous Day
+                </Button>
+                <span className="text-lg font-bold">
+                  {format(selectedDate, "EEEE, MMMM d, yyyy")}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSelectedDate(new Date(selectedDate.getTime() + 24 * 60 * 60 * 1000))}
+                >
+                  Next Day
+                </Button>
+              </div>
+              <Badge variant="secondary">
+                {getAppointmentsForDate(selectedDate).length} appointments
+              </Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {(() => {
-              const patient = getPatientInfo(nextAppointment.patientId);
-              const appointmentDate = new Date(nextAppointment.scheduledAt);
-
-              return (
-                <div className="flex items-start gap-4">
-                  {/* Patient Avatar */}
-                  {patient && (
-                    <div className="flex-shrink-0">
-                      <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-lg">
-                        {patient.firstName?.[0]}{patient.lastName?.[0]}
+            <div className="space-y-3">
+              {getAppointmentsForDate(selectedDate).map((appointment: any) => (
+                <Card key={appointment.id} className="border-l-4" style={{ borderLeftColor: statusColors[appointment.status as keyof typeof statusColors] }}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        <div>
+                          <div className="flex items-center space-x-2">
+                            <Clock className="h-4 w-4 text-gray-400" />
+                            <span className="font-medium">{formatTime(appointment.scheduledAt)}</span>
+                          </div>
+                          <div className="flex items-center space-x-2 mt-1">
+                            <User className="h-4 w-4 text-gray-400" />
+                            <span className="text-sm">{getPatientName(appointment.patientId)}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-medium">{appointment.title}</div>
+                        <Badge 
+                          style={{ backgroundColor: statusColors[appointment.status as keyof typeof statusColors] }}
+                          className="text-white"
+                        >
+                          {appointment.status.toUpperCase()}
+                        </Badge>
                       </div>
                     </div>
-                  )}
-
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-lg text-blue-900 dark:text-blue-100">
-                      {patient ? `${patient.firstName} ${patient.lastName}` : `Patient ${nextAppointment.patientId}`}
-                    </h3>
-                    <p className="text-sm text-blue-700 dark:text-blue-300 mb-2">
-                      {nextAppointment.title || nextAppointment.type}
-                    </p>
-                    <div className="flex items-center gap-4 text-sm text-blue-700 dark:text-blue-300">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4" />
-                        <span>{format(appointmentDate, "EEEE, MMMM d, yyyy")}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4" />
-                        <span>{format(appointmentDate, "h:mm a")}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <Badge className="bg-blue-600 text-white">
-                    {nextAppointment.status.toUpperCase().replace('_', ' ')}
-                  </Badge>
+                    {appointment.description && (
+                      <p className="text-sm text-gray-600 mt-2">{appointment.description}</p>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+              {getAppointmentsForDate(selectedDate).length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  <Calendar className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                  <p>No appointments scheduled for this day</p>
                 </div>
-              );
-            })()}
+              )}
+            </div>
           </CardContent>
         </Card>
       )}
+
+      {/* Today's Summary */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Today's Summary</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-4 gap-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600">
+                {getAppointmentsForDate(new Date()).length}
+              </div>
+              <div className="text-sm text-gray-500">Total Today</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">
+                {getAppointmentsForDate(new Date()).filter((apt: any) => apt.status === 'completed').length}
+              </div>
+              <div className="text-sm text-gray-500">Completed</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-yellow-600">
+                {getAppointmentsForDate(new Date()).filter((apt: any) => apt.status === 'scheduled').length}
+              </div>
+              <div className="text-sm text-gray-500">Scheduled</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-red-600">
+                {getAppointmentsForDate(new Date()).filter((apt: any) => apt.status === 'cancelled' || apt.status === 'no_show').length}
+              </div>
+              <div className="text-sm text-gray-500">Cancelled/No-show</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
