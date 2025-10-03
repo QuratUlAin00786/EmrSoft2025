@@ -144,6 +144,7 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
   const [showFullConsultation, setShowFullConsultation] = useState(false);
   // State for new appointment modal
   const [showNewAppointment, setShowNewAppointment] = useState(false);
+  const [showConfirmationDialog, setShowConfirmationDialog] = useState(false);
   const [newAppointmentDate, setNewAppointmentDate] = useState<Date | undefined>(undefined);
   const [newSelectedTimeSlot, setNewSelectedTimeSlot] = useState<string>("");
   const [selectedRole, setSelectedRole] = useState<string>("");
@@ -1463,32 +1464,38 @@ Medical License: [License Number]
                   <div>
                     <Label className="text-sm font-medium text-gray-600 mb-2 block">Select Time Slot</Label>
                     <div className="border rounded-lg p-3 bg-gray-50 h-[320px] overflow-y-auto">
-                      <div className="grid grid-cols-2 gap-2">
-                        {timeSlots.map((slot) => {
-                          const isAvailable = newAppointmentDate ? isTimeSlotAvailable(newAppointmentDate, slot) : true;
-                          const isSelected = newSelectedTimeSlot === slot;
-                          
-                          return (
-                            <Button
-                              key={slot}
-                              variant={isSelected ? "default" : "outline"}
-                              className={`h-10 text-xs font-medium ${
-                                !isAvailable 
-                                  ? "bg-red-100 text-red-400 cursor-not-allowed border-red-200" 
-                                  : isSelected 
-                                    ? "bg-blue-500 hover:bg-blue-600 text-white border-blue-500" 
-                                    : "bg-green-500 hover:bg-green-600 text-white border-green-500"
-                              }`}
-                              disabled={!isAvailable}
-                              onClick={() => {
-                                setNewSelectedTimeSlot(slot);
-                              }}
-                            >
-                              {slot}
-                            </Button>
-                          );
-                        })}
-                      </div>
+                      {!newAppointmentDate ? (
+                        <div className="flex items-center justify-center h-full">
+                          <p className="text-gray-400 text-sm">Time slots will appear here</p>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-2 gap-2">
+                          {timeSlots.map((slot) => {
+                            const isAvailable = isTimeSlotAvailable(newAppointmentDate, slot);
+                            const isSelected = newSelectedTimeSlot === slot;
+                            
+                            return (
+                              <Button
+                                key={slot}
+                                variant={isSelected ? "default" : "outline"}
+                                className={`h-10 text-xs font-medium ${
+                                  !isAvailable 
+                                    ? "bg-gray-200 text-gray-400 cursor-not-allowed border-gray-300" 
+                                    : isSelected 
+                                      ? "bg-blue-500 hover:bg-blue-600 text-white border-blue-500" 
+                                      : "bg-green-500 hover:bg-green-600 text-white border-green-500"
+                                }`}
+                                disabled={!isAvailable}
+                                onClick={() => {
+                                  setNewSelectedTimeSlot(slot);
+                                }}
+                              >
+                                {slot}
+                              </Button>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1731,7 +1738,7 @@ Medical License: [License Number]
                               variant={isSelected ? "default" : "outline"}
                               className={`h-10 text-xs font-medium ${
                                 !isAvailable 
-                                  ? "bg-red-100 text-red-400 cursor-not-allowed border-red-200" 
+                                  ? "bg-gray-200 text-gray-400 cursor-not-allowed border-gray-300" 
                                   : isSelected 
                                     ? "bg-blue-500 hover:bg-blue-600 text-white border-blue-500" 
                                     : "bg-green-500 hover:bg-green-600 text-white border-green-500"
@@ -1914,42 +1921,155 @@ Medical License: [License Number]
                       return;
                     }
                     
-                    // Create new datetime without timezone conversion
-                    const selectedDate = format(newAppointmentDate, 'yyyy-MM-dd');
-                    const [time, period] = newSelectedTimeSlot.split(' ');
-                    const [hours, minutes] = time.split(':');
-                    let hour24 = parseInt(hours);
-                    
-                    if (period === 'PM' && hour24 !== 12) {
-                      hour24 += 12;
-                    } else if (period === 'AM' && hour24 === 12) {
-                      hour24 = 0;
-                    }
-                    
-                    const newScheduledAt = `${selectedDate}T${hour24.toString().padStart(2, '0')}:${minutes}:00.000Z`;
-                    
-                    // Generate title from patient and provider names
-                    const patientName = patientsData?.find((p: any) => p.id.toString() === newAppointmentData.patientId);
-                    const providerName = usersData?.find((u: any) => u.id.toString() === selectedProviderId);
-                    const generatedTitle = `${patientName?.firstName || 'Patient'} - ${selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1)} Appointment`;
-                    
-                    createAppointmentMutation.mutate({
-                      patientId: parseInt(newAppointmentData.patientId),
-                      providerId: parseInt(selectedProviderId),
-                      assignedRole: selectedRole,
-                      title: generatedTitle,
-                      type: "consultation",
-                      status: "scheduled",
-                      scheduledAt: newScheduledAt,
-                      duration: selectedDuration,
-                      description: "",
-                    });
+                    // Show confirmation dialog
+                    setShowConfirmationDialog(true);
                   }}
-                  disabled={createAppointmentMutation.isPending}
                 >
-                  {createAppointmentMutation.isPending ? "Creating..." : "Create Appointment"}
+                  Create Appointment
                 </Button>
               </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Appointment Confirmation Dialog */}
+      <Dialog open={showConfirmationDialog} onOpenChange={setShowConfirmationDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-blue-800">Appointment Summary</DialogTitle>
+            <DialogDescription>Please review the appointment details before confirming</DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6 mt-4">
+            {/* Patient Information */}
+            {newAppointmentData.patientId && patientsData && (() => {
+              const selectedPatient = patientsData.find((p: any) => p.id.toString() === newAppointmentData.patientId);
+              if (!selectedPatient) return null;
+              
+              return (
+                <div className="border rounded-lg p-4 bg-gray-50">
+                  <h3 className="text-sm font-semibold text-gray-800 mb-3">Patient Information</h3>
+                  <div className="flex items-start gap-3">
+                    <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-lg">
+                      {selectedPatient.firstName?.charAt(0)}{selectedPatient.lastName?.charAt(0)}
+                    </div>
+                    <div className="flex-1 space-y-1 text-sm">
+                      <p className="font-semibold text-gray-900">
+                        {selectedPatient.firstName} {selectedPatient.lastName}
+                      </p>
+                      <p className="text-gray-600 text-xs">{selectedPatient.patientId}</p>
+                      {selectedPatient.phone && (
+                        <p className="text-gray-600 text-xs flex items-center gap-1">
+                          📞 {selectedPatient.phone}
+                        </p>
+                      )}
+                      {selectedPatient.email && (
+                        <p className="text-gray-600 text-xs flex items-center gap-1">
+                          ✉️ {selectedPatient.email}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Booking Summary */}
+            <div className="border rounded-lg p-4 bg-gray-50">
+              <h3 className="text-sm font-semibold text-gray-800 mb-3">Booking Summary</h3>
+              <div className="space-y-3 text-sm">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-gray-500 text-xs">Role</p>
+                    <p className="font-medium text-gray-900">
+                      {selectedRole ? selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1) : "Not selected"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500 text-xs">Duration</p>
+                    <p className="font-medium text-gray-900">{selectedDuration} minutes</p>
+                  </div>
+                </div>
+                
+                <div>
+                  <p className="text-gray-500 text-xs">Provider</p>
+                  <p className="font-medium text-gray-900">
+                    {selectedProviderId && usersData
+                      ? (() => {
+                          const provider = usersData.find((u: any) => u.id.toString() === selectedProviderId);
+                          return provider ? `${provider.firstName} ${provider.lastName}` : "Not selected";
+                        })()
+                      : "Not selected"}
+                  </p>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-gray-500 text-xs">Date</p>
+                    <p className="font-medium text-gray-900">
+                      {newAppointmentDate ? format(newAppointmentDate, 'MMM dd, yyyy') : "Not selected"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500 text-xs">Time</p>
+                    <p className="font-medium text-gray-900">
+                      {newSelectedTimeSlot || "Not selected"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex justify-end space-x-2 pt-6 border-t mt-6">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowConfirmationDialog(false);
+              }}
+            >
+              Go Back
+            </Button>
+            <Button
+              onClick={() => {
+                // Create new datetime without timezone conversion
+                const selectedDate = format(newAppointmentDate!, 'yyyy-MM-dd');
+                const [time, period] = newSelectedTimeSlot.split(' ');
+                const [hours, minutes] = time.split(':');
+                let hour24 = parseInt(hours);
+                
+                if (period === 'PM' && hour24 !== 12) {
+                  hour24 += 12;
+                } else if (period === 'AM' && hour24 === 12) {
+                  hour24 = 0;
+                }
+                
+                const newScheduledAt = `${selectedDate}T${hour24.toString().padStart(2, '0')}:${minutes}:00.000Z`;
+                
+                // Generate title from patient and provider names
+                const patientName = patientsData?.find((p: any) => p.id.toString() === newAppointmentData.patientId);
+                const providerName = usersData?.find((u: any) => u.id.toString() === selectedProviderId);
+                const generatedTitle = `${patientName?.firstName || 'Patient'} - ${selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1)} Appointment`;
+                
+                createAppointmentMutation.mutate({
+                  patientId: parseInt(newAppointmentData.patientId),
+                  providerId: parseInt(selectedProviderId),
+                  assignedRole: selectedRole,
+                  title: generatedTitle,
+                  type: "consultation",
+                  status: "scheduled",
+                  scheduledAt: newScheduledAt,
+                  duration: selectedDuration,
+                  description: "",
+                });
+                
+                setShowConfirmationDialog(false);
+              }}
+              disabled={createAppointmentMutation.isPending}
+            >
+              {createAppointmentMutation.isPending ? "Confirming..." : "Confirm"}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
