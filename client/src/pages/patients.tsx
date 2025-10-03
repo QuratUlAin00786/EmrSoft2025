@@ -66,6 +66,9 @@ export default function Patients() {
   
   // State for active/inactive filter toggle
   const [showActivePatients, setShowActivePatients] = useState(true);
+  
+  // State for gender filter (null = all, "Male" = male only, "Female" = female only)
+  const [genderFilter, setGenderFilter] = useState<string | null>(null);
 
   // Fetch specific patient data if viewing records
   useEffect(() => {
@@ -430,7 +433,7 @@ export default function Patients() {
       <div className="flex-1 overflow-auto p-6">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-6">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Patients</h3>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-neutral-600 dark:text-neutral-300">
@@ -441,6 +444,28 @@ export default function Patients() {
                   onCheckedChange={setShowActivePatients}
                   className="h-4 w-8"
                   data-testid="toggle-patient-filter"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-neutral-600 dark:text-neutral-300">
+                  Male
+                </span>
+                <Switch
+                  checked={genderFilter === "Male"}
+                  onCheckedChange={(checked) => setGenderFilter(checked ? "Male" : null)}
+                  className="h-4 w-8"
+                  data-testid="toggle-male-filter"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-neutral-600 dark:text-neutral-300">
+                  Female
+                </span>
+                <Switch
+                  checked={genderFilter === "Female"}
+                  onCheckedChange={(checked) => setGenderFilter(checked ? "Female" : null)}
+                  className="h-4 w-8"
+                  data-testid="toggle-female-filter"
                 />
               </div>
             </div>
@@ -458,7 +483,7 @@ export default function Patients() {
           </Button>
         </div>
 
-        <PatientList showActiveOnly={showActivePatients} />
+        <PatientList showActiveOnly={showActivePatients} genderFilter={genderFilter} />
       </div>
 
       <PatientModal 

@@ -180,6 +180,7 @@ function getConditionBgColor(condition?: string) {
 interface PatientListProps {
   onSelectPatient?: (patient: any) => void;
   showActiveOnly?: boolean;
+  genderFilter?: string | null;
 }
 
 interface PatientDetailsModalProps {
@@ -1778,7 +1779,7 @@ function PatientDetailsModal({
   );
 }
 
-export function PatientList({ onSelectPatient, showActiveOnly = true }: PatientListProps = {}) {
+export function PatientList({ onSelectPatient, showActiveOnly = true, genderFilter = null }: PatientListProps = {}) {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { user } = useAuth();
@@ -2282,11 +2283,18 @@ export function PatientList({ onSelectPatient, showActiveOnly = true }: PatientL
     (searchFilters.searchType && searchFilters.searchType !== "all");
 
   // Backend handles active/inactive filtering via API query parameters
-  const displayPatients = hasActiveFilters
+  let displayPatients = hasActiveFilters
     ? filteredPatients
     : Array.isArray(patients)
       ? patients
       : [];
+  
+  // Apply gender filter if set
+  if (genderFilter) {
+    displayPatients = displayPatients.filter(
+      (patient) => patient.genderAtBirth === genderFilter
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -2523,6 +2531,12 @@ export function PatientList({ onSelectPatient, showActiveOnly = true }: PatientL
                       <div className="flex items-center text-neutral-600 dark:text-white">
                         <FileText className="h-4 w-4 mr-2" />
                         NHS: {patient.nhsNumber}
+                      </div>
+                    )}
+                    {patient.genderAtBirth && (
+                      <div className="flex items-center text-neutral-600 dark:text-neutral-300">
+                        <User className="h-4 w-4 mr-2" />
+                        Gender: {patient.genderAtBirth}
                       </div>
                     )}
                     {patient.address?.postcode && (
