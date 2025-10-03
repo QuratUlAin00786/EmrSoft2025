@@ -13311,6 +13311,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Check if PDF Report exists
+  app.head("/api/imaging/reports/:reportId", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const { reportId } = req.params;
+      
+      // Validate reportId format (PatientID_ImagingID_Timestamp or legacy UUID)
+      const isLegacyUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(reportId);
+      const isNewFormat = /^.+_.+_\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}$/.test(reportId);
+      
+      if (!isLegacyUUID && !isNewFormat) {
+        return res.status(400).send();
+      }
+
+      // Extract patientId from reportId for organization-specific path
+      let filePath;
+      if (isNewFormat) {
+        const parts = reportId.split('_');
+        const patientId = parts[0];
+        const organizationId = req.tenant?.id || req.organizationId || 'unknown';
+        const reportsDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Reports', String(organizationId), 'patients', String(patientId));
+        filePath = path.join(reportsDir, `${reportId}.pdf`);
+      } else {
+        // Legacy path for old UUID format
+        const reportsDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Reports');
+        filePath = path.join(reportsDir, `${reportId}.pdf`);
+      }
+      
+      // Check if file exists
+      if (!(await fse.pathExists(filePath))) {
+        return res.status(404).send();
+      }
+      
+      res.status(200).send();
+
+    } catch (error) {
+      console.error("PDF check error:", error);
+      res.status(500).send();
+    }
+  });
+
   // Serve PDF Reports
   app.get("/api/imaging/reports/:reportId", authMiddleware, async (req: TenantRequest, res) => {
     try {

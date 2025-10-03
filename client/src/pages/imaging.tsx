@@ -302,6 +302,9 @@ export default function ImagingPage() {
   const [deletedStudyIds, setDeletedStudyIds] = useState<Set<string>>(
     new Set(),
   );
+  const [nonExistentReports, setNonExistentReports] = useState<Set<string>>(
+    new Set(),
+  );
   const [showEditImageDialog, setShowEditImageDialog] = useState(false);
   const [editingStudyId, setEditingStudyId] = useState<string | null>(null);
   const { toast } = useToast();
@@ -451,6 +454,42 @@ export default function ImagingPage() {
     };
     return mapped;
   }, [medicalImages, selectedStudyId]);
+
+  // Check if report file exists on the server
+  useEffect(() => {
+    const checkReportFileExists = async () => {
+      if (selectedStudy?.reportFileName && !deletedStudyIds.has(selectedStudy.id)) {
+        const reportId = selectedStudy.reportFileName.replace(".pdf", "");
+        try {
+          const response = await fetch(`/api/imaging/reports/${reportId}`, {
+            method: "HEAD",
+            headers: {
+              "X-Tenant-Subdomain": getActiveSubdomain() || "demo",
+            },
+          });
+          
+          if (response.status === 404) {
+            setNonExistentReports(prev => new Set(prev).add(selectedStudy.id));
+            toast({
+              title: "File not found",
+              description: "The report file does not exist on the server",
+              variant: "destructive",
+            });
+          } else if (response.ok) {
+            setNonExistentReports(prev => {
+              const newSet = new Set(prev);
+              newSet.delete(selectedStudy.id);
+              return newSet;
+            });
+          }
+        } catch (error) {
+          console.error("Error checking report file:", error);
+        }
+      }
+    };
+    
+    checkReportFileExists();
+  }, [selectedStudy?.id, selectedStudy?.reportFileName, deletedStudyIds, toast]);
 
   // Individual field update mutations
   const updateFieldMutation = useMutation({
@@ -2863,7 +2902,8 @@ export default function ImagingPage() {
 
                 {/* Saved Reports Section */}
                 {selectedStudy.reportFileName &&
-                  !deletedStudyIds.has(selectedStudy.id) && (
+                  !deletedStudyIds.has(selectedStudy.id) &&
+                  !nonExistentReports.has(selectedStudy.id) && (
                     <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
                       <h4 className="font-medium text-purple-800 mb-2">
                         Saved Reports
