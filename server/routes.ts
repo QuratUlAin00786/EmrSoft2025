@@ -4547,29 +4547,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get billing history by organization ID
-  app.get("/api/subscription/billing-history", requireRole(["admin"]), async (req: TenantRequest, res) => {
-    try {
-      const organizationId = req.tenant!.id;
-      const payments = await storage.getPaymentsByOrganization(organizationId);
-      res.json(payments);
-    } catch (error) {
-      console.error("Billing history fetch error:", error);
-      res.status(500).json({ error: "Failed to fetch billing history" });
-    }
-  });
-
-  // Get public packages (show_on_website = true) - accessible to all authenticated users
-  app.get("/api/subscription/packages", authMiddleware, async (req: Request, res: Response) => {
-    try {
-      const publicPackages = await storage.getWebsiteVisiblePackages();
-      res.json(publicPackages);
-    } catch (error) {
-      console.error("Public packages fetch error:", error);
-      res.status(500).json({ error: "Failed to fetch packages" });
-    }
-  });
-
   // AI insights routes
   app.post("/api/ai/analyze-patient/:id", requireRole(["doctor", "nurse"]), async (req: TenantRequest, res) => {
     try {

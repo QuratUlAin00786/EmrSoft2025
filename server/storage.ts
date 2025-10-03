@@ -4946,15 +4946,6 @@ export class DatabaseStorage implements IStorage {
 
   // Payment Management Methods
   
-  async getPaymentsByOrganization(organizationId: number): Promise<any[]> {
-    const payments = await db.select()
-      .from(saasPayments)
-      .where(eq(saasPayments.organizationId, organizationId))
-      .orderBy(desc(saasPayments.createdAt));
-    
-    return payments;
-  }
-
   async createPayment(paymentData: any): Promise<any> {
     const [payment] = await db.insert(saasPayments).values({
       organizationId: paymentData.organizationId,

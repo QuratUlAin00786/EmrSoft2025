@@ -7,7 +7,6 @@ import { Badge } from "@/components/ui/badge";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
 import { Crown, Users, Calendar, Zap, Check, X, Package, Heart, Brain, Shield, Stethoscope, Phone, FileText, Activity, Pill, UserCheck } from "lucide-react";
 import { PaymentMethodDialog } from "@/components/payment-method-dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { Subscription } from "@/types";
 
 const plans = [
@@ -67,6 +66,134 @@ const plans = [
   }
 ];
 
+const packages = [
+  {
+    id: "telehealth",
+    name: "Telehealth Pro",
+    price: 15,
+    icon: Phone,
+    description: "Advanced video consultations with recording and notes",
+    features: [
+      "HD video consultations",
+      "Session recordings",
+      "Screen sharing",
+      "Waiting room",
+      "Mobile app support"
+    ]
+  },
+  {
+    id: "ai-insights",
+    name: "AI Clinical Assistant",
+    price: 25,
+    icon: Brain,
+    description: "AI-powered clinical decision support and insights",
+    features: [
+      "Drug interaction alerts",
+      "Diagnosis suggestions",
+      "Risk assessments",
+      "Treatment recommendations",
+      "Clinical note automation"
+    ]
+  },
+  {
+    id: "specialty-cardiology",
+    name: "Cardiology Suite",
+    price: 40,
+    icon: Heart,
+    description: "Specialized tools for cardiac care and monitoring",
+    features: [
+      "ECG interpretation",
+      "Cardiac risk scoring",
+      "Heart failure monitoring",
+      "Pacemaker tracking",
+      "Cardiac rehabilitation"
+    ]
+  },
+  {
+    id: "pharmacy-integration",
+    name: "Pharmacy Connect",
+    price: 20,
+    icon: Pill,
+    description: "Direct integration with pharmacy networks",
+    features: [
+      "Electronic prescriptions",
+      "Medication adherence tracking",
+      "Drug formulary access",
+      "Insurance verification",
+      "Refill management"
+    ]
+  },
+  {
+    id: "advanced-reporting",
+    name: "Analytics Pro",
+    price: 18,
+    icon: FileText,
+    description: "Comprehensive reporting and business intelligence",
+    features: [
+      "Custom report builder",
+      "Revenue analytics",
+      "Patient outcome tracking",
+      "Compliance reporting",
+      "Export to multiple formats"
+    ]
+  },
+  {
+    id: "patient-portal",
+    name: "Patient Portal Plus",
+    price: 12,
+    icon: UserCheck,
+    description: "Enhanced patient engagement and self-service portal",
+    features: [
+      "Appointment self-scheduling",
+      "Test results access",
+      "Medication tracking",
+      "Secure messaging",
+      "Health education resources"
+    ]
+  },
+  {
+    id: "monitoring-iot",
+    name: "Remote Monitoring",
+    price: 35,
+    icon: Activity,
+    description: "IoT device integration for continuous patient monitoring",
+    features: [
+      "Wearable device integration",
+      "Real-time vital signs",
+      "Alert management",
+      "Trend analysis",
+      "Patient compliance tracking"
+    ]
+  },
+  {
+    id: "security-hipaa",
+    name: "HIPAA Security Plus",
+    price: 22,
+    icon: Shield,
+    description: "Enhanced security and compliance features",
+    features: [
+      "Advanced encryption",
+      "Audit trail management",
+      "Access control",
+      "Breach detection",
+      "Compliance monitoring"
+    ]
+  },
+  {
+    id: "specialty-tools",
+    name: "Multi-Specialty Tools",
+    price: 30,
+    icon: Stethoscope,
+    description: "Specialized tools for various medical specialties",
+    features: [
+      "Dermatology imaging",
+      "Orthopedic assessments",
+      "Mental health screening",
+      "Pediatric growth charts",
+      "Geriatric care protocols"
+    ]
+  }
+];
 
 export default function Subscription() {
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
@@ -74,14 +201,6 @@ export default function Subscription() {
   
   const { data: subscription, isLoading, error } = useQuery<Subscription>({
     queryKey: ["/api/subscription"],
-  });
-
-  const { data: billingHistory, isLoading: isLoadingBilling } = useQuery<any[]>({
-    queryKey: ["/api/subscription/billing-history"],
-  });
-
-  const { data: packages, isLoading: isLoadingPackages } = useQuery<any[]>({
-    queryKey: ["/api/subscription/packages"],
   });
 
   if (isLoading) {
@@ -263,81 +382,43 @@ export default function Subscription() {
               </p>
             </div>
 
-            {isLoadingPackages ? (
-              <div className="flex items-center justify-center py-8">
-                <LoadingSpinner size="md" />
-              </div>
-            ) : packages && packages.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {packages.map((pkg) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {packages.map((pkg) => {
+                const IconComponent = pkg.icon;
+                return (
                   <Card key={pkg.id} className="relative hover:shadow-lg transition-shadow border border-neutral-200 dark:border-slate-600">
                     <CardHeader className="pb-4">
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center space-x-3">
                           <div className="p-2 bg-medical-blue/10 dark:bg-medical-blue/20 rounded-lg">
-                            <Crown className="h-6 w-6 text-medical-blue" />
+                            <IconComponent className="h-6 w-6 text-medical-blue" />
                           </div>
                           <div>
                             <h3 className="font-semibold text-lg text-gray-900 dark:text-gray-100">{pkg.name}</h3>
                             <div className="flex items-center space-x-2">
                               <span className="text-2xl font-bold text-medical-blue">£{pkg.price}</span>
-                              <span className="text-sm text-neutral-500 dark:text-gray-400">/{pkg.billingCycle}</span>
+                              <span className="text-sm text-neutral-500 dark:text-gray-400">/month</span>
                             </div>
                           </div>
                         </div>
                       </div>
-                      {pkg.description && (
-                        <p className="text-sm text-neutral-600 dark:text-gray-400">{pkg.description}</p>
-                      )}
+                      <p className="text-sm text-neutral-600 dark:text-gray-400">{pkg.description}</p>
                     </CardHeader>
                     
                     <CardContent>
                       <div className="space-y-3 mb-6">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="flex items-center space-x-1">
-                            <Users className="h-4 w-4" />
-                            <span>Max Users</span>
-                          </span>
-                          <span>{pkg.features.maxUsers}</span>
-                        </div>
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="flex items-center space-x-1">
-                            <Users className="h-4 w-4" />
-                            <span>Storage</span>
-                          </span>
-                          <span>{pkg.features.storageGB} GB</span>
-                        </div>
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="flex items-center space-x-1">
-                            <Zap className="h-4 w-4" />
-                            <span>API Calls</span>
-                          </span>
-                          <span>{pkg.features.apiCallsPerMonth.toLocaleString()}/mo</span>
-                        </div>
-                        
-                        {pkg.features.aiEnabled && (
-                          <div className="flex items-center space-x-2 text-sm text-green-600">
-                            <Check className="h-4 w-4" />
-                            <span>AI Features</span>
+                        {pkg.features.map((feature, index) => (
+                          <div key={index} className="flex items-center space-x-2">
+                            <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+                            <span className="text-sm text-gray-700 dark:text-gray-300">{feature}</span>
                           </div>
-                        )}
-                        {pkg.features.telemedicineEnabled && (
-                          <div className="flex items-center space-x-2 text-sm text-green-600">
-                            <Check className="h-4 w-4" />
-                            <span>Telemedicine</span>
-                          </div>
-                        )}
-                        {pkg.features.prioritySupport && (
-                          <div className="flex items-center space-x-2 text-sm text-green-600">
-                            <Check className="h-4 w-4" />
-                            <span>Priority Support</span>
-                          </div>
-                        )}
+                        ))}
                       </div>
                       
                       <Button 
                         className="w-full bg-medical-blue hover:bg-blue-700"
                         onClick={() => {
+                          // Handle package selection
                           console.log('Selected package:', pkg.id);
                         }}
                       >
@@ -346,14 +427,9 @@ export default function Subscription() {
                       </Button>
                     </CardContent>
                   </Card>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <Package className="h-12 w-12 text-neutral-400 dark:text-gray-500 mx-auto mb-4" />
-                <p className="text-neutral-600 dark:text-gray-400">No packages available.</p>
-              </div>
-            )}
+                );
+              })}
+            </div>
 
             {/* Package Bundles */}
             <div className="mt-12">
@@ -460,84 +536,13 @@ export default function Subscription() {
               <CardTitle>Billing History</CardTitle>
             </CardHeader>
             <CardContent>
-              {isLoadingBilling ? (
-                <div className="flex items-center justify-center py-8">
-                  <LoadingSpinner size="md" />
-                </div>
-              ) : billingHistory && billingHistory.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Invoice Number</TableHead>
-                        <TableHead>Amount</TableHead>
-                        <TableHead>Payment Method</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Payment Date</TableHead>
-                        <TableHead>Due Date</TableHead>
-                        <TableHead>Period</TableHead>
-                        <TableHead>Description</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {billingHistory.map((payment) => (
-                        <TableRow key={payment.id}>
-                          <TableCell className="font-medium">{payment.invoiceNumber}</TableCell>
-                          <TableCell>
-                            {payment.currency} {parseFloat(payment.amount).toFixed(2)}
-                          </TableCell>
-                          <TableCell className="capitalize">{payment.paymentMethod.replace('_', ' ')}</TableCell>
-                          <TableCell>
-                            <Badge 
-                              variant="secondary"
-                              className={
-                                payment.paymentStatus === 'completed' 
-                                  ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300" 
-                                  : payment.paymentStatus === 'pending'
-                                  ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300"
-                                  : payment.paymentStatus === 'failed'
-                                  ? "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300"
-                                  : "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-300"
-                              }
-                            >
-                              {payment.paymentStatus.charAt(0).toUpperCase() + payment.paymentStatus.slice(1)}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            {payment.paymentDate 
-                              ? new Date(payment.paymentDate).toLocaleDateString()
-                              : '—'
-                            }
-                          </TableCell>
-                          <TableCell>
-                            {payment.dueDate 
-                              ? new Date(payment.dueDate).toLocaleDateString()
-                              : '—'
-                            }
-                          </TableCell>
-                          <TableCell>
-                            {payment.periodStart && payment.periodEnd
-                              ? `${new Date(payment.periodStart).toLocaleDateString()} - ${new Date(payment.periodEnd).toLocaleDateString()}`
-                              : '—'
-                            }
-                          </TableCell>
-                          <TableCell className="max-w-xs truncate">
-                            {payment.description || '—'}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Calendar className="h-12 w-12 text-neutral-400 dark:text-gray-500 mx-auto mb-4" />
-                  <p className="text-neutral-600 dark:text-gray-400">No billing history available.</p>
-                  <p className="text-sm text-neutral-500 dark:text-gray-500 mt-2">
-                    Billing records will appear here once your subscription becomes active.
-                  </p>
-                </div>
-              )}
+              <div className="text-center py-8">
+                <Calendar className="h-12 w-12 text-neutral-400 dark:text-gray-500 mx-auto mb-4" />
+                <p className="text-neutral-600 dark:text-gray-400">No billing history available.</p>
+                <p className="text-sm text-neutral-500 dark:text-gray-500 mt-2">
+                  Billing records will appear here once your subscription becomes active.
+                </p>
+              </div>
             </CardContent>
           </Card>
         </div>
