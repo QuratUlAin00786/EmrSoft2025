@@ -3,8 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import type { User, Patient } from "@shared/schema";
-import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -1542,8 +1540,6 @@ Coverage Details: [Insurance Coverage]`;
   };
 
   const handleBold = () => {
-    // ReactQuill handles bold formatting through its toolbar
-    // No custom implementation needed
     toast({
       title: "Use Toolbar",
       description: "Use the rich text editor toolbar to apply formatting",
@@ -5460,17 +5456,21 @@ Coverage Details: [Insurance Coverage]`;
               className="bg-white dark:bg-[hsl(var(--cura-midnight))] shadow-sm border border-white dark:border-[hsl(var(--cura-steel))] min-h-[600px] w-full max-w-[1200px] mx-auto"
               style={{ width: "700px", maxWidth: "700px" }}
             >
-              <div className="p-6" id="document-content-area">
-                <ReactQuill 
-                  theme="snow" 
+              <div className="p-6">
+                <textarea
+                  ref={(el) => setTextareaRef(el as any)}
+                  id="document-content-area"
                   value={documentContent}
-                  onChange={setDocumentContent}
-                  style={{
-                    minHeight: "770px",
-                    fontFamily: fontFamily,
-                    fontSize: fontSize,
-                  }}
+                  onChange={(e) => setDocumentContent(e.target.value)}
                   placeholder="Start typing your document here..."
+                  className="w-full border-none outline-none text-[hsl(var(--cura-midnight))] dark:text-white leading-normal bg-transparent focus:outline-none resize-none"
+                  style={{
+                    fontSize: fontSize,
+                    lineHeight: "1.6",
+                    minHeight: "770px",
+                    maxWidth: "100%",
+                    fontFamily: fontFamily,
+                  }}
                 />
               </div>
             </div>
