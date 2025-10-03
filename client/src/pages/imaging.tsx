@@ -460,7 +460,7 @@ export default function ImagingPage() {
   // Check if report file exists on the server
   useEffect(() => {
     const checkReportFileExists = async () => {
-      if (selectedStudy?.reportFilePath && !deletedStudyIds.has(selectedStudy.id)) {
+      if (selectedStudy?.reportFilePath) {
         const fileName = selectedStudy.reportFilePath.split('/').pop() || '';
         const reportId = fileName.replace(".pdf", "");
         try {
@@ -483,11 +483,18 @@ export default function ImagingPage() {
         } catch (error) {
           console.error("Error checking report file:", error);
         }
+      } else if (selectedStudy?.id) {
+        // If reportFilePath is null/undefined, clear from nonExistentReports
+        setNonExistentReports(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(selectedStudy.id);
+          return newSet;
+        });
       }
     };
     
     checkReportFileExists();
-  }, [selectedStudy?.id, selectedStudy?.reportFilePath, deletedStudyIds, toast]);
+  }, [selectedStudy?.id, selectedStudy?.reportFilePath, toast]);
 
   // Individual field update mutations
   const updateFieldMutation = useMutation({
@@ -2964,7 +2971,6 @@ export default function ImagingPage() {
 
                 {/* Saved Reports Section */}
                 {selectedStudy.reportFilePath &&
-                  !deletedStudyIds.has(selectedStudy.id) &&
                   !nonExistentReports.has(selectedStudy.id) && (
                     <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
                       <h4 className="font-medium text-purple-800 mb-2">
@@ -3007,32 +3013,14 @@ export default function ImagingPage() {
                                     description: "Report deleted successfully",
                                   });
 
-                                  // Update the cache to remove reportFilePath, hiding the "Saved Reports" box
-                                  if (selectedStudyId) {
-                                    queryClient.setQueryData(
-                                      ["/api/medical-images"],
-                                      (old: any[] = []) =>
-                                        old.map((study: any) =>
-                                          study.id?.toString() ===
-                                          selectedStudyId
-                                            ? {
-                                                ...study,
-                                                reportFileName: undefined,
-                                                reportFilePath: undefined,
-                                              }
-                                            : study,
-                                        ),
-                                    );
-                                    
-                                    // Add to deletedStudyIds to immediately hide the alert
-                                    setDeletedStudyIds(prev => new Set(prev).add(selectedStudyId));
-                                  }
-
-                                  // Refresh the studies data
-                                  queryClient.invalidateQueries({
+                                  // Invalidate and refetch queries to get fresh data from database
+                                  await queryClient.invalidateQueries({
+                                    queryKey: ["/api/medical-images"],
+                                  });
+                                  await queryClient.invalidateQueries({
                                     queryKey: ["/api/imaging/studies"],
                                   });
-                                  refetchImages();
+                                  await refetchImages();
                                 } catch (error: any) {
                                   console.error(
                                     "Error deleting report:",
@@ -3075,7 +3063,6 @@ export default function ImagingPage() {
 
                 {/* No file found message */}
                 {selectedStudy.reportFilePath &&
-                  !deletedStudyIds.has(selectedStudy.id) &&
                   nonExistentReports.has(selectedStudy.id) && (
                     <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
                       <h4 className="font-medium text-orange-800 mb-2">
