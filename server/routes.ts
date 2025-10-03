@@ -5050,6 +5050,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
               const med1 = patientMeds[i];
               const med2 = patientMeds[j];
               
+              // Skip if medication doesn't have a name
+              if (!med1?.name || !med2?.name) {
+                continue;
+              }
+              
               // Query medications database for interaction data
               const [medication1] = await db
                 .select()
