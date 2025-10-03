@@ -757,7 +757,8 @@ Medical License: [License Number]
       let currentMinute = startMinute;
 
       // Generate 15-minute interval slots between start and end time
-      while (currentHour < endHour || (currentHour === endHour && currentMinute <= endMinute)) {
+      // Use < instead of <= because we can't start an appointment AT the end time
+      while (currentHour < endHour || (currentHour === endHour && currentMinute < endMinute)) {
         const hour12 = currentHour === 0 ? 12 : currentHour > 12 ? currentHour - 12 : currentHour;
         const period = currentHour < 12 ? 'AM' : 'PM';
         const timeString = `${hour12}:${currentMinute.toString().padStart(2, '0')} ${period}`;
@@ -782,6 +783,9 @@ Medical License: [License Number]
       const timeB = timeSlotTo24Hour(b);
       return timeA.localeCompare(timeB);
     });
+
+    console.log(`[TIME SLOTS] Generated ${allSlots.length} slots for provider ${selectedProviderId}:`, allSlots);
+    console.log(`[TIME SLOTS] From ${providerShifts.length} shifts:`, providerShifts);
 
     return allSlots;
   }, [selectedProviderId, newAppointmentDate, shiftsData, selectedDuration]);
