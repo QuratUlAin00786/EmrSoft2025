@@ -511,6 +511,7 @@ export const prescriptions = pgTable("prescriptions", {
   organizationId: integer("organization_id").notNull().references(() => organizations.id),
   patientId: integer("patient_id").notNull().references(() => patients.id),
   doctorId: integer("doctor_id").notNull().references(() => users.id),
+  prescriptionCreatedBy: integer("prescription_created_by").references(() => users.id),
   consultationId: integer("consultation_id").references(() => consultations.id),
   prescriptionNumber: varchar("prescription_number", { length: 50 }),
   status: text("status").notNull().default("active"), // active, completed, cancelled, expired

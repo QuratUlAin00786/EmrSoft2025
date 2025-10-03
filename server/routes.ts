@@ -5277,7 +5277,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/prescriptions", authMiddleware, requireRole(["doctor", "nurse"]), async (req: TenantRequest, res) => {
+  app.post("/api/prescriptions", authMiddleware, async (req: TenantRequest, res) => {
     console.log("POST /api/prescriptions endpoint reached!");
     try {
       if (!req.user) {
@@ -5332,6 +5332,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         organizationId: req.tenant!.id,
         patientId: parseInt(prescriptionData.patientId),
         doctorId: providerId,
+        prescriptionCreatedBy: prescriptionData.prescriptionCreatedBy ? parseInt(prescriptionData.prescriptionCreatedBy) : providerId,
         prescriptionNumber: `RX-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
         status: prescriptionData.status || "active",
         diagnosis: prescriptionData.diagnosis,

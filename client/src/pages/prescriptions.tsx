@@ -222,6 +222,8 @@ export default function PrescriptionsPage() {
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const [patients, setPatients] = useState<any[]>([]);
   const [providers, setProviders] = useState<any[]>([]);
+  const [selectedRole, setSelectedRole] = useState<string>("");
+  const [allUsers, setAllUsers] = useState<any[]>([]);
   const queryClient = useQueryClient();
 
   // Status editing state
@@ -452,6 +454,8 @@ export default function PrescriptionsPage() {
 
       const data = await response.json();
       console.log("Fetched providers:", data);
+      // Store all users for role-based filtering
+      setAllUsers(Array.isArray(data) ? data : []);
       // Filter to show only doctors and nurses
       const filteredProviders = (Array.isArray(data) ? data : []).filter((provider: any) => 
         provider.role === 'doctor' || provider.role === 'nurse'
@@ -460,6 +464,7 @@ export default function PrescriptionsPage() {
     } catch (err) {
       console.error("Error fetching providers:", err);
       setProviders([]);
+      setAllUsers([]);
     }
   };
 
@@ -1864,35 +1869,59 @@ export default function PrescriptionsPage() {
                           )}
                         </div>
                         <div>
-                          <Label htmlFor="provider">Prescribing Doctor</Label>
+                          <Label htmlFor="role">Select Role</Label>
                           <Select
-                            value={formData.providerId}
-                            onValueChange={(value) =>
-                              setFormData((prev) => ({
-                                ...prev,
-                                providerId: value,
-                              }))
-                            }
+                            value={selectedRole}
+                            onValueChange={(value) => {
+                              setSelectedRole(value);
+                              setFormData((prev) => ({ ...prev, providerId: "" }));
+                            }}
                           >
-                            <SelectTrigger data-testid="select-provider">
-                              <SelectValue placeholder="Select doctor" />
+                            <SelectTrigger data-testid="select-role">
+                              <SelectValue placeholder="Select a role..." />
                             </SelectTrigger>
                             <SelectContent>
-                              {providers.map((provider: any) => {
-                                const roleCapitalized = provider.role.charAt(0).toUpperCase() + provider.role.slice(1);
-                                const displayValue = `${provider.email}-${roleCapitalized}`;
-                                return (
-                                  <SelectItem
-                                    key={provider.id}
-                                    value={displayValue}
-                                  >
-                                    {displayValue}
-                                  </SelectItem>
-                                );
-                              })}
+                              <SelectItem value="doctor">Doctor</SelectItem>
+                              <SelectItem value="nurse">Nurse</SelectItem>
+                              <SelectItem value="admin">Admin</SelectItem>
+                              <SelectItem value="receptionist">Receptionist</SelectItem>
+                              <SelectItem value="lab_technician">Lab Technician</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="provider">Select Name</Label>
+                        <Select
+                          value={formData.providerId}
+                          onValueChange={(value) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              providerId: value,
+                            }))
+                          }
+                          disabled={!selectedRole}
+                        >
+                          <SelectTrigger data-testid="select-provider">
+                            <SelectValue placeholder={selectedRole ? "Select name..." : "Select a role first"} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {allUsers
+                              .filter((user: any) => user.role === selectedRole)
+                              .map((user: any) => (
+                                <SelectItem
+                                  key={user.id}
+                                  value={user.id.toString()}
+                                >
+                                  {user.email}
+                                </SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="grid grid-cols-1 gap-4">
                       </div>
 
                       <div>
@@ -2218,15 +2247,13 @@ export default function PrescriptionsPage() {
                                 genericAllowed: med.genericAllowed,
                               }));
                             
-                            // Parse email from dropdown value (format: "email-Role")
-                            const providerEmailWithRole = formData.providerId;
-                            const providerEmail = providerEmailWithRole.split('-')[0];
-                            const selectedProvider = providers.find((p: any) => p.email === providerEmail);
-                            const providerId = selectedProvider ? selectedProvider.id : parseInt(formData.providerId);
+                            // Get the selected user ID (now directly from formData.providerId since it's the user ID)
+                            const prescriptionCreatedBy = parseInt(formData.providerId);
                             
                             const prescriptionData = {
                               patientId: parseInt(formData.patientId),
-                              providerId: providerId,
+                              providerId: prescriptionCreatedBy, // Use the same value for backward compatibility
+                              prescriptionCreatedBy: prescriptionCreatedBy,
                               diagnosis: formData.diagnosis.trim(),
                               pharmacy: {
                                 name: formData.pharmacyName.trim(),
