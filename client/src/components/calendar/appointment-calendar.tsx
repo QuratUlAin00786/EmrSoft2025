@@ -923,6 +923,12 @@ Medical License: [License Number]
                         <User className="h-4 w-4 text-gray-400" />
                         <span className="text-sm text-gray-600 dark:text-gray-300">{getPatientName(appointment.patientId)}</span>
                       </div>
+                      <div className="flex items-center space-x-2 mt-1">
+                        <Clock className="h-4 w-4 text-gray-400" />
+                        <span className="text-sm text-gray-600 dark:text-gray-300">
+                          {appointment.duration || 30} minutes
+                        </span>
+                      </div>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
