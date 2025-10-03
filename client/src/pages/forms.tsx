@@ -1540,11 +1540,48 @@ Coverage Details: [Insurance Coverage]`;
   };
 
   const handleBold = () => {
-    toast({
-      title: "Use Toolbar",
-      description: "Use the rich text editor toolbar to apply formatting",
-      duration: 2000,
-    });
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) {
+      toast({
+        title: "Select Text",
+        description: "Please select text to apply bold formatting",
+        duration: 3000,
+      });
+      return;
+    }
+
+    const range = selection.getRangeAt(0);
+    const selectedText = range.toString();
+
+    if (!selectedText) {
+      toast({
+        title: "Select Text",
+        description: "Please select text to apply bold formatting",
+        duration: 3000,
+      });
+      return;
+    }
+
+    try {
+      document.execCommand('bold', false);
+      
+      if (textareaRef) {
+        setDocumentContent(textareaRef.innerHTML);
+      }
+
+      toast({
+        title: "✓ Bold Applied",
+        description: "Bold formatting applied to selected text",
+        duration: 2000,
+      });
+    } catch (error) {
+      console.error("Error in handleBold:", error);
+      toast({
+        title: "Error",
+        description: "Failed to apply bold formatting",
+        duration: 3000,
+      });
+    }
   };
 
   const handleItalic = () => {
