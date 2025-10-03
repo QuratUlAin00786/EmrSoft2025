@@ -283,6 +283,48 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
     return !isBooked;
   };
 
+  // Function to check if consecutive slots are available for the selected duration
+  const checkConsecutiveSlotsAvailable = (date: Date, startTimeSlot: string, duration: number): { available: boolean; availableMinutes: number } => {
+    if (!date || !startTimeSlot) return { available: true, availableMinutes: duration };
+    
+    // Calculate how many 15-minute slots we need
+    const slotsNeeded = duration / 15;
+    
+    // Convert start time slot to minutes
+    const [time, period] = startTimeSlot.split(' ');
+    const [hours, minutes] = time.split(':').map(Number);
+    let hour24 = hours;
+    if (period === 'PM' && hours !== 12) hour24 += 12;
+    if (period === 'AM' && hours === 12) hour24 = 0;
+    let currentSlotMinutes = hour24 * 60 + minutes;
+    
+    // Check each consecutive 15-minute slot
+    let availableSlots = 0;
+    for (let i = 0; i < slotsNeeded; i++) {
+      const slotHour = Math.floor(currentSlotMinutes / 60);
+      const slotMinute = currentSlotMinutes % 60;
+      
+      // Convert back to 12-hour format for checking
+      let displayHour = slotHour % 12;
+      if (displayHour === 0) displayHour = 12;
+      const slotPeriod = slotHour >= 12 ? 'PM' : 'AM';
+      const slotTimeString = `${displayHour}:${slotMinute.toString().padStart(2, '0')} ${slotPeriod}`;
+      
+      // Check if this slot is available
+      if (isTimeSlotAvailable(date, slotTimeString)) {
+        availableSlots++;
+        currentSlotMinutes += 15;
+      } else {
+        break; // Stop at first unavailable slot
+      }
+    }
+    
+    const availableMinutes = availableSlots * 15;
+    return {
+      available: availableSlots === slotsNeeded,
+      availableMinutes: availableMinutes
+    };
+  };
 
   // Define muscle coordinates for interactive highlighting
   const muscleCoordinates = {
@@ -1487,6 +1529,20 @@ Medical License: [License Number]
                                 }`}
                                 disabled={!isAvailable}
                                 onClick={() => {
+                                  if (!newAppointmentDate) return;
+                                  
+                                  // Validate if consecutive slots are available for the selected duration
+                                  const validation = checkConsecutiveSlotsAvailable(newAppointmentDate, slot, selectedDuration);
+                                  
+                                  if (!validation.available) {
+                                    toast({
+                                      title: "Insufficient Time Available",
+                                      description: `Only ${validation.availableMinutes} minutes are available at ${slot}. Please select another time slot.`,
+                                      variant: "destructive",
+                                    });
+                                    return;
+                                  }
+                                  
                                   setNewSelectedTimeSlot(slot);
                                 }}
                               >
@@ -1745,6 +1801,20 @@ Medical License: [License Number]
                               }`}
                               disabled={!isAvailable}
                               onClick={() => {
+                                if (!newAppointmentDate) return;
+                                
+                                // Validate if consecutive slots are available for the selected duration
+                                const validation = checkConsecutiveSlotsAvailable(newAppointmentDate, slot, selectedDuration);
+                                
+                                if (!validation.available) {
+                                  toast({
+                                    title: "Insufficient Time Available",
+                                    description: `Only ${validation.availableMinutes} minutes are available at ${slot}. Please select another time slot.`,
+                                    variant: "destructive",
+                                  });
+                                  return;
+                                }
+                                
                                 setNewSelectedTimeSlot(slot);
                               }}
                             >
