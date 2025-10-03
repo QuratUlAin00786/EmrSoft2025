@@ -106,6 +106,9 @@ export default function ClinicalDecisionSupport() {
     if (tabParam === 'drug-interactions') {
       console.log('[CDS] Setting active tab to interactions');
       setActiveTab('interactions');
+    } else if (tabParam === 'insights') {
+      console.log('[CDS] Setting active tab to insights');
+      setActiveTab('insights');
     }
   }, []);
 

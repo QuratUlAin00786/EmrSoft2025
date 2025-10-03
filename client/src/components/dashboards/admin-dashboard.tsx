@@ -241,13 +241,15 @@ export function AdminDashboard() {
     enabled: user?.role === 'admin' // Only fetch if user is admin
   });
 
+  const subdomain = getTenantSubdomain();
+
   const dashboardCards = [
     {
       title: "Total Patients",
       value: patientsLoading ? "--" : (Array.isArray(allPatients) ? allPatients.length.toString() : "0"),
       description: patientsLoading || activePatientsLoading ? "Loading..." : `${Array.isArray(allPatients) ? allPatients.length : 0} total patients • ${Array.isArray(activePatients) ? activePatients.length : 0} active patients`,
       icon: Users,
-      href: "/patients",
+      href: `/${subdomain}/patients`,
       color: "text-blue-500"
     },
     {
@@ -255,7 +257,7 @@ export function AdminDashboard() {
       value: isLoading ? "--" : (stats?.todayAppointments?.toString() || "0"),
       description: isLoading ? "Loading..." : `${stats?.todayAppointments || 0} scheduled today`,
       icon: Calendar,
-      href: "/appointments",
+      href: `/${subdomain}/appointments`,
       color: "text-green-500"
     },
     {
@@ -263,7 +265,7 @@ export function AdminDashboard() {
       value: isLoading ? "--" : (stats?.aiSuggestions?.toString() || "0"), 
       description: isLoading ? "Loading..." : `${stats?.aiSuggestions || 0} active insights`,
       icon: Brain,
-      href: "/ai-insights",
+      href: `/${subdomain}/clinical-decision-support?tab=insights`,
       color: "text-purple-500"
     },
     {
@@ -271,12 +273,10 @@ export function AdminDashboard() {
       value: isLoading ? "--" : "£0",
       description: isLoading ? "Loading..." : "Month to date revenue",
       icon: CreditCard,
-      href: "/billing",
+      href: `/${subdomain}/billing`,
       color: "text-yellow-500"
     }
   ];
-
-  const subdomain = getTenantSubdomain();
   
   const quickActions = [
     { title: "Add New Patient", description: "", icon: UserPlus, href: `/${subdomain}/patients` },
@@ -291,7 +291,7 @@ export function AdminDashboard() {
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {dashboardCards.map((card) => (
-          <Card key={card.title} className="hover:shadow-lg transition-shadow cursor-pointer">
+          <Card key={card.title} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setLocation(card.href)}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-gray-600 dark:!text-gray-300">{card.title}</CardTitle>
               <card.icon className={`h-6 w-6 ${card.color}`} />
