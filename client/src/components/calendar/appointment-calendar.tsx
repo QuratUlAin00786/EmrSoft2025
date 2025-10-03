@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -173,50 +173,6 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
   const [editAppointmentDate, setEditAppointmentDate] = useState<Date | undefined>(undefined);
   const [editSelectedTimeSlot, setEditSelectedTimeSlot] = useState<string>("");
 
-  // Generate time slots based on shift data from database
-  const generateTimeSlotsFromShifts = (durationInMinutes: number) => {
-    // If no provider or date selected, return empty array
-    if (!selectedProviderId || !newAppointmentDate || !shiftsData) {
-      return [];
-    }
-
-    // Find the shift for the selected provider
-    const providerShift = shiftsData.find((shift: any) => 
-      shift.staffId.toString() === selectedProviderId
-    );
-
-    // If no shift found, return empty array
-    if (!providerShift) {
-      return [];
-    }
-
-    // Parse start and end times from shift
-    const [startHour, startMinute] = providerShift.startTime.split(':').map(Number);
-    const [endHour, endMinute] = providerShift.endTime.split(':').map(Number);
-
-    const slots = [];
-    let currentHour = startHour;
-    let currentMinute = startMinute;
-
-    // Generate 15-minute interval slots between start and end time
-    while (currentHour < endHour || (currentHour === endHour && currentMinute <= endMinute)) {
-      const hour12 = currentHour === 0 ? 12 : currentHour > 12 ? currentHour - 12 : currentHour;
-      const period = currentHour < 12 ? 'AM' : 'PM';
-      const timeString = `${hour12}:${currentMinute.toString().padStart(2, '0')} ${period}`;
-      slots.push(timeString);
-
-      // Move to next 15-minute slot
-      currentMinute += 15;
-      if (currentMinute >= 60) {
-        currentMinute = 0;
-        currentHour++;
-      }
-    }
-
-    return slots;
-  };
-  
-  const timeSlots = generateTimeSlotsFromShifts(selectedDuration);
 
   // Convert time slot string to 24-hour format
   const timeSlotTo24Hour = (timeSlot: string): string => {
@@ -771,6 +727,49 @@ Medical License: [License Number]
       return data;
     },
   });
+
+  // Generate time slots based on shift data from database
+  const timeSlots = useMemo(() => {
+    // If no provider or date selected, return empty array
+    if (!selectedProviderId || !newAppointmentDate || !shiftsData) {
+      return [];
+    }
+
+    // Find the shift for the selected provider
+    const providerShift = shiftsData.find((shift: any) => 
+      shift.staffId.toString() === selectedProviderId
+    );
+
+    // If no shift found, return empty array
+    if (!providerShift) {
+      return [];
+    }
+
+    // Parse start and end times from shift
+    const [startHour, startMinute] = providerShift.startTime.split(':').map(Number);
+    const [endHour, endMinute] = providerShift.endTime.split(':').map(Number);
+
+    const slots = [];
+    let currentHour = startHour;
+    let currentMinute = startMinute;
+
+    // Generate 15-minute interval slots between start and end time
+    while (currentHour < endHour || (currentHour === endHour && currentMinute <= endMinute)) {
+      const hour12 = currentHour === 0 ? 12 : currentHour > 12 ? currentHour - 12 : currentHour;
+      const period = currentHour < 12 ? 'AM' : 'PM';
+      const timeString = `${hour12}:${currentMinute.toString().padStart(2, '0')} ${period}`;
+      slots.push(timeString);
+
+      // Move to next 15-minute slot
+      currentMinute += 15;
+      if (currentMinute >= 60) {
+        currentMinute = 0;
+        currentHour++;
+      }
+    }
+
+    return slots;
+  }, [selectedProviderId, newAppointmentDate, shiftsData, selectedDuration]);
 
   const isDataLoaded = !isUsersLoading && !isPatientsLoading;
 
