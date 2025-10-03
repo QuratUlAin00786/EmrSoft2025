@@ -1673,6 +1673,13 @@ Medical License: [License Number]
                         <div className="flex items-center justify-center h-full">
                           <p className="text-gray-400 text-sm">Time slots will appear here</p>
                         </div>
+                      ) : timeSlots.length === 0 ? (
+                        <div className="flex items-center justify-center h-full">
+                          <div className="text-center">
+                            <p className="text-gray-500 text-sm font-medium">Time slot not available</p>
+                            <p className="text-gray-400 text-xs mt-1">{format(newAppointmentDate, 'MMMM dd, yyyy')}</p>
+                          </div>
+                        </div>
                       ) : (
                         <div className="grid grid-cols-2 gap-2">
                           {timeSlots.map((slot) => {
