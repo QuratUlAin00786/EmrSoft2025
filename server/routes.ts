@@ -12742,8 +12742,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5); // Remove milliseconds and format
       const reportId = `${patientId}_${imagingId}_${timestamp}`;
       
-      // Ensure reports directory exists
-      const reportsDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Reports');
+      // Create organization-specific directory path: /uploads/Imaging_Images/{org_id}/patients/{patient_id}
+      const organizationId = req.tenant?.id || req.organizationId || 'unknown';
+      const reportsDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Images', String(organizationId), 'patients', String(patientId));
       await fse.ensureDir(reportsDir);
       
       // Import pdf-lib dynamically
@@ -13327,8 +13328,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Invalid report ID format" });
       }
 
-      const reportsDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Reports');
-      const filePath = path.join(reportsDir, `${reportId}.pdf`);
+      // Extract patientId from reportId for organization-specific path
+      let filePath;
+      if (isNewFormat) {
+        const parts = reportId.split('_');
+        const patientId = parts[0];
+        const organizationId = req.tenant?.id || req.organizationId || 'unknown';
+        const reportsDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Images', String(organizationId), 'patients', String(patientId));
+        filePath = path.join(reportsDir, `${reportId}.pdf`);
+      } else {
+        // Legacy path for old UUID format
+        const reportsDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Reports');
+        filePath = path.join(reportsDir, `${reportId}.pdf`);
+      }
       
       // Check if file exists
       if (!(await fse.pathExists(filePath))) {
@@ -13380,7 +13392,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const filename = `${reportId}.pdf`;
-      const filePath = path.join(process.cwd(), 'uploads', 'Imaging_Reports', filename);
+      
+      // Extract patientId from reportId for organization-specific path
+      let filePath;
+      if (isNewFormat) {
+        const parts = reportId.split('_');
+        const patientId = parts[0];
+        const organizationId = req.tenant?.id || req.organizationId || 'unknown';
+        filePath = path.join(process.cwd(), 'uploads', 'Imaging_Images', String(organizationId), 'patients', String(patientId), filename);
+      } else {
+        // Legacy path for old UUID format
+        filePath = path.join(process.cwd(), 'uploads', 'Imaging_Reports', filename);
+      }
 
       // Check if file exists
       if (!(await fse.pathExists(filePath))) {

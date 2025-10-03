@@ -2923,6 +2923,9 @@ export default function ImagingPage() {
                                             : study,
                                         ),
                                     );
+                                    
+                                    // Add to deletedStudyIds to immediately hide the alert
+                                    setDeletedStudyIds(prev => new Set(prev).add(selectedStudyId));
                                   }
 
                                   // Refresh the studies data
