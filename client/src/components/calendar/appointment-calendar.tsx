@@ -7,6 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Check, ChevronsUpDown } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Calendar, Clock, MapPin, User, Users, Video, Stethoscope, FileText, Plus, Save, X, Mic, Square, Edit, Trash2 } from "lucide-react";
@@ -25,6 +28,7 @@ import ConsultationNotes from "@/components/medical/consultation-notes";
 import { FullConsultationInterface } from "@/components/consultation/full-consultation-interface";
 import { useAuth } from "@/hooks/use-auth";
 import { useTenant } from "@/hooks/use-tenant";
+import { cn } from "@/lib/utils";
 
 const statusColors = {
   scheduled: "text-white",
@@ -152,6 +156,11 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
   const [selectedRole, setSelectedRole] = useState<string>("");
   const [selectedProviderId, setSelectedProviderId] = useState<string>("");
   const [selectedDuration, setSelectedDuration] = useState<number>(30);
+  const [patientError, setPatientError] = useState<string>("");
+  const [providerError, setProviderError] = useState<string>("");
+  const [openRoleCombo, setOpenRoleCombo] = useState(false);
+  const [openProviderCombo, setOpenProviderCombo] = useState(false);
+  const [openPatientCombo, setOpenPatientCombo] = useState(false);
   const [newAppointmentData, setNewAppointmentData] = useState<any>({
     title: "",
     type: "consultation",
@@ -1396,48 +1405,108 @@ Medical License: [License Number]
                       <Users className="h-4 w-4" />
                       Select Role
                     </Label>
-                    <Select 
-                      value={selectedRole}
-                      onValueChange={(value) => {
-                        setSelectedRole(value);
-                        setSelectedProviderId(""); // Reset provider when role changes
-                      }}
-                    >
-                      <SelectTrigger className="mt-1" data-testid="select-role">
-                        <SelectValue placeholder="Choose a role..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {availableRoles.map((role: string) => (
-                          <SelectItem key={role} value={role}>
-                            {role.charAt(0).toUpperCase() + role.slice(1)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Popover open={openRoleCombo} onOpenChange={setOpenRoleCombo}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={openRoleCombo}
+                          className="w-full justify-between mt-1"
+                          data-testid="select-role"
+                        >
+                          {selectedRole
+                            ? selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1)
+                            : "Choose a role..."}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-full p-0" align="start">
+                        <Command>
+                          <CommandInput placeholder="Search role..." />
+                          <CommandList>
+                            <CommandEmpty>No role found.</CommandEmpty>
+                            <CommandGroup>
+                              {availableRoles.map((role: string) => (
+                                <CommandItem
+                                  key={role}
+                                  value={role}
+                                  onSelect={(currentValue) => {
+                                    setSelectedRole(currentValue);
+                                    setSelectedProviderId(""); // Reset provider when role changes
+                                    setProviderError(""); // Clear provider error
+                                    setOpenRoleCombo(false);
+                                  }}
+                                >
+                                  <Check
+                                    className={`mr-2 h-4 w-4 ${
+                                      selectedRole === role ? "opacity-100" : "opacity-0"
+                                    }`}
+                                  />
+                                  {role.charAt(0).toUpperCase() + role.slice(1)}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-gray-600 flex items-center gap-2">
                       <User className="h-4 w-4" />
                       Select Name
                     </Label>
-                    <Select 
-                      value={selectedProviderId}
-                      onValueChange={(value) => {
-                        setSelectedProviderId(value);
-                      }}
-                      disabled={!selectedRole}
-                    >
-                      <SelectTrigger className="mt-1" data-testid="select-name">
-                        <SelectValue placeholder={selectedRole ? "Select a name..." : "Select a role first"} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {filteredUsers.map((user: any) => (
-                          <SelectItem key={user.id} value={user.id.toString()}>
-                            {user.firstName} {user.lastName}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Popover open={openProviderCombo} onOpenChange={setOpenProviderCombo}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={openProviderCombo}
+                          className="w-full justify-between mt-1"
+                          data-testid="select-name"
+                          disabled={!selectedRole}
+                        >
+                          {selectedProviderId && filteredUsers
+                            ? (() => {
+                                const provider = filteredUsers.find((u: any) => u.id.toString() === selectedProviderId);
+                                return provider ? `${provider.firstName} ${provider.lastName}` : "Select a name...";
+                              })()
+                            : selectedRole ? "Select a name..." : "Select a role first"}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-full p-0" align="start">
+                        <Command>
+                          <CommandInput placeholder="Search name..." />
+                          <CommandList>
+                            <CommandEmpty>No provider found.</CommandEmpty>
+                            <CommandGroup>
+                              {filteredUsers.map((user: any) => (
+                                <CommandItem
+                                  key={user.id}
+                                  value={`${user.firstName} ${user.lastName}`}
+                                  onSelect={() => {
+                                    setSelectedProviderId(user.id.toString());
+                                    setProviderError(""); // Clear error when provider is selected
+                                    setOpenProviderCombo(false);
+                                  }}
+                                >
+                                  <Check
+                                    className={`mr-2 h-4 w-4 ${
+                                      selectedProviderId === user.id.toString() ? "opacity-100" : "opacity-0"
+                                    }`}
+                                  />
+                                  {user.firstName} {user.lastName}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                    {providerError && (
+                      <p className="text-red-500 text-sm mt-1">{providerError}</p>
+                    )}
                   </div>
                 </div>
 
@@ -1445,23 +1514,56 @@ Medical License: [License Number]
                 <div className="grid grid-cols-2 gap-6">
                   <div>
                     <Label className="text-sm font-medium text-gray-600">Patient</Label>
-                    <Select 
-                      value={newAppointmentData.patientId}
-                      onValueChange={(value) => {
-                        setNewAppointmentData({ ...newAppointmentData, patientId: value });
-                      }}
-                    >
-                      <SelectTrigger className="mt-1" data-testid="select-patient">
-                        <SelectValue placeholder="Select a patient" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {patientsData && patientsData.map((patient: any) => (
-                          <SelectItem key={patient.id} value={patient.id.toString()}>
-                            {patient.firstName} {patient.lastName} ({patient.patientId})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Popover open={openPatientCombo} onOpenChange={setOpenPatientCombo}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={openPatientCombo}
+                          className="w-full justify-between mt-1"
+                          data-testid="select-patient"
+                        >
+                          {newAppointmentData.patientId && patientsData
+                            ? (() => {
+                                const patient = patientsData.find((p: any) => p.id.toString() === newAppointmentData.patientId);
+                                return patient ? `${patient.firstName} ${patient.lastName} (${patient.patientId})` : "Select a patient";
+                              })()
+                            : "Select a patient"}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-full p-0" align="start">
+                        <Command>
+                          <CommandInput placeholder="Search patient..." />
+                          <CommandList>
+                            <CommandEmpty>No patient found.</CommandEmpty>
+                            <CommandGroup>
+                              {patientsData && patientsData.map((patient: any) => (
+                                <CommandItem
+                                  key={patient.id}
+                                  value={`${patient.firstName} ${patient.lastName} ${patient.patientId}`}
+                                  onSelect={() => {
+                                    setNewAppointmentData({ ...newAppointmentData, patientId: patient.id.toString() });
+                                    setPatientError(""); // Clear error when patient is selected
+                                    setOpenPatientCombo(false);
+                                  }}
+                                >
+                                  <Check
+                                    className={`mr-2 h-4 w-4 ${
+                                      newAppointmentData.patientId === patient.id.toString() ? "opacity-100" : "opacity-0"
+                                    }`}
+                                  />
+                                  {patient.firstName} {patient.lastName} ({patient.patientId})
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                    {patientError && (
+                      <p className="text-red-500 text-sm mt-1">{patientError}</p>
+                    )}
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-gray-600 flex items-center gap-2">
@@ -1861,36 +1963,42 @@ Medical License: [License Number]
                 </Button>
                 <Button
                   onClick={() => {
+                    // Clear previous errors
+                    setPatientError("");
+                    setProviderError("");
+                    
+                    // Validate fields and set inline errors
+                    let hasError = false;
+                    
                     if (!newAppointmentData.patientId) {
-                      toast({
-                        title: "Missing Information",
-                        description: "Please select a patient.",
-                        variant: "destructive",
-                      });
-                      return;
+                      setPatientError("Please select a patient.");
+                      hasError = true;
                     }
+                    
+                    if (!selectedProviderId) {
+                      setProviderError("Please select a provider.");
+                      hasError = true;
+                    }
+                    
                     if (!selectedRole) {
                       toast({
                         title: "Missing Information",
                         description: "Please select a role.",
                         variant: "destructive",
                       });
-                      return;
+                      hasError = true;
                     }
-                    if (!selectedProviderId) {
-                      toast({
-                        title: "Missing Information",
-                        description: "Please select a provider.",
-                        variant: "destructive",
-                      });
-                      return;
-                    }
+                    
                     if (!newAppointmentDate || !newSelectedTimeSlot) {
                       toast({
                         title: "Missing Information",
                         description: "Please select both date and time slot.",
                         variant: "destructive",
                       });
+                      hasError = true;
+                    }
+                    
+                    if (hasError) {
                       return;
                     }
                     
@@ -2038,6 +2146,7 @@ Medical License: [License Number]
                 });
                 
                 setShowConfirmationDialog(false);
+                setShowNewAppointment(false); // Close main dialog
               }}
               disabled={createAppointmentMutation.isPending}
             >
