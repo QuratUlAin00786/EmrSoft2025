@@ -1282,31 +1282,33 @@ Medical License: [License Number]
               </DialogDescription>
             </DialogHeader>
             
-            <div className="space-y-6">
-              {/* Patient Selection */}
-              <div>
-                <Label className="text-sm font-medium text-gray-600">Patient</Label>
-                <Select 
-                  value={newAppointmentData.patientId}
-                  onValueChange={(value) => {
-                    setNewAppointmentData({ ...newAppointmentData, patientId: value });
-                  }}
-                >
-                  <SelectTrigger className="mt-1" data-testid="select-patient">
-                    <SelectValue placeholder="Select a patient" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {patientsData && patientsData.map((patient: any) => (
-                      <SelectItem key={patient.id} value={patient.id.toString()}>
-                        {patient.firstName} {patient.lastName} ({patient.patientId})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="grid grid-cols-3 gap-6">
+              {/* Left Column - Selection Fields */}
+              <div className="col-span-2 space-y-6">
+                {/* Patient Selection */}
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Patient</Label>
+                  <Select 
+                    value={newAppointmentData.patientId}
+                    onValueChange={(value) => {
+                      setNewAppointmentData({ ...newAppointmentData, patientId: value });
+                    }}
+                  >
+                    <SelectTrigger className="mt-1" data-testid="select-patient">
+                      <SelectValue placeholder="Select a patient" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {patientsData && patientsData.map((patient: any) => (
+                        <SelectItem key={patient.id} value={patient.id.toString()}>
+                          {patient.firstName} {patient.lastName} ({patient.patientId})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              {/* Role and Name Selection Row */}
-              <div className="grid grid-cols-2 gap-6">
+                {/* Role and Name Selection Row */}
+                <div className="grid grid-cols-2 gap-6">
                 <div>
                   <Label className="text-sm font-medium text-gray-600 flex items-center gap-2">
                     <Users className="h-4 w-4" />
@@ -1357,37 +1359,7 @@ Medical License: [License Number]
                 </div>
               </div>
 
-              {/* Title, Type, and Duration Row */}
-              <div className="grid grid-cols-3 gap-6">
-                <div>
-                  <Label className="text-sm font-medium text-gray-600">Title</Label>
-                  <Input 
-                    value={newAppointmentData.title}
-                    onChange={(e) => {
-                      setNewAppointmentData({ ...newAppointmentData, title: e.target.value });
-                    }}
-                    placeholder="Appointment title"
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-gray-600">Type</Label>
-                  <Select 
-                    value={newAppointmentData.type}
-                    onValueChange={(value) => {
-                      setNewAppointmentData({ ...newAppointmentData, type: value });
-                    }}
-                  >
-                    <SelectTrigger className="mt-1">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="consultation">Consultation</SelectItem>
-                      <SelectItem value="follow_up">Follow-up</SelectItem>
-                      <SelectItem value="procedure">Procedure</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                {/* Duration Selector */}
                 <div>
                   <Label className="text-sm font-medium text-gray-600 flex items-center gap-2">
                     <Clock className="h-4 w-4" />
@@ -1410,14 +1382,11 @@ Medical License: [License Number]
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
 
-              {/* Date and Time Selection - Side by Side Layout */}
-              <div className="grid grid-cols-2 gap-8">
                 {/* Date Selection */}
                 <div>
-                  <Label className="text-lg font-semibold text-gray-800 mb-3 block">Select Date</Label>
-                  <div className="border rounded-lg p-4 bg-gray-50">
+                  <Label className="text-sm font-medium text-gray-600 mb-2 block">Select Date</Label>
+                  <div className="border rounded-lg p-3 bg-gray-50">
                     <CalendarComponent
                       mode="single"
                       selected={newAppointmentDate}
@@ -1425,15 +1394,14 @@ Medical License: [License Number]
                         setNewAppointmentDate(date);
                       }}
                       className="rounded-md"
-                      initialFocus
                     />
                   </div>
                 </div>
 
                 {/* Time Slot Selection */}
                 <div>
-                  <Label className="text-lg font-semibold text-gray-800 mb-3 block">Select Time Slot</Label>
-                  <div className="border rounded-lg p-4 bg-gray-50 h-[300px] overflow-y-auto">
+                  <Label className="text-sm font-medium text-gray-600 mb-2 block">Select Time Slot</Label>
+                  <div className="border rounded-lg p-3 bg-gray-50 h-[320px] overflow-y-auto">
                     <div className="grid grid-cols-2 gap-2">
                       {timeSlots.map((slot) => {
                         const isAvailable = newAppointmentDate ? isTimeSlotAvailable(newAppointmentDate, slot) : true;
@@ -1443,7 +1411,7 @@ Medical License: [License Number]
                           <Button
                             key={slot}
                             variant={isSelected ? "default" : "outline"}
-                            className={`h-12 text-sm font-medium ${
+                            className={`h-10 text-xs font-medium ${
                               !isAvailable 
                                 ? "bg-gray-200 text-gray-400 cursor-not-allowed" 
                                 : isSelected 
@@ -1464,21 +1432,115 @@ Medical License: [License Number]
                 </div>
               </div>
 
-              {/* Description */}
-              <div>
-                <Label className="text-sm font-medium text-gray-600">Description</Label>
-                <Textarea 
-                  value={newAppointmentData.description || ''}
-                  onChange={(e) => {
-                    setNewAppointmentData({ ...newAppointmentData, description: e.target.value });
-                  }}
-                  className="mt-1"
-                  rows={3}
-                  placeholder="Add appointment notes or description..."
-                />
-              </div>
+              {/* Right Column - Patient Info & Booking Summary */}
+              <div className="space-y-6">
+                {/* Patient Information */}
+                {newAppointmentData.patientId && patientsData && (() => {
+                  const selectedPatient = patientsData.find((p: any) => p.id.toString() === newAppointmentData.patientId);
+                  if (!selectedPatient) return null;
+                  
+                  return (
+                    <div className="border rounded-lg p-4 bg-gray-50">
+                      <h3 className="text-sm font-semibold text-gray-800 mb-3">Patient Information</h3>
+                      <div className="flex items-start gap-3">
+                        <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-lg">
+                          {selectedPatient.firstName?.charAt(0)}{selectedPatient.lastName?.charAt(0)}
+                        </div>
+                        <div className="flex-1 space-y-1 text-sm">
+                          <p className="font-semibold text-gray-900">
+                            {selectedPatient.firstName} {selectedPatient.lastName}
+                          </p>
+                          <p className="text-gray-600 text-xs">
+                            {selectedPatient.patientId}
+                          </p>
+                          {selectedPatient.phone && (
+                            <p className="text-gray-600 text-xs flex items-center gap-1">
+                              📞 {selectedPatient.phone}
+                            </p>
+                          )}
+                          {selectedPatient.email && (
+                            <p className="text-gray-600 text-xs flex items-center gap-1">
+                              ✉️ {selectedPatient.email}
+                            </p>
+                          )}
+                          {selectedPatient.nhsNumber && (
+                            <p className="text-gray-600 text-xs">
+                              NHS: {selectedPatient.nhsNumber}
+                            </p>
+                          )}
+                          {selectedPatient.address && (selectedPatient.address.city || selectedPatient.address.postcode) && (
+                            <p className="text-gray-600 text-xs">
+                              📍 {selectedPatient.address.city}, {selectedPatient.address.postcode}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
 
-              <div className="flex justify-end space-x-2 pt-4">
+                {/* Booking Summary */}
+                <div className="border rounded-lg p-4 bg-gray-50">
+                  <h3 className="text-sm font-semibold text-gray-800 mb-3">Booking Summary</h3>
+                  <div className="space-y-3 text-sm">
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <p className="text-gray-500 text-xs">Role</p>
+                        <p className="font-medium text-gray-900">
+                          {selectedRole ? selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1) : "Not selected"}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500 text-xs">Duration</p>
+                        <p className="font-medium text-gray-900">{selectedDuration} minutes</p>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <p className="text-gray-500 text-xs">Patient</p>
+                      <p className="font-medium text-gray-900">
+                        {newAppointmentData.patientId && patientsData 
+                          ? (() => {
+                              const patient = patientsData.find((p: any) => p.id.toString() === newAppointmentData.patientId);
+                              return patient ? `${patient.firstName} ${patient.lastName}` : "Not selected";
+                            })()
+                          : "Not selected"}
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <p className="text-gray-500 text-xs">Provider</p>
+                      <p className="font-medium text-gray-900">
+                        {selectedProviderId && usersData
+                          ? (() => {
+                              const provider = usersData.find((u: any) => u.id.toString() === selectedProviderId);
+                              return provider ? `${provider.firstName} ${provider.lastName}` : "Not selected";
+                            })()
+                          : "Not selected"}
+                      </p>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <p className="text-gray-500 text-xs">Date</p>
+                        <p className="font-medium text-gray-900">
+                          {newAppointmentDate ? format(newAppointmentDate, 'MMM dd, yyyy') : "Not selected"}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500 text-xs">Time</p>
+                        <p className="font-medium text-gray-900">
+                          {newSelectedTimeSlot || "Not selected"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex justify-end space-x-2 pt-6 border-t mt-6">
                 <Button
                   variant="outline"
                   onClick={() => {
@@ -1532,14 +1594,6 @@ Medical License: [License Number]
                       });
                       return;
                     }
-                    if (!newAppointmentData.title) {
-                      toast({
-                        title: "Missing Information",
-                        description: "Please enter an appointment title.",
-                        variant: "destructive",
-                      });
-                      return;
-                    }
                     
                     // Create new datetime without timezone conversion
                     const selectedDate = format(newAppointmentDate, 'yyyy-MM-dd');
@@ -1555,16 +1609,21 @@ Medical License: [License Number]
                     
                     const newScheduledAt = `${selectedDate}T${hour24.toString().padStart(2, '0')}:${minutes}:00.000Z`;
                     
+                    // Generate title from patient and provider names
+                    const patientName = patientsData?.find((p: any) => p.id.toString() === newAppointmentData.patientId);
+                    const providerName = usersData?.find((u: any) => u.id.toString() === selectedProviderId);
+                    const generatedTitle = `${patientName?.firstName || 'Patient'} - ${selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1)} Appointment`;
+                    
                     createAppointmentMutation.mutate({
                       patientId: parseInt(newAppointmentData.patientId),
                       providerId: parseInt(selectedProviderId),
                       assignedRole: selectedRole,
-                      title: newAppointmentData.title,
-                      type: newAppointmentData.type,
+                      title: generatedTitle,
+                      type: "consultation",
                       status: "scheduled",
                       scheduledAt: newScheduledAt,
                       duration: selectedDuration,
-                      description: newAppointmentData.description,
+                      description: "",
                     });
                   }}
                   disabled={createAppointmentMutation.isPending}
@@ -1572,7 +1631,6 @@ Medical License: [License Number]
                   {createAppointmentMutation.isPending ? "Creating..." : "Create Appointment"}
                 </Button>
               </div>
-            </div>
           </div>
         </DialogContent>
       </Dialog>
