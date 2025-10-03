@@ -148,6 +148,7 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
   const [newSelectedTimeSlot, setNewSelectedTimeSlot] = useState<string>("");
   const [selectedRole, setSelectedRole] = useState<string>("");
   const [selectedProviderId, setSelectedProviderId] = useState<string>("");
+  const [selectedDuration, setSelectedDuration] = useState<number>(30);
   const [newAppointmentData, setNewAppointmentData] = useState<any>({
     title: "",
     type: "consultation",
@@ -160,11 +161,11 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
   const [editAppointmentDate, setEditAppointmentDate] = useState<Date | undefined>(undefined);
   const [editSelectedTimeSlot, setEditSelectedTimeSlot] = useState<string>("");
 
-  // Generate 24/7 time slots with 30-minute intervals
-  const generate24HourTimeSlots = () => {
+  // Generate 24/7 time slots based on selected duration (15, 30, or 60 minutes)
+  const generate24HourTimeSlots = (durationInMinutes: number) => {
     const slots = [];
     for (let hour = 0; hour < 24; hour++) {
-      for (let minute = 0; minute < 60; minute += 30) {
+      for (let minute = 0; minute < 60; minute += durationInMinutes) {
         const hour12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
         const period = hour < 12 ? 'AM' : 'PM';
         const timeString = `${hour12}:${minute.toString().padStart(2, '0')} ${period}`;
@@ -174,7 +175,7 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
     return slots;
   };
   
-  const timeSlots = generate24HourTimeSlots();
+  const timeSlots = generate24HourTimeSlots(selectedDuration);
 
   // Convert time slot string to 24-hour format
   const timeSlotTo24Hour = (timeSlot: string): string => {
@@ -296,6 +297,7 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
       setNewSelectedTimeSlot("");
       setSelectedRole("");
       setSelectedProviderId("");
+      setSelectedDuration(30);
       setNewAppointmentData({
         title: "",
         type: "consultation",
@@ -1355,8 +1357,8 @@ Medical License: [License Number]
                 </div>
               </div>
 
-              {/* Title and Type Row */}
-              <div className="grid grid-cols-2 gap-6">
+              {/* Title, Type, and Duration Row */}
+              <div className="grid grid-cols-3 gap-6">
                 <div>
                   <Label className="text-sm font-medium text-gray-600">Title</Label>
                   <Input 
@@ -1383,6 +1385,28 @@ Medical License: [License Number]
                       <SelectItem value="consultation">Consultation</SelectItem>
                       <SelectItem value="follow_up">Follow-up</SelectItem>
                       <SelectItem value="procedure">Procedure</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
+                    Duration
+                  </Label>
+                  <Select 
+                    value={selectedDuration.toString()}
+                    onValueChange={(value) => {
+                      setSelectedDuration(parseInt(value));
+                      setNewSelectedTimeSlot(""); // Reset time slot when duration changes
+                    }}
+                  >
+                    <SelectTrigger className="mt-1" data-testid="select-duration">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="15">15 minutes</SelectItem>
+                      <SelectItem value="30">30 minutes</SelectItem>
+                      <SelectItem value="60">60 minutes</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -1463,6 +1487,7 @@ Medical License: [License Number]
                     setNewSelectedTimeSlot("");
                     setSelectedRole("");
                     setSelectedProviderId("");
+                    setSelectedDuration(30);
                     setNewAppointmentData({
                       title: "",
                       type: "consultation",
@@ -1538,6 +1563,7 @@ Medical License: [License Number]
                       type: newAppointmentData.type,
                       status: "scheduled",
                       scheduledAt: newScheduledAt,
+                      duration: selectedDuration,
                       description: newAppointmentData.description,
                     });
                   }}
