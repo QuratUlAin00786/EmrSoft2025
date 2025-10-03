@@ -241,7 +241,16 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
     
     const selectedDateString = format(date, 'yyyy-MM-dd');
     
-    // Check if this slot is already taken by the selected provider
+    // Convert the new time slot to minutes for comparison
+    const [time, period] = timeSlot.split(' ');
+    const [hours, minutes] = time.split(':').map(Number);
+    let hour24 = hours;
+    if (period === 'PM' && hours !== 12) hour24 += 12;
+    if (period === 'AM' && hours === 12) hour24 = 0;
+    const newSlotStartMinutes = hour24 * 60 + minutes;
+    const newSlotEndMinutes = newSlotStartMinutes + selectedDuration;
+    
+    // Check if this slot overlaps with any existing appointment
     const isBooked = appointments.some((apt: any) => {
       if (editingAppointment && apt.id === editingAppointment.id) return false;
       
@@ -252,10 +261,21 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
       
       const cleanTimeString = apt.scheduledAt.replace('Z', '');
       const aptDate = new Date(cleanTimeString);
-      const aptTime = format(aptDate, 'h:mm a');
       const aptDateString = format(aptDate, 'yyyy-MM-dd');
       
-      return aptDateString === selectedDateString && aptTime === timeSlot;
+      // Only check appointments on the same date
+      if (aptDateString !== selectedDateString) return false;
+      
+      // Calculate existing appointment's time range in minutes
+      const aptHour = aptDate.getUTCHours();
+      const aptMinute = aptDate.getUTCMinutes();
+      const aptStartMinutes = aptHour * 60 + aptMinute;
+      const aptDuration = apt.duration || 30; // Default to 30 if duration not set
+      const aptEndMinutes = aptStartMinutes + aptDuration;
+      
+      // Check if the new slot overlaps with this existing appointment
+      // Two time ranges overlap if: new_start < existing_end AND new_end > existing_start
+      return newSlotStartMinutes < aptEndMinutes && newSlotEndMinutes > aptStartMinutes;
     });
     
     return !isBooked;
