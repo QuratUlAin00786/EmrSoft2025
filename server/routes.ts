@@ -4470,6 +4470,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const roleId = parseInt(req.params.id);
       const updateData = z.object({
+        name: z.string().optional(),
         displayName: z.string().optional(),
         description: z.string().optional(),
         permissions: z.object({

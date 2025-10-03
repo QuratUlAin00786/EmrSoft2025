@@ -235,6 +235,7 @@ export default function PermissionsReference() {
       updateRoleMutation.mutate({
         roleId: editingRoleId,
         updates: {
+          name: editingRole.name,
           displayName: editingRole.displayName,
           description: editingRole.description,
           permissions: editingRole.permissions
@@ -504,24 +505,45 @@ export default function PermissionsReference() {
                     <div className="flex-1">
                       {isEditing ? (
                         <div className="space-y-2">
-                          <Input
-                            value={currentRole?.displayName || ""}
-                            onChange={(e) => setEditingRole(prev => prev ? { ...prev, displayName: e.target.value } : null)}
-                            className="text-xl font-semibold"
-                            data-testid="input-role-display-name"
-                          />
-                          <Textarea
-                            value={currentRole?.description || ""}
-                            onChange={(e) => setEditingRole(prev => prev ? { ...prev, description: e.target.value } : null)}
-                            className="text-sm"
-                            rows={2}
-                            data-testid="textarea-role-description"
-                          />
+                          <div className="space-y-1">
+                            <label className="text-xs text-gray-500">Role Name</label>
+                            <Input
+                              value={currentRole?.name || ""}
+                              onChange={(e) => setEditingRole(prev => prev ? { ...prev, name: e.target.value } : null)}
+                              className="font-medium"
+                              data-testid="input-role-name"
+                              placeholder="e.g., doctor, nurse, admin"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-xs text-gray-500">Display Name</label>
+                            <Input
+                              value={currentRole?.displayName || ""}
+                              onChange={(e) => setEditingRole(prev => prev ? { ...prev, displayName: e.target.value } : null)}
+                              className="font-semibold"
+                              data-testid="input-role-display-name"
+                              placeholder="e.g., Physician, Nursing Staff"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-xs text-gray-500">Description</label>
+                            <Textarea
+                              value={currentRole?.description || ""}
+                              onChange={(e) => setEditingRole(prev => prev ? { ...prev, description: e.target.value } : null)}
+                              className="text-sm"
+                              rows={2}
+                              data-testid="textarea-role-description"
+                              placeholder="Describe the role's responsibilities..."
+                            />
+                          </div>
                         </div>
                       ) : (
                         <div>
                           <CardTitle className="text-xl">{getDisplayName(role)}</CardTitle>
-                          <p className="text-sm text-gray-600 mt-1">{role.description}</p>
+                          <Badge variant="outline" className="mt-1 text-xs">
+                            {role.name}
+                          </Badge>
+                          <p className="text-sm text-gray-600 mt-2">{role.description}</p>
                         </div>
                       )}
                     </div>
