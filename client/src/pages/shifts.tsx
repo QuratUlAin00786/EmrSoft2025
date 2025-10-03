@@ -515,15 +515,27 @@ export default function ShiftsPage() {
     const dateString = getLocalDateString(selectedDate);
     const conflicts: any[] = [];
 
-    // Check each pending shift for conflicts
-    for (const pendingShift of pendingShifts) {
-      const existingShift = shifts.find((shift: any) => 
-        shift.staffId === parseInt(selectedStaffId) &&
-        shift.date === dateString &&
-        shift.startTime === pendingShift.startTime &&
-        shift.endTime === pendingShift.endTime &&
-        shift.status !== 'cancelled'
-      );
+    // Remove duplicates within pendingShifts first
+    const uniquePendingShifts = pendingShifts.filter((shift, index, self) =>
+      index === self.findIndex((s) => 
+        s.startTime === shift.startTime && s.endTime === shift.endTime
+      )
+    );
+
+    // Check each pending shift for conflicts with existing shifts in database
+    for (const pendingShift of uniquePendingShifts) {
+      const existingShift = shifts.find((shift: any) => {
+        // Normalize date for comparison
+        const shiftDate = typeof shift.date === 'string' 
+          ? shift.date.split('T')[0] 
+          : getLocalDateString(new Date(shift.date));
+        
+        return shift.staffId === parseInt(selectedStaffId) &&
+          shiftDate === dateString &&
+          shift.startTime === pendingShift.startTime &&
+          shift.endTime === pendingShift.endTime &&
+          shift.status !== 'cancelled';
+      });
 
       if (existingShift) {
         conflicts.push(existingShift);
@@ -537,9 +549,9 @@ export default function ShiftsPage() {
       return;
     }
 
-    // No conflicts - save all pending shifts
+    // No conflicts - save all unique pending shifts
     try {
-      for (const pendingShift of pendingShifts) {
+      for (const pendingShift of uniquePendingShifts) {
         const shiftData = {
           staffId: parseInt(selectedStaffId),
           date: dateString,
@@ -559,7 +571,7 @@ export default function ShiftsPage() {
 
       toast({
         title: "Shifts Created",
-        description: `Successfully created ${pendingShifts.length} shift(s)`,
+        description: `Successfully created ${uniquePendingShifts.length} shift(s)`,
       });
 
       // Clear pending shifts and refresh
