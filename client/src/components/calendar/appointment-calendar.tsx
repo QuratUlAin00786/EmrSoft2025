@@ -1320,214 +1320,160 @@ Medical License: [License Number]
               </DialogDescription>
             </DialogHeader>
             
-            <div className="grid grid-cols-3 gap-6">
-              {/* Left Column - Selection Fields */}
-              <div className="col-span-2 space-y-6">
-                {/* Patient Selection */}
-                <div>
-                  <Label className="text-sm font-medium text-gray-600">Patient</Label>
-                  <Select 
-                    value={newAppointmentData.patientId}
-                    onValueChange={(value) => {
-                      setNewAppointmentData({ ...newAppointmentData, patientId: value });
-                    }}
-                  >
-                    <SelectTrigger className="mt-1" data-testid="select-patient">
-                      <SelectValue placeholder="Select a patient" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {patientsData && patientsData.map((patient: any) => (
-                        <SelectItem key={patient.id} value={patient.id.toString()}>
-                          {patient.firstName} {patient.lastName} ({patient.patientId})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Role and Name Selection Row */}
+            {user?.role === 'admin' ? (
+              /* Admin Layout - Full Width with Rows */
+              <div className="space-y-6">
+                {/* Row 1: Select Role and Select Name */}
                 <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <Label className="text-sm font-medium text-gray-600 flex items-center gap-2">
-                    <Users className="h-4 w-4" />
-                    Select Role
-                  </Label>
-                  <Select 
-                    value={selectedRole}
-                    onValueChange={(value) => {
-                      setSelectedRole(value);
-                      setSelectedProviderId(""); // Reset provider when role changes
-                    }}
-                  >
-                    <SelectTrigger className="mt-1" data-testid="select-role">
-                      <SelectValue placeholder="Choose a role..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableRoles.map((role: string) => (
-                        <SelectItem key={role} value={role}>
-                          {role.charAt(0).toUpperCase() + role.slice(1)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-gray-600 flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    Select Name
-                  </Label>
-                  <Select 
-                    value={selectedProviderId}
-                    onValueChange={(value) => {
-                      setSelectedProviderId(value);
-                    }}
-                    disabled={!selectedRole}
-                  >
-                    <SelectTrigger className="mt-1" data-testid="select-name">
-                      <SelectValue placeholder={selectedRole ? "Select a name..." : "Select a role first"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {filteredUsers.map((user: any) => (
-                        <SelectItem key={user.id} value={user.id.toString()}>
-                          {user.firstName} {user.lastName}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-                {/* Duration Selector */}
-                <div>
-                  <Label className="text-sm font-medium text-gray-600 flex items-center gap-2">
-                    <Clock className="h-4 w-4" />
-                    Duration
-                  </Label>
-                  <Select 
-                    value={selectedDuration.toString()}
-                    onValueChange={(value) => {
-                      setSelectedDuration(parseInt(value));
-                      setNewSelectedTimeSlot(""); // Reset time slot when duration changes
-                    }}
-                  >
-                    <SelectTrigger className="mt-1" data-testid="select-duration">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="15">15 minutes</SelectItem>
-                      <SelectItem value="30">30 minutes</SelectItem>
-                      <SelectItem value="60">60 minutes</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                      <Users className="h-4 w-4" />
+                      Select Role
+                    </Label>
+                    <Select 
+                      value={selectedRole}
+                      onValueChange={(value) => {
+                        setSelectedRole(value);
+                        setSelectedProviderId(""); // Reset provider when role changes
+                      }}
+                    >
+                      <SelectTrigger className="mt-1" data-testid="select-role">
+                        <SelectValue placeholder="Choose a role..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableRoles.map((role: string) => (
+                          <SelectItem key={role} value={role}>
+                            {role.charAt(0).toUpperCase() + role.slice(1)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      Select Name
+                    </Label>
+                    <Select 
+                      value={selectedProviderId}
+                      onValueChange={(value) => {
+                        setSelectedProviderId(value);
+                      }}
+                      disabled={!selectedRole}
+                    >
+                      <SelectTrigger className="mt-1" data-testid="select-name">
+                        <SelectValue placeholder={selectedRole ? "Select a name..." : "Select a role first"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {filteredUsers.map((user: any) => (
+                          <SelectItem key={user.id} value={user.id.toString()}>
+                            {user.firstName} {user.lastName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
-                {/* Date and Time Selection - Conditional Layout for Admin */}
-                {user?.role === 'admin' ? (
-                  <div className="grid grid-cols-2 gap-6">
-                    {/* Date Selection */}
-                    <div>
-                      <Label className="text-sm font-medium text-gray-600 mb-2 block">Select Date</Label>
-                      <div className="border rounded-lg p-3 bg-gray-50">
-                        <CalendarComponent
-                          mode="single"
-                          selected={newAppointmentDate}
-                          onSelect={(date) => {
-                            setNewAppointmentDate(date);
-                          }}
-                          className="rounded-md"
-                        />
-                      </div>
+                {/* Row 2: Patient and Duration */}
+                <div className="grid grid-cols-2 gap-6">
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Patient</Label>
+                    <Select 
+                      value={newAppointmentData.patientId}
+                      onValueChange={(value) => {
+                        setNewAppointmentData({ ...newAppointmentData, patientId: value });
+                      }}
+                    >
+                      <SelectTrigger className="mt-1" data-testid="select-patient">
+                        <SelectValue placeholder="Select a patient" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {patientsData && patientsData.map((patient: any) => (
+                          <SelectItem key={patient.id} value={patient.id.toString()}>
+                            {patient.firstName} {patient.lastName} ({patient.patientId})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                      <Clock className="h-4 w-4" />
+                      Duration
+                    </Label>
+                    <Select 
+                      value={selectedDuration.toString()}
+                      onValueChange={(value) => {
+                        setSelectedDuration(parseInt(value));
+                        setNewSelectedTimeSlot(""); // Reset time slot when duration changes
+                      }}
+                    >
+                      <SelectTrigger className="mt-1" data-testid="select-duration">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="15">15 minutes</SelectItem>
+                        <SelectItem value="30">30 minutes</SelectItem>
+                        <SelectItem value="60">60 minutes</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Row 3: Select Date and Select Time Slot */}
+                <div className="grid grid-cols-2 gap-6">
+                  {/* Date Selection */}
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600 mb-2 block">Select Date</Label>
+                    <div className="border rounded-lg p-3 bg-gray-50">
+                      <CalendarComponent
+                        mode="single"
+                        selected={newAppointmentDate}
+                        onSelect={(date) => {
+                          setNewAppointmentDate(date);
+                        }}
+                        className="rounded-md"
+                      />
                     </div>
+                  </div>
 
-                    {/* Time Slot Selection */}
-                    <div>
-                      <Label className="text-sm font-medium text-gray-600 mb-2 block">Select Time Slot</Label>
-                      <div className="border rounded-lg p-3 bg-gray-50 h-[320px] overflow-y-auto">
-                        <div className="grid grid-cols-2 gap-2">
-                          {timeSlots.map((slot) => {
-                            const isAvailable = newAppointmentDate ? isTimeSlotAvailable(newAppointmentDate, slot) : true;
-                            const isSelected = newSelectedTimeSlot === slot;
-                            
-                            return (
-                              <Button
-                                key={slot}
-                                variant={isSelected ? "default" : "outline"}
-                                className={`h-10 text-xs font-medium ${
-                                  !isAvailable 
-                                    ? "bg-gray-200 text-gray-400 cursor-not-allowed" 
-                                    : isSelected 
-                                      ? "bg-green-500 hover:bg-green-600 text-white border-green-500" 
-                                      : "hover:bg-green-50 hover:border-green-300 bg-white"
-                                }`}
-                                disabled={!isAvailable}
-                                onClick={() => {
-                                  setNewSelectedTimeSlot(slot);
-                                }}
-                              >
-                                {slot}
-                              </Button>
-                            );
-                          })}
-                        </div>
+                  {/* Time Slot Selection */}
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600 mb-2 block">Select Time Slot</Label>
+                    <div className="border rounded-lg p-3 bg-gray-50 h-[320px] overflow-y-auto">
+                      <div className="grid grid-cols-2 gap-2">
+                        {timeSlots.map((slot) => {
+                          const isAvailable = newAppointmentDate ? isTimeSlotAvailable(newAppointmentDate, slot) : true;
+                          const isSelected = newSelectedTimeSlot === slot;
+                          
+                          return (
+                            <Button
+                              key={slot}
+                              variant={isSelected ? "default" : "outline"}
+                              className={`h-10 text-xs font-medium ${
+                                !isAvailable 
+                                  ? "bg-gray-200 text-gray-400 cursor-not-allowed" 
+                                  : isSelected 
+                                    ? "bg-green-500 hover:bg-green-600 text-white border-green-500" 
+                                    : "hover:bg-green-50 hover:border-green-300 bg-white"
+                              }`}
+                              disabled={!isAvailable}
+                              onClick={() => {
+                                setNewSelectedTimeSlot(slot);
+                              }}
+                            >
+                              {slot}
+                            </Button>
+                          );
+                        })}
                       </div>
                     </div>
                   </div>
-                ) : (
-                  <>
-                    {/* Date Selection */}
-                    <div>
-                      <Label className="text-sm font-medium text-gray-600 mb-2 block">Select Date</Label>
-                      <div className="border rounded-lg p-3 bg-gray-50">
-                        <CalendarComponent
-                          mode="single"
-                          selected={newAppointmentDate}
-                          onSelect={(date) => {
-                            setNewAppointmentDate(date);
-                          }}
-                          className="rounded-md"
-                        />
-                      </div>
-                    </div>
+                </div>
 
-                    {/* Time Slot Selection */}
-                    <div>
-                      <Label className="text-sm font-medium text-gray-600 mb-2 block">Select Time Slot</Label>
-                      <div className="border rounded-lg p-3 bg-gray-50 h-[320px] overflow-y-auto">
-                        <div className="grid grid-cols-2 gap-2">
-                          {timeSlots.map((slot) => {
-                            const isAvailable = newAppointmentDate ? isTimeSlotAvailable(newAppointmentDate, slot) : true;
-                            const isSelected = newSelectedTimeSlot === slot;
-                            
-                            return (
-                              <Button
-                                key={slot}
-                                variant={isSelected ? "default" : "outline"}
-                                className={`h-10 text-xs font-medium ${
-                                  !isAvailable 
-                                    ? "bg-gray-200 text-gray-400 cursor-not-allowed" 
-                                    : isSelected 
-                                      ? "bg-green-500 hover:bg-green-600 text-white border-green-500" 
-                                      : "hover:bg-green-50 hover:border-green-300 bg-white"
-                                }`}
-                                disabled={!isAvailable}
-                                onClick={() => {
-                                  setNewSelectedTimeSlot(slot);
-                                }}
-                              >
-                                {slot}
-                              </Button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-
-              {/* Right Column - Patient Info & Booking Summary - Conditional Layout for Admin */}
-              {user?.role === 'admin' ? (
-                <div className="col-span-3 grid grid-cols-2 gap-6">
+                {/* Row 4: Patient Information and Booking Summary */}
+                <div className="grid grid-cols-2 gap-6">
                   {/* Patient Information */}
                   {newAppointmentData.patientId && patientsData && (() => {
                     const selectedPatient = patientsData.find((p: any) => p.id.toString() === newAppointmentData.patientId);
@@ -1736,8 +1682,266 @@ Medical License: [License Number]
                     </div>
                   </div>
                 </div>
-              )}
-            </div>
+              </div>
+            ) : (
+              /* Non-Admin Layout - Original 3-column layout */
+              <div className="grid grid-cols-3 gap-6">
+                {/* Left Column - Selection Fields */}
+                <div className="col-span-2 space-y-6">
+                  {/* Patient Selection */}
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Patient</Label>
+                    <Select 
+                      value={newAppointmentData.patientId}
+                      onValueChange={(value) => {
+                        setNewAppointmentData({ ...newAppointmentData, patientId: value });
+                      }}
+                    >
+                      <SelectTrigger className="mt-1" data-testid="select-patient">
+                        <SelectValue placeholder="Select a patient" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {patientsData && patientsData.map((patient: any) => (
+                          <SelectItem key={patient.id} value={patient.id.toString()}>
+                            {patient.firstName} {patient.lastName} ({patient.patientId})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Role and Name Selection Row */}
+                  <div className="grid grid-cols-2 gap-6">
+                    <div>
+                      <Label className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                        <Users className="h-4 w-4" />
+                        Select Role
+                      </Label>
+                      <Select 
+                        value={selectedRole}
+                        onValueChange={(value) => {
+                          setSelectedRole(value);
+                          setSelectedProviderId("");
+                        }}
+                      >
+                        <SelectTrigger className="mt-1" data-testid="select-role">
+                          <SelectValue placeholder="Choose a role..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableRoles.map((role: string) => (
+                            <SelectItem key={role} value={role}>
+                              {role.charAt(0).toUpperCase() + role.slice(1)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                        <User className="h-4 w-4" />
+                        Select Name
+                      </Label>
+                      <Select 
+                        value={selectedProviderId}
+                        onValueChange={(value) => {
+                          setSelectedProviderId(value);
+                        }}
+                        disabled={!selectedRole}
+                      >
+                        <SelectTrigger className="mt-1" data-testid="select-name">
+                          <SelectValue placeholder={selectedRole ? "Select a name..." : "Select a role first"} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {filteredUsers.map((user: any) => (
+                            <SelectItem key={user.id} value={user.id.toString()}>
+                              {user.firstName} {user.lastName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Duration Selector */}
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                      <Clock className="h-4 w-4" />
+                      Duration
+                    </Label>
+                    <Select 
+                      value={selectedDuration.toString()}
+                      onValueChange={(value) => {
+                        setSelectedDuration(parseInt(value));
+                        setNewSelectedTimeSlot("");
+                      }}
+                    >
+                      <SelectTrigger className="mt-1" data-testid="select-duration">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="15">15 minutes</SelectItem>
+                        <SelectItem value="30">30 minutes</SelectItem>
+                        <SelectItem value="60">60 minutes</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Date Selection */}
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600 mb-2 block">Select Date</Label>
+                    <div className="border rounded-lg p-3 bg-gray-50">
+                      <CalendarComponent
+                        mode="single"
+                        selected={newAppointmentDate}
+                        onSelect={(date) => {
+                          setNewAppointmentDate(date);
+                        }}
+                        className="rounded-md"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Time Slot Selection */}
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600 mb-2 block">Select Time Slot</Label>
+                    <div className="border rounded-lg p-3 bg-gray-50 h-[320px] overflow-y-auto">
+                      <div className="grid grid-cols-2 gap-2">
+                        {timeSlots.map((slot) => {
+                          const isAvailable = newAppointmentDate ? isTimeSlotAvailable(newAppointmentDate, slot) : true;
+                          const isSelected = newSelectedTimeSlot === slot;
+                          
+                          return (
+                            <Button
+                              key={slot}
+                              variant={isSelected ? "default" : "outline"}
+                              className={`h-10 text-xs font-medium ${
+                                !isAvailable 
+                                  ? "bg-gray-200 text-gray-400 cursor-not-allowed" 
+                                  : isSelected 
+                                    ? "bg-green-500 hover:bg-green-600 text-white border-green-500" 
+                                    : "hover:bg-green-50 hover:border-green-300 bg-white"
+                              }`}
+                              disabled={!isAvailable}
+                              onClick={() => {
+                                setNewSelectedTimeSlot(slot);
+                              }}
+                            >
+                              {slot}
+                            </Button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Column - Patient Info & Booking Summary */}
+                <div className="space-y-6">
+                  {/* Patient Information */}
+                  {newAppointmentData.patientId && patientsData && (() => {
+                    const selectedPatient = patientsData.find((p: any) => p.id.toString() === newAppointmentData.patientId);
+                    if (!selectedPatient) return null;
+                    
+                    return (
+                      <div className="border rounded-lg p-4 bg-gray-50">
+                        <h3 className="text-sm font-semibold text-gray-800 mb-3">Patient Information</h3>
+                        <div className="flex items-start gap-3">
+                          <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-lg">
+                            {selectedPatient.firstName?.charAt(0)}{selectedPatient.lastName?.charAt(0)}
+                          </div>
+                          <div className="flex-1 space-y-1 text-sm">
+                            <p className="font-semibold text-gray-900">
+                              {selectedPatient.firstName} {selectedPatient.lastName}
+                            </p>
+                            <p className="text-gray-600 text-xs">
+                              {selectedPatient.patientId}
+                            </p>
+                            {selectedPatient.phone && (
+                              <p className="text-gray-600 text-xs flex items-center gap-1">
+                                📞 {selectedPatient.phone}
+                              </p>
+                            )}
+                            {selectedPatient.email && (
+                              <p className="text-gray-600 text-xs flex items-center gap-1">
+                                ✉️ {selectedPatient.email}
+                              </p>
+                            )}
+                            {selectedPatient.nhsNumber && (
+                              <p className="text-gray-600 text-xs">
+                                NHS: {selectedPatient.nhsNumber}
+                              </p>
+                            )}
+                            {selectedPatient.address && (selectedPatient.address.city || selectedPatient.address.postcode) && (
+                              <p className="text-gray-600 text-xs">
+                                📍 {selectedPatient.address.city}, {selectedPatient.address.postcode}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Booking Summary */}
+                  <div className="border rounded-lg p-4 bg-gray-50">
+                    <h3 className="text-sm font-semibold text-gray-800 mb-3">Booking Summary</h3>
+                    <div className="space-y-3 text-sm">
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <p className="text-gray-500 text-xs">Role</p>
+                          <p className="font-medium text-gray-900">
+                            {selectedRole ? selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1) : "Not selected"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-gray-500 text-xs">Duration</p>
+                          <p className="font-medium text-gray-900">{selectedDuration} minutes</p>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <p className="text-gray-500 text-xs">Patient</p>
+                        <p className="font-medium text-gray-900">
+                          {newAppointmentData.patientId && patientsData 
+                            ? (() => {
+                                const patient = patientsData.find((p: any) => p.id.toString() === newAppointmentData.patientId);
+                                return patient ? `${patient.firstName} ${patient.lastName}` : "Not selected";
+                              })()
+                            : "Not selected"}
+                        </p>
+                      </div>
+                      
+                      <div>
+                        <p className="text-gray-500 text-xs">Provider</p>
+                        <p className="font-medium text-gray-900">
+                          {selectedProviderId && usersData
+                            ? (() => {
+                                const provider = usersData.find((u: any) => u.id.toString() === selectedProviderId);
+                                return provider ? `${provider.firstName} ${provider.lastName}` : "Not selected";
+                              })()
+                            : "Not selected"}
+                        </p>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <p className="text-gray-500 text-xs">Date</p>
+                          <p className="font-medium text-gray-900">
+                            {newAppointmentDate ? format(newAppointmentDate, 'MMM dd, yyyy') : "Not selected"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-gray-500 text-xs">Time</p>
+                          <p className="font-medium text-gray-900">
+                            {newSelectedTimeSlot || "Not selected"}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Action Buttons */}
             <div className="flex justify-end space-x-2 pt-6 border-t mt-6">
