@@ -270,6 +270,8 @@ export default function ImagingPage() {
   const [performedDate, setPerformedDate] = useState<Date | undefined>(
     undefined,
   );
+  const [scheduledTime, setScheduledTime] = useState<string>("");
+  const [performedTime, setPerformedTime] = useState<string>("");
 
   const [generatedReportId, setGeneratedReportId] = useState<string | null>(
     null,
@@ -745,18 +747,32 @@ export default function ImagingPage() {
 
     // Initialize date states when entering edit mode
     if (selectedStudy) {
-      if (fieldName === "scheduledAt")
-        setScheduledDate(
-          selectedStudy.scheduledAt
-            ? new Date(selectedStudy.scheduledAt)
-            : undefined,
-        );
-      if (fieldName === "performedAt")
-        setPerformedDate(
-          selectedStudy.performedAt
-            ? new Date(selectedStudy.performedAt)
-            : undefined,
-        );
+      if (fieldName === "scheduledAt") {
+        const date = selectedStudy.scheduledAt
+          ? new Date(selectedStudy.scheduledAt)
+          : undefined;
+        setScheduledDate(date);
+        if (date) {
+          const hours = String(date.getHours()).padStart(2, '0');
+          const minutes = String(date.getMinutes()).padStart(2, '0');
+          setScheduledTime(`${hours}:${minutes}`);
+        } else {
+          setScheduledTime("");
+        }
+      }
+      if (fieldName === "performedAt") {
+        const date = selectedStudy.performedAt
+          ? new Date(selectedStudy.performedAt)
+          : undefined;
+        setPerformedDate(date);
+        if (date) {
+          const hours = String(date.getHours()).padStart(2, '0');
+          const minutes = String(date.getMinutes()).padStart(2, '0');
+          setPerformedTime(`${hours}:${minutes}`);
+        } else {
+          setPerformedTime("");
+        }
+      }
       if (fieldName === "status")
         setEditingStatus(selectedStudy.status || "ordered");
       if (fieldName === "priority")
@@ -787,18 +803,32 @@ export default function ImagingPage() {
         setReportImpression(selectedStudy.impression || "");
       if (fieldName === "radiologist")
         setReportRadiologist(selectedStudy.radiologist || "Dr. Michael Chen");
-      if (fieldName === "scheduledAt")
-        setScheduledDate(
-          selectedStudy.scheduledAt
-            ? new Date(selectedStudy.scheduledAt)
-            : undefined,
-        );
-      if (fieldName === "performedAt")
-        setPerformedDate(
-          selectedStudy.performedAt
-            ? new Date(selectedStudy.performedAt)
-            : undefined,
-        );
+      if (fieldName === "scheduledAt") {
+        const date = selectedStudy.scheduledAt
+          ? new Date(selectedStudy.scheduledAt)
+          : undefined;
+        setScheduledDate(date);
+        if (date) {
+          const hours = String(date.getHours()).padStart(2, '0');
+          const minutes = String(date.getMinutes()).padStart(2, '0');
+          setScheduledTime(`${hours}:${minutes}`);
+        } else {
+          setScheduledTime("");
+        }
+      }
+      if (fieldName === "performedAt") {
+        const date = selectedStudy.performedAt
+          ? new Date(selectedStudy.performedAt)
+          : undefined;
+        setPerformedDate(date);
+        if (date) {
+          const hours = String(date.getHours()).padStart(2, '0');
+          const minutes = String(date.getMinutes()).padStart(2, '0');
+          setPerformedTime(`${hours}:${minutes}`);
+        } else {
+          setPerformedTime("");
+        }
+      }
       if (fieldName === "status")
         setEditingStatus(selectedStudy.status || "ordered");
       if (fieldName === "priority")
@@ -822,8 +852,30 @@ export default function ImagingPage() {
     if (fieldName === "findings") value = reportFindings;
     if (fieldName === "impression") value = reportImpression;
     if (fieldName === "radiologist") value = reportRadiologist;
-    if (fieldName === "scheduledAt") value = scheduledDate?.toISOString() || "";
-    if (fieldName === "performedAt") value = performedDate?.toISOString() || "";
+    if (fieldName === "scheduledAt") {
+      if (scheduledDate) {
+        const combinedDate = new Date(scheduledDate);
+        if (scheduledTime) {
+          const [hours, minutes] = scheduledTime.split(':');
+          combinedDate.setHours(parseInt(hours), parseInt(minutes));
+        }
+        value = combinedDate.toISOString();
+      } else {
+        value = "";
+      }
+    }
+    if (fieldName === "performedAt") {
+      if (performedDate) {
+        const combinedDate = new Date(performedDate);
+        if (performedTime) {
+          const [hours, minutes] = performedTime.split(':');
+          combinedDate.setHours(parseInt(hours), parseInt(minutes));
+        }
+        value = combinedDate.toISOString();
+      } else {
+        value = "";
+      }
+    }
     if (fieldName === "status") value = editingStatus;
     if (fieldName === "priority") value = editingPriority;
 
@@ -1933,6 +1985,13 @@ export default function ImagingPage() {
                                       />
                                     </PopoverContent>
                                   </Popover>
+                                  <Input
+                                    type="time"
+                                    value={scheduledTime}
+                                    onChange={(e) => setScheduledTime(e.target.value)}
+                                    className="w-32 h-8"
+                                    data-testid="input-scheduled-time"
+                                  />
                                   <Button
                                     size="sm"
                                     onClick={() =>
@@ -2018,6 +2077,13 @@ export default function ImagingPage() {
                                       />
                                     </PopoverContent>
                                   </Popover>
+                                  <Input
+                                    type="time"
+                                    value={performedTime}
+                                    onChange={(e) => setPerformedTime(e.target.value)}
+                                    className="w-32 h-8"
+                                    data-testid="input-performed-time"
+                                  />
                                   <Button
                                     size="sm"
                                     onClick={() =>
