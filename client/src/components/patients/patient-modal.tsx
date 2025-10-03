@@ -24,6 +24,7 @@ const patientSchema = z.object({
     (val) => !isNaN(Date.parse(val)),
     { message: "Please enter a valid date" }
   ),
+  genderAtBirth: z.string().trim().optional(),
   email: z.string().trim().email("Please enter a valid email address").optional().or(z.literal("")),
   phone: z.string().trim().min(1, "Phone number is required").regex(
     /^[\+]?[0-9\s\-\(\)]{10,}$/,
@@ -106,6 +107,7 @@ export function PatientModal({ open, onOpenChange, editMode = false, editPatient
       firstName: editPatient.firstName || "",
       lastName: editPatient.lastName || "",
       dateOfBirth: editPatient.dateOfBirth || "",
+      genderAtBirth: editPatient.genderAtBirth || "",
       email: editPatient.email || "",
       phone: editPatient.phone || "",
       nhsNumber: editPatient.nhsNumber || "",
@@ -147,6 +149,7 @@ export function PatientModal({ open, onOpenChange, editMode = false, editPatient
       firstName: "",
       lastName: "",
       dateOfBirth: "",
+      genderAtBirth: "",
       email: "",
       phone: "",
       nhsNumber: "",
@@ -227,6 +230,7 @@ export function PatientModal({ open, onOpenChange, editMode = false, editPatient
       firstName: editPatient.firstName || "",
       lastName: editPatient.lastName || "",
       dateOfBirth: editPatient.dateOfBirth || "",
+      genderAtBirth: editPatient.genderAtBirth || "",
       email: editPatient.email || "",
       phone: editPatient.phone || "",
       nhsNumber: editPatient.nhsNumber || "",
@@ -268,6 +272,7 @@ export function PatientModal({ open, onOpenChange, editMode = false, editPatient
       firstName: "",
       lastName: "",
       dateOfBirth: "",
+      genderAtBirth: "",
       email: "",
       phone: "",
       nhsNumber: "",
@@ -433,22 +438,36 @@ export function PatientModal({ open, onOpenChange, editMode = false, editPatient
                             <Input type="date" {...field} data-testid="input-date-of-birth" />
                           </FormControl>
                           <FormMessage />
+                          {calculatedAge && (
+                            <p className="text-sm text-gray-600 mt-1">
+                              Age: {calculatedAge} years old
+                            </p>
+                          )}
                         </FormItem>
                       )}
                     />
                     
-                    {/* Age field - automatically calculated */}
-                    <div className="space-y-2">
-                      <FormLabel>Age</FormLabel>
-                      <Input 
-                        type="text" 
-                        value={calculatedAge ? `${calculatedAge} years old` : ""} 
-                        placeholder="Age will be calculated automatically"
-                        readOnly 
-                        className="bg-gray-50 text-gray-700" 
-                        data-testid="input-calculated-age"
-                      />
-                    </div>
+                    <FormField
+                      control={form.control}
+                      name="genderAtBirth"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Gender at Birth</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select gender" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="Male">Male</SelectItem>
+                              <SelectItem value="Female">Female</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                     
                     <FormField
                       control={form.control}

@@ -2110,6 +2110,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         firstName: z.string().min(1),
         lastName: z.string().min(1),
         dateOfBirth: z.string().transform(str => new Date(str)),
+        genderAtBirth: z.string().optional(),
         email: z.string().email().optional(),
         phone: z.string().optional(),
         nhsNumber: z.string().optional(),
@@ -2301,6 +2302,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           (val) => !isNaN(Date.parse(val)),
           { message: "Please enter a valid date" }
         ).optional(),
+        genderAtBirth: z.string().trim().optional(),
         email: z.string().trim().email("Please enter a valid email address").optional().or(z.literal("")),
         phone: z.string().trim().min(1, "Phone number is required").regex(
           /^[\+]?[0-9\s\-\(\)]{10,}$/,
