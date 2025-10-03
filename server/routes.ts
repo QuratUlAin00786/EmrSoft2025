@@ -12742,9 +12742,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5); // Remove milliseconds and format
       const reportId = `${patientId}_${imagingId}_${timestamp}`;
       
-      // Create organization-specific directory path: /uploads/Imaging_Images/{org_id}/patients/{patient_id}
+      // Create organization-specific directory path: /uploads/Imaging_Reports/{org_id}/patients/{patient_id}
       const organizationId = req.tenant?.id || req.organizationId || 'unknown';
-      const reportsDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Images', String(organizationId), 'patients', String(patientId));
+      const reportsDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Reports', String(organizationId), 'patients', String(patientId));
       await fse.ensureDir(reportsDir);
       
       // Import pdf-lib dynamically
@@ -13334,7 +13334,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const parts = reportId.split('_');
         const patientId = parts[0];
         const organizationId = req.tenant?.id || req.organizationId || 'unknown';
-        const reportsDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Images', String(organizationId), 'patients', String(patientId));
+        const reportsDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Reports', String(organizationId), 'patients', String(patientId));
         filePath = path.join(reportsDir, `${reportId}.pdf`);
       } else {
         // Legacy path for old UUID format
@@ -13399,7 +13399,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const parts = reportId.split('_');
         const patientId = parts[0];
         const organizationId = req.tenant?.id || req.organizationId || 'unknown';
-        filePath = path.join(process.cwd(), 'uploads', 'Imaging_Images', String(organizationId), 'patients', String(patientId), filename);
+        filePath = path.join(process.cwd(), 'uploads', 'Imaging_Reports', String(organizationId), 'patients', String(patientId), filename);
       } else {
         // Legacy path for old UUID format
         filePath = path.join(process.cwd(), 'uploads', 'Imaging_Reports', filename);
