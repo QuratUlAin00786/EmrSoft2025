@@ -3,6 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import type { User, Patient } from "@shared/schema";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -1540,39 +1542,11 @@ Coverage Details: [Insurance Coverage]`;
   };
 
   const handleBold = () => {
-    if (!textareaRef) return;
-
-    const start = textareaRef.selectionStart;
-    const end = textareaRef.selectionEnd;
-    const selectedText = documentContent.substring(start, end);
-
-    if (!selectedText) {
-      toast({
-        title: "Select Text",
-        description: "Please select text to apply bold formatting",
-        duration: 3000,
-      });
-      return;
-    }
-
-    // For textarea, we'll just wrap with **bold** markdown style
-    const beforeText = documentContent.substring(0, start);
-    const afterText = documentContent.substring(end);
-    const newContent = beforeText + `**${selectedText}**` + afterText;
-
-    setDocumentContent(newContent);
-
-    // Restore cursor position after the formatting
-    setTimeout(() => {
-      if (textareaRef) {
-        textareaRef.focus();
-        textareaRef.setSelectionRange(start + 2, end + 2);
-      }
-    }, 0);
-
+    // ReactQuill handles bold formatting through its toolbar
+    // No custom implementation needed
     toast({
-      title: "✓ Bold Applied",
-      description: "Bold formatting applied to selected text",
+      title: "Use Toolbar",
+      description: "Use the rich text editor toolbar to apply formatting",
       duration: 2000,
     });
   };
@@ -5486,48 +5460,17 @@ Coverage Details: [Insurance Coverage]`;
               className="bg-white dark:bg-[hsl(var(--cura-midnight))] shadow-sm border border-white dark:border-[hsl(var(--cura-steel))] min-h-[600px] w-full max-w-[1200px] mx-auto"
               style={{ width: "700px", maxWidth: "700px" }}
             >
-              <div className="p-6">
-                <div
-                  ref={(el) => {
-                    setTextareaRef(el as any);
-                    if (
-                      el &&
-                      documentContent &&
-                      el.innerHTML !== documentContent
-                    ) {
-                      el.innerHTML = documentContent;
-                    }
-                  }}
-                  id="document-content-area"
-                  contentEditable
-                  suppressContentEditableWarning={true}
-                  data-placeholder={
-                    documentContent ? "" : "Start typing your document here..."
-                  }
-                  onInput={(e) => {
-                    const content = (e.target as HTMLDivElement).innerHTML;
-                    setDocumentContent(content);
-                  }}
-                  onClick={(e) => {
-                    // Handle link clicks
-                    const target = e.target as HTMLElement;
-                    if (target.tagName === "A") {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      const href = target.getAttribute("href");
-                      if (href) {
-                        window.open(href, "_blank");
-                      }
-                    }
-                  }}
-                  className="w-full border-none outline-none text-[hsl(var(--cura-midnight))] dark:text-white leading-normal bg-transparent focus:outline-none"
+              <div className="p-6" id="document-content-area">
+                <ReactQuill 
+                  theme="snow" 
+                  value={documentContent}
+                  onChange={setDocumentContent}
                   style={{
-                    fontSize: fontSize,
-                    lineHeight: "1.6",
                     minHeight: "770px",
-                    maxWidth: "100%",
                     fontFamily: fontFamily,
+                    fontSize: fontSize,
                   }}
+                  placeholder="Start typing your document here..."
                 />
               </div>
             </div>
