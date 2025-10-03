@@ -13463,10 +13463,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (isNewFormat) {
         const parts = reportId.split('_');
         studyId = parseInt(parts[1]); // StudyID is the second part
+        console.log(`📝 DELETE: Extracted studyId: ${studyId} from reportId: ${reportId}`);
       }
       
-      if (studyId) {
+      if (studyId && !isNaN(studyId)) {
         // Update the database to clear both report fields
+        console.log(`📝 DELETE: Updating database for studyId: ${studyId}, organizationId: ${req.tenant!.id}`);
         await storage.updateMedicalImageReport(
           studyId,
           req.tenant!.id,
@@ -13475,6 +13477,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             reportFilePath: undefined 
           }
         );
+        console.log(`📝 DELETE: Database updated - set reportFileName and reportFilePath to NULL for studyId: ${studyId}`);
+      } else {
+        console.log(`⚠️ DELETE: Could not extract valid studyId from reportId: ${reportId}, database NOT updated`);
       }
 
       console.log(`✅ PDF report deleted successfully: ${filename}`);
