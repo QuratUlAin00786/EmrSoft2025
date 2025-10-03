@@ -241,14 +241,15 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
     
     const selectedDateString = format(date, 'yyyy-MM-dd');
     
-    // Convert the new time slot to minutes for comparison
+    // Convert the time slot to minutes (this represents the START time of the slot)
     const [time, period] = timeSlot.split(' ');
     const [hours, minutes] = time.split(':').map(Number);
     let hour24 = hours;
     if (period === 'PM' && hours !== 12) hour24 += 12;
     if (period === 'AM' && hours === 12) hour24 = 0;
-    const newSlotStartMinutes = hour24 * 60 + minutes;
-    const newSlotEndMinutes = newSlotStartMinutes + selectedDuration;
+    const slotStartMinutes = hour24 * 60 + minutes;
+    // Each slot is 15 minutes, but we need to check if starting an appointment HERE would fit
+    const slotEndMinutes = slotStartMinutes + 15; // Just this 15-min slot
     
     // Check if this slot overlaps with any existing appointment
     const isBooked = appointments.some((apt: any) => {
@@ -273,9 +274,9 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
       const aptDuration = apt.duration || 30; // Default to 30 if duration not set
       const aptEndMinutes = aptStartMinutes + aptDuration;
       
-      // Check if the new slot overlaps with this existing appointment
-      // Two time ranges overlap if: new_start < existing_end AND new_end > existing_start
-      return newSlotStartMinutes < aptEndMinutes && newSlotEndMinutes > aptStartMinutes;
+      // Check if this 15-minute slot overlaps with the existing appointment
+      // Two time ranges overlap if: slot_start < existing_end AND slot_end > existing_start
+      return slotStartMinutes < aptEndMinutes && slotEndMinutes > aptStartMinutes;
     });
     
     return !isBooked;
