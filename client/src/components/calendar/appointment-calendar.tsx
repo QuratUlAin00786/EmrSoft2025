@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { Calendar, Clock, MapPin, User, Video, Stethoscope, FileText, Plus, Save, X, Mic, Square, Edit, Trash2 } from "lucide-react";
+import { Calendar, Clock, MapPin, User, Users, Video, Stethoscope, FileText, Plus, Save, X, Mic, Square, Edit, Trash2 } from "lucide-react";
 import anatomicalDiagramImage from "@assets/2_1754469563272.png";
 import facialDiagramImage from "@assets/1_1754469776185.png";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday } from "date-fns";
@@ -146,6 +146,8 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
   const [showNewAppointment, setShowNewAppointment] = useState(false);
   const [newAppointmentDate, setNewAppointmentDate] = useState<Date | undefined>(undefined);
   const [newSelectedTimeSlot, setNewSelectedTimeSlot] = useState<string>("");
+  const [selectedRole, setSelectedRole] = useState<string>("");
+  const [selectedProviderId, setSelectedProviderId] = useState<string>("");
   const [newAppointmentData, setNewAppointmentData] = useState<any>({
     title: "",
     type: "consultation",
@@ -158,24 +160,76 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
   const [editAppointmentDate, setEditAppointmentDate] = useState<Date | undefined>(undefined);
   const [editSelectedTimeSlot, setEditSelectedTimeSlot] = useState<string>("");
 
-  // Time slots for appointment booking
-  const timeSlots = [
-    "9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM",
-    "12:00 PM", "12:30 PM", "1:00 PM", "1:30 PM", "2:00 PM", "2:30 PM",
-    "3:00 PM", "3:30 PM", "4:00 PM", "4:30 PM", "5:00 PM"
-  ];
+  // Generate 24/7 time slots with 30-minute intervals
+  const generate24HourTimeSlots = () => {
+    const slots = [];
+    for (let hour = 0; hour < 24; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        const hour12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+        const period = hour < 12 ? 'AM' : 'PM';
+        const timeString = `${hour12}:${minute.toString().padStart(2, '0')} ${period}`;
+        slots.push(timeString);
+      }
+    }
+    return slots;
+  };
+  
+  const timeSlots = generate24HourTimeSlots();
 
-  // Function to check if a time slot is available
+  // Convert time slot string to 24-hour format
+  const timeSlotTo24Hour = (timeSlot: string): string => {
+    const [time, period] = timeSlot.split(' ');
+    const [hours, minutes] = time.split(':');
+    let hour24 = parseInt(hours);
+    
+    if (period === 'PM' && hour24 !== 12) {
+      hour24 += 12;
+    } else if (period === 'AM' && hour24 === 12) {
+      hour24 = 0;
+    }
+    
+    return `${hour24.toString().padStart(2, '0')}:${minutes}`;
+  };
+
+  // Check if time slot is within staff's working hours
+  const isTimeSlotInShift = (timeSlot: string, date: Date): boolean => {
+    if (!selectedProviderId || !usersData) return true;
+    
+    const provider = usersData.find((user: any) => user.id.toString() === selectedProviderId);
+    if (!provider || !provider.workingHours || !provider.workingDays) return true;
+    
+    // Check if the selected date falls on a working day
+    const dayName = format(date, 'EEEE'); // e.g., "Monday"
+    if (!provider.workingDays.includes(dayName)) return false;
+    
+    // Check if time slot is within working hours
+    const slotTime = timeSlotTo24Hour(timeSlot);
+    const startTime = provider.workingHours.start || '00:00';
+    const endTime = provider.workingHours.end || '23:59';
+    
+    return slotTime >= startTime && slotTime <= endTime;
+  };
+
+  // Function to check if a time slot is available and within shift
   const isTimeSlotAvailable = (date: Date, timeSlot: string) => {
     if (!date || !timeSlot || !appointments) return true;
     
+    // Check if slot is within staff's working hours (for new appointments with provider selected)
+    if (selectedProviderId && !isTimeSlotInShift(timeSlot, date)) {
+      return false;
+    }
+    
     const selectedDateString = format(date, 'yyyy-MM-dd');
     
-    // Check if this slot is already taken (excluding the current appointment being edited)
-    return !appointments.some((apt: any) => {
-      if (editingAppointment && apt.id === editingAppointment.id) return false; // Exclude current appointment
+    // Check if this slot is already taken by the selected provider
+    const isBooked = appointments.some((apt: any) => {
+      if (editingAppointment && apt.id === editingAppointment.id) return false;
       
-      // Remove 'Z' to avoid timezone conversion
+      // For new appointments, only check the selected provider's appointments
+      if (selectedProviderId && apt.providerId.toString() !== selectedProviderId) {
+        return false;
+      }
+      
       const cleanTimeString = apt.scheduledAt.replace('Z', '');
       const aptDate = new Date(cleanTimeString);
       const aptTime = format(aptDate, 'h:mm a');
@@ -183,6 +237,8 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
       
       return aptDateString === selectedDateString && aptTime === timeSlot;
     });
+    
+    return !isBooked;
   };
 
 
@@ -238,6 +294,14 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
       setShowNewAppointment(false);
       setNewAppointmentDate(undefined);
       setNewSelectedTimeSlot("");
+      setSelectedRole("");
+      setSelectedProviderId("");
+      setNewAppointmentData({
+        title: "",
+        type: "consultation",
+        patientId: "",
+        description: "",
+      });
       toast({
         title: "Appointment Created",
         description: "The appointment has been successfully created.",
@@ -571,6 +635,16 @@ Medical License: [License Number]
   });
 
   const isDataLoaded = !isUsersLoading && !isPatientsLoading;
+
+  // Get filtered users by selected role
+  const filteredUsers = usersData?.filter((user: any) => {
+    if (!selectedRole) return false;
+    return user.role === selectedRole;
+  }) || [];
+
+  // Get available roles from all users
+  const availableRoles: string[] = usersData ? 
+    Array.from(new Set(usersData.map((user: any) => user.role).filter(Boolean))) as string[] : [];
 
   // Helper functions
   const getPatientName = (patientId: number) => {
@@ -1216,7 +1290,7 @@ Medical License: [License Number]
                     setNewAppointmentData({ ...newAppointmentData, patientId: value });
                   }}
                 >
-                  <SelectTrigger className="mt-1">
+                  <SelectTrigger className="mt-1" data-testid="select-patient">
                     <SelectValue placeholder="Select a patient" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1227,6 +1301,58 @@ Medical License: [License Number]
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+
+              {/* Role and Name Selection Row */}
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <Label className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    Select Role
+                  </Label>
+                  <Select 
+                    value={selectedRole}
+                    onValueChange={(value) => {
+                      setSelectedRole(value);
+                      setSelectedProviderId(""); // Reset provider when role changes
+                    }}
+                  >
+                    <SelectTrigger className="mt-1" data-testid="select-role">
+                      <SelectValue placeholder="Choose a role..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableRoles.map((role: string) => (
+                        <SelectItem key={role} value={role}>
+                          {role.charAt(0).toUpperCase() + role.slice(1)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    Select Name
+                  </Label>
+                  <Select 
+                    value={selectedProviderId}
+                    onValueChange={(value) => {
+                      setSelectedProviderId(value);
+                    }}
+                    disabled={!selectedRole}
+                  >
+                    <SelectTrigger className="mt-1" data-testid="select-name">
+                      <SelectValue placeholder={selectedRole ? "Select a name..." : "Select a role first"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {filteredUsers.map((user: any) => (
+                        <SelectItem key={user.id} value={user.id.toString()}>
+                          {user.firstName} {user.lastName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               {/* Title and Type Row */}
@@ -1335,6 +1461,8 @@ Medical License: [License Number]
                     setShowNewAppointment(false);
                     setNewAppointmentDate(undefined);
                     setNewSelectedTimeSlot("");
+                    setSelectedRole("");
+                    setSelectedProviderId("");
                     setNewAppointmentData({
                       title: "",
                       type: "consultation",
@@ -1351,6 +1479,22 @@ Medical License: [License Number]
                       toast({
                         title: "Missing Information",
                         description: "Please select a patient.",
+                        variant: "destructive",
+                      });
+                      return;
+                    }
+                    if (!selectedRole) {
+                      toast({
+                        title: "Missing Information",
+                        description: "Please select a role.",
+                        variant: "destructive",
+                      });
+                      return;
+                    }
+                    if (!selectedProviderId) {
+                      toast({
+                        title: "Missing Information",
+                        description: "Please select a provider.",
                         variant: "destructive",
                       });
                       return;
@@ -1388,6 +1532,8 @@ Medical License: [License Number]
                     
                     createAppointmentMutation.mutate({
                       patientId: parseInt(newAppointmentData.patientId),
+                      providerId: parseInt(selectedProviderId),
+                      assignedRole: selectedRole,
                       title: newAppointmentData.title,
                       type: newAppointmentData.type,
                       status: "scheduled",

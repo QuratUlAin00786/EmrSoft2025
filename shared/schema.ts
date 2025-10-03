@@ -393,6 +393,7 @@ export const appointments = pgTable("appointments", {
   organizationId: integer("organization_id").notNull(),
   patientId: integer("patient_id").notNull(),
   providerId: integer("provider_id").notNull(),
+  assignedRole: varchar("assigned_role", { length: 50 }), // Role selected during booking
   title: text("title").notNull(),
   description: text("description"),
   scheduledAt: timestamp("scheduled_at", { withTimezone: false }).notNull(),
