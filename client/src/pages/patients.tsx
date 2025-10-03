@@ -67,8 +67,8 @@ export default function Patients() {
   // State for active/inactive filter toggle
   const [showActivePatients, setShowActivePatients] = useState(true);
   
-  // State for gender filter (null = all, "Male" = male only, "Female" = female only)
-  const [genderFilter, setGenderFilter] = useState<string | null>(null);
+  // State for gender filter (true = Female, false = Male)
+  const [showFemalePatients, setShowFemalePatients] = useState(false);
 
   // Fetch specific patient data if viewing records
   useEffect(() => {
@@ -448,24 +448,13 @@ export default function Patients() {
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-neutral-600 dark:text-neutral-300">
-                  Male
+                  {showFemalePatients ? "Female" : "Male"}
                 </span>
                 <Switch
-                  checked={genderFilter === "Male"}
-                  onCheckedChange={(checked) => setGenderFilter(checked ? "Male" : null)}
+                  checked={showFemalePatients}
+                  onCheckedChange={setShowFemalePatients}
                   className="h-4 w-8"
-                  data-testid="toggle-male-filter"
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-neutral-600 dark:text-neutral-300">
-                  Female
-                </span>
-                <Switch
-                  checked={genderFilter === "Female"}
-                  onCheckedChange={(checked) => setGenderFilter(checked ? "Female" : null)}
-                  className="h-4 w-8"
-                  data-testid="toggle-female-filter"
+                  data-testid="toggle-gender-filter"
                 />
               </div>
             </div>
@@ -483,7 +472,7 @@ export default function Patients() {
           </Button>
         </div>
 
-        <PatientList showActiveOnly={showActivePatients} genderFilter={genderFilter} />
+        <PatientList showActiveOnly={showActivePatients} genderFilter={showFemalePatients ? "Female" : "Male"} />
       </div>
 
       <PatientModal 
