@@ -192,12 +192,31 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
     return `${hour24.toString().padStart(2, '0')}:${minutes}`;
   };
 
-  // Check if time slot is within staff's working hours
+  // Check if time slot is within staff's working hours/shift
   const isTimeSlotInShift = (timeSlot: string, date: Date): boolean => {
     if (!selectedProviderId || !usersData) return true;
     
     const provider = usersData.find((user: any) => user.id.toString() === selectedProviderId);
-    if (!provider || !provider.workingHours || !provider.workingDays) return true;
+    if (!provider) return true;
+    
+    // First, check if there's an actual shift for this date and provider
+    if (shiftsData && Array.isArray(shiftsData)) {
+      const providerShift = shiftsData.find((shift: any) => 
+        shift.staffId.toString() === selectedProviderId
+      );
+      
+      if (providerShift) {
+        // Use the actual shift times
+        const slotTime = timeSlotTo24Hour(timeSlot);
+        const startTime = providerShift.startTime;
+        const endTime = providerShift.endTime;
+        
+        return slotTime >= startTime && slotTime <= endTime;
+      }
+    }
+    
+    // Fallback to generic working hours if no shift found
+    if (!provider.workingHours || !provider.workingDays) return true;
     
     // Check if the selected date falls on a working day
     const dayName = format(date, 'EEEE'); // e.g., "Monday"
@@ -632,6 +651,19 @@ Medical License: [License Number]
       const response = await apiRequest('GET', '/api/patients');
       const data = await response.json();
       console.log("[Calendar] Patients data received:", data);
+      return data;
+    },
+  });
+
+  // Fetch shifts for the selected date when provider is selected
+  const { data: shiftsData } = useQuery({
+    queryKey: ["/api/shifts", newAppointmentDate ? format(newAppointmentDate, 'yyyy-MM-dd') : null],
+    staleTime: 30000,
+    enabled: !!newAppointmentDate,
+    queryFn: async () => {
+      const dateStr = format(newAppointmentDate!, 'yyyy-MM-dd');
+      const response = await apiRequest('GET', `/api/shifts?date=${dateStr}`);
+      const data = await response.json();
       return data;
     },
   });
