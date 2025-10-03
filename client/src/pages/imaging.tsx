@@ -2967,7 +2967,7 @@ export default function ImagingPage() {
                 </div>
 
                 {/* Saved Reports Section */}
-                {selectedStudy.reportFileName &&
+                {selectedStudy.reportFilePath &&
                   !deletedStudyIds.has(selectedStudy.id) &&
                   !nonExistentReports.has(selectedStudy.id) && (
                     <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
@@ -2981,28 +2981,26 @@ export default function ImagingPage() {
                             <Button
                               variant="link"
                               onClick={async () => {
-                                if (selectedStudy.reportFileName) {
-                                  const reportId = selectedStudy.reportFileName.replace(".pdf", "");
+                                if (selectedStudy.reportFilePath) {
+                                  const fileName = selectedStudy.reportFilePath.split('/').pop() || '';
+                                  const reportId = fileName.replace(".pdf", "");
                                   await viewPDFReport(reportId);
                                 }
                               }}
                               className="p-0 h-auto text-blue-600 hover:text-blue-800 underline"
                               data-testid="link-saved-report"
                             >
-                              {selectedStudy.reportFileName}
+                              {selectedStudy.reportFilePath.split('/').pop()}
                             </Button>
                           </div>
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={async () => {
-                              if (selectedStudy.reportFileName) {
+                              if (selectedStudy.reportFilePath) {
                                 try {
-                                  const reportId =
-                                    selectedStudy.reportFileName.replace(
-                                      ".pdf",
-                                      "",
-                                    );
+                                  const fileName = selectedStudy.reportFilePath.split('/').pop() || '';
+                                  const reportId = fileName.replace(".pdf", "");
                                   const response = await apiRequest(
                                     "DELETE",
                                     `/api/imaging/reports/${reportId}`,
@@ -3013,7 +3011,7 @@ export default function ImagingPage() {
                                     description: "Report deleted successfully",
                                   });
 
-                                  // Update the cache to remove reportFileName, hiding the "Saved Reports" box
+                                  // Update the cache to remove reportFilePath, hiding the "Saved Reports" box
                                   if (selectedStudyId) {
                                     queryClient.setQueryData(
                                       ["/api/medical-images"],
