@@ -2926,6 +2926,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return val;
         }),
         providerId: z.number(),
+        assignedRole: z.string().optional(),
         title: z.string().optional(),
         description: z.string().optional(),
         appointmentDate: z.string().optional(),
@@ -2995,6 +2996,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const appointmentToCreate = {
         patientId: numericPatientId,
         providerId: appointmentData.providerId,
+        assignedRole: appointmentData.assignedRole || null,
         organizationId: req.tenant!.id,
         title: appointmentData.title || `${appointmentData.type} appointment`,
         description: appointmentData.description || appointmentData.notes || "",
