@@ -25,6 +25,9 @@ export default function ShiftsPage() {
   // Conflict modal state
   const [showConflictModal, setShowConflictModal] = useState(false);
   const [conflictingShifts, setConflictingShifts] = useState<any[]>([]);
+  // Update modal state
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [updatedShifts, setUpdatedShifts] = useState<Array<{previous: string, updated: string, staffName: string}>>([]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -501,7 +504,7 @@ export default function ShiftsPage() {
     }
   };
 
-  // Handle Create Shift button - check for conflicts and save
+  // Handle Create Shift button - check for conflicts and save or update
   const handleSavePendingShifts = async () => {
     if (pendingShifts.length === 0) {
       toast({
@@ -513,7 +516,7 @@ export default function ShiftsPage() {
     }
 
     const dateString = getLocalDateString(selectedDate);
-    const conflicts: any[] = [];
+    const updatesTracker: Array<{previous: string, updated: string, staffName: string}> = [];
 
     // Remove duplicates within pendingShifts first
     const uniquePendingShifts = pendingShifts.filter((shift, index, self) =>
@@ -522,57 +525,76 @@ export default function ShiftsPage() {
       )
     );
 
-    // Check each pending shift for conflicts with existing shifts in database
-    for (const pendingShift of uniquePendingShifts) {
-      const existingShift = shifts.find((shift: any) => {
-        // Normalize date for comparison
-        const shiftDate = typeof shift.date === 'string' 
-          ? shift.date.split('T')[0] 
-          : getLocalDateString(new Date(shift.date));
-        
-        return shift.staffId === parseInt(selectedStaffId) &&
-          shiftDate === dateString &&
-          shift.startTime === pendingShift.startTime &&
-          shift.endTime === pendingShift.endTime &&
-          shift.status !== 'cancelled';
-      });
-
-      if (existingShift) {
-        conflicts.push(existingShift);
-      }
-    }
-
-    // If conflicts exist, show modal
-    if (conflicts.length > 0) {
-      setConflictingShifts(conflicts);
-      setShowConflictModal(true);
-      return;
-    }
-
-    // No conflicts - save all unique pending shifts
+    // Process each pending shift - update if exists, create if new
     try {
       for (const pendingShift of uniquePendingShifts) {
-        const shiftData = {
-          staffId: parseInt(selectedStaffId),
-          date: dateString,
-          startTime: pendingShift.startTime,
-          endTime: pendingShift.endTime,
-          shiftType: "regular",
-          status: "scheduled",
-          isAvailable: true,
-          notes: `Scheduled ${pendingShift.startTime} - ${pendingShift.endTime} via shift management calendar`
-        };
+        // Check if shift with same staffId, date, and startTime exists
+        const existingShift = shifts.find((shift: any) => {
+          // Normalize date for comparison
+          const shiftDate = typeof shift.date === 'string' 
+            ? shift.date.split('T')[0] 
+            : getLocalDateString(new Date(shift.date));
+          
+          return shift.staffId === parseInt(selectedStaffId) &&
+            shiftDate === dateString &&
+            shift.startTime === pendingShift.startTime &&
+            shift.status !== 'cancelled';
+        });
 
-        const response = await apiRequest("POST", "/api/shifts", shiftData);
-        if (!response.ok) {
-          throw new Error(`Failed to create shift ${pendingShift.startTime} - ${pendingShift.endTime}`);
+        if (existingShift) {
+          // Update existing shift with new endTime
+          const updateData = {
+            endTime: pendingShift.endTime,
+            notes: `Updated ${pendingShift.startTime} - ${pendingShift.endTime} via shift management calendar`
+          };
+
+          const response = await apiRequest("PATCH", `/api/shifts/${existingShift.id}`, updateData);
+          if (!response.ok) {
+            throw new Error(`Failed to update shift ${pendingShift.startTime}`);
+          }
+
+          // Get staff name for modal display
+          const staffMember = staff.find((s: any) => s.id === parseInt(selectedStaffId));
+          const staffName = staffMember 
+            ? `${staffMember.role === 'doctor' ? 'Dr.' : ''} ${staffMember.firstName} ${staffMember.lastName}`
+            : 'Unknown Staff';
+
+          // Track the update
+          updatesTracker.push({
+            previous: `${existingShift.startTime} - ${existingShift.endTime}`,
+            updated: `${pendingShift.startTime} - ${pendingShift.endTime}`,
+            staffName: staffName
+          });
+        } else {
+          // Create new shift
+          const shiftData = {
+            staffId: parseInt(selectedStaffId),
+            date: dateString,
+            startTime: pendingShift.startTime,
+            endTime: pendingShift.endTime,
+            shiftType: "regular",
+            status: "scheduled",
+            isAvailable: true,
+            notes: `Scheduled ${pendingShift.startTime} - ${pendingShift.endTime} via shift management calendar`
+          };
+
+          const response = await apiRequest("POST", "/api/shifts", shiftData);
+          if (!response.ok) {
+            throw new Error(`Failed to create shift ${pendingShift.startTime} - ${pendingShift.endTime}`);
+          }
         }
       }
 
-      toast({
-        title: "Shifts Created",
-        description: `Successfully created ${uniquePendingShifts.length} shift(s)`,
-      });
+      // Show update modal if there were updates
+      if (updatesTracker.length > 0) {
+        setUpdatedShifts(updatesTracker);
+        setShowUpdateModal(true);
+      } else {
+        toast({
+          title: "Shifts Created",
+          description: `Successfully created ${uniquePendingShifts.length} shift(s)`,
+        });
+      }
 
       // Clear pending shifts and refresh
       setPendingShifts([]);
@@ -581,8 +603,8 @@ export default function ShiftsPage() {
       await refetchShifts();
     } catch (error) {
       toast({
-        title: "Creation Failed",
-        description: "Failed to create some shifts. Please try again.",
+        title: "Operation Failed",
+        description: "Failed to save shifts. Please try again.",
         variant: "destructive",
       });
     }
@@ -1463,6 +1485,72 @@ export default function ShiftsPage() {
                   }}
                 >
                   Close and Select Another Time
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Update Modal */}
+      {showUpdateModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+            <div className="p-6 border-b dark:border-slate-600">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold text-blue-600 dark:text-blue-400">Shift Updated Successfully</h2>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setShowUpdateModal(false);
+                    setUpdatedShifts([]);
+                  }}
+                  className="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+                >
+                  ✕
+                </Button>
+              </div>
+            </div>
+            
+            <div className="p-6">
+              <p className="text-gray-700 dark:text-gray-300 mb-4">
+                The following shift(s) have been updated with new time slots:
+              </p>
+
+              <div className="space-y-3">
+                {updatedShifts.map((update, index) => (
+                  <div key={index} className="border border-blue-300 rounded-lg p-4 bg-blue-50 dark:bg-blue-900/20">
+                    <h3 className="text-lg font-medium text-blue-800 dark:text-blue-300 mb-3">{update.staffName}</h3>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Previous Time Slot:</p>
+                        <div className="bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded px-3 py-2">
+                          <p className="text-sm font-medium text-red-700 dark:text-red-300">{update.previous}</p>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Updated Time Slot:</p>
+                        <div className="bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700 rounded px-3 py-2">
+                          <p className="text-sm font-medium text-green-700 dark:text-green-300">{update.updated}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-6 flex justify-end">
+                <Button
+                  variant="default"
+                  onClick={() => {
+                    setShowUpdateModal(false);
+                    setUpdatedShifts([]);
+                  }}
+                >
+                  OK
                 </Button>
               </div>
             </div>
