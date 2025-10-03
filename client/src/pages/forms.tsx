@@ -5050,8 +5050,8 @@ Coverage Details: [Insurance Coverage]`;
                 <Type className="h-3 w-3" />
               </Button>
               {showColorPicker && (
-                <div className="absolute top-full left-0 mt-1 bg-white dark:bg-[hsl(var(--cura-midnight))] border border-[hsl(var(--cura-steel))] dark:border-[hsl(var(--cura-steel))] rounded shadow-lg p-2 z-50">
-                  <div className="grid grid-cols-8 gap-1">
+                <div className="absolute top-full left-0 mt-1 w-[180px] bg-white dark:bg-[hsl(var(--cura-midnight))] border border-[hsl(var(--cura-steel))] dark:border-[hsl(var(--cura-steel))] rounded shadow-lg p-3 z-50">
+                  <div className="grid grid-cols-8 gap-2">
                     {[
                       "#000000",
                       "#FF0000",
@@ -5072,7 +5072,7 @@ Coverage Details: [Insurance Coverage]`;
                     ].map((color) => (
                       <button
                         key={color}
-                        className="w-4 h-4 border border-[hsl(var(--cura-steel))] rounded"
+                        className="w-5 h-5 border border-[hsl(var(--cura-steel))] rounded hover:scale-110 transition-transform"
                         style={{ backgroundColor: color }}
                         onClick={() => {
                           const selection = window.getSelection();
