@@ -2143,6 +2143,7 @@ Medical License: [License Number]
                   scheduledAt: newScheduledAt,
                   duration: selectedDuration,
                   description: "",
+                  createdBy: user?.id,
                 });
                 
                 setShowConfirmationDialog(false);

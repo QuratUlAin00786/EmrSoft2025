@@ -402,6 +402,7 @@ export const appointments = pgTable("appointments", {
   type: varchar("type", { length: 20 }).notNull().default("consultation"), // consultation, follow_up, procedure, emergency, routine_checkup
   location: text("location"),
   isVirtual: boolean("is_virtual").notNull().default(false),
+  createdBy: integer("created_by"), // User ID who created the appointment
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

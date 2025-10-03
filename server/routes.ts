@@ -2937,7 +2937,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         department: z.string().optional(),
         notes: z.string().optional(),
         status: z.string().optional(),
-        isVirtual: z.boolean().default(false)
+        isVirtual: z.boolean().default(false),
+        createdBy: z.number().optional()
       }).parse(req.body);
 
       console.log("Parsed appointment data:", appointmentData);
@@ -3005,7 +3006,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         type: appointmentData.type,
         status: appointmentData.status || "scheduled", // Add missing status field
         location: appointmentData.location || "",
-        isVirtual: appointmentData.isVirtual
+        isVirtual: appointmentData.isVirtual,
+        createdBy: appointmentData.createdBy || null
       };
 
       // Note: Removed past time validation since we're using naive timestamps
