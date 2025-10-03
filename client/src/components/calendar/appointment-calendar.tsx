@@ -257,16 +257,16 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
         return false;
       }
       
-      const cleanTimeString = apt.scheduledAt.replace('Z', '');
-      const aptDate = new Date(cleanTimeString);
-      const aptDateString = format(aptDate, 'yyyy-MM-dd');
+      // Parse the scheduledAt directly without timezone conversion
+      // Format: "2025-10-05T00:00:00.000Z" or "2025-10-05T22:00:00.000Z"
+      const aptDateString = apt.scheduledAt.substring(0, 10); // Extract "2025-10-05"
       
       // Only check appointments on the same date
       if (aptDateString !== selectedDateString) return false;
       
-      // Calculate existing appointment's time range in minutes
-      const aptHour = aptDate.getHours();
-      const aptMinute = aptDate.getMinutes();
+      // Extract time in 24-hour format directly from the ISO string (no timezone conversion)
+      const timeString = apt.scheduledAt.substring(11, 16); // Extract "00:00" or "22:00"
+      const [aptHour, aptMinute] = timeString.split(':').map(Number);
       const aptStartMinutes = aptHour * 60 + aptMinute;
       const aptDuration = apt.duration || 30; // Default to 30 if duration not set
       const aptEndMinutes = aptStartMinutes + aptDuration;
