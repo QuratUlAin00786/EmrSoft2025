@@ -769,7 +769,11 @@ Medical License: [License Number]
     return provider ? `${provider.firstName || ''} ${provider.lastName || ''}`.trim() : `Provider ${providerId}`;
   };
 
-
+  const getCreatedByUser = (createdById: number | null | undefined) => {
+    if (!createdById || !usersData || !Array.isArray(usersData)) return null;
+    const creator = usersData.find((u: any) => u.id === createdById);
+    return creator ? { name: `${creator.firstName || ''} ${creator.lastName || ''}`.trim(), role: creator.role } : null;
+  };
 
   // Process and validate appointments - show appointments even if patient data is still loading  
   const appointments = (appointmentsData && Array.isArray(appointmentsData) ? appointmentsData.filter((apt: any) => {
@@ -1010,6 +1014,14 @@ Medical License: [License Number]
                     <div className="text-right mr-4">
                       <div className="font-medium">{appointment.title}</div>
                       <div className="text-sm text-gray-500">Dr. {appointment.providerName}</div>
+                      {(() => {
+                        const createdBy = getCreatedByUser(appointment.createdBy);
+                        return createdBy ? (
+                          <div className="text-xs text-gray-400 mt-1">
+                            Created By: {createdBy.name} ({createdBy.role})
+                          </div>
+                        ) : null;
+                      })()}
                     </div>
                     {appointment.status !== 'cancelled' && (
                       <Button
