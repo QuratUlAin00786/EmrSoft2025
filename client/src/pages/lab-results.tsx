@@ -287,10 +287,9 @@ export default function LabResultsPage() {
     testType: [] as string[],
     priority: "routine",
     notes: "",
-    doctorId: "",
-    doctorName: "",
-    mainSpecialty: "",
-    subSpecialty: "",
+    selectedRole: "",
+    selectedUserId: "",
+    selectedUserName: "",
   });
   const [patientSearchOpen, setPatientSearchOpen] = useState(false);
   const [testTypeOpen, setTestTypeOpen] = useState(false);
@@ -438,16 +437,10 @@ export default function LabResultsPage() {
         testType: [],
         priority: "routine",
         notes: "",
-        doctorId: "",
-        doctorName: "",
-        mainSpecialty: "",
-        subSpecialty: "",
+        selectedRole: "",
+        selectedUserId: "",
+        selectedUserName: "",
       });
-
-      // Reset specialty states
-      setSelectedSpecialtyCategory("");
-      setSelectedSubSpecialty("");
-      setSelectedSpecificArea("");
     },
     onError: (error: any) => {
       toast({
@@ -1793,114 +1786,69 @@ Report generated from Cura EMR System`;
               )}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="mainSpecialty">Medical Specialty Category</Label>
-              <Select
-                value={selectedSpecialtyCategory}
-                onValueChange={(value) => {
-                  setSelectedSpecialtyCategory(value);
-                  setSelectedSubSpecialty("");
-                  setSelectedSpecificArea("");
-                  setOrderFormData((prev) => ({
-                    ...prev,
-                    mainSpecialty: value,
-                    subSpecialty: "",
-                    doctorId: "",
-                    doctorName: "",
-                  }));
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select medical specialty category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.keys(medicalSpecialties).map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {user?.role !== "patient" && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="role">Select Role</Label>
+                  <Select
+                    value={orderFormData.selectedRole}
+                    onValueChange={(value) => {
+                      setOrderFormData((prev) => ({
+                        ...prev,
+                        selectedRole: value,
+                        selectedUserId: "",
+                        selectedUserName: "",
+                      }));
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="admin">Admin</SelectItem>
+                      <SelectItem value="doctor">Doctor</SelectItem>
+                      <SelectItem value="nurse">Nurse</SelectItem>
+                      <SelectItem value="receptionist">Receptionist</SelectItem>
+                      <SelectItem value="sample_taker">Sample Taker</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            {selectedSpecialtyCategory && (
-              <div className="space-y-2">
-                <Label htmlFor="subSpecialty">Sub-Specialty</Label>
-                <Select
-                  value={selectedSubSpecialty}
-                  onValueChange={(value) => {
-                    setSelectedSubSpecialty(value);
-                    setSelectedSpecificArea("");
-                    setOrderFormData((prev) => ({
-                      ...prev,
-                      subSpecialty: value,
-                      doctorId: "",
-                      doctorName: "",
-                    }));
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select sub-specialty" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.keys(
-                      medicalSpecialties[
-                        selectedSpecialtyCategory as keyof typeof medicalSpecialties
-                      ] || {},
-                    ).map((subSpecialty) => (
-                      <SelectItem key={subSpecialty} value={subSpecialty}>
-                        {subSpecialty}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+                {orderFormData.selectedRole && (
+                  <div className="space-y-2">
+                    <Label htmlFor="user">Select Name</Label>
+                    <Select
+                      value={orderFormData.selectedUserId}
+                      onValueChange={(value) => {
+                        const selectedUser = users.find(
+                          (u: any) => u.id.toString() === value,
+                        );
+                        setOrderFormData((prev) => ({
+                          ...prev,
+                          selectedUserId: value,
+                          selectedUserName: selectedUser
+                            ? `${selectedUser.firstName} ${selectedUser.lastName}`
+                            : "",
+                        }));
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a user" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {users
+                          .filter((u: any) => u.role === orderFormData.selectedRole)
+                          .map((u: any) => (
+                            <SelectItem key={u.id} value={u.id.toString()}>
+                              {u.firstName} {u.lastName} ({u.email})
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </>
             )}
-
-            <div className="space-y-2">
-              <Label htmlFor="doctor">Select Doctor</Label>
-              <Select
-                value={orderFormData.doctorId}
-                onValueChange={(value) => {
-                  const selectedDoctor = doctors.find(
-                    (d: any) => d.id.toString() === value,
-                  );
-                  setOrderFormData((prev) => ({
-                    ...prev,
-                    doctorId: value,
-                    doctorName: selectedDoctor
-                      ? `Dr. ${selectedDoctor.firstName} ${selectedDoctor.lastName}`
-                      : "",
-                  }));
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a doctor" />
-                </SelectTrigger>
-                <SelectContent>
-                  {medicalStaffLoading || filteredDoctorsLoading ? (
-                    <SelectItem value="loading" disabled>
-                      Loading doctors...
-                    </SelectItem>
-                  ) : doctors.length > 0 ? (
-                    doctors.map((doctor: any) => (
-                      <SelectItem key={doctor.id} value={doctor.id.toString()}>
-                        Dr. {doctor.firstName} {doctor.lastName}
-                        {doctor.medicalSpecialtyCategory &&
-                          ` - ${doctor.medicalSpecialtyCategory}`}
-                        {doctor.subSpecialty && ` (${doctor.subSpecialty})`}
-                      </SelectItem>
-                    ))
-                  ) : (
-                    <SelectItem value="none" disabled>
-                      {selectedSpecialtyCategory || selectedSubSpecialty
-                        ? `No doctors available for ${selectedSubSpecialty || selectedSpecialtyCategory}`
-                        : "No doctors available"}
-                    </SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
             <div className="space-y-2">
               <Label htmlFor="testType">Test Type</Label>
               <Popover open={testTypeOpen} onOpenChange={setTestTypeOpen}>
@@ -2046,19 +1994,18 @@ Report generated from Cura EMR System`;
                     testType: orderFormData.testType.join(", "),
                     priority: orderFormData.priority,
                     notes: orderFormData.notes,
-                    doctorId: orderFormData.doctorId
-                      ? parseInt(orderFormData.doctorId)
+                    selectedUserId: orderFormData.selectedUserId
+                      ? parseInt(orderFormData.selectedUserId)
                       : null,
-                    doctorName: orderFormData.doctorName,
-                    mainSpecialty: orderFormData.mainSpecialty,
-                    subSpecialty: orderFormData.subSpecialty,
+                    selectedUserName: orderFormData.selectedUserName,
+                    orderedBy: user?.id,
                   });
                 }}
                 disabled={
                   createLabOrderMutation.isPending ||
                   !orderFormData.patientId ||
                   orderFormData.testType.length === 0 ||
-                  !orderFormData.doctorId
+                  (user?.role !== "patient" && !orderFormData.selectedUserId)
                 }
                 className="flex-1 bg-medical-blue hover:bg-blue-700"
               >
