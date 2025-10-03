@@ -460,8 +460,9 @@ export default function ImagingPage() {
   // Check if report file exists on the server
   useEffect(() => {
     const checkReportFileExists = async () => {
-      if (selectedStudy?.reportFileName && !deletedStudyIds.has(selectedStudy.id)) {
-        const reportId = selectedStudy.reportFileName.replace(".pdf", "");
+      if (selectedStudy?.reportFilePath && !deletedStudyIds.has(selectedStudy.id)) {
+        const fileName = selectedStudy.reportFilePath.split('/').pop() || '';
+        const reportId = fileName.replace(".pdf", "");
         try {
           const response = await fetch(`/api/imaging/reports/${reportId}`, {
             method: "HEAD",
@@ -472,11 +473,6 @@ export default function ImagingPage() {
           
           if (response.status === 404) {
             setNonExistentReports(prev => new Set(prev).add(selectedStudy.id));
-            toast({
-              title: "File not found",
-              description: "The report file does not exist on the server",
-              variant: "destructive",
-            });
           } else if (response.ok) {
             setNonExistentReports(prev => {
               const newSet = new Set(prev);
@@ -491,7 +487,7 @@ export default function ImagingPage() {
     };
     
     checkReportFileExists();
-  }, [selectedStudy?.id, selectedStudy?.reportFileName, deletedStudyIds, toast]);
+  }, [selectedStudy?.id, selectedStudy?.reportFilePath, deletedStudyIds, toast]);
 
   // Individual field update mutations
   const updateFieldMutation = useMutation({
@@ -3074,6 +3070,20 @@ export default function ImagingPage() {
                           Click the file name to view the PDF report
                         </p>
                       </div>
+                    </div>
+                  )}
+
+                {/* No file found message */}
+                {selectedStudy.reportFilePath &&
+                  !deletedStudyIds.has(selectedStudy.id) &&
+                  nonExistentReports.has(selectedStudy.id) && (
+                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                      <h4 className="font-medium text-orange-800 mb-2">
+                        No File Found
+                      </h4>
+                      <p className="text-sm text-orange-700">
+                        No file found, please generate new
+                      </p>
                     </div>
                   )}
 
