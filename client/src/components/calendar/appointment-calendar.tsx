@@ -1473,10 +1473,10 @@ Medical License: [License Number]
                               variant={isSelected ? "default" : "outline"}
                               className={`h-10 text-xs font-medium ${
                                 !isAvailable 
-                                  ? "bg-gray-200 text-gray-400 cursor-not-allowed" 
+                                  ? "bg-red-100 text-red-400 cursor-not-allowed border-red-200" 
                                   : isSelected 
-                                    ? "bg-green-500 hover:bg-green-600 text-white border-green-500" 
-                                    : "hover:bg-green-50 hover:border-green-300 bg-white"
+                                    ? "bg-blue-500 hover:bg-blue-600 text-white border-blue-500" 
+                                    : "bg-green-500 hover:bg-green-600 text-white border-green-500"
                               }`}
                               disabled={!isAvailable}
                               onClick={() => {
@@ -1836,10 +1836,10 @@ Medical License: [License Number]
                               variant={isSelected ? "default" : "outline"}
                               className={`h-10 text-xs font-medium ${
                                 !isAvailable 
-                                  ? "bg-gray-200 text-gray-400 cursor-not-allowed" 
+                                  ? "bg-red-100 text-red-400 cursor-not-allowed border-red-200" 
                                   : isSelected 
-                                    ? "bg-green-500 hover:bg-green-600 text-white border-green-500" 
-                                    : "hover:bg-green-50 hover:border-green-300 bg-white"
+                                    ? "bg-blue-500 hover:bg-blue-600 text-white border-blue-500" 
+                                    : "bg-green-500 hover:bg-green-600 text-white border-green-500"
                               }`}
                               disabled={!isAvailable}
                               onClick={() => {
@@ -2152,10 +2152,10 @@ Medical License: [License Number]
                               variant={isSelected ? "default" : "outline"}
                               className={`h-12 text-sm font-medium ${
                                 !isAvailable 
-                                  ? "bg-gray-200 text-gray-400 cursor-not-allowed" 
+                                  ? "bg-red-100 text-red-400 cursor-not-allowed border-red-200" 
                                   : isSelected 
-                                    ? "bg-green-500 hover:bg-green-600 text-white border-green-500" 
-                                    : "hover:bg-green-50 hover:border-green-300 bg-white"
+                                    ? "bg-blue-500 hover:bg-blue-600 text-white border-blue-500" 
+                                    : "bg-green-500 hover:bg-green-600 text-white border-green-500"
                               }`}
                               disabled={!isAvailable}
                               onClick={() => {
