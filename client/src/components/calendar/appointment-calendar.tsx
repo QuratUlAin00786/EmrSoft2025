@@ -1421,160 +1421,322 @@ Medical License: [License Number]
                   </Select>
                 </div>
 
-                {/* Date Selection */}
-                <div>
-                  <Label className="text-sm font-medium text-gray-600 mb-2 block">Select Date</Label>
-                  <div className="border rounded-lg p-3 bg-gray-50">
-                    <CalendarComponent
-                      mode="single"
-                      selected={newAppointmentDate}
-                      onSelect={(date) => {
-                        setNewAppointmentDate(date);
-                      }}
-                      className="rounded-md"
-                    />
-                  </div>
-                </div>
-
-                {/* Time Slot Selection */}
-                <div>
-                  <Label className="text-sm font-medium text-gray-600 mb-2 block">Select Time Slot</Label>
-                  <div className="border rounded-lg p-3 bg-gray-50 h-[320px] overflow-y-auto">
-                    <div className="grid grid-cols-2 gap-2">
-                      {timeSlots.map((slot) => {
-                        const isAvailable = newAppointmentDate ? isTimeSlotAvailable(newAppointmentDate, slot) : true;
-                        const isSelected = newSelectedTimeSlot === slot;
-                        
-                        return (
-                          <Button
-                            key={slot}
-                            variant={isSelected ? "default" : "outline"}
-                            className={`h-10 text-xs font-medium ${
-                              !isAvailable 
-                                ? "bg-gray-200 text-gray-400 cursor-not-allowed" 
-                                : isSelected 
-                                  ? "bg-green-500 hover:bg-green-600 text-white border-green-500" 
-                                  : "hover:bg-green-50 hover:border-green-300 bg-white"
-                            }`}
-                            disabled={!isAvailable}
-                            onClick={() => {
-                              setNewSelectedTimeSlot(slot);
-                            }}
-                          >
-                            {slot}
-                          </Button>
-                        );
-                      })}
+                {/* Date and Time Selection - Conditional Layout for Admin */}
+                {user?.role === 'admin' ? (
+                  <div className="grid grid-cols-2 gap-6">
+                    {/* Date Selection */}
+                    <div>
+                      <Label className="text-sm font-medium text-gray-600 mb-2 block">Select Date</Label>
+                      <div className="border rounded-lg p-3 bg-gray-50">
+                        <CalendarComponent
+                          mode="single"
+                          selected={newAppointmentDate}
+                          onSelect={(date) => {
+                            setNewAppointmentDate(date);
+                          }}
+                          className="rounded-md"
+                        />
+                      </div>
                     </div>
-                  </div>
-                </div>
-              </div>
 
-              {/* Right Column - Patient Info & Booking Summary */}
-              <div className="space-y-6">
-                {/* Patient Information */}
-                {newAppointmentData.patientId && patientsData && (() => {
-                  const selectedPatient = patientsData.find((p: any) => p.id.toString() === newAppointmentData.patientId);
-                  if (!selectedPatient) return null;
-                  
-                  return (
-                    <div className="border rounded-lg p-4 bg-gray-50">
-                      <h3 className="text-sm font-semibold text-gray-800 mb-3">Patient Information</h3>
-                      <div className="flex items-start gap-3">
-                        <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-lg">
-                          {selectedPatient.firstName?.charAt(0)}{selectedPatient.lastName?.charAt(0)}
-                        </div>
-                        <div className="flex-1 space-y-1 text-sm">
-                          <p className="font-semibold text-gray-900">
-                            {selectedPatient.firstName} {selectedPatient.lastName}
-                          </p>
-                          <p className="text-gray-600 text-xs">
-                            {selectedPatient.patientId}
-                          </p>
-                          {selectedPatient.phone && (
-                            <p className="text-gray-600 text-xs flex items-center gap-1">
-                              📞 {selectedPatient.phone}
-                            </p>
-                          )}
-                          {selectedPatient.email && (
-                            <p className="text-gray-600 text-xs flex items-center gap-1">
-                              ✉️ {selectedPatient.email}
-                            </p>
-                          )}
-                          {selectedPatient.nhsNumber && (
-                            <p className="text-gray-600 text-xs">
-                              NHS: {selectedPatient.nhsNumber}
-                            </p>
-                          )}
-                          {selectedPatient.address && (selectedPatient.address.city || selectedPatient.address.postcode) && (
-                            <p className="text-gray-600 text-xs">
-                              📍 {selectedPatient.address.city}, {selectedPatient.address.postcode}
-                            </p>
-                          )}
+                    {/* Time Slot Selection */}
+                    <div>
+                      <Label className="text-sm font-medium text-gray-600 mb-2 block">Select Time Slot</Label>
+                      <div className="border rounded-lg p-3 bg-gray-50 h-[320px] overflow-y-auto">
+                        <div className="grid grid-cols-2 gap-2">
+                          {timeSlots.map((slot) => {
+                            const isAvailable = newAppointmentDate ? isTimeSlotAvailable(newAppointmentDate, slot) : true;
+                            const isSelected = newSelectedTimeSlot === slot;
+                            
+                            return (
+                              <Button
+                                key={slot}
+                                variant={isSelected ? "default" : "outline"}
+                                className={`h-10 text-xs font-medium ${
+                                  !isAvailable 
+                                    ? "bg-gray-200 text-gray-400 cursor-not-allowed" 
+                                    : isSelected 
+                                      ? "bg-green-500 hover:bg-green-600 text-white border-green-500" 
+                                      : "hover:bg-green-50 hover:border-green-300 bg-white"
+                                }`}
+                                disabled={!isAvailable}
+                                onClick={() => {
+                                  setNewSelectedTimeSlot(slot);
+                                }}
+                              >
+                                {slot}
+                              </Button>
+                            );
+                          })}
                         </div>
                       </div>
                     </div>
-                  );
-                })()}
+                  </div>
+                ) : (
+                  <>
+                    {/* Date Selection */}
+                    <div>
+                      <Label className="text-sm font-medium text-gray-600 mb-2 block">Select Date</Label>
+                      <div className="border rounded-lg p-3 bg-gray-50">
+                        <CalendarComponent
+                          mode="single"
+                          selected={newAppointmentDate}
+                          onSelect={(date) => {
+                            setNewAppointmentDate(date);
+                          }}
+                          className="rounded-md"
+                        />
+                      </div>
+                    </div>
 
-                {/* Booking Summary */}
-                <div className="border rounded-lg p-4 bg-gray-50">
-                  <h3 className="text-sm font-semibold text-gray-800 mb-3">Booking Summary</h3>
-                  <div className="space-y-3 text-sm">
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <p className="text-gray-500 text-xs">Role</p>
-                        <p className="font-medium text-gray-900">
-                          {selectedRole ? selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1) : "Not selected"}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-gray-500 text-xs">Duration</p>
-                        <p className="font-medium text-gray-900">{selectedDuration} minutes</p>
-                      </div>
-                    </div>
-                    
+                    {/* Time Slot Selection */}
                     <div>
-                      <p className="text-gray-500 text-xs">Patient</p>
-                      <p className="font-medium text-gray-900">
-                        {newAppointmentData.patientId && patientsData 
-                          ? (() => {
-                              const patient = patientsData.find((p: any) => p.id.toString() === newAppointmentData.patientId);
-                              return patient ? `${patient.firstName} ${patient.lastName}` : "Not selected";
-                            })()
-                          : "Not selected"}
-                      </p>
+                      <Label className="text-sm font-medium text-gray-600 mb-2 block">Select Time Slot</Label>
+                      <div className="border rounded-lg p-3 bg-gray-50 h-[320px] overflow-y-auto">
+                        <div className="grid grid-cols-2 gap-2">
+                          {timeSlots.map((slot) => {
+                            const isAvailable = newAppointmentDate ? isTimeSlotAvailable(newAppointmentDate, slot) : true;
+                            const isSelected = newSelectedTimeSlot === slot;
+                            
+                            return (
+                              <Button
+                                key={slot}
+                                variant={isSelected ? "default" : "outline"}
+                                className={`h-10 text-xs font-medium ${
+                                  !isAvailable 
+                                    ? "bg-gray-200 text-gray-400 cursor-not-allowed" 
+                                    : isSelected 
+                                      ? "bg-green-500 hover:bg-green-600 text-white border-green-500" 
+                                      : "hover:bg-green-50 hover:border-green-300 bg-white"
+                                }`}
+                                disabled={!isAvailable}
+                                onClick={() => {
+                                  setNewSelectedTimeSlot(slot);
+                                }}
+                              >
+                                {slot}
+                              </Button>
+                            );
+                          })}
+                        </div>
+                      </div>
                     </div>
+                  </>
+                )}
+              </div>
+
+              {/* Right Column - Patient Info & Booking Summary - Conditional Layout for Admin */}
+              {user?.role === 'admin' ? (
+                <div className="col-span-3 grid grid-cols-2 gap-6">
+                  {/* Patient Information */}
+                  {newAppointmentData.patientId && patientsData && (() => {
+                    const selectedPatient = patientsData.find((p: any) => p.id.toString() === newAppointmentData.patientId);
+                    if (!selectedPatient) return null;
                     
-                    <div>
-                      <p className="text-gray-500 text-xs">Provider</p>
-                      <p className="font-medium text-gray-900">
-                        {selectedProviderId && usersData
-                          ? (() => {
-                              const provider = usersData.find((u: any) => u.id.toString() === selectedProviderId);
-                              return provider ? `${provider.firstName} ${provider.lastName}` : "Not selected";
-                            })()
-                          : "Not selected"}
-                      </p>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-2">
+                    return (
+                      <div className="border rounded-lg p-4 bg-gray-50">
+                        <h3 className="text-sm font-semibold text-gray-800 mb-3">Patient Information</h3>
+                        <div className="flex items-start gap-3">
+                          <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-lg">
+                            {selectedPatient.firstName?.charAt(0)}{selectedPatient.lastName?.charAt(0)}
+                          </div>
+                          <div className="flex-1 space-y-1 text-sm">
+                            <p className="font-semibold text-gray-900">
+                              {selectedPatient.firstName} {selectedPatient.lastName}
+                            </p>
+                            <p className="text-gray-600 text-xs">
+                              {selectedPatient.patientId}
+                            </p>
+                            {selectedPatient.phone && (
+                              <p className="text-gray-600 text-xs flex items-center gap-1">
+                                📞 {selectedPatient.phone}
+                              </p>
+                            )}
+                            {selectedPatient.email && (
+                              <p className="text-gray-600 text-xs flex items-center gap-1">
+                                ✉️ {selectedPatient.email}
+                              </p>
+                            )}
+                            {selectedPatient.nhsNumber && (
+                              <p className="text-gray-600 text-xs">
+                                NHS: {selectedPatient.nhsNumber}
+                              </p>
+                            )}
+                            {selectedPatient.address && (selectedPatient.address.city || selectedPatient.address.postcode) && (
+                              <p className="text-gray-600 text-xs">
+                                📍 {selectedPatient.address.city}, {selectedPatient.address.postcode}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Booking Summary */}
+                  <div className="border rounded-lg p-4 bg-gray-50">
+                    <h3 className="text-sm font-semibold text-gray-800 mb-3">Booking Summary</h3>
+                    <div className="space-y-3 text-sm">
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <p className="text-gray-500 text-xs">Role</p>
+                          <p className="font-medium text-gray-900">
+                            {selectedRole ? selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1) : "Not selected"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-gray-500 text-xs">Duration</p>
+                          <p className="font-medium text-gray-900">{selectedDuration} minutes</p>
+                        </div>
+                      </div>
+                      
                       <div>
-                        <p className="text-gray-500 text-xs">Date</p>
+                        <p className="text-gray-500 text-xs">Patient</p>
                         <p className="font-medium text-gray-900">
-                          {newAppointmentDate ? format(newAppointmentDate, 'MMM dd, yyyy') : "Not selected"}
+                          {newAppointmentData.patientId && patientsData 
+                            ? (() => {
+                                const patient = patientsData.find((p: any) => p.id.toString() === newAppointmentData.patientId);
+                                return patient ? `${patient.firstName} ${patient.lastName}` : "Not selected";
+                              })()
+                            : "Not selected"}
                         </p>
                       </div>
+                      
                       <div>
-                        <p className="text-gray-500 text-xs">Time</p>
+                        <p className="text-gray-500 text-xs">Provider</p>
                         <p className="font-medium text-gray-900">
-                          {newSelectedTimeSlot || "Not selected"}
+                          {selectedProviderId && usersData
+                            ? (() => {
+                                const provider = usersData.find((u: any) => u.id.toString() === selectedProviderId);
+                                return provider ? `${provider.firstName} ${provider.lastName}` : "Not selected";
+                              })()
+                            : "Not selected"}
                         </p>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <p className="text-gray-500 text-xs">Date</p>
+                          <p className="font-medium text-gray-900">
+                            {newAppointmentDate ? format(newAppointmentDate, 'MMM dd, yyyy') : "Not selected"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-gray-500 text-xs">Time</p>
+                          <p className="font-medium text-gray-900">
+                            {newSelectedTimeSlot || "Not selected"}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              ) : (
+                <div className="space-y-6">
+                  {/* Patient Information */}
+                  {newAppointmentData.patientId && patientsData && (() => {
+                    const selectedPatient = patientsData.find((p: any) => p.id.toString() === newAppointmentData.patientId);
+                    if (!selectedPatient) return null;
+                    
+                    return (
+                      <div className="border rounded-lg p-4 bg-gray-50">
+                        <h3 className="text-sm font-semibold text-gray-800 mb-3">Patient Information</h3>
+                        <div className="flex items-start gap-3">
+                          <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-lg">
+                            {selectedPatient.firstName?.charAt(0)}{selectedPatient.lastName?.charAt(0)}
+                          </div>
+                          <div className="flex-1 space-y-1 text-sm">
+                            <p className="font-semibold text-gray-900">
+                              {selectedPatient.firstName} {selectedPatient.lastName}
+                            </p>
+                            <p className="text-gray-600 text-xs">
+                              {selectedPatient.patientId}
+                            </p>
+                            {selectedPatient.phone && (
+                              <p className="text-gray-600 text-xs flex items-center gap-1">
+                                📞 {selectedPatient.phone}
+                              </p>
+                            )}
+                            {selectedPatient.email && (
+                              <p className="text-gray-600 text-xs flex items-center gap-1">
+                                ✉️ {selectedPatient.email}
+                              </p>
+                            )}
+                            {selectedPatient.nhsNumber && (
+                              <p className="text-gray-600 text-xs">
+                                NHS: {selectedPatient.nhsNumber}
+                              </p>
+                            )}
+                            {selectedPatient.address && (selectedPatient.address.city || selectedPatient.address.postcode) && (
+                              <p className="text-gray-600 text-xs">
+                                📍 {selectedPatient.address.city}, {selectedPatient.address.postcode}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Booking Summary */}
+                  <div className="border rounded-lg p-4 bg-gray-50">
+                    <h3 className="text-sm font-semibold text-gray-800 mb-3">Booking Summary</h3>
+                    <div className="space-y-3 text-sm">
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <p className="text-gray-500 text-xs">Role</p>
+                          <p className="font-medium text-gray-900">
+                            {selectedRole ? selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1) : "Not selected"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-gray-500 text-xs">Duration</p>
+                          <p className="font-medium text-gray-900">{selectedDuration} minutes</p>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <p className="text-gray-500 text-xs">Patient</p>
+                        <p className="font-medium text-gray-900">
+                          {newAppointmentData.patientId && patientsData 
+                            ? (() => {
+                                const patient = patientsData.find((p: any) => p.id.toString() === newAppointmentData.patientId);
+                                return patient ? `${patient.firstName} ${patient.lastName}` : "Not selected";
+                              })()
+                            : "Not selected"}
+                        </p>
+                      </div>
+                      
+                      <div>
+                        <p className="text-gray-500 text-xs">Provider</p>
+                        <p className="font-medium text-gray-900">
+                          {selectedProviderId && usersData
+                            ? (() => {
+                                const provider = usersData.find((u: any) => u.id.toString() === selectedProviderId);
+                                return provider ? `${provider.firstName} ${provider.lastName}` : "Not selected";
+                              })()
+                            : "Not selected"}
+                        </p>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <p className="text-gray-500 text-xs">Date</p>
+                          <p className="font-medium text-gray-900">
+                            {newAppointmentDate ? format(newAppointmentDate, 'MMM dd, yyyy') : "Not selected"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-gray-500 text-xs">Time</p>
+                          <p className="font-medium text-gray-900">
+                            {newSelectedTimeSlot || "Not selected"}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Action Buttons */}
