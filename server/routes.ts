@@ -13467,14 +13467,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       if (studyId && !isNaN(studyId)) {
-        // Update the database to clear both report fields
+        // Update the database to clear both report fields (use null, not undefined, to actually set DB to NULL)
         console.log(`📝 DELETE: Updating database for studyId: ${studyId}, organizationId: ${req.tenant!.id}`);
         await storage.updateMedicalImageReport(
           studyId,
           req.tenant!.id,
           { 
-            reportFileName: undefined, 
-            reportFilePath: undefined 
+            reportFileName: null as any, 
+            reportFilePath: null as any 
           }
         );
         console.log(`📝 DELETE: Database updated - set reportFileName and reportFilePath to NULL for studyId: ${studyId}`);
