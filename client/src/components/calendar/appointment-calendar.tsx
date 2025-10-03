@@ -173,21 +173,50 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
   const [editAppointmentDate, setEditAppointmentDate] = useState<Date | undefined>(undefined);
   const [editSelectedTimeSlot, setEditSelectedTimeSlot] = useState<string>("");
 
-  // Generate 24/7 time slots at 15-minute intervals (regardless of appointment duration)
-  const generate24HourTimeSlots = (durationInMinutes: number) => {
+  // Generate time slots based on shift data from database
+  const generateTimeSlotsFromShifts = (durationInMinutes: number) => {
+    // If no provider or date selected, return empty array
+    if (!selectedProviderId || !newAppointmentDate || !shiftsData) {
+      return [];
+    }
+
+    // Find the shift for the selected provider
+    const providerShift = shiftsData.find((shift: any) => 
+      shift.staffId.toString() === selectedProviderId
+    );
+
+    // If no shift found, return empty array
+    if (!providerShift) {
+      return [];
+    }
+
+    // Parse start and end times from shift
+    const [startHour, startMinute] = providerShift.startTime.split(':').map(Number);
+    const [endHour, endMinute] = providerShift.endTime.split(':').map(Number);
+
     const slots = [];
-    for (let hour = 0; hour < 24; hour++) {
-      for (let minute = 0; minute < 60; minute += 15) {
-        const hour12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-        const period = hour < 12 ? 'AM' : 'PM';
-        const timeString = `${hour12}:${minute.toString().padStart(2, '0')} ${period}`;
-        slots.push(timeString);
+    let currentHour = startHour;
+    let currentMinute = startMinute;
+
+    // Generate 15-minute interval slots between start and end time
+    while (currentHour < endHour || (currentHour === endHour && currentMinute <= endMinute)) {
+      const hour12 = currentHour === 0 ? 12 : currentHour > 12 ? currentHour - 12 : currentHour;
+      const period = currentHour < 12 ? 'AM' : 'PM';
+      const timeString = `${hour12}:${currentMinute.toString().padStart(2, '0')} ${period}`;
+      slots.push(timeString);
+
+      // Move to next 15-minute slot
+      currentMinute += 15;
+      if (currentMinute >= 60) {
+        currentMinute = 0;
+        currentHour++;
       }
     }
+
     return slots;
   };
   
-  const timeSlots = generate24HourTimeSlots(selectedDuration);
+  const timeSlots = generateTimeSlotsFromShifts(selectedDuration);
 
   // Convert time slot string to 24-hour format
   const timeSlotTo24Hour = (timeSlot: string): string => {
