@@ -255,7 +255,7 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
       if (editingAppointment && apt.id === editingAppointment.id) return false;
       
       // For new appointments, only check the selected provider's appointments
-      if (selectedProviderId && apt.providerId.toString() !== selectedProviderId) {
+      if (selectedProviderId && apt.providerId !== parseInt(selectedProviderId)) {
         return false;
       }
       
@@ -267,8 +267,8 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
       if (aptDateString !== selectedDateString) return false;
       
       // Calculate existing appointment's time range in minutes
-      const aptHour = aptDate.getUTCHours();
-      const aptMinute = aptDate.getUTCMinutes();
+      const aptHour = aptDate.getHours();
+      const aptMinute = aptDate.getMinutes();
       const aptStartMinutes = aptHour * 60 + aptMinute;
       const aptDuration = apt.duration || 30; // Default to 30 if duration not set
       const aptEndMinutes = aptStartMinutes + aptDuration;
@@ -1487,112 +1487,6 @@ Medical License: [License Number]
                             </Button>
                           );
                         })}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Row 4: Patient Information and Booking Summary */}
-                <div className="grid grid-cols-2 gap-6">
-                  {/* Patient Information */}
-                  {newAppointmentData.patientId && patientsData && (() => {
-                    const selectedPatient = patientsData.find((p: any) => p.id.toString() === newAppointmentData.patientId);
-                    if (!selectedPatient) return null;
-                    
-                    return (
-                      <div className="border rounded-lg p-4 bg-gray-50">
-                        <h3 className="text-sm font-semibold text-gray-800 mb-3">Patient Information</h3>
-                        <div className="flex items-start gap-3">
-                          <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-lg">
-                            {selectedPatient.firstName?.charAt(0)}{selectedPatient.lastName?.charAt(0)}
-                          </div>
-                          <div className="flex-1 space-y-1 text-sm">
-                            <p className="font-semibold text-gray-900">
-                              {selectedPatient.firstName} {selectedPatient.lastName}
-                            </p>
-                            <p className="text-gray-600 text-xs">
-                              {selectedPatient.patientId}
-                            </p>
-                            {selectedPatient.phone && (
-                              <p className="text-gray-600 text-xs flex items-center gap-1">
-                                📞 {selectedPatient.phone}
-                              </p>
-                            )}
-                            {selectedPatient.email && (
-                              <p className="text-gray-600 text-xs flex items-center gap-1">
-                                ✉️ {selectedPatient.email}
-                              </p>
-                            )}
-                            {selectedPatient.nhsNumber && (
-                              <p className="text-gray-600 text-xs">
-                                NHS: {selectedPatient.nhsNumber}
-                              </p>
-                            )}
-                            {selectedPatient.address && (selectedPatient.address.city || selectedPatient.address.postcode) && (
-                              <p className="text-gray-600 text-xs">
-                                📍 {selectedPatient.address.city}, {selectedPatient.address.postcode}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })()}
-
-                  {/* Booking Summary */}
-                  <div className="border rounded-lg p-4 bg-gray-50">
-                    <h3 className="text-sm font-semibold text-gray-800 mb-3">Booking Summary</h3>
-                    <div className="space-y-3 text-sm">
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <p className="text-gray-500 text-xs">Role</p>
-                          <p className="font-medium text-gray-900">
-                            {selectedRole ? selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1) : "Not selected"}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-gray-500 text-xs">Duration</p>
-                          <p className="font-medium text-gray-900">{selectedDuration} minutes</p>
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <p className="text-gray-500 text-xs">Patient</p>
-                        <p className="font-medium text-gray-900">
-                          {newAppointmentData.patientId && patientsData 
-                            ? (() => {
-                                const patient = patientsData.find((p: any) => p.id.toString() === newAppointmentData.patientId);
-                                return patient ? `${patient.firstName} ${patient.lastName}` : "Not selected";
-                              })()
-                            : "Not selected"}
-                        </p>
-                      </div>
-                      
-                      <div>
-                        <p className="text-gray-500 text-xs">Provider</p>
-                        <p className="font-medium text-gray-900">
-                          {selectedProviderId && usersData
-                            ? (() => {
-                                const provider = usersData.find((u: any) => u.id.toString() === selectedProviderId);
-                                return provider ? `${provider.firstName} ${provider.lastName}` : "Not selected";
-                              })()
-                            : "Not selected"}
-                        </p>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <p className="text-gray-500 text-xs">Date</p>
-                          <p className="font-medium text-gray-900">
-                            {newAppointmentDate ? format(newAppointmentDate, 'MMM dd, yyyy') : "Not selected"}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-gray-500 text-xs">Time</p>
-                          <p className="font-medium text-gray-900">
-                            {newSelectedTimeSlot || "Not selected"}
-                          </p>
-                        </div>
                       </div>
                     </div>
                   </div>
