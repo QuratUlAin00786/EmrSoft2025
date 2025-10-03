@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
 import { Crown, Users, Calendar, Zap, Check, X, Package, Heart, Brain, Shield, Stethoscope, Phone, FileText, Activity, Pill, UserCheck } from "lucide-react";
 import { PaymentMethodDialog } from "@/components/payment-method-dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { Subscription } from "@/types";
 
 const plans = [
@@ -201,6 +202,10 @@ export default function Subscription() {
   
   const { data: subscription, isLoading, error } = useQuery<Subscription>({
     queryKey: ["/api/subscription"],
+  });
+
+  const { data: billingHistory, isLoading: isLoadingBilling } = useQuery<any[]>({
+    queryKey: ["/api/subscription/billing-history"],
   });
 
   if (isLoading) {
@@ -536,13 +541,84 @@ export default function Subscription() {
               <CardTitle>Billing History</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8">
-                <Calendar className="h-12 w-12 text-neutral-400 dark:text-gray-500 mx-auto mb-4" />
-                <p className="text-neutral-600 dark:text-gray-400">No billing history available.</p>
-                <p className="text-sm text-neutral-500 dark:text-gray-500 mt-2">
-                  Billing records will appear here once your subscription becomes active.
-                </p>
-              </div>
+              {isLoadingBilling ? (
+                <div className="flex items-center justify-center py-8">
+                  <LoadingSpinner size="md" />
+                </div>
+              ) : billingHistory && billingHistory.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Invoice Number</TableHead>
+                        <TableHead>Amount</TableHead>
+                        <TableHead>Payment Method</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Payment Date</TableHead>
+                        <TableHead>Due Date</TableHead>
+                        <TableHead>Period</TableHead>
+                        <TableHead>Description</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {billingHistory.map((payment) => (
+                        <TableRow key={payment.id}>
+                          <TableCell className="font-medium">{payment.invoiceNumber}</TableCell>
+                          <TableCell>
+                            {payment.currency} {parseFloat(payment.amount).toFixed(2)}
+                          </TableCell>
+                          <TableCell className="capitalize">{payment.paymentMethod.replace('_', ' ')}</TableCell>
+                          <TableCell>
+                            <Badge 
+                              variant="secondary"
+                              className={
+                                payment.paymentStatus === 'completed' 
+                                  ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300" 
+                                  : payment.paymentStatus === 'pending'
+                                  ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300"
+                                  : payment.paymentStatus === 'failed'
+                                  ? "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300"
+                                  : "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-300"
+                              }
+                            >
+                              {payment.paymentStatus.charAt(0).toUpperCase() + payment.paymentStatus.slice(1)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {payment.paymentDate 
+                              ? new Date(payment.paymentDate).toLocaleDateString()
+                              : '—'
+                            }
+                          </TableCell>
+                          <TableCell>
+                            {payment.dueDate 
+                              ? new Date(payment.dueDate).toLocaleDateString()
+                              : '—'
+                            }
+                          </TableCell>
+                          <TableCell>
+                            {payment.periodStart && payment.periodEnd
+                              ? `${new Date(payment.periodStart).toLocaleDateString()} - ${new Date(payment.periodEnd).toLocaleDateString()}`
+                              : '—'
+                            }
+                          </TableCell>
+                          <TableCell className="max-w-xs truncate">
+                            {payment.description || '—'}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Calendar className="h-12 w-12 text-neutral-400 dark:text-gray-500 mx-auto mb-4" />
+                  <p className="text-neutral-600 dark:text-gray-400">No billing history available.</p>
+                  <p className="text-sm text-neutral-500 dark:text-gray-500 mt-2">
+                    Billing records will appear here once your subscription becomes active.
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
