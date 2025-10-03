@@ -20,6 +20,11 @@ export default function ShiftsPage() {
   // Initialize time slot selection state
   const [selectedTimeSlots, setSelectedTimeSlots] = useState<number[]>([]);
   const [hasInitialized, setHasInitialized] = useState(false);
+  // Temporary storage for pending shifts before database save
+  const [pendingShifts, setPendingShifts] = useState<Array<{startTime: string, endTime: string}>>([]);
+  // Conflict modal state
+  const [showConflictModal, setShowConflictModal] = useState(false);
+  const [conflictingShifts, setConflictingShifts] = useState<any[]>([]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -39,6 +44,7 @@ export default function ShiftsPage() {
       setSelectedStartTime("");
       setSelectedEndTime("");
       setIsSelectingRange(false);
+      setPendingShifts([]);
     }
   }, [selectedStaffId]);
 
@@ -49,6 +55,7 @@ export default function ShiftsPage() {
     setSelectedStartTime("");
     setSelectedEndTime("");
     setIsSelectingRange(false);
+    setPendingShifts([]);
   }, [selectedDate]);
 
   // Refetch shifts when availability modal date changes
@@ -325,7 +332,7 @@ export default function ShiftsPage() {
     }
   };
 
-  // Handle time slot selection for shift range creation
+  // Handle time slot selection for shift range creation (stores temporarily, does not save to DB)
   const handleTimeSlotSelection = (slotValue: number) => {
     if (!selectedRole) {
       toast({
@@ -345,8 +352,6 @@ export default function ShiftsPage() {
       return;
     }
 
-
-    
     if (!selectedStartTime) {
       // First click - set start time and show only this slot as selected
       const timeSlot = `${Math.floor(slotValue / 100).toString().padStart(2, '0')}:00`;
@@ -358,7 +363,7 @@ export default function ShiftsPage() {
         description: `Start time set to ${timeSlot}. Now select end time.`,
       });
     } else if (!selectedEndTime) {
-      // Second click - set end time and create range  
+      // Second click - set end time and add to pending shifts  
       const startValue = parseInt(selectedStartTime.replace(':', ''));
       const endValue = slotValue;
       
@@ -381,8 +386,18 @@ export default function ShiftsPage() {
       setSelectedEndTime(endTimeSlot);
       setSelectedTimeSlots(range);
       
-      // Create the shift
-      handleCreateShift(selectedStartTime, endTimeSlot);
+      // Add to pending shifts instead of creating immediately
+      setPendingShifts(prev => [...prev, { startTime: selectedStartTime, endTime: endTimeSlot }]);
+      
+      toast({
+        title: "Shift Added",
+        description: `${selectedStartTime} - ${endTimeSlot} added to pending shifts. Click "Create Shift" to save.`,
+      });
+      
+      // Reset for next selection
+      setSelectedStartTime("");
+      setSelectedEndTime("");
+      setIsSelectingRange(false);
     } else {
       // Reset and start new selection
       const timeSlot = `${Math.floor(slotValue / 100).toString().padStart(2, '0')}:00`;
@@ -481,6 +496,81 @@ export default function ShiftsPage() {
       toast({
         title: "Delete Failed",
         description: "Failed to delete the shift. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Handle Create Shift button - check for conflicts and save
+  const handleSavePendingShifts = async () => {
+    if (pendingShifts.length === 0) {
+      toast({
+        title: "No Shifts to Save",
+        description: "Please select time slots first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const dateString = getLocalDateString(selectedDate);
+    const conflicts: any[] = [];
+
+    // Check each pending shift for conflicts
+    for (const pendingShift of pendingShifts) {
+      const existingShift = shifts.find((shift: any) => 
+        shift.staffId === parseInt(selectedStaffId) &&
+        shift.date === dateString &&
+        shift.startTime === pendingShift.startTime &&
+        shift.endTime === pendingShift.endTime &&
+        shift.status !== 'cancelled'
+      );
+
+      if (existingShift) {
+        conflicts.push(existingShift);
+      }
+    }
+
+    // If conflicts exist, show modal
+    if (conflicts.length > 0) {
+      setConflictingShifts(conflicts);
+      setShowConflictModal(true);
+      return;
+    }
+
+    // No conflicts - save all pending shifts
+    try {
+      for (const pendingShift of pendingShifts) {
+        const shiftData = {
+          staffId: parseInt(selectedStaffId),
+          date: dateString,
+          startTime: pendingShift.startTime,
+          endTime: pendingShift.endTime,
+          shiftType: "regular",
+          status: "scheduled",
+          isAvailable: true,
+          notes: `Scheduled ${pendingShift.startTime} - ${pendingShift.endTime} via shift management calendar`
+        };
+
+        const response = await apiRequest("POST", "/api/shifts", shiftData);
+        if (!response.ok) {
+          throw new Error(`Failed to create shift ${pendingShift.startTime} - ${pendingShift.endTime}`);
+        }
+      }
+
+      toast({
+        title: "Shifts Created",
+        description: `Successfully created ${pendingShifts.length} shift(s)`,
+      });
+
+      // Clear pending shifts and refresh
+      setPendingShifts([]);
+      setSelectedTimeSlots([]);
+      await queryClient.invalidateQueries({ queryKey: ["/api/shifts"] });
+      await refetchShifts();
+    } catch (error) {
+      toast({
+        title: "Creation Failed",
+        description: "Failed to create some shifts. Please try again.",
         variant: "destructive",
       });
     }
@@ -669,6 +759,19 @@ export default function ShiftsPage() {
                   className="w-full"
                 >
                   Mark Staff as Absent for Entire Day
+                </Button>
+              </div>
+
+              {/* Create Shift Button */}
+              <div className="flex justify-center">
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={handleSavePendingShifts}
+                  className="w-full bg-green-600 hover:bg-green-700"
+                  disabled={pendingShifts.length === 0}
+                >
+                  Create Shift {pendingShifts.length > 0 && `(${pendingShifts.length} pending)`}
                 </Button>
               </div>
               
@@ -1276,6 +1379,80 @@ export default function ShiftsPage() {
                   </div>
                 );
               })()}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Conflict Modal */}
+      {showConflictModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+            <div className="p-6 border-b dark:border-slate-600">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold text-red-600 dark:text-red-400">Shift Already Exists</h2>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setShowConflictModal(false);
+                    setConflictingShifts([]);
+                  }}
+                  className="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+                >
+                  ✕
+                </Button>
+              </div>
+            </div>
+            
+            <div className="p-6">
+              <p className="text-gray-700 dark:text-gray-300 mb-4">
+                The following shift(s) already exist in the database. Please select another date or time.
+              </p>
+
+              <div className="space-y-3">
+                {conflictingShifts.map((shift: any) => {
+                  const staffMember = staff.find((s: any) => s.id === shift.staffId);
+                  const staffName = staffMember 
+                    ? `${staffMember.role === 'doctor' ? 'Dr.' : ''} ${staffMember.firstName} ${staffMember.lastName}`
+                    : 'Unknown Staff';
+
+                  return (
+                    <div key={shift.id} className="border border-red-300 rounded-lg p-4 bg-red-50 dark:bg-red-900/20">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-lg font-medium text-red-800 dark:text-red-300">{staffName}</h3>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          shift.status === 'scheduled' ? 'bg-green-100 text-green-800' :
+                          shift.status === 'completed' ? 'bg-gray-100 text-gray-800' :
+                          'bg-red-100 text-red-800'
+                        }`}>
+                          {shift.status.toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="text-sm text-red-700 dark:text-red-400">
+                        <p><strong>Date:</strong> {new Date(shift.date).toLocaleDateString()}</p>
+                        <p><strong>Time:</strong> {shift.startTime} - {shift.endTime}</p>
+                        <p><strong>Type:</strong> {shift.shiftType.replace('_', ' ').toUpperCase()}</p>
+                        {shift.notes && <p><strong>Notes:</strong> {shift.notes}</p>}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="mt-6 flex justify-end">
+                <Button
+                  variant="default"
+                  onClick={() => {
+                    setShowConflictModal(false);
+                    setConflictingShifts([]);
+                    setPendingShifts([]);
+                    setSelectedTimeSlots([]);
+                  }}
+                >
+                  Close and Select Another Time
+                </Button>
+              </div>
             </div>
           </div>
         </div>
