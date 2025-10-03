@@ -5457,13 +5457,19 @@ Coverage Details: [Insurance Coverage]`;
               style={{ width: "700px", maxWidth: "700px" }}
             >
               <div className="p-6">
-                <textarea
-                  ref={(el) => setTextareaRef(el as any)}
+                <div
+                  ref={(el) => {
+                    if (el && el.innerHTML !== documentContent) {
+                      el.innerHTML = documentContent;
+                    }
+                    setTextareaRef(el as any);
+                  }}
                   id="document-content-area"
-                  value={documentContent}
-                  onChange={(e) => setDocumentContent(e.target.value)}
-                  placeholder="Start typing your document here..."
-                  className="w-full border-none outline-none text-[hsl(var(--cura-midnight))] dark:text-white leading-normal bg-transparent focus:outline-none resize-none"
+                  contentEditable
+                  onInput={(e) => setDocumentContent(e.currentTarget.innerHTML)}
+                  suppressContentEditableWarning
+                  data-placeholder="Start typing your document here..."
+                  className="w-full border-none outline-none text-[hsl(var(--cura-midnight))] dark:text-white leading-normal bg-transparent focus:outline-none [&:empty]:before:content-[attr(data-placeholder)] [&:empty]:before:text-gray-400"
                   style={{
                     fontSize: fontSize,
                     lineHeight: "1.6",
