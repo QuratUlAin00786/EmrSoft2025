@@ -4348,9 +4348,9 @@ Coverage Details: [Insurance Coverage]`;
     const fontFamilyCSS = getFontFamilyCSS(fontFamilyValue);
 
     try {
-      // Create a new span with the font family applied using inline style
+      // Create a new span with the font family applied using inline style with !important
       const span = document.createElement("span");
-      span.style.fontFamily = fontFamilyCSS;
+      span.style.setProperty('font-family', fontFamilyCSS, 'important');
       span.textContent = selectedText;
 
       // Replace the selected content with the new span
