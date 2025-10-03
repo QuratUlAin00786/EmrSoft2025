@@ -1567,6 +1567,7 @@ Coverage Details: [Insurance Coverage]`;
       
       if (textareaRef) {
         setDocumentContent(textareaRef.innerHTML);
+        textareaRef.focus();
       }
 
       toast({
@@ -1636,8 +1637,15 @@ Coverage Details: [Insurance Coverage]`;
         console.log("Updated content after italic:", updatedContent);
       }
 
-      // Clear selection
+      // Keep the text selected - select the newly created span
+      const newRange = document.createRange();
+      newRange.selectNodeContents(span);
       selection.removeAllRanges();
+      selection.addRange(newRange);
+
+      if (textareaRef) {
+        textareaRef.focus();
+      }
 
       toast({
         title: "✓ Italic Applied",
@@ -1691,8 +1699,15 @@ Coverage Details: [Insurance Coverage]`;
       setDocumentContent(textareaRef.innerHTML);
     }
 
-    // Clear selection
+    // Keep the text selected - select the newly created span
+    const newRange = document.createRange();
+    newRange.selectNodeContents(span);
     selection.removeAllRanges();
+    selection.addRange(newRange);
+
+    if (textareaRef) {
+      textareaRef.focus();
+    }
 
     toast({
       title: "✓ Underline Applied",
@@ -4354,8 +4369,12 @@ Coverage Details: [Insurance Coverage]`;
         console.log("Updated content:", updatedContent);
       }
 
-      // Clear selection and refocus
+      // Keep the text selected - select the newly created span
+      const newRange = document.createRange();
+      newRange.selectNodeContents(span);
       selection.removeAllRanges();
+      selection.addRange(newRange);
+
       if (textareaRef) {
         textareaRef.focus();
       }
