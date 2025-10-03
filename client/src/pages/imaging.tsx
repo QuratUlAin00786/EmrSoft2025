@@ -406,47 +406,6 @@ export default function ImagingPage() {
     return medicalImagesRaw;
   }, [medicalImagesRaw, user?.role, currentPatient]);
 
-  // Check if report files exist on server and hide "Saved Reports" if file doesn't exist
-  useEffect(() => {
-    const checkReportFilesExist = async () => {
-      for (const study of medicalImages) {
-        if (study.reportFileName && !deletedStudyIds.has(String(study.id))) {
-          try {
-            const reportId = study.reportFileName.replace(".pdf", "");
-            const token = localStorage.getItem("auth_token");
-            const headers: Record<string, string> = {
-              'X-Tenant-Subdomain': getActiveSubdomain()
-            };
-            
-            if (token) {
-              headers["Authorization"] = `Bearer ${token}`;
-            }
-            
-            const response = await fetch(`/api/imaging/reports/${reportId}`, {
-              method: "GET",
-              headers,
-              credentials: "include",
-            });
-            
-            if (!response.ok) {
-              // File doesn't exist on server, add to deletedStudyIds to hide "Saved Reports"
-              setDeletedStudyIds(prev => new Set(prev).add(String(study.id)));
-              console.log(`File not existing on server for study ${study.id}: ${study.reportFileName}`);
-            }
-          } catch (error) {
-            // If there's an error checking, assume file doesn't exist
-            setDeletedStudyIds(prev => new Set(prev).add(String(study.id)));
-            console.error(`Error checking file existence for study ${study.id}:`, error);
-          }
-        }
-      }
-    };
-
-    if (medicalImages.length > 0) {
-      checkReportFilesExist();
-    }
-  }, [medicalImages]);
-
   // Derive selectedStudy from React Query cache (single source of truth)
   const selectedStudy = useMemo<ImagingStudy | null>(() => {
     if (!selectedStudyId) return null;
