@@ -161,11 +161,11 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
   const [editAppointmentDate, setEditAppointmentDate] = useState<Date | undefined>(undefined);
   const [editSelectedTimeSlot, setEditSelectedTimeSlot] = useState<string>("");
 
-  // Generate 24/7 time slots based on selected duration (15, 30, or 60 minutes)
+  // Generate 24/7 time slots at 15-minute intervals (regardless of appointment duration)
   const generate24HourTimeSlots = (durationInMinutes: number) => {
     const slots = [];
     for (let hour = 0; hour < 24; hour++) {
-      for (let minute = 0; minute < 60; minute += durationInMinutes) {
+      for (let minute = 0; minute < 60; minute += 15) {
         const hour12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
         const period = hour < 12 ? 'AM' : 'PM';
         const timeString = `${hour12}:${minute.toString().padStart(2, '0')} ${period}`;

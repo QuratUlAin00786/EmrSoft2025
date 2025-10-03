@@ -1,0 +1,101 @@
+staff time 9:00am to 5:00pm. when i select time slot with time duration, 15mins of 9:00am . then when i change time duration 30 mins its showing 9:30am (missing 9:15 to 9:30 time slot) make a strategy when when i select 30 mins appointment  duration then start form 9:15 not from 9:30. please resolve this prolem. its exist on 1 hour slot also. please tell me how to fix this issue.
+ChatGPT said:
+
+Got it 👍 You’ve run into a time slot alignment problem.
+
+Right now your logic is probably generating slots like this:
+
+If 15 min → 09:00, 09:15, 09:30, 09:45 ...
+
+If 30 min → 09:00, 09:30, 10:00 ...
+
+If 1 hr → 09:00, 10:00, 11:00 ...
+
+👉 But the issue:
+If the user first selects 9:00 with 15 mins (so 09:00–09:15 is booked), and then switches to 30 mins, your code starts from 09:30, skipping 09:15–09:45.
+
+That’s because your slot generator is probably locked to fixed intervals starting at 9:00, not from the actual selected time.
+
+✅ Strategy to Fix
+
+You need to recalculate slots relative to the selected start time instead of only anchoring to shift_start.
+
+Example
+
+Staff shift: 09:00 – 17:00.
+
+If I select 9:00 with 15 mins → booked 09:00–09:15.
+
+If I now switch to 30 mins, available slots should be recalculated like:
+
+Next possible = 09:15–09:45 ✅
+
+Then 09:30–10:00 ❌ (overlaps booked).
+
+Continue until shift end.
+
+✅ Implementation Fix
+
+Modify your slot generator function. Right now you might have something like:
+
+while (current < endTime) {
+  let next = new Date(current.getTime() + durationMinutes * 60000);
+  slots.push({ start: current, end: next });
+  current = next;
+}
+
+
+This always increments by durationMinutes. Instead:
+
+🔹 Solution
+
+Generate all smallest unit slots (e.g., 15 mins).
+
+When the user selects 30 mins or 1 hr, merge consecutive 15-min slots starting from the next available slot.
+
+Example Code (TypeScript)
+function generateSlots(start: string, end: string, baseDuration = 15) {
+  const slots: { start: string; end: string }[] = [];
+  let current = new Date(`2025-10-03T${start}:00`);
+  const endTime = new Date(`2025-10-03T${end}:00`);
+
+  while (current < endTime) {
+    let next = new Date(current.getTime() + baseDuration * 60000);
+    if (next <= endTime) {
+      slots.push({
+        start: current.toTimeString().slice(0,5),
+        end: next.toTimeString().slice(0,5)
+      });
+    }
+    current = next;
+  }
+  return slots;
+}
+
+// Merge function for larger durations
+function mergeSlots(slots, durationMinutes) {
+  const groupSize = durationMinutes / 15; // 2 for 30min, 4 for 1hr
+  const merged = [];
+
+  for (let i = 0; i <= slots.length - groupSize; i++) {
+    const group = slots.slice(i, i + groupSize);
+    merged.push({
+      start: group[0].start,
+      end: group[group.length - 1].end
+    });
+  }
+  return merged;
+}
+
+// Usage:
+const baseSlots = generateSlots("09:00", "17:00"); // always 15-min
+const slots30 = mergeSlots(baseSlots, 30); // 30-min slots starting from every 15-min
+const slots60 = mergeSlots(baseSlots, 60); // 1hr slots starting from every 15-min
+
+✅ Result
+
+15 min slots: 09:00–09:15, 09:15–09:30, …
+
+30 min slots: 09:00–09:30, 09:15–09:45, 09:30–10:00, … (no gap at 09:15).
+
+1 hr slots: 09:00–10:00, 09:15–10:15, 09:30–10:30, …
