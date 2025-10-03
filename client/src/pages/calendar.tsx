@@ -175,6 +175,9 @@ export default function CalendarPage() {
   const [filterDoctor, setFilterDoctor] = useState("");
   const [filterDate, setFilterDate] = useState<Date | undefined>(undefined);
   const [filteredAppointments, setFilteredAppointments] = useState<any[]>([]);
+  
+  // Calendar view state
+  const [calendarView, setCalendarView] = useState<"month" | "week" | "day">("month");
   const [bookingForm, setBookingForm] = useState({
     patientId: "",
     title: "",
@@ -718,43 +721,84 @@ export default function CalendarPage() {
       />
       
       <div className="flex-1 overflow-auto p-6">
-        <div className="mb-6 flex justify-between items-center">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-gray-900 dark:text-white" />
-              Calendar & Scheduling
+        <div className="mb-6">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+              <Calendar className="h-6 w-6 text-gray-900 dark:text-white" />
+              Appointment Calendar
+            </h2>
+            <div className="flex items-center gap-2">
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
-                onClick={() => {
-                  setShowFilterPanel(!showFilterPanel);
-                  if (showFilterPanel) {
-                    // Reset filter when closing
-                    setFilterSpecialty("");
-                    setFilterSubSpecialty("");
-                    setFilterDoctor("");
-                    setFilterDate(undefined);
-                    setFilteredAppointments([]);
-                  }
-                }}
-                className="ml-2"
-                data-testid="button-filter-appointments"
+                onClick={() => queryClient.invalidateQueries({ queryKey: ["/api/appointments"] })}
+                className="bg-white dark:bg-gray-800"
               >
-                {showFilterPanel ? (
-                  <FilterX className="h-4 w-4" />
-                ) : (
-                  <Filter className="h-4 w-4" />
-                )}
+                Refresh
               </Button>
-            </h3>
-            <p className="text-sm text-neutral-600 dark:text-neutral-300">
-              {showFilterPanel 
-                ? "Use filters to find specific appointments by doctor, specialty, or date."
-                : "View appointments, manage schedules, and book new consultations."
-              }
-            </p>
+              <Button
+                variant={calendarView === "month" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setCalendarView("month")}
+                className={calendarView === "month" ? "" : "bg-white dark:bg-gray-800"}
+              >
+                Month
+              </Button>
+              <Button
+                variant={calendarView === "week" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setCalendarView("week")}
+                className={calendarView === "week" ? "" : "bg-white dark:bg-gray-800"}
+              >
+                Week
+              </Button>
+              <Button
+                variant={calendarView === "day" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setCalendarView("day")}
+                className={calendarView === "day" ? "" : "bg-white dark:bg-gray-800"}
+              >
+                Day
+              </Button>
+            </div>
           </div>
-       
+          
+          <div className="flex justify-between items-center">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                Calendar & Scheduling
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setShowFilterPanel(!showFilterPanel);
+                    if (showFilterPanel) {
+                      // Reset filter when closing
+                      setFilterSpecialty("");
+                      setFilterSubSpecialty("");
+                      setFilterDoctor("");
+                      setFilterDate(undefined);
+                      setFilteredAppointments([]);
+                    }
+                  }}
+                  className="ml-2"
+                  data-testid="button-filter-appointments"
+                >
+                  {showFilterPanel ? (
+                    <FilterX className="h-4 w-4" />
+                  ) : (
+                    <Filter className="h-4 w-4" />
+                  )}
+                </Button>
+              </h3>
+              <p className="text-sm text-neutral-600 dark:text-neutral-300">
+                {showFilterPanel 
+                  ? "Use filters to find specific appointments by doctor, specialty, or date."
+                  : "View appointments, manage schedules, and book new consultations."
+                }
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Filter Panel */}
