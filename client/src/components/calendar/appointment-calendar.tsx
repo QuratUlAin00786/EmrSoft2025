@@ -142,6 +142,16 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
   const [showConsultationNotes, setShowConsultationNotes] = useState(false);
   // State for Full Consultation interface
   const [showFullConsultation, setShowFullConsultation] = useState(false);
+  // State for new appointment modal
+  const [showNewAppointment, setShowNewAppointment] = useState(false);
+  const [newAppointmentDate, setNewAppointmentDate] = useState<Date | undefined>(undefined);
+  const [newSelectedTimeSlot, setNewSelectedTimeSlot] = useState<string>("");
+  const [newAppointmentData, setNewAppointmentData] = useState<any>({
+    title: "",
+    type: "consultation",
+    patientId: "",
+    description: "",
+  });
   // State for edit appointment modal
   const [showEditAppointment, setShowEditAppointment] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<any>(null);
@@ -212,6 +222,32 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
       toast({
         title: "Delete Failed",
         description: "Failed to delete the appointment. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Create appointment mutation
+  const createAppointmentMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await apiRequest("POST", "/api/appointments", data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
+      setShowNewAppointment(false);
+      setNewAppointmentDate(undefined);
+      setNewSelectedTimeSlot("");
+      toast({
+        title: "Appointment Created",
+        description: "The appointment has been successfully created.",
+      });
+    },
+    onError: (error) => {
+      console.error("Create appointment error:", error);
+      toast({
+        title: "Creation Failed",
+        description: "Failed to create the appointment. Please try again.",
         variant: "destructive",
       });
     },
@@ -657,7 +693,13 @@ Medical License: [License Number]
             </Button>
             {canCreateAppointments() && (
               <Button 
-                onClick={() => onNewAppointment?.()}
+                onClick={() => {
+                  if (user?.role === 'admin') {
+                    setShowNewAppointment(true);
+                  } else {
+                    onNewAppointment?.();
+                  }
+                }}
                 className="flex items-center gap-2"
                 data-testid="button-new-appointment"
               >
@@ -1150,6 +1192,218 @@ Medical License: [License Number]
           onOpenChange={setShowFullConsultation}
         />
       )}
+
+      {/* New Appointment Dialog */}
+      <Dialog open={showNewAppointment} onOpenChange={setShowNewAppointment}>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+          <div className="p-2">
+            <DialogHeader className="mb-6">
+              <DialogTitle className="text-xl font-bold text-blue-800">
+                Create New Appointment
+              </DialogTitle>
+              <DialogDescription>
+                Fill in the details to create a new appointment
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-6">
+              {/* Patient Selection */}
+              <div>
+                <Label className="text-sm font-medium text-gray-600">Patient</Label>
+                <Select 
+                  value={newAppointmentData.patientId}
+                  onValueChange={(value) => {
+                    setNewAppointmentData({ ...newAppointmentData, patientId: value });
+                  }}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select a patient" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {patientsData && patientsData.map((patient: any) => (
+                      <SelectItem key={patient.id} value={patient.id.toString()}>
+                        {patient.firstName} {patient.lastName} ({patient.patientId})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Title and Type Row */}
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Title</Label>
+                  <Input 
+                    value={newAppointmentData.title}
+                    onChange={(e) => {
+                      setNewAppointmentData({ ...newAppointmentData, title: e.target.value });
+                    }}
+                    placeholder="Appointment title"
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Type</Label>
+                  <Select 
+                    value={newAppointmentData.type}
+                    onValueChange={(value) => {
+                      setNewAppointmentData({ ...newAppointmentData, type: value });
+                    }}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="consultation">Consultation</SelectItem>
+                      <SelectItem value="follow_up">Follow-up</SelectItem>
+                      <SelectItem value="procedure">Procedure</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Date and Time Selection - Side by Side Layout */}
+              <div className="grid grid-cols-2 gap-8">
+                {/* Date Selection */}
+                <div>
+                  <Label className="text-lg font-semibold text-gray-800 mb-3 block">Select Date</Label>
+                  <div className="border rounded-lg p-4 bg-gray-50">
+                    <CalendarComponent
+                      mode="single"
+                      selected={newAppointmentDate}
+                      onSelect={(date) => {
+                        setNewAppointmentDate(date);
+                      }}
+                      className="rounded-md"
+                      initialFocus
+                    />
+                  </div>
+                </div>
+
+                {/* Time Slot Selection */}
+                <div>
+                  <Label className="text-lg font-semibold text-gray-800 mb-3 block">Select Time Slot</Label>
+                  <div className="border rounded-lg p-4 bg-gray-50 h-[300px] overflow-y-auto">
+                    <div className="grid grid-cols-2 gap-2">
+                      {timeSlots.map((slot) => {
+                        const isAvailable = newAppointmentDate ? isTimeSlotAvailable(newAppointmentDate, slot) : true;
+                        const isSelected = newSelectedTimeSlot === slot;
+                        
+                        return (
+                          <Button
+                            key={slot}
+                            variant={isSelected ? "default" : "outline"}
+                            className={`h-12 text-sm font-medium ${
+                              !isAvailable 
+                                ? "bg-gray-200 text-gray-400 cursor-not-allowed" 
+                                : isSelected 
+                                  ? "bg-green-500 hover:bg-green-600 text-white border-green-500" 
+                                  : "hover:bg-green-50 hover:border-green-300 bg-white"
+                            }`}
+                            disabled={!isAvailable}
+                            onClick={() => {
+                              setNewSelectedTimeSlot(slot);
+                            }}
+                          >
+                            {slot}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Description */}
+              <div>
+                <Label className="text-sm font-medium text-gray-600">Description</Label>
+                <Textarea 
+                  value={newAppointmentData.description || ''}
+                  onChange={(e) => {
+                    setNewAppointmentData({ ...newAppointmentData, description: e.target.value });
+                  }}
+                  className="mt-1"
+                  rows={3}
+                  placeholder="Add appointment notes or description..."
+                />
+              </div>
+
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowNewAppointment(false);
+                    setNewAppointmentDate(undefined);
+                    setNewSelectedTimeSlot("");
+                    setNewAppointmentData({
+                      title: "",
+                      type: "consultation",
+                      patientId: "",
+                      description: "",
+                    });
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => {
+                    if (!newAppointmentData.patientId) {
+                      toast({
+                        title: "Missing Information",
+                        description: "Please select a patient.",
+                        variant: "destructive",
+                      });
+                      return;
+                    }
+                    if (!newAppointmentDate || !newSelectedTimeSlot) {
+                      toast({
+                        title: "Missing Information",
+                        description: "Please select both date and time slot.",
+                        variant: "destructive",
+                      });
+                      return;
+                    }
+                    if (!newAppointmentData.title) {
+                      toast({
+                        title: "Missing Information",
+                        description: "Please enter an appointment title.",
+                        variant: "destructive",
+                      });
+                      return;
+                    }
+                    
+                    // Create new datetime without timezone conversion
+                    const selectedDate = format(newAppointmentDate, 'yyyy-MM-dd');
+                    const [time, period] = newSelectedTimeSlot.split(' ');
+                    const [hours, minutes] = time.split(':');
+                    let hour24 = parseInt(hours);
+                    
+                    if (period === 'PM' && hour24 !== 12) {
+                      hour24 += 12;
+                    } else if (period === 'AM' && hour24 === 12) {
+                      hour24 = 0;
+                    }
+                    
+                    const newScheduledAt = `${selectedDate}T${hour24.toString().padStart(2, '0')}:${minutes}:00.000Z`;
+                    
+                    createAppointmentMutation.mutate({
+                      patientId: parseInt(newAppointmentData.patientId),
+                      title: newAppointmentData.title,
+                      type: newAppointmentData.type,
+                      status: "scheduled",
+                      scheduledAt: newScheduledAt,
+                      description: newAppointmentData.description,
+                    });
+                  }}
+                  disabled={createAppointmentMutation.isPending}
+                >
+                  {createAppointmentMutation.isPending ? "Creating..." : "Create Appointment"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Appointment Dialog */}
       <Dialog open={showEditAppointment} onOpenChange={setShowEditAppointment}>
