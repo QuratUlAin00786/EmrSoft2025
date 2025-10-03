@@ -2247,13 +2247,14 @@ export default function PrescriptionsPage() {
                                 genericAllowed: med.genericAllowed,
                               }));
                             
-                            // Get the selected user ID (now directly from formData.providerId since it's the user ID)
-                            const prescriptionCreatedBy = parseInt(formData.providerId);
+                            // Get the selected provider ID and the logged-in user ID
+                            const selectedProviderId = parseInt(formData.providerId);
+                            const loggedInUserId = user?.id;
                             
                             const prescriptionData = {
                               patientId: parseInt(formData.patientId),
-                              providerId: prescriptionCreatedBy, // Use the same value for backward compatibility
-                              prescriptionCreatedBy: prescriptionCreatedBy,
+                              providerId: selectedProviderId,
+                              prescriptionCreatedBy: loggedInUserId,
                               diagnosis: formData.diagnosis.trim(),
                               pharmacy: {
                                 name: formData.pharmacyName.trim(),
