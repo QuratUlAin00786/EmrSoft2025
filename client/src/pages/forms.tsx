@@ -4141,218 +4141,37 @@ Coverage Details: [Insurance Coverage]`;
       return;
     }
 
-    const selection = window.getSelection();
-    let selectedText = "";
-    let range: Range | undefined;
-
-    // Check if text is selected
-    if (selection && selection.rangeCount > 0) {
-      range = selection.getRangeAt(0);
-      selectedText = range.toString();
-    }
-
-    console.log("Selection:", { selectedText });
-
-    // If no text selected, insert placeholder text at cursor
-    if (!selectedText.trim()) {
-      const placeholder =
-        formatType === "heading1"
-          ? "Heading 1"
-          : formatType === "heading2"
-            ? "Heading 2"
-            : formatType === "heading3"
-              ? "Heading 3"
-              : formatType === "heading4"
-                ? "Heading 4"
-                : formatType === "heading5"
-                  ? "Heading 5"
-                  : formatType === "heading6"
-                    ? "Heading 6"
-                    : "Paragraph text";
-
-      if (selection && selection.rangeCount > 0) {
-        range = selection.getRangeAt(0);
-      } else {
-        // Create a range at the end of the content
-        range = document.createRange();
-        range.selectNodeContents(textareaRef);
-        range.collapse(false);
-        selection?.removeAllRanges();
-        selection?.addRange(range);
-      }
-
-      selectedText = placeholder;
-    }
-
-    // Create appropriate element based on format type
-    let element: HTMLElement;
-
-    // Get the current font family from the parent editor
-    const currentFontFamily = textareaRef.style.fontFamily || fontFamily;
-
-    switch (formatType) {
-      case "heading1":
-        element = document.createElement("h1");
-        element.style.setProperty("font-size", "24px", "important");
-        element.style.setProperty("font-weight", "bold", "important");
-        element.style.setProperty("color", "#1a1a1a", "important");
-        element.style.setProperty("margin", "0", "important");
-        element.style.setProperty("line-height", "1.2", "important");
-        element.style.setProperty("display", "inline", "important");
-        element.style.setProperty(
-          "font-family",
-          currentFontFamily,
-          "important",
-        );
-        break;
-      case "heading2":
-        element = document.createElement("h2");
-        element.style.setProperty("font-size", "20px", "important");
-        element.style.setProperty("font-weight", "bold", "important");
-        element.style.setProperty("color", "#2a2a2a", "important");
-        element.style.setProperty("margin", "0", "important");
-        element.style.setProperty("line-height", "1.3", "important");
-        element.style.setProperty("display", "inline", "important");
-        element.style.setProperty(
-          "font-family",
-          currentFontFamily,
-          "important",
-        );
-        break;
-      case "heading3":
-        element = document.createElement("h3");
-        element.style.setProperty("font-size", "18px", "important");
-        element.style.setProperty("font-weight", "bold", "important");
-        element.style.setProperty("color", "#2a2a2a", "important");
-        element.style.setProperty("margin", "0", "important");
-        element.style.setProperty("line-height", "1.4", "important");
-        element.style.setProperty("display", "inline", "important");
-        element.style.setProperty(
-          "font-family",
-          currentFontFamily,
-          "important",
-        );
-        break;
-      case "heading4":
-        element = document.createElement("h4");
-        element.style.setProperty("font-size", "16px", "important");
-        element.style.setProperty("font-weight", "bold", "important");
-        element.style.setProperty("color", "#3a3a3a", "important");
-        element.style.setProperty("margin", "0", "important");
-        element.style.setProperty("line-height", "1.5", "important");
-        element.style.setProperty("display", "inline", "important");
-        element.style.setProperty(
-          "font-family",
-          currentFontFamily,
-          "important",
-        );
-        break;
-      case "heading5":
-        element = document.createElement("h5");
-        element.style.setProperty("font-size", "14px", "important");
-        element.style.setProperty("font-weight", "bold", "important");
-        element.style.setProperty("color", "#3a3a3a", "important");
-        element.style.setProperty("margin", "0", "important");
-        element.style.setProperty("line-height", "1.5", "important");
-        element.style.setProperty("display", "inline", "important");
-        element.style.setProperty(
-          "font-family",
-          currentFontFamily,
-          "important",
-        );
-        break;
-      case "heading6":
-        element = document.createElement("h6");
-        element.style.setProperty("font-size", "12px", "important");
-        element.style.setProperty("font-weight", "bold", "important");
-        element.style.setProperty("color", "#4a4a4a", "important");
-        element.style.setProperty("margin", "0", "important");
-        element.style.setProperty("line-height", "1.6", "important");
-        element.style.setProperty("display", "inline", "important");
-        element.style.setProperty(
-          "font-family",
-          currentFontFamily,
-          "important",
-        );
-        break;
-      default: // paragraph
-        element = document.createElement("p");
-        element.style.setProperty("font-size", "14px", "important");
-        element.style.setProperty("font-weight", "normal", "important");
-        element.style.setProperty("margin", "0", "important");
-        element.style.setProperty("line-height", "1.6", "important");
-        element.style.setProperty("display", "inline", "important");
-        element.style.setProperty(
-          "font-family",
-          currentFontFamily,
-          "important",
-        );
-        break;
-    }
-
-    // Set text content
-    element.textContent = selectedText;
-
-    // Insert the new element
-    if (range) {
-      try {
-        // Delete selected content if any
-        if (
-          selectedText !==
-          (formatType === "heading1"
-            ? "Heading 1"
-            : formatType === "heading2"
-              ? "Heading 2"
-              : "Paragraph text")
-        ) {
-          range.deleteContents();
-        }
-
-        // Insert the new element
-        range.insertNode(element);
-
-        // Add a line break after the element for better formatting
-        const br = document.createElement("br");
-        range.setStartAfter(element);
-        range.insertNode(br);
-
-        // Position cursor after the new element
-        range.setStartAfter(br);
-        range.collapse(true);
-
-        // Update selection
-        selection?.removeAllRanges();
-        selection?.addRange(range);
-
-        // Update document content
+    try {
+      // Use document.execCommand for heading formatting
+      const formatTag = formatType === "paragraph" ? "p" : formatType.replace("heading", "h");
+      document.execCommand('formatBlock', false, `<${formatTag}>`);
+      
+      if (textareaRef) {
         setDocumentContent(textareaRef.innerHTML);
-
-        // Focus the editor
-        textareaRef.focus();
-
-        const titles = {
-          paragraph: "✓ Paragraph",
-          heading1: "✓ Heading 1",
-          heading2: "✓ Heading 2",
-          heading3: "✓ Heading 3",
-          heading4: "✓ Heading 4",
-          heading5: "✓ Heading 5",
-          heading6: "✓ Heading 6",
-        };
-
-        toast({
-          title: titles[formatType],
-          description: `${formatType} formatting applied successfully`,
-          duration: 2000,
-        });
-      } catch (error) {
-        console.error("Error applying text formatting:", error);
-        toast({
-          title: "Formatting Error",
-          description: "Failed to apply text formatting. Please try again.",
-          duration: 3000,
-        });
       }
+
+      const titles = {
+        paragraph: "✓ Paragraph",
+        heading1: "✓ Heading 1",
+        heading2: "✓ Heading 2",
+        heading3: "✓ Heading 3",
+        heading4: "✓ Heading 4",
+        heading5: "✓ Heading 5",
+        heading6: "✓ Heading 6",
+      };
+
+      toast({
+        title: titles[formatType],
+        description: `${formatType} formatting applied successfully`,
+        duration: 2000,
+      });
+    } catch (error) {
+      console.error("Error applying text formatting:", error);
+      toast({
+        title: "Formatting Error",
+        description: "Failed to apply text formatting. Please try again.",
+        duration: 3000,
+      });
     }
   };
 
@@ -4488,22 +4307,11 @@ Coverage Details: [Insurance Coverage]`;
 
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0) {
-      // No selection, insert sample text
-      const placeholder = `Sample text in ${fontFamilyValue}`;
-      if (textareaRef) {
-        textareaRef.focus();
-        const content = textareaRef.value;
-        const newContent =
-          content + (content.endsWith("\n") ? "" : "\n") + placeholder;
-        textareaRef.value = newContent;
-        setDocumentContent(newContent);
-
-        toast({
-          title: "✓ Font Applied",
-          description: `Font family changed to ${fontFamilyValue} with sample text`,
-          duration: 2000,
-        });
-      }
+      toast({
+        title: "Select Text",
+        description: "Please select text to change font family",
+        duration: 2000,
+      });
       return;
     }
 
@@ -4513,18 +4321,9 @@ Coverage Details: [Insurance Coverage]`;
     console.log("Font family selection:", { selectedText, fontFamilyValue });
 
     if (!selectedText) {
-      // No text selected, insert sample text at cursor
-      const placeholder = `Sample text in ${fontFamilyValue}`;
-      const textNode = document.createTextNode(placeholder);
-      range.insertNode(textNode);
-
-      if (textareaRef) {
-        setDocumentContent(textareaRef.innerHTML);
-      }
-
       toast({
-        title: "✓ Font Applied",
-        description: `Font family changed to ${fontFamilyValue} with sample text`,
+        title: "Select Text",
+        description: "Please select text to change font family",
         duration: 2000,
       });
       return;
@@ -4534,55 +4333,17 @@ Coverage Details: [Insurance Coverage]`;
     const fontFamilyCSS = getFontFamilyCSS(fontFamilyValue);
 
     try {
-      // Check if selection is within an existing font-family span
-      const startContainer = range.startContainer;
-      const parentElement =
-        startContainer.nodeType === Node.TEXT_NODE
-          ? startContainer.parentElement
-          : startContainer;
+      // Create a new span with the font family applied using inline style
+      const span = document.createElement("span");
+      span.style.fontFamily = fontFamilyCSS;
+      span.textContent = selectedText;
 
-      // Look for an existing font-family span that contains our selection
-      let existingFontSpan = null;
-      let current = parentElement;
-      while (current && current !== textareaRef) {
-        if (
-          current instanceof HTMLElement &&
-          current.style &&
-          current.style.fontFamily
-        ) {
-          // Check if this span completely contains our selection
-          const spanText = current.textContent || "";
-          const selectionText = selectedText;
-          if (spanText === selectionText || spanText.includes(selectionText)) {
-            existingFontSpan = current;
-            break;
-          }
-        }
-        current = current.parentElement;
-      }
-
-      if (existingFontSpan) {
-        // Update existing span's font family instead of creating nested span
-        const fontClass = getFontClass(fontFamilyValue);
-        existingFontSpan.className = fontClass;
-        existingFontSpan.removeAttribute("style");
-        existingFontSpan.removeAttribute("data-font-family");
-        console.log("Updated existing span with class:", fontClass);
-      } else {
-        // Create a new span with the font family applied
-        const span = document.createElement("span");
-        const fontClass = getFontClass(fontFamilyValue);
-        span.className = fontClass;
-        span.textContent = selectedText;
-
-        // Replace the selected content with the new span
-        range.deleteContents();
-        range.insertNode(span);
-        console.log("Created new font span with class:", fontClass);
-      }
-
-      console.log("Applied font class:", {
-        fontClass: getFontClass(fontFamilyValue),
+      // Replace the selected content with the new span
+      range.deleteContents();
+      range.insertNode(span);
+      
+      console.log("Applied font family:", {
+        fontFamily: fontFamilyCSS,
         selectedText,
       });
 
