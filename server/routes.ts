@@ -5056,7 +5056,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 .from(medicationsDatabase)
                 .where(and(
                   eq(medicationsDatabase.organizationId, req.tenant!.id),
-                  sql`LOWER(${medicationsDatabase.name}) = LOWER(${med1.name})`
+                  sql`lower(${medicationsDatabase.name}) = lower(${sql.raw(`'${med1.name.replace(/'/g, "''")}'`)})`
                 ));
               
               if (medication1 && medication1.interactions) {
