@@ -81,7 +81,7 @@ export default function Subscription() {
   });
 
   const { data: packages, isLoading: isLoadingPackages } = useQuery<any[]>({
-    queryKey: ["/api/saas/packages"],
+    queryKey: ["/api/subscription/packages"],
   });
 
   if (isLoading) {
@@ -267,9 +267,9 @@ export default function Subscription() {
               <div className="flex items-center justify-center py-8">
                 <LoadingSpinner size="md" />
               </div>
-            ) : packages && packages.filter(pkg => pkg.showOnWebsite).length > 0 ? (
+            ) : packages && packages.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {packages.filter(pkg => pkg.showOnWebsite).map((pkg) => (
+                {packages.map((pkg) => (
                   <Card key={pkg.id} className="relative hover:shadow-lg transition-shadow border border-neutral-200 dark:border-slate-600">
                     <CardHeader className="pb-4">
                       <div className="flex items-center justify-between mb-3">

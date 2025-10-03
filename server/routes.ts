@@ -4559,6 +4559,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get public packages (show_on_website = true) - accessible to all authenticated users
+  app.get("/api/subscription/packages", authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const allPackages = await storage.getAllPackages();
+      const publicPackages = allPackages.filter(pkg => pkg.showOnWebsite);
+      res.json(publicPackages);
+    } catch (error) {
+      console.error("Public packages fetch error:", error);
+      res.status(500).json({ error: "Failed to fetch packages" });
+    }
+  });
+
   // AI insights routes
   app.post("/api/ai/analyze-patient/:id", requireRole(["doctor", "nurse"]), async (req: TenantRequest, res) => {
     try {
