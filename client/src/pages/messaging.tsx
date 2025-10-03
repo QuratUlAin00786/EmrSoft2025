@@ -144,6 +144,8 @@ export default function MessagingPage() {
   const [videoCallPatientSearch, setVideoCallPatientSearch] = useState<string>("");
   const [selectedMessagePatient, setSelectedMessagePatient] = useState<string>("");
   const [messagePatientSearch, setMessagePatientSearch] = useState<string>("");
+  const [selectedRecipientRole, setSelectedRecipientRole] = useState<string>("");
+  const [selectedRecipientUser, setSelectedRecipientUser] = useState<string>("");
   const { toast } = useToast();
 
   // Authentication token and headers
@@ -180,6 +182,17 @@ export default function MessagingPage() {
     enabled: true // Always fetch patients data
   });
 
+  // Fetch users for admin role-based filtering
+  const { data: usersData, isLoading: usersLoading } = useQuery({
+    queryKey: ['/api/users'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/users');
+      const data = await response.json();
+      return data;
+    },
+    enabled: user?.role === 'admin' // Only fetch when user is admin
+  });
+
   // Update current user when user data changes
   useEffect(() => {
     if (user) {
@@ -202,6 +215,13 @@ export default function MessagingPage() {
     patient.email?.toLowerCase().includes(messagePatientSearch.toLowerCase()) ||
     patient.patientId?.toLowerCase().includes(messagePatientSearch.toLowerCase())
   );
+
+  // Filter users/patients based on selected role for admin
+  const filteredRecipients = selectedRecipientRole === 'patient' 
+    ? (patientsData || [])
+    : selectedRecipientRole 
+      ? (usersData || []).filter((u: any) => u.role === selectedRecipientRole)
+      : [];
 
   // Helper function to get the other participant (not the current user)
   const getOtherParticipant = (conversation: Conversation) => {
@@ -1235,35 +1255,91 @@ export default function MessagingPage() {
                 <DialogTitle>Start Video Call</DialogTitle>
               </DialogHeader>
               <div className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="callParticipant">Recipient *</Label>
-                  <div className="relative">
-                    <Input
-                      id="callParticipant"
-                      placeholder="Search patients..."
-                      value={videoCallPatientSearch}
-                      onChange={(e) => setVideoCallPatientSearch(e.target.value)}
-                    />
-                    {videoCallPatientSearch && filteredVideoCallPatients.length > 0 && (
-                      <div className="absolute z-10 w-full mt-1 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-md shadow-lg max-h-60 overflow-auto">
-                        {filteredVideoCallPatients.map((patient: any) => (
-                          <div
-                            key={patient.id}
-                            className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer"
-                            onClick={() => {
-                              setSelectedVideoCallPatient(`${patient.firstName} ${patient.lastName}`);
-                              setVideoCallPatientSearch(`${patient.firstName} ${patient.lastName}`);
-                              setVideoCall(prev => ({ ...prev, participant: `${patient.firstName} ${patient.lastName}` }));
-                            }}
-                          >
-                            <div className="font-medium">{patient.firstName} {patient.lastName}</div>
-                            <div className="text-sm text-gray-500">{patient.email} • {patient.patientId}</div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+{user?.role === 'admin' ? (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="selectCallRole">Select Role *</Label>
+                      <Select 
+                        value={selectedRecipientRole} 
+                        onValueChange={(value) => {
+                          setSelectedRecipientRole(value);
+                          setSelectedRecipientUser("");
+                          setVideoCall(prev => ({ ...prev, participant: "" }));
+                        }}
+                      >
+                        <SelectTrigger data-testid="select-call-recipient-role">
+                          <SelectValue placeholder="Select a role..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="patient">Patient</SelectItem>
+                          <SelectItem value="doctor">Doctor</SelectItem>
+                          <SelectItem value="nurse">Nurse</SelectItem>
+                          <SelectItem value="receptionist">Receptionist</SelectItem>
+                          <SelectItem value="admin">Admin</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="selectCallName">Select Name *</Label>
+                      <Select 
+                        value={selectedRecipientUser} 
+                        onValueChange={(value) => {
+                          setSelectedRecipientUser(value);
+                          setVideoCall(prev => ({ ...prev, participant: value }));
+                        }}
+                        disabled={!selectedRecipientRole}
+                      >
+                        <SelectTrigger data-testid="select-call-recipient-name">
+                          <SelectValue placeholder={selectedRecipientRole ? "Select a name..." : "Select role first..."} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {filteredRecipients.map((recipient: any) => (
+                            <SelectItem 
+                              key={recipient.id} 
+                              value={`${recipient.firstName} ${recipient.lastName}`}
+                              data-testid={`call-recipient-option-${recipient.id}`}
+                            >
+                              <div className="flex flex-col">
+                                <span className="font-medium">{recipient.firstName} {recipient.lastName}</span>
+                                <span className="text-sm text-gray-500">{recipient.email}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Label htmlFor="callParticipant">Recipient *</Label>
+                    <div className="relative">
+                      <Input
+                        id="callParticipant"
+                        placeholder="Search patients..."
+                        value={videoCallPatientSearch}
+                        onChange={(e) => setVideoCallPatientSearch(e.target.value)}
+                      />
+                      {videoCallPatientSearch && filteredVideoCallPatients.length > 0 && (
+                        <div className="absolute z-10 w-full mt-1 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-md shadow-lg max-h-60 overflow-auto">
+                          {filteredVideoCallPatients.map((patient: any) => (
+                            <div
+                              key={patient.id}
+                              className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer"
+                              onClick={() => {
+                                setSelectedVideoCallPatient(`${patient.firstName} ${patient.lastName}`);
+                                setVideoCallPatientSearch(`${patient.firstName} ${patient.lastName}`);
+                                setVideoCall(prev => ({ ...prev, participant: `${patient.firstName} ${patient.lastName}` }));
+                              }}
+                            >
+                              <div className="font-medium">{patient.firstName} {patient.lastName}</div>
+                              <div className="text-sm text-gray-500">{patient.email} • {patient.patientId}</div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -1373,37 +1449,93 @@ export default function MessagingPage() {
               </DialogHeader>
               <div className="space-y-6">
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="messageRecipient">Recipient *</Label>
-                    <Select 
-                      value={selectedMessagePatient} 
-                      onValueChange={(value) => {
-                        const patient = (patientsData || []).find((p: any) => `${p.firstName} ${p.lastName}` === value);
-                        if (patient) {
-                          setSelectedMessagePatient(value);
-                          setNewMessage(prev => ({ ...prev, recipient: value }));
-                        }
-                      }}
-                    >
-                      <SelectTrigger data-testid="select-patient-recipient">
-                        <SelectValue placeholder="Select a patient..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {(patientsData || []).map((patient: any) => (
-                          <SelectItem 
-                            key={patient.id} 
-                            value={`${patient.firstName} ${patient.lastName}`}
-                            data-testid={`patient-option-${patient.id}`}
-                          >
-                            <div className="flex flex-col">
-                              <span className="font-medium">{patient.firstName} {patient.lastName}</span>
-                              <span className="text-sm text-gray-500">{patient.email} • {patient.patientId}</span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  {user?.role === 'admin' ? (
+                    <>
+                      <div className="space-y-2">
+                        <Label htmlFor="selectRole">Select Role *</Label>
+                        <Select 
+                          value={selectedRecipientRole} 
+                          onValueChange={(value) => {
+                            setSelectedRecipientRole(value);
+                            setSelectedRecipientUser("");
+                            setNewMessage(prev => ({ ...prev, recipient: "" }));
+                          }}
+                        >
+                          <SelectTrigger data-testid="select-recipient-role">
+                            <SelectValue placeholder="Select a role..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="patient">Patient</SelectItem>
+                            <SelectItem value="doctor">Doctor</SelectItem>
+                            <SelectItem value="nurse">Nurse</SelectItem>
+                            <SelectItem value="receptionist">Receptionist</SelectItem>
+                            <SelectItem value="admin">Admin</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="selectName">Select Name *</Label>
+                        <Select 
+                          value={selectedRecipientUser} 
+                          onValueChange={(value) => {
+                            setSelectedRecipientUser(value);
+                            setNewMessage(prev => ({ ...prev, recipient: value }));
+                          }}
+                          disabled={!selectedRecipientRole}
+                        >
+                          <SelectTrigger data-testid="select-recipient-name">
+                            <SelectValue placeholder={selectedRecipientRole ? "Select a name..." : "Select role first..."} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {filteredRecipients.map((recipient: any) => (
+                              <SelectItem 
+                                key={recipient.id} 
+                                value={`${recipient.firstName} ${recipient.lastName}`}
+                                data-testid={`recipient-option-${recipient.id}`}
+                              >
+                                <div className="flex flex-col">
+                                  <span className="font-medium">{recipient.firstName} {recipient.lastName}</span>
+                                  <span className="text-sm text-gray-500">{recipient.email}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="space-y-2">
+                      <Label htmlFor="messageRecipient">Recipient *</Label>
+                      <Select 
+                        value={selectedMessagePatient} 
+                        onValueChange={(value) => {
+                          const patient = (patientsData || []).find((p: any) => `${p.firstName} ${p.lastName}` === value);
+                          if (patient) {
+                            setSelectedMessagePatient(value);
+                            setNewMessage(prev => ({ ...prev, recipient: value }));
+                          }
+                        }}
+                      >
+                        <SelectTrigger data-testid="select-patient-recipient">
+                          <SelectValue placeholder="Select a patient..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {(patientsData || []).map((patient: any) => (
+                            <SelectItem 
+                              key={patient.id} 
+                              value={`${patient.firstName} ${patient.lastName}`}
+                              data-testid={`patient-option-${patient.id}`}
+                            >
+                              <div className="flex flex-col">
+                                <span className="font-medium">{patient.firstName} {patient.lastName}</span>
+                                <span className="text-sm text-gray-500">{patient.email} • {patient.patientId}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
                   <div className="space-y-2">
                     <Label htmlFor="messageType">Message Type</Label>
                     <Select 
