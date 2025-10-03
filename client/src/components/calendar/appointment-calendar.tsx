@@ -145,6 +145,8 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
   // State for new appointment modal
   const [showNewAppointment, setShowNewAppointment] = useState(false);
   const [showConfirmationDialog, setShowConfirmationDialog] = useState(false);
+  const [validationErrorMessage, setValidationErrorMessage] = useState<string>("");
+  const [showValidationError, setShowValidationError] = useState(false);
   const [newAppointmentDate, setNewAppointmentDate] = useState<Date | undefined>(undefined);
   const [newSelectedTimeSlot, setNewSelectedTimeSlot] = useState<string>("");
   const [selectedRole, setSelectedRole] = useState<string>("");
@@ -1535,11 +1537,17 @@ Medical License: [License Number]
                                   const validation = checkConsecutiveSlotsAvailable(newAppointmentDate, slot, selectedDuration);
                                   
                                   if (!validation.available) {
-                                    toast({
-                                      title: "Insufficient Time Available",
-                                      description: `Only ${validation.availableMinutes} minutes are available at ${slot}. Please select another time slot.`,
-                                      variant: "destructive",
-                                    });
+                                    // Show modal for admin users
+                                    if (user?.role === 'admin') {
+                                      setValidationErrorMessage(`Only ${validation.availableMinutes} minutes are available at ${slot}. Please select another time slot.`);
+                                      setShowValidationError(true);
+                                    } else {
+                                      toast({
+                                        title: "Insufficient Time Available",
+                                        description: `Only ${validation.availableMinutes} minutes are available at ${slot}. Please select another time slot.`,
+                                        variant: "destructive",
+                                      });
+                                    }
                                     return;
                                   }
                                   
@@ -1552,111 +1560,6 @@ Medical License: [License Number]
                           })}
                         </div>
                       )}
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  {/* Patient Information */}
-                  {newAppointmentData.patientId && patientsData && (() => {
-                    const selectedPatient = patientsData.find((p: any) => p.id.toString() === newAppointmentData.patientId);
-                    if (!selectedPatient) return null;
-                    
-                    return (
-                      <div className="border rounded-lg p-4 bg-gray-50">
-                        <h3 className="text-sm font-semibold text-gray-800 mb-3">Patient Information</h3>
-                        <div className="flex items-start gap-3">
-                          <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-lg">
-                            {selectedPatient.firstName?.charAt(0)}{selectedPatient.lastName?.charAt(0)}
-                          </div>
-                          <div className="flex-1 space-y-1 text-sm">
-                            <p className="font-semibold text-gray-900">
-                              {selectedPatient.firstName} {selectedPatient.lastName}
-                            </p>
-                            <p className="text-gray-600 text-xs">
-                              {selectedPatient.patientId}
-                            </p>
-                            {selectedPatient.phone && (
-                              <p className="text-gray-600 text-xs flex items-center gap-1">
-                                📞 {selectedPatient.phone}
-                              </p>
-                            )}
-                            {selectedPatient.email && (
-                              <p className="text-gray-600 text-xs flex items-center gap-1">
-                                ✉️ {selectedPatient.email}
-                              </p>
-                            )}
-                            {selectedPatient.nhsNumber && (
-                              <p className="text-gray-600 text-xs">
-                                NHS: {selectedPatient.nhsNumber}
-                              </p>
-                            )}
-                            {selectedPatient.address && (selectedPatient.address.city || selectedPatient.address.postcode) && (
-                              <p className="text-gray-600 text-xs">
-                                📍 {selectedPatient.address.city}, {selectedPatient.address.postcode}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })()}
-
-                  {/* Booking Summary */}
-                  <div className="border rounded-lg p-4 bg-gray-50">
-                    <h3 className="text-sm font-semibold text-gray-800 mb-3">Booking Summary</h3>
-                    <div className="space-y-3 text-sm">
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <p className="text-gray-500 text-xs">Role</p>
-                          <p className="font-medium text-gray-900">
-                            {selectedRole ? selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1) : "Not selected"}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-gray-500 text-xs">Duration</p>
-                          <p className="font-medium text-gray-900">{selectedDuration} minutes</p>
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <p className="text-gray-500 text-xs">Patient</p>
-                        <p className="font-medium text-gray-900">
-                          {newAppointmentData.patientId && patientsData 
-                            ? (() => {
-                                const patient = patientsData.find((p: any) => p.id.toString() === newAppointmentData.patientId);
-                                return patient ? `${patient.firstName} ${patient.lastName}` : "Not selected";
-                              })()
-                            : "Not selected"}
-                        </p>
-                      </div>
-                      
-                      <div>
-                        <p className="text-gray-500 text-xs">Provider</p>
-                        <p className="font-medium text-gray-900">
-                          {selectedProviderId && usersData
-                            ? (() => {
-                                const provider = usersData.find((u: any) => u.id.toString() === selectedProviderId);
-                                return provider ? `${provider.firstName} ${provider.lastName}` : "Not selected";
-                              })()
-                            : "Not selected"}
-                        </p>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <p className="text-gray-500 text-xs">Date</p>
-                          <p className="font-medium text-gray-900">
-                            {newAppointmentDate ? format(newAppointmentDate, 'MMM dd, yyyy') : "Not selected"}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-gray-500 text-xs">Time</p>
-                          <p className="font-medium text-gray-900">
-                            {newSelectedTimeSlot || "Not selected"}
-                          </p>
-                        </div>
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -2139,6 +2042,29 @@ Medical License: [License Number]
               disabled={createAppointmentMutation.isPending}
             >
               {createAppointmentMutation.isPending ? "Confirming..." : "Confirm"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Validation Error Dialog */}
+      <Dialog open={showValidationError} onOpenChange={setShowValidationError}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-red-600">Insufficient Time Available</DialogTitle>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <p className="text-gray-700">{validationErrorMessage}</p>
+          </div>
+
+          <div className="flex justify-end">
+            <Button
+              onClick={() => {
+                setShowValidationError(false);
+              }}
+            >
+              OK
             </Button>
           </div>
         </DialogContent>
