@@ -300,14 +300,18 @@ export default function CalendarPage() {
   }, [doctorsData, doctorsError, isLoadingDoctors]);
   
   // Fetch all users for role-based provider selection
-  const { data: usersData } = useQuery({
+  const { data: usersData, isLoading: usersLoading, error: usersError } = useQuery({
     queryKey: ["/api/users"],
-    staleTime: 60000,
     queryFn: async () => {
+      console.log('📡 FETCHING USERS FROM /api/users');
       const response = await apiRequest('GET', '/api/users');
-      return response.json();
+      const data = await response.json();
+      console.log('✅ USERS DATA RECEIVED:', data);
+      return data;
     },
   });
+  
+  console.log('👥 USERS DATA STATE:', { data: usersData, loading: usersLoading, error: usersError });
 
   // Fetch roles from roles table for role-based provider selection
   const { data: rolesData } = useQuery({
@@ -400,8 +404,18 @@ export default function CalendarPage() {
 
   // Get filtered users by selected role (exclude patient and admin)
   const filteredUsers = useMemo(() => {
-    if (!selectedRole || !usersData) return [];
-    return usersData.filter((u: any) => u.role === selectedRole);
+    console.log('🔍 FILTERING USERS - selectedRole:', selectedRole, 'usersData:', usersData);
+    if (!selectedRole || !usersData) {
+      console.log('❌ No role or users data available');
+      return [];
+    }
+    const filtered = usersData.filter((u: any) => {
+      const matches = u.role === selectedRole;
+      console.log(`User ${u.firstName} ${u.lastName} - role: "${u.role}" === "${selectedRole}": ${matches}`);
+      return matches;
+    });
+    console.log('✅ Filtered users count:', filtered.length, filtered);
+    return filtered;
   }, [selectedRole, usersData]);
 
   // Get available roles from roles table (exclude patient)
