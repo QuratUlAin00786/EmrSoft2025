@@ -70,8 +70,8 @@ export default function PatientAppointments({
   const [bookedTimeSlots, setBookedTimeSlots] = useState<string[]>([]);
 
   // Patient filter states
-  const [roleFilter, setRoleFilter] = useState<string>("all");
-  const [providerFilter, setProviderFilter] = useState<string>("all");
+  const [roleFilter, setRoleFilter] = useState<string>("");
+  const [providerFilter, setProviderFilter] = useState<string>("");
   const [dateTimeFilter, setDateTimeFilter] = useState<string>("");
   const [showAdvancedFilters, setShowAdvancedFilters] = useState<boolean>(false);
   const { user } = useAuth();
@@ -464,7 +464,7 @@ export default function PatientAppointments({
 
   // Get filtered users by selected role
   const filteredUsersByRole = React.useMemo(() => {
-    if (!roleFilter || roleFilter === "all" || !usersData || !Array.isArray(usersData)) return [];
+    if (!roleFilter || !usersData || !Array.isArray(usersData)) return [];
     return usersData.filter((u: any) => u.role === roleFilter);
   }, [roleFilter, usersData]);
 
@@ -476,7 +476,7 @@ export default function PatientAppointments({
     let filtered = appointments;
 
     // Filter by provider (based on role selection)
-    if (providerFilter && providerFilter !== "all") {
+    if (providerFilter) {
       filtered = filtered.filter((apt: any) => {
         return apt.providerId === parseInt(providerFilter);
       });
@@ -803,13 +803,12 @@ export default function PatientAppointments({
                     <Label className="text-sm font-medium text-gray-700">Select Role</Label>
                     <Select value={roleFilter} onValueChange={(value) => {
                       setRoleFilter(value);
-                      setProviderFilter("all");
+                      setProviderFilter("");
                     }}>
                       <SelectTrigger data-testid="select-role-filter">
                         <SelectValue placeholder="Select role" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all" data-testid="option-role-all">All Roles</SelectItem>
                         {rolesData && Array.isArray(rolesData) ? rolesData
                           .filter((role: any) => role.name !== 'patient')
                           .map((role: any) => (
@@ -818,7 +817,7 @@ export default function PatientAppointments({
                               value={role.name}
                               data-testid={`option-role-${role.name}`}
                             >
-                              {role.name.charAt(0).toUpperCase() + role.name.slice(1)}
+                              {role.displayName || role.name.charAt(0).toUpperCase() + role.name.slice(1)}
                             </SelectItem>
                           )) : null}
                       </SelectContent>
@@ -833,13 +832,12 @@ export default function PatientAppointments({
                     <Select 
                       value={providerFilter} 
                       onValueChange={setProviderFilter}
-                      disabled={roleFilter === "all"}
+                      disabled={!roleFilter}
                     >
                       <SelectTrigger data-testid="select-provider-filter">
-                        <SelectValue placeholder={roleFilter === "all" ? "Select role first" : "Select provider"} />
+                        <SelectValue placeholder={!roleFilter ? "Select role first" : "Select provider"} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all" data-testid="option-provider-all">All Providers</SelectItem>
                         {filteredUsersByRole.map((provider: any) => (
                           <SelectItem 
                             key={provider.id} 
@@ -849,7 +847,7 @@ export default function PatientAppointments({
                             {provider.firstName} {provider.lastName}
                           </SelectItem>
                         ))}
-                        {roleFilter !== "all" && filteredUsersByRole.length === 0 && (
+                        {roleFilter && filteredUsersByRole.length === 0 && (
                           <SelectItem value="none" disabled data-testid="option-provider-none">
                             No providers found
                           </SelectItem>
@@ -879,8 +877,8 @@ export default function PatientAppointments({
                     variant="outline"
                     size="sm"
                     onClick={() => {
-                      setRoleFilter("all");
-                      setProviderFilter("all");
+                      setRoleFilter("");
+                      setProviderFilter("");
                       setDateTimeFilter("");
                     }}
                     data-testid="button-clear-filters"
