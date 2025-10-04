@@ -302,16 +302,10 @@ export default function CalendarPage() {
   // Fetch all users for role-based provider selection
   const { data: usersData, isLoading: usersLoading, error: usersError } = useQuery({
     queryKey: ["/api/users"],
-    queryFn: async () => {
-      console.log('📡 FETCHING USERS FROM /api/users');
-      const response = await apiRequest('GET', '/api/users');
-      const data = await response.json();
-      console.log('✅ USERS DATA RECEIVED:', data);
-      return data;
-    },
+    staleTime: 0,
+    retry: false,
+    enabled: !!user && user.role === 'patient',
   });
-  
-  console.log('👥 USERS DATA STATE:', { data: usersData, loading: usersLoading, error: usersError });
 
   // Fetch roles from roles table for role-based provider selection
   const { data: rolesData, isLoading: rolesLoading } = useQuery({
