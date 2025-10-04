@@ -183,6 +183,10 @@ export default function CalendarPage() {
   const [filterDate, setFilterDate] = useState<Date | undefined>(undefined);
   const [filteredAppointments, setFilteredAppointments] = useState<any[]>([]);
   
+  // Role-based filter state for admin users
+  const [filterRole, setFilterRole] = useState("");
+  const [filterProvider, setFilterProvider] = useState("");
+  
   // Calendar view state
   const [calendarView, setCalendarView] = useState<"month" | "week" | "day">("month");
   const [bookingForm, setBookingForm] = useState({
@@ -400,7 +404,7 @@ export default function CalendarPage() {
   // Get filtered users by selected role (exclude patient and admin)
   const filteredUsers = useMemo(() => {
     console.log('🔍 FILTERING USERS - selectedRole:', selectedRole, 'usersData:', usersData);
-    if (!selectedRole || !usersData) {
+    if (!selectedRole || !usersData || !Array.isArray(usersData)) {
       console.log('❌ No role or users data available');
       return [];
     }
@@ -413,6 +417,14 @@ export default function CalendarPage() {
     console.log('✅ Filtered users count:', filtered.length, filtered);
     return filtered;
   }, [selectedRole, usersData]);
+
+  // Get filtered users by filter role for admin filter panel
+  const filteredUsersByFilterRole = useMemo(() => {
+    if (!filterRole || !usersData || !Array.isArray(usersData)) {
+      return [];
+    }
+    return usersData.filter((u: any) => u.role?.toLowerCase() === filterRole.toLowerCase());
+  }, [filterRole, usersData]);
 
   // Get available roles from roles table (exclude patient)
   const availableRoles: Array<{ name: string; displayName: string }> = useMemo(() => {
@@ -585,32 +597,59 @@ export default function CalendarPage() {
   
   // Function to apply filters
   const applyFilters = () => {
-    if (!filterDoctor && !filterDate) {
-      setFilteredAppointments([]);
-      return;
+    // For admin users, use role-based filtering
+    if (user?.role === 'admin') {
+      if (!filterProvider && !filterDate) {
+        setFilteredAppointments([]);
+        return;
+      }
+      
+      let filtered = [...allAppointments];
+      
+      // Filter by provider (role-based)
+      if (filterProvider) {
+        const selectedProviderId = parseInt(filterProvider);
+        filtered = filtered.filter((appointment: any) => appointment.providerId === selectedProviderId);
+      }
+      
+      // Filter by date - NO TIMEZONE CONVERSION
+      if (filterDate) {
+        const filterDateStr = format(filterDate, 'yyyy-MM-dd');
+        filtered = filtered.filter((appointment: any) => {
+          const scheduledTime = appointment.scheduledAt ?? appointment.scheduled_at;
+          const appointmentDateStr = scheduledTime?.split('T')[0];
+          return appointmentDateStr === filterDateStr;
+        });
+      }
+      
+      setFilteredAppointments(filtered);
+    } else {
+      // For non-admin users, use specialty-based filtering
+      if (!filterDoctor && !filterDate) {
+        setFilteredAppointments([]);
+        return;
+      }
+      
+      let filtered = [...allAppointments];
+      
+      // Filter by doctor
+      if (filterDoctor) {
+        const selectedDoctorId = parseInt(filterDoctor);
+        filtered = filtered.filter((appointment: any) => appointment.providerId === selectedDoctorId);
+      }
+      
+      // Filter by date - NO TIMEZONE CONVERSION
+      if (filterDate) {
+        const filterDateStr = format(filterDate, 'yyyy-MM-dd');
+        filtered = filtered.filter((appointment: any) => {
+          const scheduledTime = appointment.scheduledAt ?? appointment.scheduled_at;
+          const appointmentDateStr = scheduledTime?.split('T')[0];
+          return appointmentDateStr === filterDateStr;
+        });
+      }
+      
+      setFilteredAppointments(filtered);
     }
-    
-    let filtered = [...allAppointments];
-    
-    // Filter by doctor
-    if (filterDoctor) {
-      const selectedDoctorId = parseInt(filterDoctor);
-      filtered = filtered.filter((appointment: any) => appointment.providerId === selectedDoctorId);
-    }
-    
-    // Filter by date - NO TIMEZONE CONVERSION
-    if (filterDate) {
-      const filterDateStr = format(filterDate, 'yyyy-MM-dd');
-      filtered = filtered.filter((appointment: any) => {
-        // Extract date directly from ISO string without timezone conversion
-        // Format: "2025-09-16T09:00:00.000Z" -> extract "2025-09-16"
-        const scheduledTime = appointment.scheduledAt ?? appointment.scheduled_at;
-        const appointmentDateStr = scheduledTime?.split('T')[0];
-        return appointmentDateStr === filterDateStr;
-      });
-    }
-    
-    setFilteredAppointments(filtered);
   };
   
   // Apply filters when filter values change
@@ -618,7 +657,7 @@ export default function CalendarPage() {
     if (showFilterPanel) {
       applyFilters();
     }
-  }, [filterDoctor, filterDate, allAppointments, showFilterPanel]);
+  }, [filterDoctor, filterProvider, filterDate, allAppointments, showFilterPanel, user?.role]);
   
   // Filter doctors by specialty for filter panel - reactive to filter changes
   const filteredDoctorsBySpecialty = useMemo(() => {
@@ -1057,6 +1096,8 @@ export default function CalendarPage() {
                         setFilterSpecialty("");
                         setFilterSubSpecialty("");
                         setFilterDoctor("");
+                        setFilterRole("");
+                        setFilterProvider("");
                         setFilterDate(undefined);
                         setFilteredAppointments([]);
                       }
@@ -1094,65 +1135,108 @@ export default function CalendarPage() {
               </CardHeader>
               <CardContent>
                 <div className="grid gap-4 md:grid-cols-4">
-                  {/* Medical Specialty Category */}
-                  <div>
-                    <Label>Medical Specialty Category</Label>
-                    <Select value={filterSpecialty} onValueChange={(value) => {
-                      setFilterSpecialty(value);
-                      setFilterSubSpecialty(""); // Reset sub-specialty when specialty changes
-                      setFilterDoctor(""); // Reset doctor when specialty changes
-                    }}>
-                      <SelectTrigger data-testid="select-filter-specialty">
-                        <SelectValue placeholder="Select category..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {getUniqueSpecialties().map((specialty) => (
-                          <SelectItem key={specialty} value={specialty}>
-                            {specialty}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  {user?.role === 'admin' ? (
+                    <>
+                      {/* Select Role (Admin Only) */}
+                      <div>
+                        <Label>Select Role</Label>
+                        <Select value={filterRole} onValueChange={(value) => {
+                          setFilterRole(value);
+                          setFilterProvider(""); // Reset provider when role changes
+                        }}>
+                          <SelectTrigger data-testid="select-filter-role">
+                            <SelectValue placeholder="Select role..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {availableRoles.map((role) => (
+                              <SelectItem key={role.name} value={role.name}>
+                                {role.displayName}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
 
-                  {/* Sub-Specialty */}
-                  <div>
-                    <Label>Sub-Specialty</Label>
-                    <Select value={filterSubSpecialty} onValueChange={(value) => {
-                      setFilterSubSpecialty(value);
-                      setFilterDoctor(""); // Reset doctor when sub-specialty changes
-                    }}>
-                      <SelectTrigger data-testid="select-filter-subspecialty">
-                        <SelectValue placeholder="Select sub-specialty..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {getSubSpecialties(filterSpecialty).map((subSpecialty) => (
-                          <SelectItem key={subSpecialty} value={subSpecialty}>
-                            {subSpecialty}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                      {/* Provider (Admin Only) */}
+                      <div>
+                        <Label>Provider</Label>
+                        <Select value={filterProvider} onValueChange={setFilterProvider}>
+                          <SelectTrigger data-testid="select-filter-provider">
+                            <SelectValue placeholder="Select provider..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {filteredUsersByFilterRole.map((user: any) => (
+                              <SelectItem key={user.id} value={user.id.toString()}>
+                                {user.firstName} {user.lastName}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      {/* Medical Specialty Category (Non-Admin) */}
+                      <div>
+                        <Label>Medical Specialty Category</Label>
+                        <Select value={filterSpecialty} onValueChange={(value) => {
+                          setFilterSpecialty(value);
+                          setFilterSubSpecialty(""); // Reset sub-specialty when specialty changes
+                          setFilterDoctor(""); // Reset doctor when specialty changes
+                        }}>
+                          <SelectTrigger data-testid="select-filter-specialty">
+                            <SelectValue placeholder="Select category..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {getUniqueSpecialties().map((specialty) => (
+                              <SelectItem key={specialty} value={specialty}>
+                                {specialty}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
 
-                  {/* Doctor */}
-                  <div>
-                    <Label>Doctor</Label>
-                    <Select value={filterDoctor} onValueChange={setFilterDoctor}>
-                      <SelectTrigger data-testid="select-filter-doctor">
-                        <SelectValue placeholder="Select doctor..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {filteredDoctorsBySpecialty.map((doctor: any) => (
-                          <SelectItem key={doctor.id} value={doctor.id.toString()}>
-                            Dr. {doctor.firstName} {doctor.lastName} - {doctor.specialization}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                      {/* Sub-Specialty (Non-Admin) */}
+                      <div>
+                        <Label>Sub-Specialty</Label>
+                        <Select value={filterSubSpecialty} onValueChange={(value) => {
+                          setFilterSubSpecialty(value);
+                          setFilterDoctor(""); // Reset doctor when sub-specialty changes
+                        }}>
+                          <SelectTrigger data-testid="select-filter-subspecialty">
+                            <SelectValue placeholder="Select sub-specialty..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {getSubSpecialties(filterSpecialty).map((subSpecialty) => (
+                              <SelectItem key={subSpecialty} value={subSpecialty}>
+                                {subSpecialty}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
 
-                  {/* Date */}
+                      {/* Doctor (Non-Admin) */}
+                      <div>
+                        <Label>Doctor</Label>
+                        <Select value={filterDoctor} onValueChange={setFilterDoctor}>
+                          <SelectTrigger data-testid="select-filter-doctor">
+                            <SelectValue placeholder="Select doctor..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {filteredDoctorsBySpecialty.map((doctor: any) => (
+                              <SelectItem key={doctor.id} value={doctor.id.toString()}>
+                                Dr. {doctor.firstName} {doctor.lastName} - {doctor.specialization}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Date (Both Admin and Non-Admin) */}
                   <div>
                     <Label>Date</Label>
                     <Popover>
@@ -1183,7 +1267,7 @@ export default function CalendarPage() {
         )}
 
         {/* Conditional Content - Either Default Calendar or Filtered Appointments */}
-        {showFilterPanel && (filterDoctor || filterDate) ? (
+        {showFilterPanel && ((user?.role === 'admin' ? filterProvider : filterDoctor) || filterDate) ? (
           /* Filtered Appointments View */
           <div className="space-y-4">
             <div className="flex items-center justify-between">
