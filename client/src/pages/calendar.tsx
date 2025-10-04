@@ -360,6 +360,22 @@ export default function CalendarPage() {
     retry: false,
   });
 
+  // Query to fetch ALL appointments for selected provider/date (for slot availability checking)
+  // This bypasses patient filtering to show all booked slots
+  const { data: providerAppointments = [] } = useQuery<any[]>({
+    queryKey: ["/api/appointments", "provider", selectedProviderId, selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null],
+    staleTime: 10000,
+    enabled: !!selectedProviderId && !!selectedDate,
+    retry: false,
+    queryFn: async () => {
+      if (!selectedProviderId || !selectedDate) return [];
+      
+      const dateStr = format(selectedDate, 'yyyy-MM-dd');
+      const response = await apiRequest('GET', `/api/appointments?providerId=${selectedProviderId}&date=${dateStr}`);
+      return response.json();
+    },
+  });
+
   // Helper function to convert 12-hour time to 24-hour format
   const timeSlotTo24Hour = (timeSlot: string): string => {
     const [time, period] = timeSlot.split(' ');
@@ -452,12 +468,17 @@ export default function CalendarPage() {
 
   // Check if a time slot is booked (considering duration and provider)
   const isTimeSlotBooked = (timeSlot: string): boolean => {
-    if (!selectedDate || !allAppointments || !selectedProviderId) return false;
+    if (!selectedDate || !selectedProviderId) return false;
+
+    // Use providerAppointments for slot checking (includes ALL appointments for this provider/date)
+    // This ensures patient users see all booked slots, not just their own
+    const appointmentsToCheck = providerAppointments.length > 0 ? providerAppointments : allAppointments;
+    if (!appointmentsToCheck || appointmentsToCheck.length === 0) return false;
 
     const dateStr = format(selectedDate, 'yyyy-MM-dd');
     const slotTime24 = timeSlotTo24Hour(timeSlot);
 
-    return allAppointments.some((apt: any) => {
+    return appointmentsToCheck.some((apt: any) => {
       // Filter by provider ID first (handle both camelCase and snake_case)
       const aptProviderId = apt.providerId || apt.provider_id;
       if (aptProviderId?.toString() !== selectedProviderId) return false;

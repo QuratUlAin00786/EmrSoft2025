@@ -2676,11 +2676,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Appointments routes - Enhanced with role-based access control
   app.get("/api/appointments", authMiddleware, async (req: TenantRequest, res) => {
     try {
-      const { start, end, doctorId, patientId } = req.query;
+      const { start, end, doctorId, patientId, providerId, date } = req.query;
       const userRole = req.user!.role;
       const userId = req.user!.id;
       
       let appointments: Appointment[] = [];
+      
+      // Special case: Slot availability checking (providerId + date)
+      // Allow ALL users to check slot availability for booking purposes
+      if (providerId && date) {
+        appointments = await storage.getAppointmentsByProvider(
+          parseInt(providerId as string), 
+          req.tenant!.id
+        );
+        
+        // Filter by date
+        const dateStr = date as string;
+        appointments = appointments.filter(apt => {
+          const aptDateStr = apt.scheduledAt.substring(0, 10);
+          return aptDateStr === dateStr;
+        });
+        
+        // Return minimal data for availability checking (no sensitive patient info)
+        const availabilityData = appointments.map(apt => ({
+          id: apt.id,
+          providerId: apt.providerId,
+          scheduledAt: apt.scheduledAt,
+          duration: apt.duration,
+          status: apt.status
+        }));
+        
+        return res.json(availabilityData);
+      }
       
       // Role-based access control as per architect specifications
       if (userRole === 'admin' || userRole === 'receptionist') {
