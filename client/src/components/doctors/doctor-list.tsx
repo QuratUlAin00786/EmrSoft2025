@@ -25,7 +25,7 @@ import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import type { User as Doctor, Appointment } from "@shared/schema";
 import {
   Select,
@@ -156,53 +156,141 @@ export function DoctorList({
     enabled: isBookingOpen,
   });
 
-  // Fetch doctor appointments for availability checking
-  const { data: doctorAppointments } = useQuery({
-    queryKey: ["/api/appointments", selectedBookingDoctor?.id, selectedDate],
+  // Fetch shifts for the selected date and doctor
+  const { data: shiftsData } = useQuery({
+    queryKey: ["/api/shifts", selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null],
+    staleTime: 30000,
+    enabled: !!selectedDate && isBookingOpen,
     queryFn: async () => {
-      if (!selectedBookingDoctor?.id || !selectedDate) return [];
-      const response = await apiRequest(
-        "GET",
-        `/api/appointments?doctorId=${selectedBookingDoctor.id}&date=${selectedDate.toISOString().split("T")[0]}`,
-      );
+      const dateStr = format(selectedDate!, 'yyyy-MM-dd');
+      const response = await apiRequest('GET', `/api/shifts?date=${dateStr}`);
       const data = await response.json();
       return data;
     },
-    enabled: isBookingOpen && !!selectedBookingDoctor?.id && !!selectedDate,
   });
 
-  // Generate time slots (9 AM to 5 PM, 30-minute intervals)
-  const generateTimeSlots = () => {
-    const slots = [];
-    for (let hour = 9; hour <= 17; hour++) {
-      for (let minute = 0; minute < 60; minute += 30) {
-        if (hour === 17 && minute > 0) break; // Stop at 5:00 PM
-        const timeString = `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`;
-        const displayTime = formatTime(timeString);
-        slots.push({ value: timeString, display: displayTime });
+  // Fetch all appointments for availability checking
+  const { data: appointments } = useQuery({
+    queryKey: ["/api/appointments"],
+    staleTime: 30000,
+    enabled: isBookingOpen,
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/appointments');
+      const data = await response.json();
+      return data;
+    },
+  });
+
+  // Convert time slot string to 24-hour format
+  const timeSlotTo24Hour = (timeSlot: string): string => {
+    const [time, period] = timeSlot.split(' ');
+    const [hours, minutes] = time.split(':');
+    let hour24 = parseInt(hours);
+    
+    if (period === 'PM' && hour24 !== 12) {
+      hour24 += 12;
+    } else if (period === 'AM' && hour24 === 12) {
+      hour24 = 0;
+    }
+    
+    return `${hour24.toString().padStart(2, '0')}:${minutes}`;
+  };
+
+  // Check if a time slot is available
+  const isTimeSlotAvailable = (date: Date, timeSlot: string) => {
+    if (!date || !timeSlot || !appointments) return true;
+    
+    const selectedDateString = format(date, 'yyyy-MM-dd');
+    
+    // Convert the time slot to minutes (this represents the START time of the slot)
+    const [time, period] = timeSlot.split(' ');
+    const [hours, minutes] = time.split(':').map(Number);
+    let hour24 = hours;
+    if (period === 'PM' && hours !== 12) hour24 += 12;
+    if (period === 'AM' && hours === 12) hour24 = 0;
+    const slotStartMinutes = hour24 * 60 + minutes;
+    const slotEndMinutes = slotStartMinutes + 15;
+    
+    // Check if this slot overlaps with any existing appointment for this doctor
+    const isBooked = appointments.some((apt: any) => {
+      // Only check appointments for the selected doctor
+      if (selectedBookingDoctor && apt.providerId !== selectedBookingDoctor.id) {
+        return false;
+      }
+      
+      // Parse the scheduledAt directly without timezone conversion
+      const aptDateString = apt.scheduledAt.substring(0, 10);
+      
+      // Only check appointments on the same date
+      if (aptDateString !== selectedDateString) return false;
+      
+      // Extract time in 24-hour format
+      const timeString = apt.scheduledAt.substring(11, 16);
+      const [aptHour, aptMinute] = timeString.split(':').map(Number);
+      const aptStartMinutes = aptHour * 60 + aptMinute;
+      const aptDuration = apt.duration || 30;
+      const aptEndMinutes = aptStartMinutes + aptDuration;
+      
+      // Check if this 15-minute slot overlaps with the existing appointment
+      return slotStartMinutes < aptEndMinutes && slotEndMinutes > aptStartMinutes;
+    });
+    
+    return !isBooked;
+  };
+
+  // Generate time slots based on shifts from database (15-minute intervals)
+  const timeSlots = useMemo(() => {
+    // If no doctor or date selected, return empty array
+    if (!selectedBookingDoctor || !selectedDate || !shiftsData) {
+      return [];
+    }
+
+    // Find ALL shifts for the selected doctor on this date
+    const doctorShifts = shiftsData.filter((shift: any) => 
+      shift.staffId === selectedBookingDoctor.id
+    );
+
+    // If no shifts found, return empty array
+    if (!doctorShifts || doctorShifts.length === 0) {
+      return [];
+    }
+
+    const allSlots: string[] = [];
+
+    // Generate time slots for each shift (15-minute intervals)
+    for (const shift of doctorShifts) {
+      const [startHour, startMinute] = shift.startTime.split(':').map(Number);
+      const [endHour, endMinute] = shift.endTime.split(':').map(Number);
+
+      let currentHour = startHour;
+      let currentMinute = startMinute;
+
+      while (currentHour < endHour || (currentHour === endHour && currentMinute < endMinute)) {
+        const hour12 = currentHour === 0 ? 12 : currentHour > 12 ? currentHour - 12 : currentHour;
+        const period = currentHour < 12 ? 'AM' : 'PM';
+        const timeString = `${hour12}:${currentMinute.toString().padStart(2, '0')} ${period}`;
+        
+        if (!allSlots.includes(timeString)) {
+          allSlots.push(timeString);
+        }
+
+        currentMinute += 15;
+        if (currentMinute >= 60) {
+          currentMinute = 0;
+          currentHour++;
+        }
       }
     }
-    return slots;
-  };
 
-  // Check if a time slot is available (only SCHEDULED appointments block slots)
-  const isTimeSlotAvailable = (timeSlot: string) => {
-    if (!doctorAppointments || !selectedDate) return true;
-
-    return !doctorAppointments.some((appointment: any) => {
-      // Only check SCHEDULED appointments - CANCELLED appointments should not block slots
-      if (appointment.status?.toLowerCase() !== 'scheduled') return false;
-      
-      // Extract time directly from database string without timezone conversion
-      const appointmentDateString = appointment.scheduledAt; // "2025-09-27T09:00:00.000Z"
-      const appointmentTimeOnly = appointmentDateString.includes('T') 
-        ? appointmentDateString.split('T')[1]?.substring(0, 5) 
-        : appointmentDateString; // Extract "09:00"
-      
-      // Compare the time slots directly as strings (both are in HH:MM format)
-      return appointmentTimeOnly === timeSlot;
+    // Sort slots chronologically
+    allSlots.sort((a, b) => {
+      const timeA = timeSlotTo24Hour(a);
+      const timeB = timeSlotTo24Hour(b);
+      return timeA.localeCompare(timeB);
     });
-  };
+
+    return allSlots;
+  }, [selectedBookingDoctor, selectedDate, shiftsData]);
 
   const updateScheduleMutation = useMutation({
     mutationFn: async (data: {
@@ -391,17 +479,12 @@ export function DoctorList({
     );
   };
 
-  // Extract time directly from database string and format to 12-hour format without timezone conversion
+  // Format time to 12-hour format for display
   const formatTime = (time: string): string => {
     if (!time) return "";
     
-    // Handle database datetime format like "2025-09-27T09:00:00.000Z"
-    let timeOnly = time;
-    if (time.includes('T')) {
-      timeOnly = time.split('T')[1]?.substring(0, 5) || time; // Extract "09:00" from "2025-09-27T09:00:00.000Z"
-    }
-    
-    const [hours, minutes] = timeOnly.split(":");
+    // Handle 24-hour format like "14:30"
+    const [hours, minutes] = time.split(":");
     const hour = parseInt(hours);
     const ampm = hour >= 12 ? "PM" : "AM";
     const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
@@ -863,36 +946,42 @@ export function DoctorList({
               {/* Select Time Slot */}
               <div>
                 <Label className="text-sm font-medium mb-1 block">Select Time Slot</Label>
-                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-2 min-h-[120px] flex items-center justify-center">
-                  {!selectedBookingDoctor || !selectedDate ? (
-                    <p className="text-gray-500 text-center text-sm">
-                      Please select a doctor and date to view available time slots.
-                    </p>
+                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-2 h-[320px] overflow-y-auto">
+                  {!selectedDate ? (
+                    <div className="flex items-center justify-center h-full">
+                      <p className="text-gray-400 text-sm">Time slots will appear here</p>
+                    </div>
+                  ) : timeSlots.length === 0 ? (
+                    <div className="flex items-center justify-center h-full">
+                      <div className="text-center">
+                        <p className="text-gray-500 text-sm font-medium">Time slot not available</p>
+                        <p className="text-gray-400 text-xs mt-1">{format(selectedDate, 'MMMM dd, yyyy')}</p>
+                      </div>
+                    </div>
                   ) : (
-                    <div className="grid grid-cols-4 gap-1 w-full">
-                      {generateTimeSlots().map((slot) => {
-                        const isAvailable = isTimeSlotAvailable(slot.value);
-                        const isSelected = selectedTimeSlot === slot.value;
+                    <div className="grid grid-cols-2 gap-2">
+                      {timeSlots.map((slot) => {
+                        const isAvailable = isTimeSlotAvailable(selectedDate, slot);
+                        const isSelected = selectedTimeSlot === timeSlotTo24Hour(slot);
 
                         return (
                           <Button
-                            key={slot.value}
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setSelectedTimeSlot(slot.value)}
+                            key={slot}
+                            variant={isSelected ? "default" : "outline"}
+                            className={`h-10 text-xs font-medium ${
+                              !isAvailable 
+                                ? "bg-gray-200 text-gray-400 cursor-not-allowed border-gray-300" 
+                                : isSelected 
+                                  ? "bg-blue-500 hover:bg-blue-600 text-white border-blue-500" 
+                                  : "bg-green-500 hover:bg-green-600 text-white border-green-500"
+                            }`}
                             disabled={!isAvailable}
-                            className={cn(
-                              "h-7 text-xs",
-                              isSelected &&
-                                "bg-blue-500 text-white hover:bg-blue-600",
-                              isAvailable &&
-                                !isSelected &&
-                                "bg-green-100 text-green-800 hover:bg-green-200 border-green-300",
-                              !isAvailable &&
-                                "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed",
-                            )}
+                            onClick={() => {
+                              if (!selectedDate) return;
+                              setSelectedTimeSlot(timeSlotTo24Hour(slot));
+                            }}
                           >
-                            {slot.display}
+                            {slot}
                           </Button>
                         );
                       })}

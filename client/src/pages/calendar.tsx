@@ -723,48 +723,12 @@ export default function CalendarPage() {
       <div className="flex-1 overflow-auto p-6">
         <div className="mb-6">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-              <Calendar className="h-6 w-6 text-gray-900 dark:text-white" />
-              Appointment Calendar
-            </h2>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => queryClient.invalidateQueries({ queryKey: ["/api/appointments"] })}
-                className="bg-white dark:bg-gray-800"
-              >
-                Refresh
-              </Button>
-              <Button
-                variant={calendarView === "month" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setCalendarView("month")}
-                className={calendarView === "month" ? "" : "bg-white dark:bg-gray-800"}
-              >
-                Month
-              </Button>
-              <Button
-                variant={calendarView === "week" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setCalendarView("week")}
-                className={calendarView === "week" ? "" : "bg-white dark:bg-gray-800"}
-              >
-                Week
-              </Button>
-              <Button
-                variant={calendarView === "day" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setCalendarView("day")}
-                className={calendarView === "day" ? "" : "bg-white dark:bg-gray-800"}
-              >
-                Day
-              </Button>
-            </div>
+         
+          
           </div>
           
           <div className="flex justify-between items-center">
-            <div>
+            <div>   
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                 Calendar & Scheduling
                 <Button

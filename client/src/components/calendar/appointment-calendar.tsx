@@ -1446,7 +1446,7 @@ Medical License: [License Number]
         <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
           <div className="p-2">
             <DialogHeader className="mb-6">
-              <DialogTitle className="text-xl font-bold text-blue-800">
+              <DialogTitle className="fs-3 font-bold text-blue-800">
                 Create New Appointment
               </DialogTitle>
               <DialogDescription>
