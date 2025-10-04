@@ -230,15 +230,19 @@ export default function PatientAppointments({
     return foundPatient;
   }, [user, patientsData]);
 
-  // Appointments are already filtered by backend for patient role users
+  // Filter appointments to show only the logged-in patient's own appointments
   const appointments = React.useMemo(() => {
     // If we're loading or no data, return empty array
     if (!appointmentsData) return [];
     
-    // Backend already filters appointments for patient role users
-    // No need to filter again on frontend
+    // For patient role users, filter appointments by matching patientId with currentPatient.id
+    if (user?.role === 'patient' && currentPatient) {
+      return appointmentsData.filter((apt: any) => apt.patientId === currentPatient.id);
+    }
+    
+    // For non-patient users (admin, doctor, etc.), show all appointments
     return appointmentsData;
-  }, [appointmentsData]);
+  }, [appointmentsData, user?.role, currentPatient]);
 
   const getDoctorSpecialtyData = (providerId: number) => {
     const doctorsResponse = doctorsData as any;
