@@ -685,7 +685,7 @@ export default function PatientAppointments({
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {user?.role !== "patient" && (
+          {user?.role === "patient" && (
             <Button
               variant="outline"
               onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
