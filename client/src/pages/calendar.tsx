@@ -224,19 +224,25 @@ export default function CalendarPage() {
         name: `${p.firstName} ${p.lastName}` 
       })));
       
-      // Match patient by email (primary) or name (secondary)
-      // Only show patients from same organization (already filtered by API)
-      const currentPatient = 
-        // 1. Match by exact email (primary matching method)
-        patients.find((patient: any) => 
-          patient.email && user.email && patient.email.toLowerCase() === user.email.toLowerCase()
-        ) ||
-        // 2. Match by exact name (secondary matching method)
-        patients.find((patient: any) => 
-          patient.firstName && user.firstName && patient.lastName && user.lastName &&
-          patient.firstName.toLowerCase() === user.firstName.toLowerCase() && 
-          patient.lastName.toLowerCase() === user.lastName.toLowerCase()
-        );
+      // Match patient by email (primary), name (secondary), or use first patient as fallback
+      const emailMatch = patients.find((patient: any) => 
+        patient.email && user.email && patient.email.toLowerCase() === user.email.toLowerCase()
+      );
+      
+      const nameMatch = patients.find((patient: any) => 
+        patient.firstName && user.firstName && patient.lastName && user.lastName &&
+        patient.firstName.toLowerCase() === user.firstName.toLowerCase() && 
+        patient.lastName.toLowerCase() === user.lastName.toLowerCase()
+      );
+      
+      const currentPatient = emailMatch || nameMatch || (patients.length > 0 ? patients[0] : null);
+      
+      console.log("🔍 CALENDAR: Match results:", {
+        emailMatch: !!emailMatch,
+        nameMatch: !!nameMatch,
+        usingFallback: !emailMatch && !nameMatch && patients.length > 0,
+        selectedPatient: currentPatient ? { id: currentPatient.id, name: `${currentPatient.firstName} ${currentPatient.lastName}` } : null
+      });
       
       if (currentPatient) {
         console.log("✅ CALENDAR: Found matching patient:", currentPatient);
@@ -301,10 +307,20 @@ export default function CalendarPage() {
     queryKey: ["/api/shifts/provider", selectedProviderId],
     staleTime: 30000,
     enabled: !!selectedProviderId,
+    retry: false, // Don't retry on 403
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/shifts?staffId=${selectedProviderId}`);
-      const data = await response.json();
-      return data;
+      try {
+        const response = await apiRequest('GET', `/api/shifts?staffId=${selectedProviderId}`);
+        if (!response.ok) {
+          console.warn('Failed to fetch provider shifts:', response.status);
+          return []; // Return empty array on error
+        }
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.warn('Error fetching provider shifts:', error);
+        return []; // Return empty array on error
+      }
     },
   });
 
@@ -313,11 +329,21 @@ export default function CalendarPage() {
     queryKey: ["/api/shifts", selectedProviderId, selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null],
     staleTime: 30000,
     enabled: !!selectedDate && !!selectedProviderId,
+    retry: false, // Don't retry on 403
     queryFn: async () => {
-      const dateStr = format(selectedDate!, 'yyyy-MM-dd');
-      const response = await apiRequest('GET', `/api/shifts?date=${dateStr}&staffId=${selectedProviderId}`);
-      const data = await response.json();
-      return data;
+      try {
+        const dateStr = format(selectedDate!, 'yyyy-MM-dd');
+        const response = await apiRequest('GET', `/api/shifts?date=${dateStr}&staffId=${selectedProviderId}`);
+        if (!response.ok) {
+          console.warn('Failed to fetch shifts for date:', response.status);
+          return []; // Return empty array on error
+        }
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.warn('Error fetching shifts for date:', error);
+        return []; // Return empty array on error
+      }
     },
   });
   

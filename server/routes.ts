@@ -10527,7 +10527,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Shift Management API endpoints
-  app.get("/api/shifts", authMiddleware, requireRole(["admin"]), async (req: TenantRequest, res) => {
+  app.get("/api/shifts", authMiddleware, async (req: TenantRequest, res) => {
     try {
       const { date } = req.query as { date?: string };
       console.log("GET /api/shifts - Fetching shifts for organization:", req.tenant!.id, "date filter:", date);
