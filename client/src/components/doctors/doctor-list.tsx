@@ -156,6 +156,18 @@ export function DoctorList({
     enabled: isBookingOpen,
   });
 
+  // Fetch all shifts for the selected doctor to determine available dates
+  const { data: allDoctorShifts } = useQuery({
+    queryKey: ["/api/shifts/doctor", selectedBookingDoctor?.id],
+    staleTime: 30000,
+    enabled: isBookingOpen && !!selectedBookingDoctor?.id,
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/shifts?staffId=${selectedBookingDoctor!.id}`);
+      const data = await response.json();
+      return data;
+    },
+  });
+
   // Fetch shifts for the selected date and doctor
   const { data: shiftsData } = useQuery({
     queryKey: ["/api/shifts", selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null],
@@ -477,6 +489,17 @@ export function DoctorList({
     setWorkingDays((prev) =>
       prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day],
     );
+  };
+
+  // Check if a date has shifts in the database
+  const hasShiftsOnDate = (date: Date): boolean => {
+    if (!allDoctorShifts || !selectedBookingDoctor) return false;
+    
+    const dateStr = format(date, 'yyyy-MM-dd');
+    return allDoctorShifts.some((shift: any) => {
+      const shiftDateStr = shift.date.substring(0, 10);
+      return shiftDateStr === dateStr && shift.staffId === selectedBookingDoctor.id;
+    });
   };
 
   // Format time to 12-hour format for display
@@ -935,9 +958,14 @@ export function DoctorList({
                     mode="single"
                     selected={selectedDate}
                     onSelect={(date: Date | undefined) => setSelectedDate(date)}
-                    disabled={(date: Date) =>
-                      date < new Date() || date < new Date("1900-01-01")
-                    }
+                    disabled={(date: Date) => {
+                      const today = new Date();
+                      today.setHours(0, 0, 0, 0);
+                      
+                      if (date < today) return true;
+                      
+                      return !hasShiftsOnDate(date);
+                    }}
                     className="w-full"
                   />
                 </div>
