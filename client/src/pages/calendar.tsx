@@ -308,6 +308,17 @@ export default function CalendarPage() {
     },
   });
 
+  // Fetch roles from roles table for role-based provider selection
+  const { data: rolesData } = useQuery({
+    queryKey: ["/api/roles"],
+    staleTime: 60000,
+    enabled: user?.role === 'patient',
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/roles');
+      return response.json();
+    },
+  });
+
   // Fetch all shifts for the selected provider to determine available dates
   const { data: allProviderShifts } = useQuery({
     queryKey: ["/api/shifts/provider", selectedProviderId],
@@ -393,12 +404,13 @@ export default function CalendarPage() {
     return usersData.filter((u: any) => u.role === selectedRole);
   }, [selectedRole, usersData]);
 
-  // Get available roles from all users (exclude patient and admin)
+  // Get available roles from roles table (exclude patient)
   const availableRoles: string[] = useMemo(() => {
-    if (!usersData) return [];
-    const roles = Array.from(new Set(usersData.map((u: any) => u.role).filter(Boolean))) as string[];
-    return roles.filter(role => role !== 'patient' && role !== 'admin');
-  }, [usersData]);
+    if (!rolesData) return [];
+    return rolesData
+      .filter((role: any) => role.name !== 'patient')
+      .map((role: any) => role.name);
+  }, [rolesData]);
 
   // Check if a date has shifts in the database
   const hasShiftsOnDate = (date: Date): boolean => {
