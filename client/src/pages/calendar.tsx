@@ -1905,6 +1905,7 @@ export default function CalendarPage() {
                         // If patient user, show confirmation modal instead of directly booking
                         if (user?.role === 'patient') {
                           setPendingAppointmentData(appointmentData);
+                          setShowNewAppointmentModal(false); // Close the booking modal first
                           setShowConfirmationModal(true);
                         } else {
                           createAppointmentMutation.mutate(appointmentData);
@@ -2041,6 +2042,7 @@ export default function CalendarPage() {
                     onClick={() => {
                       setShowConfirmationModal(false);
                       setPendingAppointmentData(null);
+                      setShowNewAppointmentModal(true); // Reopen the booking modal
                     }}
                     data-testid="button-go-back"
                   >
