@@ -411,11 +411,13 @@ export default function BillingPage() {
   const [firstServiceQty, setFirstServiceQty] = useState("");
   const [firstServiceAmount, setFirstServiceAmount] = useState("");
   const [notes, setNotes] = useState("");
+  const [nhsNumber, setNhsNumber] = useState("");
   
   // Validation error states
   const [patientError, setPatientError] = useState("");
   const [serviceError, setServiceError] = useState("");
   const [totalAmountError, setTotalAmountError] = useState("");
+  const [nhsNumberError, setNhsNumberError] = useState("");
 
   const handleSendInvoice = (invoiceId: string) => {
     const invoice = Array.isArray(invoices) ? invoices.find((inv: any) => inv.id === invoiceId) : null;
@@ -1286,6 +1288,33 @@ export default function BillingPage() {
                 </Select>
               </div>
               
+              {insuranceProvider && insuranceProvider !== '' && insuranceProvider !== 'none' && (
+                <div>
+                  <Label htmlFor="nhs-number">NHS Number</Label>
+                  <Input 
+                    id="nhs-number" 
+                    placeholder="123 456 7890 (10 digits)" 
+                    value={nhsNumber}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setNhsNumber(value);
+                      const digitsOnly = value.replace(/\s+/g, '');
+                      if (digitsOnly.length > 0 && digitsOnly.length !== 10) {
+                        setNhsNumberError("NHS number must be exactly 10 digits");
+                      } else if (digitsOnly.length > 0 && !/^\d+$/.test(digitsOnly)) {
+                        setNhsNumberError("NHS number must contain only digits");
+                      } else {
+                        setNhsNumberError("");
+                      }
+                    }}
+                    maxLength={12}
+                  />
+                  {nhsNumberError && (
+                    <p className="text-sm text-red-600 mt-1">{nhsNumberError}</p>
+                  )}
+                </div>
+              )}
+              
               <div>
                 <Label htmlFor="total">Total Amount</Label>
                 <Input 
@@ -1345,6 +1374,7 @@ export default function BillingPage() {
               setPatientError("");
               setServiceError("");
               setTotalAmountError("");
+              setNhsNumberError("");
               
               let hasValidationError = false;
               
@@ -1376,6 +1406,21 @@ export default function BillingPage() {
                 hasValidationError = true;
               }
               
+              // Validate NHS Number if insurance provider is selected
+              if (insuranceProvider && insuranceProvider !== '' && insuranceProvider !== 'none') {
+                const digitsOnly = nhsNumber.replace(/\s+/g, '');
+                if (!nhsNumber.trim()) {
+                  setNhsNumberError('NHS number is required for insurance claims');
+                  hasValidationError = true;
+                } else if (digitsOnly.length !== 10) {
+                  setNhsNumberError('NHS number must be exactly 10 digits');
+                  hasValidationError = true;
+                } else if (!/^\d+$/.test(digitsOnly)) {
+                  setNhsNumberError('NHS number must contain only digits');
+                  hasValidationError = true;
+                }
+              }
+              
               // Stop if there are validation errors
               if (hasValidationError) {
                 return;
@@ -1390,6 +1435,7 @@ export default function BillingPage() {
                   dueDate,
                   totalAmount,
                   insuranceProvider,
+                  nhsNumber: nhsNumber.trim() || undefined,
                   firstServiceCode,
                   firstServiceDesc,
                   firstServiceQty,
@@ -1417,6 +1463,7 @@ export default function BillingPage() {
                 setDueDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
                 setTotalAmount("");
                 setInsuranceProvider("");
+                setNhsNumber("");
                 setFirstServiceCode("");
                 setFirstServiceDesc("");
                 setFirstServiceQty("");

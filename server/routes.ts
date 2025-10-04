@@ -12620,6 +12620,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return !isNaN(num) && num > 0;
         }, "Service amount must be a valid number greater than 0"),
         insuranceProvider: z.string().optional(),
+        nhsNumber: z.string().optional(),
         notes: z.string().optional()
       }).parse(req.body);
 
@@ -12651,7 +12652,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         organizationId: req.tenant!.id,
         patientId: invoiceData.patientId,
         patientName: `${patient.firstName} ${patient.lastName}`,
-        nhsNumber: patient.nhsNumber ? patient.nhsNumber.replace(/\s+/g, '') : null,
+        nhsNumber: invoiceData.nhsNumber ? invoiceData.nhsNumber.replace(/\s+/g, '') : (patient.nhsNumber ? patient.nhsNumber.replace(/\s+/g, '') : null),
         invoiceNumber: invoiceNumber,
         invoiceDate: new Date(invoiceData.invoiceDate),
         dueDate: new Date(invoiceData.dueDate),
