@@ -6093,19 +6093,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
           let recipientEmail = null;
           let recipientName = 'Recipient';
           
-          // Try to get recipient from users table first
-          const recipientUser = await storage.getUser(recipientId, req.tenant!.id);
-          if (recipientUser && recipientUser.email) {
-            recipientEmail = recipientUser.email;
-            recipientName = recipientUser.firstName && recipientUser.lastName 
-              ? `${recipientUser.firstName} ${recipientUser.lastName}`
-              : recipientUser.firstName || recipientUser.email;
-          } else {
-            // Try to get from patients table
-            const recipientPatient = await storage.getPatient(recipientId, req.tenant!.id);
-            if (recipientPatient && recipientPatient.email) {
-              recipientEmail = recipientPatient.email;
-              recipientName = `${recipientPatient.firstName} ${recipientPatient.lastName}`;
+          // Check if recipientId is a number (ID) or string (name)
+          if (typeof recipientId === 'number') {
+            // Try to get recipient from users table first
+            const recipientUser = await storage.getUser(recipientId, req.tenant!.id);
+            if (recipientUser && recipientUser.email) {
+              recipientEmail = recipientUser.email;
+              recipientName = recipientUser.firstName && recipientUser.lastName 
+                ? `${recipientUser.firstName} ${recipientUser.lastName}`
+                : recipientUser.firstName || recipientUser.email;
+            } else {
+              // Try to get from patients table
+              const recipientPatient = await storage.getPatient(recipientId, req.tenant!.id);
+              if (recipientPatient && recipientPatient.email) {
+                recipientEmail = recipientPatient.email;
+                recipientName = `${recipientPatient.firstName} ${recipientPatient.lastName}`;
+              }
+            }
+          } else if (typeof recipientId === 'string') {
+            // RecipientId is a name, need to look up by name
+            // Try users first
+            const allUsers = await storage.getUsersByOrganization(req.tenant!.id);
+            const matchedUser = allUsers.find(user => {
+              const fullName = `${user.firstName} ${user.lastName}`.trim();
+              return fullName === recipientId || 
+                     user.firstName === recipientId ||
+                     user.email === recipientId;
+            });
+            
+            if (matchedUser && matchedUser.email) {
+              recipientEmail = matchedUser.email;
+              recipientName = `${matchedUser.firstName} ${matchedUser.lastName}`;
+            } else {
+              // Try patients table
+              const allPatients = await storage.getPatientsByOrganization(req.tenant!.id);
+              const matchedPatient = allPatients.find(patient => {
+                const fullName = `${patient.firstName} ${patient.lastName}`.trim();
+                return fullName === recipientId || 
+                       patient.firstName === recipientId ||
+                       patient.email === recipientId;
+              });
+              
+              if (matchedPatient && matchedPatient.email) {
+                recipientEmail = matchedPatient.email;
+                recipientName = `${matchedPatient.firstName} ${matchedPatient.lastName}`;
+              }
             }
           }
           
