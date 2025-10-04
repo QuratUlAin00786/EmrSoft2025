@@ -158,7 +158,6 @@ const medicalSpecialties = {
 
 export default function CalendarPage() {
   const { user } = useAuth();
-  const { tenant } = useTenant();
   const [selectedDoctor, setSelectedDoctor] = useState<any>(null);
   const [showNewAppointmentModal, setShowNewAppointmentModal] = useState(false);
   const [selectedSpecialty, setSelectedSpecialty] = useState("");
@@ -254,7 +253,7 @@ export default function CalendarPage() {
     queryKey: ["/api/medical-staff"],
     retry: 3,
     staleTime: 0, // Force fresh requests
-    cacheTime: 0, // Don't cache failed results
+    gcTime: 0, // Don't cache failed results (previously cacheTime in v4)
     enabled: true, // Ensure query is enabled
     refetchOnMount: true, // Always refetch on mount
     refetchOnWindowFocus: false,
@@ -785,7 +784,7 @@ export default function CalendarPage() {
     if (showNewAppointmentModal && user?.role === 'doctor' && allDoctors.length > 0) {
       console.log('🔍 DOCTOR AUTO-DETECT: Modal opened for doctor role');
       console.log('📊 DOCTOR AUTO-DETECT: Total doctors fetched from users table:', allDoctors.length);
-      console.log('👤 DOCTOR AUTO-DETECT: Current user ID:', user.id, 'Organization ID:', user.organizationId);
+      console.log('👤 DOCTOR AUTO-DETECT: Current user ID:', user.id);
       console.log('📋 DOCTOR AUTO-DETECT: All doctors from users table (where role=doctor):', allDoctors.map((d: any) => ({ id: d.id, name: `${d.firstName} ${d.lastName}`, organizationId: d.organizationId })));
       
       const currentUserAsDoctor = allDoctors.find((doctor: any) => doctor.id === user.id);
