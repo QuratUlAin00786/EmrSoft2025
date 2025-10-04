@@ -74,6 +74,8 @@ export default function BillingPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [showNewInvoice, setShowNewInvoice] = useState(false);
   const [selectedReport, setSelectedReport] = useState<string>("");
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [createdInvoiceNumber, setCreatedInvoiceNumber] = useState("");
 
   const { data: billingData = [], isLoading, error } = useQuery({
     queryKey: ["/api/billing"],
@@ -1246,14 +1248,8 @@ export default function BillingPage() {
                 
                 const newInvoice = await response.json();
                 
-                // Invalidate and refetch invoices cache to refresh the list
-                queryClient.invalidateQueries({ queryKey: ["/api/billing/invoices"] });
-                queryClient.refetchQueries({ queryKey: ["/api/billing/invoices"] });
-                
-                toast({
-                  title: "Invoice Created",
-                  description: `Invoice ${newInvoice.invoiceNumber} has been created successfully!`
-                });
+                // Close the create invoice dialog
+                setShowNewInvoice(false);
                 
                 // Reset form state
                 setSelectedPatient("");
@@ -1267,7 +1263,13 @@ export default function BillingPage() {
                 setFirstServiceAmount("");
                 setNotes("");
                 
-                setShowNewInvoice(false);
+                // Show success modal
+                setCreatedInvoiceNumber(newInvoice.invoiceNumber);
+                setShowSuccessModal(true);
+                
+                // Automatically refresh billing data
+                queryClient.invalidateQueries({ queryKey: ["/api/billing/invoices"] });
+                queryClient.refetchQueries({ queryKey: ["/api/billing/invoices"] });
               } catch (error) {
                 console.error('Invoice creation failed:', error);
                 const errorMessage = error instanceof Error ? error.message : 'Failed to create invoice. Please try again.';
@@ -1524,6 +1526,30 @@ export default function BillingPage() {
             >
               <Send className="h-4 w-4 mr-2" />
               Send Invoice
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Success Modal */}
+      <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <div className="flex items-center justify-center mb-4">
+              <div className="h-16 w-16 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center">
+                <CheckCircle className="h-10 w-10 text-green-600 dark:text-green-500" />
+              </div>
+            </div>
+            <DialogTitle className="text-center text-xl">Invoice Created Successfully!</DialogTitle>
+          </DialogHeader>
+          <div className="text-center py-4">
+            <p className="text-muted-foreground">
+              Invoice <span className="font-semibold text-foreground">{createdInvoiceNumber}</span> has been created successfully!
+            </p>
+          </div>
+          <DialogFooter className="sm:justify-center">
+            <Button onClick={() => setShowSuccessModal(false)} className="w-full sm:w-auto">
+              OK
             </Button>
           </DialogFooter>
         </DialogContent>
