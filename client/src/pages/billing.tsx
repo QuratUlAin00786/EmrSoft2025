@@ -76,6 +76,10 @@ export default function BillingPage() {
   const [selectedReport, setSelectedReport] = useState<string>("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [createdInvoiceNumber, setCreatedInvoiceNumber] = useState("");
+  const [showDownloadModal, setShowDownloadModal] = useState(false);
+  const [downloadedInvoiceNumber, setDownloadedInvoiceNumber] = useState("");
+  const [isEditingStatus, setIsEditingStatus] = useState(false);
+  const [editedStatus, setEditedStatus] = useState("");
 
   const { data: billingData = [], isLoading, error } = useQuery({
     queryKey: ["/api/billing"],
@@ -87,15 +91,45 @@ export default function BillingPage() {
 
   const handleViewInvoice = (invoice: Invoice) => {
     setSelectedInvoice(invoice);
+    setEditedStatus(invoice.status);
+    setIsEditingStatus(false);
+  };
+
+  const handleUpdateStatus = async () => {
+    if (!selectedInvoice || !editedStatus) return;
+    
+    try {
+      await apiRequest('PATCH', `/api/billing/invoices/${selectedInvoice.id}`, {
+        status: editedStatus
+      });
+      
+      // Update the local state
+      setSelectedInvoice({ ...selectedInvoice, status: editedStatus as any });
+      setIsEditingStatus(false);
+      
+      // Refresh the invoices list
+      queryClient.invalidateQueries({ queryKey: ["/api/billing/invoices"] });
+      queryClient.refetchQueries({ queryKey: ["/api/billing/invoices"] });
+      
+      toast({
+        title: "Status Updated",
+        description: `Invoice status updated to ${editedStatus}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Update Failed",
+        description: "Failed to update invoice status",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleDownloadInvoice = (invoiceId: string) => {
     const invoice = Array.isArray(invoices) ? invoices.find((inv: any) => inv.id === invoiceId) : null;
     if (invoice) {
-      toast({
-        title: "Download Invoice",
-        description: `Invoice ${invoiceId} downloaded successfully`,
-      });
+      // Show download success modal instead of toast
+      setDownloadedInvoiceNumber(invoice.invoiceNumber || invoiceId);
+      setShowDownloadModal(true);
       
       // Generate professional HTML invoice content with authentic Cura logo
       const timestamp = new Date().getTime();
@@ -1354,18 +1388,42 @@ export default function BillingPage() {
                 <div>
                   <h3 className="font-semibold text-lg mb-3">Billing Summary</h3>
                   <div className="space-y-1 text-sm">
-                    <div><strong>Invoice ID:</strong> {selectedInvoice.id}</div>
-                    <div><strong>Status:</strong> 
-                      <Badge className={`ml-2 ${selectedInvoice.status === 'paid' ? 'bg-green-100 text-green-800' : 
-                        selectedInvoice.status === 'overdue' ? 'bg-red-100 text-red-800' : 
-                        selectedInvoice.status === 'sent' ? 'bg-blue-100 text-blue-800' : 
-                        'bg-gray-100 text-gray-800'}`}>
-                        {selectedInvoice.status}
-                      </Badge>
+                    <div><strong>Invoice ID:</strong> {selectedInvoice.invoiceNumber || selectedInvoice.id}</div>
+                    <div className="flex items-center gap-2">
+                      <strong>Status:</strong> 
+                      {isEditingStatus ? (
+                        <div className="flex items-center gap-2">
+                          <Select value={editedStatus} onValueChange={setEditedStatus}>
+                            <SelectTrigger className="w-[150px] h-8">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="paid">Paid</SelectItem>
+                              <SelectItem value="sent">Sent</SelectItem>
+                              <SelectItem value="overdue">Overdue</SelectItem>
+                              <SelectItem value="draft">Pending</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <Button size="sm" onClick={handleUpdateStatus}>Save</Button>
+                          <Button size="sm" variant="outline" onClick={() => setIsEditingStatus(false)}>Cancel</Button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <Badge className={`${selectedInvoice.status === 'paid' ? 'bg-green-100 text-green-800' : 
+                            selectedInvoice.status === 'overdue' ? 'bg-red-100 text-red-800' : 
+                            selectedInvoice.status === 'sent' ? 'bg-blue-100 text-blue-800' : 
+                            'bg-gray-100 text-gray-800'}`}>
+                            {selectedInvoice.status}
+                          </Badge>
+                          <Button size="sm" variant="ghost" onClick={() => setIsEditingStatus(true)}>
+                            Edit
+                          </Button>
+                        </div>
+                      )}
                     </div>
-                    <div><strong>Total Amount:</strong> £{selectedInvoice.totalAmount.toFixed(2)}</div>
-                    <div><strong>Paid Amount:</strong> £{selectedInvoice.paidAmount.toFixed(2)}</div>
-                    <div><strong>Outstanding:</strong> £{(selectedInvoice.totalAmount - selectedInvoice.paidAmount).toFixed(2)}</div>
+                    <div><strong>Total Amount:</strong> £{parseFloat(selectedInvoice.totalAmount.toString()).toFixed(2)}</div>
+                    <div><strong>Paid Amount:</strong> £{parseFloat(selectedInvoice.paidAmount.toString()).toFixed(2)}</div>
+                    <div><strong>Outstanding:</strong> £{(parseFloat(selectedInvoice.totalAmount.toString()) - parseFloat(selectedInvoice.paidAmount.toString())).toFixed(2)}</div>
                   </div>
                 </div>
               </div>
@@ -1448,8 +1506,7 @@ export default function BillingPage() {
             </Button>
             <Button onClick={() => {
               if (selectedInvoice) {
-                console.log('Downloading invoice:', selectedInvoice.id);
-                alert(`Invoice ${selectedInvoice.id} downloaded successfully`);
+                handleDownloadInvoice(selectedInvoice.id.toString());
               }
             }}>
               <Download className="h-4 w-4 mr-2" />
@@ -1592,6 +1649,30 @@ export default function BillingPage() {
           </div>
           <DialogFooter className="sm:justify-center">
             <Button onClick={() => setShowSuccessModal(false)} className="w-full sm:w-auto">
+              OK
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Download Success Modal */}
+      <Dialog open={showDownloadModal} onOpenChange={setShowDownloadModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <div className="flex items-center justify-center mb-4">
+              <div className="h-16 w-16 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
+                <Download className="h-10 w-10 text-blue-600 dark:text-blue-500" />
+              </div>
+            </div>
+            <DialogTitle className="text-center text-xl">Invoice Downloaded Successfully!</DialogTitle>
+          </DialogHeader>
+          <div className="text-center py-4">
+            <p className="text-muted-foreground">
+              Invoice <span className="font-semibold text-foreground">{downloadedInvoiceNumber}</span> downloaded successfully!
+            </p>
+          </div>
+          <DialogFooter className="sm:justify-center">
+            <Button onClick={() => setShowDownloadModal(false)} className="w-full sm:w-auto">
               OK
             </Button>
           </DialogFooter>
