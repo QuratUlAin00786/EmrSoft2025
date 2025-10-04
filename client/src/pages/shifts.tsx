@@ -182,6 +182,18 @@ export default function ShiftsPage() {
     return `${year}-${month}-${day}`;
   };
 
+  // Fetch all shifts for the selected staff member to determine available dates
+  const { data: allStaffShifts = [] } = useQuery({
+    queryKey: ["/api/shifts/staff", selectedStaffId],
+    staleTime: 30000,
+    enabled: !!selectedStaffId,
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/shifts?staffId=${selectedStaffId}`);
+      const data = await response.json();
+      return Array.isArray(data) ? data : [];
+    },
+  });
+
   // Fetch shifts for selected date (use availability modal date when modal is open)
   const dateForQuery = showAvailability ? selectedAvailabilityDay : selectedDate;
   const queryDateString = getLocalDateString(dateForQuery);
@@ -203,6 +215,17 @@ export default function ShiftsPage() {
       }
     },
   });
+
+  // Check if a date has shifts for the selected staff member
+  const hasShiftsOnDate = (date: Date): boolean => {
+    if (!allStaffShifts || !selectedStaffId) return false;
+    
+    const dateStr = getLocalDateString(date);
+    return allStaffShifts.some((shift: any) => {
+      const shiftDateStr = shift.date.substring(0, 10);
+      return shiftDateStr === dateStr && shift.staffId.toString() === selectedStaffId;
+    });
+  };
 
   // Filter staff by selected role
   const filteredStaff = useMemo(() => {
@@ -743,17 +766,21 @@ export default function ShiftsPage() {
               const isCurrentMonth = day.getMonth() === currentMonth.getMonth();
               const isSelected = selectedDate.toDateString() === day.toDateString();
               const isToday = day.toDateString() === new Date().toDateString();
+              const dateHasShifts = hasShiftsOnDate(day);
+              const isDateDisabled = Boolean(selectedStaffId && !dateHasShifts && isCurrentMonth);
               
               return (
                 <Button
                   key={index}
                   variant="ghost"
                   size="sm"
+                  disabled={isDateDisabled}
                   className={`
                     h-10 p-0 font-normal
                     ${!isCurrentMonth ? 'text-gray-300 dark:text-gray-600' : 'text-gray-900 dark:text-gray-100'}
                     ${isSelected ? 'bg-blue-600 text-white hover:bg-blue-700' : ''}
                     ${isToday && !isSelected ? 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300' : ''}
+                    ${isDateDisabled ? 'opacity-50 cursor-not-allowed' : ''}
                   `}
                   onClick={() => {
                     console.log("Calendar day clicked:", day.toDateString(), day);
@@ -841,13 +868,14 @@ export default function ShiftsPage() {
                     <Button
                       key={slot.value}
                       variant="outline"
+                      disabled={hasShift}
                       className={`
-                        h-12 justify-center font-medium transition-all cursor-pointer text-sm
+                        h-12 justify-center font-medium transition-all text-sm
                         ${isSelected
-                          ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white border-green-400 hover:from-green-500 hover:to-emerald-600'
+                          ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white border-green-400 hover:from-green-500 hover:to-emerald-600 cursor-pointer'
                           : hasShift
-                          ? 'bg-gradient-to-r from-purple-400 to-violet-500 text-white border-purple-400 hover:from-purple-500 hover:to-violet-600'
-                          : 'bg-gradient-to-r from-blue-400 to-cyan-400 text-white border-blue-400 hover:from-blue-500 hover:to-cyan-500'
+                          ? 'bg-gray-400 text-gray-100 border-gray-400 cursor-not-allowed opacity-75'
+                          : 'bg-gradient-to-r from-blue-400 to-cyan-400 text-white border-blue-400 hover:from-blue-500 hover:to-cyan-500 cursor-pointer'
                         }
                       `}
                       onClick={() => handleTimeSlotSelection(slot.value)}
@@ -871,8 +899,8 @@ export default function ShiftsPage() {
                     <span className="text-gray-600 dark:text-gray-400">Available</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-gradient-to-r from-purple-400 to-violet-500 rounded"></div>
-                    <span className="text-gray-600 dark:text-gray-400">Scheduled Shifts</span>
+                    <div className="w-4 h-4 bg-gray-400 rounded"></div>
+                    <span className="text-gray-600 dark:text-gray-400">Shift Already Created</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 bg-gradient-to-r from-green-400 to-emerald-500 rounded"></div>
