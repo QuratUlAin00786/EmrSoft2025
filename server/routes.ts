@@ -12637,13 +12637,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ? 'insurance_claim' 
         : 'payment';
 
+      // Generate insurance claim data if invoice type is insurance_claim
+      const insuranceData = invoiceType === 'insurance_claim' ? {
+        provider: invoiceData.insuranceProvider || 'NHS',
+        claimNumber: `CLM${Date.now().toString().slice(-6)}`,
+        status: 'approved',
+        paidAmount: 0
+      } : null;
+
       // Prepare invoice for database
       const totalAmt = parseFloat(invoiceData.totalAmount);
       const invoiceToCreate = {
         organizationId: req.tenant!.id,
         patientId: invoiceData.patientId,
         patientName: `${patient.firstName} ${patient.lastName}`,
-        nhsNumber: patient.nhsNumber || null,
+        nhsNumber: patient.nhsNumber ? patient.nhsNumber.replace(/\s+/g, '') : null,
         invoiceNumber: invoiceNumber,
         invoiceDate: new Date(invoiceData.invoiceDate),
         dueDate: new Date(invoiceData.dueDate),
@@ -12665,7 +12673,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         ],
         notes: invoiceData.notes || null,
-        insurance: null,
+        insurance: insuranceData,
         payments: [],
         createdBy: req.user!.id
       };
