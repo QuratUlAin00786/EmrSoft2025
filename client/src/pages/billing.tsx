@@ -69,148 +69,6 @@ interface Invoice {
   }>;
 }
 
-const mockInvoices: Invoice[] = [
-  {
-    id: "inv_001",
-    patientId: "p_001",
-    patientName: "Sarah Johnson",
-    dateOfService: "2024-01-15T10:30:00Z",
-    invoiceDate: "2024-01-15T00:00:00Z",
-    dueDate: "2024-02-14T00:00:00Z",
-    status: "paid",
-    totalAmount: 250.00,
-    paidAmount: 250.00,
-    items: [
-      {
-        code: "99213",
-        description: "Office Visit - Established Patient (Level 3)",
-        quantity: 1,
-        unitPrice: 150.00,
-        total: 150.00
-      },
-      {
-        code: "85025",
-        description: "Complete Blood Count",
-        quantity: 1,
-        unitPrice: 50.00,
-        total: 50.00
-      },
-      {
-        code: "80053",
-        description: "Comprehensive Metabolic Panel",
-        quantity: 1,
-        unitPrice: 50.00,
-        total: 50.00
-      }
-    ],
-    insurance: {
-      provider: "NHS",
-      claimNumber: "CLM2024001",
-      status: "approved",
-      paidAmount: 200.00
-    },
-    payments: [
-      {
-        id: "pay_001",
-        amount: 200.00,
-        method: "insurance",
-        date: "2024-01-20T00:00:00Z",
-        reference: "NHS_PAY_001"
-      },
-      {
-        id: "pay_002",
-        amount: 50.00,
-        method: "card",
-        date: "2024-01-22T00:00:00Z",
-        reference: "CC_****1234"
-      }
-    ]
-  },
-  {
-    id: "inv_002",
-    patientId: "p_002",
-    patientName: "Robert Davis",
-    dateOfService: "2024-01-14T14:15:00Z",
-    invoiceDate: "2024-01-14T00:00:00Z",
-    dueDate: "2024-02-13T00:00:00Z",
-    status: "sent",
-    totalAmount: 450.00,
-    paidAmount: 0,
-    items: [
-      {
-        code: "99214",
-        description: "Office Visit - Established Patient (Level 4)",
-        quantity: 1,
-        unitPrice: 200.00,
-        total: 200.00
-      },
-      {
-        code: "71020",
-        description: "Chest X-Ray (2 views)",
-        quantity: 1,
-        unitPrice: 150.00,
-        total: 150.00
-      },
-      {
-        code: "93000",
-        description: "Electrocardiogram",
-        quantity: 1,
-        unitPrice: 100.00,
-        total: 100.00
-      }
-    ],
-    insurance: {
-      provider: "Private Insurance",
-      claimNumber: "CLM2024002",
-      status: "pending",
-      paidAmount: 0
-    },
-    payments: []
-  },
-  {
-    id: "inv_003",
-    patientId: "p_003",
-    patientName: "Emma Wilson",
-    dateOfService: "2024-01-10T09:00:00Z",
-    invoiceDate: "2024-01-10T00:00:00Z",
-    dueDate: "2024-01-25T00:00:00Z",
-    status: "overdue",
-    totalAmount: 180.00,
-    paidAmount: 100.00,
-    items: [
-      {
-        code: "99212",
-        description: "Office Visit - Established Patient (Level 2)",
-        quantity: 1,
-        unitPrice: 120.00,
-        total: 120.00
-      },
-      {
-        code: "90471",
-        description: "Immunization Administration",
-        quantity: 1,
-        unitPrice: 25.00,
-        total: 25.00
-      },
-      {
-        code: "90715",
-        description: "Flu Vaccine",
-        quantity: 1,
-        unitPrice: 35.00,
-        total: 35.00
-      }
-    ],
-    payments: [
-      {
-        id: "pay_003",
-        amount: 100.00,
-        method: "cash",
-        date: "2024-01-15T00:00:00Z"
-      }
-    ]
-  }
-];
-
 export default function BillingPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -550,12 +408,6 @@ export default function BillingPage() {
     const invoice = Array.isArray(invoices) ? invoices.find((inv: any) => inv.id === invoiceId) : null;
     if (invoice) {
       if (confirm(`Are you sure you want to delete invoice ${invoiceId} for ${invoice.patientName}?`)) {
-        // Update mockInvoices to persist the deletion
-        const mockInvoicesIndex = mockInvoices.findIndex((inv: any) => inv.id === invoiceId);
-        if (mockInvoicesIndex !== -1) {
-          mockInvoices.splice(mockInvoicesIndex, 1);
-        }
-        
         // Update the query cache to immediately reflect the deletion
         queryClient.setQueryData(["/api/billing/invoices", statusFilter], (oldData: any) => {
           if (Array.isArray(oldData)) {
@@ -576,7 +428,7 @@ export default function BillingPage() {
     }
   };
 
-  const { data: invoices = mockInvoices, isLoading: invoicesLoading } = useQuery({
+  const { data: invoices = [], isLoading: invoicesLoading } = useQuery({
     queryKey: ["/api/billing/invoices", statusFilter],
     enabled: true,
   });
