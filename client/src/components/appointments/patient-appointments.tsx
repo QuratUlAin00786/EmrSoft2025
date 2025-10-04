@@ -76,8 +76,8 @@ export default function PatientAppointments({
   const [patientFilterSubSpecialty, setPatientFilterSubSpecialty] =
     useState<string>("");
   const [statusFilter, setStatusFilter] = useState<'all'|'scheduled'|'cancelled'|'completed'|'rescheduled'|'no_show'>('scheduled');
-  const [roleFilter, setRoleFilter] = useState<string>("");
-  const [providerFilter, setProviderFilter] = useState<string>("");
+  const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [providerFilter, setProviderFilter] = useState<string>("all");
   const [showAdvancedFilters, setShowAdvancedFilters] = useState<boolean>(false);
   const { user } = useAuth();
   const { toast } = useToast();
@@ -469,7 +469,7 @@ export default function PatientAppointments({
 
   // Get filtered users by selected role
   const filteredUsersByRole = React.useMemo(() => {
-    if (!roleFilter || !usersData || !Array.isArray(usersData)) return [];
+    if (!roleFilter || roleFilter === "all" || !usersData || !Array.isArray(usersData)) return [];
     return usersData.filter((u: any) => u.role === roleFilter);
   }, [roleFilter, usersData]);
 
@@ -505,7 +505,7 @@ export default function PatientAppointments({
     }
 
     // Filter by provider (based on role selection)
-    if (providerFilter) {
+    if (providerFilter && providerFilter !== "all") {
       filtered = filtered.filter((apt: any) => {
         return apt.providerId === parseInt(providerFilter);
       });
@@ -862,13 +862,13 @@ export default function PatientAppointments({
                     <Label className="text-sm font-medium text-gray-700">Filter by Role</Label>
                     <Select value={roleFilter} onValueChange={(value) => {
                       setRoleFilter(value);
-                      setProviderFilter(""); // Reset provider when role changes
+                      setProviderFilter("all"); // Reset provider when role changes
                     }}>
                       <SelectTrigger data-testid="select-role-filter">
                         <SelectValue placeholder="Select role" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="" data-testid="option-role-all">All Roles</SelectItem>
+                        <SelectItem value="all" data-testid="option-role-all">All Roles</SelectItem>
                         {rolesData && Array.isArray(rolesData) ? rolesData
                           .filter((role: any) => role.name !== 'patient' && role.name !== 'admin')
                           .map((role: any) => (
@@ -886,7 +886,7 @@ export default function PatientAppointments({
                 </div>
 
                 {/* Second Row: Provider Name Filter (shown when role is selected) */}
-                {roleFilter && (
+                {roleFilter && roleFilter !== "all" && (
                   <div className="grid grid-cols-3 gap-4">
                     <div>
                       <Label className="text-sm font-medium text-gray-700">
@@ -897,7 +897,7 @@ export default function PatientAppointments({
                           <SelectValue placeholder="Select provider" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="" data-testid="option-provider-all">All Providers</SelectItem>
+                          <SelectItem value="all" data-testid="option-provider-all">All Providers</SelectItem>
                           {filteredUsersByRole.map((provider: any) => (
                             <SelectItem 
                               key={provider.id} 
@@ -928,8 +928,8 @@ export default function PatientAppointments({
                       setPatientFilterSpecialty("");
                       setPatientFilterSubSpecialty("");
                       setStatusFilter('all');
-                      setRoleFilter("");
-                      setProviderFilter("");
+                      setRoleFilter("all");
+                      setProviderFilter("all");
                     }}
                     data-testid="button-clear-filters"
                   >
