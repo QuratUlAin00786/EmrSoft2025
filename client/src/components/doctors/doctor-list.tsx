@@ -126,6 +126,9 @@ export function DoctorList({
   // Confirmation dialog state
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  
+  // Role filter state
+  const [selectedRole, setSelectedRole] = useState<string>("all");
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -516,7 +519,16 @@ export function DoctorList({
   const availableStaff = medicalStaff.filter((doctor: Doctor) => {
     // If logged-in user is a patient, show all users except admin and patient
     if (user?.role === 'patient') {
-      return doctor.role !== 'admin' && doctor.role !== 'patient';
+      if (doctor.role === 'admin' || doctor.role === 'patient') {
+        return false;
+      }
+      
+      // Apply role filter if a specific role is selected
+      if (selectedRole !== 'all' && doctor.role !== selectedRole) {
+        return false;
+      }
+      
+      return true;
     }
     
     // For non-patient users: only show users with role='doctor'
@@ -579,10 +591,26 @@ export function DoctorList({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Stethoscope className="h-5 w-5" />
-          Available Doctors
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <Stethoscope className="h-5 w-5" />
+            Available Doctors
+          </CardTitle>
+          {user?.role === 'patient' && (
+            <Select value={selectedRole} onValueChange={setSelectedRole}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Roles</SelectItem>
+                <SelectItem value="doctor">Doctor</SelectItem>
+                <SelectItem value="nurse">Nurse</SelectItem>
+                <SelectItem value="receptionist">Receptionist</SelectItem>
+                <SelectItem value="sample_taker">Sample Taker</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
