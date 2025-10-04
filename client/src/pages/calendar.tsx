@@ -199,6 +199,7 @@ export default function CalendarPage() {
   // Confirmation modal states for patient users
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [pendingAppointmentData, setPendingAppointmentData] = useState<any>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [location] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -851,10 +852,16 @@ export default function CalendarPage() {
       return response.json();
     },
     onSuccess: () => {
-      toast({
-        title: "Appointment Created",
-        description: "The appointment has been successfully booked.",
-      });
+      // Show success modal for patient users, toast for others
+      if (user?.role === 'patient') {
+        setShowSuccessModal(true);
+      } else {
+        toast({
+          title: "Appointment Created",
+          description: "The appointment has been successfully booked.",
+        });
+      }
+      
       // Update calendar data with proper cache invalidation
       queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
       // Also invalidate patient-filtered appointments query
@@ -874,6 +881,9 @@ export default function CalendarPage() {
       setSelectedDoctor(null);
       setSelectedDate(undefined);
       setSelectedTimeSlot("");
+      setSelectedRole("");
+      setSelectedProviderId("");
+      setSelectedDuration(30);
       setBookingForm({
         patientId: "",
         title: "",
@@ -1954,7 +1964,20 @@ export default function CalendarPage() {
                   <CardContent>
                     <div className="space-y-3">
                       {(() => {
-                        const patient = patients.find((p: any) => p.id.toString() === pendingAppointmentData.patientId.toString());
+                        // Find patient by ID - handle both numeric and string patient IDs
+                        const patientId = pendingAppointmentData.patientId;
+                        const patient = patients.find((p: any) => {
+                          // Try exact ID match first
+                          if (p.id === patientId || p.id.toString() === patientId.toString()) {
+                            return true;
+                          }
+                          // Also check patientId field (like P000006)
+                          if (p.patientId === patientId || p.patientId === patientId.toString()) {
+                            return true;
+                          }
+                          return false;
+                        });
+                        
                         return patient ? (
                           <>
                             <div className="flex items-center gap-2">
@@ -1977,7 +2000,9 @@ export default function CalendarPage() {
                               </div>
                             )}
                           </>
-                        ) : null;
+                        ) : (
+                          <div className="text-gray-500">Patient information not available</div>
+                        );
                       })()}
                     </div>
                   </CardContent>
@@ -2059,6 +2084,36 @@ export default function CalendarPage() {
                   >
                     <Check className="h-4 w-4 mr-2" />
                     {createAppointmentMutation.isPending ? "Confirming..." : "Confirm Appointment"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Success Modal for Patient Users */}
+        {showSuccessModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+              <div className="p-6">
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                    <Check className="h-8 w-8 text-green-600" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                    Appointment Created
+                  </h2>
+                  <p className="text-gray-600 mb-6">
+                    Your appointment has been successfully booked. You will receive a confirmation shortly.
+                  </p>
+                  <Button
+                    onClick={() => {
+                      setShowSuccessModal(false);
+                    }}
+                    className="w-full"
+                    data-testid="button-close-success"
+                  >
+                    Close
                   </Button>
                 </div>
               </div>
