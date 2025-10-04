@@ -80,6 +80,8 @@ export default function BillingPage() {
   const [downloadedInvoiceNumber, setDownloadedInvoiceNumber] = useState("");
   const [isEditingStatus, setIsEditingStatus] = useState(false);
   const [editedStatus, setEditedStatus] = useState("");
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [invoiceToDelete, setInvoiceToDelete] = useState<Invoice | null>(null);
 
   const { data: billingData = [], isLoading, error } = useQuery({
     queryKey: ["/api/billing"],
@@ -130,6 +132,9 @@ export default function BillingPage() {
       // Show download success modal instead of toast
       setDownloadedInvoiceNumber(invoice.invoiceNumber || invoiceId);
       setShowDownloadModal(true);
+      
+      // Helper to safely convert to number and format
+      const toNum = (val: any) => typeof val === 'string' ? parseFloat(val) : val;
       
       // Generate professional HTML invoice content with authentic Cura logo
       const timestamp = new Date().getTime();
@@ -332,8 +337,8 @@ export default function BillingPage() {
                 <small style="color: #6b7280;">Professional medical consultation</small>
               </td>
               <td style="text-align: center;">${item.quantity}</td>
-              <td style="text-align: right;">£${item.unitPrice.toFixed(2)}</td>
-              <td style="text-align: right;">£${item.total.toFixed(2)}</td>
+              <td style="text-align: right;">£${toNum(item.unitPrice).toFixed(2)}</td>
+              <td style="text-align: right;">£${toNum(item.total).toFixed(2)}</td>
             </tr>
           `).join('')}
         </tbody>
@@ -342,7 +347,7 @@ export default function BillingPage() {
       <div class="total-section">
         <div class="total-row">
           <span>Subtotal:</span>
-          <span>£${invoice.totalAmount.toFixed(2)}</span>
+          <span>£${toNum(invoice.totalAmount).toFixed(2)}</span>
         </div>
         <div class="total-row">
           <span>VAT (0%):</span>
@@ -350,16 +355,16 @@ export default function BillingPage() {
         </div>
         <div class="total-row final">
           <span>Total Amount:</span>
-          <span>£${invoice.totalAmount.toFixed(2)}</span>
+          <span>£${toNum(invoice.totalAmount).toFixed(2)}</span>
         </div>
-        ${invoice.paidAmount > 0 ? `
+        ${toNum(invoice.paidAmount) > 0 ? `
         <div class="total-row" style="color: #059669;">
           <span>Amount Paid:</span>
-          <span>-£${invoice.paidAmount.toFixed(2)}</span>
+          <span>-£${toNum(invoice.paidAmount).toFixed(2)}</span>
         </div>
-        <div class="total-row final" style="color: ${(invoice.totalAmount - invoice.paidAmount) === 0 ? '#059669' : '#dc2626'};">
+        <div class="total-row final" style="color: ${(toNum(invoice.totalAmount) - toNum(invoice.paidAmount)) === 0 ? '#059669' : '#dc2626'};">
           <span>Balance Due:</span>
-          <span>£${(invoice.totalAmount - invoice.paidAmount).toFixed(2)}</span>
+          <span>£${(toNum(invoice.totalAmount) - toNum(invoice.paidAmount)).toFixed(2)}</span>
         </div>
         ` : ''}
       </div>
@@ -420,48 +425,72 @@ export default function BillingPage() {
       setRecipientPhone(`+44 7${Math.floor(Math.random() * 100000000).toString().padStart(8, '0')}`);
       setRecipientName(invoice.patientName);
       setRecipientAddress(`${Math.floor(Math.random() * 999) + 1} High Street\nLondon\nSW1A 1AA`);
-      setCustomMessage(`Dear ${invoice.patientName},\n\nPlease find attached your invoice for services rendered on ${format(new Date(invoice.dateOfService), 'MMM d, yyyy')}.\n\nTotal Amount: £${invoice.totalAmount.toFixed(2)}\nDue Date: ${format(new Date(invoice.dueDate), 'MMM d, yyyy')}\n\nThank you for choosing our healthcare services.`);
+      const totalAmt = typeof invoice.totalAmount === 'string' ? parseFloat(invoice.totalAmount) : invoice.totalAmount;
+      setCustomMessage(`Dear ${invoice.patientName},\n\nPlease find attached your invoice for services rendered on ${format(new Date(invoice.dateOfService), 'MMM d, yyyy')}.\n\nTotal Amount: £${totalAmt.toFixed(2)}\nDue Date: ${format(new Date(invoice.dueDate), 'MMM d, yyyy')}\n\nThank you for choosing our healthcare services.`);
       setSendInvoiceDialog(true);
     }
   };
 
-  const confirmSendInvoice = () => {
-    if (invoiceToSend) {
-      // Simulate sending the invoice
-      setTimeout(() => {
-        toast({
-          title: "Invoice Sent Successfully",
-          description: `Invoice ${invoiceToSend.id} sent to ${recipientEmail}`,
-        });
-        setSendInvoiceDialog(false);
-        setInvoiceToSend(null);
-        setRecipientEmail("");
-        setCustomMessage("");
-      }, 1000);
+  const confirmSendInvoice = async () => {
+    if (!invoiceToSend) return;
+    
+    try {
+      await apiRequest('POST', '/api/billing/send-invoice', {
+        invoiceId: invoiceToSend.id,
+        sendMethod,
+        recipientEmail: sendMethod === 'email' ? recipientEmail : undefined,
+        recipientPhone: sendMethod === 'sms' ? recipientPhone : undefined,
+        recipientName: sendMethod === 'print' ? recipientName : undefined,
+        recipientAddress: sendMethod === 'print' ? recipientAddress : undefined,
+        customMessage
+      });
+      
+      toast({
+        title: "Invoice Sent Successfully",
+        description: `Invoice ${invoiceToSend.id} sent to ${recipientEmail}`,
+      });
+      setSendInvoiceDialog(false);
+      setInvoiceToSend(null);
+      setRecipientEmail("");
+      setCustomMessage("");
+    } catch (error) {
+      toast({
+        title: "Failed to Send Invoice",
+        description: "There was an error sending the invoice. Please try again.",
+        variant: "destructive"
+      });
     }
   };
 
   const handleDeleteInvoice = (invoiceId: string) => {
     const invoice = Array.isArray(invoices) ? invoices.find((inv: any) => inv.id === invoiceId) : null;
     if (invoice) {
-      if (confirm(`Are you sure you want to delete invoice ${invoiceId} for ${invoice.patientName}?`)) {
-        // Update the query cache to immediately reflect the deletion
-        queryClient.setQueryData(["/api/billing/invoices", statusFilter], (oldData: any) => {
-          if (Array.isArray(oldData)) {
-            return oldData.filter((inv: any) => inv.id !== invoiceId);
-          }
-          return oldData;
-        });
-        
-        // Also invalidate the cache to ensure consistency
-        queryClient.invalidateQueries({ queryKey: ["/api/billing/invoices"] });
-        
-        toast({
-          title: "Invoice Deleted",
-          description: `Invoice ${invoiceId} has been successfully deleted`,
-          variant: "destructive",
-        });
-      }
+      setInvoiceToDelete(invoice);
+      setShowDeleteModal(true);
+    }
+  };
+
+  const confirmDeleteInvoice = () => {
+    if (invoiceToDelete) {
+      // Update the query cache to immediately reflect the deletion
+      queryClient.setQueryData(["/api/billing/invoices", statusFilter], (oldData: any) => {
+        if (Array.isArray(oldData)) {
+          return oldData.filter((inv: any) => inv.id !== invoiceToDelete.id);
+        }
+        return oldData;
+      });
+      
+      // Also invalidate the cache to ensure consistency
+      queryClient.invalidateQueries({ queryKey: ["/api/billing/invoices"] });
+      
+      toast({
+        title: "Invoice Deleted",
+        description: `Invoice ${invoiceToDelete.id} has been successfully deleted`,
+        variant: "destructive",
+      });
+      
+      setShowDeleteModal(false);
+      setInvoiceToDelete(null);
     }
   };
 
@@ -1529,7 +1558,7 @@ export default function BillingPage() {
                 <div className="text-sm">
                   <div><strong>Invoice:</strong> {invoiceToSend.id}</div>
                   <div><strong>Patient:</strong> {invoiceToSend.patientName}</div>
-                  <div><strong>Amount:</strong> £{invoiceToSend.totalAmount.toFixed(2)}</div>
+                  <div><strong>Amount:</strong> £{(typeof invoiceToSend.totalAmount === 'string' ? parseFloat(invoiceToSend.totalAmount) : invoiceToSend.totalAmount).toFixed(2)}</div>
                 </div>
               </div>
 
@@ -1673,6 +1702,28 @@ export default function BillingPage() {
           </div>
           <DialogFooter className="sm:justify-center">
             <Button onClick={() => setShowDownloadModal(false)} className="w-full sm:w-auto">
+              OK
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Modal */}
+      <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete Invoice</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-muted-foreground">
+              Are you sure you want to delete invoice {invoiceToDelete?.id} for {invoiceToDelete?.patientName}?
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeleteModal(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={confirmDeleteInvoice}>
               OK
             </Button>
           </DialogFooter>

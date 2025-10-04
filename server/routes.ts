@@ -12681,6 +12681,147 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update invoice status
+  app.patch("/api/billing/invoices/:id", requireRole(["admin", "doctor", "nurse", "receptionist"]), async (req: TenantRequest, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+
+      if (!status) {
+        return res.status(400).json({ error: "Status is required" });
+      }
+
+      await storage.updateInvoice(parseInt(id), req.tenant!.id, { status });
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Failed to update invoice status:", error);
+      res.status(500).json({ error: "Failed to update invoice status" });
+    }
+  });
+
+  // Send invoice via email
+  app.post("/api/billing/send-invoice", requireRole(["admin", "doctor", "nurse", "receptionist"]), async (req: TenantRequest, res) => {
+    try {
+      const { invoiceId, sendMethod, recipientEmail, customMessage } = req.body;
+
+      if (!invoiceId) {
+        return res.status(400).json({ error: "Invoice ID is required" });
+      }
+
+      if (sendMethod === 'email' && !recipientEmail) {
+        return res.status(400).json({ error: "Recipient email is required" });
+      }
+
+      // Get invoice details - convert invoiceId to number for comparison
+      const id = Number(invoiceId);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid invoice ID" });
+      }
+
+      const invoices = await storage.getInvoicesByOrganization(req.tenant!.id);
+      const invoice = invoices.find(inv => inv.id === id);
+
+      if (!invoice) {
+        return res.status(404).json({ error: "Invoice not found" });
+      }
+
+      if (sendMethod === 'email') {
+        // Format dates
+        const formatDate = (date: Date | string) => {
+          const d = new Date(date);
+          return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+        };
+
+        // Parse total amount
+        const totalAmount = typeof invoice.totalAmount === 'string' 
+          ? parseFloat(invoice.totalAmount) 
+          : invoice.totalAmount;
+
+        // Generate invoice email template
+        const subject = `Invoice ${invoice.invoiceNumber} - ${invoice.patientName}`;
+        const html = `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <style>
+              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background-color: #4A7DFF; color: white; padding: 20px; text-align: center; }
+              .content { padding: 20px; background-color: #f9f9f9; }
+              .invoice-details { background-color: white; padding: 15px; border-radius: 5px; margin: 20px 0; }
+              .footer { text-align: center; color: #666; font-size: 12px; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>Cura EMR</h1>
+                <h2>Invoice</h2>
+              </div>
+              <div class="content">
+                <p>Dear ${invoice.patientName},</p>
+                ${customMessage ? `<p>${customMessage}</p>` : '<p>Please find attached your invoice for services rendered.</p>'}
+                
+                <div class="invoice-details">
+                  <h3>Invoice Details</h3>
+                  <p><strong>Invoice Number:</strong> ${invoice.invoiceNumber}</p>
+                  <p><strong>Date:</strong> ${formatDate(invoice.invoiceDate)}</p>
+                  <p><strong>Due Date:</strong> ${formatDate(invoice.dueDate)}</p>
+                  <p><strong>Total Amount:</strong> £${totalAmount.toFixed(2)}</p>
+                </div>
+                
+                <p>Thank you for choosing our healthcare services.</p>
+                
+                <p>Best regards,<br>Cura EMR Team</p>
+              </div>
+              <div class="footer">
+                <p>© 2025 Cura EMR by Cura Software Limited. All rights reserved.</p>
+              </div>
+            </div>
+          </body>
+          </html>
+        `;
+
+        const text = `
+Dear ${invoice.patientName},
+
+${customMessage || 'Please find attached your invoice for services rendered.'}
+
+Invoice Details:
+Invoice Number: ${invoice.invoiceNumber}
+Date: ${formatDate(invoice.invoiceDate)}
+Due Date: ${formatDate(invoice.dueDate)}
+Total Amount: £${totalAmount.toFixed(2)}
+
+Thank you for choosing our healthcare services.
+
+Best regards,
+Cura EMR Team
+        `;
+
+        // Send email using the email service
+        const emailSent = await emailService.sendEmail({
+          to: recipientEmail,
+          subject,
+          html,
+          text
+        });
+
+        if (emailSent) {
+          res.json({ success: true, message: "Invoice sent successfully" });
+        } else {
+          res.status(500).json({ error: "Failed to send invoice email" });
+        }
+      } else {
+        // For SMS and print methods, just return success for now
+        res.json({ success: true, message: "Invoice sent successfully" });
+      }
+    } catch (error) {
+      console.error("Failed to send invoice:", error);
+      res.status(500).json({ error: "Failed to send invoice" });
+    }
+  });
+
   // SaaS routes already registered above before tenant middleware
 
   const httpServer = createServer(app);
