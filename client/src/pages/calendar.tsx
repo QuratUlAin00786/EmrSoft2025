@@ -200,6 +200,8 @@ export default function CalendarPage() {
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [pendingAppointmentData, setPendingAppointmentData] = useState<any>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showInsufficientTimeModal, setShowInsufficientTimeModal] = useState(false);
+  const [insufficientTimeMessage, setInsufficientTimeMessage] = useState("");
   const [location] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -535,6 +537,42 @@ export default function CalendarPage() {
       // Check for overlap: slot starts before apt ends AND slot ends after apt starts
       return (slotTime24 < aptEnd24 && slotEnd24 > aptStart24);
     });
+  };
+
+  // Check if sufficient consecutive time is available for the selected duration
+  const checkSufficientTime = (startTimeSlot: string, durationMinutes: number): { available: boolean; availableMinutes: number } => {
+    if (!selectedDate || !selectedProviderId) return { available: false, availableMinutes: 0 };
+
+    const startTime24 = timeSlotTo24Hour(startTimeSlot);
+    const [startHour, startMinute] = startTime24.split(':').map(Number);
+
+    // Generate all 15-minute slots needed for the duration
+    const slotsNeeded = Math.ceil(durationMinutes / 15);
+    let availableMinutes = 0;
+    
+    for (let i = 0; i < slotsNeeded; i++) {
+      let currentMinute = startMinute + (i * 15);
+      let currentHour = startHour;
+      
+      if (currentMinute >= 60) {
+        currentHour += Math.floor(currentMinute / 60);
+        currentMinute = currentMinute % 60;
+      }
+
+      // Convert to 12-hour format to match timeSlots array
+      const hour12 = currentHour === 0 ? 12 : currentHour > 12 ? currentHour - 12 : currentHour;
+      const period = currentHour < 12 ? 'AM' : 'PM';
+      const timeSlotStr = `${hour12}:${currentMinute.toString().padStart(2, '0')} ${period}`;
+
+      // Check if this slot exists and is not booked
+      if (!timeSlots.includes(timeSlotStr) || isTimeSlotBooked(timeSlotStr)) {
+        return { available: false, availableMinutes };
+      }
+      
+      availableMinutes += 15;
+    }
+
+    return { available: true, availableMinutes };
   };
   
   // Function to apply filters
@@ -2049,6 +2087,17 @@ export default function CalendarPage() {
                     </Button>
                     <Button
                       onClick={() => {
+                        // Validate sufficient time is available for the selected duration
+                        const { available, availableMinutes } = checkSufficientTime(selectedTimeSlot, selectedDuration);
+                        
+                        if (!available) {
+                          setInsufficientTimeMessage(
+                            `Only ${availableMinutes} minutes are available at ${selectedTimeSlot}. Please select another time slot.`
+                          );
+                          setShowInsufficientTimeModal(true);
+                          return;
+                        }
+
                         // Convert 12-hour time to 24-hour format
                         const time24 = timeSlotTo24Hour(selectedTimeSlot);
                         const appointmentDateTime = `${format(selectedDate, 'yyyy-MM-dd')}T${time24}:00.000Z`;
@@ -2245,6 +2294,40 @@ export default function CalendarPage() {
                   >
                     <Check className="h-4 w-4 mr-2" />
                     {createAppointmentMutation.isPending ? "Confirming..." : "Confirm Appointment"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Insufficient Time Modal */}
+        {showInsufficientTimeModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-bold text-red-600 dark:text-red-400">
+                    Insufficient Time Available
+                  </h2>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowInsufficientTimeModal(false)}
+                    data-testid="button-close-insufficient-time"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+                <p className="text-gray-700 dark:text-gray-300 mb-6">
+                  {insufficientTimeMessage}
+                </p>
+                <div className="flex justify-end">
+                  <Button
+                    onClick={() => setShowInsufficientTimeModal(false)}
+                    data-testid="button-ok-insufficient-time"
+                  >
+                    OK
                   </Button>
                 </div>
               </div>
