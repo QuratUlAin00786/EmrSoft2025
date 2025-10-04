@@ -498,12 +498,12 @@ export default function PatientAppointments({
       });
     }
 
-    // Filter by date and time if selected
+    // Filter by date if selected (compare only date, not time)
     if (dateTimeFilter) {
       filtered = filtered.filter((apt: any) => {
         const aptDateTime = new Date(apt.scheduledAt);
-        const filterDateTime = new Date(dateTimeFilter);
-        return aptDateTime.getTime() === filterDateTime.getTime();
+        const filterDate = new Date(dateTimeFilter);
+        return isSameDay(aptDateTime, filterDate);
       });
     }
 
