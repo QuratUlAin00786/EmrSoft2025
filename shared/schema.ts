@@ -407,6 +407,45 @@ export const appointments = pgTable("appointments", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Patient Invoices - Medical service billing
+export const invoices = pgTable("invoices", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  invoiceNumber: varchar("invoice_number", { length: 50 }).notNull().unique(),
+  patientId: text("patient_id").notNull(), // Reference to patients.patientId
+  patientName: text("patient_name").notNull(),
+  dateOfService: timestamp("date_of_service").notNull(),
+  invoiceDate: timestamp("invoice_date").notNull(),
+  dueDate: timestamp("due_date").notNull(),
+  status: varchar("status", { length: 20 }).notNull().default("draft"), // draft, sent, paid, overdue, cancelled
+  totalAmount: decimal("total_amount", { precision: 10, scale: 2 }).notNull(),
+  paidAmount: decimal("paid_amount", { precision: 10, scale: 2 }).notNull().default("0"),
+  items: jsonb("items").$type<Array<{
+    code: string;
+    description: string;
+    quantity: number;
+    unitPrice: number;
+    total: number;
+  }>>().notNull(),
+  insurance: jsonb("insurance").$type<{
+    provider: string;
+    claimNumber: string;
+    status: 'pending' | 'approved' | 'denied' | 'partially_paid';
+    paidAmount: number;
+  }>(),
+  payments: jsonb("payments").$type<Array<{
+    id: string;
+    amount: number;
+    method: 'cash' | 'card' | 'bank_transfer' | 'insurance';
+    date: string;
+    reference?: string;
+  }>>().notNull().default([]),
+  notes: text("notes"),
+  createdBy: integer("created_by"), // User ID who created the invoice
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // AI Insights
 export const aiInsights = pgTable("ai_insights", {
   id: serial("id").primaryKey(),
@@ -1919,6 +1958,27 @@ export const insertAppointmentSchema = createInsertSchema(appointments).omit({
   }).positive("Duration must be greater than 0").default(30),
   type: z.string().trim().min(1, "Appointment type is required"),
 });
+
+export const insertInvoiceSchema = createInsertSchema(invoices).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  invoiceNumber: z.string().trim().min(1, "Invoice number is required"),
+  patientId: z.string().trim().min(1, "Patient ID is required"),
+  patientName: z.string().trim().min(1, "Patient name is required"),
+  totalAmount: z.coerce.number().positive("Total amount must be greater than 0"),
+  items: z.array(z.object({
+    code: z.string().trim().min(1, "Service code is required"),
+    description: z.string().trim().min(1, "Service description is required"),
+    quantity: z.number().int().positive("Quantity must be greater than 0"),
+    unitPrice: z.number().positive("Unit price must be greater than 0"),
+    total: z.number().positive("Total must be greater than 0"),
+  })).min(1, "At least one service item is required"),
+});
+
+export type Invoice = typeof invoices.$inferSelect;
+export type InsertInvoice = z.infer<typeof insertInvoiceSchema>;
 
 export const insertAiInsightSchema = createInsertSchema(aiInsights).omit({
   id: true,
