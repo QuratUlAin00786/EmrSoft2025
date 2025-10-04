@@ -314,9 +314,10 @@ export default function CalendarPage() {
   console.log('👥 USERS DATA STATE:', { data: usersData, loading: usersLoading, error: usersError });
 
   // Fetch roles from roles table for role-based provider selection
-  const { data: rolesData } = useQuery({
+  const { data: rolesData, isLoading: rolesLoading } = useQuery({
     queryKey: ["/api/roles"],
     staleTime: 60000,
+    enabled: !!user,
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/roles');
       return response.json();
@@ -419,11 +420,11 @@ export default function CalendarPage() {
   }, [selectedRole, usersData]);
 
   // Get available roles from roles table (exclude patient)
-  const availableRoles: string[] = useMemo(() => {
-    if (!rolesData) return [];
+  const availableRoles: Array<{ name: string; displayName: string }> = useMemo(() => {
+    if (!rolesData || !Array.isArray(rolesData)) return [];
     return rolesData
       .filter((role: any) => role.name !== 'patient')
-      .map((role: any) => role.name);
+      .map((role: any) => ({ name: role.name, displayName: role.displayName }));
   }, [rolesData]);
 
   // Check if a date has shifts in the database
@@ -1548,8 +1549,8 @@ export default function CalendarPage() {
                                   <CommandGroup>
                                     {availableRoles.map((role) => (
                                       <CommandItem
-                                        key={role}
-                                        value={role}
+                                        key={role.name}
+                                        value={role.name}
                                         onSelect={(currentValue) => {
                                           setSelectedRole(currentValue);
                                           setSelectedProviderId("");
@@ -1558,10 +1559,10 @@ export default function CalendarPage() {
                                       >
                                         <Check
                                           className={`mr-2 h-4 w-4 ${
-                                            role === selectedRole ? "opacity-100" : "opacity-0"
+                                            role.name === selectedRole ? "opacity-100" : "opacity-0"
                                           }`}
                                         />
-                                        {role.charAt(0).toUpperCase() + role.slice(1)}
+                                        {role.displayName}
                                       </CommandItem>
                                     ))}
                                   </CommandGroup>

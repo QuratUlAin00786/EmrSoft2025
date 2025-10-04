@@ -131,9 +131,13 @@ export default function PatientAppointments({
   // Fetch roles from roles table for role filter
   const { data: rolesData, isLoading: rolesLoading } = useQuery({
     queryKey: ["/api/roles"],
-    staleTime: 300000, // 5 minutes cache
+    staleTime: 300000,
     retry: false,
     enabled: !!user && user.role === 'patient',
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/roles');
+      return response.json();
+    },
   });
 
   // Combined loading state
