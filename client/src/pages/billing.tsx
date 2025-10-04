@@ -654,43 +654,51 @@ export default function BillingPage() {
               </Card>
             </div>
 
-            {/* Filters and Actions */}
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <Input
-                        placeholder="Search invoices..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-9 w-64"
-                      />
+            {/* Tabs Navigation */}
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full max-w-md grid-cols-2">
+                <TabsTrigger value="invoices">Invoices</TabsTrigger>
+                <TabsTrigger value="payment-history">Payment History</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="invoices" className="space-y-4 mt-6">
+                {/* Filters and Actions */}
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="relative">
+                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Input
+                            placeholder="Search invoices..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="pl-9 w-64"
+                          />
+                        </div>
+                        
+                        <Select value={statusFilter} onValueChange={setStatusFilter}>
+                          <SelectTrigger className="w-40">
+                            <SelectValue placeholder="Filter by status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Status</SelectItem>
+                            <SelectItem value="draft">Draft</SelectItem>
+                            <SelectItem value="sent">Sent</SelectItem>
+                            <SelectItem value="paid">Paid</SelectItem>
+                            <SelectItem value="overdue">Overdue</SelectItem>
+                            <SelectItem value="cancelled">Cancelled</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <Button onClick={() => setShowNewInvoice(true)}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        New Invoice
+                      </Button>
                     </div>
-                    
-                    <Select value={statusFilter} onValueChange={setStatusFilter}>
-                      <SelectTrigger className="w-40">
-                        <SelectValue placeholder="Filter by status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Status</SelectItem>
-                        <SelectItem value="draft">Draft</SelectItem>
-                        <SelectItem value="sent">Sent</SelectItem>
-                        <SelectItem value="paid">Paid</SelectItem>
-                        <SelectItem value="overdue">Overdue</SelectItem>
-                        <SelectItem value="cancelled">Cancelled</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <Button onClick={() => setShowNewInvoice(true)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    New Invoice
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+                  </CardContent>
+                </Card>
 
             {/* Invoices List */}
             <div className="space-y-4">
@@ -798,28 +806,76 @@ export default function BillingPage() {
                 <p className="text-gray-600 dark:text-gray-300">Try adjusting your search terms or filters</p>
               </div>
             )}
+              </TabsContent>
 
-          <div>
-            <Card>
-              <CardHeader>
-                <CardTitle>Payment History</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600 dark:text-gray-300">Payment management interface coming soon...</p>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div>
-            <Card>
-              <CardHeader>
-                <CardTitle>Insurance Claims</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600 dark:text-gray-300">Insurance claims management interface coming soon...</p>
-              </CardContent>
-            </Card>
-          </div>
+              <TabsContent value="payment-history" className="space-y-4 mt-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Payment History</CardTitle>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      A summary of all payments made — whether from patients or insurance — across all invoices
+                    </p>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="rounded-md border">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b bg-gray-50 dark:bg-gray-800">
+                            <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Invoice</th>
+                            <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Payer</th>
+                            <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Date</th>
+                            <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Method</th>
+                            <th className="px-4 py-3 text-right text-sm font-medium text-gray-700 dark:text-gray-300">Amount</th>
+                            <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {Array.isArray(invoices) && invoices.flatMap((invoice: any) => 
+                            (invoice.payments || []).map((payment: any, idx: number) => ({
+                              ...payment,
+                              invoiceNumber: invoice.invoiceNumber || invoice.id,
+                              patientName: invoice.patientName,
+                              paymentId: `${invoice.id}-${idx}`
+                            }))
+                          ).map((payment: any) => (
+                            <tr key={payment.paymentId} className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
+                              <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
+                                {payment.invoiceNumber}
+                              </td>
+                              <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
+                                {payment.patientName}
+                              </td>
+                              <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
+                                {format(new Date(payment.date), 'MMM d, yyyy')}
+                              </td>
+                              <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300 capitalize">
+                                {payment.method === 'card' ? 'Credit Card' : payment.method === 'bank_transfer' ? 'Bank Transfer' : payment.method.replace('_', ' ')}
+                              </td>
+                              <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100 text-right font-medium">
+                                £{(typeof payment.amount === 'string' ? parseFloat(payment.amount) : payment.amount).toFixed(2)}
+                              </td>
+                              <td className="px-4 py-3 text-sm">
+                                <span className="inline-flex items-center gap-1 text-green-700 dark:text-green-400">
+                                  <span className="text-green-600">✓</span> Successful
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                          {(!Array.isArray(invoices) || invoices.flatMap((inv: any) => inv.payments || []).length === 0) && (
+                            <tr>
+                              <td colSpan={6} className="px-4 py-12 text-center text-gray-500 dark:text-gray-400">
+                                <Receipt className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                                <p className="text-sm">No payment history available</p>
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
 
           <div className="space-y-6">
             {/* Report Selection Cards */}
