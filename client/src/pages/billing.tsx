@@ -1128,13 +1128,22 @@ export default function BillingPage() {
                 <Label htmlFor="insurance">Insurance Provider</Label>
                 <Select>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select insurance (optional)" />
+                    <SelectValue placeholder="Select insurance provider..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">No Insurance</SelectItem>
-                    <SelectItem value="nhs">NHS</SelectItem>
-                    <SelectItem value="bupa">BUPA</SelectItem>
-                    <SelectItem value="axa">AXA Health</SelectItem>
+                    <SelectItem value="nhs">NHS (National Health Service)</SelectItem>
+                    <SelectItem value="bupa">Bupa</SelectItem>
+                    <SelectItem value="axa">AXA PPP Healthcare</SelectItem>
+                    <SelectItem value="vitality">Vitality Health</SelectItem>
+                    <SelectItem value="aviva">Aviva Health</SelectItem>
+                    <SelectItem value="simply">Simply Health</SelectItem>
+                    <SelectItem value="wpa">WPA</SelectItem>
+                    <SelectItem value="benenden">Benenden Health</SelectItem>
+                    <SelectItem value="healix">Healix Health Services</SelectItem>
+                    <SelectItem value="sovereign">Sovereign Health Care</SelectItem>
+                    <SelectItem value="exeter">Exeter Friendly Society</SelectItem>
+                    <SelectItem value="selfpay">Self-Pay</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -1228,6 +1237,13 @@ export default function BillingPage() {
                 };
 
                 const response = await apiRequest('POST', '/api/billing/invoices', invoiceData);
+                
+                // Check if response is successful
+                if (!response.ok) {
+                  const errorData = await response.json();
+                  throw new Error(errorData.error || 'Failed to create invoice');
+                }
+                
                 const newInvoice = await response.json();
                 
                 // Invalidate and refetch invoices cache to refresh the list
@@ -1236,7 +1252,7 @@ export default function BillingPage() {
                 
                 toast({
                   title: "Invoice Created",
-                  description: `Invoice ${newInvoice.id} has been created successfully!`
+                  description: `Invoice ${newInvoice.invoiceNumber} has been created successfully!`
                 });
                 
                 // Reset form state
@@ -1254,9 +1270,10 @@ export default function BillingPage() {
                 setShowNewInvoice(false);
               } catch (error) {
                 console.error('Invoice creation failed:', error);
+                const errorMessage = error instanceof Error ? error.message : 'Failed to create invoice. Please try again.';
                 toast({
-                  title: "Error",
-                  description: "Failed to create invoice. Please try again.",
+                  title: "Invoice Creation Failed",
+                  description: errorMessage,
                   variant: "destructive"
                 });
               }

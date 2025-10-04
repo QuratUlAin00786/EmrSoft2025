@@ -414,10 +414,14 @@ export const invoices = pgTable("invoices", {
   invoiceNumber: varchar("invoice_number", { length: 50 }).notNull().unique(),
   patientId: text("patient_id").notNull(), // Reference to patients.patientId
   patientName: text("patient_name").notNull(),
+  nhsNumber: varchar("nhs_number", { length: 10 }), // 10-digit NHS number
   dateOfService: timestamp("date_of_service").notNull(),
   invoiceDate: timestamp("invoice_date").notNull(),
   dueDate: timestamp("due_date").notNull(),
   status: varchar("status", { length: 20 }).notNull().default("draft"), // draft, sent, paid, overdue, cancelled
+  subtotal: decimal("subtotal", { precision: 10, scale: 2 }).notNull(),
+  tax: decimal("tax", { precision: 10, scale: 2 }).notNull().default("0"),
+  discount: decimal("discount", { precision: 10, scale: 2 }).notNull().default("0"),
   totalAmount: decimal("total_amount", { precision: 10, scale: 2 }).notNull(),
   paidAmount: decimal("paid_amount", { precision: 10, scale: 2 }).notNull().default("0"),
   items: jsonb("items").$type<Array<{

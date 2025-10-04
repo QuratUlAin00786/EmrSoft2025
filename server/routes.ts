@@ -12655,18 +12655,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const invoiceNumber = `INV-${Date.now().toString().slice(-6)}`;
 
       // Prepare invoice for database
+      const totalAmt = parseFloat(invoiceData.totalAmount);
       const invoiceToCreate = {
         organizationId: req.tenant!.id,
         patientId: invoiceData.patientId,
+        patientName: `${patient.firstName} ${patient.lastName}`,
+        nhsNumber: patient.nhsNumber || null,
         invoiceNumber: invoiceNumber,
         invoiceDate: new Date(invoiceData.invoiceDate),
         dueDate: new Date(invoiceData.dueDate),
-        serviceDate: new Date(invoiceData.serviceDate),
+        dateOfService: new Date(invoiceData.serviceDate),
         status: "draft" as const,
-        subtotal: parseFloat(invoiceData.totalAmount),
+        subtotal: totalAmt,
         tax: 0,
         discount: 0,
-        total: parseFloat(invoiceData.totalAmount),
+        totalAmount: totalAmt,
         paidAmount: 0,
         items: [
           {
@@ -12679,7 +12682,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ],
         notes: invoiceData.notes || null,
         insurance: null,
-        payments: []
+        payments: [],
+        createdBy: req.user!.id
       };
 
       console.log("📝 Creating invoice in database:", invoiceNumber);
