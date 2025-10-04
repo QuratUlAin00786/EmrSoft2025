@@ -158,6 +158,7 @@ const medicalSpecialties = {
 
 export default function CalendarPage() {
   const { user } = useAuth();
+  const { tenant } = useTenant();
   const [selectedDoctor, setSelectedDoctor] = useState<any>(null);
   const [showNewAppointmentModal, setShowNewAppointmentModal] = useState(false);
   const [selectedSpecialty, setSelectedSpecialty] = useState("");
@@ -167,6 +168,13 @@ export default function CalendarPage() {
   const [selectedTimeSlot, setSelectedTimeSlot] = useState("");
   const [specialtyComboboxOpen, setSpecialtyComboboxOpen] = useState(false);
   const [patientComboboxOpen, setPatientComboboxOpen] = useState(false);
+  
+  // New state for role-based provider selection
+  const [selectedRole, setSelectedRole] = useState<string>("");
+  const [selectedProviderId, setSelectedProviderId] = useState<string>("");
+  const [selectedDuration, setSelectedDuration] = useState<number>(30);
+  const [openRoleCombo, setOpenRoleCombo] = useState(false);
+  const [openProviderCombo, setOpenProviderCombo] = useState(false);
   
   // Filter functionality state
   const [showFilterPanel, setShowFilterPanel] = useState(false);
@@ -279,11 +287,189 @@ export default function CalendarPage() {
     return doctors;
   }, [doctorsData, doctorsError, isLoadingDoctors]);
   
+  // Fetch all users for role-based provider selection
+  const { data: usersData } = useQuery({
+    queryKey: ["/api/users"],
+    staleTime: 60000,
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/users');
+      return response.json();
+    },
+  });
+
+  // Fetch all shifts for the selected provider to determine available dates
+  const { data: allProviderShifts } = useQuery({
+    queryKey: ["/api/shifts/provider", selectedProviderId],
+    staleTime: 30000,
+    enabled: !!selectedProviderId,
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/shifts?staffId=${selectedProviderId}`);
+      const data = await response.json();
+      return data;
+    },
+  });
+
+  // Fetch shifts for the selected date and provider
+  const { data: shiftsData } = useQuery({
+    queryKey: ["/api/shifts", selectedProviderId, selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null],
+    staleTime: 30000,
+    enabled: !!selectedDate && !!selectedProviderId,
+    queryFn: async () => {
+      const dateStr = format(selectedDate!, 'yyyy-MM-dd');
+      const response = await apiRequest('GET', `/api/shifts?date=${dateStr}&staffId=${selectedProviderId}`);
+      const data = await response.json();
+      return data;
+    },
+  });
+  
   // Query for filtered appointments
   const { data: allAppointments = [] } = useQuery<any[]>({
     queryKey: ["/api/appointments"],
     retry: false,
   });
+
+  // Helper function to convert 12-hour time to 24-hour format
+  const timeSlotTo24Hour = (timeSlot: string): string => {
+    const [time, period] = timeSlot.split(' ');
+    const [hours, minutes] = time.split(':').map(Number);
+    let hour24 = hours;
+    if (period === 'PM' && hours !== 12) hour24 = hours + 12;
+    if (period === 'AM' && hours === 12) hour24 = 0;
+    return `${hour24.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+  };
+
+  // Get filtered users by selected role (exclude patient and admin)
+  const filteredUsers = useMemo(() => {
+    if (!selectedRole || !usersData) return [];
+    return usersData.filter((u: any) => u.role === selectedRole);
+  }, [selectedRole, usersData]);
+
+  // Get available roles from all users (exclude patient and admin)
+  const availableRoles: string[] = useMemo(() => {
+    if (!usersData) return [];
+    const roles = Array.from(new Set(usersData.map((u: any) => u.role).filter(Boolean))) as string[];
+    return roles.filter(role => role !== 'patient' && role !== 'admin');
+  }, [usersData]);
+
+  // Check if a date has shifts in the database
+  const hasShiftsOnDate = (date: Date): boolean => {
+    if (!allProviderShifts || !selectedProviderId) return false;
+    
+    const dateStr = format(date, 'yyyy-MM-dd');
+    return allProviderShifts.some((shift: any) => {
+      // Robust date comparison - handle both ISO strings and Date objects
+      const shiftDateStr = shift.date instanceof Date 
+        ? format(shift.date, 'yyyy-MM-dd')
+        : shift.date.substring(0, 10);
+      return shiftDateStr === dateStr && shift.staffId.toString() === selectedProviderId;
+    });
+  };
+
+  // Generate time slots based on shifts for the selected provider on the selected date
+  const timeSlots = useMemo(() => {
+    if (!selectedProviderId || !selectedDate || !shiftsData) {
+      return [];
+    }
+
+    // Find ALL shifts for the selected provider on this date
+    const providerShifts = shiftsData.filter((shift: any) => 
+      shift.staffId.toString() === selectedProviderId
+    );
+
+    if (!providerShifts || providerShifts.length === 0) {
+      return [];
+    }
+
+    const allSlots: string[] = [];
+
+    // Generate time slots for each shift
+    for (const shift of providerShifts) {
+      const [startHour, startMinute] = shift.startTime.split(':').map(Number);
+      const [endHour, endMinute] = shift.endTime.split(':').map(Number);
+
+      let currentHour = startHour;
+      let currentMinute = startMinute;
+
+      // Generate 15-minute interval slots between start and end time
+      while (currentHour < endHour || (currentHour === endHour && currentMinute < endMinute)) {
+        const hour12 = currentHour === 0 ? 12 : currentHour > 12 ? currentHour - 12 : currentHour;
+        const period = currentHour < 12 ? 'AM' : 'PM';
+        const timeString = `${hour12}:${currentMinute.toString().padStart(2, '0')} ${period}`;
+        
+        if (!allSlots.includes(timeString)) {
+          allSlots.push(timeString);
+        }
+
+        currentMinute += 15;
+        if (currentMinute >= 60) {
+          currentMinute = 0;
+          currentHour++;
+        }
+      }
+    }
+
+    // Sort slots chronologically
+    allSlots.sort((a, b) => {
+      const timeA = timeSlotTo24Hour(a);
+      const timeB = timeSlotTo24Hour(b);
+      return timeA.localeCompare(timeB);
+    });
+
+    return allSlots;
+  }, [selectedProviderId, selectedDate, shiftsData, selectedDuration]);
+
+  // Check if a time slot is booked (considering duration and provider)
+  const isTimeSlotBooked = (timeSlot: string): boolean => {
+    if (!selectedDate || !allAppointments || !selectedProviderId) return false;
+
+    const dateStr = format(selectedDate, 'yyyy-MM-dd');
+    const slotTime24 = timeSlotTo24Hour(timeSlot);
+
+    return allAppointments.some((apt: any) => {
+      // Filter by provider ID first (handle both camelCase and snake_case)
+      const aptProviderId = apt.providerId || apt.provider_id;
+      if (aptProviderId?.toString() !== selectedProviderId) return false;
+
+      // Handle both camelCase (scheduledAt) and snake_case (scheduled_at)
+      const scheduledTime = apt.scheduledAt || apt.scheduled_at;
+      if (!scheduledTime) return false;
+
+      const aptDateStr = scheduledTime.substring(0, 10);
+      if (aptDateStr !== dateStr) return false;
+
+      const aptTime = scheduledTime.substring(11, 16);
+      if (!aptTime) return false;
+
+      // Parse appointment time and duration
+      const [aptHour, aptMinute] = aptTime.split(':').map(Number);
+      const aptDuration = apt.duration || 30;
+
+      // Calculate appointment end time
+      let aptEndMinute = aptMinute + aptDuration;
+      let aptEndHour = aptHour;
+      if (aptEndMinute >= 60) {
+        aptEndHour += Math.floor(aptEndMinute / 60);
+        aptEndMinute = aptEndMinute % 60;
+      }
+
+      const aptStart24 = `${aptHour.toString().padStart(2, '0')}:${aptMinute.toString().padStart(2, '0')}`;
+      const aptEnd24 = `${aptEndHour.toString().padStart(2, '0')}:${aptEndMinute.toString().padStart(2, '0')}`;
+
+      // Check if the slot falls within this appointment's time range
+      // Also check if selecting this slot with the current duration would overlap
+      const [slotHour, slotMinute] = slotTime24.split(':').map(Number);
+      let slotEndMinute = slotMinute + selectedDuration;
+      let slotEndHour = slotHour;
+      if (slotEndMinute >= 60) {
+        slotEndHour += Math.floor(slotEndMinute / 60);
+        slotEndMinute = slotEndMinute % 60;
+      }
+      const slotEnd24 = `${slotEndHour.toString().padStart(2, '0')}:${slotEndMinute.toString().padStart(2, '0')}`;
+
+      // Check for overlap: slot starts before apt ends AND slot ends after apt starts
+      return (slotTime24 < aptEnd24 && slotEnd24 > aptStart24);
+    });
+  };
   
   // Function to apply filters
   const applyFilters = () => {
@@ -625,7 +811,12 @@ export default function CalendarPage() {
 
   const createAppointmentMutation = useMutation({
     mutationFn: async (appointmentData: any) => {
-      const response = await apiRequest("POST", "/api/appointments", appointmentData);
+      // Add created_by field from logged-in user
+      const dataWithCreatedBy = {
+        ...appointmentData,
+        createdBy: user?.id
+      };
+      const response = await apiRequest("POST", "/api/appointments", dataWithCreatedBy);
       return response.json();
     },
     onSuccess: () => {
@@ -1414,60 +1605,101 @@ export default function CalendarPage() {
                       </div>
                     )}
 
-                    {/* Doctor Selection Section */}
-                    <div>
-                      <Label className="text-sm font-medium text-gray-900 dark:text-white mb-2 block">
-                        {user?.role === 'doctor' ? 'Doctor Information' : 'Select Doctor'}
-                      </Label>
-                      
-                      {user?.role === 'patient' ? (
-                        /* Patient Role: Show specialty and doctor dropdowns */
-                        <div className="space-y-4">
-                          {/* Medical Specialty Category Dropdown */}
+                    {/* Role and Provider Selection Section */}
+                    {user?.role === 'patient' ? (
+                      <div className="space-y-4">
+                        {/* Select Role */}
+                        <div>
+                          <Label className="text-sm font-medium text-gray-900 dark:text-white mb-2 block">
+                            Select Role
+                          </Label>
+                          <Popover open={openRoleCombo} onOpenChange={setOpenRoleCombo}>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                aria-expanded={openRoleCombo}
+                                className="w-full justify-between"
+                              >
+                                {selectedRole || "Select role..."}
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-full p-0">
+                              <Command>
+                                <CommandInput placeholder="Search role..." />
+                                <CommandList>
+                                  <CommandEmpty>No role found.</CommandEmpty>
+                                  <CommandGroup>
+                                    {availableRoles.map((role) => (
+                                      <CommandItem
+                                        key={role}
+                                        value={role}
+                                        onSelect={(currentValue) => {
+                                          setSelectedRole(currentValue);
+                                          setSelectedProviderId("");
+                                          setOpenRoleCombo(false);
+                                        }}
+                                      >
+                                        <Check
+                                          className={`mr-2 h-4 w-4 ${
+                                            role === selectedRole ? "opacity-100" : "opacity-0"
+                                          }`}
+                                        />
+                                        {role.charAt(0).toUpperCase() + role.slice(1)}
+                                      </CommandItem>
+                                    ))}
+                                  </CommandGroup>
+                                </CommandList>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+
+                        {/* Select Name */}
+                        {selectedRole && (
                           <div>
-                            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">
-                              Select Medical Specialty Category
+                            <Label className="text-sm font-medium text-gray-900 dark:text-white mb-2 block">
+                              Select Name
                             </Label>
-                            <Popover open={specialtyComboboxOpen} onOpenChange={setSpecialtyComboboxOpen}>
+                            <Popover open={openProviderCombo} onOpenChange={setOpenProviderCombo}>
                               <PopoverTrigger asChild>
                                 <Button
                                   variant="outline"
                                   role="combobox"
-                                  aria-expanded={specialtyComboboxOpen}
+                                  aria-expanded={openProviderCombo}
                                   className="w-full justify-between"
-                                  data-testid="trigger-specialty-combobox"
                                 >
-                                  {selectedSpecialty || "Select specialty category..."}
+                                  {selectedProviderId 
+                                    ? (() => {
+                                        const provider = filteredUsers.find((u: any) => u.id.toString() === selectedProviderId);
+                                        return provider ? `${provider.firstName} ${provider.lastName}` : "Select provider...";
+                                      })()
+                                    : "Select provider..."}
                                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                 </Button>
                               </PopoverTrigger>
                               <PopoverContent className="w-full p-0">
                                 <Command>
-                                  <CommandInput 
-                                    placeholder="Search specialty..." 
-                                    data-testid="input-search-specialty"
-                                  />
+                                  <CommandInput placeholder="Search provider..." />
                                   <CommandList>
-                                    <CommandEmpty>No specialty found.</CommandEmpty>
+                                    <CommandEmpty>No provider found.</CommandEmpty>
                                     <CommandGroup>
-                                      {Object.keys(medicalSpecialties).map((specialty) => (
+                                      {filteredUsers.map((provider: any) => (
                                         <CommandItem
-                                          key={specialty}
-                                          value={specialty}
-                                          onSelect={(currentValue) => {
-                                            setSelectedSpecialty(currentValue);
-                                            setSelectedSubSpecialty("");
-                                            setSelectedDoctor(null);
-                                            setSpecialtyComboboxOpen(false);
+                                          key={provider.id}
+                                          value={`${provider.firstName} ${provider.lastName}`}
+                                          onSelect={() => {
+                                            setSelectedProviderId(provider.id.toString());
+                                            setOpenProviderCombo(false);
                                           }}
-                                          data-testid={`item-specialty-${specialty}`}
                                         >
                                           <Check
                                             className={`mr-2 h-4 w-4 ${
-                                              specialty === selectedSpecialty ? "opacity-100" : "opacity-0"
+                                              provider.id.toString() === selectedProviderId ? "opacity-100" : "opacity-0"
                                             }`}
                                           />
-                                          {specialty}
+                                          {provider.firstName} {provider.lastName}
                                         </CommandItem>
                                       ))}
                                     </CommandGroup>
@@ -1476,115 +1708,29 @@ export default function CalendarPage() {
                               </PopoverContent>
                             </Popover>
                           </div>
+                        )}
 
-                          {/* Sub-Specialty Dropdown */}
-                          {selectedSpecialty && (
-                            <div>
-                              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">
-                                Select Sub-Specialty
-                              </Label>
-                              <Select
-                                value={selectedSubSpecialty}
-                                onValueChange={(value) => {
-                                  setSelectedSubSpecialty(value);
-                                  setSelectedDoctor(null);
-                                }}
-                              >
-                                <SelectTrigger className="w-full" data-testid="trigger-subspecialty-select">
-                                  <SelectValue placeholder="Select sub-specialty..." />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {Object.keys(medicalSpecialties[selectedSpecialty as keyof typeof medicalSpecialties] || {}).map((subSpecialty) => (
-                                    <SelectItem 
-                                      key={subSpecialty} 
-                                      value={subSpecialty}
-                                      data-testid={`item-subspecialty-${subSpecialty}`}
-                                    >
-                                      {subSpecialty}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          )}
-
-                          {/* Doctor Dropdown - Show all doctors without filter */}
-                          <div>
-                            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">
-                              Select Doctor
-                            </Label>
-                            <Select
-                              value={selectedDoctor?.id?.toString() || ""}
-                              onValueChange={(value) => {
-                                const doctor = allDoctors.find((d: any) => d.id.toString() === value);
-                                setSelectedDoctor(doctor || null);
-                              }}
-                            >
-                              <SelectTrigger className="w-full" data-testid="trigger-doctor-select">
-                                <SelectValue placeholder="Select doctor..." />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {allDoctors
-                                  .filter((doctor: any) => doctor.role === 'doctor')
-                                  .map((doctor: any) => (
-                                    <SelectItem 
-                                      key={doctor.id} 
-                                      value={doctor.id.toString()}
-                                      data-testid={`item-doctor-${doctor.id}`}
-                                    >
-                                      Dr. {doctor.firstName} {doctor.lastName}
-                                      {doctor.medicalSpecialtyCategory && ` - ${doctor.medicalSpecialtyCategory}`}
-                                    </SelectItem>
-                                  ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
+                        {/* Select Duration */}
+                        <div>
+                          <Label className="text-sm font-medium text-gray-900 dark:text-white mb-2 block">
+                            Select Duration
+                          </Label>
+                          <Select
+                            value={selectedDuration.toString()}
+                            onValueChange={(value) => setSelectedDuration(parseInt(value))}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Select duration..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="15">15 minutes</SelectItem>
+                              <SelectItem value="30">30 minutes</SelectItem>
+                              <SelectItem value="60">60 minutes</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
-                      ) : user?.role === 'doctor' ? (
-                        /* Doctor Role: Show doctor's own information */
-                        selectedDoctor ? (
-                          <Card className="mt-2">
-                            <CardContent className="p-4">
-                              <div className="space-y-3">
-                                <div>
-                                  <h3 className="font-semibold text-lg text-gray-900 dark:text-white">
-                                    Dr. {selectedDoctor.firstName} {selectedDoctor.lastName}
-                                  </h3>
-                                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                                    {selectedDoctor.email}
-                                  </p>
-                                </div>
-                                
-                                {selectedDoctor.medicalSpecialtyCategory && (
-                                  <div className="text-sm">
-                                    <span className="font-medium text-gray-700 dark:text-gray-300">Specialty: </span>
-                                    <span className="text-gray-600 dark:text-gray-400">{selectedDoctor.medicalSpecialtyCategory}</span>
-                                  </div>
-                                )}
-                                
-                                {selectedDoctor.subSpecialty && (
-                                  <div className="text-sm">
-                                    <span className="font-medium text-gray-700 dark:text-gray-300">Sub-Specialty: </span>
-                                    <span className="text-gray-600 dark:text-gray-400">{selectedDoctor.subSpecialty}</span>
-                                  </div>
-                                )}
-                                
-                                {selectedDoctor.department && (
-                                  <div className="text-sm">
-                                    <span className="font-medium text-gray-700 dark:text-gray-300">Department: </span>
-                                    <span className="text-gray-600 dark:text-gray-400">{selectedDoctor.department}</span>
-                                  </div>
-                                )}
-                              </div>
-                            </CardContent>
-                          </Card>
-                        ) : (
-                          <div className="mt-2 p-4 bg-gray-50 dark:bg-gray-700 rounded-md">
-                            <p className="text-sm text-gray-600 dark:text-gray-400">Loading doctor information...</p>
-                          </div>
-                        )
-                      ) : null}
-                    </div>
+                      </div>
+                    ) : null}
                   </div>
 
                   {/* Right Column - Calendar and Time Slots */}
@@ -1602,10 +1748,9 @@ export default function CalendarPage() {
                           // Disable past dates (but allow today)
                           if (isBefore(startOfDay(date), startOfDay(new Date()))) return true;
                           
-                          // Disable days not in doctor's working days (if doctor is selected)
-                          if (selectedDoctor?.workingDays?.length > 0) {
-                            const dayName = format(date, 'EEEE');
-                            return !selectedDoctor.workingDays.includes(dayName);
+                          // Disable dates without shifts for selected provider
+                          if (selectedProviderId && !hasShiftsOnDate(date)) {
+                            return true;
                           }
                           
                           return false;
@@ -1621,13 +1766,13 @@ export default function CalendarPage() {
                       <Label className="text-sm font-medium text-gray-900 dark:text-white mb-3 block">
                         Select Time Slot
                       </Label>
-                      {selectedDoctor && selectedDate ? (
+                      {selectedProviderId && selectedDate ? (
                         <div 
-                          key={`${selectedDoctor.id}-${format(selectedDate, 'yyyy-MM-dd')}`}
+                          key={`${selectedProviderId}-${format(selectedDate, 'yyyy-MM-dd')}`}
                           className="grid grid-cols-3 gap-2 max-h-60 overflow-y-auto"
                         >
-                          {PREDEFINED_TIME_SLOTS.map((timeSlot) => {
-                            const isAvailable = timeSlotAvailability[timeSlot] ?? true;
+                          {timeSlots.length > 0 ? timeSlots.map((timeSlot) => {
+                            const isBooked = isTimeSlotBooked(timeSlot);
                             const isSelected = selectedTimeSlot === timeSlot;
                             
                             return (
@@ -1636,11 +1781,11 @@ export default function CalendarPage() {
                                 variant={isSelected ? "default" : "outline"}
                                 size="sm"
                                 className={`
-                                  ${isAvailable && !isSelected 
+                                  ${!isBooked && !isSelected 
                                     ? "bg-green-500 hover:bg-green-600 text-white border-green-600" 
                                     : ""
                                   }
-                                  ${!isAvailable 
+                                  ${isBooked 
                                     ? "bg-gray-300 text-gray-500 cursor-not-allowed opacity-50" 
                                     : ""
                                   }
@@ -1649,19 +1794,25 @@ export default function CalendarPage() {
                                     : ""
                                   }
                                 `}
-                                onClick={() => isAvailable && setSelectedTimeSlot(timeSlot)}
-                                disabled={!isAvailable}
-                                data-testid={`time-slot-${timeSlot.replace(':', '-')}`}
+                                onClick={() => !isBooked && setSelectedTimeSlot(timeSlot)}
+                                disabled={isBooked}
+                                data-testid={`time-slot-${timeSlot.replace(/[: ]/g, '-')}`}
                               >
-                                {format(new Date(`2000-01-01T${timeSlot}:00`), 'h:mm a')}
+                                {timeSlot}
                               </Button>
                             );
-                          })}
+                          }) : (
+                            <div className="col-span-3 p-3 bg-gray-50 border border-gray-200 rounded-md">
+                              <p className="text-sm text-gray-600">
+                                No available time slots for this date.
+                              </p>
+                            </div>
+                          )}
                         </div>
                       ) : (
                         <div className="mt-2 p-3 bg-gray-50 border border-gray-200 rounded-md">
                           <p className="text-sm text-gray-600">
-                            Please select a date to view available time slots.
+                            Please select a provider and date to view available time slots.
                           </p>
                         </div>
                       )}
@@ -1691,10 +1842,13 @@ export default function CalendarPage() {
                           </p>
                         </div>
                         <div>
-                          <Label className="text-gray-600 dark:text-gray-400">Doctor</Label>
+                          <Label className="text-gray-600 dark:text-gray-400">Provider</Label>
                           <p className="font-medium" data-testid="text-summary-doctor">
-                            {selectedDoctor 
-                              ? `Dr. ${selectedDoctor.firstName} ${selectedDoctor.lastName}`
+                            {selectedProviderId 
+                              ? (() => {
+                                  const provider = filteredUsers.find((u: any) => u.id.toString() === selectedProviderId);
+                                  return provider ? `${provider.firstName} ${provider.lastName}` : "Not selected";
+                                })()
                               : "Not selected"}
                           </p>
                         </div>
@@ -1720,7 +1874,7 @@ export default function CalendarPage() {
                 </div>
 
                 {/* Book Appointment Button */}
-                {selectedDoctor && selectedDate && selectedTimeSlot && bookingForm.patientId && (
+                {selectedProviderId && selectedDate && selectedTimeSlot && bookingForm.patientId && (
                   <div className="flex justify-end gap-2 mt-6 pt-6 border-t">
                     <Button
                       variant="outline"
@@ -1732,6 +1886,9 @@ export default function CalendarPage() {
                         setSelectedDoctor(null);
                         setSelectedDate(undefined);
                         setSelectedTimeSlot("");
+                        setSelectedRole("");
+                        setSelectedProviderId("");
+                        setSelectedDuration(30);
                       }}
                       data-testid="button-cancel-appointment"
                     >
@@ -1739,9 +1896,9 @@ export default function CalendarPage() {
                     </Button>
                     <Button
                       onClick={() => {
-                        // Create appointment datetime WITHOUT timezone conversion
-                        // Store exactly as selected: 09:30 AM stays 09:30, not converted to UTC
-                        const appointmentDateTime = `${format(selectedDate, 'yyyy-MM-dd')}T${selectedTimeSlot}:00.000Z`;
+                        // Convert 12-hour time to 24-hour format
+                        const time24 = timeSlotTo24Hour(selectedTimeSlot);
+                        const appointmentDateTime = `${format(selectedDate, 'yyyy-MM-dd')}T${time24}:00.000Z`;
                         
                         // Handle both numeric and string patient IDs
                         let patientId: string | number = bookingForm.patientId;
@@ -1749,13 +1906,17 @@ export default function CalendarPage() {
                           patientId = parseInt(bookingForm.patientId);
                         }
 
+                        // Get provider info
+                        const provider = filteredUsers.find((u: any) => u.id.toString() === selectedProviderId);
+
                         const appointmentData = {
                           ...bookingForm,
                           patientId: patientId,
-                          providerId: Number(selectedDoctor.id), // Ensure numeric ID consistency
-                          title: bookingForm.title || `${bookingForm.type} with ${selectedDoctor.firstName} ${selectedDoctor.lastName}`,
-                          location: bookingForm.location || `${selectedDoctor.department} Department`,
-                          duration: parseInt(bookingForm.duration),
+                          providerId: Number(selectedProviderId),
+                          assignedRole: selectedRole,
+                          title: bookingForm.title || `Appointment with ${provider?.firstName || ''} ${provider?.lastName || ''}`.trim(),
+                          location: bookingForm.location || provider?.department || '',
+                          duration: selectedDuration,
                           scheduledAt: appointmentDateTime
                         };
 
