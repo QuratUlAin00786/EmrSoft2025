@@ -446,6 +446,7 @@ export function DoctorList({
         `${selectedBookingDoctor.department || "General"} Department`,
       status: "scheduled",
       isVirtual: false,
+      createdBy: user?.id,
     };
 
     bookAppointmentMutation.mutate(appointmentData);
@@ -1071,50 +1072,6 @@ export function DoctorList({
                     onChange={(e) => setAppointmentDescription(e.target.value)}
                     className="mt-1"
                   />
-                </div>
-              </div>
-              
-              <h3 className="text-base font-medium mb-2">Booking Summary</h3>
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2">
-                    <div>
-                      <Label className="text-xs font-medium text-gray-600 dark:text-gray-400">Appointment Type</Label>
-                      <p className="text-sm font-medium">{appointmentType || "Not selected"}</p>
-                    </div>
-                    <div>
-                      <Label className="text-xs font-medium text-gray-600 dark:text-gray-400">Patient</Label>
-                      <p className="text-sm font-medium">
-                        {selectedPatient 
-                          ? `${patients?.find((p: any) => p.id.toString() === selectedPatient)?.firstName} ${patients?.find((p: any) => p.id.toString() === selectedPatient)?.lastName}`
-                          : "Not selected"
-                        }
-                      </p>
-                    </div>
-                    <div>
-                      <Label className="text-xs font-medium text-gray-600 dark:text-gray-400">Date</Label>
-                      <p className="text-sm font-medium">{selectedDate ? format(selectedDate, "PPP") : "Not selected"}</p>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <div>
-                      <Label className="text-xs font-medium text-gray-600 dark:text-gray-400">Duration</Label>
-                      <p className="text-sm font-medium">{duration ? `${duration} minutes` : "Not selected"}</p>
-                    </div>
-                    <div>
-                      <Label className="text-xs font-medium text-gray-600 dark:text-gray-400">Doctor</Label>
-                      <p className="text-sm font-medium">
-                        {selectedBookingDoctor 
-                          ? `Dr. ${selectedBookingDoctor.firstName} ${selectedBookingDoctor.lastName}`
-                          : "Not selected"
-                        }
-                      </p>
-                    </div>
-                    <div>
-                      <Label className="text-xs font-medium text-gray-600 dark:text-gray-400">Time</Label>
-                      <p className="text-sm font-medium">{selectedTimeSlot ? formatTime(selectedTimeSlot) : "Not selected"}</p>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
