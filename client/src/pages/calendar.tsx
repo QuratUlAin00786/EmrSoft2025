@@ -1046,29 +1046,31 @@ export default function CalendarPage() {
             <div>   
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                 Calendar & Scheduling
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setShowFilterPanel(!showFilterPanel);
-                    if (showFilterPanel) {
-                      // Reset filter when closing
-                      setFilterSpecialty("");
-                      setFilterSubSpecialty("");
-                      setFilterDoctor("");
-                      setFilterDate(undefined);
-                      setFilteredAppointments([]);
-                    }
-                  }}
-                  className="ml-2"
-                  data-testid="button-filter-appointments"
-                >
-                  {showFilterPanel ? (
-                    <FilterX className="h-4 w-4" />
-                  ) : (
-                    <Filter className="h-4 w-4" />
-                  )}
-                </Button>
+                {user?.role !== "patient" && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setShowFilterPanel(!showFilterPanel);
+                      if (showFilterPanel) {
+                        // Reset filter when closing
+                        setFilterSpecialty("");
+                        setFilterSubSpecialty("");
+                        setFilterDoctor("");
+                        setFilterDate(undefined);
+                        setFilteredAppointments([]);
+                      }
+                    }}
+                    className="ml-2"
+                    data-testid="button-filter-appointments"
+                  >
+                    {showFilterPanel ? (
+                      <FilterX className="h-4 w-4" />
+                    ) : (
+                      <Filter className="h-4 w-4" />
+                    )}
+                  </Button>
+                )}
               </h3>
               <p className="text-sm text-neutral-600 dark:text-neutral-300">
                 {showFilterPanel 
