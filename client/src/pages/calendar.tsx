@@ -1537,7 +1537,9 @@ export default function CalendarPage() {
                                 className="w-full justify-between"
                                 data-testid="select-role"
                               >
-                                {selectedRole || "Select role..."}
+                                {selectedRole 
+                                  ? availableRoles.find(r => r.name === selectedRole)?.displayName || selectedRole
+                                  : "Select role..."}
                                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                               </Button>
                             </PopoverTrigger>
