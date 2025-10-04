@@ -1415,64 +1415,13 @@ export default function CalendarPage() {
                 <div className="grid gap-6 lg:grid-cols-2">
                   {/* Left Column - Patient Selection */}
                   <div className="space-y-6">
-                    {/* Patient Selection */}
+                    {/* Patient Selection - Hide for patient role */}
+                    {user?.role !== 'patient' && (
                     <div>
                       <Label className="text-sm font-medium text-gray-900 dark:text-white">
-                        {user?.role === 'patient' && 'My Information'}
+                        Select Patient
                       </Label>
-                      {user?.role === 'patient' ? (
-                        /* Show patient details directly when role is patient */
-                        (() => {
-                          // Find patient by form patientId
-                          const selectedPatient = bookingForm.patientId 
-                            ? patients.find((patient: any) => 
-                                (patient.patientId || patient.id.toString()) === bookingForm.patientId
-                              )
-                            : null;
-                          
-                          if (!selectedPatient) return null;
-                          
-                          // Calculate age from date of birth
-                          const age = selectedPatient.dateOfBirth 
-                            ? new Date().getFullYear() - new Date(selectedPatient.dateOfBirth).getFullYear()
-                            : null;
-                          
-                          // Get patient initials for avatar
-                          const initials = `${selectedPatient.firstName?.[0] || ''}${selectedPatient.lastName?.[0] || ''}`.toUpperCase();
-                          
-                          return (
-                            <div className="mt-2 border rounded-md p-3 bg-blue-50 dark:bg-blue-900 border-blue-200 dark:border-blue-700">
-                              <div className="flex items-center space-x-3">
-                                <User className="h-8 w-8 text-blue-600 dark:text-blue-400" />
-                                <div className="flex-1">
-                                  <div className="font-medium text-blue-900 dark:text-blue-100">
-                                    {selectedPatient.firstName} {selectedPatient.lastName}
-                                  </div>
-                                  <div className="space-y-1 text-sm text-blue-700 dark:text-blue-300">
-                                    {selectedPatient.email && (
-                                      <div className="flex items-center space-x-1">
-                                        <Mail className="h-3 w-3" />
-                                        <span>{selectedPatient.email}</span>
-                                      </div>
-                                    )}
-                                    {(selectedPatient.phone || selectedPatient.phoneNumber) && (
-                                      <div className="flex items-center space-x-1">
-                                        <Phone className="h-3 w-3" />
-                                        <span>{selectedPatient.phone || selectedPatient.phoneNumber}</span>
-                                      </div>
-                                    )}
-                                    <div className="text-xs opacity-75">
-                                      {age && `Age ${age} • `}Patient ID: {selectedPatient.patientId || `P${selectedPatient.id?.toString().padStart(6, '0')}`}
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })()
-                      ) : (
-                        /* Show dropdown for other roles */
-                        <Popover open={patientComboboxOpen} onOpenChange={setPatientComboboxOpen}>
+                      <Popover open={patientComboboxOpen} onOpenChange={setPatientComboboxOpen}>
                           <PopoverTrigger asChild>
                             <Button
                               variant="outline"
@@ -1542,8 +1491,8 @@ export default function CalendarPage() {
                             </Command>
                           </PopoverContent>
                         </Popover>
-                      )}
                     </div>
+                    )}
 
                     {/* Patient Information Card - Shows when patient is selected */}
                     {bookingForm.patientId && (
@@ -1803,6 +1752,7 @@ export default function CalendarPage() {
                             return (
                               <Button
                                 key={timeSlot}
+                                type="button"
                                 variant={isSelected ? "default" : "outline"}
                                 size="sm"
                                 className={`
