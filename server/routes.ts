@@ -6086,8 +6086,93 @@ export async function registerRoutes(app: Express): Promise<Server> {
             message: message
           });
         }
+      } else if (messageType === 'email' && type !== 'internal') {
+        // Handle email sending
+        try {
+          // Get recipient's email address
+          let recipientEmail = null;
+          let recipientName = 'Recipient';
+          
+          // Try to get recipient from users table first
+          const recipientUser = await storage.getUser(recipientId, req.tenant!.id);
+          if (recipientUser && recipientUser.email) {
+            recipientEmail = recipientUser.email;
+            recipientName = recipientUser.firstName && recipientUser.lastName 
+              ? `${recipientUser.firstName} ${recipientUser.lastName}`
+              : recipientUser.firstName || recipientUser.email;
+          } else {
+            // Try to get from patients table
+            const recipientPatient = await storage.getPatient(recipientId, req.tenant!.id);
+            if (recipientPatient && recipientPatient.email) {
+              recipientEmail = recipientPatient.email;
+              recipientName = `${recipientPatient.firstName} ${recipientPatient.lastName}`;
+            }
+          }
+          
+          if (!recipientEmail) {
+            console.error('No email address found for recipient:', recipientId);
+            await storage.updateMessageDeliveryStatus(message.id, 'failed', undefined, 'No email address found for recipient');
+            return res.status(400).json({ 
+              error: 'Email sending failed: No email address found for recipient',
+              message: message
+            });
+          }
+          
+          // Get sender's name for email
+          const senderUser = await storage.getUser(req.user!.id, req.tenant!.id);
+          const senderName = senderUser && senderUser.firstName && senderUser.lastName
+            ? `${senderUser.firstName} ${senderUser.lastName}`
+            : req.user!.email;
+          
+          // Send email using the email service
+          const subject = req.body.subject || 'Message from your healthcare provider';
+          const emailSuccess = await emailService.sendEmail({
+            to: recipientEmail,
+            subject: subject,
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #2563eb; border-bottom: 2px solid #2563eb; padding-bottom: 10px;">
+                  ${subject}
+                </h2>
+                <div style="margin: 20px 0; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px;">
+                  <p style="white-space: pre-wrap;">${messageDataWithUser.content}</p>
+                </div>
+                <p style="color: #666; font-size: 12px; margin-top: 30px; border-top: 1px solid #e5e7eb; padding-top: 15px;">
+                  This message was sent from your healthcare provider.<br>
+                  Sent by: ${senderName}
+                </p>
+              </div>
+            `,
+            text: messageDataWithUser.content
+          });
+          
+          if (emailSuccess) {
+            console.log(`📧 Email sent successfully to ${recipientEmail}`);
+            await storage.updateMessageDeliveryStatus(message.id, 'delivered', undefined, undefined);
+            message.deliveryStatus = 'delivered';
+            return res.json(message);
+          } else {
+            console.error(`📧 Email sending failed to ${recipientEmail}`);
+            await storage.updateMessageDeliveryStatus(message.id, 'failed', undefined, 'Email service failed');
+            message.deliveryStatus = 'failed';
+            message.error = 'Email service failed';
+            return res.status(400).json({ 
+              error: 'Failed to send email',
+              message: message
+            });
+          }
+        } catch (emailError: any) {
+          console.error('Email sending error:', emailError);
+          await storage.updateMessageDeliveryStatus(message.id, 'failed', undefined, emailError.message);
+          message.deliveryStatus = 'failed';
+          message.error = 'Email sending error';
+          return res.status(400).json({ 
+            error: `Email delivery failed: ${emailError.message || 'Unknown error'}`,
+            message: message
+          });
+        }
       } else {
-        // For internal messages, mark as delivered immediately since they don't go through SMS/WhatsApp
+        // For internal messages, mark as delivered immediately since they don't go through SMS/WhatsApp/Email
         await storage.updateMessageDeliveryStatus(message.id, 'delivered', undefined, undefined);
         console.log(`✅ Internal message ${message.id} marked as delivered`);
         
