@@ -1181,6 +1181,28 @@ export default function BillingPage() {
               </div>
             </div>
 
+            <div className="p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <div className="flex items-center gap-2">
+                <Label className="font-semibold">Invoice Type:</Label>
+                <Badge 
+                  className={
+                    insuranceProvider && insuranceProvider !== '' && insuranceProvider !== 'none' 
+                      ? "bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400" 
+                      : "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400"
+                  }
+                >
+                  {insuranceProvider && insuranceProvider !== '' && insuranceProvider !== 'none' 
+                    ? "Insurance Claim" 
+                    : "Payment (Self-Pay)"}
+                </Badge>
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                {insuranceProvider && insuranceProvider !== '' && insuranceProvider !== 'none' 
+                  ? "This invoice will be billed to the insurance provider" 
+                  : "This invoice will be paid directly by the patient"}
+              </p>
+            </div>
+
             <div>
               <Label htmlFor="notes">Notes</Label>
               <Textarea 
