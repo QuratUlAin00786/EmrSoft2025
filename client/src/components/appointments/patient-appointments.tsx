@@ -120,12 +120,19 @@ export default function PatientAppointments({
     enabled: !!user,
   });
 
-  // Fetch users to display appointment creator information
+  // Fetch users to display appointment creator information AND for role-based filtering
   const { data: usersData, isLoading: usersLoading } = useQuery({
     queryKey: ["/api/users"],
     staleTime: 300000, // 5 minutes cache
     retry: false,
-    enabled: !!user,
+    enabled: !!user && user.role === 'patient', // Only fetch for patients who need role filtering
+    queryFn: async () => {
+      console.log('🔍 FETCHING /api/users for role filtering');
+      const response = await apiRequest('GET', '/api/users');
+      const data = await response.json();
+      console.log('✅ USERS DATA FETCHED:', data?.length, 'users');
+      return data;
+    },
   });
 
   // Fetch roles from roles table for role filter
