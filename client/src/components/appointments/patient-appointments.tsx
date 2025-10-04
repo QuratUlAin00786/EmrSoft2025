@@ -466,12 +466,6 @@ export default function PatientAppointments({
     }
   };
 
-  // Get unique roles that actually have users assigned
-  const rolesWithUsers = React.useMemo(() => {
-    if (!usersData || !Array.isArray(usersData)) return new Set<string>();
-    return new Set(usersData.map((u: any) => u.role).filter(Boolean));
-  }, [usersData]);
-
   // Get filtered users by selected role
   const filteredUsersByRole = React.useMemo(() => {
     if (!roleFilter || !usersData || !Array.isArray(usersData)) return [];
@@ -821,7 +815,7 @@ export default function PatientAppointments({
                       </SelectTrigger>
                       <SelectContent>
                         {rolesData && Array.isArray(rolesData) ? rolesData
-                          .filter((role: any) => role.name !== 'patient' && rolesWithUsers.has(role.name))
+                          .filter((role: any) => role.name !== 'patient')
                           .map((role: any) => (
                             <SelectItem 
                               key={role.id} 
