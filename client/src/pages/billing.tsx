@@ -82,6 +82,8 @@ export default function BillingPage() {
   const [editedStatus, setEditedStatus] = useState("");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [invoiceToDelete, setInvoiceToDelete] = useState<Invoice | null>(null);
+  const [showSendSuccessModal, setShowSendSuccessModal] = useState(false);
+  const [sentInvoiceInfo, setSentInvoiceInfo] = useState({ invoiceNumber: "", recipient: "" });
 
   const { data: billingData = [], isLoading, error } = useQuery({
     queryKey: ["/api/billing"],
@@ -447,13 +449,22 @@ export default function BillingPage() {
         customMessage
       });
       
-      toast({
-        title: "Invoice Sent Successfully",
-        description: `Invoice ${invoiceToSend.id} sent to ${recipientEmail}`,
+      // Set the success modal info
+      setSentInvoiceInfo({
+        invoiceNumber: invoiceToSend.invoiceNumber || invoiceToSend.id,
+        recipient: sendMethod === 'email' ? recipientEmail : sendMethod === 'sms' ? recipientPhone : recipientName
       });
+      
+      // Close send dialog and show success modal
       setSendInvoiceDialog(false);
+      setShowSendSuccessModal(true);
+      
+      // Clear all form fields
       setInvoiceToSend(null);
       setRecipientEmail("");
+      setRecipientPhone("");
+      setRecipientName("");
+      setRecipientAddress("");
       setCustomMessage("");
     } catch (error) {
       toast({
@@ -1541,14 +1552,14 @@ export default function BillingPage() {
                         </div>
                       ) : (
                         <div className="flex items-center gap-2">
-                          <Badge className={`${selectedInvoice.status === 'paid' ? 'bg-green-100 text-green-800' : 
-                            selectedInvoice.status === 'overdue' ? 'bg-red-100 text-red-800' : 
-                            selectedInvoice.status === 'sent' ? 'bg-blue-100 text-blue-800' : 
-                            'bg-gray-100 text-gray-800'}`}>
+                          <Badge className={`${selectedInvoice.status === 'paid' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' : 
+                            selectedInvoice.status === 'overdue' ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400' : 
+                            selectedInvoice.status === 'sent' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400' : 
+                            'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'}`}>
                             {selectedInvoice.status}
                           </Badge>
-                          <Button size="sm" variant="ghost" onClick={() => setIsEditingStatus(true)}>
-                            Edit
+                          <Button size="sm" variant="outline" onClick={() => setIsEditingStatus(true)} className="ml-2 border-blue-600 text-blue-600 hover:bg-blue-50 dark:border-blue-500 dark:text-blue-400 dark:hover:bg-blue-950/20">
+                            Edit Status
                           </Button>
                         </div>
                       )}
@@ -1827,6 +1838,30 @@ export default function BillingPage() {
               Cancel
             </Button>
             <Button variant="destructive" onClick={confirmDeleteInvoice}>
+              OK
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Send Invoice Success Modal */}
+      <Dialog open={showSendSuccessModal} onOpenChange={setShowSendSuccessModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <div className="flex items-center justify-center mb-4">
+              <div className="h-16 w-16 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
+                <Send className="h-10 w-10 text-blue-600 dark:text-blue-500" />
+              </div>
+            </div>
+            <DialogTitle className="text-center text-xl">Invoice Sent Successfully!</DialogTitle>
+          </DialogHeader>
+          <div className="text-center py-4">
+            <p className="text-muted-foreground">
+              Invoice <span className="font-semibold text-foreground">{sentInvoiceInfo.invoiceNumber}</span> sent to <span className="font-semibold text-foreground">{sentInvoiceInfo.recipient}</span>
+            </p>
+          </div>
+          <DialogFooter className="sm:justify-center">
+            <Button onClick={() => setShowSendSuccessModal(false)} className="w-full sm:w-auto">
               OK
             </Button>
           </DialogFooter>
