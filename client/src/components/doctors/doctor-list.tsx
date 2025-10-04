@@ -514,11 +514,17 @@ export function DoctorList({
     return `${displayHour}:${minutes || '00'} ${ampm}`;
   };
 
-  // Filter to show only available doctors (role='doctor')
-  // Based on backend logic: staff are available if they have no working days set OR if today is in their working days
+  // Filter to show available staff
+  // For patient role: show all users except admin and patient
+  // For other roles: show only doctors who are available today
   const today = new Date().toLocaleDateString("en-US", { weekday: "long" });
   const availableStaff = medicalStaff.filter((doctor: Doctor) => {
-    // Only show users with role='doctor'
+    // If logged-in user is a patient, show all users except admin and patient
+    if (user?.role === 'patient') {
+      return doctor.role !== 'admin' && doctor.role !== 'patient';
+    }
+    
+    // For non-patient users: only show users with role='doctor'
     if (doctor.role !== 'doctor') {
       return false;
     }
@@ -559,7 +565,7 @@ export function DoctorList({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Stethoscope className="h-5 w-5" />
-            Medical Staff
+            Available Doctors/Nurse/Lab Technicians
           </CardTitle>
         </CardHeader>
         <CardContent>
