@@ -569,12 +569,23 @@ export function DoctorList({
   if (availableStaff.length === 0) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Stethoscope className="h-5 w-5" />
-            Available Doctors
-          </CardTitle>
-        </CardHeader>
+        <div className="flex items-center justify-between p-4">
+
+          {user?.role === 'patient' && (
+            <Select value={selectedRole} onValueChange={setSelectedRole}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Roles</SelectItem>
+                <SelectItem value="doctor">Doctor</SelectItem>
+                <SelectItem value="nurse">Nurse</SelectItem>
+                <SelectItem value="receptionist">Receptionist</SelectItem>
+                <SelectItem value="sample_taker">Sample Taker</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+        </div>
         <CardContent>
           <div className="text-center py-8 text-gray-500">
             <User className="h-12 w-12 mx-auto mb-4 text-gray-300" />
@@ -592,10 +603,7 @@ export function DoctorList({
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <Stethoscope className="h-5 w-5" />
-            Available Doctors
-          </CardTitle>
+       
           {user?.role === 'patient' && (
             <Select value={selectedRole} onValueChange={setSelectedRole}>
               <SelectTrigger className="w-[180px]">
