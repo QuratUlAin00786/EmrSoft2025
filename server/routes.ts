@@ -12686,9 +12686,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         createdBy: req.user!.id
       };
 
-      console.log("📝 Creating invoice in database:", invoiceNumber);
-      const createdInvoice = await storage.createInvoice(invoiceToCreate);
-      console.log("✅ Invoice created successfully:", createdInvoice.id);
+      console.log("📝 Creating patient invoice in database:", invoiceNumber);
+      const createdInvoice = await storage.createPatientInvoice(invoiceToCreate);
+      console.log("✅ Patient invoice created successfully:", createdInvoice.id);
       
       res.status(201).json(createdInvoice);
     } catch (error) {

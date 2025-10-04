@@ -205,7 +205,7 @@ export interface IStorage {
   getInvoiceByNumber(invoiceNumber: string, organizationId: number): Promise<Invoice | undefined>;
   getInvoicesByOrganization(organizationId: number, status?: string): Promise<Invoice[]>;
   getInvoicesByPatient(patientId: string, organizationId: number): Promise<Invoice[]>;
-  createInvoice(invoice: InsertInvoice): Promise<Invoice>;
+  createPatientInvoice(invoice: InsertInvoice): Promise<Invoice>;
   updateInvoice(id: number, organizationId: number, updates: Partial<InsertInvoice>): Promise<Invoice | undefined>;
   deleteInvoice(id: number, organizationId: number): Promise<boolean>;
 
@@ -420,7 +420,7 @@ export interface IStorage {
   createPayment(paymentData: any): Promise<any>;
   updatePaymentStatus(paymentId: number, status: string, transactionId?: string): Promise<any>;
   suspendUnpaidSubscriptions(): Promise<void>;
-  createInvoice(invoiceData: any): Promise<any>;
+  createPatientInvoice(invoiceData: any): Promise<any>;
   getOverdueInvoices(): Promise<any[]>;
   calculateMonthlyRecurring(): Promise<number>;
   getSaaSSettings(): Promise<any>;
@@ -1276,14 +1276,14 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(invoices.createdAt));
   }
 
-  async createInvoice(invoice: InsertInvoice): Promise<Invoice> {
-    console.log("Creating invoice with data:", invoice);
+  async createPatientInvoice(invoice: InsertInvoice): Promise<Invoice> {
+    console.log("Creating patient invoice with data:", invoice);
     try {
       const [created] = await db.insert(invoices).values([invoice]).returning();
-      console.log("Invoice created successfully:", created);
+      console.log("Patient invoice created successfully:", created);
       return created;
     } catch (error) {
-      console.error("Error creating invoice:", error);
+      console.error("Error creating patient invoice:", error);
       throw error;
     }
   }
