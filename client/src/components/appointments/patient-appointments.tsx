@@ -37,6 +37,7 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  Filter,
 } from "lucide-react";
 import { format, isSameDay, isToday, isFuture, isPast } from "date-fns";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -75,6 +76,9 @@ export default function PatientAppointments({
   const [patientFilterSubSpecialty, setPatientFilterSubSpecialty] =
     useState<string>("");
   const [statusFilter, setStatusFilter] = useState<'all'|'scheduled'|'cancelled'|'completed'|'rescheduled'|'no_show'>('scheduled');
+  const [roleFilter, setRoleFilter] = useState<string>("");
+  const [providerFilter, setProviderFilter] = useState<string>("");
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState<boolean>(false);
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -129,8 +133,16 @@ export default function PatientAppointments({
     enabled: !!user,
   });
 
+  // Fetch roles from roles table for role filter
+  const { data: rolesData, isLoading: rolesLoading } = useQuery({
+    queryKey: ["/api/roles"],
+    staleTime: 300000, // 5 minutes cache
+    retry: false,
+    enabled: !!user && user.role === 'patient',
+  });
+
   // Combined loading state
-  const isLoading = patientsLoading || appointmentsLoading || doctorsLoading || usersLoading;
+  const isLoading = patientsLoading || appointmentsLoading || doctorsLoading || usersLoading || rolesLoading;
 
   // Find the patient record for the logged-in user
   const currentPatient = React.useMemo(() => {
@@ -455,6 +467,12 @@ export default function PatientAppointments({
     }
   };
 
+  // Get filtered users by selected role
+  const filteredUsersByRole = React.useMemo(() => {
+    if (!roleFilter || !usersData || !Array.isArray(usersData)) return [];
+    return usersData.filter((u: any) => u.role === roleFilter);
+  }, [roleFilter, usersData]);
+
   // Filter appointments based on patient filters (for patient role)
   const getPatientFilteredAppointments = React.useMemo(() => {
     if (user?.role !== "patient") return appointments;
@@ -486,12 +504,20 @@ export default function PatientAppointments({
       });
     }
 
+    // Filter by provider (based on role selection)
+    if (providerFilter) {
+      filtered = filtered.filter((apt: any) => {
+        return apt.providerId === parseInt(providerFilter);
+      });
+    }
+
     return filtered;
   }, [
     appointments,
     patientFilterDate,
     patientFilterSpecialty,
     patientFilterSubSpecialty,
+    providerFilter,
     user?.role,
   ]);
 
@@ -665,14 +691,27 @@ export default function PatientAppointments({
             </p>
           </div>
         </div>
-        <Button
-          onClick={() => onNewAppointment?.()}
-          className="flex items-center gap-2"
-          data-testid="button-book-appointment"
-        >
-          <Plus className="h-3 w-3" />
-          Book Appointment
-        </Button>
+        <div className="flex items-center gap-2">
+          {user?.role === "patient" && (
+            <Button
+              variant="outline"
+              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+              className="flex items-center gap-2"
+              data-testid="button-toggle-filters"
+            >
+              <Filter className="h-4 w-4" />
+              {showAdvancedFilters ? "Hide Filters" : "Show Filters"}
+            </Button>
+          )}
+          <Button
+            onClick={() => onNewAppointment?.()}
+            className="flex items-center gap-2"
+            data-testid="button-book-appointment"
+          >
+            <Plus className="h-3 w-3" />
+            Book Appointment
+          </Button>
+        </div>
       </div>
 
       {/* Next Appointment Card */}
@@ -780,57 +819,126 @@ export default function PatientAppointments({
         </div>
 
         {/* Additional patient-specific filters */}
-        {user?.role === "patient" && (
-          <div title="Patient Filter (filter appointments)" className="w-full">
-            <div className="flex items-end gap-4">
-              {/* Date Filter */}
-              <div className="flex-1">
-                <Label className="text-sm font-medium text-gray-700">
-                  Filter by Date
-                </Label>
-                <input
-                  type="date"
-                  value={patientFilterDate}
-                  onChange={(e) => setPatientFilterDate(e.target.value)}
-                  className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
+        {user?.role === "patient" && showAdvancedFilters && (
+          <Card className="border-blue-200 bg-blue-50/30">
+            <CardContent className="pt-6">
+              <div className="space-y-4">
+                {/* First Row: Date, Status, Role Filter */}
+                <div className="grid grid-cols-3 gap-4">
+                  {/* Date Filter */}
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700">
+                      Filter by Date
+                    </Label>
+                    <input
+                      type="date"
+                      value={patientFilterDate}
+                      onChange={(e) => setPatientFilterDate(e.target.value)}
+                      className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      data-testid="input-filter-date"
+                    />
+                  </div>
 
-              {/* Status Filter */}
-              <div className="flex-1">
-                <Label className="text-sm font-medium text-gray-700">Filter by Status</Label>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger data-testid="select-status-filter">
-                    <SelectValue placeholder="All statuses" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all" data-testid="option-status-all">All</SelectItem>
-                    <SelectItem value="scheduled" data-testid="option-status-scheduled">SCHEDULED</SelectItem>
-                    <SelectItem value="cancelled" data-testid="option-status-cancelled">CANCELLED</SelectItem>
-                    <SelectItem value="completed" data-testid="option-status-completed">COMPLETED</SelectItem>
-                    <SelectItem value="rescheduled" data-testid="option-status-rescheduled">RESCHEDULED</SelectItem>
-                    <SelectItem value="no_show" data-testid="option-status-no_show">NO_SHOW</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                  {/* Status Filter */}
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700">Filter by Status</Label>
+                    <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as any)}>
+                      <SelectTrigger data-testid="select-status-filter">
+                        <SelectValue placeholder="All statuses" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all" data-testid="option-status-all">All</SelectItem>
+                        <SelectItem value="scheduled" data-testid="option-status-scheduled">SCHEDULED</SelectItem>
+                        <SelectItem value="cancelled" data-testid="option-status-cancelled">CANCELLED</SelectItem>
+                        <SelectItem value="completed" data-testid="option-status-completed">COMPLETED</SelectItem>
+                        <SelectItem value="rescheduled" data-testid="option-status-rescheduled">RESCHEDULED</SelectItem>
+                        <SelectItem value="no_show" data-testid="option-status-no_show">NO_SHOW</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-              {/* Clear Filters Button */}
-              <div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setPatientFilterDate("");
-                    setPatientFilterSpecialty("");
-                    setPatientFilterSubSpecialty("");
-                    setStatusFilter('all');
-                  }}
-                >
-                  Clear Filters
-                </Button>
+                  {/* Role Filter */}
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700">Filter by Role</Label>
+                    <Select value={roleFilter} onValueChange={(value) => {
+                      setRoleFilter(value);
+                      setProviderFilter(""); // Reset provider when role changes
+                    }}>
+                      <SelectTrigger data-testid="select-role-filter">
+                        <SelectValue placeholder="Select role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="" data-testid="option-role-all">All Roles</SelectItem>
+                        {rolesData && Array.isArray(rolesData) ? rolesData
+                          .filter((role: any) => role.name !== 'patient' && role.name !== 'admin')
+                          .map((role: any) => (
+                            <SelectItem 
+                              key={role.id} 
+                              value={role.name}
+                              data-testid={`option-role-${role.name}`}
+                            >
+                              {role.name.charAt(0).toUpperCase() + role.name.slice(1)}
+                            </SelectItem>
+                          )) : null}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Second Row: Provider Name Filter (shown when role is selected) */}
+                {roleFilter && (
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">
+                        Filter by Provider Name
+                      </Label>
+                      <Select value={providerFilter} onValueChange={setProviderFilter}>
+                        <SelectTrigger data-testid="select-provider-filter">
+                          <SelectValue placeholder="Select provider" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="" data-testid="option-provider-all">All Providers</SelectItem>
+                          {filteredUsersByRole.map((provider: any) => (
+                            <SelectItem 
+                              key={provider.id} 
+                              value={provider.id.toString()}
+                              data-testid={`option-provider-${provider.id}`}
+                            >
+                              {provider.firstName} {provider.lastName}
+                            </SelectItem>
+                          ))}
+                          {filteredUsersByRole.length === 0 && (
+                            <SelectItem value="none" disabled data-testid="option-provider-none">
+                              No providers found
+                            </SelectItem>
+                          )}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                )}
+
+                {/* Clear Filters Button */}
+                <div className="flex justify-end">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setPatientFilterDate("");
+                      setPatientFilterSpecialty("");
+                      setPatientFilterSubSpecialty("");
+                      setStatusFilter('all');
+                      setRoleFilter("");
+                      setProviderFilter("");
+                    }}
+                    data-testid="button-clear-filters"
+                  >
+                    Clear All Filters
+                  </Button>
+                </div>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         )}
       </div>
 
