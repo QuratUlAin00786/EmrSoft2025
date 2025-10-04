@@ -766,21 +766,17 @@ export default function ShiftsPage() {
               const isCurrentMonth = day.getMonth() === currentMonth.getMonth();
               const isSelected = selectedDate.toDateString() === day.toDateString();
               const isToday = day.toDateString() === new Date().toDateString();
-              const dateHasShifts = hasShiftsOnDate(day);
-              const isDateDisabled = Boolean(selectedStaffId && !dateHasShifts && isCurrentMonth);
               
               return (
                 <Button
                   key={index}
                   variant="ghost"
                   size="sm"
-                  disabled={isDateDisabled}
                   className={`
                     h-10 p-0 font-normal
                     ${!isCurrentMonth ? 'text-gray-300 dark:text-gray-600' : 'text-gray-900 dark:text-gray-100'}
                     ${isSelected ? 'bg-blue-600 text-white hover:bg-blue-700' : ''}
                     ${isToday && !isSelected ? 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300' : ''}
-                    ${isDateDisabled ? 'opacity-50 cursor-not-allowed' : ''}
                   `}
                   onClick={() => {
                     console.log("Calendar day clicked:", day.toDateString(), day);
