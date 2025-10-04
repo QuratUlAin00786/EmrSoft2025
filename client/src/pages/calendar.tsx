@@ -1838,9 +1838,7 @@ export default function CalendarPage() {
                         <div>
                           <Label className="text-gray-600 dark:text-gray-400">Time</Label>
                           <p className="font-medium" data-testid="text-summary-time">
-                            {selectedTimeSlot 
-                              ? format(new Date(`2000-01-01T${selectedTimeSlot}:00`), 'h:mm a')
-                              : "Not selected"}
+                            {selectedTimeSlot || "Not selected"}
                           </p>
                         </div>
                       </div>
