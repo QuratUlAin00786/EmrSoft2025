@@ -650,17 +650,50 @@ export default function ShiftsPage() {
   const currentYear = currentMonth.getFullYear();
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <Calendar className="h-8 w-8 text-blue-600" />
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Shift Management</h1>
-            <p className="text-gray-600 dark:text-gray-300">Manage doctor and staff schedules, availability, and absences</p>
+    <div className="p-6">
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border dark:border-slate-700 p-6">
+          <div className="flex items-center">
+            <Users className="h-8 w-8 text-blue-600" />
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Shifts</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{shifts.length}</p>
+            </div>
           </div>
         </div>
-        <div className="text-sm text-gray-500 dark:text-gray-400">
-          View shifts for: <span className="font-medium text-gray-900 dark:text-gray-100">{selectedDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border dark:border-slate-700 p-6">
+          <div className="flex items-center">
+            <CalendarCheck className="h-8 w-8 text-green-600" />
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Available Staff</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                {shifts.filter((s: any) => s.isAvailable && s.status === 'scheduled').length}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border dark:border-slate-700 p-6">
+          <div className="flex items-center">
+            <Clock className="h-8 w-8 text-orange-600" />
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">On Call</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                {shifts.filter((s: any) => s.shiftType === 'on_call').length}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border dark:border-slate-700 p-6">
+          <div className="flex items-center">
+            <Calendar className="h-8 w-8 text-red-600" />
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Absent</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                {shifts.filter((s: any) => s.shiftType === 'absent' || s.status === 'absent').length}
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -906,52 +939,6 @@ export default function ShiftsPage() {
               </div>
             </div>
           )}
-        </div>
-      </div>
-
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border dark:border-slate-700 p-6">
-          <div className="flex items-center">
-            <Users className="h-8 w-8 text-blue-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Shifts</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{shifts.length}</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border dark:border-slate-700 p-6">
-          <div className="flex items-center">
-            <CalendarCheck className="h-8 w-8 text-green-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Available Staff</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                {shifts.filter((s: any) => s.isAvailable && s.status === 'scheduled').length}
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border dark:border-slate-700 p-6">
-          <div className="flex items-center">
-            <Clock className="h-8 w-8 text-orange-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">On Call</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                {shifts.filter((s: any) => s.shiftType === 'on_call').length}
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border dark:border-slate-700 p-6">
-          <div className="flex items-center">
-            <Calendar className="h-8 w-8 text-red-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Absent</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                {shifts.filter((s: any) => s.shiftType === 'absent' || s.status === 'absent').length}
-              </p>
-            </div>
-          </div>
         </div>
       </div>
 
