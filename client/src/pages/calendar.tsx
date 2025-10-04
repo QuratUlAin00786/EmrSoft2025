@@ -195,6 +195,10 @@ export default function CalendarPage() {
     location: "",
     isVirtual: false
   });
+  
+  // Confirmation modal states for patient users
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const [pendingAppointmentData, setPendingAppointmentData] = useState<any>(null);
   const [location] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -1898,7 +1902,13 @@ export default function CalendarPage() {
                           scheduledAt: appointmentDateTime
                         };
 
-                        createAppointmentMutation.mutate(appointmentData);
+                        // If patient user, show confirmation modal instead of directly booking
+                        if (user?.role === 'patient') {
+                          setPendingAppointmentData(appointmentData);
+                          setShowConfirmationModal(true);
+                        } else {
+                          createAppointmentMutation.mutate(appointmentData);
+                        }
                       }}
                       disabled={createAppointmentMutation.isPending}
                       data-testid="button-book-appointment"
@@ -1908,6 +1918,147 @@ export default function CalendarPage() {
                     </Button>
                   </div>
                 )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Confirmation Modal for Patient Users */}
+        {showConfirmationModal && pendingAppointmentData && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-bold text-gray-900">
+                    Appointment Booking Summary
+                  </h2>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setShowConfirmationModal(false);
+                      setPendingAppointmentData(null);
+                    }}
+                    data-testid="button-close-confirmation"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                {/* Patient Information */}
+                <Card className="mb-6">
+                  <CardHeader>
+                    <CardTitle className="text-lg">Patient Information</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {(() => {
+                        const patient = patients.find((p: any) => p.id.toString() === pendingAppointmentData.patientId.toString());
+                        return patient ? (
+                          <>
+                            <div className="flex items-center gap-2">
+                              <User className="h-4 w-4 text-gray-500" />
+                              <span className="font-medium">Name:</span>
+                              <span>{patient.firstName} {patient.lastName}</span>
+                            </div>
+                            {patient.email && (
+                              <div className="flex items-center gap-2">
+                                <Mail className="h-4 w-4 text-gray-500" />
+                                <span className="font-medium">Email:</span>
+                                <span>{patient.email}</span>
+                              </div>
+                            )}
+                            {patient.phone && (
+                              <div className="flex items-center gap-2">
+                                <Phone className="h-4 w-4 text-gray-500" />
+                                <span className="font-medium">Phone:</span>
+                                <span>{patient.phone}</span>
+                              </div>
+                            )}
+                          </>
+                        ) : null;
+                      })()}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Booking Summary */}
+                <Card className="mb-6">
+                  <CardHeader>
+                    <CardTitle className="text-lg">Booking Summary</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-gray-500 mb-1">Provider</p>
+                        <p className="font-medium">
+                          {(() => {
+                            const provider = filteredUsers.find((u: any) => u.id === pendingAppointmentData.providerId);
+                            return provider ? `${provider.firstName} ${provider.lastName}` : 'N/A';
+                          })()}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500 mb-1">Date</p>
+                        <p className="font-medium">
+                          {selectedDate ? format(selectedDate, 'EEEE, MMMM dd, yyyy') : 'N/A'}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500 mb-1">Time</p>
+                        <p className="font-medium">{selectedTimeSlot}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500 mb-1">Duration</p>
+                        <p className="font-medium">{selectedDuration} minutes</p>
+                      </div>
+                      {pendingAppointmentData.location && (
+                        <div className="col-span-2">
+                          <p className="text-sm text-gray-500 mb-1">Location</p>
+                          <p className="font-medium">{pendingAppointmentData.location}</p>
+                        </div>
+                      )}
+                      {pendingAppointmentData.title && (
+                        <div className="col-span-2">
+                          <p className="text-sm text-gray-500 mb-1">Title</p>
+                          <p className="font-medium">{pendingAppointmentData.title}</p>
+                        </div>
+                      )}
+                      {pendingAppointmentData.description && (
+                        <div className="col-span-2">
+                          <p className="text-sm text-gray-500 mb-1">Description</p>
+                          <p className="font-medium">{pendingAppointmentData.description}</p>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Action Buttons */}
+                <div className="flex justify-end gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowConfirmationModal(false);
+                      setPendingAppointmentData(null);
+                    }}
+                    data-testid="button-go-back"
+                  >
+                    Go Back
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      createAppointmentMutation.mutate(pendingAppointmentData);
+                      setShowConfirmationModal(false);
+                      setPendingAppointmentData(null);
+                    }}
+                    disabled={createAppointmentMutation.isPending}
+                    data-testid="button-confirm-appointment"
+                  >
+                    <Check className="h-4 w-4 mr-2" />
+                    {createAppointmentMutation.isPending ? "Confirming..." : "Confirm Appointment"}
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
