@@ -1142,10 +1142,13 @@ export function DoctorList({
 
       {/* Confirmation Dialog */}
       <Dialog open={isConfirmationOpen} onOpenChange={setIsConfirmationOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl" aria-describedby="confirmation-dialog-description">
           <DialogHeader>
             <DialogTitle>Appointment Booking Confirmation</DialogTitle>
           </DialogHeader>
+          <div id="confirmation-dialog-description" className="sr-only">
+            Review and confirm your appointment booking details before submission.
+          </div>
           
           <div className="space-y-4">
             <h3 className="text-base font-medium">Booking Summary</h3>
@@ -1214,10 +1217,13 @@ export function DoctorList({
 
       {/* Success Modal */}
       <Dialog open={isSuccessModalOpen} onOpenChange={setIsSuccessModalOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md" aria-describedby="success-dialog-description">
           <DialogHeader>
             <DialogTitle className="text-center text-green-600 dark:text-green-400">Success!</DialogTitle>
           </DialogHeader>
+          <div id="success-dialog-description" className="sr-only">
+            Appointment booking confirmation message.
+          </div>
           
           <div className="text-center py-6">
             <div className="mx-auto w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mb-4">
