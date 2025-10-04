@@ -12606,40 +12606,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { status } = req.query;
       
-      // For now, return mock data since we need to implement proper invoice storage
-      const mockInvoices = [
-        {
-          id: "INV-001234",
-          patientId: "P000004",
-          patientName: "Alex Johnson",
-          amount: 250.00,
-          status: status === "all" ? "paid" : status || "paid",
-          dateOfService: new Date("2024-01-15"),
-          invoiceDate: new Date("2024-01-15"),
-          dueDate: new Date("2024-02-14"),
-          paidAmount: 250.00,
-          items: [
-            { code: "99213", description: "Office Visit - Level 3", quantity: 1, unitPrice: 250.00, total: 250.00 }
-          ]
-        },
-        {
-          id: "INV-001235", 
-          patientId: "P000005",
-          patientName: "Sarah Connor",
-          amount: 450.00,
-          status: status === "all" ? "sent" : status || "sent",
-          dateOfService: new Date("2024-01-14"),
-          invoiceDate: new Date("2024-01-14"),
-          dueDate: new Date("2024-02-13"),
-          paidAmount: 0,
-          items: [
-            { code: "99214", description: "Office Visit - Level 4", quantity: 1, unitPrice: 300.00, total: 300.00 },
-            { code: "93000", description: "Electrocardiogram", quantity: 1, unitPrice: 150.00, total: 150.00 }
-          ]
-        }
-      ];
+      console.log("📋 Fetching invoices for organization:", req.tenant!.id, "Status filter:", status);
       
-      res.json(mockInvoices);
+      const invoices = await storage.getInvoicesByOrganization(
+        req.tenant!.id,
+        status as string | undefined
+      );
+      
+      console.log(`✅ Found ${invoices.length} invoices`);
+      res.json(invoices);
     } catch (error) {
       console.error("Invoices fetch error:", error);
       res.status(500).json({ error: "Failed to fetch invoices" });
@@ -12676,16 +12651,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Patient not found" });
       }
 
-      // Create new invoice
-      const newInvoice = {
-        id: `INV-${Date.now().toString().slice(-6)}`,
+      // Generate unique invoice number
+      const invoiceNumber = `INV-${Date.now().toString().slice(-6)}`;
+
+      // Prepare invoice for database
+      const invoiceToCreate = {
+        organizationId: req.tenant!.id,
         patientId: invoiceData.patientId,
-        patientName: `${patient.firstName} ${patient.lastName}`,
-        amount: parseFloat(invoiceData.totalAmount),
-        status: "draft" as const,
-        dateOfService: new Date(invoiceData.serviceDate),
+        invoiceNumber: invoiceNumber,
         invoiceDate: new Date(invoiceData.invoiceDate),
         dueDate: new Date(invoiceData.dueDate),
+        serviceDate: new Date(invoiceData.serviceDate),
+        status: "draft" as const,
+        subtotal: parseFloat(invoiceData.totalAmount),
+        tax: 0,
+        discount: 0,
+        total: parseFloat(invoiceData.totalAmount),
         paidAmount: 0,
         items: [
           {
@@ -12696,11 +12677,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
             total: parseFloat(invoiceData.firstServiceAmount)
           }
         ],
-        notes: invoiceData.notes
+        notes: invoiceData.notes || null,
+        insurance: null,
+        payments: []
       };
 
-      console.log("✅ Invoice created successfully:", newInvoice.id);
-      res.status(201).json(newInvoice);
+      console.log("📝 Creating invoice in database:", invoiceNumber);
+      const createdInvoice = await storage.createInvoice(invoiceToCreate);
+      console.log("✅ Invoice created successfully:", createdInvoice.id);
+      
+      res.status(201).json(createdInvoice);
     } catch (error) {
       console.error("Invoice creation error:", error);
       res.status(500).json({ error: "Failed to create invoice" });
