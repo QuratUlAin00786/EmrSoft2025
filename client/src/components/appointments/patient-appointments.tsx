@@ -244,7 +244,14 @@ export default function PatientAppointments({
       return null;
     }
     const creator = usersData.find((u: any) => u.id === createdBy);
-    return creator ? `${creator.firstName} ${creator.lastName}` : null;
+    if (!creator) return null;
+    
+    // Handle missing first or last names gracefully
+    const firstName = creator.firstName || '';
+    const lastName = creator.lastName || '';
+    const fullName = `${firstName} ${lastName}`.trim();
+    
+    return fullName || 'Unknown User';
   };
 
   // Fetch appointments for selected date to check availability
