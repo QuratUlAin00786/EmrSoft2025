@@ -397,6 +397,12 @@ export default function CalendarPage() {
     return `${hour24.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
   };
 
+  // Get unique roles that actually have users assigned
+  const rolesWithUsers = useMemo(() => {
+    if (!usersData || !Array.isArray(usersData)) return new Set<string>();
+    return new Set(usersData.map((u: any) => u.role).filter(Boolean));
+  }, [usersData]);
+
   // Get filtered users by selected role (exclude patient and admin)
   const filteredUsers = useMemo(() => {
     console.log('🔍 FILTERING USERS - selectedRole:', selectedRole, 'usersData:', usersData);
@@ -414,13 +420,13 @@ export default function CalendarPage() {
     return filtered;
   }, [selectedRole, usersData]);
 
-  // Get available roles from roles table (exclude patient)
+  // Get available roles from roles table (exclude patient, only show roles with users)
   const availableRoles: Array<{ name: string; displayName: string }> = useMemo(() => {
     if (!rolesData || !Array.isArray(rolesData)) return [];
     return rolesData
-      .filter((role: any) => role.name !== 'patient')
+      .filter((role: any) => role.name !== 'patient' && rolesWithUsers.has(role.name))
       .map((role: any) => ({ name: role.name, displayName: role.displayName }));
-  }, [rolesData]);
+  }, [rolesData, rolesWithUsers]);
 
   // Check if a date has shifts in the database
   const hasShiftsOnDate = (date: Date): boolean => {
