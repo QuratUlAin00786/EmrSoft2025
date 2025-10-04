@@ -182,7 +182,7 @@ export default function MessagingPage() {
     enabled: true // Always fetch patients data
   });
 
-  // Fetch users for admin role-based filtering
+  // Fetch users for admin and patient role-based filtering
   const { data: usersData, isLoading: usersLoading } = useQuery({
     queryKey: ['/api/users'],
     queryFn: async () => {
@@ -190,7 +190,7 @@ export default function MessagingPage() {
       const data = await response.json();
       return data;
     },
-    enabled: user?.role === 'admin' // Only fetch when user is admin
+    enabled: user?.role === 'admin' || user?.role === 'patient' // Fetch when user is admin or patient
   });
 
   // Update current user when user data changes
@@ -1255,7 +1255,7 @@ export default function MessagingPage() {
                 <DialogTitle>Start Video Call</DialogTitle>
               </DialogHeader>
               <div className="space-y-6">
-{user?.role === 'admin' ? (
+{(user?.role === 'admin' || user?.role === 'patient') ? (
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="selectCallRole">Select Role *</Label>
@@ -1271,7 +1271,7 @@ export default function MessagingPage() {
                           <SelectValue placeholder="Select a role..." />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="patient">Patient</SelectItem>
+                          {user?.role !== 'patient' && <SelectItem value="patient">Patient</SelectItem>}
                           <SelectItem value="doctor">Doctor</SelectItem>
                           <SelectItem value="nurse">Nurse</SelectItem>
                           <SelectItem value="receptionist">Receptionist</SelectItem>
@@ -1449,7 +1449,7 @@ export default function MessagingPage() {
               </DialogHeader>
               <div className="space-y-6">
                 <div className="grid grid-cols-2 gap-4">
-                  {user?.role === 'admin' ? (
+                  {(user?.role === 'admin' || user?.role === 'patient') ? (
                     <>
                       <div className="space-y-2">
                         <Label htmlFor="selectRole">Select Role *</Label>
@@ -1465,7 +1465,7 @@ export default function MessagingPage() {
                             <SelectValue placeholder="Select a role..." />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="patient">Patient</SelectItem>
+                            {user?.role !== 'patient' && <SelectItem value="patient">Patient</SelectItem>}
                             <SelectItem value="doctor">Doctor</SelectItem>
                             <SelectItem value="nurse">Nurse</SelectItem>
                             <SelectItem value="receptionist">Receptionist</SelectItem>
