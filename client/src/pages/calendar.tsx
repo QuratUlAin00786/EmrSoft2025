@@ -300,11 +300,11 @@ export default function CalendarPage() {
   }, [doctorsData, doctorsError, isLoadingDoctors]);
   
   // Fetch all users for role-based provider selection
-  const { data: usersData, isLoading: usersLoading, error: usersError } = useQuery({
+  const { data: usersData, isLoading: usersLoading } = useQuery({
     queryKey: ["/api/users"],
-    staleTime: 0,
+    staleTime: 300000, // 5 minutes cache
     retry: false,
-    enabled: !!user && user.role === 'patient',
+    enabled: !!user,
   });
 
   // Fetch roles from roles table for role-based provider selection
@@ -405,7 +405,8 @@ export default function CalendarPage() {
       return [];
     }
     const filtered = usersData.filter((u: any) => {
-      const matches = u.role === selectedRole;
+      // Case-insensitive comparison to handle any uppercase/lowercase mismatches
+      const matches = u.role?.toLowerCase() === selectedRole.toLowerCase();
       console.log(`User ${u.firstName} ${u.lastName} - role: "${u.role}" === "${selectedRole}": ${matches}`);
       return matches;
     });

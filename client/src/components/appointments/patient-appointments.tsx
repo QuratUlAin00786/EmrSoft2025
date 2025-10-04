@@ -469,7 +469,8 @@ export default function PatientAppointments({
   // Get filtered users by selected role
   const filteredUsersByRole = React.useMemo(() => {
     if (!roleFilter || !usersData || !Array.isArray(usersData)) return [];
-    return usersData.filter((u: any) => u.role === roleFilter);
+    // Case-insensitive comparison to handle any uppercase/lowercase mismatches
+    return usersData.filter((u: any) => u.role?.toLowerCase() === roleFilter.toLowerCase());
   }, [roleFilter, usersData]);
 
   // Filter appointments based on patient filters (for patient role)
