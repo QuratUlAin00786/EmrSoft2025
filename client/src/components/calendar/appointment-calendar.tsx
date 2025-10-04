@@ -715,6 +715,18 @@ Medical License: [License Number]
     },
   });
 
+  // Fetch all shifts for the selected provider to determine available dates
+  const { data: allProviderShifts } = useQuery({
+    queryKey: ["/api/shifts/provider", selectedProviderId],
+    staleTime: 30000,
+    enabled: !!selectedProviderId,
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/shifts?staffId=${selectedProviderId}`);
+      const data = await response.json();
+      return data;
+    },
+  });
+
   // Fetch shifts for the selected date when provider is selected
   const { data: shiftsData } = useQuery({
     queryKey: ["/api/shifts", newAppointmentDate ? format(newAppointmentDate, 'yyyy-MM-dd') : null],
@@ -820,6 +832,17 @@ Medical License: [License Number]
     if (!createdById || !usersData || !Array.isArray(usersData)) return null;
     const creator = usersData.find((u: any) => u.id === createdById);
     return creator ? { name: `${creator.firstName || ''} ${creator.lastName || ''}`.trim(), role: creator.role } : null;
+  };
+
+  // Check if a date has shifts in the database
+  const hasShiftsOnDate = (date: Date): boolean => {
+    if (!allProviderShifts || !selectedProviderId) return false;
+    
+    const dateStr = format(date, 'yyyy-MM-dd');
+    return allProviderShifts.some((shift: any) => {
+      const shiftDateStr = shift.date.substring(0, 10);
+      return shiftDateStr === dateStr && shift.staffId.toString() === selectedProviderId;
+    });
   };
 
   // Process and validate appointments - show appointments even if patient data is still loading  
@@ -1660,6 +1683,14 @@ Medical License: [License Number]
                         onSelect={(date) => {
                           setNewAppointmentDate(date);
                         }}
+                        disabled={(date: Date) => {
+                          const today = new Date();
+                          today.setHours(0, 0, 0, 0);
+                          
+                          if (date < today) return true;
+                          
+                          return !hasShiftsOnDate(date);
+                        }}
                         className="rounded-md"
                       />
                     </div>
@@ -1844,6 +1875,14 @@ Medical License: [License Number]
                         selected={newAppointmentDate}
                         onSelect={(date) => {
                           setNewAppointmentDate(date);
+                        }}
+                        disabled={(date: Date) => {
+                          const today = new Date();
+                          today.setHours(0, 0, 0, 0);
+                          
+                          if (date < today) return true;
+                          
+                          return !hasShiftsOnDate(date);
                         }}
                         className="rounded-md"
                       />
@@ -2316,6 +2355,14 @@ Medical License: [License Number]
                             newDateTime.setHours(hour24, minutes, 0, 0);
                             setEditingAppointment({ ...editingAppointment, scheduledAt: newDateTime.toISOString() });
                           }
+                        }}
+                        disabled={(date: Date) => {
+                          const today = new Date();
+                          today.setHours(0, 0, 0, 0);
+                          
+                          if (date < today) return true;
+                          
+                          return !hasShiftsOnDate(date);
                         }}
                         className="rounded-md"
                         initialFocus
