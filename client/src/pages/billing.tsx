@@ -432,6 +432,21 @@ export default function BillingPage() {
 
   const { data: invoices = [], isLoading: invoicesLoading } = useQuery({
     queryKey: ["/api/billing/invoices", statusFilter],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const subdomain = localStorage.getItem('user_subdomain') || 'demo';
+      const url = statusFilter && statusFilter !== 'all' 
+        ? `/api/billing/invoices?status=${statusFilter}`
+        : '/api/billing/invoices';
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': subdomain
+        }
+      });
+      if (!response.ok) throw new Error('Failed to fetch invoices');
+      return response.json();
+    },
     enabled: true,
   });
 
@@ -1267,9 +1282,11 @@ export default function BillingPage() {
                 setCreatedInvoiceNumber(newInvoice.invoiceNumber);
                 setShowSuccessModal(true);
                 
-                // Automatically refresh billing data
+                // Automatically refresh billing data - invalidate all invoice queries
                 queryClient.invalidateQueries({ queryKey: ["/api/billing/invoices"] });
+                queryClient.invalidateQueries({ queryKey: ["/api/billing"] });
                 queryClient.refetchQueries({ queryKey: ["/api/billing/invoices"] });
+                queryClient.refetchQueries({ queryKey: ["/api/billing"] });
               } catch (error) {
                 console.error('Invoice creation failed:', error);
                 const errorMessage = error instanceof Error ? error.message : 'Failed to create invoice. Please try again.';
