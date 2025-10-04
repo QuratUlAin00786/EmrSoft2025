@@ -2693,8 +2693,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Filter by date
         const dateStr = date as string;
         appointments = appointments.filter(apt => {
-          const aptDateStr = apt.scheduledAt.substring(0, 10);
-          return aptDateStr === dateStr;
+          const aptDate = apt.scheduledAt instanceof Date 
+            ? apt.scheduledAt.toISOString().substring(0, 10)
+            : apt.scheduledAt.substring(0, 10);
+          return aptDate === dateStr;
         });
         
         // Return minimal data for availability checking (no sensitive patient info)

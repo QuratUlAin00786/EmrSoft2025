@@ -217,7 +217,7 @@ export default function CalendarPage() {
 
   // Auto-populate patient when user is a patient (enhanced logic)
   useEffect(() => {
-    if (user?.role === 'patient' && patients.length > 0 && !bookingForm.patientId) {
+    if (user?.role === 'patient' && patients.length > 0 && !bookingForm.patientId && showNewAppointmentModal) {
       console.log("🔍 CALENDAR: Looking for patient matching user:", { 
         userEmail: user.email, 
         userName: `${user.firstName} ${user.lastName}`,
@@ -257,7 +257,7 @@ export default function CalendarPage() {
         console.log("❌ CALENDAR: No matching patient found");
       }
     }
-  }, [user, patients]);
+  }, [user, patients, showNewAppointmentModal, bookingForm.patientId]);
   
   // Fetch medical staff with availability for appointment booking
   const { data: doctorsData, isLoading: isLoadingDoctors, error: doctorsError } = useQuery<any>({
@@ -1835,56 +1835,6 @@ export default function CalendarPage() {
                   </div>
                 </div>
 
-                {/* Booking Summary - Always visible */}
-                <div className="mt-6 pt-6 border-t">
-                  <Label className="text-lg font-medium text-gray-900 dark:text-white mb-4 block">
-                    Booking Summary
-                  </Label>
-                  <Card>
-                    <CardContent className="p-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <Label className="text-gray-600 dark:text-gray-400">Patient</Label>
-                          <p className="font-medium" data-testid="text-summary-patient">
-                            {bookingForm.patientId 
-                              ? (() => {
-                                  const patient = patients.find((p: any) => 
-                                    (p.patientId || p.id.toString()) === bookingForm.patientId
-                                  );
-                                  return patient ? `${patient.firstName} ${patient.lastName}` : "Not found";
-                                })()
-                              : "Not selected"}
-                          </p>
-                        </div>
-                        <div>
-                          <Label className="text-gray-600 dark:text-gray-400">Provider</Label>
-                          <p className="font-medium" data-testid="text-summary-doctor">
-                            {selectedProviderId 
-                              ? (() => {
-                                  const provider = filteredUsers.find((u: any) => u.id.toString() === selectedProviderId);
-                                  return provider ? `${provider.firstName} ${provider.lastName}` : "Not selected";
-                                })()
-                              : "Not selected"}
-                          </p>
-                        </div>
-                        <div>
-                          <Label className="text-gray-600 dark:text-gray-400">Date</Label>
-                          <p className="font-medium" data-testid="text-summary-date">
-                            {selectedDate 
-                              ? format(selectedDate, 'EEEE, MMMM dd, yyyy')
-                              : "Not selected"}
-                          </p>
-                        </div>
-                        <div>
-                          <Label className="text-gray-600 dark:text-gray-400">Time</Label>
-                          <p className="font-medium" data-testid="text-summary-time">
-                            {selectedTimeSlot || "Not selected"}
-                          </p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
 
                 {/* Book Appointment Button */}
                 {selectedProviderId && selectedDate && selectedTimeSlot && bookingForm.patientId && (
