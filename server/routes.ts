@@ -12619,6 +12619,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const num = parseFloat(val);
           return !isNaN(num) && num > 0;
         }, "Service amount must be a valid number greater than 0"),
+        insuranceProvider: z.string().optional(),
         notes: z.string().optional()
       }).parse(req.body);
 
@@ -12630,6 +12631,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Generate unique invoice number
       const invoiceNumber = `INV-${Date.now().toString().slice(-6)}`;
+
+      // Detect invoice type based on insurance provider
+      const invoiceType = invoiceData.insuranceProvider && invoiceData.insuranceProvider !== '' && invoiceData.insuranceProvider !== 'none' 
+        ? 'insurance_claim' 
+        : 'payment';
 
       // Prepare invoice for database
       const totalAmt = parseFloat(invoiceData.totalAmount);
@@ -12643,6 +12649,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         dueDate: new Date(invoiceData.dueDate),
         dateOfService: new Date(invoiceData.serviceDate),
         status: "draft" as const,
+        invoiceType: invoiceType,
         subtotal: totalAmt,
         tax: 0,
         discount: 0,

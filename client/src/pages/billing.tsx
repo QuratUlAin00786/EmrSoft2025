@@ -366,6 +366,7 @@ export default function BillingPage() {
   const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().split('T')[0]);
   const [dueDate, setDueDate] = useState(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
   const [totalAmount, setTotalAmount] = useState("");
+  const [insuranceProvider, setInsuranceProvider] = useState("");
   const [firstServiceCode, setFirstServiceCode] = useState("");
   const [firstServiceDesc, setFirstServiceDesc] = useState("");
   const [firstServiceQty, setFirstServiceQty] = useState("");
@@ -1143,11 +1144,12 @@ export default function BillingPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="insurance">Insurance Provider</Label>
-                <Select>
+                <Select value={insuranceProvider} onValueChange={setInsuranceProvider}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select insurance provider..." />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="none">None (Patient Self-Pay)</SelectItem>
                     <SelectItem value="nhs">NHS (National Health Service)</SelectItem>
                     <SelectItem value="bupa">Bupa</SelectItem>
                     <SelectItem value="axa">AXA PPP Healthcare</SelectItem>
@@ -1246,6 +1248,7 @@ export default function BillingPage() {
                   invoiceDate,
                   dueDate,
                   totalAmount,
+                  insuranceProvider,
                   firstServiceCode,
                   firstServiceDesc,
                   firstServiceQty,
@@ -1272,6 +1275,7 @@ export default function BillingPage() {
                 setInvoiceDate(new Date().toISOString().split('T')[0]);
                 setDueDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
                 setTotalAmount("");
+                setInsuranceProvider("");
                 setFirstServiceCode("");
                 setFirstServiceDesc("");
                 setFirstServiceQty("");

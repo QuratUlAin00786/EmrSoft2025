@@ -419,6 +419,7 @@ export const invoices = pgTable("invoices", {
   invoiceDate: timestamp("invoice_date").notNull(),
   dueDate: timestamp("due_date").notNull(),
   status: varchar("status", { length: 20 }).notNull().default("draft"), // draft, sent, paid, overdue, cancelled
+  invoiceType: varchar("invoice_type", { length: 50 }).notNull().default("payment"), // payment, insurance_claim
   subtotal: decimal("subtotal", { precision: 10, scale: 2 }).notNull(),
   tax: decimal("tax", { precision: 10, scale: 2 }).notNull().default("0"),
   discount: decimal("discount", { precision: 10, scale: 2 }).notNull().default("0"),
