@@ -121,8 +121,16 @@ export default function PatientAppointments({
     enabled: !!user,
   });
 
+  // Fetch users to display appointment creator information
+  const { data: usersData, isLoading: usersLoading } = useQuery({
+    queryKey: ["/api/users"],
+    staleTime: 300000, // 5 minutes cache
+    retry: false,
+    enabled: !!user,
+  });
+
   // Combined loading state
-  const isLoading = patientsLoading || appointmentsLoading || doctorsLoading;
+  const isLoading = patientsLoading || appointmentsLoading || doctorsLoading || usersLoading;
 
   // Find the patient record for the logged-in user
   const currentPatient = React.useMemo(() => {
@@ -228,6 +236,15 @@ export default function PatientAppointments({
           subSpecialty: provider.subSpecialty || "",
         }
       : { name: "", category: "", subSpecialty: "" };
+  };
+
+  // Get creator name from created_by field
+  const getCreatorName = (createdBy: number | null | undefined) => {
+    if (!createdBy || !usersData || !Array.isArray(usersData)) {
+      return null;
+    }
+    const creator = usersData.find((u: any) => u.id === createdBy);
+    return creator ? `${creator.firstName} ${creator.lastName}` : null;
   };
 
   // Fetch appointments for selected date to check availability
@@ -973,6 +990,15 @@ export default function PatientAppointments({
                         <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded">
                           {appointment.description}
                         </p>
+                      )}
+
+                      {appointment.createdBy && getCreatorName(appointment.createdBy) && (
+                        <div className="flex items-center space-x-2 text-xs text-gray-500 pt-2 border-t">
+                          <User className="h-3 w-3" />
+                          <span>
+                            Booked by: {getCreatorName(appointment.createdBy)}
+                          </span>
+                        </div>
                       )}
                     </div>
                   </div>
