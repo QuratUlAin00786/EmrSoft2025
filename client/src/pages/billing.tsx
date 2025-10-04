@@ -84,6 +84,8 @@ export default function BillingPage() {
   const [invoiceToDelete, setInvoiceToDelete] = useState<Invoice | null>(null);
   const [showSendSuccessModal, setShowSendSuccessModal] = useState(false);
   const [sentInvoiceInfo, setSentInvoiceInfo] = useState({ invoiceNumber: "", recipient: "" });
+  const [showDeleteSuccessModal, setShowDeleteSuccessModal] = useState(false);
+  const [deletedInvoiceNumber, setDeletedInvoiceNumber] = useState("");
 
   const { data: billingData = [], isLoading, error } = useQuery({
     queryKey: ["/api/billing"],
@@ -483,25 +485,36 @@ export default function BillingPage() {
     }
   };
 
-  const confirmDeleteInvoice = () => {
-    if (invoiceToDelete) {
-      // Update the query cache to immediately reflect the deletion
-      queryClient.setQueryData(["/api/billing/invoices", statusFilter], (oldData: any) => {
-        if (Array.isArray(oldData)) {
-          return oldData.filter((inv: any) => inv.id !== invoiceToDelete.id);
-        }
-        return oldData;
-      });
+  const confirmDeleteInvoice = async () => {
+    if (!invoiceToDelete) return;
+    
+    try {
+      // Call API to delete the invoice
+      await apiRequest('DELETE', `/api/billing/invoices/${invoiceToDelete.id}`, {});
       
-      // Also invalidate the cache to ensure consistency
+      // Set deleted invoice info for success modal
+      setDeletedInvoiceNumber(invoiceToDelete.invoiceNumber || invoiceToDelete.id);
+      
+      // Close delete confirmation modal
+      setShowDeleteModal(false);
+      
+      // Show success modal
+      setShowDeleteSuccessModal(true);
+      
+      // Clear the invoice to delete
+      setInvoiceToDelete(null);
+      
+      // Refresh invoices list - use correct query keys
       queryClient.invalidateQueries({ queryKey: ["/api/billing/invoices"] });
-      
+      queryClient.invalidateQueries({ queryKey: ["/api/billing"] });
+      queryClient.refetchQueries({ queryKey: ["/api/billing/invoices"] });
+      queryClient.refetchQueries({ queryKey: ["/api/billing"] });
+    } catch (error) {
       toast({
-        title: "Invoice Deleted",
-        description: `Invoice ${invoiceToDelete.id} has been successfully deleted`,
-        variant: "destructive",
+        title: "Failed to Delete Invoice",
+        description: "There was an error deleting the invoice. Please try again.",
+        variant: "destructive"
       });
-      
       setShowDeleteModal(false);
       setInvoiceToDelete(null);
     }
@@ -1862,6 +1875,30 @@ export default function BillingPage() {
           </div>
           <DialogFooter className="sm:justify-center">
             <Button onClick={() => setShowSendSuccessModal(false)} className="w-full sm:w-auto">
+              OK
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Invoice Success Modal */}
+      <Dialog open={showDeleteSuccessModal} onOpenChange={setShowDeleteSuccessModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <div className="flex items-center justify-center mb-4">
+              <div className="h-16 w-16 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center">
+                <CheckCircle className="h-10 w-10 text-green-600 dark:text-green-500" />
+              </div>
+            </div>
+            <DialogTitle className="text-center text-xl">Invoice Deleted Successfully!</DialogTitle>
+          </DialogHeader>
+          <div className="text-center py-4">
+            <p className="text-muted-foreground">
+              Invoice <span className="font-semibold text-foreground">{deletedInvoiceNumber}</span> has been successfully deleted
+            </p>
+          </div>
+          <DialogFooter className="sm:justify-center">
+            <Button onClick={() => setShowDeleteSuccessModal(false)} className="w-full sm:w-auto">
               OK
             </Button>
           </DialogFooter>

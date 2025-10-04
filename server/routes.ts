@@ -12708,6 +12708,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete invoice
+  app.delete("/api/billing/invoices/:id", requireRole(["admin", "doctor", "nurse", "receptionist"]), async (req: TenantRequest, res) => {
+    try {
+      const { id } = req.params;
+      const invoiceId = parseInt(id);
+
+      if (isNaN(invoiceId)) {
+        return res.status(400).json({ error: "Invalid invoice ID" });
+      }
+
+      const deleted = await storage.deleteInvoice(invoiceId, req.tenant!.id);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: "Invoice not found" });
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Failed to delete invoice:", error);
+      res.status(500).json({ error: "Failed to delete invoice" });
+    }
+  });
+
   // Send invoice via email
   app.post("/api/billing/send-invoice", requireRole(["admin", "doctor", "nurse", "receptionist"]), async (req: TenantRequest, res) => {
     try {
