@@ -303,7 +303,6 @@ export default function CalendarPage() {
   const { data: usersData } = useQuery({
     queryKey: ["/api/users"],
     staleTime: 60000,
-    enabled: user?.role === 'patient',
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/users');
       return response.json();
@@ -314,7 +313,6 @@ export default function CalendarPage() {
   const { data: rolesData } = useQuery({
     queryKey: ["/api/roles"],
     staleTime: 60000,
-    enabled: user?.role === 'patient',
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/roles');
       return response.json();
