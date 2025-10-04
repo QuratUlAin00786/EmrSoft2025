@@ -5744,37 +5744,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "User not authenticated" });
       }
 
-      const billingData = [
-        {
-          id: "bill_001",
-          patientId: "p_001",
-          patientName: "Sarah Johnson",
-          appointmentId: "apt_001",
-          serviceDate: "2024-01-15T10:00:00Z",
-          services: [
-            {
-              code: "99213",
-              description: "Office visit - Established patient",
-              quantity: 1,
-              unitPrice: 150.00,
-              total: 150.00
-            }
-          ],
-          subtotal: 150.00,
-          tax: 0.00,
-          total: 150.00,
-          status: "pending",
-          dueDate: "2024-02-15T00:00:00Z",
-          insuranceClaim: {
-            provider: "NHS",
-            claimNumber: "NHS123456",
-            status: "submitted",
-            coveredAmount: 150.00
-          }
-        }
-      ];
-
-      res.json(billingData);
+      console.log("📋 Fetching all invoices from database for organization:", req.tenant!.id);
+      
+      // Fetch all invoices from the database
+      const invoices = await storage.getInvoicesByOrganization(req.tenant!.id);
+      
+      console.log(`✅ Found ${invoices.length} invoices in database`);
+      
+      res.json(invoices);
     } catch (error) {
       console.error("Error fetching billing data:", error);
       res.status(500).json({ error: "Failed to fetch billing data" });
