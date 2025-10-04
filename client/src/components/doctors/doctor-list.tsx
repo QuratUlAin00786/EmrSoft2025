@@ -429,7 +429,7 @@ export function DoctorList({
     const hourStr = String(hours).padStart(2, "0");
     const minuteStr = String(minutes).padStart(2, "0");
     
-    const scheduledAtString = `${year}-${month}-${day}T${hourStr}:${minuteStr}:00.000Z`;
+    const scheduledAtString = `${year}-${month}-${day}T${hourStr}:${minuteStr}:00`;
 
     const appointmentData = {
       patientId: parseInt(selectedPatient),
