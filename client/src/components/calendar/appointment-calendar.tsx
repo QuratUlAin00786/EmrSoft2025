@@ -149,6 +149,7 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
   // State for new appointment modal
   const [showNewAppointment, setShowNewAppointment] = useState(false);
   const [showConfirmationDialog, setShowConfirmationDialog] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [validationErrorMessage, setValidationErrorMessage] = useState<string>("");
   const [showValidationError, setShowValidationError] = useState(false);
   const [newAppointmentDate, setNewAppointmentDate] = useState<Date | undefined>(undefined);
@@ -371,22 +372,8 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
-      setShowNewAppointment(false);
-      setNewAppointmentDate(undefined);
-      setNewSelectedTimeSlot("");
-      setSelectedRole("");
-      setSelectedProviderId("");
-      setSelectedDuration(30);
-      setNewAppointmentData({
-        title: "",
-        type: "consultation",
-        patientId: "",
-        description: "",
-      });
-      toast({
-        title: "Appointment Created",
-        description: "The appointment has been successfully created.",
-      });
+      setShowConfirmationDialog(false);
+      setShowSuccessModal(true);
     },
     onError: (error) => {
       console.error("Create appointment error:", error);
@@ -2277,6 +2264,41 @@ Medical License: [License Number]
             <Button
               onClick={() => {
                 setShowValidationError(false);
+              }}
+            >
+              OK
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Success Modal */}
+      <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-green-600">Success</DialogTitle>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <p className="text-gray-700">The appointment has been successfully created.</p>
+          </div>
+
+          <div className="flex justify-end">
+            <Button
+              onClick={() => {
+                setShowSuccessModal(false);
+                setShowNewAppointment(false);
+                setNewAppointmentDate(undefined);
+                setNewSelectedTimeSlot("");
+                setSelectedRole("");
+                setSelectedProviderId("");
+                setSelectedDuration(30);
+                setNewAppointmentData({
+                  title: "",
+                  type: "consultation",
+                  patientId: "",
+                  description: "",
+                });
               }}
             >
               OK
