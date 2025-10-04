@@ -350,6 +350,8 @@ export default function CalendarPage() {
   // Query for filtered appointments
   const { data: allAppointments = [] } = useQuery<any[]>({
     queryKey: ["/api/appointments"],
+    staleTime: 10000, // 10 seconds
+    refetchInterval: 30000, // Refresh every 30 seconds
     retry: false,
   });
 
@@ -851,6 +853,9 @@ export default function CalendarPage() {
       });
       // Update calendar data with proper cache invalidation
       queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
+      // Also invalidate patient-filtered appointments query
+      queryClient.invalidateQueries({ queryKey: ["/api/appointments", "patient-filtered"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/appointments", "all"] });
       // Invalidate specific appointment queries for the selected date
       if (selectedDate) {
         queryClient.invalidateQueries({ 
