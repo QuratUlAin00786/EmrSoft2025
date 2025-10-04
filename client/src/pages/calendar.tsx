@@ -1900,7 +1900,8 @@ export default function CalendarPage() {
 
                         createAppointmentMutation.mutate(appointmentData);
                       }}
-                      disabled={createAppointmentMutation.isPending}
+                      disabled={createAppointmentMutation.isPending || user?.role === 'patient'}
+                      className={user?.role === 'patient' ? 'bg-gray-400 cursor-not-allowed' : ''}
                       data-testid="button-book-appointment"
                     >
                       <Clock className="h-4 w-4 mr-2" />
