@@ -75,6 +75,11 @@ export default function PatientAppointments({
   const [patientFilterSubSpecialty, setPatientFilterSubSpecialty] =
     useState<string>("");
   const [statusFilter, setStatusFilter] = useState<'all'|'scheduled'|'cancelled'|'completed'|'rescheduled'|'no_show'>('scheduled');
+  
+  // New appointment modal states
+  const [showNewAppointmentModal, setShowNewAppointmentModal] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<string>("");
+  
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -221,6 +226,13 @@ export default function PatientAppointments({
     // No need to filter again on frontend
     return appointmentsData;
   }, [appointmentsData]);
+
+  // Get available roles from all users (exclude patient)
+  const availableRoles = React.useMemo(() => {
+    if (!usersData || !Array.isArray(usersData)) return [];
+    const roles = Array.from(new Set(usersData.map((u: any) => u.role).filter(Boolean))) as string[];
+    return roles.filter(role => role !== 'patient');
+  }, [usersData]);
 
   const getDoctorSpecialtyData = (providerId: number) => {
     const doctorsResponse = doctorsData as any;
@@ -666,7 +678,7 @@ export default function PatientAppointments({
           </div>
         </div>
         <Button
-          onClick={() => onNewAppointment?.()}
+          onClick={() => user?.role === 'patient' ? setShowNewAppointmentModal(true) : onNewAppointment?.()}
           className="flex items-center gap-2"
           data-testid="button-book-appointment"
         >
@@ -1442,6 +1454,56 @@ export default function PatientAppointments({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Schedule New Appointment Modal */}
+      {showNewAppointmentModal && user?.role === 'patient' && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                  Schedule New Appointment
+                </h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setShowNewAppointmentModal(false);
+                    setSelectedRole("");
+                  }}
+                  data-testid="button-close-modal"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+
+              <div className="space-y-4">
+                {/* Select Role */}
+                <div>
+                  <Label className="text-sm font-medium text-gray-900 dark:text-white mb-2 block">
+                    Select Role
+                  </Label>
+                  <Select
+                    value={selectedRole}
+                    onValueChange={setSelectedRole}
+                  >
+                    <SelectTrigger className="w-full" data-testid="select-role">
+                      <SelectValue placeholder="Select role..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableRoles.map((role) => (
+                        <SelectItem key={role} value={role}>
+                          {role.charAt(0).toUpperCase() + role.slice(1)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Appointment Stats */}
       <Card>
