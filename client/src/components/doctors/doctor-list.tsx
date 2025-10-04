@@ -122,6 +122,10 @@ export function DoctorList({
   const [appointmentTitle, setAppointmentTitle] = useState("");
   const [appointmentDescription, setAppointmentDescription] = useState("");
   const [appointmentLocation, setAppointmentLocation] = useState("");
+  
+  // Confirmation dialog state
+  const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -368,11 +372,6 @@ export function DoctorList({
       return await response.json();
     },
     onSuccess: () => {
-      toast({
-        title: "Appointment Booked",
-        description: `Appointment with Dr. ${selectedBookingDoctor?.firstName} ${selectedBookingDoctor?.lastName} has been scheduled successfully.`,
-      });
-
       // Invalidate queries to refresh appointment data and availability
       queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
       queryClient.invalidateQueries({
@@ -383,16 +382,10 @@ export function DoctorList({
         ],
       });
 
-      // Reset form and close dialog
-      setSelectedPatient("");
-      setSelectedDate(undefined);
-      setSelectedTimeSlot("");
-      setAppointmentType("Consultation");
-      setDuration("30");
-      setAppointmentTitle("");
-      setAppointmentDescription("");
-      setAppointmentLocation("");
+      // Close confirmation dialog and show success modal
+      setIsConfirmationOpen(false);
       setIsBookingOpen(false);
+      setIsSuccessModalOpen(true);
     },
     onError: (error: any) => {
       toast({
@@ -401,6 +394,7 @@ export function DoctorList({
           error.message || "Failed to book appointment. Please try again.",
         variant: "destructive",
       });
+      setIsConfirmationOpen(false);
     },
   });
 
@@ -565,7 +559,7 @@ export function DoctorList({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Stethoscope className="h-5 w-5" />
-            Available Doctors/Nurse/Lab Technicians
+            Available Doctors
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -583,7 +577,12 @@ export function DoctorList({
 
   return (
     <Card>
-      <CardHeader></CardHeader>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Stethoscope className="h-5 w-5" />
+          Available Doctors
+        </CardTitle>
+      </CardHeader>
       <CardContent>
         <div className="space-y-4">
           {availableStaff.map((doctor: Doctor) => (
@@ -1130,15 +1129,124 @@ export function DoctorList({
               disabled={
                 !selectedPatient ||
                 !selectedDate ||
-                !selectedTimeSlot ||
-                bookAppointmentMutation.isPending
+                !selectedTimeSlot
               }
-              onClick={handleBookAppointment}
+              onClick={() => setIsConfirmationOpen(true)}
               className="bg-blue-600 hover:bg-blue-700 text-white"
             >
-              {bookAppointmentMutation.isPending
-                ? "Booking..."
-                : "Book Appointment"}
+              Book Appointment
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirmation Dialog */}
+      <Dialog open={isConfirmationOpen} onOpenChange={setIsConfirmationOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Appointment Booking Confirmation</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <h3 className="text-base font-medium">Booking Summary</h3>
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-3">
+                  <div>
+                    <Label className="text-xs font-medium text-gray-600 dark:text-gray-400">Appointment Type</Label>
+                    <p className="text-sm font-medium">{appointmentType}</p>
+                  </div>
+                  <div>
+                    <Label className="text-xs font-medium text-gray-600 dark:text-gray-400">Patient</Label>
+                    <p className="text-sm font-medium">
+                      {selectedPatient 
+                        ? `${patients?.find((p: any) => p.id.toString() === selectedPatient)?.firstName} ${patients?.find((p: any) => p.id.toString() === selectedPatient)?.lastName}`
+                        : "Not selected"
+                      }
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-xs font-medium text-gray-600 dark:text-gray-400">Date</Label>
+                    <p className="text-sm font-medium">{selectedDate ? format(selectedDate, "PPP") : "Not selected"}</p>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <div>
+                    <Label className="text-xs font-medium text-gray-600 dark:text-gray-400">Duration</Label>
+                    <p className="text-sm font-medium">{duration} minutes</p>
+                  </div>
+                  <div>
+                    <Label className="text-xs font-medium text-gray-600 dark:text-gray-400">Doctor</Label>
+                    <p className="text-sm font-medium">
+                      {selectedBookingDoctor 
+                        ? `Dr. ${selectedBookingDoctor.firstName} ${selectedBookingDoctor.lastName}`
+                        : "Not selected"
+                      }
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-xs font-medium text-gray-600 dark:text-gray-400">Time</Label>
+                    <p className="text-sm font-medium">{selectedTimeSlot ? formatTime(selectedTimeSlot) : "Not selected"}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4">
+            <Button 
+              variant="outline" 
+              onClick={() => setIsConfirmationOpen(false)}
+              disabled={bookAppointmentMutation.isPending}
+            >
+              Go Back
+            </Button>
+            <Button
+              onClick={handleBookAppointment}
+              disabled={bookAppointmentMutation.isPending}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              {bookAppointmentMutation.isPending ? "Confirming..." : "Confirm"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Success Modal */}
+      <Dialog open={isSuccessModalOpen} onOpenChange={setIsSuccessModalOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center text-green-600 dark:text-green-400">Success!</DialogTitle>
+          </DialogHeader>
+          
+          <div className="text-center py-6">
+            <div className="mx-auto w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mb-4">
+              <svg className="w-8 h-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <p className="text-lg font-medium text-gray-900 dark:text-white">
+              Appointment with Dr. {selectedBookingDoctor?.firstName} {selectedBookingDoctor?.lastName} has been scheduled successfully.
+            </p>
+          </div>
+
+          <div className="flex justify-center">
+            <Button
+              onClick={() => {
+                setIsSuccessModalOpen(false);
+                // Reset form
+                setSelectedPatient("");
+                setSelectedDate(undefined);
+                setSelectedTimeSlot("");
+                setAppointmentType("Consultation");
+                setDuration("30");
+                setAppointmentTitle("");
+                setAppointmentDescription("");
+                setAppointmentLocation("");
+              }}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              OK
             </Button>
           </div>
         </DialogContent>
