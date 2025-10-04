@@ -10,6 +10,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -126,6 +135,10 @@ export function DoctorList({
   // Confirmation dialog state
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  
+  // Insufficient time alert state
+  const [showInsufficientTimeModal, setShowInsufficientTimeModal] = useState(false);
+  const [insufficientTimeMessage, setInsufficientTimeMessage] = useState("");
   
   // Role filter state
   const [selectedRole, setSelectedRole] = useState<string>("all");
@@ -255,6 +268,42 @@ export function DoctorList({
     });
     
     return !isBooked;
+  };
+
+  // Check if sufficient consecutive time is available for the selected duration
+  const checkSufficientTime = (startTimeSlot: string, durationMinutes: number): { available: boolean; availableMinutes: number } => {
+    if (!selectedDate || !selectedBookingDoctor) return { available: false, availableMinutes: 0 };
+
+    const startTime24 = timeSlotTo24Hour(startTimeSlot);
+    const [startHour, startMinute] = startTime24.split(':').map(Number);
+
+    // Generate all 15-minute slots needed for the duration
+    const slotsNeeded = Math.ceil(durationMinutes / 15);
+    let availableMinutes = 0;
+    
+    for (let i = 0; i < slotsNeeded; i++) {
+      let currentMinute = startMinute + (i * 15);
+      let currentHour = startHour;
+      
+      if (currentMinute >= 60) {
+        currentHour += Math.floor(currentMinute / 60);
+        currentMinute = currentMinute % 60;
+      }
+
+      // Convert to 12-hour format to match timeSlots array
+      const hour12 = currentHour === 0 ? 12 : currentHour > 12 ? currentHour - 12 : currentHour;
+      const period = currentHour < 12 ? 'AM' : 'PM';
+      const timeSlotStr = `${hour12}:${currentMinute.toString().padStart(2, '0')} ${period}`;
+
+      // Check if this slot exists and is available
+      if (!timeSlots.includes(timeSlotStr) || !isTimeSlotAvailable(selectedDate, timeSlotStr)) {
+        return { available: false, availableMinutes };
+      }
+      
+      availableMinutes += 15;
+    }
+
+    return { available: true, availableMinutes };
   };
 
   // Generate time slots based on shifts from database (15-minute intervals)
@@ -421,11 +470,27 @@ export function DoctorList({
       return;
     }
 
+    // Convert selectedTimeSlot from 24-hour format (HH:MM) to 12-hour format for validation
+    const [hours, minutes] = selectedTimeSlot.split(":").map(Number);
+    const hour12 = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+    const period = hours < 12 ? 'AM' : 'PM';
+    const timeSlot12Hour = `${hour12}:${minutes.toString().padStart(2, '0')} ${period}`;
+    
+    // Validate sufficient time is available for the selected duration
+    const { available, availableMinutes } = checkSufficientTime(timeSlot12Hour, parseInt(duration));
+    
+    if (!available) {
+      setInsufficientTimeMessage(
+        `Only ${availableMinutes} minutes are available at ${timeSlot12Hour}. Please select another time slot.`
+      );
+      setShowInsufficientTimeModal(true);
+      return;
+    }
+
     // Create the appointment datetime string without timezone conversion
     const year = selectedDate.getFullYear();
     const month = String(selectedDate.getMonth() + 1).padStart(2, "0");
     const day = String(selectedDate.getDate()).padStart(2, "0");
-    const [hours, minutes] = selectedTimeSlot.split(":").map(Number);
     const hourStr = String(hours).padStart(2, "0");
     const minuteStr = String(minutes).padStart(2, "0");
     
@@ -1250,6 +1315,23 @@ export function DoctorList({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Insufficient Time Alert Dialog */}
+      <AlertDialog open={showInsufficientTimeModal} onOpenChange={setShowInsufficientTimeModal}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Insufficient Time Available</AlertDialogTitle>
+            <AlertDialogDescription>
+              {insufficientTimeMessage}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setShowInsufficientTimeModal(false)}>
+              OK
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }
