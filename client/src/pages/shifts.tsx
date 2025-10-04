@@ -871,13 +871,20 @@ export default function ShiftsPage() {
                   display: hour === 0 ? '12:00 AM' : hour < 12 ? `${hour}:00 AM` : hour === 12 ? '12:00 PM' : `${hour - 12}:00 PM`, 
                   hour 
                 })).map((slot) => {
-                  const dateString = selectedDate.toISOString().split('T')[0];
+                  const dateString = getLocalDateString(selectedDate);
                   
                   // Check if this hour slot has a scheduled shift for the selected staff member
                   const hasShift = shifts.some((shift: any) => {
-                    if (shift.staffId !== parseInt(selectedStaffId) || shift.date !== dateString || shift.status === 'cancelled') {
+                    if (shift.staffId !== parseInt(selectedStaffId) || shift.status === 'cancelled') {
                       return false;
                     }
+                    
+                    // Compare dates properly
+                    const shiftDateStr = shift.date.substring(0, 10);
+                    if (shiftDateStr !== dateString) {
+                      return false;
+                    }
+                    
                     // Convert time formats for comparison
                     const shiftStart = typeof shift.startTime === 'string' && shift.startTime.includes(':') 
                       ? parseInt(shift.startTime.replace(':', ''))
