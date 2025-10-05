@@ -2264,13 +2264,15 @@ function StripePaymentForm({ invoice, onSuccess, onCancel }: {
     const createPaymentIntent = async () => {
       try {
         setLoading(true);
-        const response = await apiRequest('POST', '/api/payments/create-intent', {
+        const res = await apiRequest('POST', '/api/payments/create-intent', {
           invoiceId: invoice.id,
           amount: typeof invoice.totalAmount === 'string' ? parseFloat(invoice.totalAmount) : invoice.totalAmount
-        }) as { clientSecret: string };
+        });
         
-        if (response?.clientSecret) {
-          setClientSecret(response.clientSecret);
+        const data = await res.json();
+        
+        if (data?.clientSecret) {
+          setClientSecret(data.clientSecret);
         } else {
           setError('Failed to initialize payment');
         }
@@ -2350,19 +2352,25 @@ function PaymentForm({ invoice, onSuccess, onCancel }: {
         });
       } else if (paymentIntent && paymentIntent.status === 'succeeded') {
         // Process the payment on our backend
-        await apiRequest('POST', '/api/payments/process', {
+        const res = await apiRequest('POST', '/api/payments/process', {
           invoiceId: invoice.id,
           paymentIntentId: paymentIntent.id,
           amount: paymentIntent.amount / 100, // Convert from cents
           transactionId: paymentIntent.id
         });
 
-        toast({
-          title: "Payment Successful",
-          description: "Your payment has been processed successfully!",
-        });
+        const result = await res.json();
         
-        onSuccess();
+        if (result.success) {
+          toast({
+            title: "Payment Successful",
+            description: "Your payment has been processed successfully!",
+          });
+          
+          onSuccess();
+        } else {
+          throw new Error(result.error || 'Payment processing failed');
+        }
       }
     } catch (err) {
       console.error('Payment error:', err);
