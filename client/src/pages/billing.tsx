@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
@@ -15,6 +15,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import jsPDF from "jspdf";
+import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
 import { 
   Receipt, 
   Plus, 
@@ -91,6 +93,8 @@ export default function BillingPage() {
   const [deletedInvoiceNumber, setDeletedInvoiceNumber] = useState("");
   const [showStatusUpdateModal, setShowStatusUpdateModal] = useState(false);
   const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [invoiceToPay, setInvoiceToPay] = useState<Invoice | null>(null);
 
   const { data: billingData = [], isLoading, error } = useQuery({
     queryKey: ["/api/billing"],
@@ -162,6 +166,11 @@ export default function BillingPage() {
     } finally {
       setUpdatingStatusId(null);
     }
+  };
+
+  const handlePayNow = (invoice: Invoice) => {
+    setInvoiceToPay(invoice);
+    setShowPaymentModal(true);
   };
 
   const handleDownloadInvoice = (invoiceId: string) => {
@@ -787,6 +796,18 @@ export default function BillingPage() {
                             <Button variant="outline" size="sm" onClick={() => handleDownloadInvoice(invoice.id)} data-testid="button-download-invoice">
                               <Download className="h-4 w-4" />
                             </Button>
+                            {!isAdmin && invoice.status !== 'paid' && invoice.status !== 'cancelled' && (
+                              <Button 
+                                variant="default" 
+                                size="sm" 
+                                onClick={() => handlePayNow(invoice)}
+                                data-testid="button-pay-now"
+                                className="bg-bluewave hover:bg-bluewave/90"
+                              >
+                                <CreditCard className="h-4 w-4 mr-1" />
+                                Pay Now
+                              </Button>
+                            )}
                           </div>
                         </div>
                       </CardContent>
@@ -2166,6 +2187,219 @@ export default function BillingPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Payment Modal */}
+      {invoiceToPay && (
+        <PaymentModal
+          invoice={invoiceToPay}
+          open={showPaymentModal}
+          onClose={() => {
+            setShowPaymentModal(false);
+            setInvoiceToPay(null);
+          }}
+          onSuccess={() => {
+            setShowPaymentModal(false);
+            setInvoiceToPay(null);
+            queryClient.invalidateQueries({ queryKey: ["/api/billing/invoices"] });
+            queryClient.refetchQueries({ queryKey: ["/api/billing/invoices"] });
+          }}
+        />
+      )}
     </>
+  );
+}
+
+// Payment Modal Component with Stripe
+function PaymentModal({ invoice, open, onClose, onSuccess }: {
+  invoice: Invoice;
+  open: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Pay Invoice {invoice.patientId}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="bg-gray-50 dark:bg-slate-800 p-4 rounded-lg">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-sm text-gray-600 dark:text-gray-400">Patient:</span>
+              <span className="font-medium">{invoice.patientName}</span>
+            </div>
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-sm text-gray-600 dark:text-gray-400">Total Amount:</span>
+              <span className="font-bold text-lg">${typeof invoice.totalAmount === 'string' ? parseFloat(invoice.totalAmount).toFixed(2) : invoice.totalAmount.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600 dark:text-gray-400">Due Date:</span>
+              <span className="text-sm">{format(new Date(invoice.dueDate), 'MMM dd, yyyy')}</span>
+            </div>
+          </div>
+
+          <StripePaymentForm invoice={invoice} onSuccess={onSuccess} onCancel={onClose} />
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// Initialize Stripe
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
+
+// Stripe Payment Form Component
+function StripePaymentForm({ invoice, onSuccess, onCancel }: {
+  invoice: Invoice;
+  onSuccess: () => void;
+  onCancel: () => void;
+}) {
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  // Create payment intent when component mounts
+  useEffect(() => {
+    const createPaymentIntent = async () => {
+      try {
+        setLoading(true);
+        const response = await apiRequest('POST', '/api/payments/create-intent', {
+          invoiceId: invoice.id,
+          amount: typeof invoice.totalAmount === 'string' ? parseFloat(invoice.totalAmount) : invoice.totalAmount
+        }) as { clientSecret: string };
+        
+        if (response?.clientSecret) {
+          setClientSecret(response.clientSecret);
+        } else {
+          setError('Failed to initialize payment');
+        }
+      } catch (err) {
+        console.error('Error creating payment intent:', err);
+        setError('Failed to initialize payment. Please try again.');
+        toast({
+          title: "Payment Error",
+          description: "Failed to initialize payment. Please try again.",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    createPaymentIntent();
+  }, [invoice.id, invoice.totalAmount, toast]);
+
+  if (loading) {
+    return (
+      <div className="text-center py-8">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-bluewave mx-auto mb-4"></div>
+        <p className="text-sm text-gray-600 dark:text-gray-400">Initializing payment...</p>
+      </div>
+    );
+  }
+
+  if (error || !clientSecret) {
+    return (
+      <div className="text-center py-8">
+        <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+        <p className="text-sm text-red-600 dark:text-red-400">{error || 'Failed to initialize payment'}</p>
+        <Button variant="outline" onClick={onCancel} className="mt-4">Close</Button>
+      </div>
+    );
+  }
+
+  return (
+    <Elements stripe={stripePromise} options={{ clientSecret }}>
+      <PaymentForm invoice={invoice} onSuccess={onSuccess} onCancel={onCancel} />
+    </Elements>
+  );
+}
+
+// Payment Form Component (inside Elements)
+function PaymentForm({ invoice, onSuccess, onCancel }: {
+  invoice: Invoice;
+  onSuccess: () => void;
+  onCancel: () => void;
+}) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const { toast } = useToast();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!stripe || !elements) {
+      return;
+    }
+
+    setIsProcessing(true);
+
+    try {
+      const { error, paymentIntent } = await stripe.confirmPayment({
+        elements,
+        redirect: 'if_required',
+      });
+
+      if (error) {
+        toast({
+          title: "Payment Failed",
+          description: error.message || "An error occurred during payment",
+          variant: "destructive"
+        });
+      } else if (paymentIntent && paymentIntent.status === 'succeeded') {
+        // Process the payment on our backend
+        await apiRequest('POST', '/api/payments/process', {
+          invoiceId: invoice.id,
+          paymentIntentId: paymentIntent.id,
+          amount: paymentIntent.amount / 100, // Convert from cents
+          transactionId: paymentIntent.id
+        });
+
+        toast({
+          title: "Payment Successful",
+          description: "Your payment has been processed successfully!",
+        });
+        
+        onSuccess();
+      }
+    } catch (err) {
+      console.error('Payment error:', err);
+      toast({
+        title: "Payment Failed",
+        description: "An error occurred while processing your payment",
+        variant: "destructive"
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="bg-white dark:bg-slate-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+        <PaymentElement />
+      </div>
+      
+      <div className="flex gap-3">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+          disabled={isProcessing}
+          className="flex-1"
+        >
+          Cancel
+        </Button>
+        <Button
+          type="submit"
+          disabled={!stripe || isProcessing}
+          className="flex-1 bg-bluewave hover:bg-bluewave/90"
+        >
+          {isProcessing ? 'Processing...' : `Pay $${typeof invoice.totalAmount === 'string' ? parseFloat(invoice.totalAmount).toFixed(2) : invoice.totalAmount.toFixed(2)}`}
+        </Button>
+      </div>
+    </form>
   );
 }
