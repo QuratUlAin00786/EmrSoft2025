@@ -549,6 +549,40 @@ export const consultations = pgTable("consultations", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Symptom Checker
+export const symptomChecks = pgTable("symptom_checks", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  patientId: integer("patient_id").notNull().references(() => patients.id),
+  userId: integer("user_id").references(() => users.id),
+  symptoms: text("symptoms").array().notNull(),
+  symptomDescription: text("symptom_description").notNull(),
+  duration: text("duration"),
+  severity: varchar("severity", { length: 20 }),
+  aiAnalysis: jsonb("ai_analysis").$type<{
+    potentialDiagnoses?: Array<{
+      condition: string;
+      probability: string;
+      description: string;
+      severity: string;
+    }>;
+    recommendedSpecialists?: Array<{
+      specialty: string;
+      reason: string;
+      urgency: string;
+    }>;
+    redFlags?: string[];
+    homeCareTips?: string[];
+    whenToSeekCare?: string;
+    confidence: number;
+  }>().default({}),
+  status: varchar("status", { length: 20 }).notNull().default("pending"),
+  appointmentCreated: boolean("appointment_created").notNull().default(false),
+  appointmentId: integer("appointment_id").references(() => appointments.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Prescriptions
 export const prescriptions = pgTable("prescriptions", {
   id: serial("id").primaryKey(),
@@ -2008,6 +2042,12 @@ export const insertConsultationSchema = createInsertSchema(consultations).omit({
   updatedAt: true,
 });
 
+export const insertSymptomCheckSchema = createInsertSchema(symptomChecks).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertPatientCommunicationSchema = createInsertSchema(patientCommunications).omit({
   id: true,
   createdAt: true,
@@ -2310,6 +2350,9 @@ export type InsertSubscription = z.infer<typeof insertSubscriptionSchema>;
 
 export type Consultation = typeof consultations.$inferSelect;
 export type InsertConsultation = z.infer<typeof insertConsultationSchema>;
+
+export type SymptomCheck = typeof symptomChecks.$inferSelect;
+export type InsertSymptomCheck = z.infer<typeof insertSymptomCheckSchema>;
 
 export type PatientCommunication = typeof patientCommunications.$inferSelect;
 export type InsertPatientCommunication = z.infer<typeof insertPatientCommunicationSchema>;
