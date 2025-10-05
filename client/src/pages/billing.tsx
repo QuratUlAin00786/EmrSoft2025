@@ -796,32 +796,18 @@ export default function BillingPage() {
                             <Button variant="outline" size="sm" onClick={() => handleDownloadInvoice(invoice.id)} data-testid="button-download-invoice">
                               <Download className="h-4 w-4" />
                             </Button>
-                            {(() => {
-                              console.log('🔍 PAY NOW DEBUG:', {
-                                invoiceId: invoice.id,
-                                status: invoice.status,
-                                isAdmin,
-                                userRole: user?.role,
-                                notDraft: invoice.status !== 'draft',
-                                notPaid: invoice.status !== 'paid',
-                                notCancelled: invoice.status !== 'cancelled',
-                                shouldShow: !isAdmin && invoice.status !== 'draft' && invoice.status !== 'paid' && invoice.status !== 'cancelled'
-                              });
-                              return null;
-                            })()}
-                            {!isAdmin && invoice.status !== 'draft' && invoice.status !== 'paid' && invoice.status !== 'cancelled' ? (
+                            {!isAdmin && invoice.status !== 'draft' && invoice.status !== 'paid' && invoice.status !== 'cancelled' && (
                               <Button 
                                 variant="default" 
                                 size="sm" 
                                 onClick={() => handlePayNow(invoice)}
                                 data-testid="button-pay-now"
-                                className="bg-red-600 hover:bg-red-700 text-white font-bold"
-                                style={{ minWidth: '100px' }}
+                                className="bg-bluewave hover:bg-bluewave/90"
                               >
                                 <CreditCard className="h-4 w-4 mr-1" />
-                                PAY NOW
+                                Pay Now
                               </Button>
-                            ) : null}
+                            )}
                           </div>
                         </div>
                       </CardContent>
@@ -2307,9 +2293,38 @@ function StripePaymentForm({ invoice, onSuccess, onCancel }: {
             variant: "destructive"
           });
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error('Error creating payment intent:', err);
-        const errorMessage = err instanceof Error ? err.message : 'Failed to initialize payment. Please try again.';
+        
+        // Extract user-friendly error message
+        let errorMessage = 'Failed to initialize payment. Please try again.';
+        
+        if (err?.message) {
+          // Check if error message is JSON string
+          try {
+            const parsed = JSON.parse(err.message);
+            if (parsed?.error) {
+              errorMessage = parsed.error;
+            } else {
+              errorMessage = err.message;
+            }
+          } catch {
+            // Not JSON, use message as is
+            errorMessage = err.message;
+          }
+        } else if (typeof err === 'string') {
+          errorMessage = err;
+        }
+        
+        // Make error messages more user-friendly
+        if (errorMessage.includes('stripe is not defined')) {
+          errorMessage = 'Payment system is not configured. Please contact support.';
+        } else if (errorMessage.includes('STRIPE_SECRET_KEY')) {
+          errorMessage = 'Payment system is not configured. Please contact support.';
+        } else if (errorMessage.includes('500')) {
+          errorMessage = 'Server error occurred. Please try again or contact support.';
+        }
+        
         setError(errorMessage);
         toast({
           title: "Payment Error",

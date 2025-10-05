@@ -28,6 +28,11 @@ import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs';
 import * as fse from 'fs-extra';
 
+// Initialize Stripe with secret key
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
+  apiVersion: '2024-12-18.acacia',
+});
+
 /**
  * Helper to validate organizationId after multiTenantEnforcer middleware
  * Throws if organizationId is missing after tenant validation
