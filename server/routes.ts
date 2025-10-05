@@ -12825,7 +12825,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error: any) {
       console.error("Payment intent creation error:", error);
-      res.status(500).json({ error: error.message || "Failed to create payment intent" });
+      
+      // Handle Stripe-specific errors with user-friendly messages
+      if (error.type === 'StripeAuthenticationError') {
+        return res.status(500).json({ 
+          error: "Payment system configuration error. Please contact support." 
+        });
+      }
+      
+      if (error.type === 'StripeInvalidRequestError') {
+        return res.status(400).json({ 
+          error: "Invalid payment request. Please try again." 
+        });
+      }
+      
+      // Generic error for other cases
+      res.status(500).json({ 
+        error: "Unable to process payment. Please try again or contact support." 
+      });
     }
   });
 
