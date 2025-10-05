@@ -2264,9 +2264,8 @@ function StripePaymentForm({ invoice, onSuccess, onCancel }: {
     const createPaymentIntent = async () => {
       try {
         setLoading(true);
-        const res = await apiRequest('POST', '/api/payments/create-intent', {
-          invoiceId: invoice.id,
-          amount: typeof invoice.totalAmount === 'string' ? parseFloat(invoice.totalAmount) : invoice.totalAmount
+        const res = await apiRequest('POST', '/api/billing/create-payment-intent', {
+          invoiceId: invoice.id
         });
         
         // Ensure response is JSON
@@ -2371,11 +2370,9 @@ function PaymentForm({ invoice, onSuccess, onCancel }: {
         });
       } else if (paymentIntent && paymentIntent.status === 'succeeded') {
         // Process the payment on our backend
-        const res = await apiRequest('POST', '/api/payments/process', {
+        const res = await apiRequest('POST', '/api/billing/process-payment', {
           invoiceId: invoice.id,
-          paymentIntentId: paymentIntent.id,
-          amount: paymentIntent.amount / 100, // Convert from cents
-          transactionId: paymentIntent.id
+          paymentIntentId: paymentIntent.id
         });
 
         // Ensure response is JSON
