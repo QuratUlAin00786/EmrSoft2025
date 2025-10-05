@@ -550,13 +550,27 @@ export default function UserManagement() {
 
   // Role submission handlers
   const onRoleSubmit = (data: RoleFormData) => {
+    // Explicitly get all form values including those set via setValue()
+    const allFormValues = roleForm.getValues();
+    
     console.log("Role form submission data:", data);
-    console.log("Permissions structure:", JSON.stringify(data.permissions, null, 2));
+    console.log("All form values (including setValue):", allFormValues);
+    console.log("Permissions structure:", JSON.stringify(allFormValues.permissions, null, 2));
+    
+    // Use allFormValues to ensure permissions are included
+    const submissionData = {
+      name: allFormValues.name,
+      displayName: allFormValues.displayName,
+      description: allFormValues.description,
+      permissions: allFormValues.permissions,
+    };
+    
+    console.log("Final submission data:", JSON.stringify(submissionData, null, 2));
     
     if (editingRole) {
-      updateRoleMutation.mutate({ ...data, id: editingRole.id });
+      updateRoleMutation.mutate({ ...submissionData, id: editingRole.id });
     } else {
-      createRoleMutation.mutate(data);
+      createRoleMutation.mutate(submissionData);
     }
   };
 
