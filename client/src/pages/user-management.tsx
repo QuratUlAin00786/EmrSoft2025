@@ -535,7 +535,7 @@ export default function UserManagement() {
       const response = await apiRequest("PATCH", `/api/roles/${data.id}`, data);
       return response.json();
     },
-    onSuccess: async () => {
+    onSuccess: async (updatedRole) => {
       // Invalidate and wait for refetch to complete
       await queryClient.invalidateQueries({ queryKey: ["/api/roles"] });
       await queryClient.refetchQueries({ queryKey: ["/api/roles"] });
@@ -544,8 +544,10 @@ export default function UserManagement() {
       setEditingRole(null);
       roleForm.reset();
       
-      // Show success modal instead of toast
-      setShowSuccessModal(true);
+      // Delay showing success modal to ensure React re-renders with fresh data
+      setTimeout(() => {
+        setShowSuccessModal(true);
+      }, 100);
     },
     onError: (error: any) => {
       toast({
