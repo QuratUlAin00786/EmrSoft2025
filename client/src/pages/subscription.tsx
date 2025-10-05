@@ -66,6 +66,10 @@ export default function Subscription() {
     queryKey: ["/api/billing-history"],
   });
 
+  console.log('[SUBSCRIPTION DEBUG] packagesLoading:', packagesLoading, 'dbPackages:', dbPackages?.length || 0);
+  console.log('[SUBSCRIPTION DEBUG] billingLoading:', billingLoading, 'billingHistory:', billingHistory?.length || 0);
+  console.log('[SUBSCRIPTION DEBUG] packagesError:', packagesError);
+
   // Split packages into subscription plans (have maxUsers) and add-ons (don't have maxUsers)
   const dbPlans = dbPackages.filter(pkg => pkg.features?.maxUsers);
   const dbAddons = dbPackages.filter(pkg => !pkg.features?.maxUsers);
