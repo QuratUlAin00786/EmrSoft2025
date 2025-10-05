@@ -3589,6 +3589,155 @@ What would you like to do?`;
     // Fallback to pattern matching if Anthropic is unavailable
     return await this.processWithPatternMatching(params);
   }
+
+  // AI-powered symptom analysis
+  async analyzeSymptoms(params: {
+    symptoms: string[];
+    symptomDescription: string;
+    duration?: string;
+    severity?: string;
+  }): Promise<{
+    potentialDiagnoses: Array<{
+      condition: string;
+      probability: string;
+      description: string;
+      severity: string;
+    }>;
+    recommendedSpecialists: Array<{
+      specialty: string;
+      reason: string;
+      urgency: string;
+    }>;
+    redFlags: string[];
+    homeCareTips: string[];
+    whenToSeekCare: string;
+    confidence: number;
+  }> {
+    try {
+      const prompt = `You are a medical AI assistant analyzing patient symptoms. Provide a comprehensive analysis in JSON format.
+
+Symptoms: ${params.symptoms.join(', ')}
+Description: ${params.symptomDescription}
+${params.duration ? `Duration: ${params.duration}` : ''}
+${params.severity ? `Severity: ${params.severity}` : ''}
+
+Provide analysis in this exact JSON structure:
+{
+  "potentialDiagnoses": [
+    {
+      "condition": "condition name",
+      "probability": "high/medium/low",
+      "description": "brief explanation",
+      "severity": "mild/moderate/severe"
+    }
+  ],
+  "recommendedSpecialists": [
+    {
+      "specialty": "specialist type",
+      "reason": "why this specialist",
+      "urgency": "urgent/routine/non-urgent"
+    }
+  ],
+  "redFlags": ["warning sign 1", "warning sign 2"],
+  "homeCareTips": ["self-care tip 1", "self-care tip 2"],
+  "whenToSeekCare": "guidance on when to seek immediate care",
+  "confidence": 0.85
+}
+
+IMPORTANT: This is for informational purposes only. Always recommend professional medical consultation.`;
+
+      if (process.env.OPENAI_API_KEY) {
+        const completion = await openai.chat.completions.create({
+          model: "gpt-4o",
+          messages: [
+            {
+              role: "system",
+              content: "You are a medical AI assistant providing symptom analysis. Always respond with valid JSON only. Include medical disclaimer that this is for information only."
+            },
+            {
+              role: "user",
+              content: prompt
+            }
+          ],
+          temperature: 0.7,
+          response_format: { type: "json_object" }
+        });
+
+        const analysis = JSON.parse(completion.choices[0].message.content || "{}");
+        return {
+          potentialDiagnoses: analysis.potentialDiagnoses || [],
+          recommendedSpecialists: analysis.recommendedSpecialists || [],
+          redFlags: analysis.redFlags || [],
+          homeCareTips: analysis.homeCareTips || [],
+          whenToSeekCare: analysis.whenToSeekCare || "Consult a healthcare professional if symptoms persist or worsen.",
+          confidence: analysis.confidence || 0.7
+        };
+      } else {
+        // Fallback mock analysis when OpenAI is not available
+        return {
+          potentialDiagnoses: [
+            {
+              condition: "Common Cold",
+              probability: "medium",
+              description: "Viral infection of the upper respiratory tract",
+              severity: "mild"
+            },
+            {
+              condition: "Seasonal Allergies",
+              probability: "medium",
+              description: "Allergic reaction to environmental factors",
+              severity: "mild"
+            }
+          ],
+          recommendedSpecialists: [
+            {
+              specialty: "General Practitioner",
+              reason: "Initial assessment and diagnosis",
+              urgency: "routine"
+            }
+          ],
+          redFlags: [
+            "Difficulty breathing",
+            "Chest pain",
+            "High fever above 39°C (102°F)",
+            "Symptoms persisting beyond 10 days"
+          ],
+          homeCareTips: [
+            "Stay hydrated with plenty of fluids",
+            "Get adequate rest",
+            "Use over-the-counter pain relievers as needed",
+            "Monitor temperature regularly"
+          ],
+          whenToSeekCare: "Seek immediate care if you experience difficulty breathing, chest pain, or high fever. Consult a doctor if symptoms persist beyond 7-10 days.",
+          confidence: 0.6
+        };
+      }
+    } catch (error) {
+      console.error("Error in symptom analysis:", error);
+      // Return fallback response
+      return {
+        potentialDiagnoses: [
+          {
+            condition: "Unable to analyze",
+            probability: "unknown",
+            description: "Please consult a healthcare professional for proper diagnosis",
+            severity: "unknown"
+          }
+        ],
+        recommendedSpecialists: [
+          {
+            specialty: "General Practitioner",
+            reason: "Professional medical evaluation needed",
+            urgency: "routine"
+          }
+        ],
+        redFlags: ["Any worsening symptoms", "Persistent or severe symptoms"],
+        homeCareTips: ["Consult a healthcare professional"],
+        whenToSeekCare: "Please seek professional medical advice for proper diagnosis and treatment.",
+        confidence: 0.3
+      };
+    }
+  }
 }
 
 export const aiService = new AiService();

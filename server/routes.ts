@@ -16,9 +16,9 @@ import { initializeMultiTenantPackage, getMultiTenantPackage } from "./packages/
 import { messagingService } from "./messaging-service";
 // PayPal imports moved to dynamic imports to avoid initialization errors when credentials are missing
 import { gdprComplianceService } from "./services/gdpr-compliance";
-import { insertGdprConsentSchema, insertGdprDataRequestSchema, updateMedicalImageReportFieldSchema, insertAiInsightSchema, medicationsDatabase, patientDrugInteractions, type Appointment, organizations, subscriptions, users } from "../shared/schema";
+import { insertGdprConsentSchema, insertGdprDataRequestSchema, updateMedicalImageReportFieldSchema, insertAiInsightSchema, medicationsDatabase, patientDrugInteractions, type Appointment, organizations, subscriptions, users, symptomChecks } from "../shared/schema";
 import { db } from "./db";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, sql, desc } from "drizzle-orm";
 import { processAppointmentBookingChat, generateAppointmentSummary } from "./anthropic";
 import { inventoryService } from "./services/inventory";
 import { emailService } from "./services/email";
@@ -14486,6 +14486,80 @@ Cura EMR Team
     } catch (error) {
       console.error("Error handling OAuth callback:", error);
       res.status(500).json({ error: "Failed to handle OAuth callback" });
+    }
+  });
+
+  // Symptom Checker Endpoints
+  app.post('/api/symptom-checker/analyze', authMiddleware, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const { symptoms, symptomDescription, duration, severity, patientId } = req.body;
+      
+      if (!symptoms || symptoms.length === 0 || !symptomDescription) {
+        return res.status(400).json({ error: "Symptoms and description are required" });
+      }
+
+      const organizationId = req.tenant!.id;
+      const userId = req.user!.id;
+
+      // Use AI service to analyze symptoms and provide diagnosis
+      const aiAnalysis = await aiService.analyzeSymptoms({
+        symptoms,
+        symptomDescription,
+        duration,
+        severity
+      });
+
+      // Save symptom check to database
+      const [symptomCheck] = await db.insert(symptomChecks).values({
+        organizationId,
+        patientId: patientId || userId,
+        userId,
+        symptoms,
+        symptomDescription,
+        duration: duration || null,
+        severity: severity || null,
+        aiAnalysis,
+        status: 'completed'
+      }).returning();
+
+      res.json({
+        success: true,
+        symptomCheck,
+        analysis: aiAnalysis
+      });
+    } catch (error) {
+      console.error("Error analyzing symptoms:", error);
+      res.status(500).json({ error: "Failed to analyze symptoms" });
+    }
+  });
+
+  app.get('/api/symptom-checker/history', authMiddleware, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = req.tenant!.id;
+      const userId = req.user!.id;
+      const userRole = req.user!.role;
+
+      // Patients see only their own history, others see all
+      let history;
+      if (userRole === 'patient') {
+        history = await db.select()
+          .from(symptomChecks)
+          .where(and(
+            eq(symptomChecks.organizationId, organizationId),
+            eq(symptomChecks.patientId, userId)
+          ))
+          .orderBy(desc(symptomChecks.createdAt));
+      } else {
+        history = await db.select()
+          .from(symptomChecks)
+          .where(eq(symptomChecks.organizationId, organizationId))
+          .orderBy(desc(symptomChecks.createdAt));
+      }
+
+      res.json(history);
+    } catch (error) {
+      console.error("Error fetching symptom check history:", error);
+      res.status(500).json({ error: "Failed to fetch history" });
     }
   });
   
