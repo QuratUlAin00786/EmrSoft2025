@@ -1,0 +1,497 @@
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/use-auth";
+import { Header } from "@/components/layout/header";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { 
+  Activity, 
+  AlertTriangle, 
+  CheckCircle, 
+  Stethoscope, 
+  Brain,
+  Heart,
+  Pill,
+  Calendar,
+  User,
+  FileText,
+  Plus,
+  X,
+  ArrowRight,
+  AlertCircle,
+  Home,
+  Clock
+} from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+
+interface SymptomAnalysis {
+  potentialDiagnoses: Array<{
+    condition: string;
+    probability: string;
+    description: string;
+    severity: string;
+  }>;
+  recommendedSpecialists: Array<{
+    specialty: string;
+    reason: string;
+    urgency: string;
+  }>;
+  redFlags: string[];
+  homeCareTips: string[];
+  whenToSeekCare: string;
+  confidence: number;
+}
+
+export default function SymptomCheckerPage() {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
+  const [symptoms, setSymptoms] = useState<string[]>([]);
+  const [currentSymptom, setCurrentSymptom] = useState("");
+  const [symptomDescription, setSymptomDescription] = useState("");
+  const [duration, setDuration] = useState("");
+  const [severity, setSeverity] = useState("");
+  const [analysis, setAnalysis] = useState<SymptomAnalysis | null>(null);
+  const [showResults, setShowResults] = useState(false);
+
+  const addSymptom = () => {
+    if (currentSymptom.trim() && !symptoms.includes(currentSymptom.trim())) {
+      setSymptoms([...symptoms, currentSymptom.trim()]);
+      setCurrentSymptom("");
+    }
+  };
+
+  const removeSymptom = (symptom: string) => {
+    setSymptoms(symptoms.filter(s => s !== symptom));
+  };
+
+  const analyzeMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('POST', '/api/symptom-checker/analyze', {
+        symptoms,
+        symptomDescription,
+        duration,
+        severity,
+        patientId: user?.id
+      });
+      return response;
+    },
+    onSuccess: (data) => {
+      setAnalysis(data.analysis);
+      setShowResults(true);
+      queryClient.invalidateQueries({ queryKey: ['/api/symptom-checker/history'] });
+      toast({
+        title: "Analysis Complete",
+        description: "AI has analyzed your symptoms successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Analysis Failed",
+        description: "Failed to analyze symptoms. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const { data: history = [] } = useQuery({
+    queryKey: ['/api/symptom-checker/history'],
+  });
+
+  const handleSubmit = () => {
+    if (symptoms.length === 0 || !symptomDescription) {
+      toast({
+        title: "Missing Information",
+        description: "Please add at least one symptom and provide a description",
+        variant: "destructive"
+      });
+      return;
+    }
+    analyzeMutation.mutate();
+  };
+
+  const resetForm = () => {
+    setSymptoms([]);
+    setCurrentSymptom("");
+    setSymptomDescription("");
+    setDuration("");
+    setSeverity("");
+    setAnalysis(null);
+    setShowResults(false);
+  };
+
+  const getSeverityColor = (severity: string) => {
+    switch (severity.toLowerCase()) {
+      case 'mild': return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
+      case 'moderate': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400';
+      case 'severe': return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
+    }
+  };
+
+  const getProbabilityColor = (probability: string) => {
+    switch (probability.toLowerCase()) {
+      case 'high': return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400';
+      case 'medium': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400';
+      case 'low': return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
+    }
+  };
+
+  const getUrgencyColor = (urgency: string) => {
+    switch (urgency.toLowerCase()) {
+      case 'urgent': return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400';
+      case 'routine': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400';
+      case 'non-urgent': return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <Header />
+      
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <Brain className="h-8 w-8 text-primary" />
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">AI Symptom Checker</h1>
+          </div>
+          <p className="text-gray-600 dark:text-gray-300">
+            Get AI-powered insights about your symptoms and recommended next steps
+          </p>
+        </div>
+
+        {!showResults ? (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Stethoscope className="h-5 w-5" />
+                    Describe Your Symptoms
+                  </CardTitle>
+                  <CardDescription>
+                    Provide detailed information about what you're experiencing
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="symptoms" data-testid="label-symptoms">List Your Symptoms</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="symptoms"
+                        data-testid="input-symptom"
+                        placeholder="e.g., Headache, Fever, Cough"
+                        value={currentSymptom}
+                        onChange={(e) => setCurrentSymptom(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && addSymptom()}
+                      />
+                      <Button 
+                        type="button" 
+                        onClick={addSymptom}
+                        data-testid="button-add-symptom"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {symptoms.map((symptom) => (
+                        <Badge 
+                          key={symptom} 
+                          variant="secondary"
+                          className="px-3 py-1"
+                          data-testid={`badge-symptom-${symptom.toLowerCase().replace(/\s+/g, '-')}`}
+                        >
+                          {symptom}
+                          <button
+                            onClick={() => removeSymptom(symptom)}
+                            className="ml-2 hover:text-red-600"
+                            data-testid={`button-remove-${symptom.toLowerCase().replace(/\s+/g, '-')}`}
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="description" data-testid="label-description">Detailed Description</Label>
+                    <Textarea
+                      id="description"
+                      data-testid="textarea-description"
+                      placeholder="Describe your symptoms in detail - when did they start, how severe are they, etc."
+                      value={symptomDescription}
+                      onChange={(e) => setSymptomDescription(e.target.value)}
+                      rows={4}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="duration" data-testid="label-duration">Duration</Label>
+                      <Input
+                        id="duration"
+                        data-testid="input-duration"
+                        placeholder="e.g., 3 days, 1 week"
+                        value={duration}
+                        onChange={(e) => setDuration(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="severity" data-testid="label-severity">Severity</Label>
+                      <Select value={severity} onValueChange={setSeverity}>
+                        <SelectTrigger data-testid="select-severity">
+                          <SelectValue placeholder="Select severity" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="mild" data-testid="option-mild">Mild</SelectItem>
+                          <SelectItem value="moderate" data-testid="option-moderate">Moderate</SelectItem>
+                          <SelectItem value="severe" data-testid="option-severe">Severe</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+                    <div className="flex gap-3">
+                      <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                      <div className="text-sm text-amber-800 dark:text-amber-200">
+                        <p className="font-semibold mb-1">Medical Disclaimer</p>
+                        <p>This AI symptom checker is for informational purposes only and is not a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider.</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <Button
+                    onClick={handleSubmit}
+                    disabled={analyzeMutation.isPending || symptoms.length === 0 || !symptomDescription}
+                    className="w-full"
+                    size="lg"
+                    data-testid="button-analyze"
+                  >
+                    {analyzeMutation.isPending ? (
+                      <>Analyzing Symptoms...</>
+                    ) : (
+                      <>
+                        Analyze Symptoms
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </>
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="lg:col-span-1">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Clock className="h-5 w-5" />
+                    Recent Checks
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {history.length === 0 ? (
+                    <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-8">
+                      No previous symptom checks
+                    </p>
+                  ) : (
+                    <div className="space-y-3">
+                      {history.slice(0, 5).map((check: any) => (
+                        <div 
+                          key={check.id}
+                          className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                          data-testid={`history-item-${check.id}`}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1">
+                              <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                {check.symptoms.slice(0, 2).join(', ')}
+                                {check.symptoms.length > 2 && ` +${check.symptoms.length - 2} more`}
+                              </p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                {new Date(check.createdAt).toLocaleDateString()}
+                              </p>
+                            </div>
+                            <Badge variant="outline" className="text-xs" data-testid={`badge-status-${check.id}`}>
+                              {check.status}
+                            </Badge>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <Brain className="h-5 w-5" />
+                    AI Analysis Results
+                  </CardTitle>
+                  <Button onClick={resetForm} variant="outline" data-testid="button-new-check">
+                    New Check
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
+                  <div className="flex items-start gap-3">
+                    <Activity className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-blue-900 dark:text-blue-100">Your Symptoms</p>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {symptoms.map((symptom) => (
+                          <Badge key={symptom} variant="outline" data-testid={`result-symptom-${symptom.toLowerCase().replace(/\s+/g, '-')}`}>
+                            {symptom}
+                          </Badge>
+                        ))}
+                      </div>
+                      {duration && (
+                        <p className="text-sm text-blue-700 dark:text-blue-300 mt-2">
+                          Duration: {duration}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {analysis && (
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                        <FileText className="h-5 w-5" />
+                        Potential Diagnoses
+                      </h3>
+                      <div className="space-y-3">
+                        {analysis.potentialDiagnoses.map((diagnosis, index) => (
+                          <Card key={index} data-testid={`diagnosis-${index}`}>
+                            <CardContent className="p-4">
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="flex-1">
+                                  <h4 className="font-semibold text-gray-900 dark:text-white">
+                                    {diagnosis.condition}
+                                  </h4>
+                                  <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                                    {diagnosis.description}
+                                  </p>
+                                </div>
+                                <div className="flex flex-col gap-2">
+                                  <Badge className={getProbabilityColor(diagnosis.probability)} data-testid={`badge-probability-${index}`}>
+                                    {diagnosis.probability} probability
+                                  </Badge>
+                                  <Badge className={getSeverityColor(diagnosis.severity)} data-testid={`badge-severity-${index}`}>
+                                    {diagnosis.severity}
+                                  </Badge>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                        <User className="h-5 w-5" />
+                        Recommended Specialists
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {analysis.recommendedSpecialists.map((specialist, index) => (
+                          <Card key={index} data-testid={`specialist-${index}`}>
+                            <CardContent className="p-4">
+                              <div className="flex items-start justify-between gap-2">
+                                <div>
+                                  <h4 className="font-semibold text-gray-900 dark:text-white">
+                                    {specialist.specialty}
+                                  </h4>
+                                  <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                                    {specialist.reason}
+                                  </p>
+                                </div>
+                                <Badge className={getUrgencyColor(specialist.urgency)} data-testid={`badge-urgency-${index}`}>
+                                  {specialist.urgency}
+                                </Badge>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+
+                    {analysis.redFlags.length > 0 && (
+                      <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                        <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 text-red-800 dark:text-red-200">
+                          <AlertCircle className="h-5 w-5" />
+                          Warning Signs
+                        </h3>
+                        <ul className="space-y-2">
+                          {analysis.redFlags.map((flag, index) => (
+                            <li key={index} className="flex items-start gap-2 text-sm text-red-700 dark:text-red-300" data-testid={`red-flag-${index}`}>
+                              <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                              <span>{flag}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    <div>
+                      <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                        <Home className="h-5 w-5" />
+                        Home Care Tips
+                      </h3>
+                      <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                        <ul className="space-y-2">
+                          {analysis.homeCareTips.map((tip, index) => (
+                            <li key={index} className="flex items-start gap-2 text-sm text-green-700 dark:text-green-300" data-testid={`tip-${index}`}>
+                              <CheckCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                              <span>{tip}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+
+                    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                      <h3 className="text-lg font-semibold mb-2 flex items-center gap-2 text-blue-800 dark:text-blue-200">
+                        <Calendar className="h-5 w-5" />
+                        When to Seek Care
+                      </h3>
+                      <p className="text-sm text-blue-700 dark:text-blue-300" data-testid="text-when-to-seek-care">
+                        {analysis.whenToSeekCare}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-4 border-t">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">Confidence Score:</span>
+                        <Badge variant="outline" data-testid="badge-confidence">
+                          {(analysis.confidence * 100).toFixed(0)}%
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
