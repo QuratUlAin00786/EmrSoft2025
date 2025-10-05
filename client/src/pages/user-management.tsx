@@ -1832,7 +1832,17 @@ export default function UserManagement() {
                         Cancel
                       </Button>
                       <Button 
-                        type="submit" 
+                        type="button"
+                        onClick={async () => {
+                          // Manually trigger validation and submission
+                          const isValid = await roleForm.trigger();
+                          if (isValid) {
+                            const values = roleForm.getValues();
+                            onRoleSubmit(values);
+                          } else {
+                            console.log("Form validation failed:", roleForm.formState.errors);
+                          }
+                        }}
                         disabled={createRoleMutation.isPending || updateRoleMutation.isPending}
                       >
                         {createRoleMutation.isPending || updateRoleMutation.isPending ? 
