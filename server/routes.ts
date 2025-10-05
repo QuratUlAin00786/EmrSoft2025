@@ -9989,6 +9989,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get telemedicine users with role-based filtering
+  app.get("/api/telemedicine/users", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const userRole = req.user!.role;
+      const organizationId = req.tenant!.id;
+      
+      // Fetch all users from the organization
+      const allUsers = await storage.getUsersByOrganization(organizationId);
+      
+      // If admin, return all users
+      if (userRole === 'admin') {
+        res.json(allUsers);
+      } else {
+        // For non-admin users, filter out patients
+        const nonPatientUsers = allUsers.filter(u => u.role !== 'patient');
+        res.json(nonPatientUsers);
+      }
+    } catch (error) {
+      console.error("Error fetching telemedicine users:", error);
+      res.status(500).json({ error: "Failed to fetch telemedicine users" });
+    }
+  });
+
   // Email Service API endpoints
   app.post("/api/email/appointment-reminder", authMiddleware, async (req: TenantRequest, res) => {
     try {

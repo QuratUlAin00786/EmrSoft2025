@@ -3,6 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { queryClient } from "@/lib/queryClient";
 import { getActiveSubdomain } from "@/lib/subdomain-utils";
+import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -94,20 +95,22 @@ interface WaitingRoom {
 // Patient List Component for selecting patients for telemedicine consultations
 function PatientList() {
   const { toast } = useToast();
+  const { user } = useAuth();
 
-  // Fetch patients from API
+  // Fetch users for telemedicine - filtered based on role
+  // Admin users see all users, non-admin users see only non-patient users
   const { data: patients, isLoading: patientsLoading } = useQuery({
-    queryKey: ["/api/patients"],
+    queryKey: ["/api/telemedicine/users"],
     queryFn: async () => {
       const token = localStorage.getItem('auth_token');
-      const response = await fetch('/api/patients', {
+      const response = await fetch('/api/telemedicine/users', {
         headers: {
           'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'demo'
+          'X-Tenant-Subdomain': getActiveSubdomain()
         }
       });
       if (!response.ok) {
-        throw new Error('Failed to fetch patients');
+        throw new Error('Failed to fetch telemedicine users');
       }
       return response.json();
     },
@@ -314,7 +317,11 @@ function PatientList() {
     return (
       <div className="text-center py-8">
         <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-        <p className="text-gray-600 dark:text-gray-300">No patients available for consultation</p>
+        <p className="text-gray-600 dark:text-gray-300">
+          {user?.role === 'admin' 
+            ? 'No users available for consultation' 
+            : 'No staff members available for consultation'}
+        </p>
       </div>
     );
   }
@@ -327,31 +334,29 @@ function PatientList() {
             <div className="flex items-center gap-3 mb-3">
               <Avatar className="w-12 h-12">
                 <AvatarFallback>
-                  {patient.firstName?.[0]}{patient.lastName?.[0]}
+                  {patient.firstName?.[0] || patient.email?.[0]}{patient.lastName?.[0] || patient.email?.[1]}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
                 <h3 className="font-medium text-lg text-gray-900 dark:text-gray-100">
-                  {patient.firstName} {patient.lastName}
+                  {patient.firstName && patient.lastName 
+                    ? `${patient.firstName} ${patient.lastName}` 
+                    : patient.email}
                 </h3>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
-                  ID: {patient.patientId || patient.id}
+                  {patient.role ? patient.role.charAt(0).toUpperCase() + patient.role.slice(1) : 'User'} • ID: {patient.id}
                 </p>
               </div>
             </div>
             
             <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300 mb-4">
               <div className="flex justify-between">
-                <span>Age:</span>
-                <span>{patient.age || 'N/A'}</span>
+                <span>Email:</span>
+                <span className="truncate">{patient.email || 'N/A'}</span>
               </div>
               <div className="flex justify-between">
                 <span>Phone:</span>
                 <span>{patient.phone || 'N/A'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Email:</span>
-                <span className="truncate">{patient.email || 'N/A'}</span>
               </div>
             </div>
 
@@ -360,6 +365,7 @@ function PatientList() {
                 onClick={() => startBigBlueButtonCall(patient)}
                 className="flex-1"
                 size="sm"
+                data-testid={`button-video-call-${patient.id}`}
               >
                 <Video className="w-4 h-4 mr-2" />
                 Start Video Call
@@ -368,6 +374,7 @@ function PatientList() {
                 variant="outline"
                 size="sm"
                 onClick={() => startBigBlueButtonAudioCall(patient)}
+                data-testid={`button-audio-call-${patient.id}`}
               >
                 <Phone className="w-4 h-4" />
               </Button>
@@ -409,19 +416,19 @@ export default function Telemedicine() {
     refetchInterval: 30000 // Refresh every 30 seconds
   });
 
-  // Fetch patients for scheduling
+  // Fetch users for scheduling - filtered based on role
   const { data: patients, isLoading: patientsLoading } = useQuery({
-    queryKey: ["/api/patients"],
+    queryKey: ["/api/telemedicine/users"],
     queryFn: async () => {
       const token = localStorage.getItem('auth_token');
-      const response = await fetch('/api/patients', {
+      const response = await fetch('/api/telemedicine/users', {
         headers: {
           'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'demo'
+          'X-Tenant-Subdomain': getActiveSubdomain()
         }
       });
       if (!response.ok) {
-        throw new Error('Failed to fetch patients');
+        throw new Error('Failed to fetch telemedicine users');
       }
       return response.json();
     },
