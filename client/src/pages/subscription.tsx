@@ -55,10 +55,10 @@ export default function Subscription() {
     queryKey: ["/api/subscription"],
   });
 
-  const { data: dbPackages, isLoading: packagesLoading, error: packagesError } = useQuery<SaaSPackage[]>({
+  const { data: dbPackages = [], isLoading: packagesLoading, error: packagesError } = useQuery<SaaSPackage[]>({
     queryKey: ["/api/website/packages"],
-    staleTime: 30000, // Cache for 30 seconds
-    refetchOnMount: true, // Always refetch when component mounts
+    staleTime: 30000,
+    refetchOnMount: true,
   });
 
   // Fetch billing history
@@ -67,8 +67,8 @@ export default function Subscription() {
   });
 
   // Split packages into subscription plans (have maxUsers) and add-ons (don't have maxUsers)
-  const dbPlans = (dbPackages || []).filter(pkg => pkg.features?.maxUsers);
-  const dbAddons = (dbPackages || []).filter(pkg => !pkg.features?.maxUsers);
+  const dbPlans = dbPackages.filter(pkg => pkg.features?.maxUsers);
+  const dbAddons = dbPackages.filter(pkg => !pkg.features?.maxUsers);
 
   // Transform database plans to component format for "Available Plans" section
   const plans = dbPlans.map(pkg => ({
