@@ -561,11 +561,6 @@ export default function BillingPage() {
     }
   });
 
-  // Find the patient record for the logged-in user if they are a patient
-  const userPatient = user?.role === 'patient' && Array.isArray(patients) 
-    ? patients.find((p: any) => p.email === user.email || p.id === user.id)
-    : null;
-
   const filteredInvoices = Array.isArray(invoices) ? invoices.filter((invoice: any) => {
     const matchesSearch = !searchQuery || 
       invoice.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -573,10 +568,7 @@ export default function BillingPage() {
     
     const matchesStatus = statusFilter === "all" || invoice.status === statusFilter;
     
-    // Role-based filtering: patients only see their own invoices, others see all
-    const matchesUser = user?.role !== 'patient' || (userPatient && invoice.patientId === userPatient.patientId);
-    
-    return matchesSearch && matchesStatus && matchesUser;
+    return matchesSearch && matchesStatus;
   }) : [];
 
   const getStatusColor = (status: string) => {
@@ -695,21 +687,9 @@ export default function BillingPage() {
               </div>
             )}
 
-            {/* Tabs Navigation */}
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              {isAdmin ? (
-                <TabsList className="grid w-full max-w-2xl grid-cols-3">
-                  <TabsTrigger value="invoices">Invoices</TabsTrigger>
-                  <TabsTrigger value="payment-history">Payment History</TabsTrigger>
-                  <TabsTrigger value="insurance-claims">Insurance Claims</TabsTrigger>
-                </TabsList>
-              ) : (
-                <TabsList className="grid w-full max-w-md grid-cols-1">
-                  <TabsTrigger value="invoices">My Invoices</TabsTrigger>
-                </TabsList>
-              )}
-
-              <TabsContent value="invoices" className="space-y-4 mt-6">
+            {/* Patient View: Direct Invoice List */}
+            {!isAdmin ? (
+              <div className="space-y-4">
                 {/* Filters and Actions */}
                 <Card>
                   <CardContent className="p-4">
@@ -722,11 +702,12 @@ export default function BillingPage() {
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="pl-9 w-64"
+                            data-testid="input-search-invoices"
                           />
                         </div>
                         
                         <Select value={statusFilter} onValueChange={setStatusFilter}>
-                          <SelectTrigger className="w-40">
+                          <SelectTrigger className="w-40" data-testid="select-status-filter">
                             <SelectValue placeholder="Filter by status" />
                           </SelectTrigger>
                           <SelectContent>
@@ -739,20 +720,157 @@ export default function BillingPage() {
                           </SelectContent>
                         </Select>
                       </div>
-                      
-                      {isAdmin && (
-                        <Button onClick={() => setShowNewInvoice(true)}>
-                          <Plus className="h-4 w-4 mr-2" />
-                          New Invoice
-                        </Button>
-                      )}
                     </div>
                   </CardContent>
                 </Card>
 
-            {/* Invoices List */}
-            <div className="space-y-4">
-              {filteredInvoices.map((invoice) => (
+                {/* Invoices List */}
+                <div className="space-y-4">
+                  {filteredInvoices.map((invoice) => (
+                    <Card key={invoice.id} className="hover:shadow-md transition-shadow" data-testid={`invoice-card-${invoice.id}`}>
+                      <CardContent className="p-6">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-3">
+                              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{invoice.patientName}</h3>
+                              <Badge className={getStatusColor(invoice.status)}>
+                                {invoice.status}
+                              </Badge>
+                              {invoice.status === 'overdue' && (
+                                <Badge className="bg-red-100 text-red-800">
+                                  <AlertTriangle className="h-3 w-3 mr-1" />
+                                  Overdue
+                                </Badge>
+                              )}
+                            </div>
+                            
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+                              <div>
+                                <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">Invoice Details</h4>
+                                <div className="space-y-1 text-sm text-gray-900 dark:text-gray-100">
+                                  <div><strong>Invoice:</strong> {invoice.id}</div>
+                                  <div><strong>Service Date:</strong> {format(new Date(invoice.dateOfService), 'MMM d, yyyy')}</div>
+                                  <div><strong>Due Date:</strong> {format(new Date(invoice.dueDate), 'MMM d, yyyy')}</div>
+                                </div>
+                              </div>
+                              
+                              <div>
+                                <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">Amount</h4>
+                                <div className="space-y-1 text-sm text-gray-900 dark:text-gray-100">
+                                  <div><strong>Total:</strong> {formatCurrency(invoice.totalAmount)}</div>
+                                  <div><strong>Paid:</strong> {formatCurrency(invoice.paidAmount)}</div>
+                                  <div><strong>Outstanding:</strong> {formatCurrency(invoice.totalAmount - invoice.paidAmount)}</div>
+                                </div>
+                              </div>
+                              
+                              {invoice.insurance && (
+                                <div>
+                                  <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">Insurance</h4>
+                                  <div className="space-y-1 text-sm text-gray-900 dark:text-gray-100">
+                                    <div><strong>Provider:</strong> {invoice.insurance.provider}</div>
+                                    <div><strong>Claim:</strong> {invoice.insurance.claimNumber}</div>
+                                    <div className="flex items-center gap-2">
+                                      <strong>Status:</strong>
+                                      <Badge className={getInsuranceStatusColor(invoice.insurance.status)}>
+                                        {invoice.insurance.status}
+                                      </Badge>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="bg-gray-50 dark:bg-slate-800 p-3 rounded-lg">
+                              <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">Services</h4>
+                              <div className="space-y-1">
+                                {invoice.items.slice(0, 2).map((item: any, index: number) => (
+                                  <div key={index} className="flex justify-between text-sm text-gray-900 dark:text-gray-100">
+                                    <span>{item.description}</span>
+                                    <span>{formatCurrency(item.total)}</span>
+                                  </div>
+                                ))}
+                                {invoice.items.length > 2 && (
+                                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                                    +{invoice.items.length - 2} more items
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-2 ml-4">
+                            <Button variant="outline" size="sm" onClick={() => handleViewInvoice(invoice)} data-testid="button-view-invoice">
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button variant="outline" size="sm" onClick={() => handleDownloadInvoice(invoice.id)} data-testid="button-download-invoice">
+                              <Download className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+
+                {filteredInvoices.length === 0 && (
+                  <div className="text-center py-12 text-gray-500 dark:text-gray-400" data-testid="no-invoices-message">
+                    <Receipt className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No invoices found</h3>
+                    <p className="text-gray-600 dark:text-gray-300">Try adjusting your search terms or filters</p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* Admin View: Tabs Navigation */
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList className="grid w-full max-w-2xl grid-cols-3">
+                  <TabsTrigger value="invoices">Invoices</TabsTrigger>
+                  <TabsTrigger value="payment-history">Payment History</TabsTrigger>
+                  <TabsTrigger value="insurance-claims">Insurance Claims</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="invoices" className="space-y-4 mt-6">
+                  {/* Filters and Actions */}
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="relative">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Input
+                              placeholder="Search invoices..."
+                              value={searchQuery}
+                              onChange={(e) => setSearchQuery(e.target.value)}
+                              className="pl-9 w-64"
+                            />
+                          </div>
+                          
+                          <Select value={statusFilter} onValueChange={setStatusFilter}>
+                            <SelectTrigger className="w-40">
+                              <SelectValue placeholder="Filter by status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">All Status</SelectItem>
+                              <SelectItem value="draft">Draft</SelectItem>
+                              <SelectItem value="sent">Sent</SelectItem>
+                              <SelectItem value="paid">Paid</SelectItem>
+                              <SelectItem value="overdue">Overdue</SelectItem>
+                              <SelectItem value="cancelled">Cancelled</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        <Button onClick={() => setShowNewInvoice(true)}>
+                          <Plus className="h-4 w-4 mr-2" />
+                          New Invoice
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Invoices List */}
+                  <div className="space-y-4">
+                    {filteredInvoices.map((invoice) => (
                 <Card key={invoice.id} className="hover:shadow-md transition-shadow">
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between">
@@ -1022,6 +1140,7 @@ export default function BillingPage() {
               </TabsContent>
               )}
             </Tabs>
+            )}
 
           {isAdmin && (
             <div className="space-y-6">

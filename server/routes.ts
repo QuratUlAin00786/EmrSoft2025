@@ -12592,8 +12592,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Filter invoices for patient users - only show their own invoices
       if (req.user?.role === "patient") {
-        invoices = invoices.filter(invoice => invoice.patientId === String(req.user!.id));
-        console.log(`🔒 Patient user - filtered to ${invoices.length} invoices for patient ID: ${req.user!.id}`);
+        // Find the patient record for this user to get their patientId
+        const patients = await storage.getPatientsByOrganization(req.tenant!.id);
+        const userPatient = patients.find(p => p.email === req.user!.email || p.id === req.user!.id);
+        
+        if (userPatient) {
+          invoices = invoices.filter(invoice => invoice.patientId === userPatient.patientId);
+          console.log(`🔒 Patient user - filtered to ${invoices.length} invoices for patientId: ${userPatient.patientId}`);
+        } else {
+          invoices = [];
+          console.log(`⚠️ No patient record found for user ${req.user!.email}`);
+        }
       }
       
       console.log(`✅ Found ${invoices.length} invoices`);
