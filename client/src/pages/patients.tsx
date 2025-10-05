@@ -67,6 +67,9 @@ export default function Patients() {
   // State for active/inactive filter toggle
   const [showActivePatients, setShowActivePatients] = useState(true);
   
+  // State for gender filter ("all" shows both, "Male" shows males, "Female" shows females)
+  const [genderFilter, setGenderFilter] = useState<"all" | "Male" | "Female">("all");
+  
   // State for view mode (true = List view, false = Grid view)
   const [isListView, setIsListView] = useState(false);
 
@@ -448,6 +451,25 @@ export default function Patients() {
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-neutral-600 dark:text-neutral-300">
+                  Gender: {genderFilter === "all" ? "All" : genderFilter}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (genderFilter === "all") setGenderFilter("Male");
+                    else if (genderFilter === "Male") setGenderFilter("Female");
+                    else setGenderFilter("all");
+                  }}
+                  className="h-8 px-3"
+                  data-testid="toggle-gender-filter"
+                >
+                  <User className="h-3 w-3 mr-1" />
+                  {genderFilter === "all" ? "All" : genderFilter}
+                </Button>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-neutral-600 dark:text-neutral-300">
                   {isListView ? "List View" : "Grid View"}
                 </span>
                 <Switch
@@ -473,7 +495,7 @@ export default function Patients() {
           </Button>
         </div>
 
-        <PatientList showActiveOnly={showActivePatients} genderFilter={null} viewMode={isListView ? "list" : "grid"} />
+        <PatientList showActiveOnly={showActivePatients} genderFilter={genderFilter === "all" ? null : genderFilter} viewMode={isListView ? "list" : "grid"} />
       </div>
 
       <PatientModal 

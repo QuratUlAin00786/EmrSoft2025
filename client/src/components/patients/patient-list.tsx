@@ -2347,21 +2347,43 @@ export function PatientList({ onSelectPatient, showActiveOnly = true, genderFilt
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Address
                   </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Risk
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                 {displayPatients.map((patient: any) => (
                   <tr 
                     key={patient.id} 
-                    className="hover:bg-gray-50 dark:hover:bg-gray-900 cursor-pointer transition-colors"
-                    onClick={() => handleViewPatient(patient)}
+                    className="hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
                     data-testid={`row-patient-${patient.id}`}
                   >
                     <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
                       {patient.patientId}
                     </td>
                     <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">
-                      {patient.firstName} {patient.lastName}
+                      <div className="flex items-center gap-2">
+                        {patient.firstName} {patient.lastName}
+                        {patient.medicalHistory?.allergies && patient.medicalHistory.allergies.length > 0 && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <AlertTriangle className="h-3 w-3 text-red-500" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Allergies: {patient.medicalHistory.allergies.join(", ")}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
                       {patient.dateOfBirth ? format(new Date(patient.dateOfBirth), 'dd.MM.yyyy') : ''} 
@@ -2385,6 +2407,128 @@ export function PatientList({ onSelectPatient, showActiveOnly = true, genderFilt
                         `${patient.address.street}, ${patient.address.postcode || ''} ${patient.address.city || ''}`.trim() : 
                         ''
                       }
+                    </td>
+                    <td className="px-4 py-3 text-sm">
+                      {patient.riskLevel && (
+                        <Badge
+                          className={`text-xs ${getRiskLevelColor(patient.riskLevel)}`}
+                          style={{ backgroundColor: getRiskLevelBgColor(patient.riskLevel) }}
+                        >
+                          {patient.riskLevel}
+                        </Badge>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-sm">
+                      <div className="flex flex-col gap-1">
+                        <Badge
+                          variant={patient.isActive ? "default" : "secondary"}
+                          className={`text-xs ${
+                            patient.isActive
+                              ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                              : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
+                          }`}
+                        >
+                          {patient.isActive ? "Active" : "Inactive"}
+                        </Badge>
+                        {patient.isInsured && (
+                          <Badge className="text-xs text-black" style={{ backgroundColor: "#FFFACD" }}>
+                            Insured
+                          </Badge>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-right">
+                      <div className="flex justify-end gap-1">
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleViewPatient(patient)}
+                                className="h-7 w-7 p-0"
+                                data-testid={`button-view-${patient.id}`}
+                              >
+                                <Eye className="h-3 w-3" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>View Details</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                        
+                        {(user?.role === "admin" || user?.role === "doctor" || user?.role === "nurse") && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleEditPatient(patient)}
+                                  className="h-7 w-7 p-0"
+                                  data-testid={`button-edit-${patient.id}`}
+                                >
+                                  <Edit className="h-3 w-3" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Edit</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+                        
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => setLocation(`/patients/${patient.id}`)}
+                                className="h-7 w-7 p-0"
+                                style={{ color: '#4A7DFF' }}
+                              >
+                                <FileText className="h-3 w-3" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Medical Records</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                        
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleBookAppointment(patient)}
+                                className="h-7 w-7 p-0"
+                                style={{ color: '#7279FB' }}
+                              >
+                                <Calendar className="h-3 w-3" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Book Appointment</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                        
+                        {user?.role === "admin" && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleDeletePatient(patient)}
+                                  disabled={deletePatientMutation.isPending}
+                                  className="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                  data-testid={`button-delete-${patient.id}`}
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Delete</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
