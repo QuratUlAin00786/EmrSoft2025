@@ -2,33 +2,50 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { insertSymptomCheckSchema } from "@shared/schema";
 import { Header } from "@/components/layout/header";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { 
   Activity, 
   AlertTriangle, 
   CheckCircle, 
   Stethoscope, 
   Brain,
-  Heart,
-  Pill,
-  Calendar,
-  User,
   FileText,
   Plus,
   X,
   ArrowRight,
   AlertCircle,
   Home,
-  Clock
+  Clock,
+  User
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+
+const symptomFormSchema = insertSymptomCheckSchema.omit({
+  organizationId: true,
+  userId: true,
+  aiAnalysis: true,
+  status: true,
+  appointmentCreated: true,
+  appointmentId: true,
+}).extend({
+  symptoms: z.array(z.string()).min(1, "At least one symptom is required"),
+  symptomDescription: z.string().min(10, "Please provide a detailed description (at least 10 characters)"),
+  duration: z.string().optional(),
+  severity: z.string().optional(),
+});
+
+type SymptomFormValues = z.infer<typeof symptomFormSchema>;
 
 interface SymptomAnalysis {
   potentialDiagnoses: Array<{
@@ -55,30 +72,41 @@ export default function SymptomCheckerPage() {
   
   const [symptoms, setSymptoms] = useState<string[]>([]);
   const [currentSymptom, setCurrentSymptom] = useState("");
-  const [symptomDescription, setSymptomDescription] = useState("");
-  const [duration, setDuration] = useState("");
-  const [severity, setSeverity] = useState("");
   const [analysis, setAnalysis] = useState<SymptomAnalysis | null>(null);
   const [showResults, setShowResults] = useState(false);
 
+  const form = useForm<SymptomFormValues>({
+    resolver: zodResolver(symptomFormSchema),
+    defaultValues: {
+      patientId: user?.id || 0,
+      symptoms: [],
+      symptomDescription: "",
+      duration: "",
+      severity: "",
+    },
+  });
+
   const addSymptom = () => {
     if (currentSymptom.trim() && !symptoms.includes(currentSymptom.trim())) {
-      setSymptoms([...symptoms, currentSymptom.trim()]);
+      const updatedSymptoms = [...symptoms, currentSymptom.trim()];
+      setSymptoms(updatedSymptoms);
+      form.setValue("symptoms", updatedSymptoms);
       setCurrentSymptom("");
     }
   };
 
   const removeSymptom = (symptom: string) => {
-    setSymptoms(symptoms.filter(s => s !== symptom));
+    const updatedSymptoms = symptoms.filter(s => s !== symptom);
+    setSymptoms(updatedSymptoms);
+    form.setValue("symptoms", updatedSymptoms);
   };
 
   const analyzeMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (data: SymptomFormValues) => {
       const response = await apiRequest('POST', '/api/symptom-checker/analyze', {
-        symptoms,
-        symptomDescription,
-        duration,
-        severity,
+        ...data,
+        duration: data.duration || undefined,
+        severity: data.severity || undefined,
         patientId: user?.id
       });
       return response;
@@ -105,24 +133,20 @@ export default function SymptomCheckerPage() {
     queryKey: ['/api/symptom-checker/history'],
   });
 
-  const handleSubmit = () => {
-    if (symptoms.length === 0 || !symptomDescription) {
-      toast({
-        title: "Missing Information",
-        description: "Please add at least one symptom and provide a description",
-        variant: "destructive"
-      });
-      return;
-    }
-    analyzeMutation.mutate();
+  const onSubmit = (data: SymptomFormValues) => {
+    analyzeMutation.mutate(data);
   };
 
   const resetForm = () => {
     setSymptoms([]);
     setCurrentSymptom("");
-    setSymptomDescription("");
-    setDuration("");
-    setSeverity("");
+    form.reset({
+      patientId: user?.id || 0,
+      symptoms: [],
+      symptomDescription: "",
+      duration: "",
+      severity: "",
+    });
     setAnalysis(null);
     setShowResults(false);
   };
@@ -170,170 +194,201 @@ export default function SymptomCheckerPage() {
         </div>
 
         {!showResults ? (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Stethoscope className="h-5 w-5" />
-                    Describe Your Symptoms
-                  </CardTitle>
-                  <CardDescription>
-                    Provide detailed information about what you're experiencing
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="symptoms" data-testid="label-symptoms">List Your Symptoms</Label>
-                    <div className="flex gap-2">
-                      <Input
-                        id="symptoms"
-                        data-testid="input-symptom"
-                        placeholder="e.g., Headache, Fever, Cough"
-                        value={currentSymptom}
-                        onChange={(e) => setCurrentSymptom(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && addSymptom()}
-                      />
-                      <Button 
-                        type="button" 
-                        onClick={addSymptom}
-                        data-testid="button-add-symptom"
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <div className="flex flex-wrap gap-2 mt-3">
-                      {symptoms.map((symptom) => (
-                        <Badge 
-                          key={symptom} 
-                          variant="secondary"
-                          className="px-3 py-1"
-                          data-testid={`badge-symptom-${symptom.toLowerCase().replace(/\s+/g, '-')}`}
-                        >
-                          {symptom}
-                          <button
-                            onClick={() => removeSymptom(symptom)}
-                            className="ml-2 hover:text-red-600"
-                            data-testid={`button-remove-${symptom.toLowerCase().replace(/\s+/g, '-')}`}
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)}>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Stethoscope className="h-5 w-5" />
+                        Describe Your Symptoms
+                      </CardTitle>
+                      <CardDescription>
+                        Provide detailed information about what you're experiencing
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <div className="space-y-2">
+                        <FormLabel htmlFor="symptoms" data-testid="label-symptoms">List Your Symptoms</FormLabel>
+                        <div className="flex gap-2">
+                          <Input
+                            id="symptoms"
+                            data-testid="input-symptom"
+                            placeholder="e.g., Headache, Fever, Cough"
+                            value={currentSymptom}
+                            onChange={(e) => setCurrentSymptom(e.target.value)}
+                            onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addSymptom())}
+                          />
+                          <Button 
+                            type="button" 
+                            onClick={addSymptom}
+                            data-testid="button-add-symptom"
                           >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="description" data-testid="label-description">Detailed Description</Label>
-                    <Textarea
-                      id="description"
-                      data-testid="textarea-description"
-                      placeholder="Describe your symptoms in detail - when did they start, how severe are they, etc."
-                      value={symptomDescription}
-                      onChange={(e) => setSymptomDescription(e.target.value)}
-                      rows={4}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="duration" data-testid="label-duration">Duration</Label>
-                      <Input
-                        id="duration"
-                        data-testid="input-duration"
-                        placeholder="e.g., 3 days, 1 week"
-                        value={duration}
-                        onChange={(e) => setDuration(e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="severity" data-testid="label-severity">Severity</Label>
-                      <Select value={severity} onValueChange={setSeverity}>
-                        <SelectTrigger data-testid="select-severity">
-                          <SelectValue placeholder="Select severity" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="mild" data-testid="option-mild">Mild</SelectItem>
-                          <SelectItem value="moderate" data-testid="option-moderate">Moderate</SelectItem>
-                          <SelectItem value="severe" data-testid="option-severe">Severe</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
-                    <div className="flex gap-3">
-                      <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
-                      <div className="text-sm text-amber-800 dark:text-amber-200">
-                        <p className="font-semibold mb-1">Medical Disclaimer</p>
-                        <p>This AI symptom checker is for informational purposes only and is not a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider.</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <Button
-                    onClick={handleSubmit}
-                    disabled={analyzeMutation.isPending || symptoms.length === 0 || !symptomDescription}
-                    className="w-full"
-                    size="lg"
-                    data-testid="button-analyze"
-                  >
-                    {analyzeMutation.isPending ? (
-                      <>Analyzing Symptoms...</>
-                    ) : (
-                      <>
-                        Analyze Symptoms
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </>
-                    )}
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="lg:col-span-1">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Clock className="h-5 w-5" />
-                    Recent Checks
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {history.length === 0 ? (
-                    <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-8">
-                      No previous symptom checks
-                    </p>
-                  ) : (
-                    <div className="space-y-3">
-                      {history.slice(0, 5).map((check: any) => (
-                        <div 
-                          key={check.id}
-                          className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
-                          data-testid={`history-item-${check.id}`}
-                        >
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="flex-1">
-                              <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                {check.symptoms.slice(0, 2).join(', ')}
-                                {check.symptoms.length > 2 && ` +${check.symptoms.length - 2} more`}
-                              </p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                {new Date(check.createdAt).toLocaleDateString()}
-                              </p>
-                            </div>
-                            <Badge variant="outline" className="text-xs" data-testid={`badge-status-${check.id}`}>
-                              {check.status}
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <div className="flex flex-wrap gap-2 mt-3">
+                          {symptoms.map((symptom) => (
+                            <Badge 
+                              key={symptom} 
+                              variant="secondary"
+                              className="px-3 py-1"
+                              data-testid={`badge-symptom-${symptom.toLowerCase().replace(/\s+/g, '-')}`}
+                            >
+                              {symptom}
+                              <button
+                                onClick={() => removeSymptom(symptom)}
+                                className="ml-2 hover:text-red-600"
+                                data-testid={`button-remove-${symptom.toLowerCase().replace(/\s+/g, '-')}`}
+                                type="button"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
                             </Badge>
+                          ))}
+                        </div>
+                        {form.formState.errors.symptoms && (
+                          <p className="text-sm text-red-500">{form.formState.errors.symptoms.message}</p>
+                        )}
+                      </div>
+
+                      <FormField
+                        control={form.control}
+                        name="symptomDescription"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel data-testid="label-description">Detailed Description</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                {...field}
+                                data-testid="textarea-description"
+                                placeholder="Describe your symptoms in detail - when did they start, how severe are they, etc."
+                                rows={4}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="duration"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel data-testid="label-duration">Duration</FormLabel>
+                              <FormControl>
+                                <Input
+                                  {...field}
+                                  data-testid="input-duration"
+                                  placeholder="e.g., 3 days, 1 week"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="severity"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel data-testid="label-severity">Severity</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value || ""}>
+                                <FormControl>
+                                  <SelectTrigger data-testid="select-severity">
+                                    <SelectValue placeholder="Select severity" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="mild" data-testid="option-mild">Mild</SelectItem>
+                                  <SelectItem value="moderate" data-testid="option-moderate">Moderate</SelectItem>
+                                  <SelectItem value="severe" data-testid="option-severe">Severe</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+                        <div className="flex gap-3">
+                          <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                          <div className="text-sm text-amber-800 dark:text-amber-200">
+                            <p className="font-semibold mb-1">Medical Disclaimer</p>
+                            <p>This AI symptom checker is for informational purposes only and is not a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider.</p>
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </div>
+                      </div>
+
+                      <Button
+                        type="submit"
+                        disabled={analyzeMutation.isPending}
+                        className="w-full"
+                        size="lg"
+                        data-testid="button-analyze"
+                      >
+                        {analyzeMutation.isPending ? (
+                          <>Analyzing Symptoms...</>
+                        ) : (
+                          <>
+                            Analyze Symptoms
+                            <ArrowRight className="ml-2 h-4 w-4" />
+                          </>
+                        )}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <div className="lg:col-span-1">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Clock className="h-5 w-5" />
+                        Recent Checks
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {history.length === 0 ? (
+                        <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-8">
+                          No previous symptom checks
+                        </p>
+                      ) : (
+                        <div className="space-y-3">
+                          {history.slice(0, 5).map((check: any) => (
+                            <div 
+                              key={check.id}
+                              className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                              data-testid={`history-item-${check.id}`}
+                            >
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="flex-1">
+                                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                    {check.symptoms.slice(0, 2).join(', ')}
+                                    {check.symptoms.length > 2 && ` +${check.symptoms.length - 2} more`}
+                                  </p>
+                                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                    {new Date(check.createdAt).toLocaleDateString()}
+                                  </p>
+                                </div>
+                                <Badge variant="outline" className="text-xs" data-testid={`badge-status-${check.id}`}>
+                                  {check.status}
+                                </Badge>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            </form>
+          </Form>
         ) : (
           <div className="space-y-6">
             <Card>
@@ -361,9 +416,9 @@ export default function SymptomCheckerPage() {
                           </Badge>
                         ))}
                       </div>
-                      {duration && (
+                      {form.getValues("duration") && (
                         <p className="text-sm text-blue-700 dark:text-blue-300 mt-2">
-                          Duration: {duration}
+                          Duration: {form.getValues("duration")}
                         </p>
                       )}
                     </div>
@@ -469,7 +524,7 @@ export default function SymptomCheckerPage() {
 
                     <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
                       <h3 className="text-lg font-semibold mb-2 flex items-center gap-2 text-blue-800 dark:text-blue-200">
-                        <Calendar className="h-5 w-5" />
+                        <Clock className="h-5 w-5" />
                         When to Seek Care
                       </h3>
                       <p className="text-sm text-blue-700 dark:text-blue-300" data-testid="text-when-to-seek-care">

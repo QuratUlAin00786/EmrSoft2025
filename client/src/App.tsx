@@ -53,6 +53,7 @@ import AiAgent from "@/pages/ai-agent";
 import QuickBooks from "@/pages/quickbooks";
 import FontTest from "@/pages/font-test";
 import TechSpecExport from "@/pages/tech-spec-export";
+import SymptomChecker from "@/pages/symptom-checker";
 import NotFound from "@/pages/not-found";
 import Login from "@/pages/login";
 
@@ -254,6 +255,7 @@ function ProtectedApp() {
           <Route path="/:subdomain/automation" component={AutomationPage} />
           <Route path="/:subdomain/patient-portal" component={PatientPortal} />
           <Route path="/:subdomain/ai-insights" component={AiInsights} />
+          <Route path="/:subdomain/symptom-checker" component={SymptomChecker} />
           <Route path="/:subdomain/chatbot" component={ChatbotPage} />
           <Route path="/:subdomain/clinical-decision-support" component={ClinicalDecisionSupport} />
           <Route path="/:subdomain/telemedicine" component={Telemedicine} />
@@ -293,6 +295,7 @@ function ProtectedApp() {
           <Route path="/analytics" component={LegacyRouteRedirect} />
           <Route path="/automation" component={LegacyRouteRedirect} />
           <Route path="/patient-portal" component={LegacyRouteRedirect} />
+          <Route path="/symptom-checker" component={LegacyRouteRedirect} />
           <Route path="/users" component={LegacyRouteRedirect} />
           <Route path="/settings" component={LegacyRouteRedirect} />
           

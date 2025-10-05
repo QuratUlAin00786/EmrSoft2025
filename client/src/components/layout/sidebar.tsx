@@ -30,7 +30,8 @@ import {
   X,
   Shield,
   Bot,
-  Activity
+  Activity,
+  Thermometer
 } from "lucide-react";
 import { useTenant } from "@/hooks/use-tenant";
 import { getActiveSubdomain } from "@/lib/subdomain-utils";
@@ -66,6 +67,7 @@ const ALL_NAVIGATION = [
   { name: "Automation", href: "/automation", icon: Zap, module: "automation" },
   { name: "Patient Portal", href: "/patient-portal", icon: Globe, module: "patient_portal" },
   { name: "Clinical Decision Support", href: "/clinical-decision-support", icon: Brain, module: "ai_insights" },
+  { name: "Symptom Checker", href: "/symptom-checker", icon: Thermometer, module: "ai_insights" },
   { name: "Telemedicine", href: "/telemedicine", icon: Video, module: "telemedicine" },
   { name: "Population Health", href: "/population-health", icon: Users, module: "population_health" },
   { name: "Voice Documentation", href: "/voice-documentation", icon: Mic, module: "voice_documentation" },
