@@ -796,18 +796,33 @@ export default function BillingPage() {
                             <Button variant="outline" size="sm" onClick={() => handleDownloadInvoice(invoice.id)} data-testid="button-download-invoice">
                               <Download className="h-4 w-4" />
                             </Button>
-                            {!isAdmin && invoice.status !== 'draft' && invoice.status !== 'paid' && invoice.status !== 'cancelled' && (
-                              <Button 
-                                variant="default" 
-                                size="sm" 
-                                onClick={() => handlePayNow(invoice)}
-                                data-testid="button-pay-now"
-                                className="bg-bluewave hover:bg-bluewave/90"
-                              >
-                                <CreditCard className="h-4 w-4 mr-1" />
-                                Pay Now
-                              </Button>
-                            )}
+                            {(() => {
+                              const shouldShowButton = !isAdmin && invoice.status !== 'draft' && invoice.status !== 'paid' && invoice.status !== 'cancelled';
+                              console.log('🔍 PAY NOW BUTTON DEBUG:', {
+                                invoiceId: invoice.id,
+                                status: invoice.status,
+                                isAdmin,
+                                userRole: user?.role,
+                                shouldShowButton,
+                                statusChecks: {
+                                  notDraft: invoice.status !== 'draft',
+                                  notPaid: invoice.status !== 'paid',
+                                  notCancelled: invoice.status !== 'cancelled'
+                                }
+                              });
+                              return shouldShowButton ? (
+                                <Button 
+                                  variant="default" 
+                                  size="sm" 
+                                  onClick={() => handlePayNow(invoice)}
+                                  data-testid="button-pay-now"
+                                  className="bg-bluewave hover:bg-bluewave/90"
+                                >
+                                  <CreditCard className="h-4 w-4 mr-1" />
+                                  Pay Now
+                                </Button>
+                              ) : null;
+                            })()}
                           </div>
                         </div>
                       </CardContent>
