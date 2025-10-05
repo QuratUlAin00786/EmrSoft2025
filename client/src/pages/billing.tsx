@@ -637,64 +637,72 @@ export default function BillingPage() {
       
       <div className="flex-1 overflow-auto p-6">
         <div className="space-y-6">
-            {/* Quick Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Total Revenue</p>
-                      <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{formatCurrency(getTotalRevenue())}</p>
+            {/* Quick Stats - Admin Only */}
+            {isAdmin && (
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Total Revenue</p>
+                        <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{formatCurrency(getTotalRevenue())}</p>
+                      </div>
+                      <DollarSign className="h-8 w-8 text-green-600" />
                     </div>
-                    <DollarSign className="h-8 w-8 text-green-600" />
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
 
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Outstanding</p>
-                      <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{formatCurrency(getOutstandingAmount())}</p>
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Outstanding</p>
+                        <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{formatCurrency(getOutstandingAmount())}</p>
+                      </div>
+                      <AlertTriangle className="h-8 w-8 text-red-600" />
                     </div>
-                    <AlertTriangle className="h-8 w-8 text-red-600" />
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
 
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Overdue Invoices</p>
-                      <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">2</p>
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Overdue Invoices</p>
+                        <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">2</p>
+                      </div>
+                      <Clock className="h-8 w-8 text-orange-600" />
                     </div>
-                    <Clock className="h-8 w-8 text-orange-600" />
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
 
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600 dark:text-gray-300">This Month</p>
-                      <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">24</p>
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600 dark:text-gray-300">This Month</p>
+                        <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">24</p>
+                      </div>
+                      <Receipt className="h-8 w-8 text-blue-600" />
                     </div>
-                    <Receipt className="h-8 w-8 text-blue-600" />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
 
             {/* Tabs Navigation */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full max-w-2xl grid-cols-3">
-                <TabsTrigger value="invoices">Invoices</TabsTrigger>
-                <TabsTrigger value="payment-history">Payment History</TabsTrigger>
-                <TabsTrigger value="insurance-claims">Insurance Claims</TabsTrigger>
-              </TabsList>
+              {isAdmin ? (
+                <TabsList className="grid w-full max-w-2xl grid-cols-3">
+                  <TabsTrigger value="invoices">Invoices</TabsTrigger>
+                  <TabsTrigger value="payment-history">Payment History</TabsTrigger>
+                  <TabsTrigger value="insurance-claims">Insurance Claims</TabsTrigger>
+                </TabsList>
+              ) : (
+                <TabsList className="grid w-full max-w-md grid-cols-1">
+                  <TabsTrigger value="invoices">My Invoices</TabsTrigger>
+                </TabsList>
+              )}
 
               <TabsContent value="invoices" className="space-y-4 mt-6">
                 {/* Filters and Actions */}
@@ -849,7 +857,8 @@ export default function BillingPage() {
             )}
               </TabsContent>
 
-              <TabsContent value="payment-history" className="space-y-4 mt-6">
+              {isAdmin && (
+                <TabsContent value="payment-history" className="space-y-4 mt-6">
                 <Card>
                   <CardHeader>
                     <CardTitle>Payment History</CardTitle>
@@ -916,8 +925,10 @@ export default function BillingPage() {
                   </CardContent>
                 </Card>
               </TabsContent>
+              )}
 
-              <TabsContent value="insurance-claims" className="space-y-4 mt-6">
+              {isAdmin && (
+                <TabsContent value="insurance-claims" className="space-y-4 mt-6">
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -1004,11 +1015,13 @@ export default function BillingPage() {
                   </CardContent>
                 </Card>
               </TabsContent>
+              )}
             </Tabs>
 
-          <div className="space-y-6">
-            {/* Report Selection Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {isAdmin && (
+            <div className="space-y-6">
+              {/* Report Selection Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => setSelectedReport('revenue')}>
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
@@ -1284,6 +1297,7 @@ export default function BillingPage() {
               </CardContent>
             </Card>
           </div>
+            )}
         </div>
       </div>
 
