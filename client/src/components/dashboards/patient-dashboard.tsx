@@ -10,6 +10,7 @@ import { useState } from "react";
 import { format } from "date-fns";
 import AIChatbot from "@/components/ai-chatbot";
 import jsPDF from 'jspdf';
+import { getActiveSubdomain } from "@/lib/subdomain-utils";
 
 const statusColors = {
   scheduled: "#4A7DFF",
@@ -109,8 +110,9 @@ export function PatientDashboard() {
     queryKey: ["/api/appointments"],
     queryFn: async () => {
       const token = localStorage.getItem('auth_token');
+      const subdomain = localStorage.getItem('user_subdomain') || getActiveSubdomain();
       const headers: Record<string, string> = {
-        'X-Tenant-Subdomain': 'demo'
+        'X-Tenant-Subdomain': subdomain
       };
       
       if (token) {
@@ -384,12 +386,24 @@ export function PatientDashboard() {
   const getUpcomingAppointments = () => {
     const now = new Date();
     
-    // Filter appointments for patient ID 25 (Shabana ali with email patient2@cura.com)
+    // For patient users, filter appointments by current patient's database ID
+    // For non-patient users, show all appointments
     const patientAppointments = safeAppointmentsData.filter((appointment: any) => {
-      const isForCurrentPatient = appointment.patientId === 25; // Shabana's patient ID
+      // If user is a patient, only show their appointments
+      if (user?.role === 'patient') {
+        // appointment.patientId is the integer database ID from the appointments table
+        // currentPatient.id is the integer database ID from the patients table
+        const isForCurrentPatient = currentPatient && appointment.patientId === currentPatient.id;
+        
+        const appointmentDate = new Date(appointment.scheduledAt);
+        const isUpcoming = appointmentDate >= now; // Include today's appointments
+        
+        return isForCurrentPatient && isUpcoming;
+      }
+      
+      // For non-patient users, show all upcoming appointments
       const appointmentDate = new Date(appointment.scheduledAt);
-      const isUpcoming = appointmentDate >= now; // Include today's appointments
-      return isForCurrentPatient && isUpcoming;
+      return appointmentDate >= now;
     });
 
     // Sort by date (earliest first)
