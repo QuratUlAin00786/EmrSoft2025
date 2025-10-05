@@ -93,11 +93,11 @@ const roleSchema = z.object({
       create: z.boolean(),
       edit: z.boolean(),
       delete: z.boolean(),
-    })),
+    })).optional().default({}),
     fields: z.record(z.object({
       view: z.boolean(),
       edit: z.boolean(),
-    })),
+    })).optional().default({}),
   }),
 });
 
