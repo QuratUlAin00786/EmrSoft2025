@@ -451,6 +451,31 @@ export const invoices = pgTable("invoices", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Payments - Medical billing payments
+export const payments = pgTable("payments", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  invoiceId: integer("invoice_id").notNull(), // Reference to invoices.id
+  patientId: text("patient_id").notNull(), // Reference to patients.patientId
+  transactionId: text("transaction_id").notNull().unique(), // Stripe/PayPal transaction ID
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  currency: varchar("currency", { length: 3 }).notNull().default("GBP"),
+  paymentMethod: varchar("payment_method", { length: 20 }).notNull(), // online, cash, card, bank_transfer
+  paymentProvider: varchar("payment_provider", { length: 50 }), // stripe, paypal, etc.
+  paymentStatus: varchar("payment_status", { length: 20 }).notNull().default("completed"), // completed, pending, failed, refunded
+  paymentDate: timestamp("payment_date").notNull().defaultNow(),
+  metadata: jsonb("metadata").$type<{
+    stripePaymentIntentId?: string;
+    paypalOrderId?: string;
+    cardLast4?: string;
+    cardBrand?: string;
+    receiptUrl?: string;
+    notes?: string;
+  }>().default({}),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // AI Insights
 export const aiInsights = pgTable("ai_insights", {
   id: serial("id").primaryKey(),
@@ -2018,6 +2043,20 @@ export const insertInvoiceSchema = createInsertSchema(invoices).omit({
 
 export type Invoice = typeof invoices.$inferSelect;
 export type InsertInvoice = z.infer<typeof insertInvoiceSchema>;
+
+export const insertPaymentSchema = createInsertSchema(payments).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  invoiceId: z.number().int().positive("Invoice ID is required"),
+  transactionId: z.string().trim().min(1, "Transaction ID is required"),
+  amount: z.coerce.number().positive("Payment amount must be greater than 0"),
+  paymentMethod: z.string().trim().min(1, "Payment method is required"),
+});
+
+export type Payment = typeof payments.$inferSelect;
+export type InsertPayment = z.infer<typeof insertPaymentSchema>;
 
 export const insertAiInsightSchema = createInsertSchema(aiInsights).omit({
   id: true,
