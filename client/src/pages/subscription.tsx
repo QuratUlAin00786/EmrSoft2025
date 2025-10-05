@@ -10,62 +10,7 @@ import { PaymentMethodDialog } from "@/components/payment-method-dialog";
 import type { Subscription } from "@/types";
 import type { SaaSPackage } from "@shared/schema";
 
-const plans = [
-  {
-    id: "starter",
-    name: "Starter",
-    price:  49,
-    userLimit: 5,
-    features: [
-      "Basic patient management",
-      "Appointment scheduling",
-      "Medical records",
-      "Email support",
-      "Mobile app access"
-    ],
-    notIncluded: [
-      "AI insights",
-      "Advanced reporting",
-      "API access",
-      "White labeling"
-    ]
-  },
-  {
-    id: "professional",
-    name: "Professional",
-    price: 99 ,
-    userLimit: 25,
-    popular: true,
-    features: [
-      "Everything in Starter",
-      "AI-powered insights",
-      "Advanced reporting",
-      "Priority support",
-      "Custom forms",
-      "Data exports"
-    ],
-    notIncluded: [
-      "API access",
-      "White labeling"
-    ]
-  },
-  {
-    id: "enterprise",
-    name: "Enterprise",
-    price: 199,
-    userLimit: 100,
-    features: [
-      "Everything in Professional",
-      "Full API access",
-      "White labeling",
-      "SSO integration",
-      "Dedicated support",
-      "Custom integrations",
-      "Advanced security"
-    ],
-    notIncluded: []
-  }
-];
+// Plans are now fetched from database - see dbPackages query below
 
 // Helper function to map package names to icons
 const getPackageIcon = (name: string) => {
@@ -114,8 +59,23 @@ export default function Subscription() {
     queryKey: ["/api/website/packages"],
   });
 
-  // Transform database packages to component format
-  const packages = (dbPackages || []).map(pkg => ({
+  // Split packages into subscription plans (have maxUsers) and add-ons (don't have maxUsers)
+  const dbPlans = (dbPackages || []).filter(pkg => pkg.features?.maxUsers);
+  const dbAddons = (dbPackages || []).filter(pkg => !pkg.features?.maxUsers);
+
+  // Transform database plans to component format for "Available Plans" section
+  const plans = dbPlans.map(pkg => ({
+    id: pkg.id.toString(),
+    name: pkg.name,
+    price: parseFloat(pkg.price),
+    userLimit: pkg.features?.maxUsers || 0,
+    popular: pkg.name.toLowerCase().includes('professional') || pkg.name.toLowerCase().includes('pro'),
+    features: formatPackageFeatures(pkg.features),
+    notIncluded: [] as string[] // Database doesn't store not-included features
+  }));
+
+  // Transform database add-ons to component format for "Add-on Packages" section
+  const packages = dbAddons.map(pkg => ({
     id: pkg.id.toString(),
     name: pkg.name,
     price: parseFloat(pkg.price),
