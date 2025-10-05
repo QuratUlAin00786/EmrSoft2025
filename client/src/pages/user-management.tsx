@@ -570,31 +570,40 @@ export default function UserManagement() {
   const handleEditRole = (role: Role) => {
     setEditingRole(role);
     
+    // Define ALL possible modules
+    const allModules = [
+      'patients', 'appointments', 'medicalRecords', 'prescriptions', 'billing', 
+      'analytics', 'userManagement', 'settings', 'aiInsights', 'messaging', 
+      'telemedicine', 'labResults', 'medicalImaging', 'forms'
+    ];
+    
     // Ensure all module permissions have all required fields
     const normalizedModules: Record<string, any> = {};
-    if (role.permissions?.modules) {
-      Object.keys(role.permissions.modules).forEach((moduleKey) => {
-        const modulePerms = role.permissions.modules[moduleKey] || {};
-        normalizedModules[moduleKey] = {
-          view: modulePerms.view ?? false,
-          create: modulePerms.create ?? false,
-          edit: modulePerms.edit ?? false,
-          delete: modulePerms.delete ?? false,
-        };
-      });
-    }
+    allModules.forEach((moduleKey) => {
+      const modulePerms = role.permissions?.modules?.[moduleKey] || {};
+      normalizedModules[moduleKey] = {
+        view: modulePerms.view ?? false,
+        create: modulePerms.create ?? false,
+        edit: modulePerms.edit ?? false,
+        delete: modulePerms.delete ?? false,
+      };
+    });
+    
+    // Define ALL possible fields
+    const allFields = [
+      'patientSensitiveInfo', 'financialData', 'medicalHistory', 'prescriptionDetails',
+      'labResults', 'imagingResults', 'billingInformation', 'insuranceDetails'
+    ];
     
     // Ensure all field permissions have all required fields
     const normalizedFields: Record<string, any> = {};
-    if (role.permissions?.fields) {
-      Object.keys(role.permissions.fields).forEach((fieldKey) => {
-        const fieldPerms = role.permissions.fields[fieldKey] || {};
-        normalizedFields[fieldKey] = {
-          view: fieldPerms.view ?? false,
-          edit: fieldPerms.edit ?? false,
-        };
-      });
-    }
+    allFields.forEach((fieldKey) => {
+      const fieldPerms = role.permissions?.fields?.[fieldKey] || {};
+      normalizedFields[fieldKey] = {
+        view: fieldPerms.view ?? false,
+        edit: fieldPerms.edit ?? false,
+      };
+    });
     
     roleForm.reset({
       name: role.name,
@@ -1767,7 +1776,13 @@ export default function UserManagement() {
                                       type="checkbox"
                                       checked={currentPerms[action] || false}
                                       onChange={(e) => {
-                                        const newPerms = { ...currentPerms, [action]: e.target.checked };
+                                        const newPerms = { 
+                                          view: currentPerms.view ?? false,
+                                          create: currentPerms.create ?? false,
+                                          edit: currentPerms.edit ?? false,
+                                          delete: currentPerms.delete ?? false,
+                                          [action]: e.target.checked 
+                                        };
                                         roleForm.setValue(`permissions.modules.${module.key}`, newPerms, { 
                                           shouldValidate: true,
                                           shouldDirty: true,
@@ -1810,7 +1825,10 @@ export default function UserManagement() {
                                         type="checkbox"
                                         checked={currentFieldPerms.view || false}
                                         onChange={(e) => {
-                                          const newPerms = { ...currentFieldPerms, view: e.target.checked };
+                                          const newPerms = { 
+                                            view: e.target.checked,
+                                            edit: currentFieldPerms.edit ?? false
+                                          };
                                           roleForm.setValue(`permissions.fields.${field.key}`, newPerms, {
                                             shouldValidate: true,
                                             shouldDirty: true,
@@ -1826,7 +1844,10 @@ export default function UserManagement() {
                                         type="checkbox"
                                         checked={currentFieldPerms.edit || false}
                                         onChange={(e) => {
-                                          const newPerms = { ...currentFieldPerms, edit: e.target.checked };
+                                          const newPerms = { 
+                                            view: currentFieldPerms.view ?? false,
+                                            edit: e.target.checked
+                                          };
                                           roleForm.setValue(`permissions.fields.${field.key}`, newPerms, {
                                             shouldValidate: true,
                                             shouldDirty: true,
