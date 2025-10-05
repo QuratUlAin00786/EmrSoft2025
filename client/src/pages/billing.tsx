@@ -796,7 +796,7 @@ export default function BillingPage() {
                             <Button variant="outline" size="sm" onClick={() => handleDownloadInvoice(invoice.id)} data-testid="button-download-invoice">
                               <Download className="h-4 w-4" />
                             </Button>
-                            {!isAdmin && invoice.status !== 'paid' && invoice.status !== 'cancelled' && (
+                            {!isAdmin && invoice.status !== 'draft' && invoice.status !== 'paid' && invoice.status !== 'cancelled' && (
                               <Button 
                                 variant="default" 
                                 size="sm" 
