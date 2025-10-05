@@ -12579,16 +12579,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Billing & Invoice routes
-  app.get("/api/billing/invoices", requireRole(["admin", "doctor", "nurse", "receptionist"]), async (req: TenantRequest, res) => {
+  app.get("/api/billing/invoices", requireRole(["admin", "doctor", "nurse", "receptionist", "patient"]), async (req: TenantRequest, res) => {
     try {
       const { status } = req.query;
       
       console.log("📋 Fetching invoices for organization:", req.tenant!.id, "Status filter:", status);
       
-      const invoices = await storage.getInvoicesByOrganization(
+      let invoices = await storage.getInvoicesByOrganization(
         req.tenant!.id,
         status as string | undefined
       );
+      
+      // Filter invoices for patient users - only show their own invoices
+      if (req.user?.role === "patient") {
+        invoices = invoices.filter(invoice => invoice.patientId === String(req.user!.id));
+        console.log(`🔒 Patient user - filtered to ${invoices.length} invoices for patient ID: ${req.user!.id}`);
+      }
       
       console.log(`✅ Found ${invoices.length} invoices`);
       res.json(invoices);
