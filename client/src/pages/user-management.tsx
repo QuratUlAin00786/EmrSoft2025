@@ -35,7 +35,7 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Plus, Edit, Trash2, UserPlus, Shield, Stethoscope, Users, Calendar, User, TestTube, Lock, BookOpen, X, Check } from "lucide-react";
+import { Plus, Edit, Trash2, UserPlus, Shield, Stethoscope, Users, Calendar, User, TestTube, Lock, BookOpen, X, Check, LayoutGrid, LayoutList } from "lucide-react";
 import { Link } from "wouter";
 import { toast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -326,6 +326,13 @@ export default function UserManagement() {
   const [editingRole, setEditingRole] = useState<Role | null>(null);
   const [activeTab, setActiveTab] = useState<"users" | "roles">("users");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  
+  // View type states
+  const [userViewType, setUserViewType] = useState<"list" | "grid">("list");
+  const [roleViewType, setRoleViewType] = useState<"list" | "grid">("list");
+  
+  // Role filter state
+  const [roleFilter, setRoleFilter] = useState<string>("all");
   
   // Email validation states
   const [emailValidationStatus, setEmailValidationStatus] = useState<'idle' | 'checking' | 'available' | 'exists'>('idle');
@@ -928,12 +935,39 @@ export default function UserManagement() {
   };
 
   const filteredUsers = users.filter(
-    (user) =>
-      user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.role.toLowerCase().includes(searchTerm.toLowerCase())
+    (user) => {
+      const matchesSearch = 
+        user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.role.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesRole = roleFilter === "all" || user.role === roleFilter;
+      
+      return matchesSearch && matchesRole;
+    }
   );
+  
+  // Group users by role
+  const groupedUsers = filteredUsers.reduce((acc, user) => {
+    const role = user.role;
+    if (!acc[role]) {
+      acc[role] = [];
+    }
+    acc[role].push(user);
+    return acc;
+  }, {} as Record<string, typeof filteredUsers>);
+  
+  // Role display names
+  const roleDisplayNames: Record<string, string> = {
+    admin: "Admins",
+    doctor: "Doctors",
+    nurse: "Nurses",
+    receptionist: "Receptionists",
+    patient: "Patients",
+    sample_taker: "Sample Takers",
+    lab_technician: "Lab Technicians"
+  };
 
   // Debug: Log filtered users to see exactly what's being rendered
   console.log("Filtered users for rendering:", filteredUsers.map(u => ({
@@ -1039,16 +1073,53 @@ export default function UserManagement() {
           <>
             {/* Header and Controls */}
             <div className="flex items-center justify-between mb-6">
-          <div className="flex-1">
+          <div className="flex-1 flex gap-3 items-center">
             <Input
               placeholder="Search users by name, email, or role..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="max-w-md"
             />
+            <Select value={roleFilter} onValueChange={setRoleFilter}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Filter by role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Roles</SelectItem>
+                <SelectItem value="admin">Admins</SelectItem>
+                <SelectItem value="doctor">Doctors</SelectItem>
+                <SelectItem value="nurse">Nurses</SelectItem>
+                <SelectItem value="receptionist">Receptionists</SelectItem>
+                <SelectItem value="patient">Patients</SelectItem>
+                <SelectItem value="sample_taker">Sample Takers</SelectItem>
+                <SelectItem value="lab_technician">Lab Technicians</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           
           <div className="flex gap-2">
+            {/* View Toggle */}
+            <div className="flex border rounded-lg overflow-hidden">
+              <Button
+                variant={userViewType === "list" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setUserViewType("list")}
+                className="rounded-none"
+                data-testid="button-user-list-view"
+              >
+                <LayoutList className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={userViewType === "grid" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setUserViewType("grid")}
+                className="rounded-none"
+                data-testid="button-user-grid-view"
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </Button>
+            </div>
+            
             <Button 
               onClick={() => {
                 setIsCreateModalOpen(true);
@@ -1586,73 +1657,176 @@ export default function UserManagement() {
               <div className="text-center py-8 text-gray-600 dark:text-gray-300">Loading users...</div>
             ) : filteredUsers.length === 0 ? (
               <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                {searchTerm ? "No users found matching your search." : "No users found."}
+                {searchTerm || roleFilter !== "all" ? "No users found matching your filters." : "No users found."}
+              </div>
+            ) : userViewType === "list" ? (
+              <div className="space-y-6">
+                {Object.entries(groupedUsers).map(([role, roleUsers]) => (
+                  <div key={role} className="space-y-3">
+                    <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 border-b pb-2">
+                      {roleDisplayNames[role] || role} ({roleUsers.length})
+                    </h3>
+                    <div className="space-y-3">
+                      {roleUsers.map((user) => (
+                        <div
+                          key={`user-${user.id}-${user.email}`}
+                          className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 bg-white dark:bg-gray-900"
+                          data-testid={`user-card-${user.id}`}
+                        >
+                          <div className="flex items-center space-x-4">
+                            <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                              {getRoleIcon(user.role)}
+                            </div>
+                            <div>
+                              <h3 className="font-medium text-gray-900 dark:text-gray-100">
+                                {user.firstName || 'N/A'} {user.lastName || 'N/A'}
+                              </h3>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">{user.email}</p>
+                              {user.department && user.department.trim() && (
+                                <p className="text-xs text-gray-400 dark:text-gray-500">{user.department}</p>
+                              )}
+                              {user.workingDays && user.workingDays.length > 0 && (
+                                <p className="text-xs text-blue-600 dark:text-blue-400">
+                                  Working: {user.workingDays.join(", ")} ({user.workingHours?.start || '09:00'} - {user.workingHours?.end || '17:00'})
+                                </p>
+                              )}
+                              
+                              {/* Medical Specialty Tags for Doctors */}
+                              {user.role === 'doctor' && (user.subSpecialty || user.medicalSpecialtyCategory) && (
+                                <div className="flex gap-1 mt-2">
+                                  {user.subSpecialty && (
+                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border">
+                                      {user.subSpecialty}
+                                    </span>
+                                  )}
+                                  {user.medicalSpecialtyCategory && (
+                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border">
+                                      {user.medicalSpecialtyCategory}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center space-x-3">
+                            <Badge className={getRoleColor(user.role)}>
+                              {getRoleDisplayName(user.role)}
+                            </Badge>
+                            
+                            <Badge variant={user.isActive ? "default" : "secondary"}>
+                              {user.isActive ? "Active" : "Inactive"}
+                            </Badge>
+                            
+                            <div className="flex items-center space-x-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleEdit(user)}
+                                title="Edit User"
+                                data-testid={`button-edit-user-${user.id}`}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700" data-testid={`button-delete-user-${user.id}`}>
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Delete User</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Are you sure you want to delete {user.firstName} {user.lastName}? 
+                                      This action cannot be undone and will remove all their access to the system.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => handleDelete(user.id)}
+                                      className="bg-red-600 hover:bg-red-700"
+                                    >
+                                      Delete User
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : (
-              <div className="space-y-4">
-                {filteredUsers.map((user, index) => (
-                  <div
-                    key={`user-${user.id}-${user.email}`}
-                    className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 bg-white dark:bg-gray-900"
-                  >
-                    <div className="flex items-center space-x-4">
-                      <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-                        {getRoleIcon(user.role)}
-                      </div>
-                      <div>
-                        <h3 className="font-medium text-gray-900 dark:text-gray-100">
-                          {user.firstName || 'N/A'} {user.lastName || 'N/A'}
-                        </h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">{user.email}</p>
-                        {user.department && user.department.trim() && (
-                          <p className="text-xs text-gray-400 dark:text-gray-500">{user.department}</p>
-                        )}
-                        {user.workingDays && user.workingDays.length > 0 && (
-                          <p className="text-xs text-blue-600 dark:text-blue-400">
-                            Working: {user.workingDays.join(", ")} ({user.workingHours?.start || '09:00'} - {user.workingHours?.end || '17:00'})
-                          </p>
-                        )}
-                        
-                        {/* Medical Specialty Tags for Doctors */}
-                        {user.role === 'doctor' && (user.subSpecialty || user.medicalSpecialtyCategory) && (
-                          <div className="flex gap-1 mt-2">
-                            {user.subSpecialty && (
-                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border">
-                                {user.subSpecialty}
-                              </span>
-                            )}
-                            {user.medicalSpecialtyCategory && (
-                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border">
-                                {user.medicalSpecialtyCategory}
-                              </span>
-                            )}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredUsers.map((user) => (
+                  <Card key={`user-grid-${user.id}-${user.email}`} className="hover:shadow-lg transition-shadow" data-testid={`user-grid-card-${user.id}`}>
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                            {getRoleIcon(user.role)}
                           </div>
-                        )}
+                          <div>
+                            <h3 className="font-medium text-gray-900 dark:text-gray-100">
+                              {user.firstName || 'N/A'} {user.lastName || 'N/A'}
+                            </h3>
+                            <Badge className={getRoleColor(user.role)}>
+                              {getRoleDisplayName(user.role)}
+                            </Badge>
+                          </div>
+                        </div>
+                        <Badge variant={user.isActive ? "default" : "secondary"}>
+                          {user.isActive ? "Active" : "Inactive"}
+                        </Badge>
                       </div>
-                    </div>
-                    
-                    <div className="flex items-center space-x-3">
-                      <Badge className={getRoleColor(user.role)}>
-                        {getRoleDisplayName(user.role)}
-                      </Badge>
                       
-                      <Badge variant={user.isActive ? "default" : "secondary"}>
-                        {user.isActive ? "Active" : "Inactive"}
-                      </Badge>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{user.email}</p>
                       
-                      <div className="flex items-center space-x-2">
+                      {user.department && user.department.trim() && (
+                        <p className="text-xs text-gray-400 dark:text-gray-500 mb-2">{user.department}</p>
+                      )}
+                      
+                      {user.workingDays && user.workingDays.length > 0 && (
+                        <p className="text-xs text-blue-600 dark:text-blue-400 mb-2">
+                          {user.workingDays.join(", ")} • {user.workingHours?.start || '09:00'} - {user.workingHours?.end || '17:00'}
+                        </p>
+                      )}
+                      
+                      {user.role === 'doctor' && (user.subSpecialty || user.medicalSpecialtyCategory) && (
+                        <div className="flex gap-1 mb-3 flex-wrap">
+                          {user.subSpecialty && (
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border">
+                              {user.subSpecialty}
+                            </span>
+                          )}
+                          {user.medicalSpecialtyCategory && (
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border">
+                              {user.medicalSpecialtyCategory}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      
+                      <div className="flex items-center justify-end space-x-2 pt-3 border-t">
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => handleEdit(user)}
                           title="Edit User"
+                          data-testid={`button-edit-user-grid-${user.id}`}
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
                         
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
+                            <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700" data-testid={`button-delete-user-grid-${user.id}`}>
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </AlertDialogTrigger>
@@ -1676,8 +1850,8 @@ export default function UserManagement() {
                           </AlertDialogContent>
                         </AlertDialog>
                       </div>
-                    </div>
-                  </div>
+                    </CardContent>
+                  </Card>
                 ))}
               </div>
             )}
@@ -1695,19 +1869,42 @@ export default function UserManagement() {
                 <p className="text-sm text-gray-600">Create and manage custom roles with specific permissions</p>
               </div>
               
-              <Dialog open={isRoleModalOpen || !!editingRole} onOpenChange={(open) => {
-                if (!open) {
-                  setIsRoleModalOpen(false);
-                  setEditingRole(null);
-                  roleForm.reset();
-                }
-              }}>
-                <DialogTrigger asChild>
-                  <Button onClick={() => setIsRoleModalOpen(true)} className="flex items-center gap-2">
-                    <Plus className="h-4 w-4" />
-                    Create New Role
+              <div className="flex gap-2">
+                {/* View Toggle for Roles */}
+                <div className="flex border rounded-lg overflow-hidden">
+                  <Button
+                    variant={roleViewType === "list" ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setRoleViewType("list")}
+                    className="rounded-none"
+                    data-testid="button-role-list-view"
+                  >
+                    <LayoutList className="h-4 w-4" />
                   </Button>
-                </DialogTrigger>
+                  <Button
+                    variant={roleViewType === "grid" ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setRoleViewType("grid")}
+                    className="rounded-none"
+                    data-testid="button-role-grid-view"
+                  >
+                    <LayoutGrid className="h-4 w-4" />
+                  </Button>
+                </div>
+              
+                <Dialog open={isRoleModalOpen || !!editingRole} onOpenChange={(open) => {
+                  if (!open) {
+                    setIsRoleModalOpen(false);
+                    setEditingRole(null);
+                    roleForm.reset();
+                  }
+                }}>
+                  <DialogTrigger asChild>
+                    <Button onClick={() => setIsRoleModalOpen(true)} className="flex items-center gap-2">
+                      <Plus className="h-4 w-4" />
+                      Create New Role
+                    </Button>
+                  </DialogTrigger>
                 <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>
@@ -1959,6 +2156,7 @@ export default function UserManagement() {
                   </form>
                 </DialogContent>
               </Dialog>
+              </div>
             </div>
 
             {/* Roles List */}
@@ -1973,12 +2171,13 @@ export default function UserManagement() {
                   <div className="text-center py-8 text-gray-500">
                     No roles found. Create your first custom role to get started.
                   </div>
-                ) : (
+                ) : roleViewType === "list" ? (
                   <div className="space-y-4">
                     {roles.map((role: Role) => (
                       <div
                         key={role.id}
                         className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
+                        data-testid={`role-card-${role.id}`}
                       >
                         <div className="flex items-center space-x-4">
                           <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
@@ -2005,6 +2204,7 @@ export default function UserManagement() {
                               size="sm"
                               onClick={() => handleEditRole(role)}
                               className="text-blue-600 hover:text-blue-700"
+                              data-testid={`button-edit-role-${role.id}`}
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
@@ -2013,7 +2213,7 @@ export default function UserManagement() {
                             {role.isSystem === false && (
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
-                                  <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
+                                  <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700" data-testid={`button-delete-role-${role.id}`}>
                                     <Trash2 className="h-4 w-4" />
                                   </Button>
                                 </AlertDialogTrigger>
@@ -2040,6 +2240,73 @@ export default function UserManagement() {
                           </div>
                         </div>
                       </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {roles.map((role: Role) => (
+                      <Card key={`role-grid-${role.id}`} className="hover:shadow-lg transition-shadow" data-testid={`role-grid-card-${role.id}`}>
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex items-center space-x-3">
+                              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                                <Shield className="h-6 w-6 text-blue-600" />
+                              </div>
+                              <div>
+                                <h3 className="font-medium text-gray-900">
+                                  {role.displayName}
+                                </h3>
+                                <Badge variant={role.isSystem ? "secondary" : "default"}>
+                                  {role.isSystem ? "System" : "Custom"}
+                                </Badge>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <p className="text-sm text-gray-500 mb-2">{role.description}</p>
+                          <p className="text-xs text-gray-400 mb-3">Role ID: {role.name}</p>
+                          
+                          <div className="flex items-center justify-end space-x-2 pt-3 border-t">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEditRole(role)}
+                              className="text-blue-600 hover:text-blue-700"
+                              data-testid={`button-edit-role-grid-${role.id}`}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            
+                            {role.isSystem === false && (
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700" data-testid={`button-delete-role-grid-${role.id}`}>
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Delete Role</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Are you sure you want to delete the "{role.displayName}" role? 
+                                      This action cannot be undone and will affect all users with this role.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => handleDeleteRole(role.id)}
+                                      className="bg-red-600 hover:bg-red-700"
+                                    >
+                                      Delete Role
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
                     ))}
                   </div>
                 )}
