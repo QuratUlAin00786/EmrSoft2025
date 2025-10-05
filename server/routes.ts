@@ -12769,6 +12769,131 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create Stripe Payment Intent for invoice payment
+  app.post("/api/billing/create-payment-intent", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const { invoiceId } = req.body;
+
+      if (!invoiceId) {
+        return res.status(400).json({ error: "Invoice ID is required" });
+      }
+
+      // Get invoice details
+      const invoices = await storage.getInvoicesByOrganization(req.tenant!.id);
+      const invoice = invoices.find(inv => inv.id === Number(invoiceId));
+
+      if (!invoice) {
+        return res.status(404).json({ error: "Invoice not found" });
+      }
+
+      // Check if invoice is already paid
+      if (invoice.status === 'paid') {
+        return res.status(400).json({ error: "Invoice is already paid" });
+      }
+
+      // Calculate amount to pay (total - already paid)
+      const totalAmount = typeof invoice.totalAmount === 'string' ? parseFloat(invoice.totalAmount) : invoice.totalAmount;
+      const paidAmount = typeof invoice.paidAmount === 'string' ? parseFloat(invoice.paidAmount) : invoice.paidAmount;
+      const amountToPay = totalAmount - paidAmount;
+
+      if (amountToPay <= 0) {
+        return res.status(400).json({ error: "Invoice is already fully paid" });
+      }
+
+      // Create Stripe payment intent
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(amountToPay * 100), // Convert to pence/cents
+        currency: "gbp",
+        metadata: {
+          invoiceId: invoice.id.toString(),
+          patientId: invoice.patientId,
+          organizationId: req.tenant!.id.toString(),
+        },
+        description: `Payment for Invoice ${invoice.invoiceNumber} - ${invoice.patientName}`,
+      });
+
+      res.json({ 
+        clientSecret: paymentIntent.client_secret,
+        amount: amountToPay,
+        invoiceNumber: invoice.invoiceNumber,
+        patientName: invoice.patientName
+      });
+    } catch (error: any) {
+      console.error("Payment intent creation error:", error);
+      res.status(500).json({ error: error.message || "Failed to create payment intent" });
+    }
+  });
+
+  // Process successful payment and update invoice
+  app.post("/api/billing/process-payment", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const { paymentIntentId, invoiceId } = req.body;
+
+      if (!paymentIntentId || !invoiceId) {
+        return res.status(400).json({ error: "Payment intent ID and invoice ID are required" });
+      }
+
+      // Retrieve payment intent from Stripe to verify payment
+      const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+
+      if (paymentIntent.status !== 'succeeded') {
+        return res.status(400).json({ error: "Payment not successful" });
+      }
+
+      // Get invoice details
+      const invoices = await storage.getInvoicesByOrganization(req.tenant!.id);
+      const invoice = invoices.find(inv => inv.id === Number(invoiceId));
+
+      if (!invoice) {
+        return res.status(404).json({ error: "Invoice not found" });
+      }
+
+      const paidAmount = paymentIntent.amount / 100; // Convert from pence/cents to pounds
+
+      // Record payment in payments table
+      const paymentData = {
+        organizationId: req.tenant!.id,
+        invoiceId: Number(invoiceId),
+        patientId: invoice.patientId,
+        transactionId: paymentIntentId,
+        amount: paidAmount.toString(),
+        currency: (paymentIntent.currency || 'gbp').toUpperCase(),
+        paymentMethod: 'online',
+        paymentProvider: 'stripe',
+        paymentStatus: 'completed',
+        paymentDate: new Date(),
+        metadata: {
+          stripePaymentIntentId: paymentIntentId,
+          cardLast4: paymentIntent.charges?.data[0]?.payment_method_details?.card?.last4,
+          cardBrand: paymentIntent.charges?.data[0]?.payment_method_details?.card?.brand,
+          receiptUrl: paymentIntent.charges?.data[0]?.receipt_url,
+        }
+      };
+
+      await storage.createPayment(paymentData);
+
+      // Update invoice status to paid
+      const currentPaidAmount = typeof invoice.paidAmount === 'string' ? parseFloat(invoice.paidAmount) : invoice.paidAmount;
+      const totalAmount = typeof invoice.totalAmount === 'string' ? parseFloat(invoice.totalAmount) : invoice.totalAmount;
+      const newPaidAmount = currentPaidAmount + paidAmount;
+
+      await storage.updateInvoice(Number(invoiceId), req.tenant!.id, {
+        status: 'paid',
+        paidAmount: newPaidAmount.toString(),
+        updatedAt: new Date(),
+      });
+
+      res.json({ 
+        success: true, 
+        message: "Payment processed successfully",
+        receiptUrl: paymentIntent.charges?.data[0]?.receipt_url
+      });
+    } catch (error: any) {
+      console.error("Payment processing error:", error);
+      res.status(500).json({ error: error.message || "Failed to process payment" });
+    }
+  });
+
   // Send invoice via email
   app.post("/api/billing/send-invoice", requireRole(["admin", "doctor", "nurse", "receptionist"]), async (req: TenantRequest, res) => {
     try {

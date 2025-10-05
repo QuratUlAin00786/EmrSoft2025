@@ -1,5 +1,5 @@
 import { 
-  organizations, users, patients, medicalRecords, appointments, invoices, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages, clinicalPhotos, labResults, claims, revenueRecords, insuranceVerifications, clinicalProcedures, emergencyProtocols, medicationsDatabase, roles, staffShifts, gdprConsents, gdprDataRequests, gdprAuditTrail, gdprProcessingActivities, conversations as conversationsTable, messages, voiceNotes, saasOwners, saasPackages, saasSubscriptions, saasPayments, saasInvoices, saasSettings, chatbotConfigs, chatbotSessions, chatbotMessages, chatbotAnalytics, musclePositions, userDocumentPreferences, letterDrafts, forecastModels, financialForecasts, quickbooksConnections, quickbooksSyncLogs, quickbooksCustomerMappings, quickbooksInvoiceMappings, quickbooksPaymentMappings, quickbooksAccountMappings, quickbooksItemMappings, quickbooksSyncConfigs,
+  organizations, users, patients, medicalRecords, appointments, invoices, payments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages, clinicalPhotos, labResults, claims, revenueRecords, insuranceVerifications, clinicalProcedures, emergencyProtocols, medicationsDatabase, roles, staffShifts, gdprConsents, gdprDataRequests, gdprAuditTrail, gdprProcessingActivities, conversations as conversationsTable, messages, voiceNotes, saasOwners, saasPackages, saasSubscriptions, saasPayments, saasInvoices, saasSettings, chatbotConfigs, chatbotSessions, chatbotMessages, chatbotAnalytics, musclePositions, userDocumentPreferences, letterDrafts, forecastModels, financialForecasts, quickbooksConnections, quickbooksSyncLogs, quickbooksCustomerMappings, quickbooksInvoiceMappings, quickbooksPaymentMappings, quickbooksAccountMappings, quickbooksItemMappings, quickbooksSyncConfigs,
   type Organization, type InsertOrganization,
   type User, type InsertUser,
   type Role, type InsertRole,
@@ -208,6 +208,11 @@ export interface IStorage {
   createPatientInvoice(invoice: InsertInvoice): Promise<Invoice>;
   updateInvoice(id: number, organizationId: number, updates: Partial<InsertInvoice>): Promise<Invoice | undefined>;
   deleteInvoice(id: number, organizationId: number): Promise<boolean>;
+  
+  // Payments
+  createPayment(payment: any): Promise<any>;
+  getPaymentsByInvoice(invoiceId: number, organizationId: number): Promise<any[]>;
+  getPaymentsByOrganization(organizationId: number): Promise<any[]>;
 
   // AI Insights
   getAiInsight(id: number, organizationId: number): Promise<AiInsight | undefined>;
@@ -1303,6 +1308,34 @@ export class DatabaseStorage implements IStorage {
       .returning();
     console.log(`Deletion result:`, deleted ? 'SUCCESS' : 'FAILED');
     return !!deleted;
+  }
+
+  // Payments
+  async createPayment(payment: any): Promise<any> {
+    console.log("Creating payment record:", payment);
+    try {
+      const [created] = await db.insert(payments).values([payment]).returning();
+      console.log("Payment record created successfully:", created);
+      return created;
+    } catch (error) {
+      console.error("Error creating payment record:", error);
+      throw error;
+    }
+  }
+
+  async getPaymentsByInvoice(invoiceId: number, organizationId: number): Promise<any[]> {
+    return await db.select().from(payments)
+      .where(and(
+        eq(payments.invoiceId, invoiceId),
+        eq(payments.organizationId, organizationId)
+      ))
+      .orderBy(desc(payments.createdAt));
+  }
+
+  async getPaymentsByOrganization(organizationId: number): Promise<any[]> {
+    return await db.select().from(payments)
+      .where(eq(payments.organizationId, organizationId))
+      .orderBy(desc(payments.createdAt));
   }
 
   // AI Insights
