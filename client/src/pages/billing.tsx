@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import jsPDF from "jspdf";
 import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
@@ -38,7 +39,10 @@ import {
   Filter,
   PieChart,
   FileBarChart,
-  Target
+  Target,
+  Edit,
+  LayoutGrid,
+  List
 } from "lucide-react";
 
 interface Invoice {
@@ -95,6 +99,7 @@ export default function BillingPage() {
   const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [invoiceToPay, setInvoiceToPay] = useState<Invoice | null>(null);
+  const [isListView, setIsListView] = useState(false);
 
   const { data: billingData = [], isLoading, error } = useQuery({
     queryKey: ["/api/billing"],
@@ -697,136 +702,234 @@ export default function BillingPage() {
                           </SelectContent>
                         </Select>
                       </div>
+
+                      <div className="flex items-center gap-2">
+                        <Label htmlFor="list-view-toggle" className="text-sm font-medium text-gray-700 dark:text-gray-300">List View</Label>
+                        <Switch 
+                          id="list-view-toggle"
+                          checked={isListView} 
+                          onCheckedChange={setIsListView}
+                          data-testid="switch-list-view"
+                        />
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
 
                 {/* Invoices List */}
-                <div className="space-y-4">
-                  {filteredInvoices.map((invoice) => (
-                    <Card key={invoice.id} className="hover:shadow-md transition-shadow" data-testid={`invoice-card-${invoice.id}`}>
-                      <CardContent className="p-6">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-3">
-                              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{invoice.patientName}</h3>
-                              {user?.role === 'patient' ? (
-                                <Badge className={`${getStatusColor(invoice.status)} px-3 py-1`}>
-                                  {invoice.status}
-                                </Badge>
-                              ) : (
-                                <Select 
-                                  value={invoice.status} 
-                                  onValueChange={(value) => handleInlineStatusUpdate(invoice.id, value)}
-                                  disabled={updatingStatusId === invoice.id}
-                                >
-                                  <SelectTrigger className={`w-32 h-7 text-xs ${getStatusColor(invoice.status)}`}>
-                                    <SelectValue>{invoice.status}</SelectValue>
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="draft">Draft</SelectItem>
-                                    <SelectItem value="sent">Sent</SelectItem>
-                                    <SelectItem value="paid">Paid</SelectItem>
-                                    <SelectItem value="pending">Pending</SelectItem>
-                                    <SelectItem value="overdue">Overdue</SelectItem>
-                                    <SelectItem value="cancelled">Cancelled</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              )}
-                              {invoice.status === 'overdue' && (
-                                <Badge className="bg-red-100 text-red-800">
-                                  <AlertTriangle className="h-3 w-3 mr-1" />
-                                  Overdue
-                                </Badge>
-                              )}
-                            </div>
-                            
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-                              <div>
-                                <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">Invoice Details</h4>
-                                <div className="space-y-1 text-sm text-gray-900 dark:text-gray-100">
-                                  <div><strong>Invoice:</strong> {invoice.id}</div>
-                                  <div><strong>Service Date:</strong> {format(new Date(invoice.dateOfService), 'MMM d, yyyy')}</div>
-                                  <div><strong>Due Date:</strong> {format(new Date(invoice.dueDate), 'MMM d, yyyy')}</div>
-                                </div>
+                {isListView ? (
+                  /* List View - Table Format */
+                  <Card>
+                    <CardContent className="p-0">
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <thead className="bg-gray-50 dark:bg-slate-800 border-b border-gray-200 dark:border-gray-700">
+                            <tr>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">Invoice No.</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">Patient Name</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">Service Date</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">Due Date</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">Total</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">Outstanding</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">Status</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody className="bg-white dark:bg-slate-900 divide-y divide-gray-200 dark:divide-gray-700">
+                            {filteredInvoices.map((invoice) => (
+                              <tr key={invoice.id} className="hover:bg-gray-50 dark:hover:bg-slate-800" data-testid={`invoice-row-${invoice.id}`}>
+                                <td className="px-4 py-4 text-sm font-medium text-gray-900 dark:text-gray-100">{invoice.id}</td>
+                                <td className="px-4 py-4 text-sm text-gray-900 dark:text-gray-100">{invoice.patientName}</td>
+                                <td className="px-4 py-4 text-sm text-gray-900 dark:text-gray-100">{format(new Date(invoice.dateOfService), 'MMM d, yyyy')}</td>
+                                <td className="px-4 py-4 text-sm text-gray-900 dark:text-gray-100">{format(new Date(invoice.dueDate), 'MMM d, yyyy')}</td>
+                                <td className="px-4 py-4 text-sm font-semibold text-gray-900 dark:text-gray-100">{formatCurrency(invoice.totalAmount)}</td>
+                                <td className="px-4 py-4 text-sm font-semibold text-gray-900 dark:text-gray-100">{formatCurrency(invoice.totalAmount - invoice.paidAmount)}</td>
+                                <td className="px-4 py-4 text-sm">
+                                  {user?.role === 'patient' ? (
+                                    <Badge className={`${getStatusColor(invoice.status)}`}>
+                                      {invoice.status}
+                                    </Badge>
+                                  ) : (
+                                    <Select 
+                                      value={invoice.status} 
+                                      onValueChange={(value) => handleInlineStatusUpdate(invoice.id, value)}
+                                      disabled={updatingStatusId === invoice.id}
+                                    >
+                                      <SelectTrigger className={`w-32 h-8 text-xs ${getStatusColor(invoice.status)}`}>
+                                        <SelectValue>{invoice.status}</SelectValue>
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="draft">Draft</SelectItem>
+                                        <SelectItem value="sent">Sent</SelectItem>
+                                        <SelectItem value="paid">Paid</SelectItem>
+                                        <SelectItem value="pending">Pending</SelectItem>
+                                        <SelectItem value="overdue">Overdue</SelectItem>
+                                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  )}
+                                </td>
+                                <td className="px-4 py-4 text-sm">
+                                  <div className="flex items-center gap-2">
+                                    <Button variant="ghost" size="sm" onClick={() => handleViewInvoice(invoice)} data-testid="button-view-invoice" title="View">
+                                      <Eye className="h-4 w-4" />
+                                    </Button>
+                                    <Button variant="ghost" size="sm" onClick={() => handleDownloadInvoice(invoice.id)} data-testid="button-download-invoice" title="Download">
+                                      <Download className="h-4 w-4" />
+                                    </Button>
+                                    {!isAdmin && invoice.status !== 'draft' && invoice.status !== 'paid' && invoice.status !== 'cancelled' && (
+                                      <Button 
+                                        variant="default" 
+                                        size="sm" 
+                                        onClick={() => handlePayNow(invoice)}
+                                        data-testid="button-pay-now"
+                                        style={{ 
+                                          backgroundColor: '#4A7DFF',
+                                          color: 'white'
+                                        }}
+                                        title="Pay Now"
+                                      >
+                                        <CreditCard className="h-4 w-4 mr-1" />
+                                        Pay
+                                      </Button>
+                                    )}
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  /* Grid View - Card Format */
+                  <div className="space-y-4">
+                    {filteredInvoices.map((invoice) => (
+                      <Card key={invoice.id} className="hover:shadow-md transition-shadow" data-testid={`invoice-card-${invoice.id}`}>
+                        <CardContent className="p-6">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3 mb-3">
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{invoice.patientName}</h3>
+                                {user?.role === 'patient' ? (
+                                  <Badge className={`${getStatusColor(invoice.status)} px-3 py-1`}>
+                                    {invoice.status}
+                                  </Badge>
+                                ) : (
+                                  <Select 
+                                    value={invoice.status} 
+                                    onValueChange={(value) => handleInlineStatusUpdate(invoice.id, value)}
+                                    disabled={updatingStatusId === invoice.id}
+                                  >
+                                    <SelectTrigger className={`w-32 h-7 text-xs ${getStatusColor(invoice.status)}`}>
+                                      <SelectValue>{invoice.status}</SelectValue>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="draft">Draft</SelectItem>
+                                      <SelectItem value="sent">Sent</SelectItem>
+                                      <SelectItem value="paid">Paid</SelectItem>
+                                      <SelectItem value="pending">Pending</SelectItem>
+                                      <SelectItem value="overdue">Overdue</SelectItem>
+                                      <SelectItem value="cancelled">Cancelled</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                )}
+                                {invoice.status === 'overdue' && (
+                                  <Badge className="bg-red-100 text-red-800">
+                                    <AlertTriangle className="h-3 w-3 mr-1" />
+                                    Overdue
+                                  </Badge>
+                                )}
                               </div>
                               
-                              <div>
-                                <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">Amount</h4>
-                                <div className="space-y-1 text-sm text-gray-900 dark:text-gray-100">
-                                  <div><strong>Total:</strong> {formatCurrency(invoice.totalAmount)}</div>
-                                  <div><strong>Paid:</strong> {formatCurrency(invoice.paidAmount)}</div>
-                                  <div><strong>Outstanding:</strong> {formatCurrency(invoice.totalAmount - invoice.paidAmount)}</div>
-                                </div>
-                              </div>
-                              
-                              {invoice.insurance && (
+                              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
                                 <div>
-                                  <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">Insurance</h4>
+                                  <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">Invoice Details</h4>
                                   <div className="space-y-1 text-sm text-gray-900 dark:text-gray-100">
-                                    <div><strong>Provider:</strong> {invoice.insurance.provider}</div>
-                                    <div><strong>Claim:</strong> {invoice.insurance.claimNumber}</div>
-                                    <div className="flex items-center gap-2">
-                                      <strong>Status:</strong>
-                                      <Badge className={getInsuranceStatusColor(invoice.insurance.status)}>
-                                        {invoice.insurance.status}
-                                      </Badge>
-                                    </div>
+                                    <div><strong>Invoice:</strong> {invoice.id}</div>
+                                    <div><strong>Service Date:</strong> {format(new Date(invoice.dateOfService), 'MMM d, yyyy')}</div>
+                                    <div><strong>Due Date:</strong> {format(new Date(invoice.dueDate), 'MMM d, yyyy')}</div>
                                   </div>
                                 </div>
-                              )}
-                            </div>
-
-                            <div className="bg-gray-50 dark:bg-slate-800 p-3 rounded-lg">
-                              <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">Services</h4>
-                              <div className="space-y-1">
-                                {invoice.items.slice(0, 2).map((item: any, index: number) => (
-                                  <div key={index} className="flex justify-between text-sm text-gray-900 dark:text-gray-100">
-                                    <span>{item.description}</span>
-                                    <span>{formatCurrency(item.total)}</span>
+                                
+                                <div>
+                                  <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">Amount</h4>
+                                  <div className="space-y-1 text-sm text-gray-900 dark:text-gray-100">
+                                    <div><strong>Total:</strong> {formatCurrency(invoice.totalAmount)}</div>
+                                    <div><strong>Paid:</strong> {formatCurrency(invoice.paidAmount)}</div>
+                                    <div><strong>Outstanding:</strong> {formatCurrency(invoice.totalAmount - invoice.paidAmount)}</div>
                                   </div>
-                                ))}
-                                {invoice.items.length > 2 && (
-                                  <div className="text-sm text-gray-500 dark:text-gray-400">
-                                    +{invoice.items.length - 2} more items
+                                </div>
+                                
+                                {invoice.insurance && (
+                                  <div>
+                                    <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">Insurance</h4>
+                                    <div className="space-y-1 text-sm text-gray-900 dark:text-gray-100">
+                                      <div><strong>Provider:</strong> {invoice.insurance.provider}</div>
+                                      <div><strong>Claim:</strong> {invoice.insurance.claimNumber}</div>
+                                      <div className="flex items-center gap-2">
+                                        <strong>Status:</strong>
+                                        <Badge className={getInsuranceStatusColor(invoice.insurance.status)}>
+                                          {invoice.insurance.status}
+                                        </Badge>
+                                      </div>
+                                    </div>
                                   </div>
                                 )}
                               </div>
+
+                              <div className="bg-gray-50 dark:bg-slate-800 p-3 rounded-lg">
+                                <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">Services</h4>
+                                <div className="space-y-1">
+                                  {invoice.items.slice(0, 2).map((item: any, index: number) => (
+                                    <div key={index} className="flex justify-between text-sm text-gray-900 dark:text-gray-100">
+                                      <span>{item.description}</span>
+                                      <span>{formatCurrency(item.total)}</span>
+                                    </div>
+                                  ))}
+                                  {invoice.items.length > 2 && (
+                                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                                      +{invoice.items.length - 2} more items
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center gap-2 ml-4">
+                              <Button variant="outline" size="sm" onClick={() => handleViewInvoice(invoice)} data-testid="button-view-invoice">
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              <Button variant="outline" size="sm" onClick={() => handleDownloadInvoice(invoice.id)} data-testid="button-download-invoice">
+                                <Download className="h-4 w-4" />
+                              </Button>
+                              {!isAdmin && invoice.status !== 'draft' && invoice.status !== 'paid' && invoice.status !== 'cancelled' && (
+                                <Button 
+                                  variant="default" 
+                                  size="sm" 
+                                  onClick={() => handlePayNow(invoice)}
+                                  data-testid="button-pay-now"
+                                  style={{ 
+                                    backgroundColor: '#4A7DFF',
+                                    color: 'white',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    padding: '0.5rem 1rem',
+                                    minWidth: '100px'
+                                  }}
+                                >
+                                  <CreditCard className="h-4 w-4 mr-1" />
+                                  Pay Now
+                                </Button>
+                              )}
                             </div>
                           </div>
-                          
-                          <div className="flex items-center gap-2 ml-4">
-                            <Button variant="outline" size="sm" onClick={() => handleViewInvoice(invoice)} data-testid="button-view-invoice">
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button variant="outline" size="sm" onClick={() => handleDownloadInvoice(invoice.id)} data-testid="button-download-invoice">
-                              <Download className="h-4 w-4" />
-                            </Button>
-                            {!isAdmin && invoice.status !== 'draft' && invoice.status !== 'paid' && invoice.status !== 'cancelled' && (
-                              <Button 
-                                variant="default" 
-                                size="sm" 
-                                onClick={() => handlePayNow(invoice)}
-                                data-testid="button-pay-now"
-                                style={{ 
-                                  backgroundColor: '#4A7DFF',
-                                  color: 'white',
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  padding: '0.5rem 1rem',
-                                  minWidth: '100px'
-                                }}
-                              >
-                                <CreditCard className="h-4 w-4 mr-1" />
-                                Pay Now
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
 
                 {filteredInvoices.length === 0 && (
                   <div className="text-center py-12 text-gray-500 dark:text-gray-400" data-testid="no-invoices-message">
@@ -876,136 +979,235 @@ export default function BillingPage() {
                           </Select>
                         </div>
                         
-                        <Button onClick={() => setShowNewInvoice(true)}>
-                          <Plus className="h-4 w-4 mr-2" />
-                          New Invoice
-                        </Button>
+                        <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-2">
+                            <Label htmlFor="admin-list-view-toggle" className="text-sm font-medium text-gray-700 dark:text-gray-300">List View</Label>
+                            <Switch 
+                              id="admin-list-view-toggle"
+                              checked={isListView} 
+                              onCheckedChange={setIsListView}
+                              data-testid="switch-admin-list-view"
+                            />
+                          </div>
+                          <Button onClick={() => setShowNewInvoice(true)}>
+                            <Plus className="h-4 w-4 mr-2" />
+                            New Invoice
+                          </Button>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
 
                   {/* Invoices List */}
-                  <div className="space-y-4">
-                    {filteredInvoices.map((invoice) => (
-                <Card key={invoice.id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-3">
-                          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{invoice.patientName}</h3>
-                          {isAdmin ? (
-                            <Select 
-                              value={invoice.status} 
-                              onValueChange={(value) => handleInlineStatusUpdate(invoice.id, value)}
-                              disabled={updatingStatusId === invoice.id}
-                            >
-                              <SelectTrigger className={`w-32 h-7 text-xs ${getStatusColor(invoice.status)}`}>
-                                <SelectValue>{invoice.status}</SelectValue>
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="draft">Draft</SelectItem>
-                                <SelectItem value="sent">Sent</SelectItem>
-                                <SelectItem value="paid">Paid</SelectItem>
-                                <SelectItem value="pending">Pending</SelectItem>
-                                <SelectItem value="overdue">Overdue</SelectItem>
-                                <SelectItem value="cancelled">Cancelled</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          ) : (
-                            <Badge className={getStatusColor(invoice.status)}>
-                              {invoice.status}
-                            </Badge>
-                          )}
-                          {invoice.status === 'overdue' && (
-                            <Badge className="bg-red-100 text-red-800">
-                              <AlertTriangle className="h-3 w-3 mr-1" />
-                              Overdue
-                            </Badge>
-                          )}
+                  {isListView ? (
+                    /* List View - Table Format */
+                    <Card>
+                      <CardContent className="p-0">
+                        <div className="overflow-x-auto">
+                          <table className="w-full">
+                            <thead className="bg-gray-50 dark:bg-slate-800 border-b border-gray-200 dark:border-gray-700">
+                              <tr>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">Invoice No.</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">Patient Name</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">Service Date</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">Due Date</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">Total</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">Outstanding</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">Status</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                              </tr>
+                            </thead>
+                            <tbody className="bg-white dark:bg-slate-900 divide-y divide-gray-200 dark:divide-gray-700">
+                              {filteredInvoices.map((invoice) => (
+                                <tr key={invoice.id} className="hover:bg-gray-50 dark:hover:bg-slate-800" data-testid={`invoice-row-${invoice.id}`}>
+                                  <td className="px-4 py-4 text-sm font-medium text-gray-900 dark:text-gray-100">{invoice.id}</td>
+                                  <td className="px-4 py-4 text-sm text-gray-900 dark:text-gray-100">{invoice.patientName}</td>
+                                  <td className="px-4 py-4 text-sm text-gray-900 dark:text-gray-100">{format(new Date(invoice.dateOfService), 'MMM d, yyyy')}</td>
+                                  <td className="px-4 py-4 text-sm text-gray-900 dark:text-gray-100">{format(new Date(invoice.dueDate), 'MMM d, yyyy')}</td>
+                                  <td className="px-4 py-4 text-sm font-semibold text-gray-900 dark:text-gray-100">{formatCurrency(invoice.totalAmount)}</td>
+                                  <td className="px-4 py-4 text-sm font-semibold text-gray-900 dark:text-gray-100">{formatCurrency(invoice.totalAmount - invoice.paidAmount)}</td>
+                                  <td className="px-4 py-4 text-sm">
+                                    {isAdmin ? (
+                                      <Select 
+                                        value={invoice.status} 
+                                        onValueChange={(value) => handleInlineStatusUpdate(invoice.id, value)}
+                                        disabled={updatingStatusId === invoice.id}
+                                      >
+                                        <SelectTrigger className={`w-32 h-8 text-xs ${getStatusColor(invoice.status)}`}>
+                                          <SelectValue>{invoice.status}</SelectValue>
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          <SelectItem value="draft">Draft</SelectItem>
+                                          <SelectItem value="sent">Sent</SelectItem>
+                                          <SelectItem value="paid">Paid</SelectItem>
+                                          <SelectItem value="pending">Pending</SelectItem>
+                                          <SelectItem value="overdue">Overdue</SelectItem>
+                                          <SelectItem value="cancelled">Cancelled</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                    ) : (
+                                      <Badge className={`${getStatusColor(invoice.status)}`}>
+                                        {invoice.status}
+                                      </Badge>
+                                    )}
+                                  </td>
+                                  <td className="px-4 py-4 text-sm">
+                                    <div className="flex items-center gap-2">
+                                      <Button variant="ghost" size="sm" onClick={() => handleViewInvoice(invoice)} title="View">
+                                        <Eye className="h-4 w-4" />
+                                      </Button>
+                                      <Button variant="ghost" size="sm" onClick={() => handleDownloadInvoice(invoice.id)} title="Download">
+                                        <Download className="h-4 w-4" />
+                                      </Button>
+                                      {isAdmin && (
+                                        <>
+                                          <Button variant="ghost" size="sm" onClick={() => handleSendInvoice(invoice.id)} title="Send">
+                                            <Send className="h-4 w-4" />
+                                          </Button>
+                                          <Button 
+                                            variant="ghost" 
+                                            size="sm" 
+                                            onClick={() => handleDeleteInvoice(invoice.id)}
+                                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                            title="Delete"
+                                          >
+                                            <Trash2 className="h-4 w-4" />
+                                          </Button>
+                                        </>
+                                      )}
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
                         </div>
-                        
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-                          <div>
-                            <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">Invoice Details</h4>
-                            <div className="space-y-1 text-sm text-gray-900 dark:text-gray-100">
-                              <div><strong>Invoice:</strong> {invoice.id}</div>
-                              <div><strong>Service Date:</strong> {format(new Date(invoice.dateOfService), 'MMM d, yyyy')}</div>
-                              <div><strong>Due Date:</strong> {format(new Date(invoice.dueDate), 'MMM d, yyyy')}</div>
-                            </div>
-                          </div>
-                          
-                          <div>
-                            <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">Amount</h4>
-                            <div className="space-y-1 text-sm text-gray-900 dark:text-gray-100">
-                              <div><strong>Total:</strong> {formatCurrency(invoice.totalAmount)}</div>
-                              <div><strong>Paid:</strong> {formatCurrency(invoice.paidAmount)}</div>
-                              <div><strong>Outstanding:</strong> {formatCurrency(invoice.totalAmount - invoice.paidAmount)}</div>
-                            </div>
-                          </div>
-                          
-                          {invoice.insurance && (
-                            <div>
-                              <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">Insurance</h4>
-                              <div className="space-y-1 text-sm text-gray-900 dark:text-gray-100">
-                                <div><strong>Provider:</strong> {invoice.insurance.provider}</div>
-                                <div><strong>Claim:</strong> {invoice.insurance.claimNumber}</div>
-                                <div className="flex items-center gap-2">
-                                  <strong>Status:</strong>
-                                  <Badge className={getInsuranceStatusColor(invoice.insurance.status)}>
-                                    {invoice.insurance.status}
-                                  </Badge>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    /* Grid View - Card Format */
+                    <div className="space-y-4">
+                      {filteredInvoices.map((invoice) => (
+                        <Card key={invoice.id} className="hover:shadow-md transition-shadow">
+                          <CardContent className="p-6">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-3 mb-3">
+                                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{invoice.patientName}</h3>
+                                  {isAdmin ? (
+                                    <Select 
+                                      value={invoice.status} 
+                                      onValueChange={(value) => handleInlineStatusUpdate(invoice.id, value)}
+                                      disabled={updatingStatusId === invoice.id}
+                                    >
+                                      <SelectTrigger className={`w-32 h-7 text-xs ${getStatusColor(invoice.status)}`}>
+                                        <SelectValue>{invoice.status}</SelectValue>
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="draft">Draft</SelectItem>
+                                        <SelectItem value="sent">Sent</SelectItem>
+                                        <SelectItem value="paid">Paid</SelectItem>
+                                        <SelectItem value="pending">Pending</SelectItem>
+                                        <SelectItem value="overdue">Overdue</SelectItem>
+                                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  ) : (
+                                    <Badge className={getStatusColor(invoice.status)}>
+                                      {invoice.status}
+                                    </Badge>
+                                  )}
+                                  {invoice.status === 'overdue' && (
+                                    <Badge className="bg-red-100 text-red-800">
+                                      <AlertTriangle className="h-3 w-3 mr-1" />
+                                      Overdue
+                                    </Badge>
+                                  )}
+                                </div>
+                                
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+                                  <div>
+                                    <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">Invoice Details</h4>
+                                    <div className="space-y-1 text-sm text-gray-900 dark:text-gray-100">
+                                      <div><strong>Invoice:</strong> {invoice.id}</div>
+                                      <div><strong>Service Date:</strong> {format(new Date(invoice.dateOfService), 'MMM d, yyyy')}</div>
+                                      <div><strong>Due Date:</strong> {format(new Date(invoice.dueDate), 'MMM d, yyyy')}</div>
+                                    </div>
+                                  </div>
+                                  
+                                  <div>
+                                    <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">Amount</h4>
+                                    <div className="space-y-1 text-sm text-gray-900 dark:text-gray-100">
+                                      <div><strong>Total:</strong> {formatCurrency(invoice.totalAmount)}</div>
+                                      <div><strong>Paid:</strong> {formatCurrency(invoice.paidAmount)}</div>
+                                      <div><strong>Outstanding:</strong> {formatCurrency(invoice.totalAmount - invoice.paidAmount)}</div>
+                                    </div>
+                                  </div>
+                                  
+                                  {invoice.insurance && (
+                                    <div>
+                                      <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">Insurance</h4>
+                                      <div className="space-y-1 text-sm text-gray-900 dark:text-gray-100">
+                                        <div><strong>Provider:</strong> {invoice.insurance.provider}</div>
+                                        <div><strong>Claim:</strong> {invoice.insurance.claimNumber}</div>
+                                        <div className="flex items-center gap-2">
+                                          <strong>Status:</strong>
+                                          <Badge className={getInsuranceStatusColor(invoice.insurance.status)}>
+                                            {invoice.insurance.status}
+                                          </Badge>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+
+                                <div className="bg-gray-50 dark:bg-slate-800 p-3 rounded-lg">
+                                  <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">Services</h4>
+                                  <div className="space-y-1">
+                                    {invoice.items.slice(0, 2).map((item: any, index: number) => (
+                                      <div key={index} className="flex justify-between text-sm text-gray-900 dark:text-gray-100">
+                                        <span>{item.description}</span>
+                                        <span>{formatCurrency(item.total)}</span>
+                                      </div>
+                                    ))}
+                                    {invoice.items.length > 2 && (
+                                      <div className="text-sm text-gray-500 dark:text-gray-400">
+                                        +{invoice.items.length - 2} more items
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
+                              
+                              <div className="flex items-center gap-2 ml-4">
+                                <Button variant="outline" size="sm" onClick={() => handleViewInvoice(invoice)}>
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                                <Button variant="outline" size="sm" onClick={() => handleDownloadInvoice(invoice.id)}>
+                                  <Download className="h-4 w-4" />
+                                </Button>
+                                {isAdmin && (
+                                  <>
+                                    <Button variant="outline" size="sm" onClick={() => handleSendInvoice(invoice.id)}>
+                                      <Send className="h-4 w-4" />
+                                    </Button>
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm" 
+                                      onClick={() => handleDeleteInvoice(invoice.id)}
+                                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </>
+                                )}
+                              </div>
                             </div>
-                          )}
-                        </div>
-
-                        <div className="bg-gray-50 dark:bg-slate-800 p-3 rounded-lg">
-                          <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">Services</h4>
-                          <div className="space-y-1">
-                            {invoice.items.slice(0, 2).map((item: any, index: number) => (
-                              <div key={index} className="flex justify-between text-sm text-gray-900 dark:text-gray-100">
-                                <span>{item.description}</span>
-                                <span>{formatCurrency(item.total)}</span>
-                              </div>
-                            ))}
-                            {invoice.items.length > 2 && (
-                              <div className="text-sm text-gray-500 dark:text-gray-400">
-                                +{invoice.items.length - 2} more items
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-2 ml-4">
-                        <Button variant="outline" size="sm" onClick={() => handleViewInvoice(invoice)}>
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={() => handleDownloadInvoice(invoice.id)}>
-                          <Download className="h-4 w-4" />
-                        </Button>
-                        {isAdmin && (
-                          <>
-                            <Button variant="outline" size="sm" onClick={() => handleSendInvoice(invoice.id)}>
-                              <Send className="h-4 w-4" />
-                            </Button>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={() => handleDeleteInvoice(invoice.id)}
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </>
-                        )}
-                      </div>
+                          </CardContent>
+                        </Card>
+                      ))}
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                  )}
 
             {filteredInvoices.length === 0 && (
               <div className="text-center py-12 text-gray-500 dark:text-gray-400">
