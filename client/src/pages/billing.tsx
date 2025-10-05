@@ -568,8 +568,8 @@ export default function BillingPage() {
     
     const matchesStatus = statusFilter === "all" || invoice.status === statusFilter;
     
-    // Role-based filtering: non-admin users only see their own invoices
-    const matchesUser = isAdmin || (user && invoice.patientId === String(user.id));
+    // Role-based filtering: patients only see their own invoices, others see all
+    const matchesUser = user?.role !== 'patient' || (user && invoice.patientId === String(user.id));
     
     return matchesSearch && matchesStatus && matchesUser;
   }) : [];
