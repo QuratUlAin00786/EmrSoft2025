@@ -101,9 +101,7 @@ export default function BillingPage() {
   const [invoiceToPay, setInvoiceToPay] = useState<Invoice | null>(null);
   const [isListView, setIsListView] = useState(false);
   
-  // Additional filter states
-  const [invoiceIdFilter, setInvoiceIdFilter] = useState("");
-  const [patientIdFilter, setPatientIdFilter] = useState("");
+  // Date filter states
   const [serviceDateFrom, setServiceDateFrom] = useState("");
   const [serviceDateTo, setServiceDateTo] = useState("");
   const [dueDateFrom, setDueDateFrom] = useState("");
@@ -552,19 +550,13 @@ export default function BillingPage() {
   });
 
   const filteredInvoices = Array.isArray(invoices) ? invoices.filter((invoice: any) => {
+    // Unified search: Search by Invoice ID, Patient ID, or Patient Name
     const matchesSearch = !searchQuery || 
       invoice.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      String(invoice.id).toLowerCase().includes(searchQuery.toLowerCase());
+      String(invoice.id).toLowerCase().includes(searchQuery.toLowerCase()) ||
+      String(invoice.patientId).toLowerCase().includes(searchQuery.toLowerCase());
     
     const matchesStatus = statusFilter === "all" || invoice.status === statusFilter;
-    
-    // Filter by Invoice ID
-    const matchesInvoiceId = !invoiceIdFilter || 
-      String(invoice.id).toLowerCase().includes(invoiceIdFilter.toLowerCase());
-    
-    // Filter by Patient ID
-    const matchesPatientId = !patientIdFilter || 
-      String(invoice.patientId).toLowerCase().includes(patientIdFilter.toLowerCase());
     
     // Filter by Service Date range
     const invoiceServiceDate = new Date(invoice.dateOfService);
@@ -576,7 +568,7 @@ export default function BillingPage() {
     const matchesDueDateFrom = !dueDateFrom || invoiceDueDate >= new Date(dueDateFrom);
     const matchesDueDateTo = !dueDateTo || invoiceDueDate <= new Date(dueDateTo);
     
-    return matchesSearch && matchesStatus && matchesInvoiceId && matchesPatientId && 
+    return matchesSearch && matchesStatus && 
            matchesServiceDateFrom && matchesServiceDateTo && matchesDueDateFrom && matchesDueDateTo;
   }) : [];
 
@@ -708,10 +700,10 @@ export default function BillingPage() {
                           <div className="relative">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                             <Input
-                              placeholder="Search invoices..."
+                              placeholder="Search by Invoice ID, Patient ID or Name..."
                               value={searchQuery}
                               onChange={(e) => setSearchQuery(e.target.value)}
-                              className="pl-9 w-64"
+                              className="pl-9 w-80"
                               data-testid="input-search-invoices"
                             />
                           </div>
@@ -742,34 +734,10 @@ export default function BillingPage() {
                         </div>
                       </div>
 
-                      {/* Advanced Filters */}
-                      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                      {/* Date Filters */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 pt-3 border-t border-gray-200 dark:border-gray-700">
                         <div>
-                          <Label htmlFor="invoice-id-filter" className="text-xs text-gray-600 dark:text-gray-400 mb-1">Invoice ID</Label>
-                          <Input
-                            id="invoice-id-filter"
-                            placeholder="Filter by Invoice ID"
-                            value={invoiceIdFilter}
-                            onChange={(e) => setInvoiceIdFilter(e.target.value)}
-                            className="h-9 text-sm"
-                            data-testid="input-invoice-id-filter"
-                          />
-                        </div>
-
-                        <div>
-                          <Label htmlFor="patient-id-filter" className="text-xs text-gray-600 dark:text-gray-400 mb-1">Patient ID</Label>
-                          <Input
-                            id="patient-id-filter"
-                            placeholder="Filter by Patient ID"
-                            value={patientIdFilter}
-                            onChange={(e) => setPatientIdFilter(e.target.value)}
-                            className="h-9 text-sm"
-                            data-testid="input-patient-id-filter"
-                          />
-                        </div>
-
-                        <div>
-                          <Label htmlFor="service-date-from" className="text-xs text-gray-600 dark:text-gray-400 mb-1">Service From</Label>
+                          <Label htmlFor="service-date-from" className="text-xs text-gray-600 dark:text-gray-400 mb-1">Service Date From</Label>
                           <Input
                             id="service-date-from"
                             type="date"
@@ -781,7 +749,7 @@ export default function BillingPage() {
                         </div>
 
                         <div>
-                          <Label htmlFor="service-date-to" className="text-xs text-gray-600 dark:text-gray-400 mb-1">Service To</Label>
+                          <Label htmlFor="service-date-to" className="text-xs text-gray-600 dark:text-gray-400 mb-1">Service Date To</Label>
                           <Input
                             id="service-date-to"
                             type="date"
@@ -793,7 +761,7 @@ export default function BillingPage() {
                         </div>
 
                         <div>
-                          <Label htmlFor="due-date-from" className="text-xs text-gray-600 dark:text-gray-400 mb-1">Due From</Label>
+                          <Label htmlFor="due-date-from" className="text-xs text-gray-600 dark:text-gray-400 mb-1">Due Date From</Label>
                           <Input
                             id="due-date-from"
                             type="date"
@@ -805,7 +773,7 @@ export default function BillingPage() {
                         </div>
 
                         <div>
-                          <Label htmlFor="due-date-to" className="text-xs text-gray-600 dark:text-gray-400 mb-1">Due To</Label>
+                          <Label htmlFor="due-date-to" className="text-xs text-gray-600 dark:text-gray-400 mb-1">Due Date To</Label>
                           <Input
                             id="due-date-to"
                             type="date"
@@ -818,14 +786,12 @@ export default function BillingPage() {
                       </div>
 
                       {/* Clear Filters Button */}
-                      {(invoiceIdFilter || patientIdFilter || serviceDateFrom || serviceDateTo || dueDateFrom || dueDateTo) && (
+                      {(serviceDateFrom || serviceDateTo || dueDateFrom || dueDateTo) && (
                         <div className="flex justify-end">
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => {
-                              setInvoiceIdFilter("");
-                              setPatientIdFilter("");
                               setServiceDateFrom("");
                               setServiceDateTo("");
                               setDueDateFrom("");
@@ -834,7 +800,7 @@ export default function BillingPage() {
                             data-testid="button-clear-filters"
                           >
                             <Filter className="h-4 w-4 mr-2" />
-                            Clear Advanced Filters
+                            Clear Date Filters
                           </Button>
                         </div>
                       )}
@@ -1084,10 +1050,10 @@ export default function BillingPage() {
                             <div className="relative">
                               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                               <Input
-                                placeholder="Search invoices..."
+                                placeholder="Search by Invoice ID, Patient ID or Name..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="pl-9 w-64"
+                                className="pl-9 w-80"
                               />
                             </div>
                             
@@ -1123,34 +1089,10 @@ export default function BillingPage() {
                           </div>
                         </div>
 
-                        {/* Advanced Filters */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                        {/* Date Filters */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 pt-3 border-t border-gray-200 dark:border-gray-700">
                           <div>
-                            <Label htmlFor="admin-invoice-id-filter" className="text-xs text-gray-600 dark:text-gray-400 mb-1">Invoice ID</Label>
-                            <Input
-                              id="admin-invoice-id-filter"
-                              placeholder="Filter by Invoice ID"
-                              value={invoiceIdFilter}
-                              onChange={(e) => setInvoiceIdFilter(e.target.value)}
-                              className="h-9 text-sm"
-                              data-testid="input-admin-invoice-id-filter"
-                            />
-                          </div>
-
-                          <div>
-                            <Label htmlFor="admin-patient-id-filter" className="text-xs text-gray-600 dark:text-gray-400 mb-1">Patient ID</Label>
-                            <Input
-                              id="admin-patient-id-filter"
-                              placeholder="Filter by Patient ID"
-                              value={patientIdFilter}
-                              onChange={(e) => setPatientIdFilter(e.target.value)}
-                              className="h-9 text-sm"
-                              data-testid="input-admin-patient-id-filter"
-                            />
-                          </div>
-
-                          <div>
-                            <Label htmlFor="admin-service-date-from" className="text-xs text-gray-600 dark:text-gray-400 mb-1">Service From</Label>
+                            <Label htmlFor="admin-service-date-from" className="text-xs text-gray-600 dark:text-gray-400 mb-1">Service Date From</Label>
                             <Input
                               id="admin-service-date-from"
                               type="date"
@@ -1162,7 +1104,7 @@ export default function BillingPage() {
                           </div>
 
                           <div>
-                            <Label htmlFor="admin-service-date-to" className="text-xs text-gray-600 dark:text-gray-400 mb-1">Service To</Label>
+                            <Label htmlFor="admin-service-date-to" className="text-xs text-gray-600 dark:text-gray-400 mb-1">Service Date To</Label>
                             <Input
                               id="admin-service-date-to"
                               type="date"
@@ -1174,7 +1116,7 @@ export default function BillingPage() {
                           </div>
 
                           <div>
-                            <Label htmlFor="admin-due-date-from" className="text-xs text-gray-600 dark:text-gray-400 mb-1">Due From</Label>
+                            <Label htmlFor="admin-due-date-from" className="text-xs text-gray-600 dark:text-gray-400 mb-1">Due Date From</Label>
                             <Input
                               id="admin-due-date-from"
                               type="date"
@@ -1186,7 +1128,7 @@ export default function BillingPage() {
                           </div>
 
                           <div>
-                            <Label htmlFor="admin-due-date-to" className="text-xs text-gray-600 dark:text-gray-400 mb-1">Due To</Label>
+                            <Label htmlFor="admin-due-date-to" className="text-xs text-gray-600 dark:text-gray-400 mb-1">Due Date To</Label>
                             <Input
                               id="admin-due-date-to"
                               type="date"
@@ -1199,14 +1141,12 @@ export default function BillingPage() {
                         </div>
 
                         {/* Clear Filters Button */}
-                        {(invoiceIdFilter || patientIdFilter || serviceDateFrom || serviceDateTo || dueDateFrom || dueDateTo) && (
+                        {(serviceDateFrom || serviceDateTo || dueDateFrom || dueDateTo) && (
                           <div className="flex justify-end">
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => {
-                                setInvoiceIdFilter("");
-                                setPatientIdFilter("");
                                 setServiceDateFrom("");
                                 setServiceDateTo("");
                                 setDueDateFrom("");
@@ -1215,7 +1155,7 @@ export default function BillingPage() {
                               data-testid="button-admin-clear-filters"
                             >
                               <Filter className="h-4 w-4 mr-2" />
-                              Clear Advanced Filters
+                              Clear Date Filters
                             </Button>
                           </div>
                         )}
