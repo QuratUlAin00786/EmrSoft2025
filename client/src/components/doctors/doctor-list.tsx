@@ -176,6 +176,20 @@ export function DoctorList({
     enabled: isBookingOpen,
   });
 
+  // Fetch roles from database (excluding patient role)
+  const { data: rolesData } = useQuery({
+    queryKey: ["/api/roles"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/roles");
+      const data = await response.json();
+      return data;
+    },
+    enabled: user?.role === 'patient',
+  });
+
+  // Filter roles to exclude patient role
+  const availableRoles = rolesData?.filter((role: any) => role.name !== 'patient') || [];
+
   // Fetch all shifts for the selected doctor to determine available dates
   const { data: allDoctorShifts } = useQuery({
     queryKey: ["/api/shifts/doctor", selectedBookingDoctor?.id],
@@ -643,10 +657,11 @@ export function DoctorList({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Roles</SelectItem>
-                <SelectItem value="doctor">Doctor</SelectItem>
-                <SelectItem value="nurse">Nurse</SelectItem>
-                <SelectItem value="receptionist">Receptionist</SelectItem>
-                <SelectItem value="sample_taker">Sample Taker</SelectItem>
+                {availableRoles.map((role: any) => (
+                  <SelectItem key={role.id} value={role.name}>
+                    {role.displayName || role.name.charAt(0).toUpperCase() + role.name.slice(1).replace('_', ' ')}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           )}
@@ -676,10 +691,11 @@ export function DoctorList({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Roles</SelectItem>
-                <SelectItem value="doctor">Doctor</SelectItem>
-                <SelectItem value="nurse">Nurse</SelectItem>
-                <SelectItem value="receptionist">Receptionist</SelectItem>
-                <SelectItem value="sample_taker">Sample Taker</SelectItem>
+                {availableRoles.map((role: any) => (
+                  <SelectItem key={role.id} value={role.name}>
+                    {role.displayName || role.name.charAt(0).toUpperCase() + role.name.slice(1).replace('_', ' ')}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           )}
