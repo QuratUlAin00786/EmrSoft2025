@@ -710,23 +710,29 @@ export default function BillingPage() {
                           <div className="flex-1">
                             <div className="flex items-center gap-3 mb-3">
                               <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{invoice.patientName}</h3>
-                              <Select 
-                                value={invoice.status} 
-                                onValueChange={(value) => handleInlineStatusUpdate(invoice.id, value)}
-                                disabled={updatingStatusId === invoice.id}
-                              >
-                                <SelectTrigger className={`w-32 h-7 text-xs ${getStatusColor(invoice.status)}`}>
-                                  <SelectValue>{invoice.status}</SelectValue>
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="draft">Draft</SelectItem>
-                                  <SelectItem value="sent">Sent</SelectItem>
-                                  <SelectItem value="paid">Paid</SelectItem>
-                                  <SelectItem value="pending">Pending</SelectItem>
-                                  <SelectItem value="overdue">Overdue</SelectItem>
-                                  <SelectItem value="cancelled">Cancelled</SelectItem>
-                                </SelectContent>
-                              </Select>
+                              {user?.role === 'patient' ? (
+                                <Badge className={`${getStatusColor(invoice.status)} px-3 py-1`}>
+                                  {invoice.status}
+                                </Badge>
+                              ) : (
+                                <Select 
+                                  value={invoice.status} 
+                                  onValueChange={(value) => handleInlineStatusUpdate(invoice.id, value)}
+                                  disabled={updatingStatusId === invoice.id}
+                                >
+                                  <SelectTrigger className={`w-32 h-7 text-xs ${getStatusColor(invoice.status)}`}>
+                                    <SelectValue>{invoice.status}</SelectValue>
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="draft">Draft</SelectItem>
+                                    <SelectItem value="sent">Sent</SelectItem>
+                                    <SelectItem value="paid">Paid</SelectItem>
+                                    <SelectItem value="pending">Pending</SelectItem>
+                                    <SelectItem value="overdue">Overdue</SelectItem>
+                                    <SelectItem value="cancelled">Cancelled</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              )}
                               {invoice.status === 'overdue' && (
                                 <Badge className="bg-red-100 text-red-800">
                                   <AlertTriangle className="h-3 w-3 mr-1" />
