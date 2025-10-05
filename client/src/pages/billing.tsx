@@ -100,6 +100,14 @@ export default function BillingPage() {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [invoiceToPay, setInvoiceToPay] = useState<Invoice | null>(null);
   const [isListView, setIsListView] = useState(false);
+  
+  // Additional filter states
+  const [invoiceIdFilter, setInvoiceIdFilter] = useState("");
+  const [patientIdFilter, setPatientIdFilter] = useState("");
+  const [serviceDateFrom, setServiceDateFrom] = useState("");
+  const [serviceDateTo, setServiceDateTo] = useState("");
+  const [dueDateFrom, setDueDateFrom] = useState("");
+  const [dueDateTo, setDueDateTo] = useState("");
 
   const { data: billingData = [], isLoading, error } = useQuery({
     queryKey: ["/api/billing"],
@@ -546,11 +554,30 @@ export default function BillingPage() {
   const filteredInvoices = Array.isArray(invoices) ? invoices.filter((invoice: any) => {
     const matchesSearch = !searchQuery || 
       invoice.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      invoice.id.toLowerCase().includes(searchQuery.toLowerCase());
+      String(invoice.id).toLowerCase().includes(searchQuery.toLowerCase());
     
     const matchesStatus = statusFilter === "all" || invoice.status === statusFilter;
     
-    return matchesSearch && matchesStatus;
+    // Filter by Invoice ID
+    const matchesInvoiceId = !invoiceIdFilter || 
+      String(invoice.id).toLowerCase().includes(invoiceIdFilter.toLowerCase());
+    
+    // Filter by Patient ID
+    const matchesPatientId = !patientIdFilter || 
+      String(invoice.patientId).toLowerCase().includes(patientIdFilter.toLowerCase());
+    
+    // Filter by Service Date range
+    const invoiceServiceDate = new Date(invoice.dateOfService);
+    const matchesServiceDateFrom = !serviceDateFrom || invoiceServiceDate >= new Date(serviceDateFrom);
+    const matchesServiceDateTo = !serviceDateTo || invoiceServiceDate <= new Date(serviceDateTo);
+    
+    // Filter by Due Date range
+    const invoiceDueDate = new Date(invoice.dueDate);
+    const matchesDueDateFrom = !dueDateFrom || invoiceDueDate >= new Date(dueDateFrom);
+    const matchesDueDateTo = !dueDateTo || invoiceDueDate <= new Date(dueDateTo);
+    
+    return matchesSearch && matchesStatus && matchesInvoiceId && matchesPatientId && 
+           matchesServiceDateFrom && matchesServiceDateTo && matchesDueDateFrom && matchesDueDateTo;
   }) : [];
 
   const getStatusColor = (status: string) => {
@@ -675,43 +702,142 @@ export default function BillingPage() {
                 {/* Filters and Actions */}
                 <Card>
                   <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="relative">
-                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                          <Input
-                            placeholder="Search invoices..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-9 w-64"
-                            data-testid="input-search-invoices"
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="relative">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Input
+                              placeholder="Search invoices..."
+                              value={searchQuery}
+                              onChange={(e) => setSearchQuery(e.target.value)}
+                              className="pl-9 w-64"
+                              data-testid="input-search-invoices"
+                            />
+                          </div>
+                          
+                          <Select value={statusFilter} onValueChange={setStatusFilter}>
+                            <SelectTrigger className="w-40" data-testid="select-status-filter">
+                              <SelectValue placeholder="Filter by status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">All Status</SelectItem>
+                              <SelectItem value="draft">Draft</SelectItem>
+                              <SelectItem value="sent">Sent</SelectItem>
+                              <SelectItem value="paid">Paid</SelectItem>
+                              <SelectItem value="overdue">Overdue</SelectItem>
+                              <SelectItem value="cancelled">Cancelled</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <Label htmlFor="list-view-toggle" className="text-sm font-medium text-gray-700 dark:text-gray-300">List View</Label>
+                          <Switch 
+                            id="list-view-toggle"
+                            checked={isListView} 
+                            onCheckedChange={setIsListView}
+                            data-testid="switch-list-view"
                           />
                         </div>
-                        
-                        <Select value={statusFilter} onValueChange={setStatusFilter}>
-                          <SelectTrigger className="w-40" data-testid="select-status-filter">
-                            <SelectValue placeholder="Filter by status" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All Status</SelectItem>
-                            <SelectItem value="draft">Draft</SelectItem>
-                            <SelectItem value="sent">Sent</SelectItem>
-                            <SelectItem value="paid">Paid</SelectItem>
-                            <SelectItem value="overdue">Overdue</SelectItem>
-                            <SelectItem value="cancelled">Cancelled</SelectItem>
-                          </SelectContent>
-                        </Select>
                       </div>
 
-                      <div className="flex items-center gap-2">
-                        <Label htmlFor="list-view-toggle" className="text-sm font-medium text-gray-700 dark:text-gray-300">List View</Label>
-                        <Switch 
-                          id="list-view-toggle"
-                          checked={isListView} 
-                          onCheckedChange={setIsListView}
-                          data-testid="switch-list-view"
-                        />
+                      {/* Advanced Filters */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                        <div>
+                          <Label htmlFor="invoice-id-filter" className="text-xs text-gray-600 dark:text-gray-400 mb-1">Invoice ID</Label>
+                          <Input
+                            id="invoice-id-filter"
+                            placeholder="Filter by Invoice ID"
+                            value={invoiceIdFilter}
+                            onChange={(e) => setInvoiceIdFilter(e.target.value)}
+                            className="h-9 text-sm"
+                            data-testid="input-invoice-id-filter"
+                          />
+                        </div>
+
+                        <div>
+                          <Label htmlFor="patient-id-filter" className="text-xs text-gray-600 dark:text-gray-400 mb-1">Patient ID</Label>
+                          <Input
+                            id="patient-id-filter"
+                            placeholder="Filter by Patient ID"
+                            value={patientIdFilter}
+                            onChange={(e) => setPatientIdFilter(e.target.value)}
+                            className="h-9 text-sm"
+                            data-testid="input-patient-id-filter"
+                          />
+                        </div>
+
+                        <div>
+                          <Label htmlFor="service-date-from" className="text-xs text-gray-600 dark:text-gray-400 mb-1">Service From</Label>
+                          <Input
+                            id="service-date-from"
+                            type="date"
+                            value={serviceDateFrom}
+                            onChange={(e) => setServiceDateFrom(e.target.value)}
+                            className="h-9 text-sm"
+                            data-testid="input-service-date-from"
+                          />
+                        </div>
+
+                        <div>
+                          <Label htmlFor="service-date-to" className="text-xs text-gray-600 dark:text-gray-400 mb-1">Service To</Label>
+                          <Input
+                            id="service-date-to"
+                            type="date"
+                            value={serviceDateTo}
+                            onChange={(e) => setServiceDateTo(e.target.value)}
+                            className="h-9 text-sm"
+                            data-testid="input-service-date-to"
+                          />
+                        </div>
+
+                        <div>
+                          <Label htmlFor="due-date-from" className="text-xs text-gray-600 dark:text-gray-400 mb-1">Due From</Label>
+                          <Input
+                            id="due-date-from"
+                            type="date"
+                            value={dueDateFrom}
+                            onChange={(e) => setDueDateFrom(e.target.value)}
+                            className="h-9 text-sm"
+                            data-testid="input-due-date-from"
+                          />
+                        </div>
+
+                        <div>
+                          <Label htmlFor="due-date-to" className="text-xs text-gray-600 dark:text-gray-400 mb-1">Due To</Label>
+                          <Input
+                            id="due-date-to"
+                            type="date"
+                            value={dueDateTo}
+                            onChange={(e) => setDueDateTo(e.target.value)}
+                            className="h-9 text-sm"
+                            data-testid="input-due-date-to"
+                          />
+                        </div>
                       </div>
+
+                      {/* Clear Filters Button */}
+                      {(invoiceIdFilter || patientIdFilter || serviceDateFrom || serviceDateTo || dueDateFrom || dueDateTo) && (
+                        <div className="flex justify-end">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setInvoiceIdFilter("");
+                              setPatientIdFilter("");
+                              setServiceDateFrom("");
+                              setServiceDateTo("");
+                              setDueDateFrom("");
+                              setDueDateTo("");
+                            }}
+                            data-testid="button-clear-filters"
+                          >
+                            <Filter className="h-4 w-4 mr-2" />
+                            Clear Advanced Filters
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -952,48 +1078,147 @@ export default function BillingPage() {
                   {/* Filters and Actions */}
                   <Card>
                     <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <div className="relative">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                            <Input
-                              placeholder="Search invoices..."
-                              value={searchQuery}
-                              onChange={(e) => setSearchQuery(e.target.value)}
-                              className="pl-9 w-64"
-                            />
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <div className="relative">
+                              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                              <Input
+                                placeholder="Search invoices..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="pl-9 w-64"
+                              />
+                            </div>
+                            
+                            <Select value={statusFilter} onValueChange={setStatusFilter}>
+                              <SelectTrigger className="w-40">
+                                <SelectValue placeholder="Filter by status" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="all">All Status</SelectItem>
+                                <SelectItem value="draft">Draft</SelectItem>
+                                <SelectItem value="sent">Sent</SelectItem>
+                                <SelectItem value="paid">Paid</SelectItem>
+                                <SelectItem value="overdue">Overdue</SelectItem>
+                                <SelectItem value="cancelled">Cancelled</SelectItem>
+                              </SelectContent>
+                            </Select>
                           </div>
                           
-                          <Select value={statusFilter} onValueChange={setStatusFilter}>
-                            <SelectTrigger className="w-40">
-                              <SelectValue placeholder="Filter by status" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="all">All Status</SelectItem>
-                              <SelectItem value="draft">Draft</SelectItem>
-                              <SelectItem value="sent">Sent</SelectItem>
-                              <SelectItem value="paid">Paid</SelectItem>
-                              <SelectItem value="overdue">Overdue</SelectItem>
-                              <SelectItem value="cancelled">Cancelled</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-2">
+                              <Label htmlFor="admin-list-view-toggle" className="text-sm font-medium text-gray-700 dark:text-gray-300">List View</Label>
+                              <Switch 
+                                id="admin-list-view-toggle"
+                                checked={isListView} 
+                                onCheckedChange={setIsListView}
+                                data-testid="switch-admin-list-view"
+                              />
+                            </div>
+                            <Button onClick={() => setShowNewInvoice(true)}>
+                              <Plus className="h-4 w-4 mr-2" />
+                              New Invoice
+                            </Button>
+                          </div>
                         </div>
-                        
-                        <div className="flex items-center gap-4">
-                          <div className="flex items-center gap-2">
-                            <Label htmlFor="admin-list-view-toggle" className="text-sm font-medium text-gray-700 dark:text-gray-300">List View</Label>
-                            <Switch 
-                              id="admin-list-view-toggle"
-                              checked={isListView} 
-                              onCheckedChange={setIsListView}
-                              data-testid="switch-admin-list-view"
+
+                        {/* Advanced Filters */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                          <div>
+                            <Label htmlFor="admin-invoice-id-filter" className="text-xs text-gray-600 dark:text-gray-400 mb-1">Invoice ID</Label>
+                            <Input
+                              id="admin-invoice-id-filter"
+                              placeholder="Filter by Invoice ID"
+                              value={invoiceIdFilter}
+                              onChange={(e) => setInvoiceIdFilter(e.target.value)}
+                              className="h-9 text-sm"
+                              data-testid="input-admin-invoice-id-filter"
                             />
                           </div>
-                          <Button onClick={() => setShowNewInvoice(true)}>
-                            <Plus className="h-4 w-4 mr-2" />
-                            New Invoice
-                          </Button>
+
+                          <div>
+                            <Label htmlFor="admin-patient-id-filter" className="text-xs text-gray-600 dark:text-gray-400 mb-1">Patient ID</Label>
+                            <Input
+                              id="admin-patient-id-filter"
+                              placeholder="Filter by Patient ID"
+                              value={patientIdFilter}
+                              onChange={(e) => setPatientIdFilter(e.target.value)}
+                              className="h-9 text-sm"
+                              data-testid="input-admin-patient-id-filter"
+                            />
+                          </div>
+
+                          <div>
+                            <Label htmlFor="admin-service-date-from" className="text-xs text-gray-600 dark:text-gray-400 mb-1">Service From</Label>
+                            <Input
+                              id="admin-service-date-from"
+                              type="date"
+                              value={serviceDateFrom}
+                              onChange={(e) => setServiceDateFrom(e.target.value)}
+                              className="h-9 text-sm"
+                              data-testid="input-admin-service-date-from"
+                            />
+                          </div>
+
+                          <div>
+                            <Label htmlFor="admin-service-date-to" className="text-xs text-gray-600 dark:text-gray-400 mb-1">Service To</Label>
+                            <Input
+                              id="admin-service-date-to"
+                              type="date"
+                              value={serviceDateTo}
+                              onChange={(e) => setServiceDateTo(e.target.value)}
+                              className="h-9 text-sm"
+                              data-testid="input-admin-service-date-to"
+                            />
+                          </div>
+
+                          <div>
+                            <Label htmlFor="admin-due-date-from" className="text-xs text-gray-600 dark:text-gray-400 mb-1">Due From</Label>
+                            <Input
+                              id="admin-due-date-from"
+                              type="date"
+                              value={dueDateFrom}
+                              onChange={(e) => setDueDateFrom(e.target.value)}
+                              className="h-9 text-sm"
+                              data-testid="input-admin-due-date-from"
+                            />
+                          </div>
+
+                          <div>
+                            <Label htmlFor="admin-due-date-to" className="text-xs text-gray-600 dark:text-gray-400 mb-1">Due To</Label>
+                            <Input
+                              id="admin-due-date-to"
+                              type="date"
+                              value={dueDateTo}
+                              onChange={(e) => setDueDateTo(e.target.value)}
+                              className="h-9 text-sm"
+                              data-testid="input-admin-due-date-to"
+                            />
+                          </div>
                         </div>
+
+                        {/* Clear Filters Button */}
+                        {(invoiceIdFilter || patientIdFilter || serviceDateFrom || serviceDateTo || dueDateFrom || dueDateTo) && (
+                          <div className="flex justify-end">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setInvoiceIdFilter("");
+                                setPatientIdFilter("");
+                                setServiceDateFrom("");
+                                setServiceDateTo("");
+                                setDueDateFrom("");
+                                setDueDateTo("");
+                              }}
+                              data-testid="button-admin-clear-filters"
+                            >
+                              <Filter className="h-4 w-4 mr-2" />
+                              Clear Advanced Filters
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
