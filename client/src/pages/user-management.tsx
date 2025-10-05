@@ -1741,7 +1741,11 @@ export default function UserManagement() {
                                       checked={currentPerms[action] || false}
                                       onChange={(e) => {
                                         const newPerms = { ...currentPerms, [action]: e.target.checked };
-                                        roleForm.setValue(`permissions.modules.${module.key}`, newPerms);
+                                        roleForm.setValue(`permissions.modules.${module.key}`, newPerms, { 
+                                          shouldValidate: true,
+                                          shouldDirty: true,
+                                          shouldTouch: true
+                                        });
                                       }}
                                       className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                                     />
@@ -1780,7 +1784,11 @@ export default function UserManagement() {
                                         checked={currentFieldPerms.view || false}
                                         onChange={(e) => {
                                           const newPerms = { ...currentFieldPerms, view: e.target.checked };
-                                          roleForm.setValue(`permissions.fields.${field.key}`, newPerms);
+                                          roleForm.setValue(`permissions.fields.${field.key}`, newPerms, {
+                                            shouldValidate: true,
+                                            shouldDirty: true,
+                                            shouldTouch: true
+                                          });
                                         }}
                                         className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
                                       />
@@ -1792,7 +1800,11 @@ export default function UserManagement() {
                                         checked={currentFieldPerms.edit || false}
                                         onChange={(e) => {
                                           const newPerms = { ...currentFieldPerms, edit: e.target.checked };
-                                          roleForm.setValue(`permissions.fields.${field.key}`, newPerms);
+                                          roleForm.setValue(`permissions.fields.${field.key}`, newPerms, {
+                                            shouldValidate: true,
+                                            shouldDirty: true,
+                                            shouldTouch: true
+                                          });
                                         }}
                                         className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
                                       />
