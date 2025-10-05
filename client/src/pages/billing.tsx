@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import { Header } from "@/components/layout/header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -70,6 +71,7 @@ interface Invoice {
 }
 
 export default function BillingPage() {
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [showNewInvoice, setShowNewInvoice] = useState(false);
@@ -94,6 +96,9 @@ export default function BillingPage() {
   const [activeTab, setActiveTab] = useState("invoices");
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Check if user is admin
+  const isAdmin = user?.role === 'admin';
 
   const handleViewInvoice = (invoice: Invoice) => {
     setSelectedInvoice(invoice);
@@ -563,7 +568,10 @@ export default function BillingPage() {
     
     const matchesStatus = statusFilter === "all" || invoice.status === statusFilter;
     
-    return matchesSearch && matchesStatus;
+    // Role-based filtering: non-admin users only see their own invoices
+    const matchesUser = isAdmin || (user && invoice.patientId === String(user.id));
+    
+    return matchesSearch && matchesStatus && matchesUser;
   }) : [];
 
   const getStatusColor = (status: string) => {
@@ -719,10 +727,12 @@ export default function BillingPage() {
                         </Select>
                       </div>
                       
-                      <Button onClick={() => setShowNewInvoice(true)}>
-                        <Plus className="h-4 w-4 mr-2" />
-                        New Invoice
-                      </Button>
+                      {isAdmin && (
+                        <Button onClick={() => setShowNewInvoice(true)}>
+                          <Plus className="h-4 w-4 mr-2" />
+                          New Invoice
+                        </Button>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -808,17 +818,21 @@ export default function BillingPage() {
                         <Button variant="outline" size="sm" onClick={() => handleDownloadInvoice(invoice.id)}>
                           <Download className="h-4 w-4" />
                         </Button>
-                        <Button variant="outline" size="sm" onClick={() => handleSendInvoice(invoice.id)}>
-                          <Send className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => handleDeleteInvoice(invoice.id)}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        {isAdmin && (
+                          <>
+                            <Button variant="outline" size="sm" onClick={() => handleSendInvoice(invoice.id)}>
+                              <Send className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => handleDeleteInvoice(invoice.id)}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
                       </div>
                     </div>
                   </CardContent>
@@ -1660,9 +1674,11 @@ export default function BillingPage() {
                             'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'}`}>
                             {selectedInvoice.status}
                           </Badge>
-                          <Button size="sm" variant="outline" onClick={() => setIsEditingStatus(true)} className="ml-2 border-blue-600 text-blue-600 hover:bg-blue-50 dark:border-blue-500 dark:text-blue-400 dark:hover:bg-blue-950/20">
-                            Edit Status
-                          </Button>
+                          {isAdmin && (
+                            <Button size="sm" variant="outline" onClick={() => setIsEditingStatus(true)} className="ml-2 border-blue-600 text-blue-600 hover:bg-blue-50 dark:border-blue-500 dark:text-blue-400 dark:hover:bg-blue-950/20">
+                              Edit Status
+                            </Button>
+                          )}
                         </div>
                       )}
                     </div>
