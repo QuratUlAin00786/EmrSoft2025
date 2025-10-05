@@ -63,6 +63,12 @@ export default function Subscription() {
   const dbPlans = (dbPackages || []).filter(pkg => pkg.features?.maxUsers);
   const dbAddons = (dbPackages || []).filter(pkg => !pkg.features?.maxUsers);
 
+  // Debug logging
+  console.log('[Subscription] Total packages from DB:', dbPackages?.length || 0);
+  console.log('[Subscription] Plans (with maxUsers):', dbPlans.length);
+  console.log('[Subscription] Add-ons (without maxUsers):', dbAddons.length);
+  console.log('[Subscription] Plans data:', dbPlans);
+
   // Transform database plans to component format for "Available Plans" section
   const plans = dbPlans.map(pkg => ({
     id: pkg.id.toString(),
@@ -84,7 +90,9 @@ export default function Subscription() {
     features: formatPackageFeatures(pkg.features)
   }));
 
-  if (isLoading) {
+  console.log('[Subscription] Transformed plans:', plans);
+
+  if (isLoading || packagesLoading) {
     return (
       <>
         <Header 
