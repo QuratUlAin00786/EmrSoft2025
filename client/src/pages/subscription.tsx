@@ -8,6 +8,7 @@ import { LoadingSpinner } from "@/components/common/loading-spinner";
 import { Crown, Users, Calendar, Zap, Check, X, Package, Heart, Brain, Shield, Stethoscope, Phone, FileText, Activity, Pill, UserCheck } from "lucide-react";
 import { PaymentMethodDialog } from "@/components/payment-method-dialog";
 import type { Subscription } from "@/types";
+import type { SaaSPackage } from "@shared/schema";
 
 const plans = [
   {
@@ -66,134 +67,40 @@ const plans = [
   }
 ];
 
-const packages = [
-  {
-    id: "telehealth",
-    name: "Telehealth Pro",
-    price: 15,
-    icon: Phone,
-    description: "Advanced video consultations with recording and notes",
-    features: [
-      "HD video consultations",
-      "Session recordings",
-      "Screen sharing",
-      "Waiting room",
-      "Mobile app support"
-    ]
-  },
-  {
-    id: "ai-insights",
-    name: "AI Clinical Assistant",
-    price: 25,
-    icon: Brain,
-    description: "AI-powered clinical decision support and insights",
-    features: [
-      "Drug interaction alerts",
-      "Diagnosis suggestions",
-      "Risk assessments",
-      "Treatment recommendations",
-      "Clinical note automation"
-    ]
-  },
-  {
-    id: "specialty-cardiology",
-    name: "Cardiology Suite",
-    price: 40,
-    icon: Heart,
-    description: "Specialized tools for cardiac care and monitoring",
-    features: [
-      "ECG interpretation",
-      "Cardiac risk scoring",
-      "Heart failure monitoring",
-      "Pacemaker tracking",
-      "Cardiac rehabilitation"
-    ]
-  },
-  {
-    id: "pharmacy-integration",
-    name: "Pharmacy Connect",
-    price: 20,
-    icon: Pill,
-    description: "Direct integration with pharmacy networks",
-    features: [
-      "Electronic prescriptions",
-      "Medication adherence tracking",
-      "Drug formulary access",
-      "Insurance verification",
-      "Refill management"
-    ]
-  },
-  {
-    id: "advanced-reporting",
-    name: "Analytics Pro",
-    price: 18,
-    icon: FileText,
-    description: "Comprehensive reporting and business intelligence",
-    features: [
-      "Custom report builder",
-      "Revenue analytics",
-      "Patient outcome tracking",
-      "Compliance reporting",
-      "Export to multiple formats"
-    ]
-  },
-  {
-    id: "patient-portal",
-    name: "Patient Portal Plus",
-    price: 12,
-    icon: UserCheck,
-    description: "Enhanced patient engagement and self-service portal",
-    features: [
-      "Appointment self-scheduling",
-      "Test results access",
-      "Medication tracking",
-      "Secure messaging",
-      "Health education resources"
-    ]
-  },
-  {
-    id: "monitoring-iot",
-    name: "Remote Monitoring",
-    price: 35,
-    icon: Activity,
-    description: "IoT device integration for continuous patient monitoring",
-    features: [
-      "Wearable device integration",
-      "Real-time vital signs",
-      "Alert management",
-      "Trend analysis",
-      "Patient compliance tracking"
-    ]
-  },
-  {
-    id: "security-hipaa",
-    name: "HIPAA Security Plus",
-    price: 22,
-    icon: Shield,
-    description: "Enhanced security and compliance features",
-    features: [
-      "Advanced encryption",
-      "Audit trail management",
-      "Access control",
-      "Breach detection",
-      "Compliance monitoring"
-    ]
-  },
-  {
-    id: "specialty-tools",
-    name: "Multi-Specialty Tools",
-    price: 30,
-    icon: Stethoscope,
-    description: "Specialized tools for various medical specialties",
-    features: [
-      "Dermatology imaging",
-      "Orthopedic assessments",
-      "Mental health screening",
-      "Pediatric growth charts",
-      "Geriatric care protocols"
-    ]
-  }
-];
+// Helper function to map package names to icons
+const getPackageIcon = (name: string) => {
+  const lowerName = name.toLowerCase();
+  if (lowerName.includes('telehealth') || lowerName.includes('video') || lowerName.includes('phone')) return Phone;
+  if (lowerName.includes('ai') || lowerName.includes('brain') || lowerName.includes('clinical')) return Brain;
+  if (lowerName.includes('cardio') || lowerName.includes('heart')) return Heart;
+  if (lowerName.includes('pharmacy') || lowerName.includes('drug') || lowerName.includes('medication')) return Pill;
+  if (lowerName.includes('analytics') || lowerName.includes('reporting') || lowerName.includes('activity')) return Activity;
+  if (lowerName.includes('patient') || lowerName.includes('portal')) return UserCheck;
+  if (lowerName.includes('security') || lowerName.includes('hipaa') || lowerName.includes('compliance')) return Shield;
+  if (lowerName.includes('specialty') || lowerName.includes('stethoscope')) return Stethoscope;
+  if (lowerName.includes('document') || lowerName.includes('file')) return FileText;
+  return Package; // Default icon
+};
+
+// Helper function to convert database features to array of strings
+const formatPackageFeatures = (features: any): string[] => {
+  if (!features) return [];
+  
+  const featureList: string[] = [];
+  
+  if (features.maxUsers) featureList.push(`Up to ${features.maxUsers} users`);
+  if (features.maxPatients) featureList.push(`Up to ${features.maxPatients} patients`);
+  if (features.aiEnabled) featureList.push('AI-powered insights');
+  if (features.telemedicineEnabled) featureList.push('Telemedicine support');
+  if (features.billingEnabled) featureList.push('Advanced billing');
+  if (features.analyticsEnabled) featureList.push('Analytics & reporting');
+  if (features.customBranding) featureList.push('Custom branding');
+  if (features.prioritySupport) featureList.push('Priority support');
+  if (features.storageGB) featureList.push(`${features.storageGB}GB storage`);
+  if (features.apiCallsPerMonth) featureList.push(`${features.apiCallsPerMonth.toLocaleString()} API calls/month`);
+  
+  return featureList;
+};
 
 export default function Subscription() {
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
@@ -202,6 +109,20 @@ export default function Subscription() {
   const { data: subscription, isLoading, error } = useQuery<Subscription>({
     queryKey: ["/api/subscription"],
   });
+
+  const { data: dbPackages, isLoading: packagesLoading } = useQuery<SaaSPackage[]>({
+    queryKey: ["/api/website/packages"],
+  });
+
+  // Transform database packages to component format
+  const packages = (dbPackages || []).map(pkg => ({
+    id: pkg.id.toString(),
+    name: pkg.name,
+    price: parseFloat(pkg.price),
+    icon: getPackageIcon(pkg.name),
+    description: pkg.description || '',
+    features: formatPackageFeatures(pkg.features)
+  }));
 
   if (isLoading) {
     return (
