@@ -88,6 +88,8 @@ export default function BillingPage() {
   const [sentInvoiceInfo, setSentInvoiceInfo] = useState({ invoiceNumber: "", recipient: "" });
   const [showDeleteSuccessModal, setShowDeleteSuccessModal] = useState(false);
   const [deletedInvoiceNumber, setDeletedInvoiceNumber] = useState("");
+  const [showStatusUpdateModal, setShowStatusUpdateModal] = useState(false);
+  const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null);
 
   const { data: billingData = [], isLoading, error } = useQuery({
     queryKey: ["/api/billing"],
@@ -132,6 +134,32 @@ export default function BillingPage() {
         description: "Failed to update invoice status",
         variant: "destructive"
       });
+    }
+  };
+
+  const handleInlineStatusUpdate = async (invoiceId: string, newStatus: string) => {
+    setUpdatingStatusId(invoiceId);
+    
+    try {
+      await apiRequest('PATCH', `/api/billing/invoices/${invoiceId}`, {
+        status: newStatus
+      });
+      
+      // Show success modal
+      setShowStatusUpdateModal(true);
+      
+      // Refresh the invoices list
+      await queryClient.invalidateQueries({ queryKey: ["/api/billing/invoices"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/billing/invoices"] });
+      
+    } catch (error) {
+      toast({
+        title: "Update Failed",
+        description: "Failed to update invoice status",
+        variant: "destructive"
+      });
+    } finally {
+      setUpdatingStatusId(null);
     }
   };
 
@@ -733,9 +761,23 @@ export default function BillingPage() {
                           <div className="flex-1">
                             <div className="flex items-center gap-3 mb-3">
                               <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{invoice.patientName}</h3>
-                              <Badge className={getStatusColor(invoice.status)}>
-                                {invoice.status}
-                              </Badge>
+                              <Select 
+                                value={invoice.status} 
+                                onValueChange={(value) => handleInlineStatusUpdate(invoice.id, value)}
+                                disabled={updatingStatusId === invoice.id}
+                              >
+                                <SelectTrigger className={`w-32 h-7 text-xs ${getStatusColor(invoice.status)}`}>
+                                  <SelectValue>{invoice.status}</SelectValue>
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="draft">Draft</SelectItem>
+                                  <SelectItem value="sent">Sent</SelectItem>
+                                  <SelectItem value="paid">Paid</SelectItem>
+                                  <SelectItem value="pending">Pending</SelectItem>
+                                  <SelectItem value="overdue">Overdue</SelectItem>
+                                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                                </SelectContent>
+                              </Select>
                               {invoice.status === 'overdue' && (
                                 <Badge className="bg-red-100 text-red-800">
                                   <AlertTriangle className="h-3 w-3 mr-1" />
@@ -877,9 +919,29 @@ export default function BillingPage() {
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-3">
                           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{invoice.patientName}</h3>
-                          <Badge className={getStatusColor(invoice.status)}>
-                            {invoice.status}
-                          </Badge>
+                          {isAdmin ? (
+                            <Select 
+                              value={invoice.status} 
+                              onValueChange={(value) => handleInlineStatusUpdate(invoice.id, value)}
+                              disabled={updatingStatusId === invoice.id}
+                            >
+                              <SelectTrigger className={`w-32 h-7 text-xs ${getStatusColor(invoice.status)}`}>
+                                <SelectValue>{invoice.status}</SelectValue>
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="draft">Draft</SelectItem>
+                                <SelectItem value="sent">Sent</SelectItem>
+                                <SelectItem value="paid">Paid</SelectItem>
+                                <SelectItem value="pending">Pending</SelectItem>
+                                <SelectItem value="overdue">Overdue</SelectItem>
+                                <SelectItem value="cancelled">Cancelled</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          ) : (
+                            <Badge className={getStatusColor(invoice.status)}>
+                              {invoice.status}
+                            </Badge>
+                          )}
                           {invoice.status === 'overdue' && (
                             <Badge className="bg-red-100 text-red-800">
                               <AlertTriangle className="h-3 w-3 mr-1" />
@@ -1805,19 +1867,12 @@ export default function BillingPage() {
                           <Button size="sm" variant="outline" onClick={() => setIsEditingStatus(false)}>Cancel</Button>
                         </div>
                       ) : (
-                        <div className="flex items-center gap-2">
-                          <Badge className={`${selectedInvoice.status === 'paid' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' : 
-                            selectedInvoice.status === 'overdue' ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400' : 
-                            selectedInvoice.status === 'sent' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400' : 
-                            'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'}`}>
-                            {selectedInvoice.status}
-                          </Badge>
-                          {isAdmin && (
-                            <Button size="sm" variant="outline" onClick={() => setIsEditingStatus(true)} className="ml-2 border-blue-600 text-blue-600 hover:bg-blue-50 dark:border-blue-500 dark:text-blue-400 dark:hover:bg-blue-950/20">
-                              Edit Status
-                            </Button>
-                          )}
-                        </div>
+                        <Badge className={`${selectedInvoice.status === 'paid' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' : 
+                          selectedInvoice.status === 'overdue' ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400' : 
+                          selectedInvoice.status === 'sent' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400' : 
+                          'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'}`}>
+                          {selectedInvoice.status}
+                        </Badge>
                       )}
                     </div>
                     <div><strong>Total Amount:</strong> £{parseFloat(selectedInvoice.totalAmount.toString()).toFixed(2)}</div>
@@ -2142,6 +2197,30 @@ export default function BillingPage() {
           </div>
           <DialogFooter className="sm:justify-center">
             <Button onClick={() => setShowDeleteSuccessModal(false)} className="w-full sm:w-auto">
+              OK
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Status Update Success Modal */}
+      <Dialog open={showStatusUpdateModal} onOpenChange={setShowStatusUpdateModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <div className="flex items-center justify-center mb-4">
+              <div className="h-16 w-16 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center">
+                <CheckCircle className="h-10 w-10 text-green-600 dark:text-green-500" />
+              </div>
+            </div>
+            <DialogTitle className="text-center text-xl">Status Updated Successfully!</DialogTitle>
+          </DialogHeader>
+          <div className="text-center py-4">
+            <p className="text-muted-foreground">
+              Invoice status updated successfully!
+            </p>
+          </div>
+          <DialogFooter className="sm:justify-center">
+            <Button onClick={() => setShowStatusUpdateModal(false)} className="w-full sm:w-auto">
               OK
             </Button>
           </DialogFooter>
