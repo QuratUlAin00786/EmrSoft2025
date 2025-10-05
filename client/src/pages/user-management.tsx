@@ -493,6 +493,7 @@ export default function UserManagement() {
       return response.json();
     },
     retry: false,
+    staleTime: 30000, // Keep data fresh for 30 seconds to prevent auto-refetch
   });
 
   // Debug roles data
