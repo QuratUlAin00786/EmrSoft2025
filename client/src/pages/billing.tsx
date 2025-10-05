@@ -796,6 +796,19 @@ export default function BillingPage() {
                             <Button variant="outline" size="sm" onClick={() => handleDownloadInvoice(invoice.id)} data-testid="button-download-invoice">
                               <Download className="h-4 w-4" />
                             </Button>
+                            {(() => {
+                              console.log('🔍 PAY NOW DEBUG:', {
+                                invoiceId: invoice.id,
+                                status: invoice.status,
+                                isAdmin,
+                                userRole: user?.role,
+                                notDraft: invoice.status !== 'draft',
+                                notPaid: invoice.status !== 'paid',
+                                notCancelled: invoice.status !== 'cancelled',
+                                shouldShow: !isAdmin && invoice.status !== 'draft' && invoice.status !== 'paid' && invoice.status !== 'cancelled'
+                              });
+                              return null;
+                            })()}
                             {!isAdmin && invoice.status !== 'draft' && invoice.status !== 'paid' && invoice.status !== 'cancelled' && (
                               <Button 
                                 variant="default" 
