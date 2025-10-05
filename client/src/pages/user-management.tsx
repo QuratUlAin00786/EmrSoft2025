@@ -569,13 +569,40 @@ export default function UserManagement() {
 
   const handleEditRole = (role: Role) => {
     setEditingRole(role);
+    
+    // Ensure all module permissions have all required fields
+    const normalizedModules: Record<string, any> = {};
+    if (role.permissions?.modules) {
+      Object.keys(role.permissions.modules).forEach((moduleKey) => {
+        const modulePerms = role.permissions.modules[moduleKey] || {};
+        normalizedModules[moduleKey] = {
+          view: modulePerms.view ?? false,
+          create: modulePerms.create ?? false,
+          edit: modulePerms.edit ?? false,
+          delete: modulePerms.delete ?? false,
+        };
+      });
+    }
+    
+    // Ensure all field permissions have all required fields
+    const normalizedFields: Record<string, any> = {};
+    if (role.permissions?.fields) {
+      Object.keys(role.permissions.fields).forEach((fieldKey) => {
+        const fieldPerms = role.permissions.fields[fieldKey] || {};
+        normalizedFields[fieldKey] = {
+          view: fieldPerms.view ?? false,
+          edit: fieldPerms.edit ?? false,
+        };
+      });
+    }
+    
     roleForm.reset({
       name: role.name,
       displayName: role.displayName,
       description: role.description,
       permissions: {
-        modules: role.permissions?.modules || {},
-        fields: role.permissions?.fields || {},
+        modules: normalizedModules,
+        fields: normalizedFields,
       },
     });
     setIsRoleModalOpen(true);
