@@ -55,20 +55,46 @@ export default function Subscription() {
     queryKey: ["/api/subscription"],
   });
 
-  const { data: dbPackages = [], isLoading: packagesLoading, error: packagesError } = useQuery<SaaSPackage[]>({
+  const { data: dbPackages = [], isLoading: packagesLoading } = useQuery<SaaSPackage[]>({
     queryKey: ["/api/website/packages"],
-    staleTime: 30000,
-    refetchOnMount: true,
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const subdomain = localStorage.getItem('user_subdomain') || 'demo';
+      const headers: Record<string, string> = {
+        'X-Tenant-Subdomain': subdomain
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      const res = await fetch("/api/website/packages", {
+        credentials: "include",
+        headers
+      });
+      if (!res.ok) throw new Error('Failed to fetch packages');
+      return res.json();
+    }
   });
 
   // Fetch billing history
   const { data: billingHistory = [], isLoading: billingLoading } = useQuery<any[]>({
     queryKey: ["/api/billing-history"],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const subdomain = localStorage.getItem('user_subdomain') || 'demo';
+      const headers: Record<string, string> = {
+        'X-Tenant-Subdomain': subdomain
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      const res = await fetch("/api/billing-history", {
+        credentials: "include",
+        headers
+      });
+      if (!res.ok) throw new Error('Failed to fetch billing history');
+      return res.json();
+    }
   });
-
-  console.log('[SUBSCRIPTION DEBUG] packagesLoading:', packagesLoading, 'dbPackages:', dbPackages?.length || 0);
-  console.log('[SUBSCRIPTION DEBUG] billingLoading:', billingLoading, 'billingHistory:', billingHistory?.length || 0);
-  console.log('[SUBSCRIPTION DEBUG] packagesError:', packagesError);
 
   // Split packages into subscription plans (have maxUsers) and add-ons (don't have maxUsers)
   const dbPlans = dbPackages.filter(pkg => pkg.features?.maxUsers);
