@@ -561,6 +561,11 @@ export default function BillingPage() {
     }
   });
 
+  // Find the patient record for the logged-in user if they are a patient
+  const userPatient = user?.role === 'patient' && Array.isArray(patients) 
+    ? patients.find((p: any) => p.email === user.email || p.id === user.id)
+    : null;
+
   const filteredInvoices = Array.isArray(invoices) ? invoices.filter((invoice: any) => {
     const matchesSearch = !searchQuery || 
       invoice.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -569,7 +574,7 @@ export default function BillingPage() {
     const matchesStatus = statusFilter === "all" || invoice.status === statusFilter;
     
     // Role-based filtering: patients only see their own invoices, others see all
-    const matchesUser = user?.role !== 'patient' || (user && invoice.patientId === String(user.id));
+    const matchesUser = user?.role !== 'patient' || (userPatient && invoice.patientId === userPatient.patientId);
     
     return matchesSearch && matchesStatus && matchesUser;
   }) : [];
