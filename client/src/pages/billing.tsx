@@ -809,18 +809,19 @@ export default function BillingPage() {
                               });
                               return null;
                             })()}
-                            {!isAdmin && invoice.status !== 'draft' && invoice.status !== 'paid' && invoice.status !== 'cancelled' && (
+                            {!isAdmin && invoice.status !== 'draft' && invoice.status !== 'paid' && invoice.status !== 'cancelled' ? (
                               <Button 
                                 variant="default" 
                                 size="sm" 
                                 onClick={() => handlePayNow(invoice)}
                                 data-testid="button-pay-now"
-                                className="bg-bluewave hover:bg-bluewave/90"
+                                className="bg-red-600 hover:bg-red-700 text-white font-bold"
+                                style={{ minWidth: '100px' }}
                               >
                                 <CreditCard className="h-4 w-4 mr-1" />
-                                Pay Now
+                                PAY NOW
                               </Button>
-                            )}
+                            ) : null}
                           </div>
                         </div>
                       </CardContent>
