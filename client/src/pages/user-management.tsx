@@ -325,6 +325,7 @@ export default function UserManagement() {
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
   const [editingRole, setEditingRole] = useState<Role | null>(null);
   const [activeTab, setActiveTab] = useState<"users" | "roles">("users");
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   
   // Email validation states
   const [emailValidationStatus, setEmailValidationStatus] = useState<'idle' | 'checking' | 'available' | 'exists'>('idle');
@@ -533,15 +534,17 @@ export default function UserManagement() {
       const response = await apiRequest("PATCH", `/api/roles/${data.id}`, data);
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/roles"] });
+    onSuccess: async () => {
+      // Invalidate and wait for refetch to complete
+      await queryClient.invalidateQueries({ queryKey: ["/api/roles"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/roles"] });
+      
       setIsRoleModalOpen(false);
       setEditingRole(null);
       roleForm.reset();
-      toast({
-        title: "Role Updated",
-        description: "The role has been updated successfully.",
-      });
+      
+      // Show success modal instead of toast
+      setShowSuccessModal(true);
     },
     onError: (error: any) => {
       toast({
@@ -2042,6 +2045,29 @@ export default function UserManagement() {
           </>
         )}
       </div>
+      
+      {/* Success Modal */}
+      <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-green-600">
+              <Check className="h-5 w-5" />
+              Success
+            </DialogTitle>
+            <DialogDescription>
+              The role has been updated successfully.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="sm:justify-center">
+            <Button
+              onClick={() => setShowSuccessModal(false)}
+              className="w-full sm:w-auto"
+            >
+              OK
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
