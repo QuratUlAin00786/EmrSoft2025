@@ -2467,7 +2467,7 @@ function PaymentForm({ invoice, onSuccess, onCancel }: {
         <Button
           type="submit"
           disabled={!stripe || isProcessing}
-          className="flex-1 bg-bluewave hover:bg-bluewave/90"
+          className="flex-1 bg-black hover:bg-black/90 text-white"
         >
           {isProcessing ? 'Processing...' : `Pay $${typeof invoice.totalAmount === 'string' ? parseFloat(invoice.totalAmount).toFixed(2) : invoice.totalAmount.toFixed(2)}`}
         </Button>
