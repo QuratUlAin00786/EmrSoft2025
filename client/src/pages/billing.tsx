@@ -2269,19 +2269,38 @@ function StripePaymentForm({ invoice, onSuccess, onCancel }: {
           amount: typeof invoice.totalAmount === 'string' ? parseFloat(invoice.totalAmount) : invoice.totalAmount
         });
         
+        // Ensure response is JSON
+        const contentType = res.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          throw new Error('Invalid response format from server');
+        }
+        
         const data = await res.json();
         
         if (data?.clientSecret) {
           setClientSecret(data.clientSecret);
+        } else if (data?.error) {
+          setError(data.error);
+          toast({
+            title: "Payment Error",
+            description: data.error,
+            variant: "destructive"
+          });
         } else {
           setError('Failed to initialize payment');
+          toast({
+            title: "Payment Error",
+            description: "Failed to initialize payment. Please try again.",
+            variant: "destructive"
+          });
         }
       } catch (err) {
         console.error('Error creating payment intent:', err);
-        setError('Failed to initialize payment. Please try again.');
+        const errorMessage = err instanceof Error ? err.message : 'Failed to initialize payment. Please try again.';
+        setError(errorMessage);
         toast({
           title: "Payment Error",
-          description: "Failed to initialize payment. Please try again.",
+          description: errorMessage,
           variant: "destructive"
         });
       } finally {
@@ -2359,6 +2378,12 @@ function PaymentForm({ invoice, onSuccess, onCancel }: {
           transactionId: paymentIntent.id
         });
 
+        // Ensure response is JSON
+        const contentType = res.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          throw new Error('Invalid response format from server');
+        }
+
         const result = await res.json();
         
         if (result.success) {
@@ -2369,7 +2394,13 @@ function PaymentForm({ invoice, onSuccess, onCancel }: {
           
           onSuccess();
         } else {
-          throw new Error(result.error || 'Payment processing failed');
+          const errorMessage = result.error || 'Payment processing failed';
+          toast({
+            title: "Payment Failed",
+            description: errorMessage,
+            variant: "destructive"
+          });
+          throw new Error(errorMessage);
         }
       }
     } catch (err) {
