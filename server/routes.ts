@@ -1538,6 +1538,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get billing history (payment history) for current organization
+  app.get("/api/billing-history", authMiddleware, requireRole(["admin"]), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = req.tenant!.id;
+      const { saasPayments } = await import("../shared/schema");
+      
+      const payments = await db
+        .select()
+        .from(saasPayments)
+        .where(eq(saasPayments.organizationId, organizationId))
+        .orderBy(desc(saasPayments.paymentDate));
+      
+      res.json(payments);
+    } catch (error) {
+      console.error("Billing history fetch error:", error);
+      res.status(500).json({ error: "Failed to fetch billing history" });
+    }
+  });
+
   // Generate new AI insights using OpenAI
   app.post("/api/ai/generate-insights", authMiddleware, requireRole(["admin", "doctor"]), async (req: TenantRequest, res) => {
     try {

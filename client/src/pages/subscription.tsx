@@ -55,19 +55,20 @@ export default function Subscription() {
     queryKey: ["/api/subscription"],
   });
 
-  const { data: dbPackages, isLoading: packagesLoading } = useQuery<SaaSPackage[]>({
+  const { data: dbPackages, isLoading: packagesLoading, error: packagesError } = useQuery<SaaSPackage[]>({
     queryKey: ["/api/website/packages"],
+    staleTime: 30000, // Cache for 30 seconds
+    refetchOnMount: true, // Always refetch when component mounts
+  });
+
+  // Fetch billing history
+  const { data: billingHistory = [], isLoading: billingLoading } = useQuery<any[]>({
+    queryKey: ["/api/billing-history"],
   });
 
   // Split packages into subscription plans (have maxUsers) and add-ons (don't have maxUsers)
   const dbPlans = (dbPackages || []).filter(pkg => pkg.features?.maxUsers);
   const dbAddons = (dbPackages || []).filter(pkg => !pkg.features?.maxUsers);
-
-  // Debug logging
-  console.log('[Subscription] Total packages from DB:', dbPackages?.length || 0);
-  console.log('[Subscription] Plans (with maxUsers):', dbPlans.length);
-  console.log('[Subscription] Add-ons (without maxUsers):', dbAddons.length);
-  console.log('[Subscription] Plans data:', dbPlans);
 
   // Transform database plans to component format for "Available Plans" section
   const plans = dbPlans.map(pkg => ({
@@ -89,8 +90,6 @@ export default function Subscription() {
     description: pkg.description || '',
     features: formatPackageFeatures(pkg.features)
   }));
-
-  console.log('[Subscription] Transformed plans:', plans);
 
   if (isLoading || packagesLoading) {
     return (
@@ -422,16 +421,71 @@ export default function Subscription() {
           {/* Billing History */}
           <Card>
             <CardHeader>
-              <CardTitle>Billing History</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Billing History
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8">
-                <Calendar className="h-12 w-12 text-neutral-400 dark:text-gray-500 mx-auto mb-4" />
-                <p className="text-neutral-600 dark:text-gray-400">No billing history available.</p>
-                <p className="text-sm text-neutral-500 dark:text-gray-500 mt-2">
-                  Billing records will appear here once your subscription becomes active.
-                </p>
-              </div>
+              {billingLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <LoadingSpinner />
+                </div>
+              ) : billingHistory.length === 0 ? (
+                <div className="text-center py-8">
+                  <Calendar className="h-12 w-12 text-neutral-400 dark:text-gray-500 mx-auto mb-4" />
+                  <p className="text-neutral-600 dark:text-gray-400">No billing history available.</p>
+                  <p className="text-sm text-neutral-500 dark:text-gray-500 mt-2">
+                    Billing records will appear here once your subscription becomes active.
+                  </p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-neutral-200 dark:border-gray-700">
+                        <th className="px-4 py-3 text-left text-sm font-medium text-neutral-600 dark:text-gray-400">Invoice</th>
+                        <th className="px-4 py-3 text-left text-sm font-medium text-neutral-600 dark:text-gray-400">Date</th>
+                        <th className="px-4 py-3 text-left text-sm font-medium text-neutral-600 dark:text-gray-400">Amount</th>
+                        <th className="px-4 py-3 text-left text-sm font-medium text-neutral-600 dark:text-gray-400">Status</th>
+                        <th className="px-4 py-3 text-left text-sm font-medium text-neutral-600 dark:text-gray-400">Method</th>
+                        <th className="px-4 py-3 text-left text-sm font-medium text-neutral-600 dark:text-gray-400">Period</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {billingHistory.map((payment: any) => (
+                        <tr key={payment.id} className="border-b border-neutral-100 dark:border-gray-800">
+                          <td className="px-4 py-3 text-sm text-neutral-900 dark:text-gray-100">{payment.invoiceNumber}</td>
+                          <td className="px-4 py-3 text-sm text-neutral-700 dark:text-gray-300">
+                            {payment.paymentDate ? new Date(payment.paymentDate).toLocaleDateString() : 'Pending'}
+                          </td>
+                          <td className="px-4 py-3 text-sm font-medium text-neutral-900 dark:text-gray-100">
+                            {payment.currency} {parseFloat(payment.amount).toFixed(2)}
+                          </td>
+                          <td className="px-4 py-3">
+                            <Badge 
+                              className={
+                                payment.paymentStatus === 'completed' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                                payment.paymentStatus === 'pending' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
+                                payment.paymentStatus === 'failed' ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' :
+                                'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'
+                              }
+                            >
+                              {payment.paymentStatus}
+                            </Badge>
+                          </td>
+                          <td className="px-4 py-3 text-sm text-neutral-700 dark:text-gray-300 capitalize">
+                            {payment.paymentMethod.replace('_', ' ')}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-neutral-700 dark:text-gray-300">
+                            {new Date(payment.periodStart).toLocaleDateString()} - {new Date(payment.periodEnd).toLocaleDateString()}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
