@@ -141,7 +141,10 @@ export default function Subscription() {
         title="Subscription" 
         subtitle="Manage your subscription and billing."
       />
-      
+      <div className="text-center mb-8">
+        <h2 className="text-3xl font-bold mb-4 text-gray-900 dark:text-gray-100">Cura Packages</h2>
+    
+      </div>
       <div className="flex-1 overflow-auto p-6">
         <div className="max-w-6xl mx-auto space-y-8">
           {/* Current Subscription */}
@@ -292,13 +295,7 @@ export default function Subscription() {
 
           {/* Add-on Packages */}
           <div>
-            <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold mb-4 text-gray-900 dark:text-gray-100">Add-on Packages</h2>
-              <p className="text-neutral-600 dark:text-gray-400 max-w-2xl mx-auto">
-                Enhance your EMR system with specialized packages designed for modern healthcare practices.
-                Mix and match to create the perfect solution for your organization.
-              </p>
-            </div>
+          
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {packages.map((pkg) => {
