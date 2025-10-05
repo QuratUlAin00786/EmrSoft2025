@@ -181,6 +181,7 @@ interface PatientListProps {
   onSelectPatient?: (patient: any) => void;
   showActiveOnly?: boolean;
   genderFilter?: string | null;
+  viewMode?: "grid" | "list";
 }
 
 interface PatientDetailsModalProps {
@@ -1779,7 +1780,7 @@ function PatientDetailsModal({
   );
 }
 
-export function PatientList({ onSelectPatient, showActiveOnly = true, genderFilter = null }: PatientListProps = {}) {
+export function PatientList({ onSelectPatient, showActiveOnly = true, genderFilter = null, viewMode = "grid" }: PatientListProps = {}) {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { user } = useAuth();
@@ -2321,6 +2322,75 @@ export function PatientList({ onSelectPatient, showActiveOnly = true, genderFilt
               ? "Try adjusting your search criteria"
               : "No patients have been added yet"}
           </p>
+        </div>
+      ) : viewMode === "list" ? (
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Patient No.
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Full Name
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    DOB
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Mobile
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Home Phone
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Address
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                {displayPatients.map((patient: any) => (
+                  <tr 
+                    key={patient.id} 
+                    className="hover:bg-gray-50 dark:hover:bg-gray-900 cursor-pointer transition-colors"
+                    onClick={() => handleViewPatient(patient)}
+                    data-testid={`row-patient-${patient.id}`}
+                  >
+                    <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
+                      {patient.patientId}
+                    </td>
+                    <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">
+                      {patient.firstName} {patient.lastName}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
+                      {patient.dateOfBirth ? format(new Date(patient.dateOfBirth), 'dd.MM.yyyy') : ''} 
+                      {patient.dateOfBirth && (() => {
+                        const birthDate = new Date(patient.dateOfBirth);
+                        const today = new Date();
+                        const age = today.getFullYear() - birthDate.getFullYear() - 
+                          (today.getMonth() < birthDate.getMonth() || 
+                          (today.getMonth() === birthDate.getMonth() && today.getDate() < birthDate.getDate()) ? 1 : 0);
+                        return ` (${age})`;
+                      })()}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
+                      {patient.phone || ''}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
+                      
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
+                      {patient.address?.street && patient.address?.city ? 
+                        `${patient.address.street}, ${patient.address.postcode || ''} ${patient.address.city || ''}`.trim() : 
+                        ''
+                      }
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-auto">

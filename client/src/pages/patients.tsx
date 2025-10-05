@@ -17,7 +17,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { UserPlus, ArrowLeft, FileText, Calendar, User, X } from "lucide-react";
+import { UserPlus, ArrowLeft, FileText, Calendar, User, X, LayoutGrid, List } from "lucide-react";
 
 // Helper function to get the correct tenant subdomain
 function getTenantSubdomain(): string {
@@ -67,8 +67,8 @@ export default function Patients() {
   // State for active/inactive filter toggle
   const [showActivePatients, setShowActivePatients] = useState(true);
   
-  // State for gender filter (true = Female, false = Male)
-  const [showFemalePatients, setShowFemalePatients] = useState(false);
+  // State for view mode (true = List view, false = Grid view)
+  const [isListView, setIsListView] = useState(false);
 
   // Fetch specific patient data if viewing records
   useEffect(() => {
@@ -448,13 +448,13 @@ export default function Patients() {
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-neutral-600 dark:text-neutral-300">
-                  {showFemalePatients ? "Female" : "Male"}
+                  {isListView ? "List View" : "Grid View"}
                 </span>
                 <Switch
-                  checked={showFemalePatients}
-                  onCheckedChange={setShowFemalePatients}
+                  checked={isListView}
+                  onCheckedChange={setIsListView}
                   className="h-4 w-8"
-                  data-testid="toggle-gender-filter"
+                  data-testid="toggle-view-mode"
                 />
               </div>
             </div>
@@ -466,13 +466,14 @@ export default function Patients() {
             onClick={() => setShowPatientModal(true)}
             className="text-white"
             style={{ backgroundColor: '#4A7DFF' }}
+            data-testid="button-add-patient"
           >
             <UserPlus className="h-4 w-4 mr-2" />
             Add Patient
           </Button>
         </div>
 
-        <PatientList showActiveOnly={showActivePatients} genderFilter={showFemalePatients ? "Female" : "Male"} />
+        <PatientList showActiveOnly={showActivePatients} genderFilter={null} viewMode={isListView ? "list" : "grid"} />
       </div>
 
       <PatientModal 
