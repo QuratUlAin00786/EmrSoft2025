@@ -682,9 +682,10 @@ export default function BillingPage() {
 
             {/* Tabs Navigation */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full max-w-md grid-cols-2">
+              <TabsList className="grid w-full max-w-2xl grid-cols-3">
                 <TabsTrigger value="invoices">Invoices</TabsTrigger>
                 <TabsTrigger value="payment-history">Payment History</TabsTrigger>
+                <TabsTrigger value="insurance-claims">Insurance Claims</TabsTrigger>
               </TabsList>
 
               <TabsContent value="invoices" className="space-y-4 mt-6">
@@ -892,6 +893,94 @@ export default function BillingPage() {
                               <td colSpan={6} className="px-4 py-12 text-center text-gray-500 dark:text-gray-400">
                                 <Receipt className="h-12 w-12 mx-auto mb-4 text-gray-300" />
                                 <p className="text-sm">No payment history available</p>
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="insurance-claims" className="space-y-4 mt-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      🛡️ Insurance Claims
+                    </CardTitle>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Track insurance-related invoices, claims submitted, their status, and amounts covered by insurers
+                    </p>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="rounded-md border">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b bg-gray-50 dark:bg-gray-800">
+                            <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Invoice</th>
+                            <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Provider</th>
+                            <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Claim Ref</th>
+                            <th className="px-4 py-3 text-right text-sm font-medium text-gray-700 dark:text-gray-300">Coverage</th>
+                            <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Status</th>
+                            <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Submitted</th>
+                            <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Approved</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {Array.isArray(invoices) && invoices
+                            .filter((invoice: any) => invoice.invoiceType === 'insurance_claim' && invoice.insurance)
+                            .map((invoice: any) => (
+                              <tr key={invoice.id} className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
+                                <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">
+                                  {invoice.invoiceNumber || invoice.id}
+                                </td>
+                                <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
+                                  {invoice.insurance?.provider || 'N/A'}
+                                </td>
+                                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
+                                  {invoice.insurance?.claimNumber || 'N/A'}
+                                </td>
+                                <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100 text-right font-medium">
+                                  £{invoice.insurance?.paidAmount 
+                                    ? (typeof invoice.insurance.paidAmount === 'string' ? parseFloat(invoice.insurance.paidAmount) : invoice.insurance.paidAmount).toFixed(2)
+                                    : (typeof invoice.totalAmount === 'string' ? parseFloat(invoice.totalAmount) : invoice.totalAmount).toFixed(2)}
+                                </td>
+                                <td className="px-4 py-3 text-sm">
+                                  {invoice.insurance?.status === 'approved' ? (
+                                    <Badge className="bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400">
+                                      ✅ Approved
+                                    </Badge>
+                                  ) : invoice.insurance?.status === 'denied' ? (
+                                    <Badge className="bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400">
+                                      ❌ Denied
+                                    </Badge>
+                                  ) : invoice.insurance?.status === 'partially_paid' ? (
+                                    <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400">
+                                      ⚠️ Partial
+                                    </Badge>
+                                  ) : (
+                                    <Badge className="bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300">
+                                      ⏱ Pending
+                                    </Badge>
+                                  )}
+                                </td>
+                                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
+                                  {invoice.invoiceDate ? format(new Date(invoice.invoiceDate), 'MMM d') : '—'}
+                                </td>
+                                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
+                                  {invoice.insurance?.status === 'approved' && invoice.dueDate 
+                                    ? format(new Date(invoice.dueDate), 'MMM d')
+                                    : '—'}
+                                </td>
+                              </tr>
+                            ))}
+                          {(!Array.isArray(invoices) || invoices.filter((inv: any) => inv.invoiceType === 'insurance_claim' && inv.insurance).length === 0) && (
+                            <tr>
+                              <td colSpan={7} className="px-4 py-12 text-center text-gray-500 dark:text-gray-400">
+                                <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                                <p className="text-sm font-medium">No insurance claims found</p>
+                                <p className="text-xs mt-1">Insurance claims will appear here when invoices are billed to insurance providers</p>
                               </td>
                             </tr>
                           )}
