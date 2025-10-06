@@ -4598,7 +4598,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Hash password if provided (admin only)
       if (updates.password && isAdmin) {
-        updates.password = await authService.hashPassword(updates.password);
+        updates.passwordHash = await authService.hashPassword(updates.password);
+        delete updates.password; // Remove the plain password field
+      } else if (updates.password) {
+        // If password provided but not admin, remove it for security
+        delete updates.password;
       }
 
       const user = await storage.updateUser(userId, req.tenant!.id, updates);
