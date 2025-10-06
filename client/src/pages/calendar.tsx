@@ -1037,7 +1037,7 @@ export default function CalendarPage() {
       console.log('📋 DOCTOR AUTO-DETECT: All doctors from users table (where role=doctor):', allDoctors.map((d: any) => ({ id: d.id, name: `${d.firstName} ${d.lastName}`, organizationId: d.organizationId })));
       
       const currentUserAsDoctor = allDoctors.find((doctor: any) => doctor.id === user.id);
-      if (currentUserAsDoctor && !selectedDoctor) {
+      if (currentUserAsDoctor) {
         console.log('✅ DOCTOR AUTO-DETECT: Found current user in doctors list from users table:', {
           id: currentUserAsDoctor.id,
           name: `${currentUserAsDoctor.firstName} ${currentUserAsDoctor.lastName}`,
@@ -1048,11 +1048,18 @@ export default function CalendarPage() {
           specialty: currentUserAsDoctor.medicalSpecialtyCategory,
           subSpecialty: currentUserAsDoctor.subSpecialty
         });
-        setSelectedDoctor(currentUserAsDoctor);
-      } else if (!currentUserAsDoctor) {
+        
+        // Always set the doctor details when modal opens
+        if (!selectedDoctor) {
+          setSelectedDoctor(currentUserAsDoctor);
+        }
+        
+        // Always set role-based selection for new appointment modal
+        setSelectedRole('doctor');
+        setSelectedProviderId(user.id.toString());
+        console.log('✅ DOCTOR AUTO-DETECT: Auto-populated role=doctor and providerId=' + user.id);
+      } else {
         console.log('❌ DOCTOR AUTO-DETECT: Current user not found in doctors list');
-      } else if (selectedDoctor) {
-        console.log('ℹ️ DOCTOR AUTO-DETECT: Doctor already selected, skipping auto-detect');
       }
     }
   }, [showNewAppointmentModal, user, allDoctors]);
