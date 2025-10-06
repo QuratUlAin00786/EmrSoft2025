@@ -865,30 +865,35 @@ export default function QuickBooks() {
           </DialogHeader>
           
           {connectionSuccess ? (
-            <div className="py-8 text-center space-y-4">
-              <div className="flex justify-center">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                  <CheckCircle className="w-10 h-10 text-green-600" />
+            <div className="py-8 space-y-4">
+              {/* Success Alert */}
+              <Alert className="border-green-200 bg-green-50">
+                <CheckCircle className="h-4 w-4 text-green-600" />
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-green-800">
+                    QuickBooks Successfully Connected!
+                  </h3>
+                  <div className="mt-2 text-sm text-green-700">
+                    <p>Your QuickBooks account has been successfully integrated with Cura EMR.</p>
+                    {connectionRealmId && (
+                      <p className="mt-1 font-mono text-xs">Realm ID: {connectionRealmId}</p>
+                    )}
+                  </div>
                 </div>
+              </Alert>
+              <div className="text-center">
+                <Button 
+                  onClick={() => {
+                    setConnectDialogOpen(false);
+                    setConnectionSuccess(false);
+                    queryClient.invalidateQueries({ queryKey: ['/api/quickbooks/connections'] });
+                    queryClient.invalidateQueries({ queryKey: ['/api/quickbooks/connection/active'] });
+                  }}
+                  data-testid="button-close-success"
+                >
+                  Close
+                </Button>
               </div>
-              <div>
-                <h3 className="text-lg font-semibold text-green-900">Connection Successful!</h3>
-                <p className="text-sm text-gray-600 mt-2">
-                  QuickBooks has been successfully connected to your Cura account.
-                </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  Realm ID: {connectionRealmId}
-                </p>
-              </div>
-              <Button 
-                onClick={() => {
-                  setConnectDialogOpen(false);
-                  setConnectionSuccess(false);
-                }}
-                data-testid="button-close-success"
-              >
-                Close
-              </Button>
             </div>
           ) : (
             <div className="space-y-4">
