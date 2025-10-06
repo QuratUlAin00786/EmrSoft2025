@@ -168,9 +168,9 @@ export default function AnalyticsPage() {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto h-screen overflow-y-auto">
+    <div className="p-6 max-w-7xl mx-auto w-full overflow-x-hidden h-screen overflow-y-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
         <div className="flex items-center space-x-4">
           <Button
             variant="ghost"
