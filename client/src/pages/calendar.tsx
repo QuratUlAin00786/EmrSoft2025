@@ -371,7 +371,7 @@ export default function CalendarPage() {
   const { data: defaultShiftsData = [] } = useQuery({
     queryKey: ["/api/default-shifts"],
     staleTime: 60000,
-    // Always fetch default shifts since they're needed for fallback
+    enabled: !!user, // Only fetch when user is authenticated
     retry: false,
     queryFn: async () => {
       try {
