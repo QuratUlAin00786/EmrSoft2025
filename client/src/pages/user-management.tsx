@@ -852,6 +852,10 @@ export default function UserManagement() {
   });
 
   const onSubmit = (data: UserFormData) => {
+    console.log("📝 FORM SUBMITTED - onSubmit called");
+    console.log("  Form data:", data);
+    console.log("  Editing user:", editingUser?.id);
+    
     // Include medical specialty fields for doctor role
     const submitData: any = {
       ...data,
@@ -864,6 +868,7 @@ export default function UserManagement() {
       if (!submitData.password || submitData.password.trim() === '') {
         delete submitData.password;
       }
+      console.log("🔄 Calling updateUserMutation");
       updateUserMutation.mutate({ id: editingUser.id, userData: submitData });
     } else {
       // When creating new user, password is required
@@ -1689,15 +1694,11 @@ export default function UserManagement() {
                       emailValidationStatus === 'checking'
                     }
                     onClick={() => {
-                      console.log("🔍 Button Clicked - Debug Info:");
+                      console.log("🔍 Button Clicked");
+                      console.log("  Form errors:", form.formState.errors);
+                      console.log("  Form isValid:", form.formState.isValid);
+                      console.log("  Form isSubmitting:", form.formState.isSubmitting);
                       console.log("  emailValidationStatus:", emailValidationStatus);
-                      console.log("  createUserMutation.isPending:", createUserMutation.isPending);
-                      console.log("  updateUserMutation.isPending:", updateUserMutation.isPending);
-                      console.log("  editingUser:", editingUser);
-                      console.log("  Button should be:", 
-                        (createUserMutation.isPending || updateUserMutation.isPending || emailValidationStatus === 'exists' || emailValidationStatus === 'checking') 
-                        ? "DISABLED" : "ENABLED"
-                      );
                     }}
                   >
                     {createUserMutation.isPending || updateUserMutation.isPending ? 
