@@ -108,7 +108,9 @@ export default function QuickBooks() {
   // Listen for QuickBooks OAuth iframe message
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
+      console.log('[QB FRONTEND] Received postMessage:', event.data);
       if (event.data.type === 'quickbooks-connected') {
+        console.log('[QB FRONTEND] QuickBooks connected! Realm ID:', event.data.realmId);
         setConnectionSuccess(true);
         setConnectionRealmId(event.data.realmId);
         // Refresh connections list
@@ -157,15 +159,20 @@ export default function QuickBooks() {
     mutationFn: async () => {
       const res = await apiRequest('GET', '/api/quickbooks/auth/url');
       const response = await res.json();
+      console.log('[QB FRONTEND] Received OAuth URL response:', response);
       if (response.url) {
+        console.log('[QB FRONTEND] Setting OAuth URL:', response.url);
         setOauthUrl(response.url);
         setConnectionSuccess(false);
         setConnectionRealmId("");
         setConnectDialogOpen(true);
+      } else {
+        console.error('[QB FRONTEND] No URL in response!');
       }
       return response;
     },
     onError: (error: any) => {
+      console.error('[QB FRONTEND] Error getting OAuth URL:', error);
       toast({
         title: "Connection Failed",
         description: error.message || "Failed to initiate QuickBooks connection",
