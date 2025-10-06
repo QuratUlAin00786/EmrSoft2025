@@ -36,6 +36,9 @@ import {
 export default function SaaSUsers() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedOrganization, setSelectedOrganization] = useState<string>('all');
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -97,6 +100,52 @@ export default function SaaSUsers() {
       toast({
         title: "Error",
         description: "Failed to update user status",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteUserMutation = useMutation({
+    mutationFn: async (userId: number) => {
+      const response = await saasApiRequest('DELETE', `/api/saas/users/${userId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/saas/users'] });
+      setDeleteDialogOpen(false);
+      setSelectedUser(null);
+      toast({
+        title: "User Deleted",
+        description: "User has been permanently deleted",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete user",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const editUserMutation = useMutation({
+    mutationFn: async ({ userId, userData }: { userId: number; userData: any }) => {
+      const response = await saasApiRequest('PATCH', `/api/saas/users/${userId}`, userData);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/saas/users'] });
+      setEditDialogOpen(false);
+      setSelectedUser(null);
+      toast({
+        title: "User Updated",
+        description: "User information has been updated successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update user",
         variant: "destructive",
       });
     },
@@ -227,8 +276,33 @@ export default function SaaSUsers() {
                         <Button
                           size="sm"
                           variant="outline"
+                          onClick={() => {
+                            setSelectedUser(user);
+                            setEditDialogOpen(true);
+                          }}
+                          title="Edit user"
+                          data-testid={`button-edit-user-${user.id}`}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setSelectedUser(user);
+                            setDeleteDialogOpen(true);
+                          }}
+                          title="Delete user"
+                          data-testid={`button-delete-user-${user.id}`}
+                        >
+                          <Trash2 className="h-4 w-4 text-red-600" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
                           onClick={() => resetPasswordMutation.mutate(user.id)}
                           disabled={resetPasswordMutation.isPending}
+                          title="Reset password"
                         >
                           <RotateCcw className="h-4 w-4" />
                         </Button>
@@ -258,6 +332,122 @@ export default function SaaSUsers() {
           )}
         </CardContent>
       </Card>
+
+      {/* Edit User Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Edit className="h-5 w-5 text-blue-600" />
+              Edit User
+            </DialogTitle>
+          </DialogHeader>
+          {selectedUser && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">First Name</label>
+                <Input
+                  defaultValue={selectedUser.firstName}
+                  onChange={(e) => setSelectedUser({...selectedUser, firstName: e.target.value})}
+                  data-testid="input-edit-firstname"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Last Name</label>
+                <Input
+                  defaultValue={selectedUser.lastName}
+                  onChange={(e) => setSelectedUser({...selectedUser, lastName: e.target.value})}
+                  data-testid="input-edit-lastname"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Email</label>
+                <Input
+                  type="email"
+                  defaultValue={selectedUser.email}
+                  onChange={(e) => setSelectedUser({...selectedUser, email: e.target.value})}
+                  data-testid="input-edit-email"
+                />
+              </div>
+              <div className="flex justify-end gap-3 mt-6">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setEditDialogOpen(false);
+                    setSelectedUser(null);
+                  }}
+                  data-testid="button-cancel-edit"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => {
+                    editUserMutation.mutate({
+                      userId: selectedUser.id,
+                      userData: {
+                        firstName: selectedUser.firstName,
+                        lastName: selectedUser.lastName,
+                        email: selectedUser.email,
+                      }
+                    });
+                  }}
+                  disabled={editUserMutation.isPending}
+                  data-testid="button-confirm-edit"
+                >
+                  {editUserMutation.isPending ? 'Saving...' : 'Save Changes'}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete User Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <Trash2 className="h-5 w-5" />
+              Delete User
+            </DialogTitle>
+          </DialogHeader>
+          {selectedUser && (
+            <div className="space-y-4">
+              <p className="text-sm text-gray-600">
+                Are you sure you want to permanently delete this user?
+              </p>
+              <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+                <p className="font-medium">{selectedUser.firstName} {selectedUser.lastName}</p>
+                <p className="text-sm text-gray-600">{selectedUser.email}</p>
+                <p className="text-sm text-gray-600">Organization: {selectedUser.organizationName}</p>
+              </div>
+              <p className="text-sm text-red-600 font-medium">
+                ⚠️ This action cannot be undone!
+              </p>
+              <div className="flex justify-end gap-3 mt-6">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setDeleteDialogOpen(false);
+                    setSelectedUser(null);
+                  }}
+                  data-testid="button-cancel-delete"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => deleteUserMutation.mutate(selectedUser.id)}
+                  disabled={deleteUserMutation.isPending}
+                  data-testid="button-confirm-delete"
+                >
+                  {deleteUserMutation.isPending ? 'Deleting...' : 'Delete User'}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
