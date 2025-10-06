@@ -1376,13 +1376,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("[QUICKBOOKS] Code:", code);
       console.log("[QUICKBOOKS] Realm ID:", realmId);
-      console.log("[QUICKBOOKS] Sending success HTML response...");
+      console.log("[QUICKBOOKS] About to send HTML response...");
 
       // TODO: Exchange code for access token and save to database
       // Set proper headers to prevent caching and ensure HTML rendering
-      res.setHeader('Content-Type', 'text/html');
-      res.setHeader('Cache-Control', 'no-store');
-      res.setHeader('X-Frame-Options', 'SAMEORIGIN'); // Allow iframe from same origin
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+      res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+      console.log("[QUICKBOOKS] Headers set, building HTML...");
       
       const successHtml = `<!DOCTYPE html>
         <html>
