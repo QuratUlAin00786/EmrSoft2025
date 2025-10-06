@@ -22,6 +22,18 @@ Complete legal framework implemented for Cura Software Limited:
 - **Benefits**: Unified authentication, simplified management, better security isolation
 - **Status**: Fully operational with elegant system-wide user management integration
 
+## Automatic Role Provisioning System (October 2025)
+**AUTOMATIC DEFAULT ROLES CREATION - PRODUCTION READY**
+- **Feature**: All new organizations automatically receive 16 default system roles upon creation
+- **Roles Included**: Administrator, Doctor, Nurse, Patient, Receptionist, Lab Technician, Pharmacist, Dentist, Dental Nurse, Phlebotomist, Aesthetician, Optician, Paramedic, Physiotherapist, Sample Taker, Other
+- **Implementation**: Roles created immediately after organization creation in `createCustomerOrganization` function
+- **Permissions**: Each role has pre-configured granular permissions for modules (billing, patients, appointments, etc.) and field-level access
+- **System Flag**: All auto-created roles marked with `isSystem: true` for identification
+- **Integration**: Works seamlessly with SaaS customer creation flow via `/api/saas/customers` endpoint
+- **Verification**: Database confirmed 16 roles created for each new organization with proper organizationId isolation
+- **Status**: PRODUCTION READY - Tested and verified with organization ID 5 (Metro Health Center)
+- **Implementation Date**: October 6, 2025
+
 ## Subdomain-Based Organizational Routing (September 2025)
 **COMPLETE SUBDOMAIN-SCOPED ROUTING SYSTEM - PRODUCTION READY**
 
