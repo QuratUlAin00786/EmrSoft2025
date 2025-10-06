@@ -109,7 +109,7 @@ export default function SymptomCheckerPage() {
         severity: data.severity || undefined,
         patientId: user?.id
       });
-      return response;
+      return response.json();
     },
     onSuccess: (data) => {
       setAnalysis(data.analysis);
