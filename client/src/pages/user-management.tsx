@@ -381,14 +381,21 @@ export default function UserManagement() {
       return;
     }
     
+    // If editing and email hasn't changed, mark as available
+    if (editingUser && editingUser.email.toLowerCase() === email.toLowerCase()) {
+      setEmailValidationStatus('available');
+      return;
+    }
+    
     try {
       setEmailValidationStatus('checking');
       const response = await apiRequest("GET", "/api/users");
       const userData = await response.json();
       
-      // Check if email exists in users
+      // Check if email exists in users (excluding the current user being edited)
       const existingUser = userData.find((user: any) => 
-        user.email && user.email.toLowerCase() === email.toLowerCase()
+        user.email && user.email.toLowerCase() === email.toLowerCase() && 
+        (!editingUser || user.id !== editingUser.id)
       );
       
       if (existingUser) {
@@ -1666,7 +1673,12 @@ export default function UserManagement() {
                   </Button>
                   <Button 
                     type="submit" 
-                    disabled={createUserMutation.isPending || updateUserMutation.isPending}
+                    disabled={
+                      createUserMutation.isPending || 
+                      updateUserMutation.isPending || 
+                      emailValidationStatus === 'exists' ||
+                      emailValidationStatus === 'checking'
+                    }
                   >
                     {createUserMutation.isPending || updateUserMutation.isPending ? 
                       "Saving..." : 
