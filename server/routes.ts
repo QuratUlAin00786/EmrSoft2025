@@ -14056,7 +14056,7 @@ Cura EMR Team
   // ========================================
 
   // Get all QuickBooks connections for organization
-  app.get("/api/quickbooks/connections", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+  app.get("/api/quickbooks/connections", authMiddleware, requireNonPatientRole(), multiTenantEnforcer(), async (req: TenantRequest, res) => {
     try {
       const organizationId = requireOrgId(req);
       const connections = await storage.getQuickBooksConnections(organizationId);
@@ -14068,7 +14068,7 @@ Cura EMR Team
   });
 
   // Get active QuickBooks connection
-  app.get("/api/quickbooks/connection/active", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+  app.get("/api/quickbooks/connection/active", authMiddleware, requireNonPatientRole(), multiTenantEnforcer(), async (req: TenantRequest, res) => {
     try {
       const organizationId = requireOrgId(req);
       const connection = await storage.getActiveQuickBooksConnection(organizationId);
@@ -14083,7 +14083,7 @@ Cura EMR Team
   });
 
   // Create QuickBooks connection (OAuth callback handler)
-  app.post("/api/quickbooks/connections", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+  app.post("/api/quickbooks/connections", authMiddleware, requireNonPatientRole(), multiTenantEnforcer(), async (req: TenantRequest, res) => {
     try {
       const organizationId = requireOrgId(req);
       
@@ -14130,7 +14130,7 @@ Cura EMR Team
   });
 
   // Update QuickBooks connection
-  app.patch("/api/quickbooks/connections/:id", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+  app.patch("/api/quickbooks/connections/:id", authMiddleware, requireNonPatientRole(), multiTenantEnforcer(), async (req: TenantRequest, res) => {
     try {
       const organizationId = requireOrgId(req);
       const connectionId = parseInt(req.params.id);
@@ -14166,7 +14166,7 @@ Cura EMR Team
   });
 
   // Delete QuickBooks connection
-  app.delete("/api/quickbooks/connections/:id", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+  app.delete("/api/quickbooks/connections/:id", authMiddleware, requireNonPatientRole(), multiTenantEnforcer(), async (req: TenantRequest, res) => {
     try {
       const organizationId = requireOrgId(req);
       const connectionId = parseInt(req.params.id);
@@ -14184,7 +14184,7 @@ Cura EMR Team
   });
 
   // Get QuickBooks sync logs
-  app.get("/api/quickbooks/sync-logs", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+  app.get("/api/quickbooks/sync-logs", authMiddleware, requireNonPatientRole(), multiTenantEnforcer(), async (req: TenantRequest, res) => {
     try {
       const organizationId = requireOrgId(req);
       const connectionId = req.query.connectionId ? parseInt(req.query.connectionId as string) : undefined;
@@ -14199,7 +14199,7 @@ Cura EMR Team
   });
 
   // Create QuickBooks sync log
-  app.post("/api/quickbooks/sync-logs", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+  app.post("/api/quickbooks/sync-logs", authMiddleware, requireNonPatientRole(), multiTenantEnforcer(), async (req: TenantRequest, res) => {
     try {
       const organizationId = requireOrgId(req);
 
@@ -14232,7 +14232,7 @@ Cura EMR Team
   });
 
   // Update QuickBooks sync log
-  app.patch("/api/quickbooks/sync-logs/:id", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+  app.patch("/api/quickbooks/sync-logs/:id", authMiddleware, requireNonPatientRole(), multiTenantEnforcer(), async (req: TenantRequest, res) => {
     try {
       const logId = parseInt(req.params.id);
 
@@ -14262,7 +14262,7 @@ Cura EMR Team
   });
 
   // Get QuickBooks customer mappings
-  app.get("/api/quickbooks/customer-mappings", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+  app.get("/api/quickbooks/customer-mappings", authMiddleware, requireNonPatientRole(), multiTenantEnforcer(), async (req: TenantRequest, res) => {
     try {
       const organizationId = requireOrgId(req);
       const connectionId = req.query.connectionId ? parseInt(req.query.connectionId as string) : undefined;
@@ -14276,7 +14276,7 @@ Cura EMR Team
   });
 
   // Create QuickBooks customer mapping
-  app.post("/api/quickbooks/customer-mappings", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+  app.post("/api/quickbooks/customer-mappings", authMiddleware, requireNonPatientRole(), multiTenantEnforcer(), async (req: TenantRequest, res) => {
     try {
       const organizationId = requireOrgId(req);
 
@@ -14305,7 +14305,7 @@ Cura EMR Team
   });
 
   // Get QuickBooks invoice mappings
-  app.get("/api/quickbooks/invoice-mappings", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+  app.get("/api/quickbooks/invoice-mappings", authMiddleware, requireNonPatientRole(), multiTenantEnforcer(), async (req: TenantRequest, res) => {
     try {
       const organizationId = requireOrgId(req);
       const connectionId = req.query.connectionId ? parseInt(req.query.connectionId as string) : undefined;
@@ -14319,7 +14319,7 @@ Cura EMR Team
   });
 
   // Create QuickBooks invoice mapping
-  app.post("/api/quickbooks/invoice-mappings", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+  app.post("/api/quickbooks/invoice-mappings", authMiddleware, requireNonPatientRole(), multiTenantEnforcer(), async (req: TenantRequest, res) => {
     try {
       const organizationId = requireOrgId(req);
 
@@ -14352,7 +14352,7 @@ Cura EMR Team
   });
 
   // Get QuickBooks payment mappings
-  app.get("/api/quickbooks/payment-mappings", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+  app.get("/api/quickbooks/payment-mappings", authMiddleware, requireNonPatientRole(), multiTenantEnforcer(), async (req: TenantRequest, res) => {
     try {
       const organizationId = requireOrgId(req);
       const connectionId = req.query.connectionId ? parseInt(req.query.connectionId as string) : undefined;
@@ -14366,7 +14366,7 @@ Cura EMR Team
   });
 
   // Create QuickBooks payment mapping
-  app.post("/api/quickbooks/payment-mappings", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+  app.post("/api/quickbooks/payment-mappings", authMiddleware, requireNonPatientRole(), multiTenantEnforcer(), async (req: TenantRequest, res) => {
     try {
       const organizationId = requireOrgId(req);
 
@@ -14398,7 +14398,7 @@ Cura EMR Team
   });
 
   // Get QuickBooks account mappings
-  app.get("/api/quickbooks/account-mappings", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+  app.get("/api/quickbooks/account-mappings", authMiddleware, requireNonPatientRole(), multiTenantEnforcer(), async (req: TenantRequest, res) => {
     try {
       const organizationId = requireOrgId(req);
       const connectionId = req.query.connectionId ? parseInt(req.query.connectionId as string) : undefined;
@@ -14412,7 +14412,7 @@ Cura EMR Team
   });
 
   // Create QuickBooks account mapping
-  app.post("/api/quickbooks/account-mappings", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+  app.post("/api/quickbooks/account-mappings", authMiddleware, requireNonPatientRole(), multiTenantEnforcer(), async (req: TenantRequest, res) => {
     try {
       const organizationId = requireOrgId(req);
 
@@ -14445,7 +14445,7 @@ Cura EMR Team
   });
 
   // Get QuickBooks item mappings
-  app.get("/api/quickbooks/item-mappings", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+  app.get("/api/quickbooks/item-mappings", authMiddleware, requireNonPatientRole(), multiTenantEnforcer(), async (req: TenantRequest, res) => {
     try {
       const organizationId = requireOrgId(req);
       const connectionId = req.query.connectionId ? parseInt(req.query.connectionId as string) : undefined;
@@ -14459,7 +14459,7 @@ Cura EMR Team
   });
 
   // Create QuickBooks item mapping
-  app.post("/api/quickbooks/item-mappings", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+  app.post("/api/quickbooks/item-mappings", authMiddleware, requireNonPatientRole(), multiTenantEnforcer(), async (req: TenantRequest, res) => {
     try {
       const organizationId = requireOrgId(req);
 
@@ -14496,7 +14496,7 @@ Cura EMR Team
   });
 
   // Get QuickBooks sync configurations
-  app.get("/api/quickbooks/sync-configs", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+  app.get("/api/quickbooks/sync-configs", authMiddleware, requireNonPatientRole(), multiTenantEnforcer(), async (req: TenantRequest, res) => {
     try {
       const organizationId = requireOrgId(req);
       const connectionId = req.query.connectionId ? parseInt(req.query.connectionId as string) : undefined;
@@ -14510,7 +14510,7 @@ Cura EMR Team
   });
 
   // Create QuickBooks sync configuration
-  app.post("/api/quickbooks/sync-configs", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+  app.post("/api/quickbooks/sync-configs", authMiddleware, requireNonPatientRole(), multiTenantEnforcer(), async (req: TenantRequest, res) => {
     try {
       const organizationId = requireOrgId(req);
       const userId = req.user?.id;
@@ -14543,7 +14543,7 @@ Cura EMR Team
   });
 
   // Manual sync trigger endpoints
-  app.post("/api/quickbooks/sync/customers", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+  app.post("/api/quickbooks/sync/customers", authMiddleware, requireNonPatientRole(), multiTenantEnforcer(), async (req: TenantRequest, res) => {
     try {
       const organizationId = requireOrgId(req);
       const connection = await storage.getActiveQuickBooksConnection(organizationId);
@@ -14582,7 +14582,7 @@ Cura EMR Team
     }
   });
 
-  app.post("/api/quickbooks/sync/invoices", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+  app.post("/api/quickbooks/sync/invoices", authMiddleware, requireNonPatientRole(), multiTenantEnforcer(), async (req: TenantRequest, res) => {
     try {
       const organizationId = requireOrgId(req);
       const connection = await storage.getActiveQuickBooksConnection(organizationId);
@@ -14620,7 +14620,7 @@ Cura EMR Team
     }
   });
 
-  app.post("/api/quickbooks/sync/payments", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+  app.post("/api/quickbooks/sync/payments", authMiddleware, requireNonPatientRole(), multiTenantEnforcer(), async (req: TenantRequest, res) => {
     try {
       const organizationId = requireOrgId(req);
       const connection = await storage.getActiveQuickBooksConnection(organizationId);
@@ -14659,7 +14659,7 @@ Cura EMR Team
   });
 
   // QuickBooks OAuth authentication endpoints
-  app.get("/api/quickbooks/auth/url", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+  app.get("/api/quickbooks/auth/url", authMiddleware, requireNonPatientRole(), multiTenantEnforcer(), async (req: TenantRequest, res) => {
     try {
       console.log("[QUICKBOOKS] OAuth URL endpoint reached!");
       const clientId = process.env.QUICKBOOKS_CLIENT_ID;
