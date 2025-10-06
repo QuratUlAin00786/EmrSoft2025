@@ -883,6 +883,12 @@ export default function UserManagement() {
     setEditingUser(user);
     setSelectedRole(user.role);
     
+    // Reset email validation status to available since we're editing existing user
+    setEmailValidationStatus('available');
+    if (emailCheckTimeout) {
+      clearTimeout(emailCheckTimeout);
+    }
+    
     // Set medical specialty fields for doctor role
     if (user.role === 'doctor') {
       setSelectedSpecialtyCategory(user.medicalSpecialtyCategory || "");
