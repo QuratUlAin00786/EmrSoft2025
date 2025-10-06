@@ -2089,110 +2089,170 @@ export default function CalendarPage() {
                           </Popover>
                       </div>
 
-                      {/* Select Role */}
-                      <div>
-                        <Label className="text-sm font-medium text-gray-900 dark:text-white mb-2 block">
-                          Select Role
-                        </Label>
-                        <Popover open={openRoleCombo} onOpenChange={setOpenRoleCombo}>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              role="combobox"
-                              aria-expanded={openRoleCombo}
-                              className="w-full justify-between"
-                              data-testid="select-role-admin"
-                            >
-                              {selectedRole 
-                                ? availableRoles.find(r => r.name === selectedRole)?.displayName || selectedRole
-                                : "Select role..."}
-                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-full p-0">
-                            <Command>
-                              <CommandInput placeholder="Search role..." />
-                              <CommandList>
-                                <CommandEmpty>No role found.</CommandEmpty>
-                                <CommandGroup>
-                                  {availableRoles.map((role) => (
-                                    <CommandItem
-                                      key={role.name}
-                                      value={role.name}
-                                      onSelect={(currentValue) => {
-                                        setSelectedRole(currentValue);
-                                        setSelectedProviderId("");
-                                        setOpenRoleCombo(false);
-                                      }}
-                                    >
-                                      <Check
-                                        className={`mr-2 h-4 w-4 ${
-                                          role.name === selectedRole ? "opacity-100" : "opacity-0"
-                                        }`}
-                                      />
-                                      {role.displayName}
-                                    </CommandItem>
-                                  ))}
-                                </CommandGroup>
-                              </CommandList>
-                            </Command>
-                          </PopoverContent>
-                        </Popover>
-                      </div>
-
-                      {/* Select Name (Provider) */}
-                      {selectedRole && (
+                      {/* Doctor Details or Role/Provider Selection */}
+                      {user?.role === 'doctor' ? (
+                        /* Show Doctor Details for logged-in doctors */
                         <div>
                           <Label className="text-sm font-medium text-gray-900 dark:text-white mb-2 block">
-                            Select Name
+                            Doctor Details
                           </Label>
-                          <Popover open={openProviderCombo} onOpenChange={setOpenProviderCombo}>
-                            <PopoverTrigger asChild>
-                              <Button
-                                variant="outline"
-                                role="combobox"
-                                aria-expanded={openProviderCombo}
-                                className="w-full justify-between"
-                                data-testid="select-provider-admin"
-                              >
-                                {selectedProviderId 
-                                  ? (() => {
-                                      const provider = filteredUsers.find((u: any) => u.id.toString() === selectedProviderId);
-                                      return provider ? `${provider.firstName} ${provider.lastName}` : "Select provider...";
-                                    })()
-                                  : "Select provider..."}
-                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-full p-0">
-                              <Command>
-                                <CommandInput placeholder="Search provider..." />
-                                <CommandList>
-                                  <CommandEmpty>No provider found.</CommandEmpty>
-                                  <CommandGroup>
-                                    {filteredUsers.map((provider: any) => (
-                                      <CommandItem
-                                        key={provider.id}
-                                        value={`${provider.firstName} ${provider.lastName}`}
-                                        onSelect={() => {
-                                          setSelectedProviderId(provider.id.toString());
-                                          setOpenProviderCombo(false);
-                                        }}
-                                      >
-                                        <Check
-                                          className={`mr-2 h-4 w-4 ${
-                                            provider.id.toString() === selectedProviderId ? "opacity-100" : "opacity-0"
-                                          }`}
-                                        />
-                                        {provider.firstName} {provider.lastName}
-                                      </CommandItem>
-                                    ))}
-                                  </CommandGroup>
-                                </CommandList>
-                              </Command>
-                            </PopoverContent>
-                          </Popover>
+                          <Card className="mt-2">
+                            <CardContent className="p-4">
+                              <div className="flex items-start gap-4">
+                                {/* Doctor Avatar */}
+                                <div className="flex-shrink-0">
+                                  <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold text-lg">
+                                    {`${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}`.toUpperCase()}
+                                  </div>
+                                </div>
+                                
+                                {/* Doctor Details */}
+                                <div className="flex-1 space-y-3">
+                                  {/* Name and Department */}
+                                  <div>
+                                    <h3 className="font-semibold text-lg text-gray-900 dark:text-white">
+                                      Dr. {user.firstName} {user.lastName}
+                                    </h3>
+                                    {user.department && (
+                                      <p className="text-gray-600 dark:text-gray-400">
+                                        {user.department}
+                                      </p>
+                                    )}
+                                  </div>
+                                  
+                                  {/* Additional Information */}
+                                  <div className="space-y-2 text-sm">
+                                    {user.medicalSpecialtyCategory && (
+                                      <div className="flex items-center gap-2">
+                                        <User className="h-4 w-4 text-gray-500" />
+                                        <span className="text-gray-700 dark:text-gray-300">
+                                          {user.medicalSpecialtyCategory}
+                                          {user.subSpecialty && ` - ${user.subSpecialty}`}
+                                        </span>
+                                      </div>
+                                    )}
+                                    
+                                    {user.email && (
+                                      <div className="flex items-center gap-2">
+                                        <Mail className="h-4 w-4 text-gray-500" />
+                                        <span className="text-gray-700 dark:text-gray-300">{user.email}</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
                         </div>
+                      ) : (
+                        /* Show Role and Provider Selection for non-doctor users */
+                        <>
+                          {/* Select Role */}
+                          <div>
+                            <Label className="text-sm font-medium text-gray-900 dark:text-white mb-2 block">
+                              Select Role
+                            </Label>
+                            <Popover open={openRoleCombo} onOpenChange={setOpenRoleCombo}>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  role="combobox"
+                                  aria-expanded={openRoleCombo}
+                                  className="w-full justify-between"
+                                  data-testid="select-role-admin"
+                                >
+                                  {selectedRole 
+                                    ? availableRoles.find(r => r.name === selectedRole)?.displayName || selectedRole
+                                    : "Select role..."}
+                                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-full p-0">
+                                <Command>
+                                  <CommandInput placeholder="Search role..." />
+                                  <CommandList>
+                                    <CommandEmpty>No role found.</CommandEmpty>
+                                    <CommandGroup>
+                                      {availableRoles.map((role) => (
+                                        <CommandItem
+                                          key={role.name}
+                                          value={role.name}
+                                          onSelect={(currentValue) => {
+                                            setSelectedRole(currentValue);
+                                            setSelectedProviderId("");
+                                            setOpenRoleCombo(false);
+                                          }}
+                                        >
+                                          <Check
+                                            className={`mr-2 h-4 w-4 ${
+                                              role.name === selectedRole ? "opacity-100" : "opacity-0"
+                                            }`}
+                                          />
+                                          {role.displayName}
+                                        </CommandItem>
+                                      ))}
+                                    </CommandGroup>
+                                  </CommandList>
+                                </Command>
+                              </PopoverContent>
+                            </Popover>
+                          </div>
+
+                          {/* Select Name (Provider) */}
+                          {selectedRole && (
+                            <div>
+                              <Label className="text-sm font-medium text-gray-900 dark:text-white mb-2 block">
+                                Select Name
+                              </Label>
+                              <Popover open={openProviderCombo} onOpenChange={setOpenProviderCombo}>
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    role="combobox"
+                                    aria-expanded={openProviderCombo}
+                                    className="w-full justify-between"
+                                    data-testid="select-provider-admin"
+                                  >
+                                    {selectedProviderId 
+                                      ? (() => {
+                                          const provider = filteredUsers.find((u: any) => u.id.toString() === selectedProviderId);
+                                          return provider ? `${provider.firstName} ${provider.lastName}` : "Select provider...";
+                                        })()
+                                      : "Select provider..."}
+                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-full p-0">
+                                  <Command>
+                                    <CommandInput placeholder="Search provider..." />
+                                    <CommandList>
+                                      <CommandEmpty>No provider found.</CommandEmpty>
+                                      <CommandGroup>
+                                        {filteredUsers.map((provider: any) => (
+                                          <CommandItem
+                                            key={provider.id}
+                                            value={`${provider.firstName} ${provider.lastName}`}
+                                            onSelect={() => {
+                                              setSelectedProviderId(provider.id.toString());
+                                              setOpenProviderCombo(false);
+                                            }}
+                                          >
+                                            <Check
+                                              className={`mr-2 h-4 w-4 ${
+                                                provider.id.toString() === selectedProviderId ? "opacity-100" : "opacity-0"
+                                              }`}
+                                            />
+                                            {provider.firstName} {provider.lastName}
+                                          </CommandItem>
+                                        ))}
+                                      </CommandGroup>
+                                    </CommandList>
+                                  </Command>
+                                </PopoverContent>
+                              </Popover>
+                            </div>
+                          )}
+                        </>
                       )}
 
                       {/* Select Duration */}
