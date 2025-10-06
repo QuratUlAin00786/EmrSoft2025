@@ -536,9 +536,27 @@ export function DoctorList({
 
   const openBookingDialog = (doctor: Doctor) => {
     setSelectedBookingDoctor(doctor);
-    // Auto-select the first patient if available
+    // Auto-select the logged-in patient if user is a patient
     if (patients && patients.length > 0) {
-      setSelectedPatient(patients[0].id.toString());
+      if (user?.role === 'patient') {
+        // Find the patient record matching the logged-in user by email
+        const currentPatient = patients.find((patient: any) => 
+          patient.email && user?.email && patient.email.toLowerCase() === user.email.toLowerCase()
+        ) || patients.find((patient: any) => 
+          patient.firstName && user?.firstName && patient.lastName && user?.lastName &&
+          patient.firstName.toLowerCase() === user.firstName.toLowerCase() && 
+          patient.lastName.toLowerCase() === user.lastName.toLowerCase()
+        );
+        
+        if (currentPatient) {
+          setSelectedPatient(currentPatient.id.toString());
+        } else {
+          setSelectedPatient(patients[0].id.toString());
+        }
+      } else {
+        // For non-patient users, select the first patient
+        setSelectedPatient(patients[0].id.toString());
+      }
     } else {
       setSelectedPatient("");
     }
