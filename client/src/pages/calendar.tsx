@@ -480,10 +480,19 @@ export default function CalendarPage() {
       return [];
     }
 
-    // TIER 1: Check for custom shifts in staff_shifts table
-    let providerShifts = shiftsData?.filter((shift: any) => 
-      shift.staffId.toString() === selectedProviderId
-    ) || [];
+    // TIER 1: Check for custom shifts in staff_shifts table for the selected date
+    const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
+    let providerShifts = shiftsData?.filter((shift: any) => {
+      // Filter by staff ID
+      if (shift.staffId.toString() !== selectedProviderId) return false;
+      
+      // Filter by selected date
+      const shiftDateStr = shift.date instanceof Date 
+        ? format(shift.date, 'yyyy-MM-dd')
+        : shift.date.substring(0, 10);
+      
+      return shiftDateStr === selectedDateStr;
+    }) || [];
 
     console.log(`[TIME_SLOTS] Provider ${selectedProviderId}, Date: ${format(selectedDate, 'yyyy-MM-dd EEEE')}`);
     console.log(`[TIME_SLOTS] Custom shifts found: ${providerShifts.length}`, providerShifts);
