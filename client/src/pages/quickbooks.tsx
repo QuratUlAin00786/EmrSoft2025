@@ -136,7 +136,8 @@ export default function QuickBooks() {
   // Connect to QuickBooks mutation
   const connectMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest('/api/quickbooks/auth/url');
+      const res = await apiRequest('GET', '/api/quickbooks/auth/url');
+      const response = await res.json();
       if (response.url) {
         window.open(response.url, '_blank', 'width=800,height=600');
       }
@@ -160,9 +161,8 @@ export default function QuickBooks() {
   // Disconnect mutation
   const disconnectMutation = useMutation({
     mutationFn: async (connectionId: number) => {
-      return await apiRequest(`/api/quickbooks/connections/${connectionId}`, {
-        method: 'DELETE',
-      });
+      const res = await apiRequest('DELETE', `/api/quickbooks/connections/${connectionId}`);
+      return await res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/quickbooks/connections'] });
@@ -184,10 +184,8 @@ export default function QuickBooks() {
   // Update connection settings mutation
   const updateSettingsMutation = useMutation({
     mutationFn: async ({ connectionId, settings }: { connectionId: number; settings: any }) => {
-      return await apiRequest(`/api/quickbooks/connections/${connectionId}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ syncSettings: settings }),
-      });
+      const res = await apiRequest('PATCH', `/api/quickbooks/connections/${connectionId}`, { syncSettings: settings });
+      return await res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/quickbooks/connections'] });
@@ -209,7 +207,10 @@ export default function QuickBooks() {
 
   // Manual sync mutations
   const syncCustomersMutation = useMutation({
-    mutationFn: () => apiRequest('/api/quickbooks/sync/customers', { method: 'POST' }),
+    mutationFn: async () => {
+      const res = await apiRequest('POST', '/api/quickbooks/sync/customers');
+      return await res.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/quickbooks/sync-logs'] });
       toast({ title: "Customer Sync Initiated", description: "Customer synchronization has started." });
@@ -217,7 +218,10 @@ export default function QuickBooks() {
   });
 
   const syncInvoicesMutation = useMutation({
-    mutationFn: () => apiRequest('/api/quickbooks/sync/invoices', { method: 'POST' }),
+    mutationFn: async () => {
+      const res = await apiRequest('POST', '/api/quickbooks/sync/invoices');
+      return await res.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/quickbooks/sync-logs'] });
       toast({ title: "Invoice Sync Initiated", description: "Invoice synchronization has started." });
@@ -225,7 +229,10 @@ export default function QuickBooks() {
   });
 
   const syncPaymentsMutation = useMutation({
-    mutationFn: () => apiRequest('/api/quickbooks/sync/payments', { method: 'POST' }),
+    mutationFn: async () => {
+      const res = await apiRequest('POST', '/api/quickbooks/sync/payments');
+      return await res.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/quickbooks/sync-logs'] });
       toast({ title: "Payment Sync Initiated", description: "Payment synchronization has started." });
