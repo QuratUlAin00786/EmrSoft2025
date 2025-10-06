@@ -431,14 +431,14 @@ export function PatientDashboard() {
   const totalPendingCount = (pendingResultsData?.totalCount || 0);
 
   const patientCards = [
-    ...(upcomingAppointmentsData.count === 0 ? [{
+    {
       title: "Next Appointment",
-      value: nextAppointment ? new Date(nextAppointment.scheduledAt).toLocaleDateString() : "None",
+      value: upcomingAppointmentsData.count > 0 ? new Date(nextAppointment.scheduledAt).toLocaleDateString() : "0 Appointments",
       description: nextAppointment ? nextAppointment.provider : "Schedule one today",
       icon: Calendar,
       href: "/appointments",
       color: "bg-blue-100 text-blue-800"
-    }] : []),
+    },
     {
       title: "Active Prescriptions",
       value: totalPrescriptions.toString(),
@@ -599,14 +599,14 @@ export function PatientDashboard() {
 
       {/* Patient-specific content */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {upcomingAppointmentsData.count === 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Upcoming Appointments</CardTitle>
-              <CardDescription>Your scheduled healthcare visits</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
+        <Card>
+          <CardHeader>
+            <CardTitle>Upcoming Appointments</CardTitle>
+            <CardDescription>Your scheduled healthcare visits</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {upcomingAppointmentsData.count === 0 ? (
                 <div className="text-center py-4">
                   <Calendar className="h-12 w-12 text-neutral-300 mx-auto mb-2" />
                   <p className="text-neutral-500">No upcoming appointments</p>
@@ -614,10 +614,37 @@ export function PatientDashboard() {
                     <Link href="/appointments">Book Appointment</Link>
                   </Button>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+              ) : (
+                <div className="space-y-3">
+                  {upcomingAppointmentsData.appointments.slice(0, 3).map((appointment: any) => {
+                    const doctorInfo = getDoctorSpecialtyData(appointment.providerId);
+                    return (
+                      <div key={appointment.id} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                        <Calendar className="h-5 w-5 text-primary mt-1" />
+                        <div className="flex-1">
+                          <p className="font-medium text-sm">{appointment.title}</p>
+                          <p className="text-xs text-neutral-600">
+                            {doctorInfo.name && `Dr. ${doctorInfo.name} - `}
+                            {formatDate(appointment.scheduledAt)}
+                          </p>
+                          <p className="text-xs text-neutral-500">{appointment.location || 'Location TBD'}</p>
+                        </div>
+                        <Badge variant={appointment.status === 'scheduled' ? 'default' : 'secondary'}>
+                          {appointment.status}
+                        </Badge>
+                      </div>
+                    );
+                  })}
+                  {upcomingAppointmentsData.count > 3 && (
+                    <Button variant="outline" size="sm" className="w-full" asChild>
+                      <Link href="/appointments">View All {upcomingAppointmentsData.count} Appointments</Link>
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>
