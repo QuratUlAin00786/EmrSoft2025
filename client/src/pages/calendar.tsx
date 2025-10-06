@@ -2605,7 +2605,13 @@ export default function CalendarPage() {
                         <p className="font-medium">
                           {(() => {
                             const provider = filteredUsers.find((u: any) => u.id === pendingAppointmentData.providerId);
-                            return provider ? `${provider.firstName} ${provider.lastName}` : 'N/A';
+                            if (provider) {
+                              return `${provider.firstName} ${provider.lastName}`;
+                            }
+                            if (user && pendingAppointmentData.providerId === user.id) {
+                              return `${user.firstName} ${user.lastName}`;
+                            }
+                            return 'N/A';
                           })()}
                         </p>
                       </div>
