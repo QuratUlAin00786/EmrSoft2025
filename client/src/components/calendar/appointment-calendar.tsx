@@ -702,6 +702,21 @@ Medical License: [License Number]
     },
   });
 
+  // Fetch roles from the roles table filtered by organization_id
+  const { data: rolesData = [] } = useQuery({
+    queryKey: ["/api/roles"],
+    queryFn: async () => {
+      try {
+        const response = await apiRequest("GET", "/api/roles");
+        const data = await response.json();
+        return Array.isArray(data) ? data : [];
+      } catch (error) {
+        console.error("Roles fetch error:", error);
+        return [];
+      }
+    },
+  });
+
   // Fetch all shifts for the selected provider to determine available dates
   const { data: allProviderShifts } = useQuery({
     queryKey: ["/api/shifts/provider", selectedProviderId],
@@ -797,9 +812,8 @@ Medical License: [License Number]
     return user.role === selectedRole;
   }) || [];
 
-  // Get available roles from all users
-  const availableRoles: string[] = usersData ? 
-    Array.from(new Set(usersData.map((user: any) => user.role).filter(Boolean))) as string[] : [];
+  // Map roles to dropdown options format from roles table
+  const availableRoles = rolesData.map((role: any) => role.name);
 
   // Helper functions
   const getPatientName = (patientId: number) => {
