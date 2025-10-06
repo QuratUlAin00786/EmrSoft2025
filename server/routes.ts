@@ -1376,18 +1376,96 @@ export async function registerRoutes(app: Express): Promise<Server> {
         <html>
           <head>
             <title>QuickBooks Connected</title>
+            <style>
+              body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 100vh;
+                margin: 0;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              }
+              .success-container {
+                background: white;
+                padding: 3rem;
+                border-radius: 16px;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                text-align: center;
+                max-width: 400px;
+              }
+              .checkmark {
+                width: 80px;
+                height: 80px;
+                border-radius: 50%;
+                background: #10b981;
+                margin: 0 auto 1.5rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                animation: scaleIn 0.5s ease-out;
+              }
+              @keyframes scaleIn {
+                from { transform: scale(0); }
+                to { transform: scale(1); }
+              }
+              .checkmark svg {
+                width: 50px;
+                height: 50px;
+                stroke: white;
+                stroke-width: 3;
+                fill: none;
+                stroke-linecap: round;
+                stroke-dasharray: 60;
+                stroke-dashoffset: 60;
+                animation: drawCheck 0.5s ease-out 0.3s forwards;
+              }
+              @keyframes drawCheck {
+                to { stroke-dashoffset: 0; }
+              }
+              h1 {
+                color: #10b981;
+                font-size: 1.75rem;
+                margin: 0 0 0.5rem;
+              }
+              p {
+                color: #6b7280;
+                margin: 0.5rem 0;
+                line-height: 1.5;
+              }
+              .realm-id {
+                font-family: monospace;
+                background: #f3f4f6;
+                padding: 0.5rem 1rem;
+                border-radius: 8px;
+                margin-top: 1rem;
+                font-size: 0.875rem;
+                color: #4b5563;
+              }
+            </style>
           </head>
           <body>
+            <div class="success-container">
+              <div class="checkmark">
+                <svg viewBox="0 0 52 52">
+                  <path d="M14 27l9 9 19-19" />
+                </svg>
+              </div>
+              <h1>Successfully Connected!</h1>
+              <p>Your QuickBooks account has been linked to Cura.</p>
+              <div class="realm-id">Realm ID: ${realmId}</div>
+            </div>
             <script>
-              // Close popup and notify parent window
-              if (window.opener) {
+              // Send message to parent window (iframe)
+              if (window.parent && window.parent !== window) {
+                window.parent.postMessage({ type: 'quickbooks-connected', realmId: '${realmId}' }, '*');
+              }
+              // Fallback for popup window
+              else if (window.opener) {
                 window.opener.postMessage({ type: 'quickbooks-connected', realmId: '${realmId}' }, '*');
                 window.close();
-              } else {
-                window.location.href = '/demo/quickbooks?connected=true&realmId=${realmId}';
               }
             </script>
-            <p>QuickBooks connected successfully! This window will close automatically...</p>
           </body>
         </html>
       `);
