@@ -14661,17 +14661,23 @@ Cura EMR Team
   // QuickBooks OAuth authentication endpoints
   app.get("/api/quickbooks/auth/url", authMiddleware, requireNonPatientRole, multiTenantEnforcer(), async (req: TenantRequest, res) => {
     try {
+      console.log("[QUICKBOOKS] OAuth URL endpoint reached!");
       const clientId = process.env.QUICKBOOKS_CLIENT_ID;
+      console.log("[QUICKBOOKS] Client ID exists:", !!clientId);
       const redirectUri = process.env.QB_REDIRECT_URI || `${process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : 'http://localhost:5000'}/api/quickbooks/auth/callback`;
+      console.log("[QUICKBOOKS] Redirect URI:", redirectUri);
       
       if (!clientId) {
+        console.log("[QUICKBOOKS] ERROR: Client ID is missing!");
         return res.status(500).json({ error: "QuickBooks Client ID not configured" });
       }
       
       const oauthUrl = `https://appcenter.intuit.com/connect/oauth2?client_id=${clientId}&scope=com.intuit.quickbooks.accounting&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&state=security_token&access_type=offline`;
+      console.log("[QUICKBOOKS] Generated OAuth URL, sending response...");
       res.json({ url: oauthUrl });
+      console.log("[QUICKBOOKS] Response sent successfully");
     } catch (error) {
-      console.error("Error generating OAuth URL:", error);
+      console.error("[QUICKBOOKS] Error generating OAuth URL:", error);
       res.status(500).json({ error: "Failed to generate OAuth URL" });
     }
   });
