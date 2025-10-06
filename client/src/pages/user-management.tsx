@@ -880,10 +880,12 @@ export default function UserManagement() {
   };
 
   const handleEdit = (user: User) => {
+    console.log("🔧 handleEdit called for user:", user.id, user.email);
     setEditingUser(user);
     setSelectedRole(user.role);
     
     // Reset email validation status to available since we're editing existing user
+    console.log("📧 Setting emailValidationStatus to 'available'");
     setEmailValidationStatus('available');
     if (emailCheckTimeout) {
       clearTimeout(emailCheckTimeout);
@@ -909,6 +911,7 @@ export default function UserManagement() {
       password: "", // Don't pre-fill password for security
     });
     setIsCreateModalOpen(true);
+    console.log("✅ handleEdit complete - modal should be open with validation status: 'available'");
   };
 
   const handleDelete = (userId: number) => {
@@ -1685,6 +1688,17 @@ export default function UserManagement() {
                       emailValidationStatus === 'exists' ||
                       emailValidationStatus === 'checking'
                     }
+                    onClick={() => {
+                      console.log("🔍 Button Clicked - Debug Info:");
+                      console.log("  emailValidationStatus:", emailValidationStatus);
+                      console.log("  createUserMutation.isPending:", createUserMutation.isPending);
+                      console.log("  updateUserMutation.isPending:", updateUserMutation.isPending);
+                      console.log("  editingUser:", editingUser);
+                      console.log("  Button should be:", 
+                        (createUserMutation.isPending || updateUserMutation.isPending || emailValidationStatus === 'exists' || emailValidationStatus === 'checking') 
+                        ? "DISABLED" : "ENABLED"
+                      );
+                    }}
                   >
                     {createUserMutation.isPending || updateUserMutation.isPending ? 
                       "Saving..." : 
