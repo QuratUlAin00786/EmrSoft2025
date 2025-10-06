@@ -1,0 +1,166 @@
+Calendar & Scheduling
+View appointments, manage schedules, and book new consultations.
+
+October 2025
+Previous
+Today
+Next
+New Appointment
+Sun
+Mon
+Tue
+Wed
+Thu
+Fri
+Sat
+1
+2
+3
++22
+4
++14
+5
++10
+6
++6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+Appointments for Monday, October 6, 2025
+SCHEDULED
+8:00 PM
+mic pat
+15 minutes
+Consultation with David Wilson
+Dr. David Wilson
+Cancel Appointment
+
+
+SCHEDULED
+8:30 PM
+mic pat
+30 minutes
+Appointment with David Wilson
+Dr. David Wilson
+Cancel Appointment
+
+
+SCHEDULED
+9:15 PM
+mic pat
+30 minutes
+Appointment with David Wilson
+Dr. David Wilson
+Cancel Appointment
+
+
+SCHEDULED
+10:00 PM
+mic pat
+30 minutes
+Appointment with David Wilson
+Dr. David Wilson
+Cancel Appointment
+
+
+SCHEDULED
+10:45 PM
+mic pat
+30 minutes
+Consultation with David Wilson
+Dr. David Wilson
+Cancel Appointment
+
+
+SCHEDULED
+12:15 AM
+kafia khan
+60 minutes
+kafia - Doctor Appointment
+Dr. Sarah Smith
+Created By: John Administrator (admin)
+Cancel Appointment
+
+
+SCHEDULED
+3:30 AM
+ANN ANN
+30 minutes
+ANN - Doctor Appointment
+Dr. Sarah Smith
+Created By: John Administrator (admin)
+Cancel Appointment
+
+
+SCHEDULED
+6:00 AM
+ANN ANN
+30 minutes
+ANN - Doctor Appointment
+Dr. Michael Johnson
+Created By: John Administrator (admin)
+Cancel Appointment
+
+
+SCHEDULED
+3:00 PM
+ANN ANN
+15 minutes
+Appointment with Lisa Anderson
+Dr. Lisa Anderson
+Cancel Appointment
+
+
+Available Doctors
+LA
+Lisa Anderson
+doctor4@cura.com
+Monday, Tuesday, Wednesday +2 more · 08:00 - 16:00
+Book
+Edit Schedule
+View Profile
+SS
+Sarah Smith
+doctor@cura.com
+Monday, Tuesday, Wednesday +2 more · 08:00 - 17:00
+Book
+Edit Schedule
+View Profile
+MJ
+Michael Johnson
+doctor2@cura.com
+Monday, Tuesday, Wednesday +2 more · 09:00 - 18:00
+Book
+Edit Schedule
+View Profile
+RB
+Robert Brown
+doctor5@cura.com
+Monday, Wednesday, Friday · 10:00 - 18:00
+Book
+Edit Schedule
+View Profile
+
+Create New Appointment

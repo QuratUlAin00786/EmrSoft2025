@@ -366,6 +366,28 @@ export default function CalendarPage() {
       }
     },
   });
+
+  // Fetch default shifts for all users (to use as fallback when custom shifts don't exist)
+  const { data: defaultShiftsData = [] } = useQuery({
+    queryKey: ["/api/default-shifts"],
+    staleTime: 60000,
+    enabled: !!selectedProviderId,
+    retry: false,
+    queryFn: async () => {
+      try {
+        const response = await apiRequest('GET', '/api/default-shifts');
+        if (!response.ok) {
+          console.warn('Failed to fetch default shifts:', response.status);
+          return [];
+        }
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.warn('Error fetching default shifts:', error);
+        return [];
+      }
+    },
+  });
   
   // Query for filtered appointments
   const { data: allAppointments = [] } = useQuery<any[]>({
@@ -449,15 +471,40 @@ export default function CalendarPage() {
   };
 
   // Generate time slots based on shifts for the selected provider on the selected date
+  // Uses two-tier system: custom shifts (staff_shifts) take priority, then default shifts (doctor_default_shifts)
   const timeSlots = useMemo(() => {
-    if (!selectedProviderId || !selectedDate || !shiftsData) {
+    if (!selectedProviderId || !selectedDate) {
       return [];
     }
 
-    // Find ALL shifts for the selected provider on this date
-    const providerShifts = shiftsData.filter((shift: any) => 
+    // TIER 1: Check for custom shifts in staff_shifts table
+    let providerShifts = shiftsData?.filter((shift: any) => 
       shift.staffId.toString() === selectedProviderId
-    );
+    ) || [];
+
+    // TIER 2: If no custom shifts found, use default shifts from doctor_default_shifts
+    if (providerShifts.length === 0 && defaultShiftsData.length > 0) {
+      const defaultShift = defaultShiftsData.find((ds: any) => 
+        ds.userId.toString() === selectedProviderId
+      );
+
+      if (defaultShift) {
+        // Check if the selected date's day of week is in the working days
+        const dayOfWeek = format(selectedDate, 'EEEE'); // "Monday", "Tuesday", etc.
+        const workingDays = defaultShift.workingDays || [];
+        
+        if (workingDays.includes(dayOfWeek)) {
+          // Create a virtual shift object matching the staff_shifts structure
+          providerShifts = [{
+            staffId: defaultShift.userId,
+            startTime: defaultShift.startTime,
+            endTime: defaultShift.endTime,
+            date: selectedDate,
+            isDefault: true // Flag to indicate this came from default shifts
+          }];
+        }
+      }
+    }
 
     if (!providerShifts || providerShifts.length === 0) {
       return [];
@@ -499,7 +546,7 @@ export default function CalendarPage() {
     });
 
     return allSlots;
-  }, [selectedProviderId, selectedDate, shiftsData, selectedDuration]);
+  }, [selectedProviderId, selectedDate, shiftsData, defaultShiftsData, selectedDuration]);
 
   // Check if a time slot is booked (considering duration and provider)
   const isTimeSlotBooked = (timeSlot: string): boolean => {
