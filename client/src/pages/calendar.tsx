@@ -2003,7 +2003,7 @@ export default function CalendarPage() {
                 ) : (
                   /* For non-patient roles - Keep original layout */
                   <div className="grid gap-6 lg:grid-cols-2">
-                    {/* Left Column - Patient Selection */}
+                    {/* Left Column - Patient Selection and Provider Selection */}
                     <div className="space-y-6">
                       {/* Patient Selection */}
                       <div>
@@ -2080,6 +2080,132 @@ export default function CalendarPage() {
                               </Command>
                             </PopoverContent>
                           </Popover>
+                      </div>
+
+                      {/* Select Role */}
+                      <div>
+                        <Label className="text-sm font-medium text-gray-900 dark:text-white mb-2 block">
+                          Select Role
+                        </Label>
+                        <Popover open={openRoleCombo} onOpenChange={setOpenRoleCombo}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              aria-expanded={openRoleCombo}
+                              className="w-full justify-between"
+                              data-testid="select-role-admin"
+                            >
+                              {selectedRole 
+                                ? availableRoles.find(r => r.name === selectedRole)?.displayName || selectedRole
+                                : "Select role..."}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-full p-0">
+                            <Command>
+                              <CommandInput placeholder="Search role..." />
+                              <CommandList>
+                                <CommandEmpty>No role found.</CommandEmpty>
+                                <CommandGroup>
+                                  {availableRoles.map((role) => (
+                                    <CommandItem
+                                      key={role.name}
+                                      value={role.name}
+                                      onSelect={(currentValue) => {
+                                        setSelectedRole(currentValue);
+                                        setSelectedProviderId("");
+                                        setOpenRoleCombo(false);
+                                      }}
+                                    >
+                                      <Check
+                                        className={`mr-2 h-4 w-4 ${
+                                          role.name === selectedRole ? "opacity-100" : "opacity-0"
+                                        }`}
+                                      />
+                                      {role.displayName}
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+
+                      {/* Select Name (Provider) */}
+                      {selectedRole && (
+                        <div>
+                          <Label className="text-sm font-medium text-gray-900 dark:text-white mb-2 block">
+                            Select Name
+                          </Label>
+                          <Popover open={openProviderCombo} onOpenChange={setOpenProviderCombo}>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                aria-expanded={openProviderCombo}
+                                className="w-full justify-between"
+                                data-testid="select-provider-admin"
+                              >
+                                {selectedProviderId 
+                                  ? (() => {
+                                      const provider = filteredUsers.find((u: any) => u.id.toString() === selectedProviderId);
+                                      return provider ? `${provider.firstName} ${provider.lastName}` : "Select provider...";
+                                    })()
+                                  : "Select provider..."}
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-full p-0">
+                              <Command>
+                                <CommandInput placeholder="Search provider..." />
+                                <CommandList>
+                                  <CommandEmpty>No provider found.</CommandEmpty>
+                                  <CommandGroup>
+                                    {filteredUsers.map((provider: any) => (
+                                      <CommandItem
+                                        key={provider.id}
+                                        value={`${provider.firstName} ${provider.lastName}`}
+                                        onSelect={() => {
+                                          setSelectedProviderId(provider.id.toString());
+                                          setOpenProviderCombo(false);
+                                        }}
+                                      >
+                                        <Check
+                                          className={`mr-2 h-4 w-4 ${
+                                            provider.id.toString() === selectedProviderId ? "opacity-100" : "opacity-0"
+                                          }`}
+                                        />
+                                        {provider.firstName} {provider.lastName}
+                                      </CommandItem>
+                                    ))}
+                                  </CommandGroup>
+                                </CommandList>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                      )}
+
+                      {/* Select Duration */}
+                      <div>
+                        <Label className="text-sm font-medium text-gray-900 dark:text-white mb-2 block">
+                          Select Duration
+                        </Label>
+                        <Select
+                          value={selectedDuration.toString()}
+                          onValueChange={(value) => setSelectedDuration(parseInt(value))}
+                        >
+                          <SelectTrigger className="w-full" data-testid="select-duration-admin">
+                            <SelectValue placeholder="Select duration..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="15">15 minutes</SelectItem>
+                            <SelectItem value="30">30 minutes</SelectItem>
+                            <SelectItem value="60">60 minutes</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
 
                       {/* Patient Information Card - Shows when patient is selected */}
