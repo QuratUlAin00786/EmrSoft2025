@@ -283,6 +283,18 @@ export const staffShifts = pgTable("staff_shifts", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Default Shifts for Staff (Lifetime default working hours)
+export const doctorDefaultShifts = pgTable("doctor_default_shifts", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  userId: integer("user_id").notNull(),
+  startTime: varchar("start_time", { length: 5 }).notNull().default("09:00"), // "09:00"
+  endTime: varchar("end_time", { length: 5 }).notNull().default("17:00"), // "17:00"
+  workingDays: text("working_days").array().notNull().default(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Patients
 export const patients = pgTable("patients", {
   id: serial("id").primaryKey(),
@@ -1670,6 +1682,18 @@ export const staffShiftsRelations = relations(staffShifts, ({ one }) => ({
   }),
 }));
 
+// Default Shifts Relations
+export const doctorDefaultShiftsRelations = relations(doctorDefaultShifts, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [doctorDefaultShifts.organizationId],
+    references: [organizations.id],
+  }),
+  user: one(users, {
+    fields: [doctorDefaultShifts.userId],
+    references: [users.id],
+  }),
+}));
+
 // GDPR Relations
 export const gdprConsentsRelations = relations(gdprConsents, ({ one }) => ({
   organization: one(organizations, {
@@ -2167,6 +2191,12 @@ export const insertStaffShiftSchema = createInsertSchema(staffShifts).omit({
   updatedAt: true,
 });
 
+export const insertDoctorDefaultShiftSchema = createInsertSchema(doctorDefaultShifts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // GDPR Insert Schemas
 export const insertGdprConsentSchema = createInsertSchema(gdprConsents).omit({
   id: true,
@@ -2431,6 +2461,9 @@ export type InsertMedicationsDatabase = z.infer<typeof insertMedicationsDatabase
 
 export type StaffShift = typeof staffShifts.$inferSelect;
 export type InsertStaffShift = z.infer<typeof insertStaffShiftSchema>;
+
+export type DoctorDefaultShift = typeof doctorDefaultShifts.$inferSelect;
+export type InsertDoctorDefaultShift = z.infer<typeof insertDoctorDefaultShiftSchema>;
 
 // GDPR Types
 export type GdprConsent = typeof gdprConsents.$inferSelect;

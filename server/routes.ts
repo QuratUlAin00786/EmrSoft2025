@@ -10980,6 +10980,107 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Default Shifts API endpoints
+  app.get("/api/default-shifts", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const organizationId = req.tenant!.id;
+      const userId = req.user?.id;
+      const isAdmin = req.user?.role === 'admin' || req.user?.role === 'administrator';
+
+      let defaultShifts;
+      
+      if (isAdmin) {
+        defaultShifts = await storage.getDefaultShiftsByOrganization(organizationId);
+      } else {
+        defaultShifts = await storage.getDefaultShiftByUser(userId!, organizationId);
+        defaultShifts = defaultShifts ? [defaultShifts] : [];
+      }
+
+      res.json(defaultShifts);
+    } catch (error) {
+      console.error("Error fetching default shifts:", error);
+      res.status(500).json({ error: "Failed to fetch default shifts" });
+    }
+  });
+
+  app.get("/api/default-shifts/:userId", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const organizationId = req.tenant!.id;
+      const requestingUserId = req.user?.id;
+      const isAdmin = req.user?.role === 'admin' || req.user?.role === 'administrator';
+
+      if (!isAdmin && userId !== requestingUserId) {
+        return res.status(403).json({ error: "Forbidden: Can only view your own default shift" });
+      }
+
+      const defaultShift = await storage.getDefaultShiftByUser(userId, organizationId);
+      
+      if (!defaultShift) {
+        return res.status(404).json({ error: "Default shift not found" });
+      }
+
+      res.json(defaultShift);
+    } catch (error) {
+      console.error("Error fetching default shift:", error);
+      res.status(500).json({ error: "Failed to fetch default shift" });
+    }
+  });
+
+  app.patch("/api/default-shifts/:userId", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const organizationId = req.tenant!.id;
+      const requestingUserId = req.user?.id;
+      const isAdmin = req.user?.role === 'admin' || req.user?.role === 'administrator';
+
+      if (!isAdmin && userId !== requestingUserId) {
+        return res.status(403).json({ error: "Forbidden: Can only edit your own default shift" });
+      }
+
+      const updateData = z.object({
+        startTime: z.string().optional(),
+        endTime: z.string().optional(),
+        workingDays: z.array(z.string()).optional(),
+      }).parse(req.body);
+
+      const updatedShift = await storage.updateDefaultShift(userId, organizationId, updateData);
+
+      if (!updatedShift) {
+        return res.status(404).json({ error: "Default shift not found" });
+      }
+
+      res.json(updatedShift);
+    } catch (error) {
+      console.error("Error updating default shift:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: error.errors.map(e => `${e.path.join('.')}: ${e.message}`)
+        });
+      }
+      res.status(500).json({ error: "Failed to update default shift" });
+    }
+  });
+
+  app.post("/api/default-shifts/initialize", authMiddleware, requireRole(["admin"]), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = req.tenant!.id;
+      
+      const result = await storage.initializeDefaultShifts(organizationId);
+
+      res.json({
+        message: "Default shifts initialized successfully",
+        created: result.created,
+        skipped: result.skipped,
+        total: result.created + result.skipped
+      });
+    } catch (error) {
+      console.error("Error initializing default shifts:", error);
+      res.status(500).json({ error: "Failed to initialize default shifts" });
+    }
+  });
+
   // Mobile API endpoints for Doctor and Patient apps
   
   // Doctor Mobile API endpoints

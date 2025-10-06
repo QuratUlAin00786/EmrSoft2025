@@ -1,5 +1,5 @@
 import { 
-  organizations, users, patients, medicalRecords, appointments, invoices, payments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages, clinicalPhotos, labResults, claims, revenueRecords, insuranceVerifications, clinicalProcedures, emergencyProtocols, medicationsDatabase, roles, staffShifts, gdprConsents, gdprDataRequests, gdprAuditTrail, gdprProcessingActivities, conversations as conversationsTable, messages, voiceNotes, saasOwners, saasPackages, saasSubscriptions, saasPayments, saasInvoices, saasSettings, chatbotConfigs, chatbotSessions, chatbotMessages, chatbotAnalytics, musclePositions, userDocumentPreferences, letterDrafts, forecastModels, financialForecasts, quickbooksConnections, quickbooksSyncLogs, quickbooksCustomerMappings, quickbooksInvoiceMappings, quickbooksPaymentMappings, quickbooksAccountMappings, quickbooksItemMappings, quickbooksSyncConfigs,
+  organizations, users, patients, medicalRecords, appointments, invoices, payments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages, clinicalPhotos, labResults, claims, revenueRecords, insuranceVerifications, clinicalProcedures, emergencyProtocols, medicationsDatabase, roles, staffShifts, doctorDefaultShifts, gdprConsents, gdprDataRequests, gdprAuditTrail, gdprProcessingActivities, conversations as conversationsTable, messages, voiceNotes, saasOwners, saasPackages, saasSubscriptions, saasPayments, saasInvoices, saasSettings, chatbotConfigs, chatbotSessions, chatbotMessages, chatbotAnalytics, musclePositions, userDocumentPreferences, letterDrafts, forecastModels, financialForecasts, quickbooksConnections, quickbooksSyncLogs, quickbooksCustomerMappings, quickbooksInvoiceMappings, quickbooksPaymentMappings, quickbooksAccountMappings, quickbooksItemMappings, quickbooksSyncConfigs,
   type Organization, type InsertOrganization,
   type User, type InsertUser,
   type Role, type InsertRole,
@@ -24,6 +24,7 @@ import {
   type EmergencyProtocol, type InsertEmergencyProtocol,
   type MedicationsDatabase, type InsertMedicationsDatabase,
   type StaffShift, type InsertStaffShift,
+  type DoctorDefaultShift, type InsertDoctorDefaultShift,
   type GdprConsent, type InsertGdprConsent,
   type GdprDataRequest, type InsertGdprDataRequest,
   type GdprAuditTrail, type InsertGdprAuditTrail,
@@ -384,6 +385,12 @@ export interface IStorage {
   createStaffShift(shift: InsertStaffShift): Promise<StaffShift>;
   updateStaffShift(id: number, organizationId: number, updates: Partial<InsertStaffShift>): Promise<StaffShift | undefined>;
   deleteStaffShift(id: number, organizationId: number): Promise<boolean>;
+
+  // Default Shifts (Database-driven)
+  getDefaultShiftsByOrganization(organizationId: number): Promise<DoctorDefaultShift[]>;
+  getDefaultShiftByUser(userId: number, organizationId: number): Promise<DoctorDefaultShift | undefined>;
+  updateDefaultShift(userId: number, organizationId: number, updates: Partial<InsertDoctorDefaultShift>): Promise<DoctorDefaultShift | undefined>;
+  initializeDefaultShifts(organizationId: number): Promise<{ created: number; skipped: number }>;
 
   // GDPR Compliance
   createGdprConsent(consent: InsertGdprConsent): Promise<GdprConsent>;
@@ -4324,6 +4331,65 @@ export class DatabaseStorage implements IStorage {
     const result = await db.delete(staffShifts)
       .where(and(eq(staffShifts.id, id), eq(staffShifts.organizationId, organizationId)));
     return (result.rowCount ?? 0) > 0;
+  }
+
+  // Default Shifts Methods
+  async getDefaultShiftsByOrganization(organizationId: number): Promise<DoctorDefaultShift[]> {
+    return await db.select()
+      .from(doctorDefaultShifts)
+      .where(eq(doctorDefaultShifts.organizationId, organizationId))
+      .orderBy(asc(doctorDefaultShifts.userId));
+  }
+
+  async getDefaultShiftByUser(userId: number, organizationId: number): Promise<DoctorDefaultShift | undefined> {
+    const [shift] = await db.select()
+      .from(doctorDefaultShifts)
+      .where(and(
+        eq(doctorDefaultShifts.userId, userId),
+        eq(doctorDefaultShifts.organizationId, organizationId)
+      ));
+    return shift || undefined;
+  }
+
+  async updateDefaultShift(userId: number, organizationId: number, updates: Partial<InsertDoctorDefaultShift>): Promise<DoctorDefaultShift | undefined> {
+    const [shift] = await db.update(doctorDefaultShifts)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(and(
+        eq(doctorDefaultShifts.userId, userId),
+        eq(doctorDefaultShifts.organizationId, organizationId)
+      ))
+      .returning();
+    return shift || undefined;
+  }
+
+  async initializeDefaultShifts(organizationId: number): Promise<{ created: number; skipped: number }> {
+    const allUsers = await db.select()
+      .from(users)
+      .where(eq(users.organizationId, organizationId));
+
+    const nonPatientUsers = allUsers.filter(user => user.role !== 'patient');
+    
+    let created = 0;
+    let skipped = 0;
+
+    for (const user of nonPatientUsers) {
+      const existingShift = await this.getDefaultShiftByUser(user.id, organizationId);
+      
+      if (!existingShift) {
+        await db.insert(doctorDefaultShifts).values({
+          userId: user.id,
+          organizationId: organizationId,
+          startTime: '09:00',
+          endTime: '17:00',
+          workingDays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+        } as any);
+        created++;
+      } else {
+        skipped++;
+      }
+    }
+
+    return { created, skipped };
   }
 
   // GDPR Compliance Methods
