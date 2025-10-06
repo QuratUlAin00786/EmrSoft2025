@@ -431,7 +431,7 @@ export function PatientDashboard() {
   const totalPendingCount = (pendingResultsData?.totalCount || 0);
 
   const patientCards = [
-    ...(upcomingAppointmentsData.count > 0 ? [{
+    ...(upcomingAppointmentsData.count === 0 ? [{
       title: "Next Appointment",
       value: nextAppointment ? new Date(nextAppointment.scheduledAt).toLocaleDateString() : "None",
       description: nextAppointment ? nextAppointment.provider : "Schedule one today",
@@ -599,7 +599,7 @@ export function PatientDashboard() {
 
       {/* Patient-specific content */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {upcomingAppointmentsData.count > 0 && (
+        {upcomingAppointmentsData.count === 0 && (
           <Card>
             <CardHeader>
               <CardTitle>Upcoming Appointments</CardTitle>
@@ -607,40 +607,13 @@ export function PatientDashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {upcomingAppointmentsData.appointments.slice(0, 3).map((appointment: any, index: number) => (
-                  <div key={appointment.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors">
-                    <div className="space-y-1">
-                      <p className="font-medium text-gray-900">{appointment.title}</p>
-                      {getDoctorSpecialtyData(appointment.providerId).name && (
-                        <p className="text-sm text-gray-600">
-                          {getDoctorSpecialtyData(appointment.providerId).name}
-                        </p>
-                      )}
-                      {appointment.location && (
-                        <div className="flex items-center space-x-1">
-                          <MapPin className="h-3 w-3 text-gray-400" />
-                          <span className="text-xs text-gray-500">{appointment.location}</span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="text-right space-y-1">
-                      <p className="text-sm font-medium text-gray-900">
-                        {formatDate(appointment.scheduledAt)}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {formatTime(appointment.scheduledAt)}
-                      </p>
-                      <Badge
-                        style={{
-                          backgroundColor: statusColors[appointment.status as keyof typeof statusColors],
-                        }}
-                        className="text-white text-xs"
-                      >
-                        {appointment.status.toUpperCase()}
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
+                <div className="text-center py-4">
+                  <Calendar className="h-12 w-12 text-neutral-300 mx-auto mb-2" />
+                  <p className="text-neutral-500">No upcoming appointments</p>
+                  <Button className="mt-2" size="sm" asChild>
+                    <Link href="/appointments">Book Appointment</Link>
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
