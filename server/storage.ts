@@ -4852,6 +4852,12 @@ export class DatabaseStorage implements IStorage {
       userCount: count(users.id),
       packageName: sql<string>`'Enterprise'`.as('packageName'), // Default package name
       billingPackageId: sql<number>`1`.as('billingPackageId'), // Default package ID
+      adminEmail: sql<string>`(
+        SELECT email FROM ${users} 
+        WHERE ${users.organizationId} = ${organizations.id} 
+        AND ${users.role} = 'admin' 
+        LIMIT 1
+      )`.as('adminEmail'),
     })
     .from(organizations)
     .leftJoin(users, eq(organizations.id, users.organizationId))

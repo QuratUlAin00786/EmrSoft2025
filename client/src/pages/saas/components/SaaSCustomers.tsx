@@ -618,6 +618,9 @@ export default function SaaSCustomers() {
                       <div>
                         <div className="font-medium">{customer.name}</div>
                         <div className="text-sm text-gray-500">{customer.brandName}</div>
+                        {customer.adminEmail && (
+                          <div className="text-sm text-gray-500">{customer.adminEmail}</div>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell>
