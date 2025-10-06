@@ -38,6 +38,7 @@ export default function SaaSUsers() {
   const [selectedOrganization, setSelectedOrganization] = useState<string>('all');
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteSuccessDialogOpen, setDeleteSuccessDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -113,11 +114,7 @@ export default function SaaSUsers() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/saas/users'] });
       setDeleteDialogOpen(false);
-      setSelectedUser(null);
-      toast({
-        title: "User Deleted",
-        description: "User has been permanently deleted",
-      });
+      setDeleteSuccessDialogOpen(true);
     },
     onError: () => {
       toast({
@@ -369,6 +366,16 @@ export default function SaaSUsers() {
                   data-testid="input-edit-email"
                 />
               </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Password (Optional)</label>
+                <Input
+                  type="password"
+                  placeholder="Leave blank to keep current password"
+                  onChange={(e) => setSelectedUser({...selectedUser, password: e.target.value})}
+                  data-testid="input-edit-password"
+                />
+                <p className="text-xs text-gray-500">Only enter a password if you want to change it</p>
+              </div>
               <div className="flex justify-end gap-3 mt-6">
                 <Button
                   variant="outline"
@@ -382,13 +389,18 @@ export default function SaaSUsers() {
                 </Button>
                 <Button
                   onClick={() => {
+                    const userData: any = {
+                      firstName: selectedUser.firstName,
+                      lastName: selectedUser.lastName,
+                      email: selectedUser.email,
+                    };
+                    // Only include password if provided
+                    if (selectedUser.password && selectedUser.password.trim() !== '') {
+                      userData.password = selectedUser.password;
+                    }
                     editUserMutation.mutate({
                       userId: selectedUser.id,
-                      userData: {
-                        firstName: selectedUser.firstName,
-                        lastName: selectedUser.lastName,
-                        email: selectedUser.email,
-                      }
+                      userData
                     });
                   }}
                   disabled={editUserMutation.isPending}
@@ -446,6 +458,34 @@ export default function SaaSUsers() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Success Modal */}
+      <Dialog open={deleteSuccessDialogOpen} onOpenChange={setDeleteSuccessDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-green-600">
+              <Shield className="h-5 w-5" />
+              User Deleted
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600">
+              User has been permanently deleted
+            </p>
+            <div className="flex justify-end">
+              <Button
+                onClick={() => {
+                  setDeleteSuccessDialogOpen(false);
+                  setSelectedUser(null);
+                }}
+                data-testid="button-close-delete-success"
+              >
+                Close
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

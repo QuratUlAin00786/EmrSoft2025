@@ -1265,7 +1265,7 @@ The Cura EMR Team`,
     async (req: Request, res: Response) => {
       try {
         const userId = parseInt(req.params.id);
-        const { firstName, lastName, email } = req.body;
+        const { firstName, lastName, email, password } = req.body;
 
         if (!firstName || !lastName || !email) {
           return res.status(400).json({ message: "All fields are required" });
@@ -1277,11 +1277,19 @@ The Cura EMR Team`,
           return res.status(404).json({ message: "User not found" });
         }
 
-        const result = await storage.updateUser(userId, user.organizationId, {
+        // Prepare update data
+        const updateData: any = {
           firstName,
           lastName,
           email,
-        });
+        };
+
+        // Only hash and update password if provided
+        if (password && password.trim() !== '') {
+          updateData.passwordHash = await bcrypt.hash(password, 10);
+        }
+
+        const result = await storage.updateUser(userId, user.organizationId, updateData);
 
         res.json(result);
       } catch (error) {
