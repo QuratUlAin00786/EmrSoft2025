@@ -109,13 +109,37 @@ export default function QuickBooks() {
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       console.log('[QB FRONTEND] Received postMessage:', event.data);
-      if (event.data.type === 'quickbooks-connected') {
+      
+      // Direct message from iframe
+      if (event.data && event.data.type === 'quickbooks-connected') {
         console.log('[QB FRONTEND] QuickBooks connected! Realm ID:', event.data.realmId);
         setConnectionSuccess(true);
         setConnectionRealmId(event.data.realmId);
         // Refresh connections list
         queryClient.invalidateQueries({ queryKey: ['/api/quickbooks/connections'] });
         queryClient.invalidateQueries({ queryKey: ['/api/quickbooks/connection/active'] });
+      }
+      
+      // Handle wrapped message from dev tools (Eruda/Replit debugging)
+      // The actual message is wrapped in forward-log format: {"type":"forward-log","message":"..."}
+      if (event.data && event.data.type === 'forward-log' && event.data.message) {
+        try {
+          // Parse the wrapped message (it's JSON stringified)
+          const parsedMessage = JSON.parse(event.data.message);
+          // Check if it's an array like ["[QB CALLBACK] ...", {...}]
+          if (Array.isArray(parsedMessage) && parsedMessage.length > 1) {
+            const actualData = parsedMessage[1];
+            if (typeof actualData === 'object' && actualData.type === 'quickbooks-connected') {
+              console.log('[QB FRONTEND] QuickBooks connected (via wrapped message)! Realm ID:', actualData.realmId);
+              setConnectionSuccess(true);
+              setConnectionRealmId(actualData.realmId);
+              queryClient.invalidateQueries({ queryKey: ['/api/quickbooks/connections'] });
+              queryClient.invalidateQueries({ queryKey: ['/api/quickbooks/connection/active'] });
+            }
+          }
+        } catch (e) {
+          // Ignore parse errors from non-QB messages
+        }
       }
     };
 

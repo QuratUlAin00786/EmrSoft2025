@@ -1468,15 +1468,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
               <div class="realm-id">Realm ID: ${realmId}</div>
             </div>
             <script>
-              console.log('[QB CALLBACK] Success page loaded, sending postMessage...');
-              // Send message to parent window (iframe)
+              // Send message to parent window immediately (no console.log to avoid wrapping)
               if (window.parent && window.parent !== window) {
-                console.log('[QB CALLBACK] Sending to parent window');
                 window.parent.postMessage({ type: 'quickbooks-connected', realmId: '${realmId}' }, '*');
+                // Log after sending to confirm
+                setTimeout(() => console.log('[QB CALLBACK] Message sent to parent, realmId: ${realmId}'), 100);
               }
               // Fallback for popup window
               else if (window.opener) {
-                console.log('[QB CALLBACK] Sending to opener window');
                 window.opener.postMessage({ type: 'quickbooks-connected', realmId: '${realmId}' }, '*');
                 window.close();
               }
