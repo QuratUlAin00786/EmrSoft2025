@@ -165,6 +165,17 @@ export function DoctorList({
   const totalDoctors = medicalStaffResponse?.totalDoctors || 0;
   const availableDoctors = medicalStaffResponse?.availableDoctors || 0;
 
+  // Fetch doctor's appointments to show their patients (for doctor role only)
+  const { data: doctorAppointments } = useQuery({
+    queryKey: ["/api/appointments", "doctor-patients", user?.id],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/appointments");
+      const data = await response.json();
+      return data;
+    },
+    enabled: user?.role === 'doctor',
+  });
+
   // Fetch patients for dropdown
   const { data: patients } = useQuery({
     queryKey: ["/api/patients"],
@@ -713,36 +724,64 @@ export function DoctorList({
     return `${displayHour}:${minutes || '00'} ${ampm}`;
   };
 
-  // Filter to show available staff
+  // Filter to show available staff or patients based on user role
   // For patient role: show all users except admin and patient
-  // For other roles: show only doctors who are available today
+  // For doctor role: show patients who have appointments with them
+  // For admin role: show only doctors who are available today
   const today = new Date().toLocaleDateString("en-US", { weekday: "long" });
-  const availableStaff = medicalStaff.filter((doctor: Doctor) => {
+  
+  // For doctors: extract unique patients from their appointments
+  const doctorPatients = useMemo(() => {
+    if (user?.role !== 'doctor' || !doctorAppointments || !patients) {
+      return [];
+    }
+
+    // Get unique patient IDs from doctor's appointments
+    const patientIds = new Set(
+      doctorAppointments
+        .filter((apt: any) => apt.providerId === user.id)
+        .map((apt: any) => apt.patientId)
+    );
+
+    // Return patients who have appointments with this doctor
+    return patients.filter((patient: any) => patientIds.has(patient.id));
+  }, [user, doctorAppointments, patients]);
+
+  const availableStaff = useMemo(() => {
+    // If logged-in user is a doctor, show their patients
+    if (user?.role === 'doctor') {
+      return doctorPatients;
+    }
+
     // If logged-in user is a patient, show all users except admin and patient
     if (user?.role === 'patient') {
-      if (doctor.role === 'admin' || doctor.role === 'patient') {
-        return false;
-      }
-      
-      // Apply role filter if a specific role is selected
-      if (selectedRole !== 'all' && doctor.role !== selectedRole) {
-        return false;
-      }
-      
-      return true;
+      return medicalStaff.filter((doctor: Doctor) => {
+        if (doctor.role === 'admin' || doctor.role === 'patient') {
+          return false;
+        }
+        
+        // Apply role filter if a specific role is selected
+        if (selectedRole !== 'all' && doctor.role !== selectedRole) {
+          return false;
+        }
+        
+        return true;
+      });
     }
     
-    // For non-patient users: only show users with role='doctor'
-    if (doctor.role !== 'doctor') {
-      return false;
-    }
-    // If no working days are set, staff is considered available (like mobile users)
-    if (!doctor.workingDays || doctor.workingDays.length === 0) {
-      return true;
-    }
-    // If working days are set, check if today is included
-    return doctor.workingDays.includes(today);
-  });
+    // For admin and other roles: show only doctors who are available today
+    return medicalStaff.filter((doctor: Doctor) => {
+      if (doctor.role !== 'doctor') {
+        return false;
+      }
+      // If no working days are set, staff is considered available (like mobile users)
+      if (!doctor.workingDays || doctor.workingDays.length === 0) {
+        return true;
+      }
+      // If working days are set, check if today is included
+      return doctor.workingDays.includes(today);
+    });
+  }, [user, doctorPatients, medicalStaff, selectedRole, today]);
 
   if (isLoading) {
     return (
@@ -791,10 +830,21 @@ export function DoctorList({
         <CardContent>
           <div className="text-center py-8 text-gray-500">
             <User className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-            <p>No available medical staff</p>
-            <p className="text-sm text-gray-400 mt-1">
-              All staff are currently off duty
-            </p>
+            {user?.role === 'doctor' ? (
+              <>
+                <p>No patients with appointments</p>
+                <p className="text-sm text-gray-400 mt-1">
+                  You don't have any patients with appointments yet
+                </p>
+              </>
+            ) : (
+              <>
+                <p>No available medical staff</p>
+                <p className="text-sm text-gray-400 mt-1">
+                  All staff are currently off duty
+                </p>
+              </>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -825,16 +875,16 @@ export function DoctorList({
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {availableStaff.map((doctor: Doctor) => (
+          {availableStaff.map((item: any) => (
             <div
-              key={doctor.id}
+              key={item.id}
               className="p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
             >
               <div className="flex items-start gap-3 w-full">
                 <div className="flex-shrink-0">
                   <Avatar>
                     <AvatarFallback className="bg-blue-100 text-blue-700">
-                      {getInitials(doctor.firstName, doctor.lastName)}
+                      {getInitials(item.firstName, item.lastName)}
                     </AvatarFallback>
                   </Avatar>
                 </div>
@@ -842,94 +892,128 @@ export function DoctorList({
                 <div className="flex-1 min-w-0 space-y-2 overflow-hidden">
                   {/* Row 1: Name */}
                   <div className="mb-1">
-                    <h4
-                      className="font-semibold text-gray-900 dark:text-gray-100 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-wrap"
-                      onClick={() => openScheduleDialog(doctor)}
-                    >
-                      {doctor.firstName} {doctor.lastName}
+                    <h4 className="font-semibold text-gray-900 dark:text-gray-100 text-wrap">
+                      {item.firstName} {item.lastName}
                     </h4>
                   </div>
 
                   {/* Row 2: Email */}
-                  {doctor.email && (
+                  {item.email && (
                     <div className="w-full">
                       <span className="text-sm text-gray-600 dark:text-gray-300 block truncate">
-                        {doctor.email}
+                        {item.email}
                       </span>
                     </div>
                   )}
 
-                  {/* Row 3: Medical Specialty Category */}
-                  {doctor.medicalSpecialtyCategory && (
-                    <div className="w-full">
-                      <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 max-w-full truncate inline-block">
-                        {doctor.medicalSpecialtyCategory}
-                      </Badge>
-                    </div>
+                  {/* For Doctor View: Show Patient-specific information */}
+                  {user?.role === 'doctor' && (
+                    <>
+                      {/* Patient ID */}
+                      {item.patientId && (
+                        <div className="w-full">
+                          <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 max-w-full truncate inline-block">
+                            ID: {item.patientId}
+                          </Badge>
+                        </div>
+                      )}
+
+                      {/* Phone Number */}
+                      {(item.phone || item.phoneNumber) && (
+                        <div className="flex items-start gap-1 w-full">
+                          <span className="text-sm text-gray-600 dark:text-gray-300 flex-1 min-w-0">
+                            📱 {item.phone || item.phoneNumber}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Date of Birth / Age */}
+                      {item.dateOfBirth && (
+                        <div className="flex items-start gap-1 text-sm text-gray-500 dark:text-gray-400 w-full">
+                          <span className="flex-1 min-w-0">
+                            Age: {new Date().getFullYear() - new Date(item.dateOfBirth).getFullYear()} years
+                          </span>
+                        </div>
+                      )}
+                    </>
                   )}
 
-                  {/* Row 4: Sub-specialty */}
-                  {doctor.subSpecialty && (
-                    <div className="w-full">
-                      <Badge
-                        variant="outline"
-                        className="bg-green-100 text-green-800 border-green-200 dark:bg-green-900 dark:text-green-200 dark:border-green-700 max-w-full truncate inline-block"
-                      >
-                        {doctor.subSpecialty}
-                      </Badge>
-                    </div>
-                  )}
+                  {/* For Admin/Patient View: Show Doctor-specific information */}
+                  {user?.role !== 'doctor' && (
+                    <>
+                      {/* Row 3: Medical Specialty Category */}
+                      {item.medicalSpecialtyCategory && (
+                        <div className="w-full">
+                          <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 max-w-full truncate inline-block">
+                            {item.medicalSpecialtyCategory}
+                          </Badge>
+                        </div>
+                      )}
 
-                  {/* Row 5: Working Hours */}
-                  {doctor.workingDays &&
-                    doctor.workingDays.length > 0 &&
-                    doctor.workingHours && (
-                      <div className="flex items-start gap-1 w-full">
-                        <Clock className="h-3 w-3 text-blue-500 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-                        <span className="text-sm text-blue-700 dark:text-blue-300 font-medium flex-1 min-w-0">
-                          {doctor.workingDays.slice(0, 3).join(", ")}
-                          {doctor.workingDays.length > 3 &&
-                            ` +${doctor.workingDays.length - 3} more`}
-                          {" · "}
-                          {doctor.workingHours.start} -{" "}
-                          {doctor.workingHours.end}
-                        </span>
-                      </div>
-                    )}
+                      {/* Row 4: Sub-specialty */}
+                      {item.subSpecialty && (
+                        <div className="w-full">
+                          <Badge
+                            variant="outline"
+                            className="bg-green-100 text-green-800 border-green-200 dark:bg-green-900 dark:text-green-200 dark:border-green-700 max-w-full truncate inline-block"
+                          >
+                            {item.subSpecialty}
+                          </Badge>
+                        </div>
+                      )}
 
-                  {/* Row 6: Last Active */}
-                  {doctor.lastLoginAt && (
-                    <div className="flex items-start gap-1 text-sm text-gray-500 dark:text-gray-400 w-full">
-                      <Clock className="h-3 w-3 flex-shrink-0 mt-0.5" />
-                      <span className="flex-1 min-w-0">
-                        Last active:{" "}
-                        {new Date(doctor.lastLoginAt).toLocaleDateString()}
-                      </span>
-                    </div>
+                      {/* Row 5: Working Hours */}
+                      {item.workingDays &&
+                        item.workingDays.length > 0 &&
+                        item.workingHours && (
+                          <div className="flex items-start gap-1 w-full">
+                            <Clock className="h-3 w-3 text-blue-500 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                            <span className="text-sm text-blue-700 dark:text-blue-300 font-medium flex-1 min-w-0">
+                              {item.workingDays.slice(0, 3).join(", ")}
+                              {item.workingDays.length > 3 &&
+                                ` +${item.workingDays.length - 3} more`}
+                              {" · "}
+                              {item.workingHours.start} -{" "}
+                              {item.workingHours.end}
+                            </span>
+                          </div>
+                        )}
+
+                      {/* Row 6: Last Active */}
+                      {item.lastLoginAt && (
+                        <div className="flex items-start gap-1 text-sm text-gray-500 dark:text-gray-400 w-full">
+                          <Clock className="h-3 w-3 flex-shrink-0 mt-0.5" />
+                          <span className="flex-1 min-w-0">
+                            Last active:{" "}
+                            {new Date(item.lastLoginAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                      )}
+                    </>
                   )}
 
                   {/* Row 7: Action Buttons */}
                   <div className="flex items-center gap-2 pt-2 flex-wrap">
-                    {showAppointmentButton && (
+                    {showAppointmentButton && user?.role !== 'doctor' && (
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={(e) => {
                           e.stopPropagation();
-                          openBookingDialog(doctor);
+                          openBookingDialog(item);
                         }}
                         className="flex-shrink-0"
                       >
                         Book
                       </Button>
                     )}
-                    {user?.role !== 'patient' && (
+                    {user?.role !== 'patient' && user?.role !== 'doctor' && (
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={(e) => {
                           e.stopPropagation();
-                          openScheduleDialog(doctor);
+                          openScheduleDialog(item);
                         }}
                         className="flex-shrink-0"
                       >
@@ -943,7 +1027,10 @@ export function DoctorList({
                       className="bg-white hover:bg-gray-50 border border-gray-200 flex-shrink-0"
                       onClick={(e) => {
                         e.stopPropagation();
-                        setLocation(`/${getTenantSubdomain()}/staff/${doctor.id}`);
+                        const profilePath = user?.role === 'doctor' 
+                          ? `/${getTenantSubdomain()}/patients/${item.id}`
+                          : `/${getTenantSubdomain()}/staff/${item.id}`;
+                        setLocation(profilePath);
                       }}
                     >
                       View Profile
