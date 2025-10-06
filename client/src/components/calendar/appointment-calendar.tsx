@@ -742,20 +742,75 @@ Medical License: [License Number]
     },
   });
 
-  // Generate time slots based on ALL shifts for the selected provider on the selected date
+  // Fetch default shifts for fallback when no custom shifts exist
+  const { data: defaultShiftsData = [] } = useQuery({
+    queryKey: ["/api/default-shifts"],
+    staleTime: 60000,
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/default-shifts?forBooking=true');
+      const data = await response.json();
+      return Array.isArray(data) ? data : [];
+    },
+  });
+
+  // Generate time slots with two-tier system: custom shifts OR default shifts
   const timeSlots = useMemo(() => {
     // If no provider or date selected, return empty array
-    if (!selectedProviderId || !newAppointmentDate || !shiftsData) {
+    if (!selectedProviderId || !newAppointmentDate) {
       return [];
     }
 
-    // Find ALL shifts for the selected provider on this date
-    const providerShifts = shiftsData.filter((shift: any) => 
-      shift.staffId.toString() === selectedProviderId
-    );
+    // TIER 1: Check for custom shifts for the selected provider AND date
+    const selectedDateStr = format(newAppointmentDate, 'yyyy-MM-dd');
+    let providerShifts = shiftsData?.filter((shift: any) => {
+      // Filter by staff ID
+      if (shift.staffId.toString() !== selectedProviderId) return false;
+      
+      // Filter by selected date
+      const shiftDateStr = shift.date instanceof Date 
+        ? format(shift.date, 'yyyy-MM-dd')
+        : shift.date.substring(0, 10);
+      
+      return shiftDateStr === selectedDateStr;
+    }) || [];
 
-    // If no shifts found, return empty array
+    console.log(`[TIME_SLOTS] Provider ${selectedProviderId}, Date: ${format(newAppointmentDate, 'yyyy-MM-dd EEEE')}`);
+    console.log(`[TIME_SLOTS] Custom shifts found: ${providerShifts.length}`, providerShifts);
+
+    // TIER 2: If no custom shifts, use default shifts from doctor_default_shifts
+    if (providerShifts.length === 0 && defaultShiftsData.length > 0) {
+      console.log('[TIME_SLOTS] No custom shifts, checking default shifts...');
+      
+      const defaultShift = defaultShiftsData.find((ds: any) => 
+        ds.userId.toString() === selectedProviderId
+      );
+
+      if (defaultShift) {
+        const dayOfWeek = format(newAppointmentDate, 'EEEE');
+        const workingDays = defaultShift.workingDays || [];
+        
+        console.log(`[TIME_SLOTS] Day: ${dayOfWeek}, Working days:`, workingDays);
+        
+        if (workingDays.includes(dayOfWeek)) {
+          providerShifts = [{
+            staffId: defaultShift.userId,
+            startTime: defaultShift.startTime,
+            endTime: defaultShift.endTime,
+            date: newAppointmentDate,
+            isDefault: true
+          }];
+          console.log('[TIME_SLOTS] Using default shift:', providerShifts[0]);
+        } else {
+          console.log('[TIME_SLOTS] Not a working day');
+        }
+      } else {
+        console.log('[TIME_SLOTS] No default shift found');
+      }
+    }
+
+    // If still no shifts found, return empty array
     if (!providerShifts || providerShifts.length === 0) {
+      console.log('[TIME_SLOTS] No shifts available');
       return [];
     }
 
@@ -802,7 +857,7 @@ Medical License: [License Number]
     console.log(`[TIME SLOTS] From ${providerShifts.length} shifts:`, providerShifts);
 
     return allSlots;
-  }, [selectedProviderId, newAppointmentDate, shiftsData, selectedDuration]);
+  }, [selectedProviderId, newAppointmentDate, shiftsData, defaultShiftsData, selectedDuration]);
 
   const isDataLoaded = !isUsersLoading && !isPatientsLoading;
 

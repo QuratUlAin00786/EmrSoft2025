@@ -10986,10 +10986,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const organizationId = req.tenant!.id;
       const userId = req.user?.id;
       const isAdmin = req.user?.role === 'admin' || req.user?.role === 'administrator';
+      const forBooking = req.query.forBooking === 'true';
 
       let defaultShifts;
       
-      if (isAdmin) {
+      // Allow all users to fetch all default shifts when booking appointments
+      if (isAdmin || forBooking) {
         defaultShifts = await storage.getDefaultShiftsByOrganization(organizationId);
       } else {
         defaultShifts = await storage.getDefaultShiftByUser(userId!, organizationId);
