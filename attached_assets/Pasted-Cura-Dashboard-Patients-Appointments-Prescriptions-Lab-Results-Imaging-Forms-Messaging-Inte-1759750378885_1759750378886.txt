@@ -1,0 +1,204 @@
+Cura
+Dashboard
+Patients
+Appointments
+Prescriptions
+Lab Results
+Imaging
+Forms
+Messaging
+Integrations
+Analytics
+Automation
+Clinical Decision Support
+Symptom Checker
+Telemedicine
+Population Health
+Voice Documentation
+Financial Intelligence
+Billing
+QuickBooks
+Inventory
+GDPR Compliance
+ADMINISTRATION
+
+User Management
+Shift Management
+Subscription/Packages
+Settings
+Theme
+
+JA
+John Administrator
+
+Admin
+
+
+Back
+User Management
+Manage system users and their permissions
+
+AI Active
+UK/GDPR
+
+Total Users
+
+13
+
+Doctors
+
+5
+
+Nurses
+
+1
+
+Staff
+
+2
+
+User Management
+Role Management
+Search users by name, email, or role...
+
+All Roles
+
+
+Add New User
+View Role Permissions
+System Users
+Patients (4)
+kafia khan
+kabila@gmail.com
+
+Patient
+Active
+
+
+ANN ANN
+001quratulain@gmail.com
+
+Patient
+Active
+
+
+ANN ANN
+quratulain009911@outlook.com
+
+Patient
+Active
+
+
+Michael Patient
+patient@cura.com
+
+Patient
+Active
+
+
+Doctors (5)
+Lisa Anderson
+doctor4@cura.com
+
+Pediatrics
+
+Working: Monday, Tuesday, Wednesday, Thursday, Friday (08:00 - 16:00)
+
+Doctor
+Active
+
+
+Robert Brown
+doctor5@cura.com
+
+Dermatology
+
+Working: Monday, Wednesday, Friday (10:00 - 18:00)
+
+Doctor
+Active
+
+
+Sarah Smith
+doctor@cura.com
+
+Cardiology
+
+Working: Monday, Tuesday, Wednesday, Thursday, Friday (08:00 - 17:00)
+
+Doctor
+Active
+
+
+Michael Johnson
+doctor2@cura.com
+
+Neurology
+
+Working: Monday, Tuesday, Wednesday, Thursday, Friday (09:00 - 18:00)
+
+Doctor
+Active
+
+
+David Wilson
+doctor3@cura.com
+
+Orthopedics
+
+Working: Tuesday, Wednesday, Thursday, Friday, Saturday (08:30 - 16:30)
+
+Doctor
+Active
+
+
+Nurses (1)
+Emily 2 Johnson
+nurse@cura.com
+
+General Medicine
+
+Working: Monday, Tuesday, Wednesday, Thursday, Friday, Saturday (07:00 - 19:00)
+
+Nurse
+Active
+
+
+Sample Takers (1)
+Maria Rodriguez
+labtech@cura.com
+
+Laboratory
+
+Working: Monday, Tuesday, Wednesday, Thursday, Friday (06:00 - 14:00)
+
+Lab Technician
+Active
+
+
+Receptionists (1)
+Jane Thompson
+receptionist@cura.com
+
+Front Desk
+
+Working: Monday, Tuesday, Wednesday, Thursday, Friday (08:00 - 17:00)
+
+Receptionist
+Active
+
+
+Admins (1)
+John Administrator
+admin@cura.com
+
+Administration
+
+Working: Monday, Tuesday, Wednesday, Thursday, Friday (09:00 - 17:00)
+
+Administrator
+Active
+
+
+
+Add New User

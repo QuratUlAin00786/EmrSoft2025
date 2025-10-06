@@ -270,6 +270,21 @@ export default function LabResultsPage() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [editFormData, setEditFormData] = useState<any>({});
 
+  // Fetch roles from the roles table filtered by organization_id
+  const { data: rolesData = [] } = useQuery({
+    queryKey: ["/api/roles"],
+    queryFn: async () => {
+      try {
+        const response = await apiRequest("GET", "/api/roles");
+        const data = await response.json();
+        return Array.isArray(data) ? data : [];
+      } catch (error) {
+        console.error("Roles fetch error:", error);
+        return [];
+      }
+    },
+  });
+
   // Doctor specialty states for lab order
   const [selectedSpecialtyCategory, setSelectedSpecialtyCategory] =
     useState<string>("");
@@ -1805,11 +1820,11 @@ Report generated from Cura EMR System`;
                       <SelectValue placeholder="Select a role" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="admin">Admin</SelectItem>
-                      <SelectItem value="doctor">Doctor</SelectItem>
-                      <SelectItem value="nurse">Nurse</SelectItem>
-                      <SelectItem value="receptionist">Receptionist</SelectItem>
-                      <SelectItem value="sample_taker">Sample Taker</SelectItem>
+                      {rolesData.map((role: any) => (
+                        <SelectItem key={role.id} value={role.name}>
+                          {role.displayName || role.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
