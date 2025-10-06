@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import { storage } from "./storage";
 import { db } from "./db";
 import nodemailer from "nodemailer";
-import { saasOwners, organizations } from "@shared/schema";
+import { saasOwners, organizations, users } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import { emailService } from "./services/email";
 
@@ -1254,6 +1254,67 @@ The Cura EMR Team`,
       } catch (error) {
         console.error("Error resetting user password:", error);
         res.status(500).json({ message: "Failed to reset user password" });
+      }
+    },
+  );
+
+  // Update User
+  app.patch(
+    "/api/saas/users/:id",
+    verifySaaSToken,
+    async (req: Request, res: Response) => {
+      try {
+        const userId = parseInt(req.params.id);
+        const { firstName, lastName, email } = req.body;
+
+        if (!firstName || !lastName || !email) {
+          return res.status(400).json({ message: "All fields are required" });
+        }
+
+        // Get user from database to get organizationId
+        const [user] = await db.select().from(users).where(eq(users.id, userId));
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        const result = await storage.updateUser(userId, user.organizationId, {
+          firstName,
+          lastName,
+          email,
+        });
+
+        res.json(result);
+      } catch (error) {
+        console.error("Error updating user:", error);
+        res.status(500).json({ message: "Failed to update user" });
+      }
+    },
+  );
+
+  // Delete User
+  app.delete(
+    "/api/saas/users/:id",
+    verifySaaSToken,
+    async (req: Request, res: Response) => {
+      try {
+        const userId = parseInt(req.params.id);
+
+        // Get user from database to get organizationId before deletion
+        const [user] = await db.select().from(users).where(eq(users.id, userId));
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        // Delete the user
+        await storage.deleteUser(userId, user.organizationId);
+
+        res.json({ 
+          success: true, 
+          message: "User deleted successfully" 
+        });
+      } catch (error) {
+        console.error("Error deleting user:", error);
+        res.status(500).json({ message: "Failed to delete user" });
       }
     },
   );
