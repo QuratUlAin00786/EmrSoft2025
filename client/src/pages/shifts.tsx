@@ -1,10 +1,16 @@
 import { useState, useMemo, useEffect } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, Clock, Users, CalendarCheck, ChevronLeft, ChevronRight, UserCheck, Trash2 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Calendar, Clock, Users, CalendarCheck, ChevronLeft, ChevronRight, UserCheck, Trash2, Edit, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function ShiftsPage() {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -28,8 +34,15 @@ export default function ShiftsPage() {
   // Update modal state
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [updatedShifts, setUpdatedShifts] = useState<Array<{previous: string, updated: string, staffName: string}>>([]);
+  // Default shifts state
+  const [showDefaultShiftModal, setShowDefaultShiftModal] = useState(false);
+  const [editingDefaultShift, setEditingDefaultShift] = useState<any>(null);
+  const [defaultStartTime, setDefaultStartTime] = useState("09:00");
+  const [defaultEndTime, setDefaultEndTime] = useState("17:00");
+  const [defaultWorkingDays, setDefaultWorkingDays] = useState<string[]>(["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   // Pre-select time slots from 10:00 AM to 3:00 PM only once on initial load
   useEffect(() => {
@@ -96,6 +109,67 @@ export default function ShiftsPage() {
     value: role.name,
     label: role.displayName || role.name
   }));
+
+  // Fetch default shifts
+  const { data: defaultShifts = [], refetch: refetchDefaultShifts } = useQuery({
+    queryKey: ["/api/default-shifts"],
+    queryFn: async () => {
+      try {
+        const response = await apiRequest("GET", "/api/default-shifts");
+        const data = await response.json();
+        return Array.isArray(data) ? data : [];
+      } catch (error) {
+        console.error("Default shifts fetch error:", error);
+        return [];
+      }
+    },
+  });
+
+  // Update default shift mutation
+  const updateDefaultShiftMutation = useMutation({
+    mutationFn: async ({ userId, data }: { userId: number; data: any }) => {
+      const response = await apiRequest("PATCH", `/api/default-shifts/${userId}`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/default-shifts"] });
+      setShowDefaultShiftModal(false);
+      toast({
+        title: "Success",
+        description: "Default shift updated successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update default shift",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Handle edit default shift
+  const handleEditDefaultShift = (shift: any) => {
+    setEditingDefaultShift(shift);
+    setDefaultStartTime(shift.startTime);
+    setDefaultEndTime(shift.endTime);
+    setDefaultWorkingDays(shift.workingDays || []);
+    setShowDefaultShiftModal(true);
+  };
+
+  // Handle save default shift
+  const handleSaveDefaultShift = async () => {
+    if (!editingDefaultShift) return;
+    
+    await updateDefaultShiftMutation.mutateAsync({
+      userId: editingDefaultShift.userId,
+      data: {
+        startTime: defaultStartTime,
+        endTime: defaultEndTime,
+        workingDays: defaultWorkingDays,
+      },
+    });
+  };
 
   // Generate dynamic time slots based on shift data (excluding absent shifts)
   const generateTimeSlots = (doctorShifts: any[]): { value: number; display: string; hour: number; shiftId: any }[] => {
@@ -660,8 +734,79 @@ export default function ShiftsPage() {
   const currentMonthName = monthNames[currentMonth.getMonth()];
   const currentYear = currentMonth.getFullYear();
 
+  const weekDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+  const isAdmin = user?.role === 'admin' || user?.role === 'administrator';
+
   return (
     <div className="p-6">
+      <Tabs defaultValue="custom-shifts" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 mb-6">
+          <TabsTrigger value="default-shifts" className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            Default Shifts
+          </TabsTrigger>
+          <TabsTrigger value="custom-shifts" className="flex items-center gap-2">
+            <Calendar className="h-4 w-4" />
+            Custom Shifts
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Default Shifts Tab */}
+        <TabsContent value="default-shifts" className="space-y-6">
+          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border dark:border-slate-700 p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <Settings className="h-6 w-6 text-blue-600" />
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Default Shifts</h2>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Set your regular working hours. These apply unless overridden by custom shifts.</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {defaultShifts.length > 0 ? (
+                defaultShifts.map((shift: any) => {
+                  const staffMember = staff.find((s: any) => s.id === shift.userId);
+                  const canEdit = isAdmin || shift.userId === user?.id;
+
+                  return (
+                    <div key={shift.id} className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="font-medium text-gray-900 dark:text-gray-100">
+                            {staffMember ? `${staffMember.firstName} ${staffMember.lastName}` : 'Unknown User'}
+                          </h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            {shift.startTime} - {shift.endTime}
+                          </p>
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {shift.workingDays?.map((day: string) => (
+                              <span key={day} className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs rounded">
+                                {day.substring(0, 3)}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        {canEdit && (
+                          <Button variant="outline" size="sm" onClick={() => handleEditDefaultShift(shift)}>
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <p>No default shifts configured yet.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </TabsContent>
+
+        {/* Custom Shifts Tab */}
+        <TabsContent value="custom-shifts">
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
         <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border dark:border-slate-700 p-6">
@@ -1586,6 +1731,78 @@ export default function ShiftsPage() {
           </div>
         </div>
       )}
+      </TabsContent>
+      </Tabs>
+
+      {/* Default Shift Edit Modal */}
+      <Dialog open={showDefaultShiftModal} onOpenChange={setShowDefaultShiftModal}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Default Shift</DialogTitle>
+            <DialogDescription>
+              Update your regular working hours. These apply unless overridden by date-specific shifts.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="default-start-time">Start Time</Label>
+                <Input
+                  id="default-start-time"
+                  type="time"
+                  value={defaultStartTime}
+                  onChange={(e) => setDefaultStartTime(e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label htmlFor="default-end-time">End Time</Label>
+                <Input
+                  id="default-end-time"
+                  type="time"
+                  value={defaultEndTime}
+                  onChange={(e) => setDefaultEndTime(e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label>Working Days</Label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-2">
+                {weekDays.map((day) => (
+                  <div key={day} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`day-${day}`}
+                      checked={defaultWorkingDays.includes(day)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setDefaultWorkingDays([...defaultWorkingDays, day]);
+                        } else {
+                          setDefaultWorkingDays(defaultWorkingDays.filter((d) => d !== day));
+                        }
+                      }}
+                    />
+                    <label htmlFor={`day-${day}`} className="text-sm cursor-pointer">
+                      {day}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3">
+            <Button variant="outline" onClick={() => setShowDefaultShiftModal(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveDefaultShift} disabled={updateDefaultShiftMutation.isPending}>
+              {updateDefaultShiftMutation.isPending ? "Saving..." : "Save Changes"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
