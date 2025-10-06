@@ -458,18 +458,37 @@ export default function CalendarPage() {
       .map((role: any) => ({ name: role.name, displayName: role.displayName }));
   }, [rolesData]);
 
-  // Check if a date has shifts in the database
+  // Check if a date has shifts (custom or default)
   const hasShiftsOnDate = (date: Date): boolean => {
-    if (!allProviderShifts || !selectedProviderId) return false;
+    if (!selectedProviderId) return false;
     
     const dateStr = format(date, 'yyyy-MM-dd');
-    return allProviderShifts.some((shift: any) => {
+    
+    // Check for custom shifts first
+    const hasCustomShift = allProviderShifts?.some((shift: any) => {
       // Robust date comparison - handle both ISO strings and Date objects
       const shiftDateStr = shift.date instanceof Date 
         ? format(shift.date, 'yyyy-MM-dd')
         : shift.date.substring(0, 10);
       return shiftDateStr === dateStr && shift.staffId.toString() === selectedProviderId;
     });
+    
+    if (hasCustomShift) return true;
+    
+    // Check for default shifts - if the day is a working day
+    if (defaultShiftsData && defaultShiftsData.length > 0) {
+      const defaultShift = defaultShiftsData.find((ds: any) => 
+        ds.userId.toString() === selectedProviderId
+      );
+      
+      if (defaultShift) {
+        const dayOfWeek = format(date, 'EEEE');
+        const workingDays = defaultShift.workingDays || [];
+        return workingDays.includes(dayOfWeek);
+      }
+    }
+    
+    return false;
   };
 
   // Generate time slots based on shifts for the selected provider on the selected date
