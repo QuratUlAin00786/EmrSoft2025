@@ -34,7 +34,7 @@ import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import type { User as Doctor, Appointment } from "@shared/schema";
 import {
   Select,
@@ -202,6 +202,26 @@ export function DoctorList({
     },
   });
 
+  // Fetch default shifts for fallback when custom shifts don't exist
+  const { data: defaultShiftsData = [] } = useQuery({
+    queryKey: ["/api/default-shifts", "forBooking"],
+    staleTime: 60000,
+    enabled: isBookingOpen && !!user,
+    retry: false,
+    queryFn: async () => {
+      try {
+        const response = await apiRequest('GET', '/api/default-shifts?forBooking=true');
+        if (!response.ok) {
+          return [];
+        }
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        return [];
+      }
+    },
+  });
+
   // Fetch shifts for the selected date and doctor
   const { data: shiftsData } = useQuery({
     queryKey: ["/api/shifts", selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null],
@@ -226,6 +246,9 @@ export function DoctorList({
       return data;
     },
   });
+
+  // Auto-select first available date when booking dialog opens and data is loaded
+  const [hasAutoSelectedDate, setHasAutoSelectedDate] = useState(false);
 
   // Convert time slot string to 24-hour format
   const timeSlotTo24Hour = (timeSlot: string): string => {
@@ -321,26 +344,49 @@ export function DoctorList({
   };
 
   // Generate time slots based on shifts from database (15-minute intervals)
+  // Two-tier system: Use custom shifts first, fall back to default shifts if no custom shift exists
   const timeSlots = useMemo(() => {
     // If no doctor or date selected, return empty array
-    if (!selectedBookingDoctor || !selectedDate || !shiftsData) {
+    if (!selectedBookingDoctor || !selectedDate) {
       return [];
     }
 
-    // Find ALL shifts for the selected doctor on this date
-    const doctorShifts = shiftsData.filter((shift: any) => 
-      shift.staffId === selectedBookingDoctor.id
-    );
+    let shiftsToUse: any[] = [];
 
-    // If no shifts found, return empty array
-    if (!doctorShifts || doctorShifts.length === 0) {
+    // First, check if there are custom shifts for the selected date
+    if (shiftsData) {
+      const customShifts = shiftsData.filter((shift: any) => 
+        shift.staffId === selectedBookingDoctor.id
+      );
+      
+      if (customShifts.length > 0) {
+        shiftsToUse = customShifts;
+      }
+    }
+
+    // If no custom shifts, fall back to default shifts
+    if (shiftsToUse.length === 0 && defaultShiftsData && defaultShiftsData.length > 0) {
+      const dayOfWeek = format(selectedDate, 'EEEE');
+      
+      const defaultShift = defaultShiftsData.find((shift: any) => 
+        shift.userId === selectedBookingDoctor.id
+      );
+      
+      // Only use default shift if the selected date's day is in working days
+      if (defaultShift && defaultShift.workingDays && defaultShift.workingDays.includes(dayOfWeek)) {
+        shiftsToUse = [defaultShift];
+      }
+    }
+
+    // If still no shifts found, return empty array
+    if (shiftsToUse.length === 0) {
       return [];
     }
 
     const allSlots: string[] = [];
 
     // Generate time slots for each shift (15-minute intervals)
-    for (const shift of doctorShifts) {
+    for (const shift of shiftsToUse) {
       const [startHour, startMinute] = shift.startTime.split(':').map(Number);
       const [endHour, endMinute] = shift.endTime.split(':').map(Number);
 
@@ -372,7 +418,7 @@ export function DoctorList({
     });
 
     return allSlots;
-  }, [selectedBookingDoctor, selectedDate, shiftsData]);
+  }, [selectedBookingDoctor, selectedDate, shiftsData, defaultShiftsData]);
 
   const updateScheduleMutation = useMutation({
     mutationFn: async (data: {
@@ -586,16 +632,74 @@ export function DoctorList({
     );
   };
 
-  // Check if a date has shifts in the database
+  // Check if a date has shifts in the database (custom shifts OR default shifts)
   const hasShiftsOnDate = (date: Date): boolean => {
-    if (!allDoctorShifts || !selectedBookingDoctor) return false;
+    if (!selectedBookingDoctor) return false;
     
     const dateStr = format(date, 'yyyy-MM-dd');
-    return allDoctorShifts.some((shift: any) => {
-      const shiftDateStr = shift.date.substring(0, 10);
-      return shiftDateStr === dateStr && shift.staffId === selectedBookingDoctor.id;
-    });
+    
+    // First check if there are custom shifts for this specific date
+    if (allDoctorShifts) {
+      const hasCustomShift = allDoctorShifts.some((shift: any) => {
+        const shiftDateStr = shift.date.substring(0, 10);
+        return shiftDateStr === dateStr && shift.staffId === selectedBookingDoctor.id;
+      });
+      
+      if (hasCustomShift) {
+        return true;
+      }
+    }
+    
+    // If no custom shift, check if there's a default shift with this day in working days
+    if (defaultShiftsData && defaultShiftsData.length > 0) {
+      const dayOfWeek = format(date, 'EEEE'); // Get day name (e.g., "Monday")
+      
+      const defaultShift = defaultShiftsData.find((shift: any) => 
+        shift.userId === selectedBookingDoctor.id
+      );
+      
+      if (defaultShift && defaultShift.workingDays && defaultShift.workingDays.includes(dayOfWeek)) {
+        return true;
+      }
+    }
+    
+    return false;
   };
+
+  // Auto-select first available date when booking dialog opens and data is loaded
+  useEffect(() => {
+    if (isBookingOpen && selectedBookingDoctor) {
+      // Reset selectedDate and auto-select flag when doctor changes or dialog opens
+      setSelectedDate(undefined);
+      setHasAutoSelectedDate(false);
+      
+      // Wait a bit for data to load
+      const timeoutId = setTimeout(() => {
+        // Find the first available date starting from today
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        // Check up to 60 days ahead
+        for (let i = 0; i < 60; i++) {
+          const checkDate = new Date(today);
+          checkDate.setDate(today.getDate() + i);
+          
+          if (hasShiftsOnDate(checkDate)) {
+            setSelectedDate(checkDate);
+            setHasAutoSelectedDate(true);
+            break;
+          }
+        }
+      }, 300);
+      
+      return () => clearTimeout(timeoutId);
+    }
+    
+    // Reset auto-select flag when dialog closes
+    if (!isBookingOpen && hasAutoSelectedDate) {
+      setHasAutoSelectedDate(false);
+    }
+  }, [isBookingOpen, selectedBookingDoctor, allDoctorShifts, defaultShiftsData]);
 
   // Format time to 12-hour format for display
   const formatTime = (time: string): string => {
