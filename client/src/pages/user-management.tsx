@@ -56,7 +56,7 @@ const userSchema = z.object({
     start: z.string(),
     end: z.string(),
   }).optional(),
-  password: z.string().min(1, "Password is required"),
+  password: z.string().optional(),
   // Patient-specific fields
   dateOfBirth: z.string().optional(),
   phone: z.string().optional(),
@@ -846,15 +846,28 @@ export default function UserManagement() {
 
   const onSubmit = (data: UserFormData) => {
     // Include medical specialty fields for doctor role
-    const submitData = {
+    const submitData: any = {
       ...data,
       medicalSpecialtyCategory: data.role === 'doctor' ? selectedSpecialtyCategory : undefined,
       subSpecialty: data.role === 'doctor' ? selectedSubSpecialty : undefined,
     };
     
     if (editingUser) {
+      // When editing, password is optional - remove if empty
+      if (!submitData.password || submitData.password.trim() === '') {
+        delete submitData.password;
+      }
       updateUserMutation.mutate({ id: editingUser.id, userData: submitData });
     } else {
+      // When creating new user, password is required
+      if (!submitData.password || submitData.password.trim() === '') {
+        toast({
+          title: "Password Required",
+          description: "Password is required when creating a new user",
+          variant: "destructive",
+        });
+        return;
+      }
       createUserMutation.mutate(submitData);
     }
   };
@@ -1539,62 +1552,66 @@ export default function UserManagement() {
                   />
                 </div>
 
-                {/* Working Days */}
-                <div className="space-y-2">
-                  <Label>Working Days</Label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day) => (
-                      <div key={day} className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          id={day}
-                          key={`${day}-${editingUser?.id || 'new'}`}
-                          defaultChecked={form.getValues("workingDays")?.includes(day)}
-                          onChange={(e) => {
-                            const currentDays = form.getValues("workingDays") || [];
-                            if (e.target.checked) {
-                              form.setValue("workingDays", [...currentDays, day]);
-                            } else {
-                              form.setValue("workingDays", currentDays.filter(d => d !== day));
-                            }
-                          }}
-                          className="rounded border-gray-300"
-                        />
-                        <Label htmlFor={day} className="text-sm font-normal">{day}</Label>
-                      </div>
-                    ))}
+                {/* Working Days - Hide for Patient role */}
+                {selectedRole !== 'patient' && (
+                  <div className="space-y-2">
+                    <Label>Working Days</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day) => (
+                        <div key={day} className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            id={day}
+                            key={`${day}-${editingUser?.id || 'new'}`}
+                            defaultChecked={form.getValues("workingDays")?.includes(day)}
+                            onChange={(e) => {
+                              const currentDays = form.getValues("workingDays") || [];
+                              if (e.target.checked) {
+                                form.setValue("workingDays", [...currentDays, day]);
+                              } else {
+                                form.setValue("workingDays", currentDays.filter(d => d !== day));
+                              }
+                            }}
+                            className="rounded border-gray-300"
+                          />
+                          <Label htmlFor={day} className="text-sm font-normal">{day}</Label>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
-                {/* Working Hours */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="startTime">Start Time</Label>
-                    <Input
-                      id="startTime"
-                      type="time"
-                      key={`start-${editingUser?.id || 'new'}`}
-                      defaultValue={form.getValues("workingHours")?.start || "09:00"}
-                      onChange={(e) => {
-                        const current = form.getValues("workingHours") || { start: "09:00", end: "17:00" };
-                        form.setValue("workingHours", { ...current, start: e.target.value });
-                      }}
-                    />
+                {/* Working Hours - Hide for Patient role */}
+                {selectedRole !== 'patient' && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="startTime">Start Time</Label>
+                      <Input
+                        id="startTime"
+                        type="time"
+                        key={`start-${editingUser?.id || 'new'}`}
+                        defaultValue={form.getValues("workingHours")?.start || "09:00"}
+                        onChange={(e) => {
+                          const current = form.getValues("workingHours") || { start: "09:00", end: "17:00" };
+                          form.setValue("workingHours", { ...current, start: e.target.value });
+                        }}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="endTime">End Time</Label>
+                      <Input
+                        id="endTime"
+                        type="time"
+                        key={`end-${editingUser?.id || 'new'}`}
+                        defaultValue={form.getValues("workingHours")?.end || "17:00"}
+                        onChange={(e) => {
+                          const current = form.getValues("workingHours") || { start: "09:00", end: "17:00" };
+                          form.setValue("workingHours", { ...current, end: e.target.value });
+                        }}
+                      />
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="endTime">End Time</Label>
-                    <Input
-                      id="endTime"
-                      type="time"
-                      key={`end-${editingUser?.id || 'new'}`}
-                      defaultValue={form.getValues("workingHours")?.end || "17:00"}
-                      onChange={(e) => {
-                        const current = form.getValues("workingHours") || { start: "09:00", end: "17:00" };
-                        form.setValue("workingHours", { ...current, end: e.target.value });
-                      }}
-                    />
-                  </div>
-                </div>
+                )}
                 
                 <div className="space-y-2">
                   <Label htmlFor="password">
