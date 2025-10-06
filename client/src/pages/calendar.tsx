@@ -369,14 +369,14 @@ export default function CalendarPage() {
 
   // Fetch default shifts for all users (to use as fallback when custom shifts don't exist)
   const { data: defaultShiftsData = [] } = useQuery({
-    queryKey: ["/api/default-shifts"],
+    queryKey: ["/api/default-shifts", "forBooking"],
     staleTime: 60000,
     enabled: !!user, // Only fetch when user is authenticated
     retry: false,
     queryFn: async () => {
       try {
         console.log('[DEFAULT_SHIFTS] Fetching default shifts...');
-        const response = await apiRequest('GET', '/api/default-shifts');
+        const response = await apiRequest('GET', '/api/default-shifts?forBooking=true');
         if (!response.ok) {
           console.warn('[DEFAULT_SHIFTS] Failed to fetch default shifts:', response.status);
           return [];
