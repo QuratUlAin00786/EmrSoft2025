@@ -23,12 +23,14 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
   const { user } = useAuth();
   const { toast } = useToast();
 
-  // Fetch appointments for this doctor
+  // Fetch appointments for this doctor - backend automatically filters by logged-in user's role
   const { data: appointmentsData, isLoading } = useQuery({
-    queryKey: ["/api/appointments"],
+    queryKey: ["/api/appointments", "doctor", user?.id],
     staleTime: 30000,
     refetchInterval: 60000,
+    enabled: !!user?.id && user?.role === 'doctor',
     queryFn: async () => {
+      // Backend automatically filters appointments for doctors (returns only their own appointments)
       const response = await apiRequest('GET', '/api/appointments');
       const data = await response.json();
       return data;
@@ -73,7 +75,7 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
 
   const appointments = appointmentsData || [];
 
-  // Filter appointments for current doctor based on organizationId and role
+  // Doctor appointments are already filtered by backend based on logged-in user's role
   const doctorAppointments = React.useMemo(() => {
     if (!user || user.role !== 'doctor') return [];
     
@@ -88,14 +90,12 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
       totalPatients: patientsData?.length || 0
     });
 
-    // Filter appointments where providerId matches current user's id (providerId is the doctor)
-    const filtered = appointments.filter((apt: any) => {
-      return apt.providerId === user.id && apt.organizationId === user.organizationId;
-    });
-
-    console.log('✅ DOCTOR APPOINTMENTS: Filtered', filtered.length, 'appointments for doctor ID', user.id, 'in organization', user.organizationId);
+    // Backend already filters by role (doctors see only their own appointments)
+    // Data is already scoped to correct organizationId by tenant middleware
+    // Return appointments as-is from backend
+    console.log('✅ DOCTOR APPOINTMENTS: Showing', appointments.length, 'appointments for doctor ID', user.id, 'in organization', user.organizationId);
     
-    return filtered;
+    return appointments;
   }, [appointments, user, patientsData]);
 
   // Categorize appointments into upcoming and past
