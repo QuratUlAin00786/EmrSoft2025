@@ -274,7 +274,7 @@ export default function Settings() {
           title="Settings" 
           subtitle="Configure your organization settings and preferences."
         />
-        <div className="flex-1 p-6">
+        <div className="flex-1 overflow-auto p-6">
           <Card>
             <CardContent className="text-center py-8">
               <p className="text-neutral-600 dark:text-gray-400 mb-4">
