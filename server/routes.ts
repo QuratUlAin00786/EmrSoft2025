@@ -1364,15 +1364,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!code || !realmId) {
         console.log("[QUICKBOOKS] Missing code or realmId");
-        return res.status(400).json({ error: "Invalid OAuth callback parameters" });
+        return res.status(400).send(`
+          <html>
+            <body>
+              <h1>Error: Invalid OAuth callback</h1>
+              <p>Missing required parameters</p>
+            </body>
+          </html>
+        `);
       }
 
       console.log("[QUICKBOOKS] Code:", code);
       console.log("[QUICKBOOKS] Realm ID:", realmId);
+      console.log("[QUICKBOOKS] Sending success HTML response...");
 
       // TODO: Exchange code for access token and save to database
-      // For now, just redirect with success
-      res.send(`
+      // Set proper headers to prevent caching and ensure HTML rendering
+      res.setHeader('Content-Type', 'text/html');
+      res.setHeader('Cache-Control', 'no-store');
+      res.setHeader('X-Frame-Options', 'SAMEORIGIN'); // Allow iframe from same origin
+      
+      const successHtml = `<!DOCTYPE html>
         <html>
           <head>
             <title>QuickBooks Connected</title>
@@ -1456,19 +1468,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
               <div class="realm-id">Realm ID: ${realmId}</div>
             </div>
             <script>
+              console.log('[QB CALLBACK] Success page loaded, sending postMessage...');
               // Send message to parent window (iframe)
               if (window.parent && window.parent !== window) {
+                console.log('[QB CALLBACK] Sending to parent window');
                 window.parent.postMessage({ type: 'quickbooks-connected', realmId: '${realmId}' }, '*');
               }
               // Fallback for popup window
               else if (window.opener) {
+                console.log('[QB CALLBACK] Sending to opener window');
                 window.opener.postMessage({ type: 'quickbooks-connected', realmId: '${realmId}' }, '*');
                 window.close();
               }
             </script>
           </body>
-        </html>
-      `);
+        </html>`;
+      
+      console.log("[QUICKBOOKS] HTML length:", successHtml.length);
+      console.log("[QUICKBOOKS] Sending response now...");
+      res.send(successHtml);
+      console.log("[QUICKBOOKS] Response sent successfully!");
     } catch (error) {
       console.error("[QUICKBOOKS] Error handling OAuth callback:", error);
       res.status(500).json({ error: "Failed to handle OAuth callback" });
