@@ -101,15 +101,16 @@ export default function QuickBooks() {
   const [connectDialogOpen, setConnectDialogOpen] = useState(false);
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
   const [selectedConnection, setSelectedConnection] = useState<QuickBooksConnection | null>(null);
+  const [oauthUrl, setOauthUrl] = useState<string>("");
+  const [connectionSuccess, setConnectionSuccess] = useState(false);
+  const [connectionRealmId, setConnectionRealmId] = useState<string>("");
 
-  // Listen for QuickBooks OAuth popup success message
+  // Listen for QuickBooks OAuth iframe message
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data.type === 'quickbooks-connected') {
-        toast({
-          title: "QuickBooks Connected!",
-          description: `Successfully connected to QuickBooks (Realm ID: ${event.data.realmId})`,
-        });
+        setConnectionSuccess(true);
+        setConnectionRealmId(event.data.realmId);
         // Refresh connections list
         queryClient.invalidateQueries({ queryKey: ['/api/quickbooks/connections'] });
         queryClient.invalidateQueries({ queryKey: ['/api/quickbooks/connection/active'] });
@@ -118,7 +119,7 @@ export default function QuickBooks() {
 
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [toast, queryClient]);
+  }, [queryClient]);
 
   // Fetch QuickBooks connections
   const { data: connections = [], isLoading: connectionsLoading } = useQuery<QuickBooksConnection[]>({
@@ -157,15 +158,12 @@ export default function QuickBooks() {
       const res = await apiRequest('GET', '/api/quickbooks/auth/url');
       const response = await res.json();
       if (response.url) {
-        window.open(response.url, '_blank', 'width=800,height=600');
+        setOauthUrl(response.url);
+        setConnectionSuccess(false);
+        setConnectionRealmId("");
+        setConnectDialogOpen(true);
       }
       return response;
-    },
-    onSuccess: () => {
-      toast({
-        title: "Connecting to QuickBooks",
-        description: "Please complete the authorization in the popup window.",
-      });
     },
     onError: (error: any) => {
       toast({
@@ -821,6 +819,63 @@ export default function QuickBooks() {
       </Tabs>
 
       <SettingsDialog />
+      
+      {/* QuickBooks Connection Modal */}
+      <Dialog open={connectDialogOpen} onOpenChange={setConnectDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle>Connect to QuickBooks</DialogTitle>
+            <DialogDescription>
+              {connectionSuccess 
+                ? "Successfully connected to QuickBooks!"
+                : "Please authorize Cura to access your QuickBooks account"
+              }
+            </DialogDescription>
+          </DialogHeader>
+          
+          {connectionSuccess ? (
+            <div className="py-8 text-center space-y-4">
+              <div className="flex justify-center">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                  <CheckCircle className="w-10 h-10 text-green-600" />
+                </div>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-green-900">Connection Successful!</h3>
+                <p className="text-sm text-gray-600 mt-2">
+                  QuickBooks has been successfully connected to your Cura account.
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Realm ID: {connectionRealmId}
+                </p>
+              </div>
+              <Button 
+                onClick={() => {
+                  setConnectDialogOpen(false);
+                  setConnectionSuccess(false);
+                }}
+                data-testid="button-close-success"
+              >
+                Close
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {oauthUrl && (
+                <iframe
+                  src={oauthUrl}
+                  className="w-full h-[500px] border rounded-lg"
+                  title="QuickBooks Authorization"
+                  data-testid="iframe-quickbooks-auth"
+                />
+              )}
+              <div className="text-center text-sm text-gray-500">
+                <p>Complete the authorization in the window above to connect your QuickBooks account.</p>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
