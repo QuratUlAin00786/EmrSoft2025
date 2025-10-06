@@ -102,6 +102,24 @@ export default function QuickBooks() {
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
   const [selectedConnection, setSelectedConnection] = useState<QuickBooksConnection | null>(null);
 
+  // Listen for QuickBooks OAuth popup success message
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data.type === 'quickbooks-connected') {
+        toast({
+          title: "QuickBooks Connected!",
+          description: `Successfully connected to QuickBooks (Realm ID: ${event.data.realmId})`,
+        });
+        // Refresh connections list
+        queryClient.invalidateQueries({ queryKey: ['/api/quickbooks/connections'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/quickbooks/connection/active'] });
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [toast, queryClient]);
+
   // Fetch QuickBooks connections
   const { data: connections = [], isLoading: connectionsLoading } = useQuery<QuickBooksConnection[]>({
     queryKey: ['/api/quickbooks/connections'],

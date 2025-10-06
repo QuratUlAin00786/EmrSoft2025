@@ -1356,6 +1356,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // QuickBooks OAuth callback - MUST be before authMiddleware since OAuth popup has no session
+  app.get("/api/quickbooks/auth/callback", tenantMiddleware, async (req: TenantRequest, res) => {
+    try {
+      console.log("[QUICKBOOKS] OAuth callback received!");
+      const { code, realmId, state } = req.query;
+      
+      if (!code || !realmId) {
+        console.log("[QUICKBOOKS] Missing code or realmId");
+        return res.status(400).json({ error: "Invalid OAuth callback parameters" });
+      }
+
+      console.log("[QUICKBOOKS] Code:", code);
+      console.log("[QUICKBOOKS] Realm ID:", realmId);
+
+      // TODO: Exchange code for access token and save to database
+      // For now, just redirect with success
+      res.send(`
+        <html>
+          <head>
+            <title>QuickBooks Connected</title>
+          </head>
+          <body>
+            <script>
+              // Close popup and notify parent window
+              if (window.opener) {
+                window.opener.postMessage({ type: 'quickbooks-connected', realmId: '${realmId}' }, '*');
+                window.close();
+              } else {
+                window.location.href = '/demo/quickbooks?connected=true&realmId=${realmId}';
+              }
+            </script>
+            <p>QuickBooks connected successfully! This window will close automatically...</p>
+          </body>
+        </html>
+      `);
+    } catch (error) {
+      console.error("[QUICKBOOKS] Error handling OAuth callback:", error);
+      res.status(500).json({ error: "Failed to handle OAuth callback" });
+    }
+  });
+
   // Protected routes (auth required)
   app.use("/api", authMiddleware);
 
@@ -14682,22 +14723,6 @@ Cura EMR Team
     }
   });
 
-  app.get("/api/quickbooks/auth/callback", async (req: TenantRequest, res) => {
-    try {
-      // In a real implementation, handle OAuth callback from QuickBooks
-      const { code, realmId } = req.query;
-      
-      if (!code || !realmId) {
-        return res.status(400).json({ error: "Invalid OAuth callback parameters" });
-      }
-
-      // Mock successful OAuth response
-      res.redirect(`/quickbooks?connected=true&realmId=${realmId}`);
-    } catch (error) {
-      console.error("Error handling OAuth callback:", error);
-      res.status(500).json({ error: "Failed to handle OAuth callback" });
-    }
-  });
 
   // Symptom Checker Endpoints
   app.post('/api/symptom-checker/analyze', authMiddleware, multiTenantEnforcer(), async (req: TenantRequest, res) => {
