@@ -1075,15 +1075,8 @@ export default function CalendarPage() {
       return response.json();
     },
     onSuccess: () => {
-      // Show success modal for patient users, toast for others
-      if (user?.role === 'patient') {
-        setShowSuccessModal(true);
-      } else {
-        toast({
-          title: "Appointment Created",
-          description: "The appointment has been successfully booked.",
-        });
-      }
+      // Show success modal for all users after appointment creation
+      setShowSuccessModal(true);
       
       // Update calendar data with proper cache invalidation
       queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
@@ -2122,12 +2115,12 @@ export default function CalendarPage() {
                                   
                                   {/* Additional Information */}
                                   <div className="space-y-2 text-sm">
-                                    {user.medicalSpecialtyCategory && (
+                                    {((user as any).medicalSpecialtyCategory || (user as any).specialty) && (
                                       <div className="flex items-center gap-2">
                                         <User className="h-4 w-4 text-gray-500" />
                                         <span className="text-gray-700 dark:text-gray-300">
-                                          {user.medicalSpecialtyCategory}
-                                          {user.subSpecialty && ` - ${user.subSpecialty}`}
+                                          {(user as any).medicalSpecialtyCategory || (user as any).specialty}
+                                          {(user as any).subSpecialty && ` - ${(user as any).subSpecialty}`}
                                         </span>
                                       </div>
                                     )}
@@ -2508,14 +2501,10 @@ export default function CalendarPage() {
                           scheduledAt: appointmentDateTime
                         };
 
-                        // If patient user, show confirmation modal instead of directly booking
-                        if (user?.role === 'patient') {
-                          setPendingAppointmentData(appointmentData);
-                          setShowNewAppointmentModal(false); // Close the booking modal first
-                          setShowConfirmationModal(true);
-                        } else {
-                          createAppointmentMutation.mutate(appointmentData);
-                        }
+                        // Show confirmation modal for all users before booking
+                        setPendingAppointmentData(appointmentData);
+                        setShowNewAppointmentModal(false); // Close the booking modal first
+                        setShowConfirmationModal(true);
                       }}
                       disabled={createAppointmentMutation.isPending}
                       data-testid="button-book-appointment"
@@ -2530,14 +2519,14 @@ export default function CalendarPage() {
           </div>
         )}
 
-        {/* Confirmation Modal for Patient Users */}
+        {/* Confirmation Modal for All Users */}
         {showConfirmationModal && pendingAppointmentData && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
               <div className="p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-xl font-bold text-gray-900">
-                    Appointment Booking Confirmation
+                    Confirm Appointment
                   </h2>
                   <Button
                     variant="ghost"
@@ -2721,7 +2710,7 @@ export default function CalendarPage() {
           </div>
         )}
 
-        {/* Success Modal for Patient Users */}
+        {/* Success Modal for All Users */}
         {showSuccessModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
@@ -2731,10 +2720,10 @@ export default function CalendarPage() {
                     <Check className="h-8 w-8 text-green-600" />
                   </div>
                   <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                    Appointment Created
+                    Appointment Successfully Created
                   </h2>
                   <p className="text-gray-600 mb-6">
-                    Your appointment has been successfully booked. You will receive a confirmation shortly.
+                    The appointment has been successfully created and saved.
                   </p>
                   <Button
                     onClick={() => {
