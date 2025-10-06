@@ -76,15 +76,26 @@ export default function ShiftsPage() {
 
 
 
-  // Role options exactly as requested
-  const roleOptions = [
-    { value: 'doctor', label: 'Doctor' },
-    { value: 'nurse', label: 'Nurse' },
-    { value: 'sample_taker', label: 'Sample Taker' },
-    { value: 'lab_technician', label: 'Lab Technician' },
-    { value: 'admin', label: 'Admin' },
-    { value: 'receptionist', label: 'Receptionist' }
-  ];
+  // Fetch roles from the roles table filtered by organization_id
+  const { data: rolesData = [] } = useQuery({
+    queryKey: ["/api/roles"],
+    queryFn: async () => {
+      try {
+        const response = await apiRequest("GET", "/api/roles");
+        const data = await response.json();
+        return Array.isArray(data) ? data : [];
+      } catch (error) {
+        console.error("Roles fetch error:", error);
+        return [];
+      }
+    },
+  });
+
+  // Map roles to dropdown options format
+  const roleOptions = rolesData.map((role: any) => ({
+    value: role.name,
+    label: role.displayName || role.name
+  }));
 
   // Generate dynamic time slots based on shift data (excluding absent shifts)
   const generateTimeSlots = (doctorShifts: any[]): { value: number; display: string; hour: number; shiftId: any }[] => {
