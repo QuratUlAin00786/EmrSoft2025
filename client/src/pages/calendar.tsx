@@ -371,19 +371,21 @@ export default function CalendarPage() {
   const { data: defaultShiftsData = [] } = useQuery({
     queryKey: ["/api/default-shifts"],
     staleTime: 60000,
-    enabled: !!selectedProviderId,
+    // Always fetch default shifts since they're needed for fallback
     retry: false,
     queryFn: async () => {
       try {
+        console.log('[DEFAULT_SHIFTS] Fetching default shifts...');
         const response = await apiRequest('GET', '/api/default-shifts');
         if (!response.ok) {
-          console.warn('Failed to fetch default shifts:', response.status);
+          console.warn('[DEFAULT_SHIFTS] Failed to fetch default shifts:', response.status);
           return [];
         }
         const data = await response.json();
+        console.log('[DEFAULT_SHIFTS] Fetched default shifts:', data);
         return data;
       } catch (error) {
-        console.warn('Error fetching default shifts:', error);
+        console.warn('[DEFAULT_SHIFTS] Error fetching default shifts:', error);
         return [];
       }
     },
@@ -474,6 +476,7 @@ export default function CalendarPage() {
   // Uses two-tier system: custom shifts (staff_shifts) take priority, then default shifts (doctor_default_shifts)
   const timeSlots = useMemo(() => {
     if (!selectedProviderId || !selectedDate) {
+      console.log('[TIME_SLOTS] Missing providerId or date');
       return [];
     }
 
@@ -482,16 +485,27 @@ export default function CalendarPage() {
       shift.staffId.toString() === selectedProviderId
     ) || [];
 
+    console.log(`[TIME_SLOTS] Provider ${selectedProviderId}, Date: ${format(selectedDate, 'yyyy-MM-dd EEEE')}`);
+    console.log(`[TIME_SLOTS] Custom shifts found: ${providerShifts.length}`, providerShifts);
+
     // TIER 2: If no custom shifts found, use default shifts from doctor_default_shifts
     if (providerShifts.length === 0 && defaultShiftsData.length > 0) {
+      console.log('[TIME_SLOTS] No custom shifts, checking default shifts...');
+      console.log('[TIME_SLOTS] Available default shifts:', defaultShiftsData);
+      
       const defaultShift = defaultShiftsData.find((ds: any) => 
         ds.userId.toString() === selectedProviderId
       );
+
+      console.log('[TIME_SLOTS] Default shift for provider:', defaultShift);
 
       if (defaultShift) {
         // Check if the selected date's day of week is in the working days
         const dayOfWeek = format(selectedDate, 'EEEE'); // "Monday", "Tuesday", etc.
         const workingDays = defaultShift.workingDays || [];
+        
+        console.log(`[TIME_SLOTS] Day of week: ${dayOfWeek}, Working days:`, workingDays);
+        console.log(`[TIME_SLOTS] Is working day: ${workingDays.includes(dayOfWeek)}`);
         
         if (workingDays.includes(dayOfWeek)) {
           // Create a virtual shift object matching the staff_shifts structure
@@ -502,13 +516,21 @@ export default function CalendarPage() {
             date: selectedDate,
             isDefault: true // Flag to indicate this came from default shifts
           }];
+          console.log('[TIME_SLOTS] Using default shift:', providerShifts[0]);
+        } else {
+          console.log('[TIME_SLOTS] Selected date is not a working day');
         }
+      } else {
+        console.log('[TIME_SLOTS] No default shift found for provider');
       }
     }
 
     if (!providerShifts || providerShifts.length === 0) {
+      console.log('[TIME_SLOTS] No shifts available (custom or default)');
       return [];
     }
+
+    console.log('[TIME_SLOTS] Final provider shifts to use:', providerShifts);
 
     const allSlots: string[] = [];
 
