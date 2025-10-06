@@ -29,6 +29,8 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
   const [allProviders, setAllProviders] = useState<any[]>([]);
   const [availableProviders, setAvailableProviders] = useState<any[]>([]);
   const [bookedTimeSlots, setBookedTimeSlots] = useState<string[]>([]);
+  const [staffShifts, setStaffShifts] = useState<any[]>([]);
+  const [defaultShifts, setDefaultShifts] = useState<any[]>([]);
 
   const createAppointmentMutation = useMutation({
     mutationFn: async (appointmentData: any) => {
@@ -297,6 +299,117 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
     }
   };
 
+  const fetchStaffShifts = async () => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'X-Tenant-Subdomain': 'cura'
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch('/api/staff-shifts', {
+        headers,
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log("📋 Fetched staff shifts:", data);
+      setStaffShifts(data);
+    } catch (err) {
+      console.error("Error fetching staff shifts:", err);
+      setStaffShifts([]);
+    }
+  };
+
+  const fetchDefaultShifts = async () => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'X-Tenant-Subdomain': 'cura'
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch('/api/default-shifts?forBooking=true', {
+        headers,
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log("📋 TWO-TIER SHIFT: Fetched default shifts from API:", data);
+      console.log("📋 TWO-TIER SHIFT: Default shifts count:", Array.isArray(data) ? data.length : 'not an array');
+      
+      // Ensure we have an array
+      const shiftsArray = Array.isArray(data) ? data : [];
+      setDefaultShifts(shiftsArray);
+    } catch (err) {
+      console.error("Error fetching default shifts:", err);
+      setDefaultShifts([]);
+    }
+  };
+
+  const getProviderShiftForDate = (providerId: number, date: string) => {
+    console.log(`🔍 TWO-TIER SHIFT: Looking for shift - Provider ${providerId}, Date ${date}`);
+    console.log(`🔍 TWO-TIER SHIFT: Available staff shifts:`, staffShifts.length);
+    console.log(`🔍 TWO-TIER SHIFT: Available default shifts:`, defaultShifts.length);
+    
+    // Priority 1: Check staff_shifts for custom shift on this specific date
+    const customShift = staffShifts.find((shift: any) => 
+      shift.userId === providerId && shift.shiftDate === date
+    );
+    
+    if (customShift) {
+      console.log(`🎯 TWO-TIER SHIFT: Found CUSTOM shift for provider ${providerId} on ${date}:`, customShift);
+      return {
+        type: 'custom',
+        startTime: customShift.startTime,
+        endTime: customShift.endTime,
+        isWorking: true
+      };
+    }
+    
+    // Priority 2: Check doctor_default_shifts for default schedule
+    const appointmentDate = new Date(date);
+    const dayOfWeek = appointmentDate.toLocaleDateString('en-US', { weekday: 'long' });
+    console.log(`📅 TWO-TIER SHIFT: Checking default shifts for day: ${dayOfWeek}`);
+    
+    const defaultShift = defaultShifts.find((shift: any) => {
+      const matchesUser = shift.userId === providerId;
+      const hasWorkingDays = shift.workingDays && Array.isArray(shift.workingDays);
+      const includesDay = hasWorkingDays && shift.workingDays.includes(dayOfWeek);
+      
+      console.log(`  Checking shift ${shift.id}: userId=${shift.userId} (match: ${matchesUser}), workingDays=${JSON.stringify(shift.workingDays)}, includes ${dayOfWeek}: ${includesDay}`);
+      
+      return matchesUser && includesDay;
+    });
+    
+    if (defaultShift) {
+      console.log(`📅 TWO-TIER SHIFT: Found DEFAULT shift for provider ${providerId} on ${dayOfWeek}:`, defaultShift);
+      return {
+        type: 'default',
+        startTime: defaultShift.startTime,
+        endTime: defaultShift.endTime,
+        isWorking: true
+      };
+    }
+    
+    console.log(`❌ TWO-TIER SHIFT: No shift found for provider ${providerId} on ${date} (${dayOfWeek})`);
+    return null;
+  };
+
   const filterAvailableProviders = () => {
     if (!formData.date || !formData.time || allProviders.length === 0) {
       setAvailableProviders(allProviders);
@@ -305,34 +418,32 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
 
     const appointmentDate = new Date(formData.date);
     const dayOfWeek = appointmentDate.toLocaleDateString('en-US', { weekday: 'long' });
-    console.log("📅 Filtering providers for:", dayOfWeek, "at", formData.time);
+    console.log("📅 TWO-TIER SHIFT: Filtering providers for:", formData.date, dayOfWeek, "at", formData.time);
     
     const availableOnThisDateTime = allProviders.filter(provider => {
-      // Check working days
-      if (provider.workingDays && provider.workingDays.length > 0) {
-        if (!provider.workingDays.includes(dayOfWeek)) {
-          console.log(`❌ ${provider.firstName} ${provider.lastName} not available on ${dayOfWeek}`);
-          return false;
-        }
+      // Use two-tier shift system: staff_shifts → doctor_default_shifts
+      const shift = getProviderShiftForDate(provider.id, formData.date);
+      
+      if (!shift) {
+        console.log(`❌ ${provider.firstName} ${provider.lastName} - No shift found for ${formData.date}`);
+        return false;
+      }
+      
+      // Check if appointment time falls within shift hours
+      const appointmentTime = formData.time;
+      const startTime = shift.startTime;
+      const endTime = shift.endTime;
+
+      if (appointmentTime < startTime || appointmentTime > endTime) {
+        console.log(`❌ ${provider.firstName} ${provider.lastName} - Not available at ${appointmentTime} (${shift.type} shift: ${startTime}-${endTime})`);
+        return false;
       }
 
-      // Check working hours
-      if (provider.workingHours && provider.workingHours.start && provider.workingHours.end) {
-        const appointmentTime = formData.time;
-        const startTime = provider.workingHours.start;
-        const endTime = provider.workingHours.end;
-
-        if (appointmentTime < startTime || appointmentTime > endTime) {
-          console.log(`❌ ${provider.firstName} ${provider.lastName} not available at ${appointmentTime} (works ${startTime}-${endTime})`);
-          return false;
-        }
-      }
-
-      console.log(`✅ ${provider.firstName} ${provider.lastName} is available`);
+      console.log(`✅ ${provider.firstName} ${provider.lastName} - Available (${shift.type} shift: ${startTime}-${endTime})`);
       return true;
     });
 
-    console.log(`🔍 Found ${availableOnThisDateTime.length} available providers out of ${allProviders.length}`);
+    console.log(`🔍 TWO-TIER SHIFT: Found ${availableOnThisDateTime.length} available providers out of ${allProviders.length}`);
     setAvailableProviders(availableOnThisDateTime);
     
     // Clear selected provider if they're no longer available
@@ -363,13 +474,15 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
       
       fetchPatients();
       fetchProviders();
+      fetchStaffShifts();
+      fetchDefaultShifts();
     }
   }, [isOpen]);
 
-  // Filter available providers when date or time changes
+  // Filter available providers when date, time, or shifts data changes
   useEffect(() => {
     filterAvailableProviders();
-  }, [formData.date, formData.time, allProviders]);
+  }, [formData.date, formData.time, allProviders, staffShifts, defaultShifts]);
 
   // Fetch appointments when date or doctor changes
   useEffect(() => {
