@@ -310,7 +310,7 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
         headers['Authorization'] = `Bearer ${token}`;
       }
       
-      const response = await fetch('/api/staff-shifts', {
+      const response = await fetch('/api/shifts', {
         headers,
         credentials: 'include'
       });
@@ -321,7 +321,15 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
       
       const data = await response.json();
       console.log("📋 Fetched staff shifts:", data);
-      setStaffShifts(data);
+      
+      // Map staffId to userId and date to shiftDate for compatibility
+      const mappedShifts = data.map((shift: any) => ({
+        ...shift,
+        userId: shift.staffId,
+        shiftDate: shift.date ? new Date(shift.date).toISOString().split('T')[0] : null
+      }));
+      
+      setStaffShifts(mappedShifts);
     } catch (err) {
       console.error("Error fetching staff shifts:", err);
       setStaffShifts([]);
@@ -762,28 +770,55 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
                             const isSelected = field.value === timeSlot.replace(" ", "").toLowerCase();
                             const isBooked = bookedTimeSlots.includes(timeSlot);
                             
+                            // Convert time slot to 24-hour format for comparison with shift hours
+                            const [time, period] = timeSlot.split(" ");
+                            const [hours, minutes] = time.split(":");
+                            let hour24 = parseInt(hours);
+                            if (period === "PM" && hour24 !== 12) hour24 += 12;
+                            if (period === "AM" && hour24 === 12) hour24 = 0;
+                            const timeSlot24 = `${hour24.toString().padStart(2, '0')}:${minutes}`;
+                            
+                            // Check if time slot is within doctor's shift hours
+                            let isWithinShift = true;
+                            let shiftInfo = null;
+                            
+                            if (formData.providerId && formData.date) {
+                              const shift = getProviderShiftForDate(parseInt(formData.providerId), formData.date);
+                              shiftInfo = shift;
+                              
+                              if (shift) {
+                                isWithinShift = timeSlot24 >= shift.startTime && timeSlot24 <= shift.endTime;
+                              } else {
+                                // No shift found for this doctor on this date - disable all slots
+                                isWithinShift = false;
+                              }
+                            }
+                            
+                            const isDisabled = isBooked || !isWithinShift;
+                            
                             return (
                               <button
                                 key={timeSlot}
                                 type="button"
-                                disabled={isBooked}
+                                disabled={isDisabled}
                                 onClick={() => {
-                                  if (isBooked) return;
-                                  const [time, period] = timeSlot.split(" ");
-                                  const [hours, minutes] = time.split(":");
-                                  let hour24 = parseInt(hours);
-                                  if (period === "PM" && hour24 !== 12) hour24 += 12;
-                                  if (period === "AM" && hour24 === 12) hour24 = 0;
-                                  field.onChange(`${hour24.toString().padStart(2, '0')}:${minutes}`);
+                                  if (isDisabled) return;
+                                  field.onChange(timeSlot24);
                                 }}
                                 className={`p-2 text-sm rounded border text-center ${
-                                  isBooked
+                                  isDisabled
                                     ? "bg-gray-400 text-gray-600 border-gray-400 cursor-not-allowed"
                                     : isSelected
-                                    ? "bg-gray-600 text-white border-gray-600"
-                                    : "bg-gray-500 text-white border-gray-500 hover:bg-gray-600"
+                                    ? "bg-blue-600 text-white border-blue-600"
+                                    : "bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600 hover:bg-blue-50 dark:hover:bg-gray-600"
                                 }`}
-                                title={isBooked ? "Time slot already booked" : "Available time slot"}
+                                title={
+                                  isBooked 
+                                    ? "Time slot already booked" 
+                                    : !isWithinShift 
+                                    ? `Outside doctor's working hours${shiftInfo ? ` (${shiftInfo.startTime}-${shiftInfo.endTime})` : ''}`
+                                    : "Available time slot"
+                                }
                               >
                                 {timeSlot}
                               </button>
