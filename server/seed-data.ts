@@ -648,7 +648,7 @@ export async function seedDatabase() {
       const systemRoles = [
         {
           organizationId: org.id,
-          name: "administrator",
+          name: "admin",
           displayName: "Administrator",
           description: "Full system access with all permissions",
           permissions: {
