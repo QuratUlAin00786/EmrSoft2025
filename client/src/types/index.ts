@@ -79,7 +79,7 @@ export interface User {
   username: string;
   firstName: string;
   lastName: string;
-  role: "admin" | "doctor" | "nurse" | "receptionist";
+  role: string;
   department?: string;
   isActive: boolean;
   lastLoginAt?: string;
