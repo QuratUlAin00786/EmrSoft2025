@@ -4273,12 +4273,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const users = await storage.getUsersByOrganization(req.tenant!.id);
       
-      // Remove passwordHash from response
-      const safeUsers = users.map(user => {
+      // Remove passwordHash from response and add patient-specific data if role is patient
+      const safeUsersPromises = users.map(async user => {
         const { passwordHash, ...safeUser } = user;
+        
+        // If user is a patient, fetch and merge patient-specific data
+        if (user.role === 'patient') {
+          const patient = await storage.getPatientByUserId(user.id, req.tenant!.id);
+          if (patient) {
+            return {
+              ...safeUser,
+              dateOfBirth: patient.dateOfBirth || "",
+              phone: patient.phone || "",
+              nhsNumber: patient.nhsNumber || "",
+              address: patient.address || {},
+              emergencyContact: patient.emergencyContact || {},
+              insuranceInfo: patient.insuranceInfo || {},
+            };
+          }
+        }
+        
         return safeUser;
       });
 
+      const safeUsers = await Promise.all(safeUsersPromises);
       res.json(safeUsers);
     } catch (error) {
       console.error("Users fetch error:", error);

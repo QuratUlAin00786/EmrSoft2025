@@ -149,6 +149,30 @@ interface User {
   isActive: boolean;
   lastLoginAt?: string;
   createdAt: string;
+  // Patient-specific fields
+  dateOfBirth?: string;
+  phone?: string;
+  nhsNumber?: string;
+  address?: {
+    street?: string;
+    city?: string;
+    state?: string;
+    postcode?: string;
+    country?: string;
+  };
+  emergencyContact?: {
+    name?: string;
+    relationship?: string;
+    phone?: string;
+    email?: string;
+  };
+  insuranceInfo?: {
+    provider?: string;
+    policyNumber?: string;
+    memberNumber?: string;
+    planType?: string;
+    effectiveDate?: string;
+  };
 }
 
 interface Role {
@@ -923,6 +947,42 @@ export default function UserManagement() {
       // Just ensure we include all fields that might be needed
       formValues.medicalSpecialtyCategory = user.medicalSpecialtyCategory || "";
       formValues.subSpecialty = user.subSpecialty || "";
+    }
+    
+    // If user is patient, load all patient-specific fields
+    if (user.role === 'patient') {
+      formValues.dateOfBirth = user.dateOfBirth || "";
+      formValues.phone = user.phone || "";
+      formValues.nhsNumber = user.nhsNumber || "";
+      formValues.address = {
+        street: user.address?.street || "",
+        city: user.address?.city || "",
+        state: user.address?.state || "",
+        postcode: user.address?.postcode || "",
+        country: user.address?.country || "United Kingdom",
+      };
+      formValues.emergencyContact = {
+        name: user.emergencyContact?.name || "",
+        relationship: user.emergencyContact?.relationship || "",
+        phone: user.emergencyContact?.phone || "",
+        email: user.emergencyContact?.email || "",
+      };
+      formValues.insuranceInfo = {
+        provider: user.insuranceInfo?.provider || "",
+        policyNumber: user.insuranceInfo?.policyNumber || "",
+        memberNumber: user.insuranceInfo?.memberNumber || "",
+        planType: user.insuranceInfo?.planType || "",
+        effectiveDate: user.insuranceInfo?.effectiveDate || "",
+      };
+      
+      console.log("📋 Patient data loaded:", {
+        dateOfBirth: formValues.dateOfBirth,
+        phone: formValues.phone,
+        nhsNumber: formValues.nhsNumber,
+        address: formValues.address,
+        emergencyContact: formValues.emergencyContact,
+        insuranceInfo: formValues.insuranceInfo
+      });
     }
     
     form.reset(formValues);
