@@ -65,7 +65,15 @@ const userSchema = z.object({
   password: z.string().optional(),
   // Patient-specific fields
   dateOfBirth: z.string().optional(),
-  phone: z.string().optional(),
+  dobDay: z.string().optional(),
+  dobMonth: z.string().optional(),
+  dobYear: z.string().optional(),
+  phone: z.string()
+    .optional()
+    .refine(
+      (val) => !val || /^(\+44|0)[0-9\s]{9,13}$/.test(val.replace(/\s/g, '')),
+      "Please enter a valid UK phone number"
+    ),
   nhsNumber: z.string().optional(),
   address: z.object({
     street: z.string().optional(),
@@ -77,7 +85,12 @@ const userSchema = z.object({
   emergencyContact: z.object({
     name: z.string().optional(),
     relationship: z.string().optional(),
-    phone: z.string().optional(),
+    phone: z.string()
+      .optional()
+      .refine(
+        (val) => !val || /^(\+44|0)[0-9\s]{9,13}$/.test(val.replace(/\s/g, '')),
+        "Please enter a valid UK phone number"
+      ),
     email: z.string().optional(),
   }).optional(),
   insuranceInfo: z.object({
@@ -498,6 +511,9 @@ export default function UserManagement() {
       password: "",
       // Patient defaults
       dateOfBirth: "",
+      dobDay: "",
+      dobMonth: "",
+      dobYear: "",
       phone: "",
       nhsNumber: "",
       address: {
@@ -996,6 +1012,17 @@ export default function UserManagement() {
       subSpecialty: data.role === 'doctor' ? selectedSubSpecialty : undefined,
     };
     
+    // Combine dobDay, dobMonth, dobYear into dateOfBirth for patient role
+    if (data.role === 'patient' && data.dobDay && data.dobMonth && data.dobYear) {
+      const day = data.dobDay.padStart(2, '0');
+      const month = data.dobMonth.padStart(2, '0');
+      submitData.dateOfBirth = `${data.dobYear}-${month}-${day}`;
+      // Clean up the separate fields
+      delete submitData.dobDay;
+      delete submitData.dobMonth;
+      delete submitData.dobYear;
+    }
+    
     // Remove working hours for patient role
     if (data.role === 'patient') {
       delete submitData.workingHours;
@@ -1064,6 +1091,21 @@ export default function UserManagement() {
     if (user.role === 'patient') {
       console.log("📋 SECTION 2: Loading patients table data (matched by email)");
       userData.dateOfBirth = user.dateOfBirth || "";
+      
+      // Split dateOfBirth into day, month, year for separate fields
+      if (user.dateOfBirth) {
+        const dobParts = user.dateOfBirth.split('-');
+        if (dobParts.length === 3) {
+          userData.dobYear = dobParts[0];
+          userData.dobMonth = dobParts[1];
+          userData.dobDay = dobParts[2];
+        }
+      } else {
+        userData.dobDay = "";
+        userData.dobMonth = "";
+        userData.dobYear = "";
+      }
+      
       userData.phone = user.phone || "";
       userData.nhsNumber = user.nhsNumber || "";
       userData.address = {
@@ -1590,15 +1632,38 @@ export default function UserManagement() {
                     </div>
 
                     {/* Basic Information */}
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="dateOfBirth">Date of Birth</Label>
-                        <Input
-                          id="dateOfBirth"
-                          type="date"
-                          {...form.register("dateOfBirth")}
-                          data-testid="input-date-of-birth"
-                        />
+                        <Label>Date of Birth</Label>
+                        <div className="grid grid-cols-3 gap-2">
+                          <div className="space-y-2">
+                            <Input
+                              id="dobDay"
+                              {...form.register("dobDay")}
+                              placeholder="Day"
+                              maxLength={2}
+                              data-testid="input-dob-day"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Input
+                              id="dobMonth"
+                              {...form.register("dobMonth")}
+                              placeholder="Month"
+                              maxLength={2}
+                              data-testid="input-dob-month"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Input
+                              id="dobYear"
+                              {...form.register("dobYear")}
+                              placeholder="Year"
+                              maxLength={4}
+                              data-testid="input-dob-year"
+                            />
+                          </div>
+                        </div>
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="phone">Phone Number</Label>
@@ -1608,6 +1673,9 @@ export default function UserManagement() {
                           placeholder="+44 123 456 7890"
                           data-testid="input-phone"
                         />
+                        {form.formState.errors.phone && (
+                          <p className="text-sm text-red-500">{form.formState.errors.phone.message}</p>
+                        )}
                       </div>
                     </div>
 
@@ -1702,6 +1770,9 @@ export default function UserManagement() {
                             placeholder="+44 123 456 7890"
                             data-testid="input-emergency-phone"
                           />
+                          {form.formState.errors.emergencyContact?.phone && (
+                            <p className="text-sm text-red-500">{form.formState.errors.emergencyContact.phone.message}</p>
+                          )}
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="emergencyEmail">Email (Optional)</Label>
@@ -1722,12 +1793,29 @@ export default function UserManagement() {
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <Label htmlFor="insuranceProvider">Insurance Provider</Label>
-                          <Input
-                            id="insuranceProvider"
-                            {...form.register("insuranceInfo.provider")}
-                            placeholder="Select insurance provider"
-                            data-testid="input-insurance-provider"
-                          />
+                          <Select 
+                            onValueChange={(value) => form.setValue("insuranceInfo.provider", value)}
+                            value={form.watch("insuranceInfo.provider") || ""}
+                          >
+                            <SelectTrigger data-testid="dropdown-insurance-provider">
+                              <SelectValue placeholder="Select insurance provider..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="NHS (National Health Service)">NHS (National Health Service)</SelectItem>
+                              <SelectItem value="Bupa">Bupa</SelectItem>
+                              <SelectItem value="AXA PPP Healthcare">AXA PPP Healthcare</SelectItem>
+                              <SelectItem value="Vitality Health">Vitality Health</SelectItem>
+                              <SelectItem value="Aviva Health">Aviva Health</SelectItem>
+                              <SelectItem value="Simply Health">Simply Health</SelectItem>
+                              <SelectItem value="WPA">WPA</SelectItem>
+                              <SelectItem value="Benenden Health">Benenden Health</SelectItem>
+                              <SelectItem value="Healix Health Services">Healix Health Services</SelectItem>
+                              <SelectItem value="Sovereign Health Care">Sovereign Health Care</SelectItem>
+                              <SelectItem value="Exeter Friendly Society">Exeter Friendly Society</SelectItem>
+                              <SelectItem value="Self-Pay">Self-Pay</SelectItem>
+                              <SelectItem value="Other">Other</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="planType">Plan Type</Label>

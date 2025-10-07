@@ -4727,7 +4727,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Fetch the current user BEFORE updating (to get old email for patient lookup)
-      const currentUser = await storage.getUserById(userId, req.tenant!.id);
+      const currentUser = await storage.getUser(userId, req.tenant!.id);
       if (!currentUser) {
         return res.status(404).json({ error: "User not found" });
       }
