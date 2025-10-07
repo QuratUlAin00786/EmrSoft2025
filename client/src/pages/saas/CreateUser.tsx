@@ -19,20 +19,11 @@ const createUserSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   username: z.string().min(3, "Username must be at least 3 characters"),
   password: z.string().min(6, "Password must be at least 6 characters"),
-  role: z.enum(['admin', 'doctor', 'nurse', 'receptionist', 'patient', 'sample_taker']),
+  role: z.string().min(1, "Please select a role"),
   organizationId: z.string().min(1, "Please select an organization"),
 });
 
 type CreateUserFormData = z.infer<typeof createUserSchema>;
-
-const roleOptions = [
-  { value: 'admin', label: 'Administrator', description: 'Full system access and management' },
-  { value: 'doctor', label: 'Doctor', description: 'Patient care and medical records' },
-  { value: 'nurse', label: 'Nurse', description: 'Patient care and basic records' },
-  { value: 'receptionist', label: 'Receptionist', description: 'Appointments and basic patient info' },
-  { value: 'patient', label: 'Patient', description: 'Personal medical records access' },
-  { value: 'sample_taker', label: 'Sample Taker', description: 'Lab sample collection' },
-];
 
 export default function CreateUser() {
   const [modalOpen, setModalOpen] = useState(false);
@@ -64,9 +55,25 @@ export default function CreateUser() {
       email: "",
       username: "",
       password: "",
-      role: "patient",
+      role: "",
       organizationId: "",
     },
+  });
+
+  // Watch form fields for availability checking
+  const watchedUsername = form.watch('username');
+  const watchedEmail = form.watch('email');
+  const watchedOrganizationId = form.watch('organizationId');
+
+  // Fetch roles based on selected organization
+  const { data: roles, isLoading: rolesLoading } = useQuery({
+    queryKey: ["/api/roles", watchedOrganizationId],
+    queryFn: async () => {
+      if (!watchedOrganizationId) return [];
+      const response = await saasApiRequest('GET', `/api/roles?organizationId=${watchedOrganizationId}`);
+      return response.json();
+    },
+    enabled: !!watchedOrganizationId,
   });
 
   // Debounced availability check
@@ -108,11 +115,6 @@ export default function CreateUser() {
     []
   );
 
-  // Watch form fields for availability checking
-  const watchedUsername = form.watch('username');
-  const watchedEmail = form.watch('email');
-  const watchedOrganizationId = form.watch('organizationId');
-
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       if (watchedUsername && watchedUsername.length >= 3 && watchedOrganizationId) {
@@ -136,6 +138,11 @@ export default function CreateUser() {
 
     return () => clearTimeout(timeoutId);
   }, [watchedEmail, watchedOrganizationId, checkAvailability]);
+
+  // Reset role when organization changes
+  useEffect(() => {
+    form.setValue("role", "");
+  }, [watchedOrganizationId, form]);
 
   // Create user mutation
   const createUserMutation = useMutation({
@@ -389,16 +396,25 @@ export default function CreateUser() {
 
                       <div className="space-y-2">
                         <Label htmlFor="role">User Role</Label>
-                        <Select onValueChange={(value) => form.setValue("role", value as any)}>
+                        <Select 
+                          onValueChange={(value) => form.setValue("role", value)}
+                          disabled={!watchedOrganizationId || rolesLoading}
+                        >
                           <SelectTrigger>
-                            <SelectValue placeholder="Select role" />
+                            <SelectValue placeholder={
+                              !watchedOrganizationId 
+                                ? "Select organization first" 
+                                : rolesLoading 
+                                ? "Loading roles..." 
+                                : "Select role"
+                            } />
                           </SelectTrigger>
                           <SelectContent>
-                            {roleOptions.map((role) => (
-                              <SelectItem key={role.value} value={role.value}>
+                            {roles?.map((role: any) => (
+                              <SelectItem key={role.id} value={role.name}>
                                 <div className="flex items-center gap-2">
                                   <Shield className="h-4 w-4" />
-                                  {role.label}
+                                  {role.displayName}
                                 </div>
                               </SelectItem>
                             ))}
@@ -449,14 +465,30 @@ export default function CreateUser() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {roleOptions.map((role) => (
-                    <div key={role.value} className="border-l-4 border-indigo-200 pl-4">
-                      <h4 className="font-medium text-gray-900">{role.label}</h4>
-                      <p className="text-sm text-gray-600">{role.description}</p>
-                    </div>
-                  ))}
-                </div>
+                {!watchedOrganizationId ? (
+                  <p className="text-sm text-gray-500 text-center py-4">
+                    Select an organization to view available roles
+                  </p>
+                ) : rolesLoading ? (
+                  <div className="space-y-3">
+                    <div className="h-16 bg-gray-100 rounded animate-pulse"></div>
+                    <div className="h-16 bg-gray-100 rounded animate-pulse"></div>
+                    <div className="h-16 bg-gray-100 rounded animate-pulse"></div>
+                  </div>
+                ) : roles && roles.length > 0 ? (
+                  <div className="space-y-4">
+                    {roles.map((role: any) => (
+                      <div key={role.id} className="border-l-4 border-indigo-200 pl-4">
+                        <h4 className="font-medium text-gray-900">{role.displayName}</h4>
+                        <p className="text-sm text-gray-600">{role.description}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500 text-center py-4">
+                    No roles found for this organization
+                  </p>
+                )}
               </CardContent>
             </Card>
 
