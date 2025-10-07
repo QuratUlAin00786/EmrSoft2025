@@ -1305,7 +1305,7 @@ export default function UserManagement() {
       role: user.role as any,
       department: user.department || "",
       workingDays: user.workingDays || [],
-      workingHours: user.workingHours || { start: "09:00", end: "17:00" },
+      workingHours: (user.workingHours?.start && user.workingHours?.end) ? user.workingHours : { start: "09:00", end: "17:00" },
       password: "", // Don't pre-fill password for security
     };
 
@@ -2247,12 +2247,7 @@ export default function UserManagement() {
                       <Input
                         id="startTime"
                         type="time"
-                        key={`start-${editingUser?.id || 'new'}`}
-                        defaultValue={form.getValues("workingHours")?.start || "09:00"}
-                        onChange={(e) => {
-                          const current = form.getValues("workingHours") || { start: "09:00", end: "17:00" };
-                          form.setValue("workingHours", { ...current, start: e.target.value });
-                        }}
+                        {...form.register("workingHours.start")}
                       />
                     </div>
                     <div className="space-y-2">
@@ -2260,12 +2255,7 @@ export default function UserManagement() {
                       <Input
                         id="endTime"
                         type="time"
-                        key={`end-${editingUser?.id || 'new'}`}
-                        defaultValue={form.getValues("workingHours")?.end || "17:00"}
-                        onChange={(e) => {
-                          const current = form.getValues("workingHours") || { start: "09:00", end: "17:00" };
-                          form.setValue("workingHours", { ...current, end: e.target.value });
-                        }}
+                        {...form.register("workingHours.end")}
                       />
                     </div>
                   </div>
