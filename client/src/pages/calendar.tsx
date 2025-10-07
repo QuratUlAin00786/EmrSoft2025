@@ -210,13 +210,17 @@ export default function CalendarPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch patients for the dropdown
+  // Fetch patients for the dropdown  
   const { data: patients = [], isLoading: patientsLoading } = useQuery<any[]>({
     queryKey: ["/api/patients"],
     retry: false,
+    staleTime: 0, // Always fetch fresh data
+    refetchOnMount: true, // Refetch when component mounts
     queryFn: async () => {
+      console.log("📋 CALENDAR: Fetching patients...");
       const response = await apiRequest('GET', '/api/patients');
       const data = await response.json();
+      console.log("📋 CALENDAR: Patients fetched. Count:", Array.isArray(data) ? data.length : 'Not an array!', "Data:", data);
       return data;
     },
   });
