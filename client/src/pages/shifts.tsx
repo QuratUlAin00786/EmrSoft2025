@@ -798,7 +798,32 @@ export default function ShiftsPage() {
                 })
               ) : (
                 <div className="text-center py-8 text-gray-500">
-                  <p>No default shifts configured yet.</p>
+                  <p className="mb-4">No default shifts configured yet.</p>
+                  {isAdmin && (
+                    <Button
+                      onClick={async () => {
+                        try {
+                          const response = await apiRequest("POST", "/api/default-shifts/initialize");
+                          const result = await response.json();
+                          toast({
+                            title: "Default Shifts Initialized",
+                            description: `Created ${result.created} default shifts. Skipped ${result.skipped} existing shifts.`,
+                          });
+                          refetchDefaultShifts();
+                        } catch (error) {
+                          toast({
+                            title: "Error",
+                            description: "Failed to initialize default shifts",
+                            variant: "destructive",
+                          });
+                        }
+                      }}
+                      data-testid="button-initialize-shifts"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Initialize Default Shifts
+                    </Button>
+                  )}
                 </div>
               )}
             </div>
