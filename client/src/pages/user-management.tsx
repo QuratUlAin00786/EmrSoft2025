@@ -977,12 +977,30 @@ export default function UserManagement() {
     console.log("  Form data:", data);
     console.log("  Editing user:", editingUser?.id);
     
+    // Validate working hours for non-patient roles
+    if (data.role !== 'patient') {
+      if (!data.workingHours?.start || !data.workingHours?.end) {
+        toast({
+          title: "Working Hours Required",
+          description: "Working hours are required for staff members (admin, doctor, nurse, etc.)",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+    
     // Include medical specialty fields for doctor role
     const submitData: any = {
       ...data,
       medicalSpecialtyCategory: data.role === 'doctor' ? selectedSpecialtyCategory : undefined,
       subSpecialty: data.role === 'doctor' ? selectedSubSpecialty : undefined,
     };
+    
+    // Remove working hours for patient role
+    if (data.role === 'patient') {
+      delete submitData.workingHours;
+      delete submitData.workingDays;
+    }
     
     if (editingUser) {
       // When editing, password is optional - remove if empty
@@ -1763,8 +1781,8 @@ export default function UserManagement() {
                   />
                 </div>
 
-                {/* Working Days - Hide for Admin and Patient roles */}
-                {selectedRole !== 'patient' && selectedRole !== 'admin' && (
+                {/* Working Days - Hide only for Patient role */}
+                {selectedRole !== 'patient' && (
                   <div className="space-y-2">
                     <Label>Working Days</Label>
                     <div className="grid grid-cols-2 gap-2">
@@ -1792,8 +1810,8 @@ export default function UserManagement() {
                   </div>
                 )}
 
-                {/* Working Hours - Hide for Admin and Patient roles */}
-                {selectedRole !== 'patient' && selectedRole !== 'admin' && (
+                {/* Working Hours - Hide only for Patient role */}
+                {selectedRole !== 'patient' && (
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="startTime">Start Time</Label>
