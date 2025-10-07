@@ -21,6 +21,12 @@ export interface TenantRequest extends Request {
 
 export async function tenantMiddleware(req: TenantRequest, res: Response, next: NextFunction) {
   try {
+    // CRITICAL: Skip tenant middleware for SaaS routes - they use separate authentication
+    if (req.path.startsWith('/saas/')) {
+      console.log(`[TENANT-MIDDLEWARE] ✅ Skipping SaaS route: ${req.path}`);
+      return next();
+    }
+    
     console.log(`[TENANT-MIDDLEWARE] Processing request: ${req.method} ${req.path} ${req.url}`);
     
     // Skip tenant middleware for static assets and development files to prevent DB calls
