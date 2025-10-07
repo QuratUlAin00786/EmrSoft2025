@@ -1897,7 +1897,10 @@ export default function PrescriptionsPage() {
                             </SelectTrigger>
                             <SelectContent>
                               {rolesData
-                                .filter((role: any) => !['patient', 'admin', 'Administrator'].includes(role.name))
+                                .filter((role: any) => {
+                                  const roleName = (role.name || '').toLowerCase();
+                                  return !['patient', 'admin', 'administrator'].includes(roleName);
+                                })
                                 .map((role: any) => (
                                   <SelectItem key={role.id} value={role.name}>
                                     {role.displayName || role.name}

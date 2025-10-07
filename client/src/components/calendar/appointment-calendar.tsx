@@ -896,7 +896,10 @@ Medical License: [License Number]
 
   // Map roles to dropdown options format from roles table, excluding 'patient', 'admin', and 'Administrator'
   const availableRoles = rolesData
-    .filter((role: any) => !['patient', 'admin', 'Administrator'].includes(role.name))
+    .filter((role: any) => {
+      const roleName = (role.name || '').toLowerCase();
+      return !['patient', 'admin', 'administrator'].includes(roleName);
+    })
     .map((role: any) => role.name);
 
   // Helper functions
