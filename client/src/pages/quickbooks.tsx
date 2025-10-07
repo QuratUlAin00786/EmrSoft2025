@@ -156,6 +156,24 @@ export default function QuickBooks() {
   // Fetch active connection
   const { data: activeConnection, isLoading: activeConnectionLoading, error: activeConnectionError } = useQuery<QuickBooksConnection>({
     queryKey: ['/api/quickbooks/connection/active'],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'X-Tenant-Subdomain': localStorage.getItem('user_subdomain') || 'demo'
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      const res = await fetch('/api/quickbooks/connection/active', {
+        credentials: 'include',
+        headers
+      });
+      if (!res.ok) {
+        if (res.status === 404) return null;
+        throw new Error(`${res.status}: ${await res.text()}`);
+      }
+      return res.json();
+    },
     retry: false,
     refetchInterval: 30000,
   });
