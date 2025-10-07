@@ -2962,6 +2962,7 @@ export default function CalendarPage() {
                       createAppointmentMutation.mutate(pendingAppointmentData);
                       setShowConfirmationModal(false);
                       setPendingAppointmentData(null);
+                      setSelectedDoctor(null); // Clear selected doctor to prevent reopening the doctor booking modal
                     }}
                     disabled={createAppointmentMutation.isPending}
                     data-testid="button-confirm-appointment"
