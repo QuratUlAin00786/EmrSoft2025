@@ -1341,6 +1341,25 @@ The Cura EMR Team`,
     },
   );
 
+  // Get roles for an organization (SaaS admin access)
+  app.get(
+    "/api/saas/roles",
+    verifySaaSToken,
+    async (req: Request, res: Response) => {
+      try {
+        const { organizationId } = req.query;
+        if (!organizationId) {
+          return res.status(400).json({ error: "organizationId is required" });
+        }
+        const roles = await storage.getRolesByOrganization(Number(organizationId));
+        res.json(roles);
+      } catch (error) {
+        console.error("Error fetching roles:", error);
+        res.status(500).json({ message: "Failed to fetch roles" });
+      }
+    },
+  );
+
   app.get(
     "/api/saas/customers",
     verifySaaSToken,
