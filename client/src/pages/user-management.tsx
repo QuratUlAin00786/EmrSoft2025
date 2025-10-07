@@ -1236,10 +1236,20 @@ export default function UserManagement() {
     };
     
     // Combine dobDay, dobMonth, dobYear into dateOfBirth for patient role
-    if (data.role === 'patient' && dobDay && dobMonth && dobYear) {
-      const day = dobDay.padStart(2, '0');
-      const month = dobMonth.padStart(2, '0');
-      submitData.dateOfBirth = `${dobYear}-${month}-${day}`;
+    if (data.role === 'patient') {
+      if (data.dobDay && data.dobMonth && data.dobYear) {
+        const day = data.dobDay.padStart(2, '0');
+        const month = data.dobMonth.padStart(2, '0');
+        submitData.dateOfBirth = `${data.dobYear}-${month}-${day}`;
+      } else if (dobDay && dobMonth && dobYear) {
+        // Fallback to state variables if form data doesn't have them
+        const day = dobDay.padStart(2, '0');
+        const month = dobMonth.padStart(2, '0');
+        submitData.dateOfBirth = `${dobYear}-${month}-${day}`;
+      } else {
+        // If no DOB provided, set to null instead of empty string
+        submitData.dateOfBirth = null;
+      }
       // Clean up the separate fields
       delete submitData.dobDay;
       delete submitData.dobMonth;
