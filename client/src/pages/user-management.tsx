@@ -905,7 +905,8 @@ export default function UserManagement() {
       setSelectedSubSpecialty("");
     }
     
-    form.reset({
+    // Prepare form values with proper defaults
+    const formValues: any = {
       email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
@@ -914,7 +915,17 @@ export default function UserManagement() {
       workingDays: user.workingDays || [],
       workingHours: user.workingHours || { start: "09:00", end: "17:00" },
       password: "", // Don't pre-fill password for security
-    });
+    };
+
+    // If user is admin, get all admin-specific details
+    if (user.role === 'admin') {
+      // Admin users already have all their details in the user object
+      // Just ensure we include all fields that might be needed
+      formValues.medicalSpecialtyCategory = user.medicalSpecialtyCategory || "";
+      formValues.subSpecialty = user.subSpecialty || "";
+    }
+    
+    form.reset(formValues);
     setIsCreateModalOpen(true);
     console.log("✅ handleEdit complete - modal should be open with validation status: 'available'");
   };
@@ -1279,27 +1290,37 @@ export default function UserManagement() {
                 
                 <div className="space-y-2">
                   <Label htmlFor="role">Role</Label>
-                  <Select onValueChange={(value) => {
-                    form.setValue("role", value as any);
-                    setSelectedRole(value);
-                    // Reset specialty selections when role changes
-                    if (value !== "doctor") {
-                      setSelectedSpecialtyCategory("");
-                      setSelectedSubSpecialty("");
-                      setSelectedSpecificArea("");
-                    }
-                  }} defaultValue={form.getValues("role")}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {rolesData.map((role: any) => (
-                        <SelectItem key={role.id} value={role.name}>
-                          {role.displayName || role.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  {editingUser ? (
+                    // Non-editable role display for edit mode
+                    <div className="px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-800">
+                      <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                        {rolesData.find((r: any) => r.name === selectedRole)?.displayName || selectedRole}
+                      </span>
+                    </div>
+                  ) : (
+                    // Editable role dropdown for create mode
+                    <Select onValueChange={(value) => {
+                      form.setValue("role", value as any);
+                      setSelectedRole(value);
+                      // Reset specialty selections when role changes
+                      if (value !== "doctor") {
+                        setSelectedSpecialtyCategory("");
+                        setSelectedSubSpecialty("");
+                        setSelectedSpecificArea("");
+                      }
+                    }} defaultValue={form.getValues("role")}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {rolesData.map((role: any) => (
+                          <SelectItem key={role.id} value={role.name}>
+                            {role.displayName || role.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                   {form.formState.errors.role && (
                     <p className="text-sm text-red-500">{form.formState.errors.role.message}</p>
                   )}
@@ -1573,8 +1594,8 @@ export default function UserManagement() {
                   />
                 </div>
 
-                {/* Working Days - Hide for Patient role */}
-                {selectedRole !== 'patient' && (
+                {/* Working Days - Hide for Admin and Patient roles */}
+                {selectedRole !== 'patient' && selectedRole !== 'admin' && (
                   <div className="space-y-2">
                     <Label>Working Days</Label>
                     <div className="grid grid-cols-2 gap-2">
@@ -1602,8 +1623,8 @@ export default function UserManagement() {
                   </div>
                 )}
 
-                {/* Working Hours - Hide for Patient role */}
-                {selectedRole !== 'patient' && (
+                {/* Working Hours - Hide for Admin and Patient roles */}
+                {selectedRole !== 'patient' && selectedRole !== 'admin' && (
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="startTime">Start Time</Label>
@@ -1636,7 +1657,7 @@ export default function UserManagement() {
                 
                 <div className="space-y-2">
                   <Label htmlFor="password">
-                    {editingUser ? "New Password (Optional)" : "Password"}
+                    {editingUser ? "New Password *" : "Password"}
                   </Label>
                   <Input
                     id="password"
