@@ -1380,15 +1380,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Exchange authorization code for access and refresh tokens
       // @ts-ignore - intuit-oauth doesn't have type definitions
       const OAuthClient = (await import('intuit-oauth')).default;
+      const redirectUri = process.env.QB_REDIRECT_URI || `${process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : 'http://localhost:5000'}/api/quickbooks/auth/callback`;
+      
       const oauthClient = new OAuthClient({
         clientId: process.env.QUICKBOOKS_CLIENT_ID!,
         clientSecret: process.env.QUICKBOOKS_CLIENT_SECRET!,
         environment: 'sandbox', // Use 'production' for live
-        redirectUri: process.env.QB_REDIRECT_URI || `${process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : 'http://localhost:5000'}/api/quickbooks/auth/callback`,
+        redirectUri: redirectUri,
       });
 
       console.log("[QUICKBOOKS] Exchanging authorization code for tokens...");
-      const authResponse = await oauthClient.createToken(code as string);
+      console.log("[QUICKBOOKS] Redirect URI:", redirectUri);
+      
+      // Create the full callback URL with all query parameters
+      const parseUrl = `${redirectUri}?code=${code}&state=${state}&realmId=${realmId}`;
+      console.log("[QUICKBOOKS] Parse URL:", parseUrl);
+      
+      const authResponse = await oauthClient.createToken(parseUrl);
       const token = authResponse.getJson();
       
       console.log("[QUICKBOOKS] Token exchange successful!");
