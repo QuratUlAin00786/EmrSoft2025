@@ -32,6 +32,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -172,6 +178,22 @@ interface User {
     memberNumber?: string;
     planType?: string;
     effectiveDate?: string;
+  };
+  // Insurance verification from insurance_verifications table
+  insuranceVerification?: {
+    id?: number;
+    provider?: string;
+    policyNumber?: string;
+    groupNumber?: string;
+    memberNumber?: string;
+    planType?: string;
+    coverageType?: string;
+    status?: string;
+    eligibilityStatus?: string;
+    effectiveDate?: string;
+    expirationDate?: string;
+    lastVerified?: string;
+    benefits?: any;
   };
 }
 
@@ -983,29 +1005,22 @@ export default function UserManagement() {
     }
   };
 
+  // NEW SECTIONED EDIT FUNCTIONALITY
   const handleEdit = (user: User) => {
-    console.log("🔧 handleEdit called for user:", user.id, user.email);
+    console.log("🔧 NEW SECTIONED EDIT - User:", user.id, user.email, "Role:", user.role);
+    
     setEditingUser(user);
     setSelectedRole(user.role);
     
     // Reset email validation status to available since we're editing existing user
-    console.log("📧 Setting emailValidationStatus to 'available'");
     setEmailValidationStatus('available');
     if (emailCheckTimeout) {
       clearTimeout(emailCheckTimeout);
     }
     
-    // Set medical specialty fields for doctor role
-    if (user.role === 'doctor') {
-      setSelectedSpecialtyCategory(user.medicalSpecialtyCategory || "");
-      setSelectedSubSpecialty(user.subSpecialty || "");
-    } else {
-      setSelectedSpecialtyCategory("");
-      setSelectedSubSpecialty("");
-    }
-    
-    // Prepare form values with proper defaults
-    const formValues: any = {
+    // SECTION 1: Users table data (applies to all users)
+    console.log("📋 SECTION 1: Loading users table data");
+    const userData: any = {
       email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
@@ -1016,53 +1031,72 @@ export default function UserManagement() {
       password: "", // Don't pre-fill password for security
     };
 
-    // If user is admin, get all admin-specific details
-    if (user.role === 'admin') {
-      // Admin users already have all their details in the user object
-      // Just ensure we include all fields that might be needed
-      formValues.medicalSpecialtyCategory = user.medicalSpecialtyCategory || "";
-      formValues.subSpecialty = user.subSpecialty || "";
+    // Set medical specialty fields for doctor role
+    if (user.role === 'doctor') {
+      setSelectedSpecialtyCategory(user.medicalSpecialtyCategory || "");
+      setSelectedSubSpecialty(user.subSpecialty || "");
+      userData.medicalSpecialtyCategory = user.medicalSpecialtyCategory || "";
+      userData.subSpecialty = user.subSpecialty || "";
+    } else {
+      setSelectedSpecialtyCategory("");
+      setSelectedSubSpecialty("");
     }
-    
-    // If user is patient, load all patient-specific fields
+
+    // SECTION 2: Patient table data (if role === 'patient')
     if (user.role === 'patient') {
-      formValues.dateOfBirth = user.dateOfBirth || "";
-      formValues.phone = user.phone || "";
-      formValues.nhsNumber = user.nhsNumber || "";
-      formValues.address = {
+      console.log("📋 SECTION 2: Loading patients table data (matched by email)");
+      userData.dateOfBirth = user.dateOfBirth || "";
+      userData.phone = user.phone || "";
+      userData.nhsNumber = user.nhsNumber || "";
+      userData.address = {
         street: user.address?.street || "",
         city: user.address?.city || "",
         state: user.address?.state || "",
         postcode: user.address?.postcode || "",
         country: user.address?.country || "United Kingdom",
       };
-      formValues.emergencyContact = {
+      userData.emergencyContact = {
         name: user.emergencyContact?.name || "",
         relationship: user.emergencyContact?.relationship || "",
         phone: user.emergencyContact?.phone || "",
         email: user.emergencyContact?.email || "",
       };
-      formValues.insuranceInfo = {
-        provider: user.insuranceInfo?.provider || "",
-        policyNumber: user.insuranceInfo?.policyNumber || "",
-        memberNumber: user.insuranceInfo?.memberNumber || "",
-        planType: user.insuranceInfo?.planType || "",
-        effectiveDate: user.insuranceInfo?.effectiveDate || "",
-      };
       
-      console.log("📋 Patient data loaded:", {
-        dateOfBirth: formValues.dateOfBirth,
-        phone: formValues.phone,
-        nhsNumber: formValues.nhsNumber,
-        address: formValues.address,
-        emergencyContact: formValues.emergencyContact,
-        insuranceInfo: formValues.insuranceInfo
+      // SECTION 3: Insurance verification data (from insurance_verifications table)
+      console.log("📋 SECTION 3: Loading insurance_verifications table data (by patient_id)");
+      if (user.insuranceVerification) {
+        console.log("✅ Insurance verification found:", user.insuranceVerification);
+        userData.insuranceInfo = {
+          provider: user.insuranceVerification.provider || "",
+          policyNumber: user.insuranceVerification.policyNumber || "",
+          memberNumber: user.insuranceVerification.memberNumber || "",
+          planType: user.insuranceVerification.planType || "",
+          effectiveDate: user.insuranceVerification.effectiveDate || "",
+        };
+      } else {
+        console.log("⚠️ No insurance verification found, using insuranceInfo from patients table");
+        userData.insuranceInfo = {
+          provider: user.insuranceInfo?.provider || "",
+          policyNumber: user.insuranceInfo?.policyNumber || "",
+          memberNumber: user.insuranceInfo?.memberNumber || "",
+          planType: user.insuranceInfo?.planType || "",
+          effectiveDate: user.insuranceInfo?.effectiveDate || "",
+        };
+      }
+      
+      console.log("📊 Complete patient data loaded:", {
+        dateOfBirth: userData.dateOfBirth,
+        phone: userData.phone,
+        nhsNumber: userData.nhsNumber,
+        address: userData.address,
+        emergencyContact: userData.emergencyContact,
+        insuranceInfo: userData.insuranceInfo
       });
     }
     
-    form.reset(formValues);
+    form.reset(userData);
     setIsCreateModalOpen(true);
-    console.log("✅ handleEdit complete - modal should be open with validation status: 'available'");
+    console.log("✅ NEW SECTIONED EDIT complete - All 3 sections loaded successfully");
   };
 
   const handleDelete = (userId: number) => {
