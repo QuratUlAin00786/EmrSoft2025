@@ -154,11 +154,31 @@ export default function QuickBooks() {
   });
 
   // Fetch active connection
-  const { data: activeConnection, isLoading: activeConnectionLoading } = useQuery<QuickBooksConnection>({
+  const { data: activeConnection, isLoading: activeConnectionLoading, error: activeConnectionError } = useQuery<QuickBooksConnection>({
     queryKey: ['/api/quickbooks/connection/active'],
     retry: false,
     refetchInterval: 30000,
   });
+
+  // Debug logging for active connection query
+  useEffect(() => {
+    console.log('[QB DEBUG] Active connection query state:', {
+      isLoading: activeConnectionLoading,
+      hasData: !!activeConnection,
+      data: activeConnection,
+      error: activeConnectionError,
+      errorMessage: activeConnectionError?.message || 'none'
+    });
+    
+    if (activeConnectionError) {
+      console.error('[QB DEBUG] Full error object:', activeConnectionError);
+      toast({
+        title: "Connection Error",
+        description: activeConnectionError?.message || "Failed to fetch QuickBooks connection",
+        variant: "destructive",
+      });
+    }
+  }, [activeConnection, activeConnectionLoading, activeConnectionError]);
 
   // Fetch sync logs
   const { data: syncLogs = [], isLoading: syncLogsLoading } = useQuery<SyncLog[]>({
