@@ -1955,9 +1955,7 @@ export const insertUserSchema = createInsertSchema(users).omit({
   lastName: z.string().trim().min(1, "Last name is required"),
   username: z.string().trim().min(3, "Username must be at least 3 characters").max(50, "Username cannot exceed 50 characters"),
   passwordHash: z.string().min(6, "Password must be at least 6 characters"),
-  role: z.enum(["admin", "doctor", "nurse", "receptionist", "patient", "sample_taker"], {
-    required_error: "Please select a role"
-  }),
+  role: z.string().min(1, "Please select a role"), // Accept any role from database
 });
 
 export const insertUserDocumentPreferencesSchema = createInsertSchema(userDocumentPreferences).omit({
