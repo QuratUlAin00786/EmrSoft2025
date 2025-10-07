@@ -2339,15 +2339,16 @@ export default function CalendarPage() {
                             )}
                           </div>
                         ) : (
-                          <Card className="mt-2">
-                            <CardContent className="p-4">
-                              <div className="flex items-center justify-center py-8">
-                                <p className="text-sm text-gray-500 dark:text-gray-400">
-                                  Please select a provider and date to view available time slots.
-                                </p>
-                              </div>
-                            </CardContent>
-                          </Card>
+                    <Card className="mt-2 min-h-[300px]">
+                      <CardContent className="p-4 h-full flex items-center justify-center">
+                        <div className="py-8 text-center">
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            Please select a provider and date to view available time slots.
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+
                         )}
                       </div>
                     </div>

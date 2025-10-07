@@ -14927,6 +14927,167 @@ Cura EMR Team
     }
   });
 
+  // QuickBooks Data Fetching Endpoints
+  // Helper function to get QuickBooks client instance
+  const getQuickBooksClient = async (organizationId: number) => {
+    const QuickBooks = (await import('node-quickbooks')).default;
+    
+    // Get active connection for organization
+    const [connection] = await db.select()
+      .from(quickbooksConnections)
+      .where(and(
+        eq(quickbooksConnections.organizationId, organizationId),
+        eq(quickbooksConnections.isActive, true)
+      ))
+      .limit(1);
+
+    if (!connection) {
+      throw new Error('No active QuickBooks connection found');
+    }
+
+    // In a real implementation, you would fetch the access token from your token storage
+    // For now, we'll use environment variables
+    const qbo = new QuickBooks(
+      process.env.QUICKBOOKS_CLIENT_ID!,
+      process.env.QUICKBOOKS_CLIENT_SECRET!,
+      connection.accessToken || '', // You need to store access_token in the connection
+      false,
+      connection.realmId,
+      true, // Enable sandbox mode
+      null,
+      '2.0',
+      connection.refreshToken || '' // You need to store refresh_token in the connection
+    );
+
+    return qbo;
+  };
+
+  // Fetch QuickBooks Company Info
+  app.get("/api/quickbooks/data/company-info", authMiddleware, requireNonPatientRole(), multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = req.tenant!.id;
+      const qbo = await getQuickBooksClient(organizationId);
+
+      qbo.findCompanyInfos((err: any, data: any) => {
+        if (err) {
+          console.error("Error fetching QuickBooks company info:", err);
+          return res.status(500).json({ error: "Failed to fetch company info" });
+        }
+        const companyInfo = data.QueryResponse.CompanyInfo[0];
+        res.json(companyInfo);
+      });
+    } catch (error: any) {
+      console.error("Error:", error);
+      res.status(500).json({ error: error.message || "Failed to fetch company info" });
+    }
+  });
+
+  // Fetch QuickBooks Invoices
+  app.get("/api/quickbooks/data/invoices", authMiddleware, requireNonPatientRole(), multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = req.tenant!.id;
+      const qbo = await getQuickBooksClient(organizationId);
+
+      qbo.findInvoices((err: any, data: any) => {
+        if (err) {
+          console.error("Error fetching QuickBooks invoices:", err);
+          return res.status(500).json({ error: "Failed to fetch invoices" });
+        }
+        const invoices = data.QueryResponse.Invoice || [];
+        res.json(invoices);
+      });
+    } catch (error: any) {
+      console.error("Error:", error);
+      res.status(500).json({ error: error.message || "Failed to fetch invoices" });
+    }
+  });
+
+  // Fetch QuickBooks Profit & Loss Report
+  app.get("/api/quickbooks/data/profit-loss", authMiddleware, requireNonPatientRole(), multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = req.tenant!.id;
+      const qbo = await getQuickBooksClient(organizationId);
+
+      const { startDate, endDate } = req.query;
+      const options = {
+        start_date: startDate as string || '2024-01-01',
+        end_date: endDate as string || '2024-12-31',
+        accounting_method: 'Accrual'
+      };
+
+      qbo.reportProfitAndLoss(options, (err: any, data: any) => {
+        if (err) {
+          console.error("Error fetching P&L report:", err);
+          return res.status(500).json({ error: "Failed to fetch P&L report" });
+        }
+        res.json(data);
+      });
+    } catch (error: any) {
+      console.error("Error:", error);
+      res.status(500).json({ error: error.message || "Failed to fetch P&L report" });
+    }
+  });
+
+  // Fetch QuickBooks Expenses/Purchases
+  app.get("/api/quickbooks/data/expenses", authMiddleware, requireNonPatientRole(), multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = req.tenant!.id;
+      const qbo = await getQuickBooksClient(organizationId);
+
+      qbo.findPurchases((err: any, data: any) => {
+        if (err) {
+          console.error("Error fetching QuickBooks expenses:", err);
+          return res.status(500).json({ error: "Failed to fetch expenses" });
+        }
+        const expenses = data.QueryResponse.Purchase || [];
+        res.json(expenses);
+      });
+    } catch (error: any) {
+      console.error("Error:", error);
+      res.status(500).json({ error: error.message || "Failed to fetch expenses" });
+    }
+  });
+
+  // Fetch QuickBooks Accounts
+  app.get("/api/quickbooks/data/accounts", authMiddleware, requireNonPatientRole(), multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = req.tenant!.id;
+      const qbo = await getQuickBooksClient(organizationId);
+
+      qbo.findAccounts((err: any, data: any) => {
+        if (err) {
+          console.error("Error fetching QuickBooks accounts:", err);
+          return res.status(500).json({ error: "Failed to fetch accounts" });
+        }
+        const accounts = data.QueryResponse.Account || [];
+        res.json(accounts);
+      });
+    } catch (error: any) {
+      console.error("Error:", error);
+      res.status(500).json({ error: error.message || "Failed to fetch accounts" });
+    }
+  });
+
+  // Fetch QuickBooks Customers
+  app.get("/api/quickbooks/data/customers", authMiddleware, requireNonPatientRole(), multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = req.tenant!.id;
+      const qbo = await getQuickBooksClient(organizationId);
+
+      qbo.findCustomers((err: any, data: any) => {
+        if (err) {
+          console.error("Error fetching QuickBooks customers:", err);
+          return res.status(500).json({ error: "Failed to fetch customers" });
+        }
+        const customers = data.QueryResponse.Customer || [];
+        res.json(customers);
+      });
+    } catch (error: any) {
+      console.error("Error:", error);
+      res.status(500).json({ error: error.message || "Failed to fetch customers" });
+    }
+  });
+
 
   // Symptom Checker Endpoints
   app.post('/api/symptom-checker/analyze', authMiddleware, multiTenantEnforcer(), async (req: TenantRequest, res) => {

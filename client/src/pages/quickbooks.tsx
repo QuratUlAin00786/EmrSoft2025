@@ -178,6 +178,43 @@ export default function QuickBooks() {
     enabled: !!activeConnection,
   });
 
+  // Fetch QuickBooks dashboard data
+  const { data: qbCompanyInfo, isLoading: companyInfoLoading } = useQuery<any>({
+    queryKey: ['/api/quickbooks/data/company-info'],
+    enabled: !!activeConnection,
+    retry: false,
+  });
+
+  const { data: qbInvoices = [], isLoading: invoicesLoading } = useQuery<any[]>({
+    queryKey: ['/api/quickbooks/data/invoices'],
+    enabled: !!activeConnection,
+    retry: false,
+  });
+
+  const { data: qbProfitLoss, isLoading: profitLossLoading } = useQuery<any>({
+    queryKey: ['/api/quickbooks/data/profit-loss'],
+    enabled: !!activeConnection,
+    retry: false,
+  });
+
+  const { data: qbExpenses = [], isLoading: expensesLoading } = useQuery<any[]>({
+    queryKey: ['/api/quickbooks/data/expenses'],
+    enabled: !!activeConnection,
+    retry: false,
+  });
+
+  const { data: qbAccounts = [], isLoading: accountsLoading } = useQuery<any[]>({
+    queryKey: ['/api/quickbooks/data/accounts'],
+    enabled: !!activeConnection,
+    retry: false,
+  });
+
+  const { data: qbCustomers = [], isLoading: customersLoading } = useQuery<any[]>({
+    queryKey: ['/api/quickbooks/data/customers'],
+    enabled: !!activeConnection,
+    retry: false,
+  });
+
   // Connect to QuickBooks mutation
   const connectMutation = useMutation({
     mutationFn: async () => {
@@ -792,6 +829,7 @@ export default function QuickBooks() {
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="dashboard">QuickBooks Dashboard</TabsTrigger>
           <TabsTrigger value="sync-activity">Sync Activity</TabsTrigger>
           <TabsTrigger value="data-mappings">Data Mappings</TabsTrigger>
         </TabsList>
@@ -837,6 +875,234 @@ export default function QuickBooks() {
                 </CardContent>
               </Card>
             </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="dashboard" className="space-y-6">
+          {!activeConnection ? (
+            <Card>
+              <CardContent className="p-12 text-center">
+                <Building2 className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                <p className="text-gray-500">Connect to QuickBooks to view dashboard data</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <>
+              {/* Company Info Card */}
+              {companyInfoLoading ? (
+                <Card>
+                  <CardContent className="p-6 text-center">
+                    <Loader2 className="w-6 h-6 mx-auto mb-2 animate-spin" />
+                    <p>Loading company information...</p>
+                  </CardContent>
+                </Card>
+              ) : qbCompanyInfo ? (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Building2 className="w-5 h-5 mr-2" />
+                      Company Information
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div>
+                        <p className="text-sm text-gray-500">Company Name</p>
+                        <p className="font-semibold">{qbCompanyInfo.CompanyName}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Legal Name</p>
+                        <p className="font-semibold">{qbCompanyInfo.LegalName || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Email</p>
+                        <p className="font-semibold">{qbCompanyInfo.Email?.Address || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Country</p>
+                        <p className="font-semibold">{qbCompanyInfo.Country || 'N/A'}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : null}
+
+              {/* Financial Summary Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Total Invoices</p>
+                        <p className="text-2xl font-bold">{qbInvoices.length}</p>
+                      </div>
+                      <FileText className="w-8 h-8 text-blue-600" />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Total Expenses</p>
+                        <p className="text-2xl font-bold">{qbExpenses.length}</p>
+                      </div>
+                      <DollarSign className="w-8 h-8 text-red-600" />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Total Customers</p>
+                        <p className="text-2xl font-bold">{qbCustomers.length}</p>
+                      </div>
+                      <Users className="w-8 h-8 text-green-600" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Recent Invoices */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <FileText className="w-5 h-5 mr-2" />
+                    Recent Invoices
+                  </CardTitle>
+                  <CardDescription>Latest invoices from QuickBooks</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {invoicesLoading ? (
+                    <div className="text-center py-4">
+                      <Loader2 className="w-6 h-6 mx-auto mb-2 animate-spin" />
+                      <p>Loading invoices...</p>
+                    </div>
+                  ) : qbInvoices.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      No invoices found in QuickBooks
+                    </div>
+                  ) : (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Invoice #</TableHead>
+                          <TableHead>Customer</TableHead>
+                          <TableHead>Date</TableHead>
+                          <TableHead>Amount</TableHead>
+                          <TableHead>Balance</TableHead>
+                          <TableHead>Status</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {qbInvoices.slice(0, 10).map((invoice: any) => (
+                          <TableRow key={invoice.Id}>
+                            <TableCell className="font-medium">{invoice.DocNumber}</TableCell>
+                            <TableCell>{invoice.CustomerRef?.name || 'N/A'}</TableCell>
+                            <TableCell>{invoice.TxnDate}</TableCell>
+                            <TableCell>${invoice.TotalAmt?.toFixed(2) || '0.00'}</TableCell>
+                            <TableCell>${invoice.Balance?.toFixed(2) || '0.00'}</TableCell>
+                            <TableCell>
+                              {invoice.Balance === 0 ? (
+                                <Badge className="bg-green-100 text-green-800">Paid</Badge>
+                              ) : (
+                                <Badge variant="outline">Unpaid</Badge>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Recent Expenses */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <DollarSign className="w-5 h-5 mr-2" />
+                    Recent Expenses
+                  </CardTitle>
+                  <CardDescription>Latest expense transactions from QuickBooks</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {expensesLoading ? (
+                    <div className="text-center py-4">
+                      <Loader2 className="w-6 h-6 mx-auto mb-2 animate-spin" />
+                      <p>Loading expenses...</p>
+                    </div>
+                  ) : qbExpenses.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      No expenses found in QuickBooks
+                    </div>
+                  ) : (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>ID</TableHead>
+                          <TableHead>Date</TableHead>
+                          <TableHead>Payment Type</TableHead>
+                          <TableHead>Vendor/Entity</TableHead>
+                          <TableHead>Amount</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {qbExpenses.slice(0, 10).map((expense: any) => (
+                          <TableRow key={expense.Id}>
+                            <TableCell className="font-medium">{expense.Id}</TableCell>
+                            <TableCell>{expense.TxnDate}</TableCell>
+                            <TableCell>{expense.PaymentType || 'N/A'}</TableCell>
+                            <TableCell>{expense.EntityRef?.name || 'N/A'}</TableCell>
+                            <TableCell>${expense.TotalAmt?.toFixed(2) || '0.00'}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Chart of Accounts */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Activity className="w-5 h-5 mr-2" />
+                    Chart of Accounts
+                  </CardTitle>
+                  <CardDescription>Account structure from QuickBooks</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {accountsLoading ? (
+                    <div className="text-center py-4">
+                      <Loader2 className="w-6 h-6 mx-auto mb-2 animate-spin" />
+                      <p>Loading accounts...</p>
+                    </div>
+                  ) : qbAccounts.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      No accounts found in QuickBooks
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {qbAccounts.slice(0, 10).map((account: any) => (
+                        <div key={account.Id} className="p-4 bg-gray-50 rounded-lg">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-semibold">{account.Name}</p>
+                              <p className="text-sm text-gray-600">{account.AccountType}</p>
+                            </div>
+                            <Badge variant="outline">{account.AccountSubType || 'N/A'}</Badge>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </>
           )}
         </TabsContent>
 
