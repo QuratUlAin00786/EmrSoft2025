@@ -4281,6 +4281,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (user.role === 'patient') {
           const patient = await storage.getPatientByUserId(user.id, req.tenant!.id);
           if (patient) {
+            // Fetch insurance verifications from insurance_verifications table
+            const insuranceVerifications = await storage.getInsuranceVerificationsByPatient(patient.id, req.tenant!.id);
+            const latestInsurance = insuranceVerifications[0]; // Get most recent verification
+            
             return {
               ...safeUser,
               dateOfBirth: patient.dateOfBirth || "",
@@ -4289,6 +4293,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
               address: patient.address || {},
               emergencyContact: patient.emergencyContact || {},
               insuranceInfo: patient.insuranceInfo || {},
+              // Add insurance verification data from insurance_verifications table
+              insuranceVerification: latestInsurance ? {
+                id: latestInsurance.id,
+                provider: latestInsurance.provider,
+                policyNumber: latestInsurance.policyNumber,
+                groupNumber: latestInsurance.groupNumber,
+                memberNumber: latestInsurance.memberNumber,
+                planType: latestInsurance.planType,
+                coverageType: latestInsurance.coverageType,
+                status: latestInsurance.status,
+                eligibilityStatus: latestInsurance.eligibilityStatus,
+                effectiveDate: latestInsurance.effectiveDate,
+                expirationDate: latestInsurance.expirationDate,
+                lastVerified: latestInsurance.lastVerified,
+                benefits: latestInsurance.benefits,
+              } : null,
             };
           }
         }
@@ -4749,6 +4769,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (patient) {
           console.log("Updating patient record with data:", patientUpdates);
           await storage.updatePatient(patient.id, req.tenant!.id, patientUpdates);
+          
+          // Update insurance verification if insurance info is provided
+          if (updates.insuranceInfo) {
+            const insuranceVerifications = await storage.getInsuranceVerificationsByPatient(patient.id, req.tenant!.id);
+            const insuranceData = {
+              organizationId: req.tenant!.id,
+              patientId: patient.id,
+              patientName: `${user.firstName} ${user.lastName}`,
+              provider: updates.insuranceInfo.provider || "",
+              policyNumber: updates.insuranceInfo.policyNumber || "",
+              groupNumber: updates.insuranceInfo.groupNumber || "",
+              memberNumber: updates.insuranceInfo.memberNumber || "",
+              nhsNumber: patient.nhsNumber || "",
+              planType: updates.insuranceInfo.planType || "",
+              coverageType: updates.insuranceInfo.coverageType || "primary",
+              status: updates.insuranceInfo.status || "active",
+              eligibilityStatus: updates.insuranceInfo.eligibilityStatus || "pending",
+              effectiveDate: updates.insuranceInfo.effectiveDate || null,
+              expirationDate: updates.insuranceInfo.expirationDate || null,
+              lastVerified: new Date().toISOString().split('T')[0],
+              benefits: updates.insuranceInfo.benefits || {},
+            };
+            
+            if (insuranceVerifications.length > 0) {
+              // Update existing insurance verification
+              await storage.updateInsuranceVerification(insuranceVerifications[0].id, req.tenant!.id, insuranceData);
+            } else {
+              // Create new insurance verification
+              await storage.createInsuranceVerification(insuranceData as any);
+            }
+          }
         }
       }
 
@@ -4757,6 +4808,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (user.role === 'patient') {
         const patient = await storage.getPatientByUserId(userId, req.tenant!.id);
         if (patient) {
+          // Fetch insurance verifications from insurance_verifications table
+          const insuranceVerifications = await storage.getInsuranceVerificationsByPatient(patient.id, req.tenant!.id);
+          const latestInsurance = insuranceVerifications[0];
+          
           responseData = {
             ...responseData,
             dateOfBirth: patient.dateOfBirth || "",
@@ -4772,6 +4827,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
             communicationPreferences: patient.communicationPreferences || {},
             isActive: patient.isActive !== undefined ? patient.isActive : true,
             isInsured: patient.isInsured !== undefined ? patient.isInsured : false,
+            // Add insurance verification data from insurance_verifications table
+            insuranceVerification: latestInsurance ? {
+              id: latestInsurance.id,
+              provider: latestInsurance.provider,
+              policyNumber: latestInsurance.policyNumber,
+              groupNumber: latestInsurance.groupNumber,
+              memberNumber: latestInsurance.memberNumber,
+              planType: latestInsurance.planType,
+              coverageType: latestInsurance.coverageType,
+              status: latestInsurance.status,
+              eligibilityStatus: latestInsurance.eligibilityStatus,
+              effectiveDate: latestInsurance.effectiveDate,
+              expirationDate: latestInsurance.expirationDate,
+              lastVerified: latestInsurance.lastVerified,
+              benefits: latestInsurance.benefits,
+            } : null,
           };
         }
       }
