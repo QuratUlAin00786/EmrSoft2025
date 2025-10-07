@@ -773,17 +773,47 @@ export default function UserManagement() {
       
       let errorMessage = "There was a problem creating the user. Please try again.";
       
+      // Helper function to clean up validation error messages
+      const cleanValidationMessage = (msg: string): string => {
+        // Extract field name and make it more readable
+        if (msg.includes(':')) {
+          const parts = msg.split(':');
+          const field = parts[0].trim();
+          const message = parts.slice(1).join(':').trim();
+          
+          // Remove technical details about enum values
+          if (message.toLowerCase().includes('invalid enum value')) {
+            return `${field.charAt(0).toUpperCase() + field.slice(1)} is invalid`;
+          }
+          
+          // Return field name with capitalized first letter + message
+          return `${field.charAt(0).toUpperCase() + field.slice(1)}: ${message}`;
+        }
+        return msg;
+      };
+      
       if (error?.response?.data?.error) {
         errorMessage = error.response.data.error;
-      } else if (error?.response?.data?.details) {
-        errorMessage = error.response.data.details.join(", ");
+      } else if (error?.response?.data?.details && Array.isArray(error.response.data.details)) {
+        // Clean up validation error messages
+        const cleanedMessages = error.response.data.details.map(cleanValidationMessage);
+        errorMessage = cleanedMessages.join("\n");
       } else if (error?.message) {
-        // Parse error message format like "400: {"error":"User with this email already exists"}"
+        // Parse error message format like "400: {"error":"Validation failed","details":[...]}"
         if (error.message.includes(": {")) {
           try {
-            const jsonPart = error.message.split(": ")[1];
+            const jsonPart = error.message.split(": ").slice(1).join(": ");
             const errorObj = JSON.parse(jsonPart);
-            errorMessage = errorObj.error || error.message;
+            
+            if (errorObj.error && errorObj.details && Array.isArray(errorObj.details)) {
+              // Handle validation errors from JSON message
+              const cleanedMessages = errorObj.details.map(cleanValidationMessage);
+              errorMessage = cleanedMessages.join("\n");
+            } else if (errorObj.error) {
+              errorMessage = errorObj.error;
+            } else {
+              errorMessage = error.message;
+            }
           } catch (parseError) {
             errorMessage = error.message;
           }
@@ -840,10 +870,55 @@ export default function UserManagement() {
         setIsCreateModalOpen(false);
       }, 1500);
     },
-    onError: () => {
+    onError: (error: any) => {
+      let errorMessage = "There was a problem updating the user. Please try again.";
+      
+      // Helper function to clean up validation error messages
+      const cleanValidationMessage = (msg: string): string => {
+        if (msg.includes(':')) {
+          const parts = msg.split(':');
+          const field = parts[0].trim();
+          const message = parts.slice(1).join(':').trim();
+          
+          if (message.toLowerCase().includes('invalid enum value')) {
+            return `${field.charAt(0).toUpperCase() + field.slice(1)} is invalid`;
+          }
+          
+          return `${field.charAt(0).toUpperCase() + field.slice(1)}: ${message}`;
+        }
+        return msg;
+      };
+      
+      if (error?.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error?.response?.data?.details && Array.isArray(error.response.data.details)) {
+        const cleanedMessages = error.response.data.details.map(cleanValidationMessage);
+        errorMessage = cleanedMessages.join("\n");
+      } else if (error?.message) {
+        if (error.message.includes(": {")) {
+          try {
+            const jsonPart = error.message.split(": ").slice(1).join(": ");
+            const errorObj = JSON.parse(jsonPart);
+            
+            if (errorObj.error && errorObj.details && Array.isArray(errorObj.details)) {
+              const cleanedMessages = errorObj.details.map(cleanValidationMessage);
+              errorMessage = cleanedMessages.join("\n");
+            } else if (errorObj.error) {
+              errorMessage = errorObj.error;
+            } else {
+              errorMessage = error.message;
+            }
+          } catch (parseError) {
+            errorMessage = error.message;
+          }
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
       toast({
         title: "Error updating user",
-        description: "There was a problem updating the user. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     },
