@@ -876,11 +876,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getPatientByUserId(userId: number, organizationId: number): Promise<Patient | undefined> {
-    // For now, return the first patient in the organization as a fallback
-    // This will at least allow the mobile app to function while we address user-patient linking
+    // Get the user's email to find the corresponding patient record
+    const [user] = await db.select().from(users)
+      .where(and(eq(users.id, userId), eq(users.organizationId, organizationId)));
+    
+    if (!user || !user.email) {
+      return undefined;
+    }
+    
+    // Find patient by matching email
     const [patient] = await db.select().from(patients)
-      .where(and(eq(patients.organizationId, organizationId), eq(patients.isActive, true)))
-      .limit(1);
+      .where(and(
+        eq(patients.email, user.email), 
+        eq(patients.organizationId, organizationId)
+      ));
+    
     return this.normalizePatientData(patient);
   }
 
@@ -925,13 +935,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updatePatient(id: number, organizationId: number, updates: Partial<InsertPatient>): Promise<Patient | undefined> {
-    const { address, medicalHistory, communicationPreferences, flags, ...baseUpdates } = updates;
+    const { address, medicalHistory, communicationPreferences, insuranceInfo, emergencyContact, flags, ...baseUpdates } = updates;
     const updateData = {
       ...baseUpdates,
       updatedAt: new Date(),
       ...(address && { address: JSON.parse(JSON.stringify(address)) }),
       ...(medicalHistory && { medicalHistory: JSON.parse(JSON.stringify(medicalHistory)) }),
       ...(communicationPreferences && { communicationPreferences: JSON.parse(JSON.stringify(communicationPreferences)) }),
+      ...(insuranceInfo && { insuranceInfo: JSON.parse(JSON.stringify(insuranceInfo)) }),
+      ...(emergencyContact && { emergencyContact: JSON.parse(JSON.stringify(emergencyContact)) }),
       ...(flags !== undefined && { flags: Array.isArray(flags) ? flags : [] })
     };
     const [updated] = await db.update(patients)

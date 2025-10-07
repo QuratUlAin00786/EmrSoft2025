@@ -4544,7 +4544,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         password: z.string().min(6),
         firstName: z.string().min(1),
         lastName: z.string().min(1),
-        role: z.enum(["admin", "doctor", "nurse", "receptionist", "patient", "sample_taker"]),
+        role: z.string().min(1), // Accept any role from database
         department: z.string().optional(),
         medicalSpecialtyCategory: z.string().optional(),
         subSpecialty: z.string().optional(),
@@ -4706,13 +4706,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
         delete updates.password;
       }
 
-      const user = await storage.updateUser(userId, req.tenant!.id, updates);
+      // Fetch the current user BEFORE updating (to get old email for patient lookup)
+      const currentUser = await storage.getUserById(userId, req.tenant!.id);
+      if (!currentUser) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Separate patient-specific fields from user fields
+      const patientFields = [
+        'dateOfBirth', 'genderAtBirth', 'phone', 'nhsNumber', 
+        'address', 'emergencyContact', 'insuranceInfo', 
+        'medicalHistory', 'riskLevel', 'flags', 
+        'communicationPreferences', 'isActive', 'isInsured'
+      ];
+      const patientUpdates: any = {};
+      const userUpdates: any = {};
+
+      for (const [key, value] of Object.entries(updates)) {
+        if (patientFields.includes(key)) {
+          patientUpdates[key] = value;
+        } else {
+          userUpdates[key] = value;
+        }
+      }
+
+      // If user is a patient and we're changing the email, also update patient email
+      const isEmailChanging = userUpdates.email && userUpdates.email !== currentUser.email;
+      if (currentUser.role === 'patient' && isEmailChanging) {
+        patientUpdates.email = userUpdates.email;
+      }
+
+      // Update user record
+      const user = await storage.updateUser(userId, req.tenant!.id, userUpdates);
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
 
+      // If user is a patient and there are patient-specific updates, update the patient record
+      if (user.role === 'patient' && Object.keys(patientUpdates).length > 0) {
+        // Use OLD email to find patient (before email change)
+        const patient = await storage.getPatientByEmail(currentUser.email, req.tenant!.id);
+        if (patient) {
+          console.log("Updating patient record with data:", patientUpdates);
+          await storage.updatePatient(patient.id, req.tenant!.id, patientUpdates);
+        }
+      }
+
+      // Fetch updated user with patient data merged (use NEW email after update)
+      let responseData: any = { ...user };
+      if (user.role === 'patient') {
+        const patient = await storage.getPatientByUserId(userId, req.tenant!.id);
+        if (patient) {
+          responseData = {
+            ...responseData,
+            dateOfBirth: patient.dateOfBirth || "",
+            genderAtBirth: patient.genderAtBirth || "",
+            phone: patient.phone || "",
+            nhsNumber: patient.nhsNumber || "",
+            address: patient.address || {},
+            emergencyContact: patient.emergencyContact || {},
+            insuranceInfo: patient.insuranceInfo || {},
+            medicalHistory: patient.medicalHistory || {},
+            riskLevel: patient.riskLevel || "low",
+            flags: patient.flags || [],
+            communicationPreferences: patient.communicationPreferences || {},
+            isActive: patient.isActive !== undefined ? patient.isActive : true,
+            isInsured: patient.isInsured !== undefined ? patient.isInsured : false,
+          };
+        }
+      }
+
       // Remove password from response
-      const { passwordHash, ...safeUser } = user;
+      const { passwordHash, ...safeUser } = responseData;
       res.json(safeUser);
     } catch (error) {
       console.error("User update error:", error);
