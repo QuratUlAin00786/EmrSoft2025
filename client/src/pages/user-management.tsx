@@ -47,7 +47,7 @@ const userSchema = z.object({
   email: z.string().email("Invalid email address"),
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
-  role: z.enum(["admin", "doctor", "nurse", "receptionist", "patient", "sample_taker", "lab_technician"]),
+  role: z.string().min(1, "Role is required"),
   department: z.string().optional(),
   medicalSpecialtyCategory: z.string().optional(),
   subSpecialty: z.string().optional(),
