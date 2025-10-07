@@ -412,6 +412,12 @@ export default function UserManagement() {
   const [emailValidationStatus, setEmailValidationStatus] = useState<'idle' | 'checking' | 'available' | 'exists'>('idle');
   const [emailCheckTimeout, setEmailCheckTimeout] = useState<NodeJS.Timeout | null>(null);
 
+  // Date of Birth states
+  const [dobDay, setDobDay] = useState<string>("");
+  const [dobMonth, setDobMonth] = useState<string>("");
+  const [dobYear, setDobYear] = useState<string>("");
+  const [dobErrors, setDobErrors] = useState<{ day?: string; month?: string; year?: string; combined?: string }>({});
+
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<any>(null);
@@ -432,6 +438,130 @@ export default function UserManagement() {
   };
 
   const refetch = fetchUsers;
+  
+  // Date of Birth helper functions
+  const isLeapYear = (year: number) => {
+    return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+  };
+
+  const getDaysInMonth = (month: number, year: number) => {
+    if (month === 2) return isLeapYear(year) ? 29 : 28;
+    if ([4, 6, 9, 11].includes(month)) return 30;
+    return 31;
+  };
+
+  // Generate dynamic day options based on selected month and year
+  const getDayOptions = () => {
+    if (!dobMonth || !dobYear) return Array.from({ length: 31 }, (_, i) => i + 1);
+    const maxDays = getDaysInMonth(parseInt(dobMonth), parseInt(dobYear));
+    return Array.from({ length: maxDays }, (_, i) => i + 1);
+  };
+
+  // Validate Date of Birth
+  const validateDOB = (day: string, month: string, year: string) => {
+    const errors: { day?: string; month?: string; year?: string; combined?: string } = {};
+    
+    // Check if all fields are filled
+    if (!day && !month && !year) {
+      return errors; // Optional field, no error if all empty
+    }
+    
+    if (!day) errors.day = "Day is required";
+    if (!month) errors.month = "Month is required";
+    if (!year) errors.year = "Year is required";
+    
+    // If any field is missing, return early
+    if (errors.day || errors.month || errors.year) {
+      setDobErrors(errors);
+      return errors;
+    }
+    
+    const dayNum = parseInt(day);
+    const monthNum = parseInt(month);
+    const yearNum = parseInt(year);
+    
+    // Validate ranges
+    if (dayNum < 1 || dayNum > 31) {
+      errors.day = "Invalid day";
+    }
+    if (monthNum < 1 || monthNum > 12) {
+      errors.month = "Invalid month";
+    }
+    if (yearNum < 1900 || yearNum > new Date().getFullYear()) {
+      errors.year = "Year must be between 1900 and current year";
+    }
+    
+    // Check if day is valid for the month
+    if (!errors.day && !errors.month && !errors.year) {
+      const maxDays = getDaysInMonth(monthNum, yearNum);
+      if (dayNum > maxDays) {
+        errors.day = `${monthNum === 2 ? (isLeapYear(yearNum) ? 'February' : 'February') : 'This month'} only has ${maxDays} days`;
+      }
+      
+      // Check for future date
+      const selectedDate = new Date(yearNum, monthNum - 1, dayNum);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (selectedDate > today) {
+        errors.combined = "Date of birth cannot be in the future";
+      }
+      
+      // Check 18+ age requirement
+      const age = today.getFullYear() - yearNum;
+      const monthDiff = today.getMonth() - (monthNum - 1);
+      const dayDiff = today.getDate() - dayNum;
+      
+      let actualAge = age;
+      if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+        actualAge = age - 1;
+      }
+      
+      if (actualAge < 18) {
+        errors.combined = "Patient must be at least 18 years old";
+      }
+    }
+    
+    setDobErrors(errors);
+    return errors;
+  };
+
+  // Handle DOB field changes
+  const handleDobDayChange = (value: string) => {
+    setDobDay(value);
+    form.setValue("dobDay", value);
+    validateDOB(value, dobMonth, dobYear);
+  };
+
+  const handleDobMonthChange = (value: string) => {
+    setDobMonth(value);
+    form.setValue("dobMonth", value);
+    
+    // Adjust day if it exceeds the new month's max days
+    if (dobDay && dobYear) {
+      const maxDays = getDaysInMonth(parseInt(value), parseInt(dobYear));
+      if (parseInt(dobDay) > maxDays) {
+        setDobDay(maxDays.toString());
+        form.setValue("dobDay", maxDays.toString());
+      }
+    }
+    
+    validateDOB(dobDay, value, dobYear);
+  };
+
+  const handleDobYearChange = (value: string) => {
+    setDobYear(value);
+    form.setValue("dobYear", value);
+    
+    // Adjust day if it's February 29 and year is not a leap year
+    if (dobDay && dobMonth === "2" && dobDay === "29") {
+      if (!isLeapYear(parseInt(value))) {
+        setDobDay("28");
+        form.setValue("dobDay", "28");
+      }
+    }
+    
+    validateDOB(dobDay, dobMonth, value);
+  };
   
   // Email validation function
   const checkEmailAvailability = async (email: string) => {
@@ -1005,6 +1135,19 @@ export default function UserManagement() {
       }
     }
     
+    // Validate Date of Birth for patient role
+    if (data.role === 'patient') {
+      const dobValidationErrors = validateDOB(dobDay, dobMonth, dobYear);
+      if (Object.keys(dobValidationErrors).length > 0) {
+        toast({
+          title: "Invalid Date of Birth",
+          description: dobValidationErrors.combined || "Please check the date of birth fields",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+    
     // Include medical specialty fields for doctor role
     const submitData: any = {
       ...data,
@@ -1013,10 +1156,10 @@ export default function UserManagement() {
     };
     
     // Combine dobDay, dobMonth, dobYear into dateOfBirth for patient role
-    if (data.role === 'patient' && data.dobDay && data.dobMonth && data.dobYear) {
-      const day = data.dobDay.padStart(2, '0');
-      const month = data.dobMonth.padStart(2, '0');
-      submitData.dateOfBirth = `${data.dobYear}-${month}-${day}`;
+    if (data.role === 'patient' && dobDay && dobMonth && dobYear) {
+      const day = dobDay.padStart(2, '0');
+      const month = dobMonth.padStart(2, '0');
+      submitData.dateOfBirth = `${dobYear}-${month}-${day}`;
       // Clean up the separate fields
       delete submitData.dobDay;
       delete submitData.dobMonth;
@@ -1099,11 +1242,20 @@ export default function UserManagement() {
           userData.dobYear = dobParts[0];
           userData.dobMonth = dobParts[1];
           userData.dobDay = dobParts[2];
+          // Set state for DOB dropdowns
+          setDobYear(dobParts[0]);
+          setDobMonth(dobParts[1]);
+          setDobDay(dobParts[2]);
+          setDobErrors({});
         }
       } else {
         userData.dobDay = "";
         userData.dobMonth = "";
         userData.dobYear = "";
+        setDobDay("");
+        setDobMonth("");
+        setDobYear("");
+        setDobErrors({});
       }
       
       userData.phone = user.phone || "";
@@ -1416,6 +1568,11 @@ export default function UserManagement() {
                 if (emailCheckTimeout) {
                   clearTimeout(emailCheckTimeout);
                 }
+                // Reset DOB state for new user
+                setDobDay("");
+                setDobMonth("");
+                setDobYear("");
+                setDobErrors({});
               }} 
               variant="default" 
               className="flex items-center gap-2 bg-gray-800 text-white hover:bg-gray-700"
@@ -1442,6 +1599,11 @@ export default function UserManagement() {
               if (emailCheckTimeout) {
                 clearTimeout(emailCheckTimeout);
               }
+              // Reset DOB state when closing modal
+              setDobDay("");
+              setDobMonth("");
+              setDobYear("");
+              setDobErrors({});
             }
           }}>
             <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
@@ -1636,34 +1798,77 @@ export default function UserManagement() {
                       <div className="space-y-2">
                         <Label>Date of Birth</Label>
                         <div className="grid grid-cols-3 gap-2">
-                          <div className="space-y-2">
-                            <Input
-                              id="dobDay"
-                              {...form.register("dobDay")}
-                              placeholder="Day"
-                              maxLength={2}
-                              data-testid="input-dob-day"
-                            />
+                          <div className="space-y-1">
+                            <Select 
+                              onValueChange={handleDobDayChange}
+                              value={dobDay}
+                            >
+                              <SelectTrigger data-testid="dropdown-dob-day">
+                                <SelectValue placeholder="Day" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {getDayOptions().map((day) => (
+                                  <SelectItem key={day} value={day.toString()}>
+                                    {day}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            {dobErrors.day && (
+                              <p className="text-xs text-red-500">{dobErrors.day}</p>
+                            )}
                           </div>
-                          <div className="space-y-2">
-                            <Input
-                              id="dobMonth"
-                              {...form.register("dobMonth")}
-                              placeholder="Month"
-                              maxLength={2}
-                              data-testid="input-dob-month"
-                            />
+                          <div className="space-y-1">
+                            <Select 
+                              onValueChange={handleDobMonthChange}
+                              value={dobMonth}
+                            >
+                              <SelectTrigger data-testid="dropdown-dob-month">
+                                <SelectValue placeholder="Month" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="1">January</SelectItem>
+                                <SelectItem value="2">February</SelectItem>
+                                <SelectItem value="3">March</SelectItem>
+                                <SelectItem value="4">April</SelectItem>
+                                <SelectItem value="5">May</SelectItem>
+                                <SelectItem value="6">June</SelectItem>
+                                <SelectItem value="7">July</SelectItem>
+                                <SelectItem value="8">August</SelectItem>
+                                <SelectItem value="9">September</SelectItem>
+                                <SelectItem value="10">October</SelectItem>
+                                <SelectItem value="11">November</SelectItem>
+                                <SelectItem value="12">December</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            {dobErrors.month && (
+                              <p className="text-xs text-red-500">{dobErrors.month}</p>
+                            )}
                           </div>
-                          <div className="space-y-2">
-                            <Input
-                              id="dobYear"
-                              {...form.register("dobYear")}
-                              placeholder="Year"
-                              maxLength={4}
-                              data-testid="input-dob-year"
-                            />
+                          <div className="space-y-1">
+                            <Select 
+                              onValueChange={handleDobYearChange}
+                              value={dobYear}
+                            >
+                              <SelectTrigger data-testid="dropdown-dob-year">
+                                <SelectValue placeholder="Year" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {Array.from({ length: new Date().getFullYear() - 1900 + 1 }, (_, i) => new Date().getFullYear() - i).map((year) => (
+                                  <SelectItem key={year} value={year.toString()}>
+                                    {year}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            {dobErrors.year && (
+                              <p className="text-xs text-red-500">{dobErrors.year}</p>
+                            )}
                           </div>
                         </div>
+                        {dobErrors.combined && (
+                          <p className="text-sm text-red-500">{dobErrors.combined}</p>
+                        )}
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="phone">Phone Number</Label>
