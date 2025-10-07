@@ -1805,11 +1805,16 @@ export default function UserManagement() {
                         <SelectValue placeholder="Select a role" />
                       </SelectTrigger>
                       <SelectContent>
-                        {rolesData.map((role: any) => (
-                          <SelectItem key={role.id} value={role.name}>
-                            {role.displayName || role.name}
-                          </SelectItem>
-                        ))}
+                        {rolesData
+                          .filter((role: any) => {
+                            const roleName = (role.name || '').toLowerCase();
+                            return !['admin', 'administrator'].includes(roleName);
+                          })
+                          .map((role: any) => (
+                            <SelectItem key={role.id} value={role.name}>
+                              {role.displayName || role.name}
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                   )}
