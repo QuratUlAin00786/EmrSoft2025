@@ -15029,18 +15029,17 @@ Cura EMR Team
       throw new Error('No active QuickBooks connection found');
     }
 
-    // In a real implementation, you would fetch the access token from your token storage
-    // For now, we'll use environment variables
+    // Initialize QuickBooks client with connection credentials
     const qbo = new QuickBooks(
       process.env.QUICKBOOKS_CLIENT_ID!,
       process.env.QUICKBOOKS_CLIENT_SECRET!,
-      connection.accessToken || '', // You need to store access_token in the connection
-      false,
-      connection.realmId,
-      true, // Enable sandbox mode
-      null,
-      '2.0',
-      connection.refreshToken || '' // You need to store refresh_token in the connection
+      connection.accessToken, // Access token from database
+      false, // Not using OAuth1.0a
+      connection.realmId, // Company ID
+      true, // Enable sandbox mode (change to false for production)
+      null, // minorversion
+      '2.0', // oauthversion
+      connection.refreshToken // Refresh token from database
     );
 
     return qbo;
