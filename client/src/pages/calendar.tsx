@@ -2000,8 +2000,342 @@ export default function CalendarPage() {
                       </div>
                     </div>
                   </div>
+                ) : user?.role === 'doctor' ? (
+                  /* For doctor role - New UI Layout */
+                  <div className="space-y-6">
+                    {/* Row 1: Select Patient + Patient Information | Select Duration + Doctor Details */}
+                    <div className="grid gap-6 lg:grid-cols-2">
+                      {/* Column 1: Select Patient and Patient Information */}
+                      <div className="space-y-4">
+                        {/* Patient Selection */}
+                        <div>
+                          <Label className="text-sm font-medium text-gray-900 dark:text-white">
+                            Select Patient
+                          </Label>
+                          <Popover open={patientComboboxOpen} onOpenChange={setPatientComboboxOpen}>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                aria-expanded={patientComboboxOpen}
+                                className="mt-2 w-full justify-between"
+                                data-testid="trigger-patient-combobox"
+                              >
+                                {bookingForm.patientId 
+                                  ? (() => {
+                                      const selectedPatient = patients.find((patient: any) => {
+                                        const pId = patient.patientId || patient.id.toString();
+                                        return pId === bookingForm.patientId;
+                                      });
+                                      
+                                      if (!selectedPatient) {
+                                        return "Select patient...";
+                                      }
+                                      
+                                      const displayName = `${selectedPatient.firstName} ${selectedPatient.lastName}`;
+                                      const email = selectedPatient.email ? ` (${selectedPatient.email})` : '';
+                                      return `${displayName}${email}`;
+                                    })()
+                                  : "Select patient..."}
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-full p-0">
+                              <Command>
+                                <CommandInput 
+                                  placeholder="Search patients..." 
+                                  data-testid="input-search-patient"
+                                />
+                                <CommandList>
+                                  <CommandEmpty>No patient found.</CommandEmpty>
+                                  <CommandGroup>
+                                    {patients.map((patient: any) => {
+                                      const patientValue = patient.patientId || patient.id.toString();
+                                      const patientDisplayName = `${patient.firstName} ${patient.lastName}`;
+                                      const patientEmail = patient.email ? ` (${patient.email})` : '';
+                                      const patientWithEmail = `${patientDisplayName}${patientEmail}`;
+                                      
+                                      return (
+                                        <CommandItem
+                                          key={patient.id}
+                                          value={patientWithEmail}
+                                          onSelect={(currentValue) => {
+                                            setBookingForm(prev => ({ ...prev, patientId: patientValue }));
+                                            setPatientComboboxOpen(false);
+                                          }}
+                                          data-testid={`item-patient-${patient.id}`}
+                                        >
+                                          <Check
+                                            className={`mr-2 h-4 w-4 ${
+                                              patientValue === bookingForm.patientId ? "opacity-100" : "opacity-0"
+                                            }`}
+                                          />
+                                          <div className="flex flex-col">
+                                            <span className="font-medium">{patientDisplayName}</span>
+                                            {patient.email && <span className="text-sm text-gray-600">{patient.email}</span>}
+                                          </div>
+                                        </CommandItem>
+                                      );
+                                    })}
+                                  </CommandGroup>
+                                </CommandList>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+
+                        {/* Patient Information Card - Shows when patient is selected */}
+                        {bookingForm.patientId && (
+                          <div>
+                            <Label className="text-sm font-medium text-gray-900 dark:text-white mb-2 block">
+                              Patient Information
+                            </Label>
+                            {(() => {
+                              const selectedPatient = patients.find((patient: any) => 
+                                (patient.patientId || patient.id.toString()) === bookingForm.patientId
+                              );
+                              
+                              if (!selectedPatient) return null;
+                              
+                              // Calculate age from date of birth
+                              const age = selectedPatient.dateOfBirth 
+                                ? new Date().getFullYear() - new Date(selectedPatient.dateOfBirth).getFullYear()
+                                : null;
+                              
+                              // Get patient initials for avatar
+                              const initials = `${selectedPatient.firstName?.[0] || ''}${selectedPatient.lastName?.[0] || ''}`.toUpperCase();
+                              
+                              return (
+                                <Card className="mt-2">
+                                  <CardContent className="p-4">
+                                    <div className="flex items-start gap-4">
+                                      {/* Patient Avatar */}
+                                      <div className="flex-shrink-0">
+                                        <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold text-lg" data-testid={`avatar-patient-${selectedPatient.id}`}>
+                                          {initials}
+                                        </div>
+                                      </div>
+                                      
+                                      {/* Patient Details */}
+                                      <div className="flex-1 space-y-3">
+                                        {/* Name and Age/ID */}
+                                        <div>
+                                          <h3 className="font-semibold text-lg text-gray-900 dark:text-white" data-testid={`text-patient-name-${selectedPatient.id}`}>
+                                            {selectedPatient.firstName} {selectedPatient.lastName}
+                                          </h3>
+                                          <p className="text-gray-600 dark:text-gray-400" data-testid={`text-patient-age-id-${selectedPatient.id}`}>
+                                            {age && `Age ${age} • `}{selectedPatient.patientId || `P${selectedPatient.id.toString().padStart(6, '0')}`}
+                                          </p>
+                                        </div>
+                                        
+                                        {/* Contact Information */}
+                                        <div className="space-y-2 text-sm">
+                                          {(selectedPatient.phone || selectedPatient.phoneNumber) && (
+                                            <div className="flex items-center gap-2" data-testid={`text-patient-phone-${selectedPatient.id}`}>
+                                              <Phone className="h-4 w-4 text-gray-500" />
+                                              <span className="text-gray-700 dark:text-gray-300">{selectedPatient.phone || selectedPatient.phoneNumber}</span>
+                                            </div>
+                                          )}
+                                          
+                                          {selectedPatient.email && (
+                                            <div className="flex items-center gap-2" data-testid={`text-patient-email-${selectedPatient.id}`}>
+                                              <Mail className="h-4 w-4 text-gray-500" />
+                                              <span className="text-gray-700 dark:text-gray-300">{selectedPatient.email}</span>
+                                            </div>
+                                          )}
+                                          
+                                          {selectedPatient.nhsNumber && (
+                                            <div className="flex items-center gap-2" data-testid={`text-patient-nhs-${selectedPatient.id}`}>
+                                              <FileText className="h-4 w-4 text-gray-500" />
+                                              <span className="text-gray-700 dark:text-gray-300">NHS: {selectedPatient.nhsNumber}</span>
+                                            </div>
+                                          )}
+                                          
+                                          {selectedPatient.address && (selectedPatient.address.city || selectedPatient.address.country) && (
+                                            <div className="flex items-center gap-2" data-testid={`text-patient-address-${selectedPatient.id}`}>
+                                              <MapPin className="h-4 w-4 text-gray-500" />
+                                              <span className="text-gray-700 dark:text-gray-300">
+                                                {[selectedPatient.address.city, selectedPatient.address.country].filter(Boolean).join(', ')}
+                                              </span>
+                                            </div>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </CardContent>
+                                </Card>
+                              );
+                            })()}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Column 2: Select Duration and Doctor Details */}
+                      <div className="space-y-4">
+                        {/* Select Duration */}
+                        <div>
+                          <Label className="text-sm font-medium text-gray-900 dark:text-white mb-2 block">
+                            Select Duration
+                          </Label>
+                          <Select
+                            value={selectedDuration.toString()}
+                            onValueChange={(value) => setSelectedDuration(parseInt(value))}
+                          >
+                            <SelectTrigger className="w-full" data-testid="select-duration-admin">
+                              <SelectValue placeholder="Select duration..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="15">15 minutes</SelectItem>
+                              <SelectItem value="30">30 minutes</SelectItem>
+                              <SelectItem value="60">60 minutes</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {/* Doctor Details */}
+                        <div>
+                          <Label className="text-sm font-medium text-gray-900 dark:text-white mb-2 block">
+                            Doctor Details
+                          </Label>
+                          <Card className="mt-2">
+                            <CardContent className="p-4">
+                              <div className="flex items-start gap-4">
+                                {/* Doctor Avatar */}
+                                <div className="flex-shrink-0">
+                                  <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold text-lg">
+                                    {`${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}`.toUpperCase()}
+                                  </div>
+                                </div>
+                                
+                                {/* Doctor Details */}
+                                <div className="flex-1 space-y-3">
+                                  {/* Name and Department */}
+                                  <div>
+                                    <h3 className="font-semibold text-lg text-gray-900 dark:text-white">
+                                      Dr. {user.firstName} {user.lastName}
+                                    </h3>
+                                    {user.department && (
+                                      <p className="text-gray-600 dark:text-gray-400">
+                                        {user.department}
+                                      </p>
+                                    )}
+                                  </div>
+                                  
+                                  {/* Additional Information */}
+                                  <div className="space-y-2 text-sm">
+                                    {((user as any).medicalSpecialtyCategory || (user as any).specialty) && (
+                                      <div className="flex items-center gap-2">
+                                        <User className="h-4 w-4 text-gray-500" />
+                                        <span className="text-gray-700 dark:text-gray-300">
+                                          {(user as any).medicalSpecialtyCategory || (user as any).specialty}
+                                          {(user as any).subSpecialty && ` - ${(user as any).subSpecialty}`}
+                                        </span>
+                                      </div>
+                                    )}
+                                    
+                                    {user.email && (
+                                      <div className="flex items-center gap-2">
+                                        <Mail className="h-4 w-4 text-gray-500" />
+                                        <span className="text-gray-700 dark:text-gray-300">{user.email}</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Row 2: Select Date | Select Time Slot */}
+                    <div className="grid gap-6 lg:grid-cols-2">
+                      {/* Column 1: Select Date */}
+                      <div>
+                        <Label className="text-sm font-medium text-gray-900 dark:text-white mb-2 block">
+                          Select Date
+                        </Label>
+                        <CalendarComponent
+                          mode="single"
+                          selected={selectedDate}
+                          onSelect={setSelectedDate}
+                          disabled={(date) => {
+                            // Disable past dates (but allow today)
+                            if (isBefore(startOfDay(date), startOfDay(new Date()))) return true;
+                            
+                            // Disable dates without shifts for selected provider
+                            if (selectedProviderId && !hasShiftsOnDate(date)) {
+                              return true;
+                            }
+                            
+                            return false;
+                          }}
+                          className="rounded-md border"
+                          data-testid="calendar-date-picker"
+                        />
+                      </div>
+
+                      {/* Column 2: Select Time Slot */}
+                      <div>
+                        <Label className="text-sm font-medium text-gray-900 dark:text-white mb-3 block">
+                          Select Time Slot
+                        </Label>
+                        {selectedProviderId && selectedDate ? (
+                          <div 
+                            key={`${selectedProviderId}-${format(selectedDate, 'yyyy-MM-dd')}`}
+                            className="grid grid-cols-3 gap-2 max-h-60 overflow-y-auto"
+                          >
+                            {timeSlots.length > 0 ? timeSlots.map((timeSlot) => {
+                              const isBooked = isTimeSlotBooked(timeSlot);
+                              const isSelected = selectedTimeSlot === timeSlot;
+                              
+                              return (
+                                <Button
+                                  key={timeSlot}
+                                  type="button"
+                                  variant={isSelected ? "default" : "outline"}
+                                  size="sm"
+                                  className={`
+                                    ${!isBooked && !isSelected 
+                                      ? "bg-green-500 hover:bg-green-600 text-white border-green-600" 
+                                      : ""
+                                    }
+                                    ${isBooked 
+                                      ? "bg-gray-300 text-gray-500 cursor-not-allowed opacity-50" 
+                                      : ""
+                                    }
+                                    ${isSelected 
+                                      ? "bg-blue-600 text-white" 
+                                      : ""
+                                    }
+                                  `}
+                                  onClick={() => !isBooked && setSelectedTimeSlot(timeSlot)}
+                                  disabled={isBooked}
+                                  data-testid={`time-slot-${timeSlot.replace(/[: ]/g, '-')}`}
+                                >
+                                  {timeSlot}
+                                </Button>
+                              );
+                            }) : (
+                              <div className="col-span-3 p-3 bg-gray-50 border border-gray-200 rounded-md">
+                                <p className="text-sm text-gray-600">
+                                  No available time slots for this date.
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="mt-2 p-3 bg-gray-50 border border-gray-200 rounded-md">
+                            <p className="text-sm text-gray-600">
+                              Please select a provider and date to view available time slots.
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 ) : (
-                  /* For non-patient roles - Keep original layout */
+                  /* For non-patient, non-doctor roles (admin, etc.) - Keep original layout */
                   <div className="grid gap-6 lg:grid-cols-2">
                     {/* Left Column - Patient Selection and Provider Selection */}
                     <div className="space-y-6">
@@ -2082,170 +2416,110 @@ export default function CalendarPage() {
                           </Popover>
                       </div>
 
-                      {/* Doctor Details or Role/Provider Selection */}
-                      {user?.role === 'doctor' ? (
-                        /* Show Doctor Details for logged-in doctors */
+                      {/* Select Role */}
+                      <div>
+                        <Label className="text-sm font-medium text-gray-900 dark:text-white mb-2 block">
+                          Select Role
+                        </Label>
+                        <Popover open={openRoleCombo} onOpenChange={setOpenRoleCombo}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              aria-expanded={openRoleCombo}
+                              className="w-full justify-between"
+                              data-testid="select-role-admin"
+                            >
+                              {selectedRole 
+                                ? availableRoles.find(r => r.name === selectedRole)?.displayName || selectedRole
+                                : "Select role..."}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-full p-0">
+                            <Command>
+                              <CommandInput placeholder="Search role..." />
+                              <CommandList>
+                                <CommandEmpty>No role found.</CommandEmpty>
+                                <CommandGroup>
+                                  {availableRoles.map((role) => (
+                                    <CommandItem
+                                      key={role.name}
+                                      value={role.name}
+                                      onSelect={(currentValue) => {
+                                        setSelectedRole(currentValue);
+                                        setSelectedProviderId("");
+                                        setOpenRoleCombo(false);
+                                      }}
+                                    >
+                                      <Check
+                                        className={`mr-2 h-4 w-4 ${
+                                          role.name === selectedRole ? "opacity-100" : "opacity-0"
+                                        }`}
+                                      />
+                                      {role.displayName}
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+
+                      {/* Select Name (Provider) */}
+                      {selectedRole && (
                         <div>
                           <Label className="text-sm font-medium text-gray-900 dark:text-white mb-2 block">
-                            Doctor Details
+                            Select Name
                           </Label>
-                          <Card className="mt-2">
-                            <CardContent className="p-4">
-                              <div className="flex items-start gap-4">
-                                {/* Doctor Avatar */}
-                                <div className="flex-shrink-0">
-                                  <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold text-lg">
-                                    {`${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}`.toUpperCase()}
-                                  </div>
-                                </div>
-                                
-                                {/* Doctor Details */}
-                                <div className="flex-1 space-y-3">
-                                  {/* Name and Department */}
-                                  <div>
-                                    <h3 className="font-semibold text-lg text-gray-900 dark:text-white">
-                                      Dr. {user.firstName} {user.lastName}
-                                    </h3>
-                                    {user.department && (
-                                      <p className="text-gray-600 dark:text-gray-400">
-                                        {user.department}
-                                      </p>
-                                    )}
-                                  </div>
-                                  
-                                  {/* Additional Information */}
-                                  <div className="space-y-2 text-sm">
-                                    {((user as any).medicalSpecialtyCategory || (user as any).specialty) && (
-                                      <div className="flex items-center gap-2">
-                                        <User className="h-4 w-4 text-gray-500" />
-                                        <span className="text-gray-700 dark:text-gray-300">
-                                          {(user as any).medicalSpecialtyCategory || (user as any).specialty}
-                                          {(user as any).subSpecialty && ` - ${(user as any).subSpecialty}`}
-                                        </span>
-                                      </div>
-                                    )}
-                                    
-                                    {user.email && (
-                                      <div className="flex items-center gap-2">
-                                        <Mail className="h-4 w-4 text-gray-500" />
-                                        <span className="text-gray-700 dark:text-gray-300">{user.email}</span>
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
+                          <Popover open={openProviderCombo} onOpenChange={setOpenProviderCombo}>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                aria-expanded={openProviderCombo}
+                                className="w-full justify-between"
+                                data-testid="select-provider-admin"
+                              >
+                                {selectedProviderId 
+                                  ? (() => {
+                                      const provider = filteredUsers.find((u: any) => u.id.toString() === selectedProviderId);
+                                      return provider ? `${provider.firstName} ${provider.lastName}` : "Select provider...";
+                                    })()
+                                  : "Select provider..."}
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-full p-0">
+                              <Command>
+                                <CommandInput placeholder="Search provider..." />
+                                <CommandList>
+                                  <CommandEmpty>No provider found.</CommandEmpty>
+                                  <CommandGroup>
+                                    {filteredUsers.map((provider: any) => (
+                                      <CommandItem
+                                        key={provider.id}
+                                        value={`${provider.firstName} ${provider.lastName}`}
+                                        onSelect={() => {
+                                          setSelectedProviderId(provider.id.toString());
+                                          setOpenProviderCombo(false);
+                                        }}
+                                      >
+                                        <Check
+                                          className={`mr-2 h-4 w-4 ${
+                                            provider.id.toString() === selectedProviderId ? "opacity-100" : "opacity-0"
+                                          }`}
+                                        />
+                                        {provider.firstName} {provider.lastName}
+                                      </CommandItem>
+                                    ))}
+                                  </CommandGroup>
+                                </CommandList>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
                         </div>
-                      ) : (
-                        /* Show Role and Provider Selection for non-doctor users */
-                        <>
-                          {/* Select Role */}
-                          <div>
-                            <Label className="text-sm font-medium text-gray-900 dark:text-white mb-2 block">
-                              Select Role
-                            </Label>
-                            <Popover open={openRoleCombo} onOpenChange={setOpenRoleCombo}>
-                              <PopoverTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  role="combobox"
-                                  aria-expanded={openRoleCombo}
-                                  className="w-full justify-between"
-                                  data-testid="select-role-admin"
-                                >
-                                  {selectedRole 
-                                    ? availableRoles.find(r => r.name === selectedRole)?.displayName || selectedRole
-                                    : "Select role..."}
-                                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                </Button>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-full p-0">
-                                <Command>
-                                  <CommandInput placeholder="Search role..." />
-                                  <CommandList>
-                                    <CommandEmpty>No role found.</CommandEmpty>
-                                    <CommandGroup>
-                                      {availableRoles.map((role) => (
-                                        <CommandItem
-                                          key={role.name}
-                                          value={role.name}
-                                          onSelect={(currentValue) => {
-                                            setSelectedRole(currentValue);
-                                            setSelectedProviderId("");
-                                            setOpenRoleCombo(false);
-                                          }}
-                                        >
-                                          <Check
-                                            className={`mr-2 h-4 w-4 ${
-                                              role.name === selectedRole ? "opacity-100" : "opacity-0"
-                                            }`}
-                                          />
-                                          {role.displayName}
-                                        </CommandItem>
-                                      ))}
-                                    </CommandGroup>
-                                  </CommandList>
-                                </Command>
-                              </PopoverContent>
-                            </Popover>
-                          </div>
-
-                          {/* Select Name (Provider) */}
-                          {selectedRole && (
-                            <div>
-                              <Label className="text-sm font-medium text-gray-900 dark:text-white mb-2 block">
-                                Select Name
-                              </Label>
-                              <Popover open={openProviderCombo} onOpenChange={setOpenProviderCombo}>
-                                <PopoverTrigger asChild>
-                                  <Button
-                                    variant="outline"
-                                    role="combobox"
-                                    aria-expanded={openProviderCombo}
-                                    className="w-full justify-between"
-                                    data-testid="select-provider-admin"
-                                  >
-                                    {selectedProviderId 
-                                      ? (() => {
-                                          const provider = filteredUsers.find((u: any) => u.id.toString() === selectedProviderId);
-                                          return provider ? `${provider.firstName} ${provider.lastName}` : "Select provider...";
-                                        })()
-                                      : "Select provider..."}
-                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                  </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-full p-0">
-                                  <Command>
-                                    <CommandInput placeholder="Search provider..." />
-                                    <CommandList>
-                                      <CommandEmpty>No provider found.</CommandEmpty>
-                                      <CommandGroup>
-                                        {filteredUsers.map((provider: any) => (
-                                          <CommandItem
-                                            key={provider.id}
-                                            value={`${provider.firstName} ${provider.lastName}`}
-                                            onSelect={() => {
-                                              setSelectedProviderId(provider.id.toString());
-                                              setOpenProviderCombo(false);
-                                            }}
-                                          >
-                                            <Check
-                                              className={`mr-2 h-4 w-4 ${
-                                                provider.id.toString() === selectedProviderId ? "opacity-100" : "opacity-0"
-                                              }`}
-                                            />
-                                            {provider.firstName} {provider.lastName}
-                                          </CommandItem>
-                                        ))}
-                                      </CommandGroup>
-                                    </CommandList>
-                                  </Command>
-                                </PopoverContent>
-                              </Popover>
-                            </div>
-                          )}
-                        </>
                       )}
 
                       {/* Select Duration */}
