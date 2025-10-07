@@ -1426,6 +1426,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ))
         .limit(1);
 
+      // Determine baseUrl based on environment
+      const baseUrl = process.env.QB_ENVIRONMENT === 'production' 
+        ? 'https://quickbooks.api.intuit.com' 
+        : 'https://sandbox-quickbooks.api.intuit.com';
+
       if (existingConnection.length > 0) {
         // Update existing connection
         console.log("[QUICKBOOKS] Updating existing connection");
@@ -1433,8 +1438,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .set({
             accessToken: token.access_token,
             refreshToken: token.refresh_token,
-            accessTokenExpiresAt: new Date(Date.now() + (token.expires_in * 1000)),
-            refreshTokenExpiresAt: new Date(Date.now() + (token.x_refresh_token_expires_in * 1000)),
+            tokenExpiry: new Date(Date.now() + (token.expires_in * 1000)),
             isActive: true,
           })
           .where(eq(quickbooksConnections.id, existingConnection[0].id));
@@ -1443,12 +1447,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("[QUICKBOOKS] Creating new connection");
         await db.insert(quickbooksConnections).values({
           organizationId,
+          companyId: realmId as string, // Use realmId as companyId
+          companyName: "QuickBooks Company", // Placeholder - will be updated after fetching company info
           realmId: realmId as string,
           accessToken: token.access_token,
           refreshToken: token.refresh_token,
-          accessTokenExpiresAt: new Date(Date.now() + (token.expires_in * 1000)),
-          refreshTokenExpiresAt: new Date(Date.now() + (token.x_refresh_token_expires_in * 1000)),
-          companyName: null,
+          tokenExpiry: new Date(Date.now() + (token.expires_in * 1000)),
+          baseUrl,
           isActive: true,
           syncSettings: {},
         });
