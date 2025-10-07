@@ -144,8 +144,9 @@ export function PatientDashboard() {
     queryKey: ["/api/patients/my-prescriptions", user?.id],
     queryFn: async () => {
       const token = localStorage.getItem('auth_token');
+      const subdomain = localStorage.getItem('user_subdomain') || getActiveSubdomain();
       const headers: Record<string, string> = {
-        'X-Tenant-Subdomain': 'demo'
+        'X-Tenant-Subdomain': subdomain
       };
       
       if (token) {
@@ -172,8 +173,9 @@ export function PatientDashboard() {
     queryKey: ["/api/mobile/patient/lab-results", user?.id],
     queryFn: async () => {
       const token = localStorage.getItem('auth_token');
+      const subdomain = localStorage.getItem('user_subdomain') || getActiveSubdomain();
       const headers: Record<string, string> = {
-        'X-Tenant-Subdomain': 'demo'
+        'X-Tenant-Subdomain': subdomain
       };
       
       if (token) {
@@ -201,8 +203,9 @@ export function PatientDashboard() {
     queryKey: ["/api/patients/health-score", user?.id],
     queryFn: async () => {
       const token = localStorage.getItem('auth_token');
+      const subdomain = localStorage.getItem('user_subdomain') || getActiveSubdomain();
       const headers: Record<string, string> = {
-        'X-Tenant-Subdomain': 'demo'
+        'X-Tenant-Subdomain': subdomain
       };
       
       if (token) {
@@ -230,8 +233,9 @@ export function PatientDashboard() {
     queryKey: ["/api/patients"],
     queryFn: async () => {
       const token = localStorage.getItem('auth_token');
+      const subdomain = localStorage.getItem('user_subdomain') || getActiveSubdomain();
       const headers: Record<string, string> = {
-        'X-Tenant-Subdomain': 'demo'
+        'X-Tenant-Subdomain': subdomain
       };
       
       if (token) {
@@ -270,8 +274,9 @@ export function PatientDashboard() {
     queryKey: ["/api/patients/pending-results", currentPatientId],
     queryFn: async () => {
       const token = localStorage.getItem('auth_token');
+      const subdomain = localStorage.getItem('user_subdomain') || getActiveSubdomain();
       const headers: Record<string, string> = {
-        'X-Tenant-Subdomain': 'demo'
+        'X-Tenant-Subdomain': subdomain
       };
       
       if (token) {
@@ -299,8 +304,9 @@ export function PatientDashboard() {
     queryKey: ["/api/patients", currentPatientId, "medical-imaging"],
     queryFn: async () => {
       const token = localStorage.getItem('auth_token');
+      const subdomain = localStorage.getItem('user_subdomain') || getActiveSubdomain();
       const headers: Record<string, string> = {
-        'X-Tenant-Subdomain': 'demo'
+        'X-Tenant-Subdomain': subdomain
       };
       
       if (token) {
@@ -327,8 +333,9 @@ export function PatientDashboard() {
     queryKey: ["/api/medical-staff"],
     queryFn: async () => {
       const token = localStorage.getItem('auth_token');
+      const subdomain = localStorage.getItem('user_subdomain') || getActiveSubdomain();
       const headers: Record<string, string> = {
-        'X-Tenant-Subdomain': 'demo'
+        'X-Tenant-Subdomain': subdomain
       };
       
       if (token) {
