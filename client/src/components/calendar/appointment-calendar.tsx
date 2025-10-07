@@ -197,14 +197,18 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
     const provider = usersData.find((user: any) => user.id.toString() === selectedProviderId);
     if (!provider) return true;
     
-    // First, check if there's an actual shift for this date and provider
+    // TIER 1: Check for custom shifts for this date and provider
     if (shiftsData && Array.isArray(shiftsData)) {
-      const providerShift = shiftsData.find((shift: any) => 
-        shift.staffId.toString() === selectedProviderId
-      );
+      const selectedDateStr = format(date, 'yyyy-MM-dd');
+      const providerShift = shiftsData.find((shift: any) => {
+        const shiftDateStr = shift.date instanceof Date 
+          ? format(shift.date, 'yyyy-MM-dd')
+          : shift.date.substring(0, 10);
+        return shift.staffId.toString() === selectedProviderId && shiftDateStr === selectedDateStr;
+      });
       
       if (providerShift) {
-        // Use the actual shift times
+        // Use the custom shift times
         const slotTime = timeSlotTo24Hour(timeSlot);
         const startTime = providerShift.startTime;
         const endTime = providerShift.endTime;
@@ -213,7 +217,30 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
       }
     }
     
-    // Fallback to generic working hours if no shift found
+    // TIER 2: If no custom shifts, fall back to default shifts from doctor_default_shifts
+    if (defaultShiftsData && defaultShiftsData.length > 0) {
+      const defaultShift = defaultShiftsData.find((ds: any) => 
+        ds.userId.toString() === selectedProviderId
+      );
+      
+      if (defaultShift) {
+        const dayOfWeek = format(date, 'EEEE');
+        const workingDays = defaultShift.workingDays || [];
+        
+        // Check if this day is a working day
+        if (workingDays.includes(dayOfWeek)) {
+          const slotTime = timeSlotTo24Hour(timeSlot);
+          const startTime = defaultShift.startTime || '00:00';
+          const endTime = defaultShift.endTime || '23:59';
+          
+          return slotTime >= startTime && slotTime <= endTime;
+        }
+        
+        return false; // Not a working day
+      }
+    }
+    
+    // Fallback to generic working hours if no shift found (legacy support)
     if (!provider.workingHours || !provider.workingDays) return true;
     
     // Check if the selected date falls on a working day
