@@ -1747,80 +1747,83 @@ export default function UserManagement() {
                   </div>
                 </div>
                 
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email Address</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    {...form.register("email", {
-                      onChange: (e) => {
-                        handleEmailChange(e.target.value);
-                      }
-                    })}
-                    className={form.formState.errors.email ? "border-red-500" : ""}
-                  />
-                  {form.formState.errors.email && (
-                    <p className="text-sm text-red-500">{form.formState.errors.email.message}</p>
-                  )}
-                  {/* Email availability status */}
-                  {emailValidationStatus === 'checking' && (
-                    <p className="text-sm text-gray-500">Checking availability...</p>
-                  )}
-                  {emailValidationStatus === 'available' && (
-                    <p className="text-sm text-green-600 flex items-center gap-1">
-                      <Check className="h-4 w-4" />
-                      Available
-                    </p>
-                  )}
-                  {emailValidationStatus === 'exists' && (
-                    <p className="text-sm text-red-600 flex items-center gap-1">
-                      <X className="h-4 w-4" />
-                      Email already exists
-                    </p>
-                  )}
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="role">Role</Label>
-                  {editingUser ? (
-                    // Non-editable role display for edit mode
-                    <div className="px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-800">
-                      <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                        {rolesData.find((r: any) => r.name === selectedRole)?.displayName || selectedRole}
-                      </span>
-                    </div>
-                  ) : (
-                    // Editable role dropdown for create mode
-                    <Select onValueChange={(value) => {
-                      form.setValue("role", value as any);
-                      setSelectedRole(value);
-                      // Reset specialty selections when role changes
-                      if (value !== "doctor") {
-                        setSelectedSpecialtyCategory("");
-                        setSelectedSubSpecialty("");
-                        setSelectedSpecificArea("");
-                      }
-                    }} defaultValue={form.getValues("role")}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a role" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {rolesData
-                          .filter((role: any) => {
-                            const roleName = (role.name || '').toLowerCase();
-                            return !['admin', 'administrator'].includes(roleName);
-                          })
-                          .map((role: any) => (
-                            <SelectItem key={role.id} value={role.name}>
-                              {role.displayName || role.name}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                  {form.formState.errors.role && (
-                    <p className="text-sm text-red-500">{form.formState.errors.role.message}</p>
-                  )}
+                {/* Email Address and Role in one row */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email Address</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      {...form.register("email", {
+                        onChange: (e) => {
+                          handleEmailChange(e.target.value);
+                        }
+                      })}
+                      className={form.formState.errors.email ? "border-red-500" : ""}
+                    />
+                    {form.formState.errors.email && (
+                      <p className="text-sm text-red-500">{form.formState.errors.email.message}</p>
+                    )}
+                    {/* Email availability status */}
+                    {emailValidationStatus === 'checking' && (
+                      <p className="text-sm text-gray-500">Checking availability...</p>
+                    )}
+                    {emailValidationStatus === 'available' && (
+                      <p className="text-sm text-green-600 flex items-center gap-1">
+                        <Check className="h-4 w-4" />
+                        Available
+                      </p>
+                    )}
+                    {emailValidationStatus === 'exists' && (
+                      <p className="text-sm text-red-600 flex items-center gap-1">
+                        <X className="h-4 w-4" />
+                        Email already exists
+                      </p>
+                    )}
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="role">Role</Label>
+                    {editingUser ? (
+                      // Non-editable role display for edit mode
+                      <div className="px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-800">
+                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                          {rolesData.find((r: any) => r.name === selectedRole)?.displayName || selectedRole}
+                        </span>
+                      </div>
+                    ) : (
+                      // Editable role dropdown for create mode
+                      <Select onValueChange={(value) => {
+                        form.setValue("role", value as any);
+                        setSelectedRole(value);
+                        // Reset specialty selections when role changes
+                        if (value !== "doctor") {
+                          setSelectedSpecialtyCategory("");
+                          setSelectedSubSpecialty("");
+                          setSelectedSpecificArea("");
+                        }
+                      }} defaultValue={form.getValues("role")}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {rolesData
+                            .filter((role: any) => {
+                              const roleName = (role.name || '').toLowerCase();
+                              return !['admin', 'administrator'].includes(roleName);
+                            })
+                            .map((role: any) => (
+                              <SelectItem key={role.id} value={role.name}>
+                                {role.displayName || role.name}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                    {form.formState.errors.role && (
+                      <p className="text-sm text-red-500">{form.formState.errors.role.message}</p>
+                    )}
+                  </div>
                 </div>
 
                 {/* Doctor Specialty Dropdowns - Only show when role is doctor */}
@@ -2021,7 +2024,8 @@ export default function UserManagement() {
                           data-testid="input-street-address"
                         />
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
+                      {/* City/Town, Postcode, Country in one row */}
+                      <div className="grid grid-cols-3 gap-4">
                         <div className="space-y-2">
                           <Label htmlFor="city">City/Town</Label>
                           <Input
@@ -2040,21 +2044,21 @@ export default function UserManagement() {
                             data-testid="input-postcode"
                           />
                         </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="country">Country</Label>
-                        <Select onValueChange={(value) => form.setValue("address.country", value)} defaultValue="United Kingdom">
-                          <SelectTrigger data-testid="select-country">
-                            <SelectValue placeholder="Select country" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="United Kingdom">United Kingdom</SelectItem>
-                            <SelectItem value="Ireland">Ireland</SelectItem>
-                            <SelectItem value="United States">United States</SelectItem>
-                            <SelectItem value="Canada">Canada</SelectItem>
-                            <SelectItem value="Australia">Australia</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <div className="space-y-2">
+                          <Label htmlFor="country">Country</Label>
+                          <Select onValueChange={(value) => form.setValue("address.country", value)} defaultValue="United Kingdom">
+                            <SelectTrigger data-testid="select-country">
+                              <SelectValue placeholder="Select country" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="United Kingdom">United Kingdom</SelectItem>
+                              <SelectItem value="Ireland">Ireland</SelectItem>
+                              <SelectItem value="United States">United States</SelectItem>
+                              <SelectItem value="Canada">Canada</SelectItem>
+                              <SelectItem value="Australia">Australia</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
                     </div>
 
@@ -2172,15 +2176,6 @@ export default function UserManagement() {
                           />
                         </div>
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="effectiveDate">Effective Date</Label>
-                        <Input
-                          id="effectiveDate"
-                          type="date"
-                          {...form.register("insuranceInfo.effectiveDate")}
-                          data-testid="input-effective-date"
-                        />
-                      </div>
                       
                       {/* NHS Number - Conditional display based on Insurance Provider */}
                       {insuranceProvider && insuranceProvider !== "Self-Pay" && (
@@ -2205,15 +2200,6 @@ export default function UserManagement() {
                     </div>
                   </>
                 )}
-                
-                <div className="space-y-2">
-                  <Label htmlFor="department">Department (Optional)</Label>
-                  <Input
-                    id="department"
-                    {...form.register("department")}
-                    placeholder="e.g., Cardiology, Emergency, etc."
-                  />
-                </div>
 
                 {/* Working Days - Hide only for Patient role */}
                 {selectedRole !== 'patient' && (
@@ -2266,19 +2252,39 @@ export default function UserManagement() {
                   </div>
                 )}
                 
-                <div className="space-y-2">
-                  <Label htmlFor="password">
-                    {editingUser ? "New Password *" : "Password"}
-                  </Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    {...form.register("password")}
-                    className={form.formState.errors.password ? "border-red-500" : ""}
-                  />
-                  {form.formState.errors.password && (
-                    <p className="text-sm text-red-500">{form.formState.errors.password.message}</p>
-                  )}
+                {/* Effective Date, Department (Optional), Password in one row */}
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="effectiveDate">Effective Date</Label>
+                    <Input
+                      id="effectiveDate"
+                      type="date"
+                      {...form.register("insuranceInfo.effectiveDate")}
+                      data-testid="input-effective-date"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="department">Department (Optional)</Label>
+                    <Input
+                      id="department"
+                      {...form.register("department")}
+                      placeholder="e.g., Cardiology, Emergency, etc."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="password">
+                      {editingUser ? "New Password *" : "Password"}
+                    </Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      {...form.register("password")}
+                      className={form.formState.errors.password ? "border-red-500" : ""}
+                    />
+                    {form.formState.errors.password && (
+                      <p className="text-sm text-red-500">{form.formState.errors.password.message}</p>
+                    )}
+                  </div>
                 </div>
 
                 {/* Role Information */}
