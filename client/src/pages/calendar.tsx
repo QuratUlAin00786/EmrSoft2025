@@ -2936,6 +2936,7 @@ export default function CalendarPage() {
                     onClick={() => {
                       setShowConfirmationModal(false);
                       setPendingAppointmentData(null);
+                      setSelectedDoctor(null); // Clear selected doctor
                       setShowNewAppointmentModal(true); // Reopen the booking modal
                     }}
                     data-testid="button-go-back"
