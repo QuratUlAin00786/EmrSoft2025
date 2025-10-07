@@ -1940,13 +1940,15 @@ export default function UserManagement() {
                             
                             <div className="flex items-center space-x-2">
                               <Button
-                                variant="ghost"
+                                variant="outline"
                                 size="sm"
                                 onClick={() => handleEdit(user)}
                                 title="Edit User"
                                 data-testid={`button-edit-user-${user.id}`}
+                                className="flex items-center gap-1"
                               >
                                 <Edit className="h-4 w-4" />
+                                <span>Edit User</span>
                               </Button>
                               
                               <AlertDialog>
@@ -2035,13 +2037,15 @@ export default function UserManagement() {
                       
                       <div className="flex items-center justify-end space-x-2 pt-3 border-t">
                         <Button
-                          variant="ghost"
+                          variant="outline"
                           size="sm"
                           onClick={() => handleEdit(user)}
                           title="Edit User"
                           data-testid={`button-edit-user-grid-${user.id}`}
+                          className="flex items-center gap-1"
                         >
                           <Edit className="h-4 w-4" />
+                          <span>Edit User</span>
                         </Button>
                         
                         <AlertDialog>
