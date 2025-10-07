@@ -1387,13 +1387,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const axios = (await import('axios')).default;
       const authHeader = Buffer.from(`${process.env.QUICKBOOKS_CLIENT_ID}:${process.env.QUICKBOOKS_CLIENT_SECRET}`).toString('base64');
       
+      const requestBody = `grant_type=authorization_code&code=${encodeURIComponent(code as string)}&redirect_uri=${encodeURIComponent(redirectUri)}`;
+      console.log("[QUICKBOOKS] Request body length:", requestBody.length);
+      
       const tokenResponse = await axios.post(
         'https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer',
-        new URLSearchParams({
-          grant_type: 'authorization_code',
-          code: code as string,
-          redirect_uri: redirectUri,
-        }).toString(),
+        requestBody,
         {
           headers: {
             'Accept': 'application/json',
