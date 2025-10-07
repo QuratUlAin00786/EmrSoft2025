@@ -65,12 +65,21 @@ export default function CreateUser() {
   const watchedEmail = form.watch('email');
   const watchedOrganizationId = form.watch('organizationId');
 
-  // Fetch roles based on selected organization
+  // Fetch roles based on selected organization (use regular fetch with credentials)
   const { data: roles, isLoading: rolesLoading } = useQuery({
     queryKey: ["/api/roles", watchedOrganizationId],
     queryFn: async () => {
       if (!watchedOrganizationId) return [];
-      const response = await saasApiRequest('GET', `/api/roles?organizationId=${watchedOrganizationId}`);
+      const response = await fetch(`/api/roles?organizationId=${watchedOrganizationId}`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch roles');
+      }
       return response.json();
     },
     enabled: !!watchedOrganizationId,
