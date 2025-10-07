@@ -58,21 +58,9 @@ export class AuthService {
   }
 
   hasPermission(userRole: string, requiredRoles: string[]): boolean {
-    const roleHierarchy = {
-      admin: 6,
-      doctor: 5,
-      nurse: 4,
-      receptionist: 3,
-      sample_taker: 2,
-      patient: 1
-    };
-
-    const userLevel = roleHierarchy[userRole as keyof typeof roleHierarchy] || 0;
-    const requiredLevel = Math.min(...requiredRoles.map(role => 
-      roleHierarchy[role as keyof typeof roleHierarchy] || 7
-    ));
-
-    return userLevel >= requiredLevel;
+    // Dynamic role validation: check if user's role is in the required roles array
+    // This allows any role from the database to be recognized
+    return requiredRoles.includes(userRole);
   }
 
   checkGDPRCompliance(organizationRegion: string): {
