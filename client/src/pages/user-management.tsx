@@ -59,8 +59,8 @@ const userSchema = z.object({
   subSpecialty: z.string().optional(),
   workingDays: z.array(z.string()).optional(),
   workingHours: z.object({
-    start: z.string(),
-    end: z.string(),
+    start: z.string().optional(),
+    end: z.string().optional(),
   }).optional(),
   password: z.string().optional(),
   // Patient-specific fields
