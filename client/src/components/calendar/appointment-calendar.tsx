@@ -867,8 +867,10 @@ Medical License: [License Number]
     return user.role === selectedRole;
   }) || [];
 
-  // Map roles to dropdown options format from roles table
-  const availableRoles = rolesData.map((role: any) => role.name);
+  // Map roles to dropdown options format from roles table, excluding 'patient'
+  const availableRoles = rolesData
+    .filter((role: any) => role.name !== 'patient')
+    .map((role: any) => role.name);
 
   // Helper functions
   const getPatientName = (patientId: number) => {
