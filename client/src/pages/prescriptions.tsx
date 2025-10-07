@@ -1896,11 +1896,13 @@ export default function PrescriptionsPage() {
                               <SelectValue placeholder="Select a role..." />
                             </SelectTrigger>
                             <SelectContent>
-                              {rolesData.map((role: any) => (
-                                <SelectItem key={role.id} value={role.name}>
-                                  {role.displayName || role.name}
-                                </SelectItem>
-                              ))}
+                              {rolesData
+                                .filter((role: any) => role.name !== 'patient')
+                                .map((role: any) => (
+                                  <SelectItem key={role.id} value={role.name}>
+                                    {role.displayName || role.name}
+                                  </SelectItem>
+                                ))}
                             </SelectContent>
                           </Select>
                         </div>
@@ -1929,7 +1931,7 @@ export default function PrescriptionsPage() {
                                   key={user.id}
                                   value={user.id.toString()}
                                 >
-                                  {user.email}
+                                  {user.firstName} {user.lastName}
                                 </SelectItem>
                               ))}
                           </SelectContent>
