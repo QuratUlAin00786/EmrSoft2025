@@ -4762,10 +4762,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "User not found" });
       }
 
-      // If user is a patient and there are patient-specific updates, update the patient record
+      // If user is a patient and there are patient-specific updates, update/create the patient record
       if (user.role === 'patient' && Object.keys(patientUpdates).length > 0) {
         // Use OLD email to find patient (before email change)
-        const patient = await storage.getPatientByEmail(currentUser.email, req.tenant!.id);
+        let patient = await storage.getPatientByEmail(currentUser.email, req.tenant!.id);
+        
+        // AUTO-CREATE MISSING PATIENT RECORD (Option 2 implementation)
+        if (!patient) {
+          console.log(`⚠️ Patient record missing for user ${user.id} (${user.email}). Auto-creating...`);
+          
+          // Generate patient ID
+          const patientCount = await storage.getPatientsByOrganization(req.tenant!.id, 999999);
+          const generatedPatientId = `P${(patientCount.length + 1).toString().padStart(6, '0')}`;
+          
+          // Create patient record with basic info from user
+          patient = await storage.createPatient({
+            organizationId: req.tenant!.id,
+            patientId: generatedPatientId,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            dateOfBirth: "",
+            genderAtBirth: "",
+            phone: "",
+            nhsNumber: "",
+            address: {},
+            emergencyContact: {},
+            insuranceInfo: {},
+            medicalHistory: {
+              allergies: [],
+              medications: [],
+              chronicConditions: [],
+              familyHistory: {
+                father: [],
+                mother: [],
+                siblings: [],
+                grandparents: []
+              },
+              immunizations: [],
+              socialHistory: {
+                smoking: { status: "never" },
+                alcohol: { status: "never" },
+                drugs: { status: "never" },
+                exercise: { frequency: "none" },
+                occupation: "",
+                education: "",
+                maritalStatus: "single"
+              }
+            },
+            riskLevel: "low",
+            flags: [],
+            communicationPreferences: {},
+            isActive: true,
+            isInsured: false
+          });
+          
+          console.log(`✅ Auto-created patient record with ID: ${patient.id}, patientId: ${generatedPatientId}`);
+        }
+        
+        // Now update the patient record (whether it was just created or already existed)
         if (patient) {
           console.log("Updating patient record with data:", patientUpdates);
           await storage.updatePatient(patient.id, req.tenant!.id, patientUpdates);
