@@ -2088,13 +2088,13 @@ export default function CalendarPage() {
                           </Popover>
                         </div>
 
-                        {/* Patient Information Card - Shows when patient is selected */}
-                        {bookingForm.patientId && (
-                          <div>
-                            <Label className="text-sm font-medium text-gray-900 dark:text-white mb-2 block">
-                              Patient Information
-                            </Label>
-                            {(() => {
+                        {/* Patient Information Card - Always visible */}
+                        <div>
+                          <Label className="text-sm font-medium text-gray-900 dark:text-white mb-2 block">
+                            Patient Information
+                          </Label>
+                          {bookingForm.patientId ? (
+                            (() => {
                               const selectedPatient = patients.find((patient: any) => 
                                 (patient.patientId || patient.id.toString()) === bookingForm.patientId
                               );
@@ -2169,9 +2169,19 @@ export default function CalendarPage() {
                                   </CardContent>
                                 </Card>
                               );
-                            })()}
-                          </div>
-                        )}
+                            })()
+                          ) : (
+                            <Card className="mt-2">
+                              <CardContent className="p-4">
+                                <div className="flex items-center justify-center py-8">
+                                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                                    Please select a patient to view their information
+                                  </p>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          )}
+                        </div>
                       </div>
 
                       {/* Column 2: Select Duration and Doctor Details */}
@@ -2329,11 +2339,15 @@ export default function CalendarPage() {
                             )}
                           </div>
                         ) : (
-                          <div className="mt-2 p-3 bg-gray-50 border border-gray-200 rounded-md">
-                            <p className="text-sm text-gray-600">
-                              Please select a provider and date to view available time slots.
-                            </p>
-                          </div>
+                          <Card className="mt-2">
+                            <CardContent className="p-4">
+                              <div className="flex items-center justify-center py-8">
+                                <p className="text-sm text-gray-500 dark:text-gray-400">
+                                  Please select a provider and date to view available time slots.
+                                </p>
+                              </div>
+                            </CardContent>
+                          </Card>
                         )}
                       </div>
                     </div>
