@@ -16,7 +16,7 @@ import { initializeMultiTenantPackage, getMultiTenantPackage } from "./packages/
 import { messagingService } from "./messaging-service";
 // PayPal imports moved to dynamic imports to avoid initialization errors when credentials are missing
 import { gdprComplianceService } from "./services/gdpr-compliance";
-import { insertGdprConsentSchema, insertGdprDataRequestSchema, updateMedicalImageReportFieldSchema, insertAiInsightSchema, medicationsDatabase, patientDrugInteractions, type Appointment, organizations, subscriptions, users, symptomChecks } from "../shared/schema";
+import { insertGdprConsentSchema, insertGdprDataRequestSchema, updateMedicalImageReportFieldSchema, insertAiInsightSchema, medicationsDatabase, patientDrugInteractions, type Appointment, organizations, subscriptions, users, symptomChecks, quickbooksConnections } from "../shared/schema";
 import { db } from "./db";
 import { and, eq, sql, desc } from "drizzle-orm";
 import { processAppointmentBookingChat, generateAppointmentSummary } from "./anthropic";
@@ -1376,9 +1376,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("[QUICKBOOKS] Code:", code);
       console.log("[QUICKBOOKS] Realm ID:", realmId);
+      
+      // Exchange authorization code for access and refresh tokens
+      // @ts-ignore - intuit-oauth doesn't have type definitions
+      const OAuthClient = (await import('intuit-oauth')).default;
+      const oauthClient = new OAuthClient({
+        clientId: process.env.QUICKBOOKS_CLIENT_ID!,
+        clientSecret: process.env.QUICKBOOKS_CLIENT_SECRET!,
+        environment: 'sandbox', // Use 'production' for live
+        redirectUri: process.env.QB_REDIRECT_URI || `${process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : 'http://localhost:5000'}/api/quickbooks/auth/callback`,
+      });
+
+      console.log("[QUICKBOOKS] Exchanging authorization code for tokens...");
+      const authResponse = await oauthClient.createToken(code as string);
+      const token = authResponse.getJson();
+      
+      console.log("[QUICKBOOKS] Token exchange successful!");
+      console.log("[QUICKBOOKS] Access token received:", !!token.access_token);
+      console.log("[QUICKBOOKS] Refresh token received:", !!token.refresh_token);
+      console.log("[QUICKBOOKS] Expires in:", token.expires_in, "seconds");
+
+      // Save connection to database
+      const organizationId = req.tenant?.id;
+      if (!organizationId) {
+        throw new Error("Organization ID not found in tenant context");
+      }
+
+      console.log("[QUICKBOOKS] Saving connection to database for organization:", organizationId);
+      
+      // Check if connection already exists
+      const existingConnection = await db.select()
+        .from(quickbooksConnections)
+        .where(and(
+          eq(quickbooksConnections.organizationId, organizationId),
+          eq(quickbooksConnections.realmId, realmId as string)
+        ))
+        .limit(1);
+
+      if (existingConnection.length > 0) {
+        // Update existing connection
+        console.log("[QUICKBOOKS] Updating existing connection");
+        await db.update(quickbooksConnections)
+          .set({
+            accessToken: token.access_token,
+            refreshToken: token.refresh_token,
+            accessTokenExpiresAt: new Date(Date.now() + (token.expires_in * 1000)),
+            refreshTokenExpiresAt: new Date(Date.now() + (token.x_refresh_token_expires_in * 1000)),
+            isActive: true,
+          })
+          .where(eq(quickbooksConnections.id, existingConnection[0].id));
+      } else {
+        // Create new connection
+        console.log("[QUICKBOOKS] Creating new connection");
+        await db.insert(quickbooksConnections).values({
+          organizationId,
+          realmId: realmId as string,
+          accessToken: token.access_token,
+          refreshToken: token.refresh_token,
+          accessTokenExpiresAt: new Date(Date.now() + (token.expires_in * 1000)),
+          refreshTokenExpiresAt: new Date(Date.now() + (token.x_refresh_token_expires_in * 1000)),
+          companyName: null,
+          isActive: true,
+          syncSettings: {},
+        });
+      }
+
+      console.log("[QUICKBOOKS] Connection saved successfully!");
       console.log("[QUICKBOOKS] About to send HTML response...");
 
-      // TODO: Exchange code for access token and save to database
       // Set proper headers to prevent caching and ensure HTML rendering
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
       res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
@@ -14930,6 +14995,7 @@ Cura EMR Team
   // QuickBooks Data Fetching Endpoints
   // Helper function to get QuickBooks client instance
   const getQuickBooksClient = async (organizationId: number) => {
+    // @ts-ignore - node-quickbooks doesn't have type definitions
     const QuickBooks = (await import('node-quickbooks')).default;
     
     // Get active connection for organization
