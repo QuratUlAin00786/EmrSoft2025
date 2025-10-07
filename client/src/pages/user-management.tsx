@@ -75,6 +75,7 @@ const userSchema = z.object({
       "Please enter a valid UK phone number"
     ),
   nhsNumber: z.string().optional(),
+  genderAtBirth: z.string().optional(),
   address: z.object({
     street: z.string().optional(),
     city: z.string().optional(),
@@ -172,6 +173,7 @@ interface User {
   dateOfBirth?: string;
   phone?: string;
   nhsNumber?: string;
+  genderAtBirth?: string;
   address?: {
     street?: string;
     city?: string;
@@ -417,6 +419,10 @@ export default function UserManagement() {
   const [dobMonth, setDobMonth] = useState<string>("");
   const [dobYear, setDobYear] = useState<string>("");
   const [dobErrors, setDobErrors] = useState<{ day?: string; month?: string; year?: string; combined?: string }>({});
+  
+  // Insurance Provider and NHS Number states
+  const [insuranceProvider, setInsuranceProvider] = useState<string>("");
+  const [nhsNumberError, setNhsNumberError] = useState<string>("");
 
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -563,6 +569,67 @@ export default function UserManagement() {
     validateDOB(dobDay, dobMonth, value);
   };
   
+  // NHS Number validation function with modulus 11 algorithm
+  const validateNHSNumber = (nhsNumber: string): boolean => {
+    if (!nhsNumber) {
+      setNhsNumberError("");
+      return true; // Empty is valid (optional field)
+    }
+
+    // Strip any dashes, spaces, or non-numeric characters
+    const cleanedNumber = nhsNumber.replace(/[^0-9]/g, '');
+    
+    // Must be exactly 10 digits
+    if (cleanedNumber.length !== 10) {
+      setNhsNumberError("Must contain exactly 10 digits");
+      return false;
+    }
+    
+    // Check if it contains only digits
+    if (!/^\d{10}$/.test(cleanedNumber)) {
+      setNhsNumberError("Must contain only numbers");
+      return false;
+    }
+    
+    // Modulus 11 check digit validation
+    const digits = cleanedNumber.split('').map(Number);
+    const checkDigit = digits[9]; // 10th digit (index 9)
+    
+    // Multiply first 9 digits by weighting factors 10 down to 2
+    let sum = 0;
+    for (let i = 0; i < 9; i++) {
+      sum += digits[i] * (10 - i);
+    }
+    
+    // Calculate remainder
+    const remainder = sum % 11;
+    
+    // Calculate expected check digit
+    const calculatedCheckDigit = 11 - remainder;
+    
+    // If result is 11, check digit should be 0
+    if (calculatedCheckDigit === 11) {
+      if (checkDigit !== 0) {
+        setNhsNumberError("Invalid NHS Number (check digit should be 0)");
+        return false;
+      }
+    } 
+    // If result is 10, the number is invalid
+    else if (calculatedCheckDigit === 10) {
+      setNhsNumberError("Invalid NHS Number (check digit cannot be 10)");
+      return false;
+    } 
+    // Otherwise, check digit must match calculated value
+    else if (checkDigit !== calculatedCheckDigit) {
+      setNhsNumberError(`Invalid NHS Number (check digit should be ${calculatedCheckDigit})`);
+      return false;
+    }
+    
+    // Valid NHS Number
+    setNhsNumberError("");
+    return true;
+  };
+  
   // Email validation function
   const checkEmailAvailability = async (email: string) => {
     if (!email || !email.includes('@')) {
@@ -646,6 +713,7 @@ export default function UserManagement() {
       dobYear: "",
       phone: "",
       nhsNumber: "",
+      genderAtBirth: "",
       address: {
         street: "",
         city: "",
@@ -1146,6 +1214,18 @@ export default function UserManagement() {
         });
         return;
       }
+      
+      // Validate NHS Number if Insurance Provider is not Self-Pay
+      if (insuranceProvider && insuranceProvider !== "Self-Pay") {
+        if (data.nhsNumber && !validateNHSNumber(data.nhsNumber)) {
+          toast({
+            title: "Invalid NHS Number",
+            description: nhsNumberError || "Please enter a valid 10-digit NHS Number with correct check digit",
+            variant: "destructive",
+          });
+          return;
+        }
+      }
     }
     
     // Include medical specialty fields for doctor role
@@ -1260,6 +1340,7 @@ export default function UserManagement() {
       
       userData.phone = user.phone || "";
       userData.nhsNumber = user.nhsNumber || "";
+      userData.genderAtBirth = user.genderAtBirth || "";
       userData.address = {
         street: user.address?.street || "",
         city: user.address?.city || "",
@@ -1285,6 +1366,8 @@ export default function UserManagement() {
           planType: user.insuranceVerification.planType || "",
           effectiveDate: user.insuranceVerification.effectiveDate || "",
         };
+        // Set insurance provider state for conditional NHS Number display
+        setInsuranceProvider(user.insuranceVerification.provider || "");
       } else {
         console.log("⚠️ No insurance verification found, using insuranceInfo from patients table");
         userData.insuranceInfo = {
@@ -1294,6 +1377,8 @@ export default function UserManagement() {
           planType: user.insuranceInfo?.planType || "",
           effectiveDate: user.insuranceInfo?.effectiveDate || "",
         };
+        // Set insurance provider state for conditional NHS Number display
+        setInsuranceProvider(user.insuranceInfo?.provider || "");
       }
       
       console.log("📊 Complete patient data loaded:", {
@@ -1573,6 +1658,9 @@ export default function UserManagement() {
                 setDobMonth("");
                 setDobYear("");
                 setDobErrors({});
+                // Reset Insurance Provider and NHS Number state
+                setInsuranceProvider("");
+                setNhsNumberError("");
               }} 
               variant="default" 
               className="flex items-center gap-2 bg-gray-800 text-white hover:bg-gray-700"
@@ -1604,6 +1692,9 @@ export default function UserManagement() {
               setDobMonth("");
               setDobYear("");
               setDobErrors({});
+              // Reset Insurance Provider and NHS Number state
+              setInsuranceProvider("");
+              setNhsNumberError("");
             }
           }}>
             <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
@@ -1793,8 +1884,8 @@ export default function UserManagement() {
                       <p className="text-sm text-green-700 dark:text-green-300">Additional fields required for patient accounts</p>
                     </div>
 
-                    {/* Basic Information */}
-                    <div className="space-y-4">
+                    {/* Basic Information - Date of Birth and Phone Number in one row */}
+                    <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label>Date of Birth</Label>
                         <div className="grid grid-cols-3 gap-2">
@@ -1884,14 +1975,23 @@ export default function UserManagement() {
                       </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="nhsNumber">NHS Number (Optional)</Label>
-                      <Input
-                        id="nhsNumber"
-                        {...form.register("nhsNumber")}
-                        placeholder="000 000 0000"
-                        data-testid="input-nhs-number"
-                      />
+                    {/* Gender at Birth field */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="genderAtBirth">Gender at Birth</Label>
+                        <Select 
+                          onValueChange={(value) => form.setValue("genderAtBirth", value)}
+                          value={form.watch("genderAtBirth") || ""}
+                        >
+                          <SelectTrigger data-testid="dropdown-gender-at-birth">
+                            <SelectValue placeholder="Select gender..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Male">Male</SelectItem>
+                            <SelectItem value="Female">Female</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
 
                     {/* Address Information */}
@@ -1999,7 +2099,12 @@ export default function UserManagement() {
                         <div className="space-y-2">
                           <Label htmlFor="insuranceProvider">Insurance Provider</Label>
                           <Select 
-                            onValueChange={(value) => form.setValue("insuranceInfo.provider", value)}
+                            onValueChange={(value) => {
+                              form.setValue("insuranceInfo.provider", value);
+                              setInsuranceProvider(value);
+                              // Clear NHS Number error when provider changes
+                              setNhsNumberError("");
+                            }}
                             value={form.watch("insuranceInfo.provider") || ""}
                           >
                             <SelectTrigger data-testid="dropdown-insurance-provider">
@@ -2061,6 +2166,27 @@ export default function UserManagement() {
                           data-testid="input-effective-date"
                         />
                       </div>
+                      
+                      {/* NHS Number - Conditional display based on Insurance Provider */}
+                      {insuranceProvider && insuranceProvider !== "Self-Pay" && (
+                        <div className="space-y-2">
+                          <Label htmlFor="nhsNumber">NHS Number</Label>
+                          <Input
+                            id="nhsNumber"
+                            {...form.register("nhsNumber")}
+                            placeholder="9434765919"
+                            data-testid="input-nhs-number"
+                            onChange={(e) => {
+                              form.setValue("nhsNumber", e.target.value);
+                              validateNHSNumber(e.target.value);
+                            }}
+                          />
+                          {nhsNumberError && (
+                            <p className="text-sm text-red-500">{nhsNumberError}</p>
+                          )}
+                          <p className="text-xs text-gray-500">Must be exactly 10 digits. Example: 9434765919</p>
+                        </div>
+                      )}
                     </div>
                   </>
                 )}
