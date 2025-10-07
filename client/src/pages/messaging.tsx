@@ -193,6 +193,21 @@ export default function MessagingPage() {
     enabled: user?.role === 'admin' || user?.role === 'patient' // Fetch when user is admin or patient
   });
 
+  // Fetch roles from the roles table filtered by organization_id
+  const { data: rolesData = [] } = useQuery({
+    queryKey: ["/api/roles"],
+    queryFn: async () => {
+      try {
+        const response = await apiRequest("GET", "/api/roles");
+        const data = await response.json();
+        return Array.isArray(data) ? data : [];
+      } catch (error) {
+        console.error("Roles fetch error:", error);
+        return [];
+      }
+    },
+  });
+
   // Update current user when user data changes
   useEffect(() => {
     if (user) {
@@ -1271,11 +1286,11 @@ export default function MessagingPage() {
                           <SelectValue placeholder="Select a role..." />
                         </SelectTrigger>
                         <SelectContent>
-                          {user?.role !== 'patient' && <SelectItem value="patient">Patient</SelectItem>}
-                          <SelectItem value="doctor">Doctor</SelectItem>
-                          <SelectItem value="nurse">Nurse</SelectItem>
-                          <SelectItem value="receptionist">Receptionist</SelectItem>
-                          <SelectItem value="admin">Admin</SelectItem>
+                          {rolesData.map((role: any) => (
+                            <SelectItem key={role.id} value={role.name}>
+                              {role.displayName || role.name}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
@@ -1465,11 +1480,11 @@ export default function MessagingPage() {
                             <SelectValue placeholder="Select a role..." />
                           </SelectTrigger>
                           <SelectContent>
-                            {user?.role !== 'patient' && <SelectItem value="patient">Patient</SelectItem>}
-                            <SelectItem value="doctor">Doctor</SelectItem>
-                            <SelectItem value="nurse">Nurse</SelectItem>
-                            <SelectItem value="receptionist">Receptionist</SelectItem>
-                            <SelectItem value="admin">Admin</SelectItem>
+                            {rolesData.map((role: any) => (
+                              <SelectItem key={role.id} value={role.name}>
+                                {role.displayName || role.name}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       </div>
