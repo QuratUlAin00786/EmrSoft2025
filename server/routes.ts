@@ -1377,27 +1377,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("[QUICKBOOKS] Code:", code);
       console.log("[QUICKBOOKS] Realm ID:", realmId);
       
-      // Exchange authorization code for access and refresh tokens
-      // @ts-ignore - intuit-oauth doesn't have type definitions
-      const OAuthClient = (await import('intuit-oauth')).default;
+      // Exchange authorization code for access and refresh tokens manually
       const redirectUri = process.env.QB_REDIRECT_URI || `${process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : 'http://localhost:5000'}/api/quickbooks/auth/callback`;
       
-      const oauthClient = new OAuthClient({
-        clientId: process.env.QUICKBOOKS_CLIENT_ID!,
-        clientSecret: process.env.QUICKBOOKS_CLIENT_SECRET!,
-        environment: 'sandbox', // Use 'production' for live
-        redirectUri: redirectUri,
-      });
-
       console.log("[QUICKBOOKS] Exchanging authorization code for tokens...");
       console.log("[QUICKBOOKS] Redirect URI:", redirectUri);
       
-      // Create the full callback URL with all query parameters
-      const parseUrl = `${redirectUri}?code=${code}&state=${state}&realmId=${realmId}`;
-      console.log("[QUICKBOOKS] Parse URL:", parseUrl);
+      // Manually exchange token using axios
+      const axios = (await import('axios')).default;
+      const authHeader = Buffer.from(`${process.env.QUICKBOOKS_CLIENT_ID}:${process.env.QUICKBOOKS_CLIENT_SECRET}`).toString('base64');
       
-      const authResponse = await oauthClient.createToken(parseUrl);
-      const token = authResponse.getJson();
+      const tokenResponse = await axios.post(
+        'https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer',
+        new URLSearchParams({
+          grant_type: 'authorization_code',
+          code: code as string,
+          redirect_uri: redirectUri,
+        }).toString(),
+        {
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Authorization': `Basic ${authHeader}`,
+          },
+        }
+      );
+      
+      const token = tokenResponse.data;
       
       console.log("[QUICKBOOKS] Token exchange successful!");
       console.log("[QUICKBOOKS] Access token received:", !!token.access_token);
