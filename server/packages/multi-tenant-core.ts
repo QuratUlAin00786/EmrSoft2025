@@ -49,7 +49,8 @@ export class MultiTenantCorePackage {
     const excludeSaaSRoutes = (middleware: any) => {
       return (req: any, res: any, next: any) => {
         // Skip SaaS routes entirely - they operate system-wide
-        if (req.path.startsWith('/api/saas/')) {
+        // Note: req.path is already stripped of /api prefix by app.use("/api", ...)
+        if (req.path.startsWith('/saas/')) {
           return next();
         }
         return middleware(req, res, next);
