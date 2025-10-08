@@ -931,14 +931,18 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createPatient(patient: InsertPatient): Promise<Patient> {
+    console.log("🔍 [STORAGE] createPatient called with userId:", (patient as any).userId);
     const { address, medicalHistory, communicationPreferences, ...baseFields } = patient;
+    console.log("🔍 [STORAGE] baseFields.userId:", (baseFields as any).userId);
     const insertData = {
       ...baseFields,
       address: address ? JSON.parse(JSON.stringify(address)) : null,
       medicalHistory: medicalHistory ? JSON.parse(JSON.stringify(medicalHistory)) : null,
       communicationPreferences: communicationPreferences ? JSON.parse(JSON.stringify(communicationPreferences)) : null
     };
+    console.log("🔍 [STORAGE] insertData.userId before insert:", (insertData as any).userId);
     const [created] = await db.insert(patients).values([insertData as any]).returning();
+    console.log("🔍 [STORAGE] created patient userId:", created.userId);
     return created;
   }
 
