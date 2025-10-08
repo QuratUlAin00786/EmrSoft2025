@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, User, Video, Stethoscope, Plus, ArrowRight, Edit } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Calendar, Clock, User, Video, Stethoscope, Plus, ArrowRight, Edit, Search, X } from "lucide-react";
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, isToday, isPast, isFuture, parseISO } from "date-fns";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -21,6 +22,13 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<"week" | "day">("week");
   const [appointmentFilter, setAppointmentFilter] = useState<"all" | "upcoming" | "past">("upcoming");
+  
+  // Search/Filter states
+  const [filterDate, setFilterDate] = useState<string>("");
+  const [filterPatientName, setFilterPatientName] = useState<string>("");
+  const [filterPatientId, setFilterPatientId] = useState<string>("");
+  const [filterNhsNumber, setFilterNhsNumber] = useState<string>("");
+  
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -122,7 +130,7 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
     return { upcoming, past };
   }, [doctorAppointments]);
 
-  // Get filtered appointments based on selected filter
+  // Get filtered appointments based on selected filter and search criteria
   const filteredAppointments = React.useMemo(() => {
     let result = [];
     if (appointmentFilter === 'all') {
@@ -133,9 +141,46 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
       result = categorizedAppointments.past;
     }
 
-    console.log('🎯 DOCTOR APPOINTMENTS: Displaying', result.length, 'appointments (filter:', appointmentFilter + ')');
+    // Apply search filters (date, patient name, patient ID, NHS number)
+    if (filterDate || filterPatientName || filterPatientId || filterNhsNumber) {
+      result = result.filter((apt: any) => {
+        // Filter by date
+        if (filterDate) {
+          const aptDate = format(new Date(apt.scheduledAt), 'yyyy-MM-dd');
+          if (aptDate !== filterDate) return false;
+        }
+
+        // Filter by patient name
+        if (filterPatientName) {
+          const patientName = getPatientName(apt.patientId).toLowerCase();
+          if (!patientName.includes(filterPatientName.toLowerCase())) return false;
+        }
+
+        // Filter by patient ID or NHS number (need to look up in patients table)
+        if (filterPatientId || filterNhsNumber) {
+          // Find patient record
+          const patient = patientsData?.find((p: any) => p.id === apt.patientId);
+          
+          if (filterPatientId) {
+            if (!patient || !patient.patientId?.toLowerCase().includes(filterPatientId.toLowerCase())) {
+              return false;
+            }
+          }
+
+          if (filterNhsNumber) {
+            if (!patient || !patient.nhsNumber?.toLowerCase().includes(filterNhsNumber.toLowerCase())) {
+              return false;
+            }
+          }
+        }
+
+        return true;
+      });
+    }
+
+    console.log('🎯 DOCTOR APPOINTMENTS: Displaying', result.length, 'appointments (filter:', appointmentFilter + ', search filters active:', !!(filterDate || filterPatientName || filterPatientId || filterNhsNumber) + ')');
     return result;
-  }, [doctorAppointments, categorizedAppointments, appointmentFilter]);
+  }, [doctorAppointments, categorizedAppointments, appointmentFilter, filterDate, filterPatientName, filterPatientId, filterNhsNumber, patientsData]);
 
   // Get next upcoming appointment
   const nextAppointment = categorizedAppointments.upcoming[0] || null;
@@ -287,6 +332,79 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
           All ({doctorAppointments.length})
         </Button>
       </div>
+
+      {/* Search Filters */}
+      <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+        <CardContent className="p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Search className="h-5 w-5 text-blue-600" />
+            <span className="text-sm font-semibold text-blue-800 dark:text-blue-300">Search Appointments</span>
+            {(filterDate || filterPatientName || filterPatientId || filterNhsNumber) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setFilterDate("");
+                  setFilterPatientName("");
+                  setFilterPatientId("");
+                  setFilterNhsNumber("");
+                }}
+                className="ml-auto text-xs"
+                data-testid="button-clear-filters"
+              >
+                <X className="h-4 w-4 mr-1" />
+                Clear Filters
+              </Button>
+            )}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <div>
+              <label className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 block">Date</label>
+              <Input
+                type="date"
+                value={filterDate}
+                onChange={(e) => setFilterDate(e.target.value)}
+                placeholder="Filter by date"
+                className="w-full"
+                data-testid="input-filter-date"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 block">Patient Name</label>
+              <Input
+                type="text"
+                value={filterPatientName}
+                onChange={(e) => setFilterPatientName(e.target.value)}
+                placeholder="Search by name"
+                className="w-full"
+                data-testid="input-filter-patient-name"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 block">Patient ID</label>
+              <Input
+                type="text"
+                value={filterPatientId}
+                onChange={(e) => setFilterPatientId(e.target.value)}
+                placeholder="Search by patient ID"
+                className="w-full"
+                data-testid="input-filter-patient-id"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 block">NHS Number</label>
+              <Input
+                type="text"
+                value={filterNhsNumber}
+                onChange={(e) => setFilterNhsNumber(e.target.value)}
+                placeholder="Search by NHS number"
+                className="w-full"
+                data-testid="input-filter-nhs-number"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Weekly View */}
       {viewMode === "week" && (
