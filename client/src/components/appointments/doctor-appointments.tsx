@@ -145,7 +145,8 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
     if (patientsData && Array.isArray(patientsData)) {
       const patient = patientsData.find((p: any) => p.id === patientId);
       if (patient) {
-        return `${patient.firstName || ''} ${patient.lastName || ''}`.trim() || `Patient ${patientId}`;
+        const name = `${patient.firstName || ''} ${patient.lastName || ''}`.trim();
+        return name || `Patient ${patientId}`;
       }
     }
     
@@ -153,7 +154,8 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
     if (usersData && Array.isArray(usersData)) {
       const userPatient = usersData.find((u: any) => u.id === patientId && u.role === 'patient');
       if (userPatient) {
-        return `${userPatient.firstName || ''} ${userPatient.lastName || ''}`.trim() || `Patient ${patientId}`;
+        const name = `${userPatient.firstName || ''} ${userPatient.lastName || ''}`.trim();
+        return name || `Patient ${patientId}`;
       }
     }
     
@@ -199,7 +201,8 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
   const weekEnd = endOfWeek(selectedDate);
   const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
 
-  if (isLoading || usersLoading || patientsLoading) {
+  // Wait until all data is loaded, including usersData which is needed for patient names
+  if (isLoading || usersLoading || patientsLoading || !usersData) {
     return (
       <Card>
         <CardContent className="p-6">
