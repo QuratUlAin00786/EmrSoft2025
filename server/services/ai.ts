@@ -3,6 +3,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import * as chrono from "chrono-node";
 import type { Patient, MedicalRecord } from "@shared/schema";
 import { storage } from "../storage";
+import { isDoctorLike } from '../utils/role-utils.js';
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ 
@@ -654,7 +655,7 @@ export class AiService {
         storage.getPrescriptionsByOrganization(organizationId)
       ]);
 
-      const doctors = users.filter(u => u.role === 'doctor' || u.role === 'admin');
+      const doctors = users.filter(u => isDoctorLike(u.role) || u.role === 'admin');
       
       const conversationHistoryText = context.conversationHistory
         .slice(-8)
@@ -1065,7 +1066,7 @@ Provide intelligent, contextually aware responses that demonstrate advanced lang
       if (appointmentDetails.doctor_preference) {
         const users = await storage.getUsersByOrganization(organizationId);
         provider = users.find((u: any) => 
-          u.role === 'doctor' &&
+          isDoctorLike(u.role) &&
           (u.firstName?.toLowerCase().includes(appointmentDetails.doctor_preference.toLowerCase()) ||
            u.lastName?.toLowerCase().includes(appointmentDetails.doctor_preference.toLowerCase()) ||
            `${u.firstName} ${u.lastName}`.toLowerCase().includes(appointmentDetails.doctor_preference.toLowerCase()))
@@ -1075,7 +1076,7 @@ Provide intelligent, contextually aware responses that demonstrate advanced lang
       // Use first available doctor if no specific preference
       if (!provider) {
         const users = await storage.getUsersByOrganization(organizationId);
-        provider = users.find((u: any) => u.role === 'doctor');
+        provider = users.find((u: any) => isDoctorLike(u.role));
       }
 
       // Parse date and time
@@ -2116,7 +2117,7 @@ Return JSON with this structure:
         storage.getAppointmentsByOrganization(params.organizationId)
       ]);
 
-      const doctors = allUsers.filter((user: any) => user.role === 'doctor' && user.isActive);
+      const doctors = allUsers.filter((user: any) => isDoctorLike(user.role) && user.isActive);
       const currentUser = allUsers.find((user: any) => user.id === params.userId);
 
       // Build system context with real data
@@ -2347,7 +2348,7 @@ IMPORTANT: Review the full conversation history and remember all details mention
       
       // Get real data
       const allUsers = await storage.getUsersByOrganization(params.organizationId);
-      const doctors = allUsers.filter((user: any) => user.role === 'doctor' && user.isActive);
+      const doctors = allUsers.filter((user: any) => isDoctorLike(user.role) && user.isActive);
       const patients = await storage.getPatientsByOrganization(params.organizationId, 20);
       
       // Find patient and doctor mentioned in the ENTIRE conversation
@@ -3009,7 +3010,7 @@ IMPORTANT: Review the full conversation history and remember all details mention
         
         // Get available doctors and patients for context
         const allUsers = await storage.getUsersByOrganization(params.organizationId);
-        const doctors = allUsers.filter((user: any) => user.role === 'doctor');
+        const doctors = allUsers.filter((user: any) => isDoctorLike(user.role));
         const patients = await storage.getPatientsByOrganization(params.organizationId, 20);
         
         // Check conversation history for previously identified patient/doctor
@@ -3499,7 +3500,7 @@ IMPORTANT: Review the full conversation history and remember all details mention
         
         const patients = await storage.getPatientsByOrganization(params.organizationId, 5);
         const allUsers = await storage.getUsersByOrganization(params.organizationId);
-        const doctors = allUsers.filter((user: any) => user.role === 'doctor');
+        const doctors = allUsers.filter((user: any) => isDoctorLike(user.role));
         const stats = await storage.getDashboardStats(params.organizationId);
         
         response = `Hello! I can help you with:

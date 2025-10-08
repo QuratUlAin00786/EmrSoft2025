@@ -1,3 +1,4 @@
+import { isDoctorLike } from './utils/role-utils.js';
 import { 
   organizations, users, patients, medicalRecords, appointments, invoices, payments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages, clinicalPhotos, labResults, claims, revenueRecords, insuranceVerifications, clinicalProcedures, emergencyProtocols, medicationsDatabase, roles, staffShifts, doctorDefaultShifts, gdprConsents, gdprDataRequests, gdprAuditTrail, gdprProcessingActivities, conversations as conversationsTable, messages, voiceNotes, saasOwners, saasPackages, saasSubscriptions, saasPayments, saasInvoices, saasSettings, chatbotConfigs, chatbotSessions, chatbotMessages, chatbotAnalytics, musclePositions, userDocumentPreferences, letterDrafts, forecastModels, financialForecasts, quickbooksConnections, quickbooksSyncLogs, quickbooksCustomerMappings, quickbooksInvoiceMappings, quickbooksPaymentMappings, quickbooksAccountMappings, quickbooksItemMappings, quickbooksSyncConfigs,
   type Organization, type InsertOrganization,
@@ -2507,7 +2508,7 @@ export class DatabaseStorage implements IStorage {
       let patientIdentifier = '';
       
       for (const p of participants) {
-        if (p.role === 'admin' || p.role === 'doctor' || p.role === 'nurse') {
+        if (p.role === 'admin' || isDoctorLike(p.role) || p.role === 'nurse') {
           adminId = p.id?.toString() || '';
         } else if (p.role === 'patient') {
           // Use name as identifier if id is missing, or use id if available

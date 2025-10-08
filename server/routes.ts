@@ -14,6 +14,7 @@ import { tenantMiddleware, authMiddleware, requireRole, requireNonPatientRole, g
 import { multiTenantEnforcer, validateOrganizationFilter, withTenantIsolation } from "./middleware/multi-tenant-enforcer";
 import { initializeMultiTenantPackage, getMultiTenantPackage } from "./packages/multi-tenant-core";
 import { messagingService } from "./messaging-service";
+import { isDoctorLike } from './utils/role-utils.js';
 // PayPal imports moved to dynamic imports to avoid initialization errors when credentials are missing
 import { gdprComplianceService } from "./services/gdpr-compliance";
 import { insertGdprConsentSchema, insertGdprDataRequestSchema, updateMedicalImageReportFieldSchema, insertAiInsightSchema, medicationsDatabase, patientDrugInteractions, type Appointment, organizations, subscriptions, users, symptomChecks, quickbooksConnections } from "../shared/schema";
@@ -3985,7 +3986,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Get total doctor count
-      const totalDoctors = users.filter(user => user.role === 'doctor' && user.isActive).length;
+      const totalDoctors = users.filter(user => isDoctorLike(user.role) && user.isActive).length;
       
       console.log(`=== MEDICAL STAFF DEBUG ===`);
       console.log(`Total users: ${users.length}`);
@@ -4019,7 +4020,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
           
           const matches = matchesSpecialty && matchesSubSpecialty;
-          if (user.role === 'doctor') {
+          if (isDoctorLike(user.role)) {
             console.log(`  Doctor: ${user.firstName} ${user.lastName}`);
             console.log(`    Category: "${user.medicalSpecialtyCategory}" matches "${specialty}": ${matchesSpecialty}`);
             console.log(`    Sub-specialty: "${user.subSpecialty}" matches "${subSpecialty}": ${matchesSubSpecialty}`);
@@ -4032,7 +4033,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       medicalStaff = medicalStaff.filter(user => {
           // For doctors specifically, apply minimal restrictions for patient access
-          if (user.role === 'doctor') {
+          if (isDoctorLike(user.role)) {
             console.log(`Checking doctor: ${user.firstName} ${user.lastName} (ID: ${user.id})`);
             
             // If this is a specialty filtering request (for doctor selection/browsing),
@@ -4081,7 +4082,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       
       // Count available doctors
-      const availableDoctors = medicalStaff.filter(user => user.role === 'doctor').length;
+      const availableDoctors = medicalStaff.filter(user => isDoctorLike(user.role)).length;
       
       console.log(`Available doctors after filtering: ${availableDoctors}`);
       console.log(`=== END DEBUG ===`);
@@ -4106,7 +4107,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Filter for active doctors only
       const doctors = users
-        .filter(user => user.role === 'doctor' && user.isActive)
+        .filter(user => isDoctorLike(user.role) && user.isActive)
         .map(user => {
           const { passwordHash, ...safeUser } = user;
           return safeUser;
@@ -4150,7 +4151,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Filter for active doctors only
       let filteredDoctors = users.filter(user => 
-        user.role === 'doctor' && 
+        isDoctorLike(user.role) && 
         user.isActive && 
         user.organizationId === req.tenant!.id
       );
@@ -11785,7 +11786,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const users = await storage.getUsersByOrganization(req.tenant!.id);
       
       const doctors = users
-        .filter(user => user.role === 'doctor' && user.isActive)
+        .filter(user => isDoctorLike(user.role) && user.isActive)
         .map(doctor => ({
           id: doctor.id,
           name: `Dr. ${doctor.firstName} ${doctor.lastName}`,
@@ -12302,7 +12303,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get available doctors and time slots for context
       const doctors = await storage.getUsersByOrganization(req.tenant!.id);
       const availableDoctors = doctors
-        .filter(doctor => doctor.role === 'doctor' && doctor.isActive)
+        .filter(doctor => isDoctorLike(doctor.role) && doctor.isActive)
         .map(doctor => ({
           id: doctor.id,
           name: `${doctor.firstName} ${doctor.lastName}`,
@@ -12399,7 +12400,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const doctors = await storage.getUsersByOrganization(req.tenant!.id);
       const availableDoctors = doctors
-        .filter(doctor => doctor.role === 'doctor' && doctor.isActive)
+        .filter(doctor => isDoctorLike(doctor.role) && doctor.isActive)
         .map(doctor => ({
           id: doctor.id,
           name: `${doctor.firstName} ${doctor.lastName}`,
