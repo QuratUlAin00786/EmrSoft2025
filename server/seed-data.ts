@@ -33,50 +33,9 @@ export async function seedDatabase() {
     // Create sample users - only create if they don't exist
     const existingUsers = await db.select().from(users).where(eq(users.organizationId, org.id));
     
-    console.log(`Found ${existingUsers.length} existing users, preserving user data`);
+    console.log(`Found ${existingUsers.length} existing users - preserving credentials (database-driven authentication)`);
     
     let createdUsers = existingUsers;
-    
-    // Update existing user passwords to standardized ones
-    if (existingUsers.length > 0) {
-      console.log("Updating existing user passwords to standardized credentials...");
-      
-      const hashedAdminPassword = await authService.hashPassword("admin123");
-      const hashedDoctorPassword = await authService.hashPassword("doctor123");
-      const hashedNursePassword = await authService.hashPassword("nurse123");
-      const hashedPatientPassword = await authService.hashPassword("patient123");
-      const hashedLabTechPassword = await authService.hashPassword("labtech123");
-      
-      // Update passwords for existing users
-      for (const user of existingUsers) {
-        let newPassword = hashedAdminPassword; // default
-        
-        switch (user.role) {
-          case 'admin':
-            newPassword = hashedAdminPassword;
-            break;
-          case 'doctor':
-            newPassword = hashedDoctorPassword;
-            break;
-          case 'nurse':
-            newPassword = hashedNursePassword;
-            break;
-          case 'patient':
-            newPassword = hashedPatientPassword;
-            break;
-          case 'lab_technician':
-          case 'receptionist':
-            newPassword = hashedLabTechPassword;
-            break;
-        }
-        
-        await db.update(users)
-          .set({ passwordHash: newPassword })
-          .where(eq(users.id, user.id));
-      }
-      
-      console.log("Updated passwords for all existing users to standardized credentials");
-    }
     
     // Only create default users if no users exist
     if (existingUsers.length === 0) {
