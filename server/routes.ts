@@ -6227,12 +6227,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "User not authenticated" });
       }
 
-      console.log("📋 Fetching all invoices from database for organization:", req.tenant!.id);
+      console.log("📋 Fetching invoices from database for organization:", req.tenant!.id, "User role:", req.user.role);
       
       // Fetch all invoices from the database
-      const invoices = await storage.getInvoicesByOrganization(req.tenant!.id);
+      let invoices = await storage.getInvoicesByOrganization(req.tenant!.id);
       
-      console.log(`✅ Found ${invoices.length} invoices in database`);
+      // Filter invoices for patient users - only show their own invoices
+      if (req.user.role === "patient") {
+        console.log("👤 User is a patient - filtering invoices by patient email:", req.user.email);
+        
+        // Find the patient record for this user to get their patientId
+        const patients = await storage.getPatientsByOrganization(req.tenant!.id);
+        const userPatient = patients.find(p => p.email?.toLowerCase() === req.user!.email.toLowerCase());
+        
+        if (userPatient) {
+          console.log("✅ Found patient record:", userPatient.id, "Filtering invoices...");
+          // Filter to only show invoices for this patient
+          invoices = invoices.filter(inv => inv.patientId === userPatient.id);
+          console.log(`📋 Filtered to ${invoices.length} invoices for patient ID ${userPatient.id}`);
+        } else {
+          console.log("⚠️ No patient record found for user email:", req.user.email);
+          // If no patient record found, return empty array
+          invoices = [];
+        }
+      }
+      
+      console.log(`✅ Returning ${invoices.length} invoices`);
       
       res.json(invoices);
     } catch (error) {
