@@ -404,7 +404,6 @@ export default function UserManagement() {
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
   const [editingRole, setEditingRole] = useState<Role | null>(null);
   const [activeTab, setActiveTab] = useState<"users" | "roles">("users");
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
   
   // View type states
   const [userViewType, setUserViewType] = useState<"list" | "grid">("list");
@@ -840,10 +839,10 @@ export default function UserManagement() {
       setEditingRole(null);
       roleForm.reset();
       
-      // Delay showing success modal to ensure React re-renders with fresh data
-      setTimeout(() => {
-        setShowSuccessModal(true);
-      }, 100);
+      toast({
+        title: "Role Updated",
+        description: "The role permissions have been updated successfully.",
+      });
     },
     onError: (error: any) => {
       toast({
@@ -3037,29 +3036,6 @@ export default function UserManagement() {
           </>
         )}
       </div>
-      
-      {/* Success Modal */}
-      <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-green-600">
-              <Check className="h-5 w-5" />
-              Success
-            </DialogTitle>
-            <DialogDescription>
-              The role has been updated successfully.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="sm:justify-center">
-            <Button
-              onClick={() => setShowSuccessModal(false)}
-              className="w-full sm:w-auto"
-            >
-              OK
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
