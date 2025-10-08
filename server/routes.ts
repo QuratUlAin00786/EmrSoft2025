@@ -4662,6 +4662,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const patientId = `P${(patientCount.length + 1).toString().padStart(6, '0')}`;
 
           const patientData = {
+            userId: user.id,
             firstName: userData.firstName,
             lastName: userData.lastName,
             dateOfBirth: userData.dateOfBirth ? new Date(userData.dateOfBirth) : new Date('1990-01-01'),
