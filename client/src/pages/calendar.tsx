@@ -176,6 +176,10 @@ export default function CalendarPage() {
   const [openRoleCombo, setOpenRoleCombo] = useState(false);
   const [openProviderCombo, setOpenProviderCombo] = useState(false);
   
+  // Validation error states for patient booking
+  const [roleError, setRoleError] = useState<string>("");
+  const [providerError, setProviderError] = useState<string>("");
+  
   // Filter functionality state
   const [showFilterPanel, setShowFilterPanel] = useState(false);
   const [filterSpecialty, setFilterSpecialty] = useState("");
@@ -1772,6 +1776,7 @@ export default function CalendarPage() {
                                         onSelect={(currentValue) => {
                                           setSelectedRole(currentValue);
                                           setSelectedProviderId("");
+                                          setRoleError(""); // Clear error on selection
                                           setOpenRoleCombo(false);
                                         }}
                                       >
@@ -1788,6 +1793,9 @@ export default function CalendarPage() {
                               </Command>
                             </PopoverContent>
                           </Popover>
+                          {roleError && (
+                            <p className="text-red-600 text-sm mt-1">{roleError}</p>
+                          )}
                         </div>
 
                         {/* Select Name */}
@@ -1826,6 +1834,7 @@ export default function CalendarPage() {
                                           value={`${provider.firstName} ${provider.lastName}`}
                                           onSelect={() => {
                                             setSelectedProviderId(provider.id.toString());
+                                            setProviderError(""); // Clear error on selection
                                             setOpenProviderCombo(false);
                                           }}
                                         >
@@ -1842,6 +1851,9 @@ export default function CalendarPage() {
                                 </Command>
                               </PopoverContent>
                             </Popover>
+                            {providerError && (
+                              <p className="text-red-600 text-sm mt-1">{providerError}</p>
+                            )}
                           </div>
                         )}
 
@@ -1962,7 +1974,21 @@ export default function CalendarPage() {
                         <CalendarComponent
                           mode="single"
                           selected={selectedDate}
-                          onSelect={setSelectedDate}
+                          onSelect={(date) => {
+                            // Validate that role and provider are selected first
+                            if (!selectedRole) {
+                              setRoleError("please select Role first");
+                              return;
+                            }
+                            if (!selectedProviderId) {
+                              setProviderError("please select name first");
+                              return;
+                            }
+                            // Clear errors and set date if validation passes
+                            setRoleError("");
+                            setProviderError("");
+                            setSelectedDate(date);
+                          }}
                           disabled={(date) => {
                             // Disable past dates (but allow today)
                             if (isBefore(startOfDay(date), startOfDay(new Date()))) return true;
