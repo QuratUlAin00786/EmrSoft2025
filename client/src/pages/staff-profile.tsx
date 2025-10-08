@@ -7,6 +7,7 @@ import { Avatar, AvatarContent, AvatarFallback } from "@/components/ui/avatar";
 import { Stethoscope, Mail, Phone, MapPin, Calendar, Clock, User, Building } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import type { User as StaffMember } from "@/types";
+import { isDoctorLike } from "@/lib/role-utils";
 
 function getInitials(firstName: string, lastName: string): string {
   return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
@@ -248,7 +249,7 @@ export default function StaffProfile() {
               </CardContent>
             </Card>
 
-            {staffMember.role === 'doctor' && (
+            {isDoctorLike(staffMember.role) && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">

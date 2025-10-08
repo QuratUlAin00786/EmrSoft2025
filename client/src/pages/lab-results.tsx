@@ -8,6 +8,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { Header } from "@/components/layout/header";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import { isDoctorLike } from "@/lib/role-utils";
 
 // Medical Specialties Data Structure
 const medicalSpecialties = {
@@ -421,7 +422,7 @@ export default function LabResultsPage() {
     selectedSpecialtyCategory || selectedSubSpecialty
       ? filteredDoctorsData?.doctors || []
       : medicalStaffData?.staff?.filter(
-          (staff: any) => staff.role === "doctor",
+          (staff: any) => isDoctorLike(staff.role),
         ) || [];
 
   const { data: users = [] } = useQuery<User[]>({

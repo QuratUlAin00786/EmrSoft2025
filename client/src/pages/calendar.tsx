@@ -18,6 +18,7 @@ import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
+import { isDoctorLike } from "@/lib/role-utils";
 
 // Medical Specialties Data Structure - same as user-management.tsx
 const medicalSpecialties = {
@@ -1034,7 +1035,7 @@ export default function CalendarPage() {
 
   // Auto-detect doctor when modal opens if user is a doctor
   useEffect(() => {
-    if (showNewAppointmentModal && user?.role === 'doctor' && allDoctors.length > 0) {
+    if (showNewAppointmentModal && isDoctorLike(user?.role) && allDoctors.length > 0) {
       console.log('🔍 DOCTOR AUTO-DETECT: Modal opened for doctor role');
       console.log('📊 DOCTOR AUTO-DETECT: Total doctors fetched from users table:', allDoctors.length);
       console.log('👤 DOCTOR AUTO-DETECT: Current user ID:', user.id);
@@ -2004,7 +2005,7 @@ export default function CalendarPage() {
                       </div>
                     </div>
                   </div>
-                ) : user?.role === 'doctor' ? (
+                ) : isDoctorLike(user?.role) ? (
                   /* For doctor role - New UI Layout */
                   <div className="space-y-6">
                     {/* Row 1: Select Patient + Patient Information | Select Duration + Doctor Details */}

@@ -36,6 +36,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { Toaster } from "@/components/ui/toaster";
+import { isDoctorLike } from "@/lib/role-utils";
 import {
   ArrowLeft,
   Bold,
@@ -1341,7 +1342,7 @@ Coverage Details: [Insurance Coverage]`;
   });
 
   // Filter users to get only doctors and patients
-  const doctors = users.filter((user) => user.role === 'doctor' && user.isActive);
+  const doctors = users.filter((user) => isDoctorLike(user.role) && user.isActive);
   const patients = users.filter((user) => user.role === 'patient' && user.isActive);
   const [editingClinicInfo, setEditingClinicInfo] = useState({
     name: "",
@@ -7393,9 +7394,9 @@ Registration No: [Number]`
                       // For patient role, show doctors from users table
                       usersLoading ? (
                         <SelectItem value="loading" disabled>Loading doctors...</SelectItem>
-                      ) : users.filter(u => u.role === 'doctor').length > 0 ? (
+                      ) : users.filter(u => isDoctorLike(u.role)).length > 0 ? (
                         users
-                          .filter((doctor) => doctor.role === 'doctor' && doctor.email && doctor.email.trim() !== "")
+                          .filter((doctor) => isDoctorLike(doctor.role) && doctor.email && doctor.email.trim() !== "")
                           .map((doctor) => (
                             <SelectItem key={doctor.id} value={doctor.email!}>
                               Dr. {doctor.firstName} {doctor.lastName} ({doctor.email})
