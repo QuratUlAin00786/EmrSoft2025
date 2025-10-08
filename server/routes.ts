@@ -5887,7 +5887,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/prescriptions/:id", authMiddleware, requireRole(["doctor", "nurse"]), async (req: TenantRequest, res) => {
+  app.patch("/api/prescriptions/:id", authMiddleware, requireRole(["admin", "doctor", "nurse"]), async (req: TenantRequest, res) => {
     try {
       if (!req.user) {
         return res.status(401).json({ error: "User not authenticated" });
