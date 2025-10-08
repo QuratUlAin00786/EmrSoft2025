@@ -373,11 +373,7 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
                             <User className="h-4 w-4 text-gray-400" />
                             <span className="text-sm">{getPatientName(appointment.patientId)}</span>
                           </div>
-                          {appointment.createdBy && (
-                            <div className="text-xs text-gray-500 mt-1">
-                              Booked by: {getCreatedByName(appointment.createdBy)}
-                            </div>
-                          )}
+                         
                         </div>
                       </div>
                       <div className="text-right">

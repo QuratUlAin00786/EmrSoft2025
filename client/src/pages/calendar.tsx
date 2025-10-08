@@ -1503,7 +1503,7 @@ export default function CalendarPage() {
               <div className="mb-4">
                 <h4 className="font-medium text-gray-900 dark:text-white flex items-center gap-2 mb-3">
                   <Users className="h-4 w-4 text-gray-900 dark:text-white" />
-                  Available Doctors
+                  Available Staff
                 </h4>
               </div>
               <DoctorList 
@@ -1535,29 +1535,12 @@ export default function CalendarPage() {
                     <X className="h-4 w-4" />
                   </Button>
                 </div>
-                
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div>
-                    <Label htmlFor="patientId">Patient *</Label>
-                    <Select value={bookingForm.patientId} onValueChange={(value) => setBookingForm(prev => ({ ...prev, patientId: value }))}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select patient..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {patients.map((patient: any) => (
-                          <SelectItem key={patient.id} value={patient.patientId || patient.id.toString()}>
-                            {patient.firstName} {patient.lastName}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+           
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Date & Time *</Label>
                   
-                  <div>
-                    <Label className="text-sm font-medium">Date & Time *</Label>
-                    
-                    {/* Select Date */}
-                    <div className="mt-2 space-y-4">
+                  {/* Select Date */}
+                  <div className="mt-2 space-y-4">
                       <div>
                         <Label className="text-sm font-medium">Select Date</Label>
                         <CalendarComponent
@@ -1626,8 +1609,9 @@ export default function CalendarPage() {
                         </div>
                       )}
                     </div>
-                  </div>
-                  
+                </div>
+                
+                <div className="grid gap-4 md:grid-cols-2">
                   <div>
                     <Label htmlFor="type">Appointment Type</Label>
                     <Select value={bookingForm.type} onValueChange={(value) => setBookingForm(prev => ({ ...prev, type: value }))}>
