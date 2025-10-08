@@ -111,34 +111,11 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
 
   // Helper functions - MUST be defined before useMemo that uses them
   const getPatientName = React.useCallback((patientId: number) => {
-    // The system stores USER IDs in appointments.patient_id field
-    // Strategy: Try user table first (most common), then patients table
-    
-    // Step 1: Try to find user directly by ID with role='patient' (appointments store user IDs)
-    if (usersData && Array.isArray(usersData)) {
-      const userPatient = usersData.find((u: any) => u.id === patientId && u.role === 'patient');
-      
-      if (userPatient) {
-        const name = `${userPatient.firstName || ''} ${userPatient.lastName || ''}`.trim();
-        if (name) return name;
-      }
-    }
-    
-    // Step 2: Fallback - Try patients table in case patientId is actually a patient table ID
+    // patientId is actually a user ID - find patient record by user_id
     if (patientsData && Array.isArray(patientsData)) {
-      const patient = patientsData.find((p: any) => p.id === patientId);
+      const patient = patientsData.find((p: any) => p.userId === patientId);
       
       if (patient) {
-        // If patient has userId, get name from users table
-        if (patient.userId && usersData && Array.isArray(usersData)) {
-          const user = usersData.find((u: any) => u.id === patient.userId);
-          if (user) {
-            const name = `${user.firstName || ''} ${user.lastName || ''}`.trim();
-            if (name) return name;
-          }
-        }
-        
-        // Otherwise use patient's own firstName/lastName
         const name = `${patient.firstName || ''} ${patient.lastName || ''}`.trim();
         if (name) return name;
       }
