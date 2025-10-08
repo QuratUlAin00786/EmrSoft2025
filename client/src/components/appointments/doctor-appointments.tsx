@@ -111,36 +111,36 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
 
   // Helper functions - MUST be defined before useMemo that uses them
   const getPatientName = React.useCallback((patientId: number) => {
-    // Step 1: Find the patient record in patients table by patientId
-    if (patientsData && Array.isArray(patientsData)) {
-      const patient = patientsData.find((p: any) => p.id === patientId);
-      
-      if (patient && patient.userId) {
-        // Step 2: Get the user record using patient.userId
-        if (usersData && Array.isArray(usersData)) {
-          const user = usersData.find((u: any) => u.id === patient.userId);
-          
-          if (user) {
-            const name = `${user.firstName || ''} ${user.lastName || ''}`.trim();
-            return name || `Patient ${patientId}`;
-          }
-        }
-      }
-      
-      // If patient exists but no userId, try using patient's own firstName/lastName
-      if (patient) {
-        const name = `${patient.firstName || ''} ${patient.lastName || ''}`.trim();
-        if (name) return name;
-      }
-    }
+    // The system stores USER IDs in appointments.patient_id field
+    // Strategy: Try user table first (most common), then patients table
     
-    // Fallback: Try to find user directly by patientId in users table with role='patient'
+    // Step 1: Try to find user directly by ID with role='patient' (appointments store user IDs)
     if (usersData && Array.isArray(usersData)) {
       const userPatient = usersData.find((u: any) => u.id === patientId && u.role === 'patient');
       
       if (userPatient) {
         const name = `${userPatient.firstName || ''} ${userPatient.lastName || ''}`.trim();
-        return name || `Patient ${patientId}`;
+        if (name) return name;
+      }
+    }
+    
+    // Step 2: Fallback - Try patients table in case patientId is actually a patient table ID
+    if (patientsData && Array.isArray(patientsData)) {
+      const patient = patientsData.find((p: any) => p.id === patientId);
+      
+      if (patient) {
+        // If patient has userId, get name from users table
+        if (patient.userId && usersData && Array.isArray(usersData)) {
+          const user = usersData.find((u: any) => u.id === patient.userId);
+          if (user) {
+            const name = `${user.firstName || ''} ${user.lastName || ''}`.trim();
+            if (name) return name;
+          }
+        }
+        
+        // Otherwise use patient's own firstName/lastName
+        const name = `${patient.firstName || ''} ${patient.lastName || ''}`.trim();
+        if (name) return name;
       }
     }
     
