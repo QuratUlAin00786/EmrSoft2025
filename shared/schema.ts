@@ -299,7 +299,7 @@ export const doctorDefaultShifts = pgTable("doctor_default_shifts", {
 export const patients = pgTable("patients", {
   id: serial("id").primaryKey(),
   organizationId: integer("organization_id").notNull(),
-  userId: integer("user_id").notNull().references(() => users.id), // Foreign key to users table
+  userId: integer("user_id").references(() => users.id), // Foreign key to users table
   patientId: text("patient_id").notNull(), // Custom patient ID per organization
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
