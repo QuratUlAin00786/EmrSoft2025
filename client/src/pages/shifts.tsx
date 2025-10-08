@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Calendar, Clock, Users, CalendarCheck, ChevronLeft, ChevronRight, UserCheck, Trash2, Edit, Settings, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
+import { isDoctorLike } from "@/lib/role-utils";
 
 export default function ShiftsPage() {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -664,7 +665,7 @@ export default function ShiftsPage() {
           // Get staff name for modal display
           const staffMember = staff.find((s: any) => s.id === parseInt(selectedStaffId));
           const staffName = staffMember 
-            ? `${staffMember.role === 'doctor' ? 'Dr.' : ''} ${staffMember.firstName} ${staffMember.lastName}`
+            ? `${isDoctorLike(staffMember.role) ? 'Dr.' : ''} ${staffMember.firstName} ${staffMember.lastName}`
             : 'Unknown Staff';
 
           // Track the update
@@ -921,7 +922,7 @@ export default function ShiftsPage() {
               ) : filteredStaff.length > 0 ? (
                 filteredStaff.map((member: any) => (
                   <SelectItem key={member.id} value={member.id.toString()}>
-                    {member.role === 'doctor' ? 'Dr.' : ''} {member.firstName} {member.lastName}
+                    {isDoctorLike(member.role) ? 'Dr.' : ''} {member.firstName} {member.lastName}
                   </SelectItem>
                 ))
               ) : selectedRole ? (
@@ -1174,7 +1175,7 @@ export default function ShiftsPage() {
               .map((shift: any) => {
               const staffMember = staff.find((s: any) => s.id === shift.staffId);
               const staffName = staffMember 
-                ? `${staffMember.role === 'doctor' ? 'Dr.' : ''} ${staffMember.firstName} ${staffMember.lastName}`
+                ? `${isDoctorLike(staffMember.role) ? 'Dr.' : ''} ${staffMember.firstName} ${staffMember.lastName}`
                 : 'Unknown Staff';
               
               return (
@@ -1275,7 +1276,7 @@ export default function ShiftsPage() {
                     {/* Doctor Info */}
                     <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
                       <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-300">
-                        {selectedDoctor.role === 'doctor' ? 'Dr.' : ''} {selectedDoctor.firstName} {selectedDoctor.lastName}
+                        {isDoctorLike(selectedDoctor.role) ? 'Dr.' : ''} {selectedDoctor.firstName} {selectedDoctor.lastName}
                       </h3>
                       <p className="text-blue-700 dark:text-blue-400">{selectedDoctor.email}</p>
                       <p className="text-blue-600 dark:text-blue-400 capitalize">{selectedDoctor.role}</p>
@@ -1650,7 +1651,7 @@ export default function ShiftsPage() {
                 {conflictingShifts.map((shift: any) => {
                   const staffMember = staff.find((s: any) => s.id === shift.staffId);
                   const staffName = staffMember 
-                    ? `${staffMember.role === 'doctor' ? 'Dr.' : ''} ${staffMember.firstName} ${staffMember.lastName}`
+                    ? `${isDoctorLike(staffMember.role) ? 'Dr.' : ''} ${staffMember.firstName} ${staffMember.lastName}`
                     : 'Unknown Staff';
 
                   return (

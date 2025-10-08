@@ -47,6 +47,7 @@ import { toast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Header } from "@/components/layout/header";
 import { getActiveSubdomain } from "@/lib/subdomain-utils";
+import { isDoctorLike } from "@/lib/role-utils";
 
 
 const userSchema = z.object({
@@ -1228,11 +1229,11 @@ export default function UserManagement() {
       }
     }
     
-    // Include medical specialty fields for doctor role
+    // Include medical specialty fields for doctor-like roles
     const submitData: any = {
       ...data,
-      medicalSpecialtyCategory: data.role === 'doctor' ? selectedSpecialtyCategory : undefined,
-      subSpecialty: data.role === 'doctor' ? selectedSubSpecialty : undefined,
+      medicalSpecialtyCategory: isDoctorLike(data.role) ? selectedSpecialtyCategory : undefined,
+      subSpecialty: isDoctorLike(data.role) ? selectedSubSpecialty : undefined,
     };
     
     // Combine dobDay, dobMonth, dobYear into dateOfBirth for patient role
@@ -1309,8 +1310,8 @@ export default function UserManagement() {
       password: "", // Don't pre-fill password for security
     };
 
-    // Set medical specialty fields for doctor role
-    if (user.role === 'doctor') {
+    // Set medical specialty fields for doctor-like roles
+    if (isDoctorLike(user.role)) {
       setSelectedSpecialtyCategory(user.medicalSpecialtyCategory || "");
       setSelectedSubSpecialty(user.subSpecialty || "");
       userData.medicalSpecialtyCategory = user.medicalSpecialtyCategory || "";
@@ -1796,8 +1797,8 @@ export default function UserManagement() {
                       <Select onValueChange={(value) => {
                         form.setValue("role", value as any);
                         setSelectedRole(value);
-                        // Reset specialty selections when role changes
-                        if (value !== "doctor") {
+                        // Reset specialty selections when role changes to non-doctor-like role
+                        if (!isDoctorLike(value)) {
                           setSelectedSpecialtyCategory("");
                           setSelectedSubSpecialty("");
                           setSelectedSpecificArea("");
@@ -1826,8 +1827,8 @@ export default function UserManagement() {
                   </div>
                 </div>
 
-                {/* Doctor Specialty Dropdowns - Only show when role is doctor */}
-                {selectedRole === "doctor" && (
+                {/* Doctor Specialty Dropdowns - Only show when role is doctor-like */}
+                {isDoctorLike(selectedRole) && (
                   <>
                     <div className="space-y-2">
                       <Label htmlFor="specialtyCategory">Medical Specialty Category</Label>
@@ -2294,7 +2295,7 @@ export default function UserManagement() {
                   </h4>
                   <p className="text-sm text-blue-700">
                     {selectedRole === 'admin' && "Full system access including user management, settings, and all clinical modules."}
-                    {selectedRole === 'doctor' && "Clinical access to patient records, appointments, prescriptions, and medical documentation."}
+                    {isDoctorLike(selectedRole) && "Clinical access to patient records, appointments, prescriptions, and medical documentation."}
                     {selectedRole === 'nurse' && "Patient care access including medical records, medications, and care coordination."}
                     {selectedRole === 'receptionist' && "Limited access to patient information, appointments, and billing functions."}
                     {selectedRole === 'patient' && "Personal health record access including appointments, prescriptions, and medical history."}
@@ -2393,8 +2394,8 @@ export default function UserManagement() {
                                 </p>
                               )}
                               
-                              {/* Medical Specialty Tags for Doctors */}
-                              {user.role === 'doctor' && (user.subSpecialty || user.medicalSpecialtyCategory) && (
+                              {/* Medical Specialty Tags for Doctor-like roles */}
+                              {isDoctorLike(user.role) && (user.subSpecialty || user.medicalSpecialtyCategory) && (
                                 <div className="flex gap-1 mt-2">
                                   {user.subSpecialty && (
                                     <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border">
@@ -2502,7 +2503,7 @@ export default function UserManagement() {
                         </p>
                       )}
                       
-                      {user.role === 'doctor' && (user.subSpecialty || user.medicalSpecialtyCategory) && (
+                      {isDoctorLike(user.role) && (user.subSpecialty || user.medicalSpecialtyCategory) && (
                         <div className="flex gap-1 mb-3 flex-wrap">
                           {user.subSpecialty && (
                             <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border">

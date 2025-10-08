@@ -48,6 +48,7 @@ import { format } from "date-fns";
 import { useAuth } from "@/hooks/use-auth";
 import { getActiveSubdomain } from "@/lib/subdomain-utils";
 import { useLocation } from "wouter";
+import { isDoctorLike } from "@/lib/role-utils";
 
 interface Prescription {
   id: string;
@@ -471,9 +472,9 @@ export default function PrescriptionsPage() {
       console.log("Fetched providers:", data);
       // Store all users for role-based filtering
       setAllUsers(Array.isArray(data) ? data : []);
-      // Filter to show only doctors and nurses
+      // Filter to show only doctor-like roles and nurses
       const filteredProviders = (Array.isArray(data) ? data : []).filter((provider: any) => 
-        provider.role === 'doctor' || provider.role === 'nurse'
+        isDoctorLike(provider.role) || provider.role === 'nurse'
       );
       setProviders(filteredProviders);
     } catch (err) {
@@ -604,8 +605,8 @@ export default function PrescriptionsPage() {
           console.log("❌ PRESCRIPTIONS: Patient not found for user:", user.email);
           return [];
         }
-      } else if (user.role === "doctor") {
-        // Get prescriptions created by this doctor
+      } else if (isDoctorLike(user.role)) {
+        // Get prescriptions created by this doctor-like role
         return await fetchPrescriptionsByDoctorId(user.id);
       } else {
         // For other roles (admin, nurse, etc.), show all prescriptions
