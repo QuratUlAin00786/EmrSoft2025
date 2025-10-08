@@ -467,13 +467,26 @@ export default function LabResultsPage() {
     },
   });
 
+  const [showPermissionErrorDialog, setShowPermissionErrorDialog] = useState(false);
+  const [permissionErrorMessage, setPermissionErrorMessage] = useState("");
+
   const updateLabResultMutation = useMutation({
     mutationFn: async (updateData: { id: number; data: any }) => {
-      return await apiRequest(
+      const response = await apiRequest(
         "PUT",
         `/api/lab-results/${updateData.id}`,
         updateData.data,
       );
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        const error: any = new Error(errorData.error || "Failed to update lab result");
+        error.status = response.status;
+        error.data = errorData;
+        throw error;
+      }
+      
+      return response;
     },
     onSuccess: () => {
       toast({
@@ -481,14 +494,21 @@ export default function LabResultsPage() {
         description: "Lab result updated successfully",
       });
       setIsEditMode(false);
+      setEditingStatusId(null);
       queryClient.invalidateQueries({ queryKey: ["/api/lab-results"] });
     },
     onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update lab result",
-        variant: "destructive",
-      });
+      if (error.status === 403) {
+        setPermissionErrorMessage(error.data?.error || "Insufficient permissions");
+        setShowPermissionErrorDialog(true);
+        setEditingStatusId(null);
+      } else {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to update lab result",
+          variant: "destructive",
+        });
+      }
     },
   });
 
@@ -3116,6 +3136,29 @@ Report generated from Cura EMR System`;
                 Download PDF
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Permission Error Dialog */}
+      <Dialog open={showPermissionErrorDialog} onOpenChange={setShowPermissionErrorDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-red-600 flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5" />
+              Permission Denied
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-gray-700">{permissionErrorMessage}</p>
+          </div>
+          <div className="flex justify-end">
+            <Button
+              onClick={() => setShowPermissionErrorDialog(false)}
+              variant="outline"
+            >
+              Close
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

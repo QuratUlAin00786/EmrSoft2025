@@ -6122,7 +6122,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Update lab result
-  app.put("/api/lab-results/:id", authMiddleware, requireRole(["doctor", "nurse"]), async (req: TenantRequest, res) => {
+  app.put("/api/lab-results/:id", authMiddleware, requireNonPatientRole(), async (req: TenantRequest, res) => {
     try {
       if (!req.user) {
         return res.status(401).json({ error: "User not authenticated" });
