@@ -615,7 +615,8 @@ export default function CalendarPage() {
     return allSlots;
   }, [selectedProviderId, selectedDate, shiftsData, defaultShiftsData]);
 
-  // Check if a time slot is booked (considering duration and provider)
+  // Check if a time slot is booked (only checks if the 15-min slot itself is occupied)
+  // Duration overlap checking is handled separately in checkSufficientTime() when booking
   const isTimeSlotBooked = (timeSlot: string): boolean => {
     if (!selectedDate || !selectedProviderId) return false;
 
@@ -657,19 +658,12 @@ export default function CalendarPage() {
       const aptStart24 = `${aptHour.toString().padStart(2, '0')}:${aptMinute.toString().padStart(2, '0')}`;
       const aptEnd24 = `${aptEndHour.toString().padStart(2, '0')}:${aptEndMinute.toString().padStart(2, '0')}`;
 
-      // Check if the slot falls within this appointment's time range
-      // Also check if selecting this slot with the current duration would overlap
-      const [slotHour, slotMinute] = slotTime24.split(':').map(Number);
-      let slotEndMinute = slotMinute + selectedDuration;
-      let slotEndHour = slotHour;
-      if (slotEndMinute >= 60) {
-        slotEndHour += Math.floor(slotEndMinute / 60);
-        slotEndMinute = slotEndMinute % 60;
-      }
-      const slotEnd24 = `${slotEndHour.toString().padStart(2, '0')}:${slotEndMinute.toString().padStart(2, '0')}`;
-
-      // Check for overlap: slot starts before apt ends AND slot ends after apt starts
-      return (slotTime24 < aptEnd24 && slotEnd24 > aptStart24);
+      // FIXED: Only check if THIS specific 15-minute slot falls within the appointment's time range
+      // This ensures only the actual occupied slots are greyed out (4 slots for 60 min, not 5)
+      // Example: 1:00 AM appointment for 60 min occupies 1:00, 1:15, 1:30, 1:45 (ends at 2:00)
+      // 12:45 AM is NOT occupied, so it shows as available (green)
+      // When user tries to book 12:45 for 60 min, checkSufficientTime() will validate overlap
+      return (slotTime24 >= aptStart24 && slotTime24 < aptEnd24);
     });
   };
 
