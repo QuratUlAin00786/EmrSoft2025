@@ -84,18 +84,19 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
     
     console.log('🩺 DOCTOR APPOINTMENTS: Current user', {
       id: user.id,
-      role: user.role
+      role: user.role,
+      organizationId: user.organizationId
     });
     
     console.log('📊 DOCTOR APPOINTMENTS: Fetched data', {
       totalAppointments: appointments.length,
-      totalPatients: Array.isArray(patientsData) ? patientsData.length : 0
+      totalPatients: patientsData?.length || 0
     });
 
     // Backend already filters by role (doctors see only their own appointments)
     // Data is already scoped to correct organizationId by tenant middleware
     // Return appointments as-is from backend
-    console.log('✅ DOCTOR APPOINTMENTS: Showing', appointments.length, 'appointments for doctor ID', user.id);
+    console.log('✅ DOCTOR APPOINTMENTS: Showing', appointments.length, 'appointments for doctor ID', user.id, 'in organization', user.organizationId);
     
     return appointments;
   }, [appointments, user, patientsData]);
@@ -198,8 +199,7 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
   const weekEnd = endOfWeek(selectedDate);
   const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
 
-  // Wait for all data to load before rendering
-  if (isLoading || usersLoading || patientsLoading || !usersData || !patientsData || !appointmentsData) {
+  if (isLoading || usersLoading || patientsLoading) {
     return (
       <Card>
         <CardContent className="p-6">
