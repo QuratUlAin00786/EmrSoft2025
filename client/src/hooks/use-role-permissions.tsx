@@ -1,455 +1,90 @@
 import { useAuth } from "./use-auth";
 import { isDoctorLike } from "@/lib/role-utils";
+import { useQuery } from "@tanstack/react-query";
 
-// Define comprehensive role permissions
-export const ROLE_PERMISSIONS = {
-  admin: {
-    dashboard: true,
-    patients: { view: true, create: true, edit: true, delete: true },
-    appointments: { view: true, create: true, edit: true, delete: true },
-    medical_records: { view: true, create: true, edit: true, delete: true },
-    prescriptions: { view: true, create: true, edit: true, delete: true },
-    lab_results: { view: true, create: true, edit: true, delete: true },
-    medical_imaging: { view: true, create: true, edit: true, delete: true },
-    billing: { view: true, create: true, edit: true, delete: true },
-    analytics: { view: true, create: true, edit: true, delete: true },
-    messaging: { view: true, create: true, edit: true, delete: true },
-    ai_insights: { view: true, create: true, edit: true, delete: true },
-    voice_documentation: { view: true, create: true, edit: true, delete: true },
-    telemedicine: { view: true, create: true, edit: true, delete: true },
-    forms: { view: true, create: true, edit: true, delete: true },
-    integrations: { view: true, create: true, edit: true, delete: true },
-    automation: { view: true, create: true, edit: true, delete: true },
-    population_health: { view: true, create: true, edit: true, delete: true },
-    mobile_health: { view: true, create: true, edit: true, delete: true },
-    patient_portal: { view: true, create: true, edit: true, delete: true },
-    inventory: { view: true, create: true, edit: true, delete: true },
-    gdpr_compliance: { view: true, create: true, edit: true, delete: true },
-    user_management: { view: true, create: true, edit: true, delete: true },
-    settings: { view: true, create: true, edit: true, delete: true },
-    subscription: { view: true, create: true, edit: true, delete: true }
-  },
-  doctor: {
-    dashboard: true,
-    patients: { view: true, create: true, edit: true, delete: false },
-    appointments: { view: true, create: true, edit: true, delete: true },
-    medical_records: { view: true, create: true, edit: true, delete: false },
-    prescriptions: { view: true, create: true, edit: true, delete: true },
-    lab_results: { view: true, create: true, edit: true, delete: false },
-    medical_imaging: { view: true, create: true, edit: true, delete: false },
-    billing: { view: true, create: false, edit: false, delete: false },
-    analytics: { view: true, create: false, edit: false, delete: false },
-    messaging: { view: true, create: true, edit: true, delete: true },
-    ai_insights: { view: true, create: true, edit: true, delete: false },
-    voice_documentation: { view: true, create: true, edit: true, delete: true },
-    telemedicine: { view: true, create: true, edit: true, delete: true },
-    forms: { view: true, create: true, edit: true, delete: false },
-    integrations: { view: true, create: false, edit: false, delete: false },
-    automation: { view: true, create: false, edit: false, delete: false },
-    population_health: { view: true, create: false, edit: false, delete: false },
-    mobile_health: { view: true, create: true, edit: true, delete: false },
-    inventory: { view: true, create: true, edit: true, delete: false },
-    gdpr_compliance: { view: true, create: false, edit: false, delete: false },
-    user_management: { view: false, create: false, edit: false, delete: false },
-    settings: { view: false, create: false, edit: false, delete: false },
-    subscription: { view: false, create: false, edit: false, delete: false }
-  },
-  nurse: {
-    dashboard: true,
-    patients: { view: true, create: true, edit: true, delete: false },
-    appointments: { view: true, create: true, edit: true, delete: false },
-    medical_records: { view: true, create: true, edit: true, delete: false },
-    prescriptions: { view: true, create: true, edit: true, delete: false },
-    lab_results: { view: true, create: true, edit: true, delete: false },
-    medical_imaging: { view: true, create: false, edit: false, delete: false },
-    billing: { view: false, create: false, edit: false, delete: false },
-    analytics: { view: true, create: false, edit: false, delete: false },
-    messaging: { view: true, create: true, edit: true, delete: false },
-    ai_insights: { view: true, create: false, edit: false, delete: false },
-    voice_documentation: { view: true, create: true, edit: true, delete: true },
-    telemedicine: { view: true, create: true, edit: true, delete: false },
-    forms: { view: true, create: true, edit: true, delete: false },
-    integrations: { view: false, create: false, edit: false, delete: false },
-    automation: { view: false, create: false, edit: false, delete: false },
-    population_health: { view: true, create: false, edit: false, delete: false },
-    mobile_health: { view: true, create: true, edit: true, delete: false },
-    gdpr_compliance: { view: false, create: false, edit: false, delete: false },
-    user_management: { view: false, create: false, edit: false, delete: false },
-    settings: { view: false, create: false, edit: false, delete: false },
-    subscription: { view: false, create: false, edit: false, delete: false }
-  },
-  receptionist: {
-    dashboard: true,
-    patients: { view: true, create: true, edit: true, delete: false },
-    appointments: { view: true, create: true, edit: true, delete: false },
-    medical_records: { view: false, create: false, edit: false, delete: false },
-    prescriptions: { view: false, create: false, edit: false, delete: false },
-    lab_results: { view: false, create: false, edit: false, delete: false },
-    medical_imaging: { view: false, create: false, edit: false, delete: false },
-    billing: { view: true, create: true, edit: true, delete: false },
-    analytics: { view: false, create: false, edit: false, delete: false },
-    messaging: { view: true, create: true, edit: true, delete: false },
-    ai_insights: { view: false, create: false, edit: false, delete: false },
-    voice_documentation: { view: false, create: false, edit: false, delete: false },
-    telemedicine: { view: false, create: false, edit: false, delete: false },
-    forms: { view: true, create: true, edit: true, delete: false },
-    integrations: { view: false, create: false, edit: false, delete: false },
-    automation: { view: false, create: false, edit: false, delete: false },
-    population_health: { view: false, create: false, edit: false, delete: false },
-    mobile_health: { view: false, create: false, edit: false, delete: false },
-    gdpr_compliance: { view: false, create: false, edit: false, delete: false },
-    user_management: { view: false, create: false, edit: false, delete: false },
-    settings: { view: false, create: false, edit: false, delete: false },
-    subscription: { view: false, create: false, edit: false, delete: false }
-  },
-  patient: {
-    dashboard: true,
-    patients: { view: false, create: false, edit: false, delete: false }, // Patients can only view their own record
-    appointments: { view: true, create: true, edit: false, delete: false }, // Can book but not edit
-    medical_records: { view: true, create: false, edit: false, delete: false }, // View only their own
-    prescriptions: { view: true, create: false, edit: false, delete: false }, // View only their own
-    lab_results: { view: true, create: false, edit: false, delete: false }, // View only their own
-    medical_imaging: { view: true, create: false, edit: false, delete: false }, // View only their own
-    billing: { view: true, create: false, edit: false, delete: false }, // View only their own
-    analytics: { view: false, create: false, edit: false, delete: false },
-    messaging: { view: true, create: true, edit: false, delete: false }, // Can send messages to providers
-    ai_insights: { view: false, create: false, edit: false, delete: false },
-    voice_documentation: { view: false, create: false, edit: false, delete: false },
-    telemedicine: { view: true, create: false, edit: false, delete: false }, // Can join consultations
-    forms: { view: true, create: false, edit: false, delete: false }, // Can fill forms
-    integrations: { view: true, create: false, edit: false, delete: false }, // Can view integrations
-    automation: { view: false, create: false, edit: false, delete: false },
-    population_health: { view: false, create: false, edit: false, delete: false },
-    mobile_health: { view: true, create: false, edit: false, delete: false }, // Can use mobile health features
-    gdpr_compliance: { view: true, create: true, edit: false, delete: false }, // Can manage their own data rights
-    user_management: { view: false, create: false, edit: false, delete: false },
-    settings: { view: false, create: false, edit: false, delete: false },
-    subscription: { view: false, create: false, edit: false, delete: false }
-  },
-  sample_taker: {
-    dashboard: true,
-    patients: { view: true, create: false, edit: false, delete: false }, // View only for sample collection
-    appointments: { view: true, create: false, edit: false, delete: false }, // View lab appointments
-    medical_records: { view: false, create: false, edit: false, delete: false },
-    prescriptions: { view: false, create: false, edit: false, delete: false },
-    lab_results: { view: true, create: true, edit: true, delete: false }, // Main responsibility
-    medical_imaging: { view: false, create: false, edit: false, delete: false },
-    billing: { view: false, create: false, edit: false, delete: false },
-    analytics: { view: false, create: false, edit: false, delete: false },
-    messaging: { view: true, create: true, edit: false, delete: false }, // Communicate about samples
-    ai_insights: { view: false, create: false, edit: false, delete: false },
-    voice_documentation: { view: true, create: true, edit: true, delete: false }, // Document sample collection
-    telemedicine: { view: false, create: false, edit: false, delete: false },
-    forms: { view: true, create: false, edit: false, delete: false }, // Sample collection forms
-    integrations: { view: false, create: false, edit: false, delete: false },
-    automation: { view: false, create: false, edit: false, delete: false },
-    population_health: { view: false, create: false, edit: false, delete: false },
-    mobile_health: { view: false, create: false, edit: false, delete: false },
-    gdpr_compliance: { view: false, create: false, edit: false, delete: false },
-    user_management: { view: false, create: false, edit: false, delete: false },
-    settings: { view: false, create: false, edit: false, delete: false },
-    subscription: { view: false, create: false, edit: false, delete: false }
-  },
-  lab_technician: {
-    dashboard: true,
-    patients: { view: true, create: false, edit: false, delete: false }, // View only
-    appointments: { view: true, create: false, edit: false, delete: false }, // View appointments
-    medical_records: { view: true, create: true, edit: true, delete: false }, // Can create/edit lab-related records
-    prescriptions: { view: false, create: false, edit: false, delete: false },
-    lab_results: { view: true, create: true, edit: true, delete: false }, // Main responsibility
-    medical_imaging: { view: true, create: false, edit: false, delete: false }, // View imaging for lab context
-    billing: { view: false, create: false, edit: false, delete: false },
-    analytics: { view: false, create: false, edit: false, delete: false },
-    messaging: { view: true, create: true, edit: true, delete: false }, // Communicate about lab results
-    ai_insights: { view: false, create: false, edit: false, delete: false },
-    voice_documentation: { view: true, create: true, edit: true, delete: false }, // Document lab procedures
-    telemedicine: { view: false, create: false, edit: false, delete: false },
-    forms: { view: true, create: true, edit: true, delete: false }, // Lab forms
-    integrations: { view: false, create: false, edit: false, delete: false },
-    automation: { view: false, create: false, edit: false, delete: false },
-    population_health: { view: false, create: false, edit: false, delete: false },
-    mobile_health: { view: false, create: false, edit: false, delete: false },
-    inventory: { view: true, create: true, edit: true, delete: false }, // Lab inventory management
-    gdpr_compliance: { view: false, create: false, edit: false, delete: false },
-    user_management: { view: false, create: false, edit: false, delete: false },
-    settings: { view: false, create: false, edit: false, delete: false },
-    subscription: { view: false, create: false, edit: false, delete: false }
-  },
-  // All doctor-like roles get same permissions as doctor role
-  paramedic: {
-    dashboard: true,
-    patients: { view: true, create: true, edit: true, delete: false },
-    appointments: { view: true, create: true, edit: true, delete: true },
-    medical_records: { view: true, create: true, edit: true, delete: false },
-    prescriptions: { view: true, create: true, edit: true, delete: true },
-    lab_results: { view: true, create: true, edit: true, delete: false },
-    medical_imaging: { view: true, create: true, edit: true, delete: false },
-    billing: { view: true, create: false, edit: false, delete: false },
-    analytics: { view: true, create: false, edit: false, delete: false },
-    messaging: { view: true, create: true, edit: true, delete: true },
-    ai_insights: { view: true, create: true, edit: true, delete: false },
-    voice_documentation: { view: true, create: true, edit: true, delete: true },
-    telemedicine: { view: true, create: true, edit: true, delete: true },
-    forms: { view: true, create: true, edit: true, delete: false },
-    integrations: { view: true, create: false, edit: false, delete: false },
-    automation: { view: true, create: false, edit: false, delete: false },
-    population_health: { view: true, create: false, edit: false, delete: false },
-    mobile_health: { view: true, create: true, edit: true, delete: false },
-    inventory: { view: true, create: true, edit: true, delete: false },
-    gdpr_compliance: { view: true, create: false, edit: false, delete: false },
-    user_management: { view: false, create: false, edit: false, delete: false },
-    settings: { view: false, create: false, edit: false, delete: false },
-    subscription: { view: false, create: false, edit: false, delete: false }
-  },
-  optician: {
-    dashboard: true,
-    patients: { view: true, create: true, edit: true, delete: false },
-    appointments: { view: true, create: true, edit: true, delete: true },
-    medical_records: { view: true, create: true, edit: true, delete: false },
-    prescriptions: { view: true, create: true, edit: true, delete: true },
-    lab_results: { view: true, create: true, edit: true, delete: false },
-    medical_imaging: { view: true, create: true, edit: true, delete: false },
-    billing: { view: true, create: false, edit: false, delete: false },
-    analytics: { view: true, create: false, edit: false, delete: false },
-    messaging: { view: true, create: true, edit: true, delete: true },
-    ai_insights: { view: true, create: true, edit: true, delete: false },
-    voice_documentation: { view: true, create: true, edit: true, delete: true },
-    telemedicine: { view: true, create: true, edit: true, delete: true },
-    forms: { view: true, create: true, edit: true, delete: false },
-    integrations: { view: true, create: false, edit: false, delete: false },
-    automation: { view: true, create: false, edit: false, delete: false },
-    population_health: { view: true, create: false, edit: false, delete: false },
-    mobile_health: { view: true, create: true, edit: true, delete: false },
-    inventory: { view: true, create: true, edit: true, delete: false },
-    gdpr_compliance: { view: true, create: false, edit: false, delete: false },
-    user_management: { view: false, create: false, edit: false, delete: false },
-    settings: { view: false, create: false, edit: false, delete: false },
-    subscription: { view: false, create: false, edit: false, delete: false }
-  },
-  pharmacist: {
-    dashboard: true,
-    patients: { view: true, create: true, edit: true, delete: false },
-    appointments: { view: true, create: true, edit: true, delete: true },
-    medical_records: { view: true, create: true, edit: true, delete: false },
-    prescriptions: { view: true, create: true, edit: true, delete: true },
-    lab_results: { view: true, create: true, edit: true, delete: false },
-    medical_imaging: { view: true, create: true, edit: true, delete: false },
-    billing: { view: true, create: false, edit: false, delete: false },
-    analytics: { view: true, create: false, edit: false, delete: false },
-    messaging: { view: true, create: true, edit: true, delete: true },
-    ai_insights: { view: true, create: true, edit: true, delete: false },
-    voice_documentation: { view: true, create: true, edit: true, delete: true },
-    telemedicine: { view: true, create: true, edit: true, delete: true },
-    forms: { view: true, create: true, edit: true, delete: false },
-    integrations: { view: true, create: false, edit: false, delete: false },
-    automation: { view: true, create: false, edit: false, delete: false },
-    population_health: { view: true, create: false, edit: false, delete: false },
-    mobile_health: { view: true, create: true, edit: true, delete: false },
-    inventory: { view: true, create: true, edit: true, delete: false },
-    gdpr_compliance: { view: true, create: false, edit: false, delete: false },
-    user_management: { view: false, create: false, edit: false, delete: false },
-    settings: { view: false, create: false, edit: false, delete: false },
-    subscription: { view: false, create: false, edit: false, delete: false }
-  },
-  dentist: {
-    dashboard: true,
-    patients: { view: true, create: true, edit: true, delete: false },
-    appointments: { view: true, create: true, edit: true, delete: true },
-    medical_records: { view: true, create: true, edit: true, delete: false },
-    prescriptions: { view: true, create: true, edit: true, delete: true },
-    lab_results: { view: true, create: true, edit: true, delete: false },
-    medical_imaging: { view: true, create: true, edit: true, delete: false },
-    billing: { view: true, create: false, edit: false, delete: false },
-    analytics: { view: true, create: false, edit: false, delete: false },
-    messaging: { view: true, create: true, edit: true, delete: true },
-    ai_insights: { view: true, create: true, edit: true, delete: false },
-    voice_documentation: { view: true, create: true, edit: true, delete: true },
-    telemedicine: { view: true, create: true, edit: true, delete: true },
-    forms: { view: true, create: true, edit: true, delete: false },
-    integrations: { view: true, create: false, edit: false, delete: false },
-    automation: { view: true, create: false, edit: false, delete: false },
-    population_health: { view: true, create: false, edit: false, delete: false },
-    mobile_health: { view: true, create: true, edit: true, delete: false },
-    inventory: { view: true, create: true, edit: true, delete: false },
-    gdpr_compliance: { view: true, create: false, edit: false, delete: false },
-    user_management: { view: false, create: false, edit: false, delete: false },
-    settings: { view: false, create: false, edit: false, delete: false },
-    subscription: { view: false, create: false, edit: false, delete: false }
-  },
-  dental_nurse: {
-    dashboard: true,
-    patients: { view: true, create: true, edit: true, delete: false },
-    appointments: { view: true, create: true, edit: true, delete: true },
-    medical_records: { view: true, create: true, edit: true, delete: false },
-    prescriptions: { view: true, create: true, edit: true, delete: true },
-    lab_results: { view: true, create: true, edit: true, delete: false },
-    medical_imaging: { view: true, create: true, edit: true, delete: false },
-    billing: { view: true, create: false, edit: false, delete: false },
-    analytics: { view: true, create: false, edit: false, delete: false },
-    messaging: { view: true, create: true, edit: true, delete: true },
-    ai_insights: { view: true, create: true, edit: true, delete: false },
-    voice_documentation: { view: true, create: true, edit: true, delete: true },
-    telemedicine: { view: true, create: true, edit: true, delete: true },
-    forms: { view: true, create: true, edit: true, delete: false },
-    integrations: { view: true, create: false, edit: false, delete: false },
-    automation: { view: true, create: false, edit: false, delete: false },
-    population_health: { view: true, create: false, edit: false, delete: false },
-    mobile_health: { view: true, create: true, edit: true, delete: false },
-    inventory: { view: true, create: true, edit: true, delete: false },
-    gdpr_compliance: { view: true, create: false, edit: false, delete: false },
-    user_management: { view: false, create: false, edit: false, delete: false },
-    settings: { view: false, create: false, edit: false, delete: false },
-    subscription: { view: false, create: false, edit: false, delete: false }
-  },
-  phlebotomist: {
-    dashboard: true,
-    patients: { view: true, create: true, edit: true, delete: false },
-    appointments: { view: true, create: true, edit: true, delete: true },
-    medical_records: { view: true, create: true, edit: true, delete: false },
-    prescriptions: { view: true, create: true, edit: true, delete: true },
-    lab_results: { view: true, create: true, edit: true, delete: false },
-    medical_imaging: { view: true, create: true, edit: true, delete: false },
-    billing: { view: true, create: false, edit: false, delete: false },
-    analytics: { view: true, create: false, edit: false, delete: false },
-    messaging: { view: true, create: true, edit: true, delete: true },
-    ai_insights: { view: true, create: true, edit: true, delete: false },
-    voice_documentation: { view: true, create: true, edit: true, delete: true },
-    telemedicine: { view: true, create: true, edit: true, delete: true },
-    forms: { view: true, create: true, edit: true, delete: false },
-    integrations: { view: true, create: false, edit: false, delete: false },
-    automation: { view: true, create: false, edit: false, delete: false },
-    population_health: { view: true, create: false, edit: false, delete: false },
-    mobile_health: { view: true, create: true, edit: true, delete: false },
-    inventory: { view: true, create: true, edit: true, delete: false },
-    gdpr_compliance: { view: true, create: false, edit: false, delete: false },
-    user_management: { view: false, create: false, edit: false, delete: false },
-    settings: { view: false, create: false, edit: false, delete: false },
-    subscription: { view: false, create: false, edit: false, delete: false }
-  },
-  aesthetician: {
-    dashboard: true,
-    patients: { view: true, create: true, edit: true, delete: false },
-    appointments: { view: true, create: true, edit: true, delete: true },
-    medical_records: { view: true, create: true, edit: true, delete: false },
-    prescriptions: { view: true, create: true, edit: true, delete: true },
-    lab_results: { view: true, create: true, edit: true, delete: false },
-    medical_imaging: { view: true, create: true, edit: true, delete: false },
-    billing: { view: true, create: false, edit: false, delete: false },
-    analytics: { view: true, create: false, edit: false, delete: false },
-    messaging: { view: true, create: true, edit: true, delete: true },
-    ai_insights: { view: true, create: true, edit: true, delete: false },
-    voice_documentation: { view: true, create: true, edit: true, delete: true },
-    telemedicine: { view: true, create: true, edit: true, delete: true },
-    forms: { view: true, create: true, edit: true, delete: false },
-    integrations: { view: true, create: false, edit: false, delete: false },
-    automation: { view: true, create: false, edit: false, delete: false },
-    population_health: { view: true, create: false, edit: false, delete: false },
-    mobile_health: { view: true, create: true, edit: true, delete: false },
-    inventory: { view: true, create: true, edit: true, delete: false },
-    gdpr_compliance: { view: true, create: false, edit: false, delete: false },
-    user_management: { view: false, create: false, edit: false, delete: false },
-    settings: { view: false, create: false, edit: false, delete: false },
-    subscription: { view: false, create: false, edit: false, delete: false }
-  },
-  podiatrist: {
-    dashboard: true,
-    patients: { view: true, create: true, edit: true, delete: false },
-    appointments: { view: true, create: true, edit: true, delete: true },
-    medical_records: { view: true, create: true, edit: true, delete: false },
-    prescriptions: { view: true, create: true, edit: true, delete: true },
-    lab_results: { view: true, create: true, edit: true, delete: false },
-    medical_imaging: { view: true, create: true, edit: true, delete: false },
-    billing: { view: true, create: false, edit: false, delete: false },
-    analytics: { view: true, create: false, edit: false, delete: false },
-    messaging: { view: true, create: true, edit: true, delete: true },
-    ai_insights: { view: true, create: true, edit: true, delete: false },
-    voice_documentation: { view: true, create: true, edit: true, delete: true },
-    telemedicine: { view: true, create: true, edit: true, delete: true },
-    forms: { view: true, create: true, edit: true, delete: false },
-    integrations: { view: true, create: false, edit: false, delete: false },
-    automation: { view: true, create: false, edit: false, delete: false },
-    population_health: { view: true, create: false, edit: false, delete: false },
-    mobile_health: { view: true, create: true, edit: true, delete: false },
-    inventory: { view: true, create: true, edit: true, delete: false },
-    gdpr_compliance: { view: true, create: false, edit: false, delete: false },
-    user_management: { view: false, create: false, edit: false, delete: false },
-    settings: { view: false, create: false, edit: false, delete: false },
-    subscription: { view: false, create: false, edit: false, delete: false }
-  },
-  physiotherapist: {
-    dashboard: true,
-    patients: { view: true, create: true, edit: true, delete: false },
-    appointments: { view: true, create: true, edit: true, delete: true },
-    medical_records: { view: true, create: true, edit: true, delete: false },
-    prescriptions: { view: true, create: true, edit: true, delete: true },
-    lab_results: { view: true, create: true, edit: true, delete: false },
-    medical_imaging: { view: true, create: true, edit: true, delete: false },
-    billing: { view: true, create: false, edit: false, delete: false },
-    analytics: { view: true, create: false, edit: false, delete: false },
-    messaging: { view: true, create: true, edit: true, delete: true },
-    ai_insights: { view: true, create: true, edit: true, delete: false },
-    voice_documentation: { view: true, create: true, edit: true, delete: true },
-    telemedicine: { view: true, create: true, edit: true, delete: true },
-    forms: { view: true, create: true, edit: true, delete: false },
-    integrations: { view: true, create: false, edit: false, delete: false },
-    automation: { view: true, create: false, edit: false, delete: false },
-    population_health: { view: true, create: false, edit: false, delete: false },
-    mobile_health: { view: true, create: true, edit: true, delete: false },
-    inventory: { view: true, create: true, edit: true, delete: false },
-    gdpr_compliance: { view: true, create: false, edit: false, delete: false },
-    user_management: { view: false, create: false, edit: false, delete: false },
-    settings: { view: false, create: false, edit: false, delete: false },
-    subscription: { view: false, create: false, edit: false, delete: false }
-  },
-  physician: {
-    dashboard: true,
-    patients: { view: true, create: true, edit: true, delete: false },
-    appointments: { view: true, create: true, edit: true, delete: true },
-    medical_records: { view: true, create: true, edit: true, delete: false },
-    prescriptions: { view: true, create: true, edit: true, delete: true },
-    lab_results: { view: true, create: true, edit: true, delete: false },
-    medical_imaging: { view: true, create: true, edit: true, delete: false },
-    billing: { view: true, create: false, edit: false, delete: false },
-    analytics: { view: true, create: false, edit: false, delete: false },
-    messaging: { view: true, create: true, edit: true, delete: true },
-    ai_insights: { view: true, create: true, edit: true, delete: false },
-    voice_documentation: { view: true, create: true, edit: true, delete: true },
-    telemedicine: { view: true, create: true, edit: true, delete: true },
-    forms: { view: true, create: true, edit: true, delete: false },
-    integrations: { view: true, create: false, edit: false, delete: false },
-    automation: { view: true, create: false, edit: false, delete: false },
-    population_health: { view: true, create: false, edit: false, delete: false },
-    mobile_health: { view: true, create: true, edit: true, delete: false },
-    inventory: { view: true, create: true, edit: true, delete: false },
-    gdpr_compliance: { view: true, create: false, edit: false, delete: false },
-    user_management: { view: false, create: false, edit: false, delete: false },
-    settings: { view: false, create: false, edit: false, delete: false },
-    subscription: { view: false, create: false, edit: false, delete: false }
-  }
-} as const;
-
-export type UserRole = keyof typeof ROLE_PERMISSIONS;
+export type UserRole = string;
 export type PermissionAction = 'view' | 'create' | 'edit' | 'delete';
+
+interface RolePermissions {
+  modules?: Record<string, {
+    view: boolean;
+    create: boolean;
+    edit: boolean;
+    delete: boolean;
+  }>;
+  fields?: Record<string, {
+    view: boolean;
+    edit: boolean;
+  }>;
+}
+
+interface RoleData {
+  id: number;
+  name: string;
+  displayName: string;
+  description: string;
+  permissions: RolePermissions;
+  organizationId: number;
+}
 
 export function useRolePermissions() {
   const { user } = useAuth();
   
+  // Fetch role permissions from database
+  const { data: roleData, isLoading } = useQuery<RoleData>({
+    queryKey: ['/api/roles/by-name', user?.role],
+    enabled: !!user?.role,
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    refetchOnWindowFocus: true, // Refetch when window regains focus to catch updates
+  });
+
+  const rolePermissions: RolePermissions = roleData?.permissions || {};
+  
   const hasPermission = (module: string, action: PermissionAction): boolean => {
     if (!user?.role) return false;
     
-    const userRole = user.role as UserRole;
-    const rolePerms = ROLE_PERMISSIONS[userRole];
+    // Map frontend module names to backend module names
+    const moduleMapping: Record<string, string> = {
+      'dashboard': 'dashboard',
+      'patients': 'patients',
+      'appointments': 'appointments',
+      'medical_records': 'medicalRecords',
+      'prescriptions': 'prescriptions',
+      'lab_results': 'labResults',
+      'medical_imaging': 'medicalImaging',
+      'billing': 'billing',
+      'analytics': 'analytics',
+      'messaging': 'messaging',
+      'ai_insights': 'aiInsights',
+      'voice_documentation': 'voiceDocumentation',
+      'telemedicine': 'telemedicine',
+      'forms': 'forms',
+      'integrations': 'integrations',
+      'automation': 'automation',
+      'population_health': 'populationHealth',
+      'mobile_health': 'mobileHealth',
+      'patient_portal': 'patientPortal',
+      'inventory': 'inventory',
+      'gdpr_compliance': 'gdprCompliance',
+      'user_management': 'userManagement',
+      'settings': 'settings',
+      'subscription': 'subscription'
+    };
     
-    if (!rolePerms) return false;
+    const backendModuleName = moduleMapping[module] || module;
+    const modulePerms = rolePermissions.modules?.[backendModuleName];
     
-    const modulePerms = rolePerms[module as keyof typeof rolePerms];
+    if (!modulePerms) {
+      // If no permissions found in database, deny access
+      return false;
+    }
     
     if (typeof modulePerms === 'boolean') {
       return modulePerms;
     }
     
     if (typeof modulePerms === 'object' && modulePerms !== null) {
-      return (modulePerms as any)[action] || false;
+      return modulePerms[action] || false;
     }
     
     return false;
@@ -512,6 +147,7 @@ export function useRolePermissions() {
     isReceptionist,
     isPatient,
     isSampleTaker,
-    user
+    user,
+    isLoading // Expose loading state for components that need it
   };
 }

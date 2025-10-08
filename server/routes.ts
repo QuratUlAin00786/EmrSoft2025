@@ -4944,6 +4944,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get role permissions by role name
+  app.get("/api/roles/by-name/:roleName", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const { roleName } = req.params;
+      const role = await storage.getRoleByName(roleName, req.tenant!.id);
+      
+      if (!role) {
+        return res.status(404).json({ error: "Role not found" });
+      }
+      
+      res.json(role);
+    } catch (error) {
+      console.error("Role fetch by name error:", error);
+      res.status(500).json({ error: "Failed to fetch role" });
+    }
+  });
+
   app.post("/api/roles", requireRole(["admin"]), async (req: TenantRequest, res) => {
     try {
       const roleData = z.object({

@@ -832,6 +832,10 @@ export default function UserManagement() {
       await queryClient.invalidateQueries({ queryKey: ["/api/roles"] });
       await queryClient.refetchQueries({ queryKey: ["/api/roles"] });
       
+      // CRITICAL: Invalidate role permissions cache for all users with this role
+      // This ensures permission updates apply immediately
+      await queryClient.invalidateQueries({ queryKey: ["/api/roles/by-name", updatedRole.name] });
+      
       setIsRoleModalOpen(false);
       setEditingRole(null);
       roleForm.reset();

@@ -172,6 +172,7 @@ export interface IStorage {
   // Roles
   getRole(id: number, organizationId: number): Promise<Role | undefined>;
   getRolesByOrganization(organizationId: number): Promise<Role[]>;
+  getRoleByName(name: string, organizationId: number): Promise<Role | undefined>;
   createRole(role: InsertRole): Promise<Role>;
   updateRole(id: number, organizationId: number, updates: Partial<InsertRole>): Promise<Role | undefined>;
   deleteRole(id: number, organizationId: number): Promise<boolean>;
@@ -755,6 +756,12 @@ export class DatabaseStorage implements IStorage {
       }
       throw error;
     }
+  }
+
+  async getRoleByName(name: string, organizationId: number): Promise<Role | undefined> {
+    const [role] = await db.select().from(roles)
+      .where(and(eq(roles.name, name), eq(roles.organizationId, organizationId)));
+    return role || undefined;
   }
 
   async createRole(role: InsertRole): Promise<Role> {
