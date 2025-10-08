@@ -129,7 +129,9 @@ type RoleFormData = z.infer<typeof roleSchema>;
 const MODULE_KEYS = [
   'patients', 'appointments', 'medicalRecords', 'prescriptions', 'billing', 
   'analytics', 'userManagement', 'settings', 'aiInsights', 'messaging', 
-  'telemedicine', 'labResults', 'medicalImaging', 'forms'
+  'telemedicine', 'labResults', 'medicalImaging', 'forms', 'integrations',
+  'automation', 'patientPortal', 'populationHealth', 'voiceDocumentation',
+  'inventory', 'gdprCompliance', 'subscription'
 ] as const;
 
 const FIELD_KEYS = [
@@ -2690,16 +2692,24 @@ export default function UserManagement() {
                             { key: 'appointments', name: 'Appointments', description: 'Schedule and manage appointments' },
                             { key: 'medicalRecords', name: 'Medical Records', description: 'Create and view medical records' },
                             { key: 'prescriptions', name: 'Prescriptions', description: 'Prescribe and manage medications' },
-                            { key: 'billing', name: 'Billing', description: 'Process payments and invoicing' },
-                            { key: 'analytics', name: 'Analytics', description: 'View reports and analytics' },
-                            { key: 'userManagement', name: 'User Management', description: 'Manage system users and roles' },
-                            { key: 'settings', name: 'Settings', description: 'Configure system settings' },
-                            { key: 'aiInsights', name: 'AI Insights', description: 'Access AI-powered insights' },
-                            { key: 'messaging', name: 'Messaging', description: 'Send messages and notifications' },
-                            { key: 'telemedicine', name: 'Telemedicine', description: 'Video consultations' },
                             { key: 'labResults', name: 'Lab Results', description: 'Manage laboratory results' },
                             { key: 'medicalImaging', name: 'Medical Imaging', description: 'View and manage medical images' },
-                            { key: 'forms', name: 'Forms', description: 'Create and manage forms' }
+                            { key: 'forms', name: 'Forms', description: 'Create and manage forms' },
+                            { key: 'messaging', name: 'Messaging', description: 'Send messages and notifications' },
+                            { key: 'integrations', name: 'Integrations', description: 'Connect external services' },
+                            { key: 'analytics', name: 'Analytics', description: 'View reports and analytics' },
+                            { key: 'automation', name: 'Automation', description: 'Automate workflows and tasks' },
+                            { key: 'patientPortal', name: 'Patient Portal', description: 'Patient self-service portal' },
+                            { key: 'aiInsights', name: 'AI Insights', description: 'Access AI-powered insights' },
+                            { key: 'telemedicine', name: 'Telemedicine', description: 'Video consultations' },
+                            { key: 'populationHealth', name: 'Population Health', description: 'Population health management' },
+                            { key: 'voiceDocumentation', name: 'Voice Documentation', description: 'Voice-to-text documentation' },
+                            { key: 'billing', name: 'Billing', description: 'Process payments and invoicing' },
+                            { key: 'inventory', name: 'Inventory', description: 'Manage medical inventory' },
+                            { key: 'gdprCompliance', name: 'GDPR Compliance', description: 'Data privacy and compliance' },
+                            { key: 'userManagement', name: 'User Management', description: 'Manage system users and roles' },
+                            { key: 'settings', name: 'Settings', description: 'Configure system settings' },
+                            { key: 'subscription', name: 'Subscription', description: 'Manage subscription and packages' }
                           ].map((module) => {
                             const currentPerms = roleForm.watch(`permissions.modules.${module.key}`) || {};
                             
