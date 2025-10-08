@@ -2182,27 +2182,6 @@ export default function UserManagement() {
                           />
                         </div>
                       </div>
-                      
-                      {/* NHS Number - Conditional display based on Insurance Provider */}
-                      {insuranceProvider && insuranceProvider !== "Self-Pay" && (
-                        <div className="space-y-2">
-                          <Label htmlFor="nhsNumber">NHS Number</Label>
-                          <Input
-                            id="nhsNumber"
-                            {...form.register("nhsNumber")}
-                            placeholder="9434765919"
-                            data-testid="input-nhs-number"
-                            onChange={(e) => {
-                              form.setValue("nhsNumber", e.target.value);
-                              validateNHSNumber(e.target.value);
-                            }}
-                          />
-                          {nhsNumberError && (
-                            <p className="text-sm text-red-500">{nhsNumberError}</p>
-                          )}
-                          <p className="text-xs text-gray-500">Must be exactly 10 digits. Example: 9434765919</p>
-                        </div>
-                      )}
                     </div>
                   </>
                 )}
@@ -2258,9 +2237,29 @@ export default function UserManagement() {
                   </div>
                 )}
                 
-                {/* Effective Date (Patient only), Department (Optional), Password in one row */}
-                <div className={`grid gap-4 ${selectedRole === 'patient' ? 'grid-cols-3' : 'grid-cols-2'}`}>
-                  {selectedRole === 'patient' && (
+                {/* NHS Number and Effective Date in one row - Patient role only */}
+                {selectedRole === 'patient' && (
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* NHS Number - Conditional display based on Insurance Provider */}
+                    {insuranceProvider && insuranceProvider !== "Self-Pay" && (
+                      <div className="space-y-2">
+                        <Label htmlFor="nhsNumber">NHS Number</Label>
+                        <Input
+                          id="nhsNumber"
+                          {...form.register("nhsNumber")}
+                          placeholder="9434765919"
+                          data-testid="input-nhs-number"
+                          onChange={(e) => {
+                            form.setValue("nhsNumber", e.target.value);
+                            validateNHSNumber(e.target.value);
+                          }}
+                        />
+                        {nhsNumberError && (
+                          <p className="text-sm text-red-500">{nhsNumberError}</p>
+                        )}
+                        <p className="text-xs text-gray-500">Must be exactly 10 digits. Example: 9434765919</p>
+                      </div>
+                    )}
                     <div className="space-y-2">
                       <Label htmlFor="effectiveDate">Effective Date</Label>
                       <Input
@@ -2270,7 +2269,11 @@ export default function UserManagement() {
                         data-testid="input-effective-date"
                       />
                     </div>
-                  )}
+                  </div>
+                )}
+
+                {/* Department (Optional), Password in one row */}
+                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="department">Department (Optional)</Label>
                     <Input
