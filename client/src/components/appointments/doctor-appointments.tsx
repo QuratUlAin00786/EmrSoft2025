@@ -199,7 +199,8 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
   const weekEnd = endOfWeek(selectedDate);
   const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
 
-  if (isLoading || usersLoading || patientsLoading) {
+  // Wait for all data to load before rendering
+  if (isLoading || usersLoading || patientsLoading || !usersData || !patientsData) {
     return (
       <Card>
         <CardContent className="p-6">
