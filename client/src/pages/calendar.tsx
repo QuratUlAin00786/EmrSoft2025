@@ -1775,7 +1775,7 @@ export default function CalendarPage() {
                         {selectedRole && (
                           <div>
                             <Label className="text-sm font-medium text-gray-900 dark:text-white mb-2 block">
-                              Select Name
+                              Doctor Name
                             </Label>
                             <Popover open={openProviderCombo} onOpenChange={setOpenProviderCombo}>
                               <PopoverTrigger asChild>
