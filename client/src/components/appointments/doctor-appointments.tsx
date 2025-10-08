@@ -111,34 +111,34 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
 
   // Helper functions - MUST be defined before useMemo that uses them
   const getPatientName = React.useCallback((patientId: number) => {
-    // Note: patientId in appointments table stores USER ID, not patients table ID
-    
-    // Step 1: First check if ID belongs to patients table
+    // Step 1: Find the patient record in patients table by patientId
     if (patientsData && Array.isArray(patientsData)) {
       const patient = patientsData.find((p: any) => p.id === patientId);
       
-      if (patient) {
-        const name = `${patient.firstName || ''} ${patient.lastName || ''}`.trim();
-        return name || `Patient ${patientId}`;
-      }
-    }
-    
-    // Step 2: If not found in patients table, check users table with role='patient'
-    if (usersData && Array.isArray(usersData)) {
-      const userPatient = usersData.find((u: any) => u.id === patientId && u.role === 'patient');
-      
-      if (userPatient && userPatient.email) {
-        // Step 3: Match email from users table to patients table
-        if (patientsData && Array.isArray(patientsData)) {
-          const matchedPatient = patientsData.find((p: any) => p.email === userPatient.email);
+      if (patient && patient.userId) {
+        // Step 2: Get the user record using patient.userId
+        if (usersData && Array.isArray(usersData)) {
+          const user = usersData.find((u: any) => u.id === patient.userId);
           
-          if (matchedPatient) {
-            const name = `${matchedPatient.firstName || ''} ${matchedPatient.lastName || ''}`.trim();
+          if (user) {
+            const name = `${user.firstName || ''} ${user.lastName || ''}`.trim();
             return name || `Patient ${patientId}`;
           }
         }
-        
-        // If no email match found, use user's name
+      }
+      
+      // If patient exists but no userId, try using patient's own firstName/lastName
+      if (patient) {
+        const name = `${patient.firstName || ''} ${patient.lastName || ''}`.trim();
+        if (name) return name;
+      }
+    }
+    
+    // Fallback: Try to find user directly by patientId in users table with role='patient'
+    if (usersData && Array.isArray(usersData)) {
+      const userPatient = usersData.find((u: any) => u.id === patientId && u.role === 'patient');
+      
+      if (userPatient) {
         const name = `${userPatient.firstName || ''} ${userPatient.lastName || ''}`.trim();
         return name || `Patient ${patientId}`;
       }
@@ -232,18 +232,8 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
 
         // Filter by patient ID or NHS number (need to look up in patients table)
         if (filterPatientId || filterNhsNumber) {
-          // Step 1: Try to find patient record by ID in patients table
-          let patient = patientsData?.find((p: any) => p.id === apt.patientId);
-          
-          // Step 2: If not found, check users table with role='patient' and match by email
-          if (!patient) {
-            const userPatient = usersData?.find((u: any) => u.id === apt.patientId && u.role === 'patient');
-            
-            if (userPatient && userPatient.email) {
-              // Step 3: Match email from users table to patients table
-              patient = patientsData?.find((p: any) => p.email === userPatient.email);
-            }
-          }
+          // Find patient record by ID in patients table
+          const patient = patientsData?.find((p: any) => p.id === apt.patientId);
           
           if (filterPatientId) {
             if (!patient || !patient.patientId?.toLowerCase().includes(filterPatientId.toLowerCase())) {
