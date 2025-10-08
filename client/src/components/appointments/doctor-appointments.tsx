@@ -144,7 +144,7 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
       }
     }
     
-    return `Patient ${patientId}`;
+    return '';
   }, [patientsData, usersData]);
 
   const getDoctorNameWithSpecialization = React.useCallback((doctorId: number) => {
