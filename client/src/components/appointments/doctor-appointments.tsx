@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Calendar, Clock, User, Video, Stethoscope, Plus, ArrowRight, Edit, Search, X } from "lucide-react";
+import { Calendar, Clock, User, Video, Stethoscope, Plus, ArrowRight, Edit, Search, X, Filter } from "lucide-react";
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, isToday, isPast, isFuture, parseISO } from "date-fns";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -24,6 +24,7 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
   const [appointmentFilter, setAppointmentFilter] = useState<"all" | "upcoming" | "past">("upcoming");
   
   // Search/Filter states
+  const [showSearchPanel, setShowSearchPanel] = useState(false);
   const [filterDate, setFilterDate] = useState<string>("");
   const [filterPatientName, setFilterPatientName] = useState<string>("");
   const [filterPatientId, setFilterPatientId] = useState<string>("");
@@ -299,106 +300,128 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
       </div>
 
       {/* Appointment Filters */}
-      <div className="flex items-center space-x-2 bg-gray-100 dark:bg-gray-800 p-2 rounded-lg">
-        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Filter:</span>
+      <div className="flex items-center justify-between bg-gray-100 dark:bg-gray-800 p-2 rounded-lg">
+        <div className="flex items-center space-x-2">
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Filter:</span>
+          <Button
+            variant={appointmentFilter === "upcoming" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setAppointmentFilter("upcoming")}
+            data-testid="filter-upcoming"
+          >
+            Upcoming ({categorizedAppointments.upcoming.length})
+          </Button>
+          <Button
+            variant={appointmentFilter === "past" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setAppointmentFilter("past")}
+            data-testid="filter-past"
+          >
+            Past ({categorizedAppointments.past.length})
+          </Button>
+          <Button
+            variant={appointmentFilter === "all" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setAppointmentFilter("all")}
+            data-testid="filter-all"
+          >
+            All ({doctorAppointments.length})
+          </Button>
+        </div>
         <Button
-          variant={appointmentFilter === "upcoming" ? "default" : "outline"}
+          variant={showSearchPanel ? "default" : "outline"}
           size="sm"
-          onClick={() => setAppointmentFilter("upcoming")}
-          data-testid="filter-upcoming"
+          onClick={() => {
+            setShowSearchPanel(!showSearchPanel);
+            if (showSearchPanel) {
+              // Clear all filters when closing
+              setFilterDate("");
+              setFilterPatientName("");
+              setFilterPatientId("");
+              setFilterNhsNumber("");
+            }
+          }}
+          data-testid="button-toggle-search"
         >
-          Upcoming ({categorizedAppointments.upcoming.length})
-        </Button>
-        <Button
-          variant={appointmentFilter === "past" ? "default" : "outline"}
-          size="sm"
-          onClick={() => setAppointmentFilter("past")}
-          data-testid="filter-past"
-        >
-          Past ({categorizedAppointments.past.length})
-        </Button>
-        <Button
-          variant={appointmentFilter === "all" ? "default" : "outline"}
-          size="sm"
-          onClick={() => setAppointmentFilter("all")}
-          data-testid="filter-all"
-        >
-          All ({doctorAppointments.length})
+          <Filter className="h-4 w-4 mr-1" />
+          {showSearchPanel ? "Hide Search" : "Search"}
         </Button>
       </div>
 
       {/* Search Filters */}
-      <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
-        <CardContent className="p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <Search className="h-5 w-5 text-blue-600" />
-            <span className="text-sm font-semibold text-blue-800 dark:text-blue-300">Search Appointments</span>
-            {(filterDate || filterPatientName || filterPatientId || filterNhsNumber) && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setFilterDate("");
-                  setFilterPatientName("");
-                  setFilterPatientId("");
-                  setFilterNhsNumber("");
-                }}
-                className="ml-auto text-xs"
-                data-testid="button-clear-filters"
-              >
-                <X className="h-4 w-4 mr-1" />
-                Clear Filters
-              </Button>
-            )}
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-            <div>
-              <label className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 block">Date</label>
-              <Input
-                type="date"
-                value={filterDate}
-                onChange={(e) => setFilterDate(e.target.value)}
-                placeholder="Filter by date"
-                className="w-full"
-                data-testid="input-filter-date"
-              />
+      {showSearchPanel && (
+        <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Search className="h-5 w-5 text-blue-600" />
+              <span className="text-sm font-semibold text-blue-800 dark:text-blue-300">Search Appointments</span>
+              {(filterDate || filterPatientName || filterPatientId || filterNhsNumber) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setFilterDate("");
+                    setFilterPatientName("");
+                    setFilterPatientId("");
+                    setFilterNhsNumber("");
+                  }}
+                  className="ml-auto text-xs"
+                  data-testid="button-clear-filters"
+                >
+                  <X className="h-4 w-4 mr-1" />
+                  Clear Filters
+                </Button>
+              )}
             </div>
-            <div>
-              <label className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 block">Patient Name</label>
-              <Input
-                type="text"
-                value={filterPatientName}
-                onChange={(e) => setFilterPatientName(e.target.value)}
-                placeholder="Search by name"
-                className="w-full"
-                data-testid="input-filter-patient-name"
-              />
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+              <div>
+                <label className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 block">Date</label>
+                <Input
+                  type="date"
+                  value={filterDate}
+                  onChange={(e) => setFilterDate(e.target.value)}
+                  placeholder="Filter by date"
+                  className="w-full"
+                  data-testid="input-filter-date"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 block">Patient Name</label>
+                <Input
+                  type="text"
+                  value={filterPatientName}
+                  onChange={(e) => setFilterPatientName(e.target.value)}
+                  placeholder="Search by name"
+                  className="w-full"
+                  data-testid="input-filter-patient-name"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 block">Patient ID</label>
+                <Input
+                  type="text"
+                  value={filterPatientId}
+                  onChange={(e) => setFilterPatientId(e.target.value)}
+                  placeholder="Search by patient ID"
+                  className="w-full"
+                  data-testid="input-filter-patient-id"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 block">NHS Number</label>
+                <Input
+                  type="text"
+                  value={filterNhsNumber}
+                  onChange={(e) => setFilterNhsNumber(e.target.value)}
+                  placeholder="Search by NHS number"
+                  className="w-full"
+                  data-testid="input-filter-nhs-number"
+                />
+              </div>
             </div>
-            <div>
-              <label className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 block">Patient ID</label>
-              <Input
-                type="text"
-                value={filterPatientId}
-                onChange={(e) => setFilterPatientId(e.target.value)}
-                placeholder="Search by patient ID"
-                className="w-full"
-                data-testid="input-filter-patient-id"
-              />
-            </div>
-            <div>
-              <label className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 block">NHS Number</label>
-              <Input
-                type="text"
-                value={filterNhsNumber}
-                onChange={(e) => setFilterNhsNumber(e.target.value)}
-                placeholder="Search by NHS number"
-                className="w-full"
-                data-testid="input-filter-nhs-number"
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Weekly View */}
       {viewMode === "week" && (
