@@ -1220,7 +1220,7 @@ export default function CalendarPage() {
             <div>   
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                 Calendar & Scheduling
-                {user?.role !== "patient" && (
+                {user?.role !== "patient" && !isDoctorLike(user?.role) && (
                   <Button
                     variant="ghost"
                     size="sm"
