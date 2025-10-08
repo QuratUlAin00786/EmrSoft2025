@@ -1548,7 +1548,7 @@ export default function CalendarPage() {
                           selected={selectedDate}
                           onSelect={(date) => {
                             setSelectedDate(date);
-                            // Update form with selected date and current time slot
+                            // Update form with selected date and current time slotBooked by
                             if (date && selectedTimeSlot) {
                               // Convert time slot to 24-hour format for consistent datetime string
                               const time24 = timeSlotTo24Hour(selectedTimeSlot);

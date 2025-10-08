@@ -471,11 +471,7 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
                 <div className="text-sm text-gray-600 dark:text-gray-400">
                   Type: {nextAppointment.type}
                 </div>
-                {nextAppointment.createdBy && (
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
-                    Booked by: {getCreatedByName(nextAppointment.createdBy)}
-                  </div>
-                )}
+              
                 {nextAppointment.description && (
                   <div className="text-sm text-gray-600 dark:text-gray-400 mt-2">
                     {nextAppointment.description}
