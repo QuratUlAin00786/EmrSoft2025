@@ -5,6 +5,7 @@ import { NurseDashboard } from "./nurse-dashboard";
 import { ReceptionistDashboard } from "./receptionist-dashboard";
 import { PatientDashboard } from "./patient-dashboard";
 import { SampleTakerDashboard } from "./sample-taker-dashboard";
+import { isDoctorLike } from "@/lib/role-utils";
 
 export function RoleBasedDashboard() {
   const { getUserRole, user } = useRolePermissions();
@@ -21,11 +22,14 @@ export function RoleBasedDashboard() {
     );
   }
 
+  // Check for doctor-like roles first
+  if (isDoctorLike(userRole)) {
+    return <DoctorDashboard />;
+  }
+
   switch (userRole) {
     case 'admin':
       return <AdminDashboard />;
-    case 'doctor':
-      return <DoctorDashboard />;
     case 'nurse':
       return <NurseDashboard />;
     case 'receptionist':
