@@ -113,13 +113,9 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
   const getPatientName = (patientId: number) => {
     // Note: patientId in appointments table stores USER ID, not patients table ID
     
-    // First check if this user has a corresponding patient record in patients table
+    // Step 1: First check if ID belongs to patients table
     if (patientsData && Array.isArray(patientsData)) {
-      // Find patient record where the user relationship matches
-      const patient = patientsData.find((p: any) => {
-        // Check if patient record exists for this user ID
-        return p.id === patientId;
-      });
+      const patient = patientsData.find((p: any) => p.id === patientId);
       
       if (patient) {
         const name = `${patient.firstName || ''} ${patient.lastName || ''}`.trim();
@@ -127,10 +123,22 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
       }
     }
     
-    // Fallback: Check users table for patient role users
+    // Step 2: If not found in patients table, check users table with role='patient'
     if (usersData && Array.isArray(usersData)) {
       const userPatient = usersData.find((u: any) => u.id === patientId && u.role === 'patient');
-      if (userPatient) {
+      
+      if (userPatient && userPatient.email) {
+        // Step 3: Match email from users table to patients table
+        if (patientsData && Array.isArray(patientsData)) {
+          const matchedPatient = patientsData.find((p: any) => p.email === userPatient.email);
+          
+          if (matchedPatient) {
+            const name = `${matchedPatient.firstName || ''} ${matchedPatient.lastName || ''}`.trim();
+            return name || `Patient ${patientId}`;
+          }
+        }
+        
+        // If no email match found, use user's name
         const name = `${userPatient.firstName || ''} ${userPatient.lastName || ''}`.trim();
         return name || `Patient ${patientId}`;
       }
