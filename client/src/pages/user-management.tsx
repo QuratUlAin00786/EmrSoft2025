@@ -2019,8 +2019,8 @@ export default function UserManagement() {
                     </div>
 
                     {/* Address Information */}
-                    <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
-                      <h5 className="font-medium text-blue-900 dark:text-blue-100 mb-4">Address Information</h5>
+                    <div className="p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                      <h5 className="font-medium text-blue-600 dark:text-blue-400 mb-4">Address Information</h5>
                       <div className="space-y-4">
                         <div className="space-y-2">
                           <Label htmlFor="street">Street Address</Label>
@@ -2071,8 +2071,8 @@ export default function UserManagement() {
                     </div>
 
                     {/* Emergency Contact */}
-                    <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg border border-purple-200 dark:border-purple-800">
-                      <h5 className="font-medium text-purple-900 dark:text-purple-100 mb-4">Emergency Contact</h5>
+                    <div className="p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                      <h5 className="font-medium text-purple-600 dark:text-purple-400 mb-4">Emergency Contact</h5>
                       <div className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
@@ -2122,8 +2122,8 @@ export default function UserManagement() {
                     </div>
 
                     {/* Health Insurance Information */}
-                    <div className="bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-lg border border-indigo-200 dark:border-indigo-800">
-                      <h5 className="font-medium text-indigo-900 dark:text-indigo-100 mb-4">Health Insurance Information (Optional)</h5>
+                    <div className="p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                      <h5 className="font-medium text-indigo-600 dark:text-indigo-400 mb-4">Health Insurance Information (Optional)</h5>
                       <div className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
@@ -2187,6 +2187,38 @@ export default function UserManagement() {
                             />
                           </div>
                         </div>
+                        {/* NHS Number and Effective Date in one row */}
+                        <div className="grid grid-cols-2 gap-4">
+                          {/* NHS Number - Conditional display based on Insurance Provider */}
+                          {insuranceProvider && insuranceProvider !== "Self-Pay" && (
+                            <div className="space-y-2">
+                              <Label htmlFor="nhsNumber">NHS Number</Label>
+                              <Input
+                                id="nhsNumber"
+                                {...form.register("nhsNumber")}
+                                placeholder="9434765919"
+                                data-testid="input-nhs-number"
+                                onChange={(e) => {
+                                  form.setValue("nhsNumber", e.target.value);
+                                  validateNHSNumber(e.target.value);
+                                }}
+                              />
+                              {nhsNumberError && (
+                                <p className="text-sm text-red-500">{nhsNumberError}</p>
+                              )}
+                              <p className="text-xs text-gray-500">Must be exactly 10 digits. Example: 9434765919</p>
+                            </div>
+                          )}
+                          <div className="space-y-2">
+                            <Label htmlFor="effectiveDate">Effective Date</Label>
+                            <Input
+                              id="effectiveDate"
+                              type="date"
+                              {...form.register("insuranceInfo.effectiveDate")}
+                              data-testid="input-effective-date"
+                            />
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </>
@@ -2238,41 +2270,6 @@ export default function UserManagement() {
                         id="endTime"
                         type="time"
                         {...form.register("workingHours.end")}
-                      />
-                    </div>
-                  </div>
-                )}
-                
-                {/* NHS Number and Effective Date in one row - Patient role only */}
-                {selectedRole === 'patient' && (
-                  <div className="grid grid-cols-2 gap-4">
-                    {/* NHS Number - Conditional display based on Insurance Provider */}
-                    {insuranceProvider && insuranceProvider !== "Self-Pay" && (
-                      <div className="space-y-2">
-                        <Label htmlFor="nhsNumber">NHS Number</Label>
-                        <Input
-                          id="nhsNumber"
-                          {...form.register("nhsNumber")}
-                          placeholder="9434765919"
-                          data-testid="input-nhs-number"
-                          onChange={(e) => {
-                            form.setValue("nhsNumber", e.target.value);
-                            validateNHSNumber(e.target.value);
-                          }}
-                        />
-                        {nhsNumberError && (
-                          <p className="text-sm text-red-500">{nhsNumberError}</p>
-                        )}
-                        <p className="text-xs text-gray-500">Must be exactly 10 digits. Example: 9434765919</p>
-                      </div>
-                    )}
-                    <div className="space-y-2">
-                      <Label htmlFor="effectiveDate">Effective Date</Label>
-                      <Input
-                        id="effectiveDate"
-                        type="date"
-                        {...form.register("insuranceInfo.effectiveDate")}
-                        data-testid="input-effective-date"
                       />
                     </div>
                   </div>
