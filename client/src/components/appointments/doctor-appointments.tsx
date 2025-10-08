@@ -109,6 +109,72 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
     return appointments;
   }, [appointments, user, patientsData]);
 
+  // Helper functions - MUST be defined before useMemo that uses them
+  const getPatientName = (patientId: number) => {
+    // Note: patientId in appointments table stores USER ID, not patients table ID
+    
+    // First check if this user has a corresponding patient record in patients table
+    if (patientsData && Array.isArray(patientsData)) {
+      // Find patient record where the user relationship matches
+      const patient = patientsData.find((p: any) => {
+        // Check if patient record exists for this user ID
+        return p.id === patientId;
+      });
+      
+      if (patient) {
+        const name = `${patient.firstName || ''} ${patient.lastName || ''}`.trim();
+        return name || `Patient ${patientId}`;
+      }
+    }
+    
+    // Fallback: Check users table for patient role users
+    if (usersData && Array.isArray(usersData)) {
+      const userPatient = usersData.find((u: any) => u.id === patientId && u.role === 'patient');
+      if (userPatient) {
+        const name = `${userPatient.firstName || ''} ${userPatient.lastName || ''}`.trim();
+        return name || `Patient ${patientId}`;
+      }
+    }
+    
+    return `Patient ${patientId}`;
+  };
+
+  const getDoctorNameWithSpecialization = (doctorId: number) => {
+    if (!usersData || !Array.isArray(usersData)) return `Doctor ${doctorId}`;
+    const doctor = usersData.find((u: any) => u.id === doctorId);
+    if (!doctor) return `Doctor ${doctorId}`;
+    
+    const name = `Dr. ${doctor.firstName || ''} ${doctor.lastName || ''}`.trim();
+    const specialization = doctor.department || doctor.medicalSpecialtyCategory || '';
+    
+    return specialization ? `${name} (${specialization})` : name;
+  };
+
+  const getCreatedByName = (createdById: number) => {
+    if (!usersData || !Array.isArray(usersData)) return `User ${createdById}`;
+    const creator = usersData.find((u: any) => u.id === createdById);
+    if (!creator) return `User ${createdById}`;
+    
+    const name = `${creator.firstName || ''} ${creator.lastName || ''}`.trim();
+    return name || `User ${createdById}`;
+  };
+
+  const formatTime = (timeString: string) => {
+    try {
+      const date = new Date(timeString);
+      return format(date, "h:mm a");
+    } catch {
+      return "Invalid time";
+    }
+  };
+
+  const getAppointmentsForDate = (date: Date) => {
+    return doctorAppointments.filter((apt: any) => {
+      const appointmentDate = new Date(apt.scheduledAt);
+      return isSameDay(appointmentDate, date);
+    });
+  };
+
   // Categorize appointments into upcoming and past
   const categorizedAppointments = React.useMemo(() => {
     const now = new Date();
@@ -184,71 +250,6 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
 
   // Get next upcoming appointment
   const nextAppointment = categorizedAppointments.upcoming[0] || null;
-
-  const getPatientName = (patientId: number) => {
-    // Note: patientId in appointments table stores USER ID, not patients table ID
-    
-    // First check if this user has a corresponding patient record in patients table
-    if (patientsData && Array.isArray(patientsData)) {
-      // Find patient record where the user relationship matches
-      const patient = patientsData.find((p: any) => {
-        // Check if patient record exists for this user ID
-        return p.id === patientId;
-      });
-      
-      if (patient) {
-        const name = `${patient.firstName || ''} ${patient.lastName || ''}`.trim();
-        return name || `Patient ${patientId}`;
-      }
-    }
-    
-    // Fallback: Check users table for patient role users
-    if (usersData && Array.isArray(usersData)) {
-      const userPatient = usersData.find((u: any) => u.id === patientId && u.role === 'patient');
-      if (userPatient) {
-        const name = `${userPatient.firstName || ''} ${userPatient.lastName || ''}`.trim();
-        return name || `Patient ${patientId}`;
-      }
-    }
-    
-    return `Patient ${patientId}`;
-  };
-
-  const getDoctorNameWithSpecialization = (doctorId: number) => {
-    if (!usersData || !Array.isArray(usersData)) return `Doctor ${doctorId}`;
-    const doctor = usersData.find((u: any) => u.id === doctorId);
-    if (!doctor) return `Doctor ${doctorId}`;
-    
-    const name = `Dr. ${doctor.firstName || ''} ${doctor.lastName || ''}`.trim();
-    const specialization = doctor.department || doctor.medicalSpecialtyCategory || '';
-    
-    return specialization ? `${name} (${specialization})` : name;
-  };
-
-  const getCreatedByName = (createdById: number) => {
-    if (!usersData || !Array.isArray(usersData)) return `User ${createdById}`;
-    const creator = usersData.find((u: any) => u.id === createdById);
-    if (!creator) return `User ${createdById}`;
-    
-    const name = `${creator.firstName || ''} ${creator.lastName || ''}`.trim();
-    return name || `User ${createdById}`;
-  };
-
-  const formatTime = (timeString: string) => {
-    try {
-      const date = new Date(timeString);
-      return format(date, "h:mm a");
-    } catch {
-      return "Invalid time";
-    }
-  };
-
-  const getAppointmentsForDate = (date: Date) => {
-    return doctorAppointments.filter((apt: any) => {
-      const appointmentDate = new Date(apt.scheduledAt);
-      return isSameDay(appointmentDate, date);
-    });
-  };
 
   const weekStart = startOfWeek(selectedDate);
   const weekEnd = endOfWeek(selectedDate);
