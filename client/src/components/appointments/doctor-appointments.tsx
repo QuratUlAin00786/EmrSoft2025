@@ -110,7 +110,7 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
   }, [appointments, user, patientsData]);
 
   // Helper functions - MUST be defined before useMemo that uses them
-  const getPatientName = (patientId: number) => {
+  const getPatientName = React.useCallback((patientId: number) => {
     // Note: patientId in appointments table stores USER ID, not patients table ID
     
     // Step 1: First check if ID belongs to patients table
@@ -145,9 +145,9 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
     }
     
     return `Patient ${patientId}`;
-  };
+  }, [patientsData, usersData]);
 
-  const getDoctorNameWithSpecialization = (doctorId: number) => {
+  const getDoctorNameWithSpecialization = React.useCallback((doctorId: number) => {
     if (!usersData || !Array.isArray(usersData)) return `Doctor ${doctorId}`;
     const doctor = usersData.find((u: any) => u.id === doctorId);
     if (!doctor) return `Doctor ${doctorId}`;
@@ -156,7 +156,7 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
     const specialization = doctor.department || doctor.medicalSpecialtyCategory || '';
     
     return specialization ? `${name} (${specialization})` : name;
-  };
+  }, [usersData]);
 
   const getCreatedByName = (createdById: number) => {
     if (!usersData || !Array.isArray(usersData)) return `User ${createdById}`;
