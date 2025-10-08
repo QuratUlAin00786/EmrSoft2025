@@ -2641,7 +2641,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
   // Update medical record endpoint
-  app.patch("/api/patients/:patientId/records/:recordId", authMiddleware, requireRole(["doctor", "nurse"]), async (req: TenantRequest, res) => {
+  app.patch("/api/patients/:patientId/records/:recordId", authMiddleware, requireNonPatientRole(), async (req: TenantRequest, res) => {
     try {
       const patientId = parseInt(req.params.patientId);
       const recordId = parseInt(req.params.recordId);
