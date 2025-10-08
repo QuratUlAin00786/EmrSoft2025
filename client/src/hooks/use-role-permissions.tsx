@@ -117,7 +117,7 @@ export const ROLE_PERMISSIONS = {
     voice_documentation: { view: false, create: false, edit: false, delete: false },
     telemedicine: { view: true, create: false, edit: false, delete: false }, // Can join consultations
     forms: { view: true, create: false, edit: false, delete: false }, // Can fill forms
-    integrations: { view: false, create: false, edit: false, delete: false },
+    integrations: { view: true, create: false, edit: false, delete: false }, // Can view integrations
     automation: { view: false, create: false, edit: false, delete: false },
     population_health: { view: false, create: false, edit: false, delete: false },
     mobile_health: { view: true, create: false, edit: false, delete: false }, // Can use mobile health features

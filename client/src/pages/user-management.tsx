@@ -2901,13 +2901,14 @@ export default function UserManagement() {
                             <Shield className="h-5 w-5 text-blue-600" />
                           </div>
                           <div>
-                            <h3 className="font-medium text-white bg-orange-500 px-3 py-1 rounded w-48 text-center">
+                            <h3 className="font-medium text-white bg-orange-500 px-3 py-1 rounded w-40 text-center text-sm">
                               {role.displayName}
                             </h3>
-                            <p className="text-sm text-gray-500">{role.description}</p>
-                            <p className="text-xs text-gray-400">Role ID: {role.name}</p>
+                            <p className="text-xs text-gray-500">{role.description}</p>
+                            <p className="text-[10px] text-gray-400">Role ID: {role.name}</p>
                           </div>
                         </div>
+
                         
                         <div className="flex items-center space-x-3">
                           <Badge variant={role.isSystem ? "secondary" : "default"}>
