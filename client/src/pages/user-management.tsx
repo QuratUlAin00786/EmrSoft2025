@@ -2019,167 +2019,173 @@ export default function UserManagement() {
                     </div>
 
                     {/* Address Information */}
-                    <div className="space-y-4">
-                      <h5 className="font-medium text-gray-900 dark:text-gray-100">Address Information</h5>
-                      <div className="space-y-2">
-                        <Label htmlFor="street">Street Address</Label>
-                        <Input
-                          id="street"
-                          {...form.register("address.street")}
-                          placeholder="Enter street address"
-                          data-testid="input-street-address"
-                        />
-                      </div>
-                      {/* City/Town, Postcode, Country in one row */}
-                      <div className="grid grid-cols-3 gap-4">
+                    <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+                      <h5 className="font-medium text-blue-900 dark:text-blue-100 mb-4">Address Information</h5>
+                      <div className="space-y-4">
                         <div className="space-y-2">
-                          <Label htmlFor="city">City/Town</Label>
+                          <Label htmlFor="street">Street Address</Label>
                           <Input
-                            id="city"
-                            {...form.register("address.city")}
-                            placeholder="Enter city"
-                            data-testid="input-city"
+                            id="street"
+                            {...form.register("address.street")}
+                            placeholder="Enter street address"
+                            data-testid="input-street-address"
                           />
                         </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="postcode">Postcode</Label>
-                          <Input
-                            id="postcode"
-                            {...form.register("address.postcode")}
-                            placeholder="SW1A 1AA"
-                            data-testid="input-postcode"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="country">Country</Label>
-                          <Select onValueChange={(value) => form.setValue("address.country", value)} defaultValue="United Kingdom">
-                            <SelectTrigger data-testid="select-country">
-                              <SelectValue placeholder="Select country" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="United Kingdom">United Kingdom</SelectItem>
-                              <SelectItem value="Ireland">Ireland</SelectItem>
-                              <SelectItem value="United States">United States</SelectItem>
-                              <SelectItem value="Canada">Canada</SelectItem>
-                              <SelectItem value="Australia">Australia</SelectItem>
-                            </SelectContent>
-                          </Select>
+                        {/* City/Town, Postcode, Country in one row */}
+                        <div className="grid grid-cols-3 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="city">City/Town</Label>
+                            <Input
+                              id="city"
+                              {...form.register("address.city")}
+                              placeholder="Enter city"
+                              data-testid="input-city"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="postcode">Postcode</Label>
+                            <Input
+                              id="postcode"
+                              {...form.register("address.postcode")}
+                              placeholder="SW1A 1AA"
+                              data-testid="input-postcode"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="country">Country</Label>
+                            <Select onValueChange={(value) => form.setValue("address.country", value)} defaultValue="United Kingdom">
+                              <SelectTrigger data-testid="select-country">
+                                <SelectValue placeholder="Select country" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="United Kingdom">United Kingdom</SelectItem>
+                                <SelectItem value="Ireland">Ireland</SelectItem>
+                                <SelectItem value="United States">United States</SelectItem>
+                                <SelectItem value="Canada">Canada</SelectItem>
+                                <SelectItem value="Australia">Australia</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
                         </div>
                       </div>
                     </div>
 
                     {/* Emergency Contact */}
-                    <div className="space-y-4">
-                      <h5 className="font-medium text-gray-900 dark:text-gray-100">Emergency Contact</h5>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="emergencyName">Name</Label>
-                          <Input
-                            id="emergencyName"
-                            {...form.register("emergencyContact.name")}
-                            placeholder="Enter name"
-                            data-testid="input-emergency-name"
-                          />
+                    <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg border border-purple-200 dark:border-purple-800">
+                      <h5 className="font-medium text-purple-900 dark:text-purple-100 mb-4">Emergency Contact</h5>
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="emergencyName">Name</Label>
+                            <Input
+                              id="emergencyName"
+                              {...form.register("emergencyContact.name")}
+                              placeholder="Enter name"
+                              data-testid="input-emergency-name"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="emergencyRelationship">Relationship</Label>
+                            <Input
+                              id="emergencyRelationship"
+                              {...form.register("emergencyContact.relationship")}
+                              placeholder="e.g., Spouse, Parent, Friend"
+                              data-testid="input-emergency-relationship"
+                            />
+                          </div>
                         </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="emergencyRelationship">Relationship</Label>
-                          <Input
-                            id="emergencyRelationship"
-                            {...form.register("emergencyContact.relationship")}
-                            placeholder="e.g., Spouse, Parent, Friend"
-                            data-testid="input-emergency-relationship"
-                          />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="emergencyPhone">Phone</Label>
-                          <Input
-                            id="emergencyPhone"
-                            {...form.register("emergencyContact.phone")}
-                            placeholder="+44 123 456 7890"
-                            data-testid="input-emergency-phone"
-                          />
-                          {form.formState.errors.emergencyContact?.phone && (
-                            <p className="text-sm text-red-500">{form.formState.errors.emergencyContact.phone.message}</p>
-                          )}
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="emergencyEmail">Email (Optional)</Label>
-                          <Input
-                            id="emergencyEmail"
-                            type="email"
-                            {...form.register("emergencyContact.email")}
-                            placeholder="emergency@example.com"
-                            data-testid="input-emergency-email"
-                          />
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="emergencyPhone">Phone</Label>
+                            <Input
+                              id="emergencyPhone"
+                              {...form.register("emergencyContact.phone")}
+                              placeholder="+44 123 456 7890"
+                              data-testid="input-emergency-phone"
+                            />
+                            {form.formState.errors.emergencyContact?.phone && (
+                              <p className="text-sm text-red-500">{form.formState.errors.emergencyContact.phone.message}</p>
+                            )}
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="emergencyEmail">Email (Optional)</Label>
+                            <Input
+                              id="emergencyEmail"
+                              type="email"
+                              {...form.register("emergencyContact.email")}
+                              placeholder="emergency@example.com"
+                              data-testid="input-emergency-email"
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>
 
                     {/* Health Insurance Information */}
-                    <div className="space-y-4">
-                      <h5 className="font-medium text-gray-900 dark:text-gray-100">Health Insurance Information (Optional)</h5>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="insuranceProvider">Insurance Provider</Label>
-                          <Select 
-                            onValueChange={(value) => {
-                              form.setValue("insuranceInfo.provider", value);
-                              setInsuranceProvider(value);
-                              // Clear NHS Number error when provider changes
-                              setNhsNumberError("");
-                            }}
-                            value={form.watch("insuranceInfo.provider") || ""}
-                          >
-                            <SelectTrigger data-testid="dropdown-insurance-provider">
-                              <SelectValue placeholder="Select insurance provider..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="NHS (National Health Service)">NHS (National Health Service)</SelectItem>
-                              <SelectItem value="Bupa">Bupa</SelectItem>
-                              <SelectItem value="AXA PPP Healthcare">AXA PPP Healthcare</SelectItem>
-                              <SelectItem value="Vitality Health">Vitality Health</SelectItem>
-                              <SelectItem value="Aviva Health">Aviva Health</SelectItem>
-                              <SelectItem value="Simply Health">Simply Health</SelectItem>
-                              <SelectItem value="WPA">WPA</SelectItem>
-                              <SelectItem value="Benenden Health">Benenden Health</SelectItem>
-                              <SelectItem value="Healix Health Services">Healix Health Services</SelectItem>
-                              <SelectItem value="Sovereign Health Care">Sovereign Health Care</SelectItem>
-                              <SelectItem value="Exeter Friendly Society">Exeter Friendly Society</SelectItem>
-                              <SelectItem value="Self-Pay">Self-Pay</SelectItem>
-                              <SelectItem value="Other">Other</SelectItem>
-                            </SelectContent>
-                          </Select>
+                    <div className="bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-lg border border-indigo-200 dark:border-indigo-800">
+                      <h5 className="font-medium text-indigo-900 dark:text-indigo-100 mb-4">Health Insurance Information (Optional)</h5>
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="insuranceProvider">Insurance Provider</Label>
+                            <Select 
+                              onValueChange={(value) => {
+                                form.setValue("insuranceInfo.provider", value);
+                                setInsuranceProvider(value);
+                                // Clear NHS Number error when provider changes
+                                setNhsNumberError("");
+                              }}
+                              value={form.watch("insuranceInfo.provider") || ""}
+                            >
+                              <SelectTrigger data-testid="dropdown-insurance-provider">
+                                <SelectValue placeholder="Select insurance provider..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="NHS (National Health Service)">NHS (National Health Service)</SelectItem>
+                                <SelectItem value="Bupa">Bupa</SelectItem>
+                                <SelectItem value="AXA PPP Healthcare">AXA PPP Healthcare</SelectItem>
+                                <SelectItem value="Vitality Health">Vitality Health</SelectItem>
+                                <SelectItem value="Aviva Health">Aviva Health</SelectItem>
+                                <SelectItem value="Simply Health">Simply Health</SelectItem>
+                                <SelectItem value="WPA">WPA</SelectItem>
+                                <SelectItem value="Benenden Health">Benenden Health</SelectItem>
+                                <SelectItem value="Healix Health Services">Healix Health Services</SelectItem>
+                                <SelectItem value="Sovereign Health Care">Sovereign Health Care</SelectItem>
+                                <SelectItem value="Exeter Friendly Society">Exeter Friendly Society</SelectItem>
+                                <SelectItem value="Self-Pay">Self-Pay</SelectItem>
+                                <SelectItem value="Other">Other</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="planType">Plan Type</Label>
+                            <Input
+                              id="planType"
+                              {...form.register("insuranceInfo.planType")}
+                              placeholder="Select plan type"
+                              data-testid="input-plan-type"
+                            />
+                          </div>
                         </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="planType">Plan Type</Label>
-                          <Input
-                            id="planType"
-                            {...form.register("insuranceInfo.planType")}
-                            placeholder="Select plan type"
-                            data-testid="input-plan-type"
-                          />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="policyNumber">Policy Number</Label>
-                          <Input
-                            id="policyNumber"
-                            {...form.register("insuranceInfo.policyNumber")}
-                            placeholder="Enter policy number"
-                            data-testid="input-policy-number"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="memberNumber">Member Number</Label>
-                          <Input
-                            id="memberNumber"
-                            {...form.register("insuranceInfo.memberNumber")}
-                            placeholder="Enter member number"
-                            data-testid="input-member-number"
-                          />
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="policyNumber">Policy Number</Label>
+                            <Input
+                              id="policyNumber"
+                              {...form.register("insuranceInfo.policyNumber")}
+                              placeholder="Enter policy number"
+                              data-testid="input-policy-number"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="memberNumber">Member Number</Label>
+                            <Input
+                              id="memberNumber"
+                              {...form.register("insuranceInfo.memberNumber")}
+                              placeholder="Enter member number"
+                              data-testid="input-member-number"
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>
