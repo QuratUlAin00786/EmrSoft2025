@@ -150,10 +150,10 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
       }
     }
     
-    // Fallback to usersData (for patient users)
+    // Fallback to usersData (for patient users) - check without role filter first
     if (usersData && Array.isArray(usersData)) {
-      const userPatient = usersData.find((u: any) => u.id === patientId && u.role === 'patient');
-      if (userPatient) {
+      const userPatient = usersData.find((u: any) => u.id === patientId);
+      if (userPatient && userPatient.role === 'patient') {
         const name = `${userPatient.firstName || ''} ${userPatient.lastName || ''}`.trim();
         return name || `Patient ${patientId}`;
       }
@@ -178,7 +178,8 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
     const creator = usersData.find((u: any) => u.id === createdById);
     if (!creator) return `User ${createdById}`;
     
-    return `${creator.firstName || ''} ${creator.lastName || ''}`.trim() || `User ${createdById}`;
+    const name = `${creator.firstName || ''} ${creator.lastName || ''}`.trim();
+    return name || `User ${createdById}`;
   };
 
   const formatTime = (timeString: string) => {
