@@ -2423,59 +2423,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const patientCount = await storage.getPatientsByOrganization(req.tenant!.id, 999999);
       const patientId = `P${(patientCount.length + 1).toString().padStart(6, '0')}`;
 
-      // Step 1: Create user record in users table
-      const hashedPassword = await bcrypt.hash("cura123", 10);
-      
-      const newUser = await storage.createUser({
-        organizationId: req.tenant!.id,
-        email: patientData.email || `patient_${Date.now()}@placeholder.com`,
-        username: patientData.email || `patient_${Date.now()}`,
-        passwordHash: hashedPassword,
-        firstName: patientData.firstName,
-        lastName: patientData.lastName,
-        role: 'patient',
-        department: null,
-        medicalSpecialtyCategory: null,
-        subSpecialty: null,
-        workingDays: [],
-        workingHours: {},
-        permissions: {},
-        isActive: true,
-        isSaaSOwner: false
-      });
+      // Use database transaction to ensure atomicity
+      const patient = await db.transaction(async (tx) => {
+        // Step 1: Create user record in users table with hashed password
+        const hashedPassword = await bcrypt.hash("cura123", 10);
+        
+        const newUser = await storage.createUser({
+          organizationId: req.tenant!.id,
+          email: patientData.email || `patient_${Date.now()}@placeholder.com`,
+          username: patientData.email || `patient_${Date.now()}`,
+          passwordHash: hashedPassword,
+          firstName: patientData.firstName,
+          lastName: patientData.lastName,
+          role: 'patient',
+          department: null,
+          medicalSpecialtyCategory: null,
+          subSpecialty: null,
+          workingDays: [],
+          workingHours: {},
+          permissions: {},
+          isActive: true,
+          isSaaSOwner: false
+        });
 
-      // Step 2: Create patient record with user_id foreign key
-      const patient = await storage.createPatient({
-        ...patientData,
-        organizationId: req.tenant!.id,
-        userId: newUser.id, // Foreign key to users table
-        patientId,
-        address: patientData.address || {},
-        emergencyContact: patientData.emergencyContact || {},
-        medicalHistory: {
-          allergies: patientData.medicalHistory?.allergies || [],
-          chronicConditions: patientData.medicalHistory?.chronicConditions || [],
-          medications: patientData.medicalHistory?.medications || [],
-          familyHistory: {
-            father: [],
-            mother: [],
-            siblings: [],
-            grandparents: [],
-            ...patientData.medicalHistory?.familyHistory
-          },
-          socialHistory: {
-            smoking: { status: "never" },
-            alcohol: { status: "never" },
-            drugs: { status: "never" },
-            occupation: "",
-            maritalStatus: "single",
-            education: "",
-            exercise: { frequency: "none" },
-            ...patientData.medicalHistory?.socialHistory
-          },
-          immunizations: patientData.medicalHistory?.immunizations || [],
-          ...patientData.medicalHistory
-        }
+        // Step 2: Create patient record with user_id foreign key
+        const patientRecord = await storage.createPatient({
+          ...patientData,
+          organizationId: req.tenant!.id,
+          userId: newUser.id, // Foreign key to users table
+          patientId,
+          address: patientData.address || {},
+          emergencyContact: patientData.emergencyContact || {},
+          medicalHistory: {
+            allergies: patientData.medicalHistory?.allergies || [],
+            chronicConditions: patientData.medicalHistory?.chronicConditions || [],
+            medications: patientData.medicalHistory?.medications || [],
+            familyHistory: {
+              father: [],
+              mother: [],
+              siblings: [],
+              grandparents: [],
+              ...patientData.medicalHistory?.familyHistory
+            },
+            socialHistory: {
+              smoking: { status: "never" },
+              alcohol: { status: "never" },
+              drugs: { status: "never" },
+              occupation: "",
+              maritalStatus: "single",
+              education: "",
+              exercise: { frequency: "none" },
+              ...patientData.medicalHistory?.socialHistory
+            },
+            immunizations: patientData.medicalHistory?.immunizations || [],
+            ...patientData.medicalHistory
+          }
+        });
+
+        return patientRecord;
       });
 
       // Generate AI insights for new patient
