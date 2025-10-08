@@ -137,6 +137,7 @@ export default function Forms() {
   const [addLogo, setAddLogo] = useState(false);
   const [logoPosition, setLogoPosition] = useState("right"); // left, right, center
   const [selectedLogoTemplate, setSelectedLogoTemplate] = useState("");
+  const [customLogoData, setCustomLogoData] = useState("");
   const [addClinicHeader, setAddClinicHeader] = useState(false);
   const [selectedClinicHeaderType, setSelectedClinicHeaderType] = useState("");
   const [showLogoTemplatesDialog, setShowLogoTemplatesDialog] = useState(false);
@@ -1214,6 +1215,25 @@ Coverage Details: [Insurance Coverage]`;
               return `
                 <div style="width: 80px; height: 80px; background-color: #fecaca; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
                   <span style="color: #dc2626; font-size: 20px;">✚</span>
+                </div>
+              `;
+            case "health-plus":
+              return `
+                <div style="width: 80px; height: 80px; background-color: #dbeafe; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                  <span style="color: #2563eb; font-size: 24px;">⚕️</span>
+                </div>
+              `;
+            case "custom":
+              if (customLogoData) {
+                return `
+                  <div style="width: 80px; height: 80px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                    <img src="${customLogoData}" alt="Custom Logo" style="max-width: 80px; max-height: 80px; object-fit: contain;" />
+                  </div>
+                `;
+              }
+              return `
+                <div style="width: 80px; height: 80px; background-color: #fef3c7; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                  <span style="color: #d97706; font-size: 24px;">📁</span>
                 </div>
               `;
             default:
@@ -7924,6 +7944,8 @@ Registration No: [Number]`
                       {selectedLogoTemplate === "professional" && "Professional - Boxed design"}
                       {selectedLogoTemplate === "minimal" && "Minimal - Clean typography"}
                       {selectedLogoTemplate === "medical-cross" && "Medical Cross - Classic red cross"}
+                      {selectedLogoTemplate === "health-plus" && "Health Plus - Medical symbol"}
+                      {selectedLogoTemplate === "custom" && "Upload Custom - Browse files"}
                     </p>
                     <h5 className="text-sm font-medium text-gray-700 mb-2">Logo & header Position:</h5>
                     <div className="flex gap-3">
@@ -8044,6 +8066,21 @@ Registration No: [Number]`
                               <span className="text-red-600 text-lg">✚</span>
                             </div>
                           )}
+                          {selectedLogoTemplate === "health-plus" && (
+                            <div className="w-16 h-16 bg-blue-100 rounded flex items-center justify-center mx-auto">
+                              <span className="text-blue-600 text-xl">⚕️</span>
+                            </div>
+                          )}
+                          {selectedLogoTemplate === "custom" && customLogoData && (
+                            <div className="w-16 h-16 rounded flex items-center justify-center mx-auto">
+                              <img src={customLogoData} alt="Custom Logo" className="max-w-16 max-h-16 object-contain" />
+                            </div>
+                          )}
+                          {selectedLogoTemplate === "custom" && !customLogoData && (
+                            <div className="w-16 h-16 bg-yellow-100 rounded flex items-center justify-center mx-auto">
+                              <span className="text-yellow-600 text-xl">📁</span>
+                            </div>
+                          )}
                           {!selectedLogoTemplate && (
                             <div className="w-16 h-16 bg-blue-600 rounded flex items-center justify-center mx-auto">
                               <span className="text-white font-bold text-xs">LOGO</span>
@@ -8072,6 +8109,21 @@ Registration No: [Number]`
                               {selectedLogoTemplate === "medical-cross" && (
                                 <div className="w-16 h-16 bg-red-100 rounded flex items-center justify-center">
                                   <span className="text-red-600 text-lg">✚</span>
+                                </div>
+                              )}
+                              {selectedLogoTemplate === "health-plus" && (
+                                <div className="w-16 h-16 bg-blue-100 rounded flex items-center justify-center">
+                                  <span className="text-blue-600 text-xl">⚕️</span>
+                                </div>
+                              )}
+                              {selectedLogoTemplate === "custom" && customLogoData && (
+                                <div className="w-16 h-16 rounded flex items-center justify-center">
+                                  <img src={customLogoData} alt="Custom Logo" className="max-w-16 max-h-16 object-contain" />
+                                </div>
+                              )}
+                              {selectedLogoTemplate === "custom" && !customLogoData && (
+                                <div className="w-16 h-16 bg-yellow-100 rounded flex items-center justify-center">
+                                  <span className="text-yellow-600 text-xl">📁</span>
                                 </div>
                               )}
                               {!selectedLogoTemplate && (
@@ -8164,6 +8216,21 @@ Registration No: [Number]`
                                   <span className="text-red-600 text-lg">✚</span>
                                 </div>
                               )}
+                              {selectedLogoTemplate === "health-plus" && (
+                                <div className="w-16 h-16 bg-blue-100 rounded flex items-center justify-center">
+                                  <span className="text-blue-600 text-xl">⚕️</span>
+                                </div>
+                              )}
+                              {selectedLogoTemplate === "custom" && customLogoData && (
+                                <div className="w-16 h-16 rounded flex items-center justify-center">
+                                  <img src={customLogoData} alt="Custom Logo" className="max-w-16 max-h-16 object-contain" />
+                                </div>
+                              )}
+                              {selectedLogoTemplate === "custom" && !customLogoData && (
+                                <div className="w-16 h-16 bg-yellow-100 rounded flex items-center justify-center">
+                                  <span className="text-yellow-600 text-xl">📁</span>
+                                </div>
+                              )}
                               {!selectedLogoTemplate && (
                                 <div className="w-16 h-16 bg-blue-600 rounded flex items-center justify-center">
                                   <span className="text-white font-bold text-xs">LOGO</span>
@@ -8226,6 +8293,21 @@ Registration No: [Number]`
                                   <span className="text-red-600 text-lg">✚</span>
                                 </div>
                               )}
+                              {selectedLogoTemplate === "health-plus" && (
+                                <div className="w-16 h-16 bg-blue-100 rounded flex items-center justify-center mx-auto">
+                                  <span className="text-blue-600 text-xl">⚕️</span>
+                                </div>
+                              )}
+                              {selectedLogoTemplate === "custom" && customLogoData && (
+                                <div className="w-16 h-16 rounded flex items-center justify-center mx-auto">
+                                  <img src={customLogoData} alt="Custom Logo" className="max-w-16 max-h-16 object-contain" />
+                                </div>
+                              )}
+                              {selectedLogoTemplate === "custom" && !customLogoData && (
+                                <div className="w-16 h-16 bg-yellow-100 rounded flex items-center justify-center mx-auto">
+                                  <span className="text-yellow-600 text-xl">📁</span>
+                                </div>
+                              )}
                               {!selectedLogoTemplate && (
                                 <div className="w-16 h-16 bg-blue-600 rounded flex items-center justify-center mx-auto">
                                   <span className="text-white font-bold text-xs">LOGO</span>
@@ -8257,6 +8339,21 @@ Registration No: [Number]`
                               {selectedLogoTemplate === "medical-cross" && (
                                 <div className="w-16 h-16 bg-red-100 rounded flex items-center justify-center">
                                   <span className="text-red-600 text-lg">✚</span>
+                                </div>
+                              )}
+                              {selectedLogoTemplate === "health-plus" && (
+                                <div className="w-16 h-16 bg-blue-100 rounded flex items-center justify-center">
+                                  <span className="text-blue-600 text-xl">⚕️</span>
+                                </div>
+                              )}
+                              {selectedLogoTemplate === "custom" && customLogoData && (
+                                <div className="w-16 h-16 rounded flex items-center justify-center">
+                                  <img src={customLogoData} alt="Custom Logo" className="max-w-16 max-h-16 object-contain" />
+                                </div>
+                              )}
+                              {selectedLogoTemplate === "custom" && !customLogoData && (
+                                <div className="w-16 h-16 bg-yellow-100 rounded flex items-center justify-center">
+                                  <span className="text-yellow-600 text-xl">📁</span>
                                 </div>
                               )}
                               {!selectedLogoTemplate && (
@@ -8534,6 +8631,21 @@ Registration No: [Number]`
                                   <span className="text-red-600 text-lg">✚</span>
                                 </div>
                               )}
+                              {selectedLogoTemplate === "health-plus" && (
+                                <div className="w-16 h-16 bg-blue-100 rounded flex items-center justify-center">
+                                  <span className="text-blue-600 text-xl">⚕️</span>
+                                </div>
+                              )}
+                              {selectedLogoTemplate === "custom" && customLogoData && (
+                                <div className="w-16 h-16 rounded flex items-center justify-center">
+                                  <img src={customLogoData} alt="Custom Logo" className="max-w-16 max-h-16 object-contain" />
+                                </div>
+                              )}
+                              {selectedLogoTemplate === "custom" && !customLogoData && (
+                                <div className="w-16 h-16 bg-yellow-100 rounded flex items-center justify-center">
+                                  <span className="text-yellow-600 text-xl">📁</span>
+                                </div>
+                              )}
                               {!selectedLogoTemplate && (
                                 <div className="w-16 h-16 bg-blue-600 rounded flex items-center justify-center">
                                   <span className="text-white font-bold text-xs">LOGO</span>
@@ -8624,6 +8736,21 @@ Registration No: [Number]`
                                   <span className="text-red-600 text-lg">✚</span>
                                 </div>
                               )}
+                              {selectedLogoTemplate === "health-plus" && (
+                                <div className="w-16 h-16 bg-blue-100 rounded flex items-center justify-center">
+                                  <span className="text-blue-600 text-xl">⚕️</span>
+                                </div>
+                              )}
+                              {selectedLogoTemplate === "custom" && customLogoData && (
+                                <div className="w-16 h-16 rounded flex items-center justify-center">
+                                  <img src={customLogoData} alt="Custom Logo" className="max-w-16 max-h-16 object-contain" />
+                                </div>
+                              )}
+                              {selectedLogoTemplate === "custom" && !customLogoData && (
+                                <div className="w-16 h-16 bg-yellow-100 rounded flex items-center justify-center">
+                                  <span className="text-yellow-600 text-xl">📁</span>
+                                </div>
+                              )}
                               {!selectedLogoTemplate && (
                                 <div className="w-16 h-16 bg-blue-600 rounded flex items-center justify-center">
                                   <span className="text-white font-bold text-xs">LOGO</span>
@@ -8686,6 +8813,21 @@ Registration No: [Number]`
                                   <span className="text-red-600 text-lg">✚</span>
                                 </div>
                               )}
+                              {selectedLogoTemplate === "health-plus" && (
+                                <div className="w-16 h-16 bg-blue-100 rounded flex items-center justify-center mx-auto">
+                                  <span className="text-blue-600 text-xl">⚕️</span>
+                                </div>
+                              )}
+                              {selectedLogoTemplate === "custom" && customLogoData && (
+                                <div className="w-16 h-16 rounded flex items-center justify-center mx-auto">
+                                  <img src={customLogoData} alt="Custom Logo" className="max-w-16 max-h-16 object-contain" />
+                                </div>
+                              )}
+                              {selectedLogoTemplate === "custom" && !customLogoData && (
+                                <div className="w-16 h-16 bg-yellow-100 rounded flex items-center justify-center mx-auto">
+                                  <span className="text-yellow-600 text-xl">📁</span>
+                                </div>
+                              )}
                               {!selectedLogoTemplate && (
                                 <div className="w-16 h-16 bg-blue-600 rounded flex items-center justify-center mx-auto">
                                   <span className="text-white font-bold text-xs">LOGO</span>
@@ -8717,6 +8859,21 @@ Registration No: [Number]`
                               {selectedLogoTemplate === "medical-cross" && (
                                 <div className="w-16 h-16 bg-red-100 rounded flex items-center justify-center">
                                   <span className="text-red-600 text-lg">✚</span>
+                                </div>
+                              )}
+                              {selectedLogoTemplate === "health-plus" && (
+                                <div className="w-16 h-16 bg-blue-100 rounded flex items-center justify-center">
+                                  <span className="text-blue-600 text-xl">⚕️</span>
+                                </div>
+                              )}
+                              {selectedLogoTemplate === "custom" && customLogoData && (
+                                <div className="w-16 h-16 rounded flex items-center justify-center">
+                                  <img src={customLogoData} alt="Custom Logo" className="max-w-16 max-h-16 object-contain" />
+                                </div>
+                              )}
+                              {selectedLogoTemplate === "custom" && !customLogoData && (
+                                <div className="w-16 h-16 bg-yellow-100 rounded flex items-center justify-center">
+                                  <span className="text-yellow-600 text-xl">📁</span>
                                 </div>
                               )}
                               {!selectedLogoTemplate && (
@@ -9052,8 +9209,7 @@ Registration No: [Number]`
                 const reader = new FileReader();
                 reader.onloadend = () => {
                   setSelectedLogoTemplate("custom");
-                  // Store the custom logo data (you may need to add this state variable)
-                  // setCustomLogoData(reader.result as string);
+                  setCustomLogoData(reader.result as string);
                 };
                 reader.readAsDataURL(file);
               }
