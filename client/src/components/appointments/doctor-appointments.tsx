@@ -84,19 +84,18 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
     
     console.log('🩺 DOCTOR APPOINTMENTS: Current user', {
       id: user.id,
-      role: user.role,
-      organizationId: user.organizationId
+      role: user.role
     });
     
     console.log('📊 DOCTOR APPOINTMENTS: Fetched data', {
       totalAppointments: appointments.length,
-      totalPatients: patientsData?.length || 0
+      totalPatients: Array.isArray(patientsData) ? patientsData.length : 0
     });
 
     // Backend already filters by role (doctors see only their own appointments)
     // Data is already scoped to correct organizationId by tenant middleware
     // Return appointments as-is from backend
-    console.log('✅ DOCTOR APPOINTMENTS: Showing', appointments.length, 'appointments for doctor ID', user.id, 'in organization', user.organizationId);
+    console.log('✅ DOCTOR APPOINTMENTS: Showing', appointments.length, 'appointments for doctor ID', user.id);
     
     return appointments;
   }, [appointments, user, patientsData]);
