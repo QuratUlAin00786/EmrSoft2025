@@ -139,9 +139,42 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
   const nextAppointment = categorizedAppointments.upcoming[0] || null;
 
   const getPatientName = (patientId: number) => {
-    if (!patientsData || !Array.isArray(patientsData)) return `Patient ${patientId}`;
-    const patient = patientsData.find((p: any) => p.id === patientId);
-    return patient ? `${patient.firstName} ${patient.lastName}` : `Patient ${patientId}`;
+    // First try to find in patientsData
+    if (patientsData && Array.isArray(patientsData)) {
+      const patient = patientsData.find((p: any) => p.id === patientId);
+      if (patient) {
+        return `${patient.firstName || ''} ${patient.lastName || ''}`.trim() || `Patient ${patientId}`;
+      }
+    }
+    
+    // Fallback to usersData (for patient users)
+    if (usersData && Array.isArray(usersData)) {
+      const userPatient = usersData.find((u: any) => u.id === patientId && u.role === 'patient');
+      if (userPatient) {
+        return `${userPatient.firstName || ''} ${userPatient.lastName || ''}`.trim() || `Patient ${patientId}`;
+      }
+    }
+    
+    return `Patient ${patientId}`;
+  };
+
+  const getDoctorNameWithSpecialization = (doctorId: number) => {
+    if (!usersData || !Array.isArray(usersData)) return `Doctor ${doctorId}`;
+    const doctor = usersData.find((u: any) => u.id === doctorId);
+    if (!doctor) return `Doctor ${doctorId}`;
+    
+    const name = `Dr. ${doctor.firstName || ''} ${doctor.lastName || ''}`.trim();
+    const specialization = doctor.department || doctor.medicalSpecialtyCategory || '';
+    
+    return specialization ? `${name} (${specialization})` : name;
+  };
+
+  const getCreatedByName = (createdById: number) => {
+    if (!usersData || !Array.isArray(usersData)) return `User ${createdById}`;
+    const creator = usersData.find((u: any) => u.id === createdById);
+    if (!creator) return `User ${createdById}`;
+    
+    return `${creator.firstName || ''} ${creator.lastName || ''}`.trim() || `User ${createdById}`;
   };
 
   const formatTime = (timeString: string) => {
@@ -338,6 +371,16 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
                             <User className="h-4 w-4 text-gray-400" />
                             <span className="text-sm">{getPatientName(appointment.patientId)}</span>
                           </div>
+                          {appointment.providerId && (
+                            <div className="text-xs text-gray-500 mt-1">
+                              Provider: {getDoctorNameWithSpecialization(appointment.providerId)}
+                            </div>
+                          )}
+                          {appointment.createdBy && (
+                            <div className="text-xs text-gray-500 mt-1">
+                              Created by: {getCreatedByName(appointment.createdBy)}
+                            </div>
+                          )}
                         </div>
                       </div>
                       <div className="text-right">
@@ -435,6 +478,16 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
                 <div className="text-sm text-gray-600 dark:text-gray-400">
                   Type: {nextAppointment.type}
                 </div>
+                {nextAppointment.providerId && (
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Provider: {getDoctorNameWithSpecialization(nextAppointment.providerId)}
+                  </div>
+                )}
+                {nextAppointment.createdBy && (
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Created by: {getCreatedByName(nextAppointment.createdBy)}
+                  </div>
+                )}
                 {nextAppointment.description && (
                   <div className="text-sm text-gray-600 dark:text-gray-400 mt-2">
                     {nextAppointment.description}
@@ -488,6 +541,16 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
                           <User className="h-4 w-4 text-gray-400" />
                           <span className="text-sm">{getPatientName(appointment.patientId)}</span>
                         </div>
+                        {appointment.providerId && (
+                          <div className="text-xs text-gray-500 mt-1">
+                            Provider: {getDoctorNameWithSpecialization(appointment.providerId)}
+                          </div>
+                        )}
+                        {appointment.createdBy && (
+                          <div className="text-xs text-gray-500 mt-1">
+                            Created by: {getCreatedByName(appointment.createdBy)}
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div className="text-right space-y-2">
