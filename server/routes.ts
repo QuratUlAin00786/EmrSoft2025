@@ -4697,8 +4697,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             insuranceInfo: userData.insuranceInfo || null
           };
 
+          console.log("🔍 DEBUG patientData BEFORE storage.createPatient:", { userId: patientData.userId, patientId: patientData.patientId });
           const patient = await storage.createPatient(patientData);
-          console.log(`Created patient record with ID: ${patient.id} and patientId: ${patient.patientId}`);
+          console.log(`Created patient record with ID: ${patient.id}, patientId: ${patient.patientId}, userId: ${patient.userId}`);
           
         } catch (patientError) {
           console.error("Error creating patient record:", patientError);
