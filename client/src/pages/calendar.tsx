@@ -1075,6 +1075,27 @@ export default function CalendarPage() {
     }
   }, [showNewAppointmentModal, user, allDoctors]);
 
+  // Auto-select current date and first available time slot for doctors
+  useEffect(() => {
+    if (showNewAppointmentModal && isDoctorLike(user?.role) && !selectedDate) {
+      const today = new Date();
+      setSelectedDate(today);
+      console.log('📅 DOCTOR AUTO-SELECT: Set current date:', format(today, 'yyyy-MM-dd'));
+    }
+  }, [showNewAppointmentModal, user, selectedDate]);
+
+  // Auto-select first available time slot when time slots are loaded for doctors
+  useEffect(() => {
+    if (showNewAppointmentModal && isDoctorLike(user?.role) && selectedDate && timeSlots.length > 0 && !selectedTimeSlot) {
+      // Find first available (not booked) time slot
+      const firstAvailableSlot = timeSlots.find(slot => !isTimeSlotBooked(slot));
+      if (firstAvailableSlot) {
+        setSelectedTimeSlot(firstAvailableSlot);
+        console.log('⏰ DOCTOR AUTO-SELECT: Set first available time slot:', firstAvailableSlot);
+      }
+    }
+  }, [showNewAppointmentModal, user, selectedDate, timeSlots, selectedTimeSlot, isTimeSlotBooked]);
+
   const createAppointmentMutation = useMutation({
     mutationFn: async (appointmentData: any) => {
       // Add created_by field from logged-in user
