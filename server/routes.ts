@@ -13230,11 +13230,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (req.user?.role === "patient") {
         // Find the patient record for this user to get their patientId
         const patients = await storage.getPatientsByOrganization(req.tenant!.id);
-        const userPatient = patients.find(p => p.email === req.user!.email || p.id === req.user!.id);
+        const userPatient = patients.find(p => p.email?.toLowerCase() === req.user!.email.toLowerCase());
         
         if (userPatient) {
-          invoices = invoices.filter(invoice => invoice.patientId === userPatient.patientId);
-          console.log(`🔒 Patient user - filtered to ${invoices.length} invoices for patientId: ${userPatient.patientId}`);
+          // Filter by patient's numeric ID, not the string patientId field
+          invoices = invoices.filter(invoice => invoice.patientId === userPatient.id);
+          console.log(`🔒 Patient user ${req.user!.email} - filtered to ${invoices.length} invoices for patient ID: ${userPatient.id}`);
         } else {
           invoices = [];
           console.log(`⚠️ No patient record found for user ${req.user!.email}`);
