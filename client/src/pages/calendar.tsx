@@ -2793,8 +2793,9 @@ export default function CalendarPage() {
                         const appointmentDate = new Date(selectedDate!);
                         appointmentDate.setHours(hours, minutes, 0, 0);
                         
-                        // Convert to ISO string (this will include proper timezone offset)
-                        const appointmentDateTime = appointmentDate.toISOString();
+                        // Format as SQL datetime string (YYYY-MM-DD HH:mm:ss) without timezone conversion
+                        // This works with timestamp without timezone column in database
+                        const appointmentDateTime = format(appointmentDate, 'yyyy-MM-dd HH:mm:ss');
                         
                         // Handle both numeric and string patient IDs
                         let patientId: string | number = bookingForm.patientId;
