@@ -2778,9 +2778,16 @@ export default function CalendarPage() {
                           return;
                         }
 
-                        // Convert 12-hour time to 24-hour format
+                        // Convert 12-hour time to 24-hour format and create proper local datetime
                         const time24 = timeSlotTo24Hour(selectedTimeSlot);
-                        const appointmentDateTime = `${format(selectedDate, 'yyyy-MM-dd')}T${time24}:00.000Z`;
+                        const [hours, minutes] = time24.split(':').map(Number);
+                        
+                        // Create a proper Date object with local timezone
+                        const appointmentDate = new Date(selectedDate!);
+                        appointmentDate.setHours(hours, minutes, 0, 0);
+                        
+                        // Convert to ISO string (this will include proper timezone offset)
+                        const appointmentDateTime = appointmentDate.toISOString();
                         
                         // Handle both numeric and string patient IDs
                         let patientId: string | number = bookingForm.patientId;
