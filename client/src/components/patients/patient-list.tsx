@@ -56,6 +56,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { useTenant } from "@/hooks/use-tenant";
+import { isDoctorLike } from "@/lib/role-utils";
 
 // Helper function to get the correct tenant subdomain
 function getTenantSubdomain(): string {
@@ -2456,7 +2457,7 @@ export function PatientList({ onSelectPatient, showActiveOnly = true, genderFilt
                           </Tooltip>
                         </TooltipProvider>
                         
-                        {(user?.role === "admin" || user?.role === "doctor" || user?.role === "nurse") && (
+                        {(user?.role === "admin" || isDoctorLike(user?.role) || user?.role === "nurse") && (
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
@@ -2904,7 +2905,7 @@ export function PatientList({ onSelectPatient, showActiveOnly = true, genderFilt
 
                     {/* Secondary actions */}
                     <div
-                      className={`grid ${user?.role === "admin" ? "grid-cols-5" : user?.role === "admin" || user?.role === "doctor" || user?.role === "nurse" ? "grid-cols-4" : "grid-cols-3"} gap-1`}
+                      className={`grid ${user?.role === "admin" ? "grid-cols-5" : user?.role === "admin" || isDoctorLike(user?.role) || user?.role === "nurse" ? "grid-cols-4" : "grid-cols-3"} gap-1`}
                     >
                       <Button
                         size="sm"
@@ -2917,7 +2918,7 @@ export function PatientList({ onSelectPatient, showActiveOnly = true, genderFilt
                         View
                       </Button>
                       {(user?.role === "admin" ||
-                        user?.role === "doctor" ||
+                        isDoctorLike(user?.role) ||
                         user?.role === "nurse") && (
                         <Button
                           size="sm"

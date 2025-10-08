@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { isDoctorLike } from "@/lib/role-utils";
 
 // Simple type for our speech recognition usage
 type CustomSpeechRecognition = any;
@@ -317,7 +318,7 @@ export function AIChatWidget() {
       const doctors = data?.staff || [];
       
       // Filter for doctors only
-      const filteredDoctors = doctors.filter((doctor: any) => doctor.role === 'doctor');
+      const filteredDoctors = doctors.filter((doctor: any) => isDoctorLike(doctor.role));
       
       setBookingState(prev => ({ ...prev, availableDoctors: filteredDoctors }));
 

@@ -1,4 +1,5 @@
 import { useAuth } from "./use-auth";
+import { isDoctorLike } from "@/lib/role-utils";
 
 // Define comprehensive role permissions
 export const ROLE_PERMISSIONS = {
@@ -203,7 +204,7 @@ export function useRolePermissions() {
   };
 
   const isDoctor = (): boolean => {
-    return user?.role === 'doctor';
+    return isDoctorLike(user?.role);
   };
 
   const isNurse = (): boolean => {

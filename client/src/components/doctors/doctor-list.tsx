@@ -35,6 +35,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { useState, useMemo, useEffect } from "react";
+import { isDoctorLike } from "@/lib/role-utils";
 import type { User as Doctor, Appointment } from "@shared/schema";
 import {
   Select,
@@ -173,7 +174,7 @@ export function DoctorList({
       const data = await response.json();
       return data;
     },
-    enabled: user?.role === 'doctor',
+    enabled: isDoctorLike(user?.role),
   });
 
   // Fetch patients for dropdown
@@ -732,7 +733,7 @@ export function DoctorList({
   
   // For doctors: extract unique patients from their appointments
   const doctorPatients = useMemo(() => {
-    if (user?.role !== 'doctor' || !doctorAppointments || !patients) {
+    if (!isDoctorLike(user?.role) || !doctorAppointments || !patients) {
       return [];
     }
 
@@ -749,7 +750,7 @@ export function DoctorList({
 
   const availableStaff = useMemo(() => {
     // If logged-in user is a doctor, show their patients
-    if (user?.role === 'doctor') {
+    if (isDoctorLike(user?.role)) {
       return doctorPatients;
     }
 
@@ -771,7 +772,7 @@ export function DoctorList({
     
     // For admin and other roles: show only doctors who are available today
     return medicalStaff.filter((doctor: Doctor) => {
-      if (doctor.role !== 'doctor') {
+      if (!isDoctorLike(doctor.role)) {
         return false;
       }
       // If no working days are set, staff is considered available (like mobile users)
@@ -830,7 +831,7 @@ export function DoctorList({
         <CardContent>
           <div className="text-center py-8 text-gray-500">
             <User className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-            {user?.role === 'doctor' ? (
+            {isDoctorLike(user?.role) ? (
               <>
                 <p>No patients with appointments</p>
                 <p className="text-sm text-gray-400 mt-1">
@@ -907,7 +908,7 @@ export function DoctorList({
                   )}
 
                   {/* For Doctor View: Show Patient-specific information */}
-                  {user?.role === 'doctor' && (
+                  {isDoctorLike(user?.role) && (
                     <>
                       {/* Patient ID */}
                       {item.patientId && (
@@ -1007,7 +1008,7 @@ export function DoctorList({
                         Book
                       </Button>
                     )}
-                    {user?.role !== 'patient' && user?.role !== 'doctor' && (
+                    {user?.role !== 'patient' && !isDoctorLike(user?.role) && (
                       <Button
                         size="sm"
                         variant="outline"
@@ -1027,7 +1028,7 @@ export function DoctorList({
                       className="bg-white hover:bg-gray-50 border border-gray-200 flex-shrink-0"
                       onClick={(e) => {
                         e.stopPropagation();
-                        const profilePath = user?.role === 'doctor' 
+                        const profilePath = isDoctorLike(user?.role) 
                           ? `/${getTenantSubdomain()}/patients/${item.id}`
                           : `/${getTenantSubdomain()}/staff/${item.id}`;
                         setLocation(profilePath);

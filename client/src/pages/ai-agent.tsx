@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { apiRequest } from "@/lib/queryClient";
+import { isDoctorLike } from "@/lib/role-utils";
 
 // Medical Specialties Data Structure
 const medicalSpecialties = {
@@ -288,7 +289,7 @@ export default function AIAgentPage() {
       const doctors = data?.staff || [];
       
       // Filter for doctors only
-      const filteredDoctors = doctors.filter((doctor: any) => doctor.role === 'doctor');
+      const filteredDoctors = doctors.filter((doctor: any) => isDoctorLike(doctor.role));
       
       setBookingState(prev => ({ ...prev, availableDoctors: filteredDoctors }));
 

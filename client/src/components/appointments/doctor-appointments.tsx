@@ -8,6 +8,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
+import { isDoctorLike } from "@/lib/role-utils";
 
 const statusColors = {
   scheduled: "#4A7DFF",
@@ -28,7 +29,7 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
     queryKey: ["/api/appointments", "doctor", user?.id],
     staleTime: 30000,
     refetchInterval: 60000,
-    enabled: !!user?.id && user?.role === 'doctor',
+    enabled: !!user?.id && isDoctorLike(user?.role),
     queryFn: async () => {
       // Backend automatically filters appointments for doctors (returns only their own appointments)
       const response = await apiRequest('GET', '/api/appointments');
@@ -77,7 +78,7 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
 
   // Doctor appointments are already filtered by backend based on logged-in user's role
   const doctorAppointments = React.useMemo(() => {
-    if (!user || user.role !== 'doctor') return [];
+    if (!user || !isDoctorLike(user.role)) return [];
     
     console.log('🩺 DOCTOR APPOINTMENTS: Current user', {
       id: user.id,

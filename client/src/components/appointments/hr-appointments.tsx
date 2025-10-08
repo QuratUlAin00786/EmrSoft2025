@@ -12,6 +12,7 @@ import { format, isToday, isFuture, startOfWeek, endOfWeek, eachDayOfInterval } 
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
+import { isDoctorLike } from "@/lib/role-utils";
 
 const statusColors = {
   scheduled: "#4A7DFF",
@@ -55,7 +56,7 @@ export default function HRAppointments({ onNewAppointment }: { onNewAppointment?
   const users = usersData || [];
   const patients = patientsData || [];
 
-  const doctors = users.filter((user: any) => user.role === 'doctor');
+  const doctors = users.filter((user: any) => isDoctorLike(user.role));
 
   const getDoctorName = (providerId: number) => {
     const provider = users.find((u: any) => u.id === providerId);
