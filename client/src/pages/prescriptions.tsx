@@ -745,6 +745,13 @@ export default function PrescriptionsPage() {
       patientName?: string;
       attachments?: File[];
     }) => {
+      console.log('[PHARMACY EMAIL] Starting email send process...', {
+        prescriptionId,
+        pharmacyEmail: pharmacyData.email,
+        patientName,
+        attachmentsCount: attachments?.length || 0
+      });
+
       const token = localStorage.getItem("auth_token");
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
@@ -756,15 +763,21 @@ export default function PrescriptionsPage() {
       }
 
       // First update the prescription with pharmacy data
+      console.log('[PHARMACY EMAIL] Step 1: Updating prescription with pharmacy data...');
       const response = await fetch(`/api/prescriptions/${prescriptionId}`, {
         method: "PATCH",
         headers,
         body: JSON.stringify({ pharmacy: pharmacyData }),
         credentials: "include",
       });
-      if (!response.ok)
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('[PHARMACY EMAIL] Failed to update prescription:', errorText);
         throw new Error("Failed to send prescription to pharmacy");
+      }
 
+      console.log('[PHARMACY EMAIL] Step 2: Sending PDF email to pharmacy...');
       // Then send the PDF email to the pharmacy with attachments
       const formData = new FormData();
       formData.append("pharmacyEmail", pharmacyData.email);
@@ -775,6 +788,7 @@ export default function PrescriptionsPage() {
       if (attachments && attachments.length > 0) {
         attachments.forEach((file, index) => {
           formData.append(`attachments`, file);
+          console.log(`[PHARMACY EMAIL] Added attachment ${index + 1}:`, file.name);
         });
       }
 
@@ -796,12 +810,19 @@ export default function PrescriptionsPage() {
         },
       );
 
-      if (!emailResponse.ok)
-        throw new Error("Failed to send PDF email to pharmacy");
+      const emailResult = await emailResponse.json();
+      console.log('[PHARMACY EMAIL] Email API response:', emailResult);
 
+      if (!emailResponse.ok) {
+        console.error('[PHARMACY EMAIL] Email API failed:', emailResult);
+        throw new Error(emailResult.error || "Failed to send PDF email to pharmacy");
+      }
+
+      console.log('[PHARMACY EMAIL] ✅ Email sent successfully!');
       return response.json();
     },
     onSuccess: () => {
+      console.log('[PHARMACY EMAIL] Mutation onSuccess triggered');
       toast({
         title: "Success",
         description:
@@ -811,6 +832,7 @@ export default function PrescriptionsPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/prescriptions"] });
     },
     onError: (error: any) => {
+      console.error('[PHARMACY EMAIL] Mutation onError triggered:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to send prescription to pharmacy",

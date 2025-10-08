@@ -11067,6 +11067,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // PDF Email endpoint for prescriptions with file attachments
   app.post("/api/prescriptions/:id/send-pdf", authMiddleware, upload.array('attachments', 5), async (req: TenantRequest, res) => {
     try {
+      console.log('[PRESCRIPTION-EMAIL] ===== STARTING EMAIL SEND PROCESS =====');
       const prescriptionId = parseInt(req.params.id);
       
       // Parse form data fields
@@ -11076,10 +11077,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Validate required fields
       if (!pharmacyEmail || !pharmacyEmail.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+        console.log('[PRESCRIPTION-EMAIL] ❌ Invalid email address:', pharmacyEmail);
         return res.status(400).json({ error: "Valid pharmacy email is required" });
       }
 
-      console.log('Email request data:', {
+      console.log('[PRESCRIPTION-EMAIL] Email request data:', {
         prescriptionId,
         pharmacyEmail,
         pharmacyName,
@@ -11136,6 +11138,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // TODO: In a real implementation, generate and add prescription PDF here
       // For now, we'll send the professional HTML email with user attachments
+      console.log('[PRESCRIPTION-EMAIL] Calling emailService.sendEmail()...');
       const success = await emailService.sendEmail({
         to: pharmacyEmail,
         subject: emailTemplate.subject,
@@ -11144,20 +11147,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         attachments: attachments.length > 0 ? attachments : undefined
       });
 
+      console.log('[PRESCRIPTION-EMAIL] emailService.sendEmail() returned:', success);
+
       if (success) {
         const attachmentInfo = attachments.length > 0 
           ? ` with ${attachments.length} attachment(s)`
           : '';
+        console.log('[PRESCRIPTION-EMAIL] ✅ Email sent successfully to:', pharmacyEmail);
         res.json({ 
           success: true, 
           message: `Prescription email sent successfully to ${pharmacyEmail}${attachmentInfo}`,
           attachmentsCount: attachments.length
         });
       } else {
+        console.log('[PRESCRIPTION-EMAIL] ❌ Email service returned false - email not sent');
         res.status(500).json({ error: "Failed to send prescription email" });
       }
     } catch (error) {
-      console.error("Error sending prescription PDF:", error);
+      console.error("[PRESCRIPTION-EMAIL] ❌ Exception occurred:", error);
       if (error instanceof Error && error.message?.includes('Invalid file type')) {
         return res.status(400).json({ error: error.message });
       }
