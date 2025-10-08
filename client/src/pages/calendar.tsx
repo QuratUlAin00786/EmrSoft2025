@@ -613,7 +613,7 @@ export default function CalendarPage() {
     });
 
     return allSlots;
-  }, [selectedProviderId, selectedDate, shiftsData, defaultShiftsData, selectedDuration]);
+  }, [selectedProviderId, selectedDate, shiftsData, defaultShiftsData]);
 
   // Check if a time slot is booked (considering duration and provider)
   const isTimeSlotBooked = (timeSlot: string): boolean => {
