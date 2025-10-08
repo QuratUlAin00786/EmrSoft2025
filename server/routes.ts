@@ -6124,6 +6124,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update lab result
   app.put("/api/lab-results/:id", authMiddleware, requireNonPatientRole(), async (req: TenantRequest, res) => {
     try {
+      console.log('[LAB-RESULTS-UPDATE] Request user:', {
+        userId: req.user?.id,
+        userEmail: req.user?.email,
+        userRole: req.user?.role,
+        hasUser: !!req.user
+      });
+
       if (!req.user) {
         return res.status(401).json({ error: "User not authenticated" });
       }

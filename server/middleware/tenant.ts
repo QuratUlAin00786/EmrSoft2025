@@ -172,14 +172,24 @@ export function requireRole(roles: string[]) {
 
 export function requireNonPatientRole() {
   return (req: TenantRequest, res: Response, next: NextFunction) => {
+    console.log('[REQUIRE-NON-PATIENT] Checking permissions:', {
+      hasUser: !!req.user,
+      userRole: req.user?.role,
+      userEmail: req.user?.email,
+      isPatient: req.user?.role === "patient"
+    });
+
     if (!req.user) {
+      console.log('[REQUIRE-NON-PATIENT] ❌ No user found - returning 401');
       return res.status(401).json({ error: "Authentication required" });
     }
 
     if (req.user.role === "patient") {
+      console.log('[REQUIRE-NON-PATIENT] ❌ User is patient - returning 403');
       return res.status(403).json({ error: "Insufficient permissions" });
     }
 
+    console.log('[REQUIRE-NON-PATIENT] ✅ User is authorized (role:', req.user.role, ')');
     next();
   };
 }
