@@ -3284,9 +3284,76 @@ export default function ImagingPage() {
                 {selectedStudy.impression && (
                   <div>
                     <h4 className="font-medium text-lg mb-2">Impression</h4>
-                    <p className="text-gray-700 bg-gray-50 p-3 rounded-lg">
-                      {selectedStudy.impression}
-                    </p>
+                    <div className="text-gray-700 bg-gray-50 p-3 rounded-lg">
+                      {user?.role === 'patient' && selectedStudy.impression.includes('File:') ? (
+                        // For patient users, make filename clickable
+                        <div>
+                          {selectedStudy.impression.split(/(File:\s*[^\s]+\s*\([^)]+\))/).map((part, idx) => {
+                            const fileMatch = part.match(/File:\s*([^\s]+)\s*\(([^)]+)\)/);
+                            if (fileMatch) {
+                              const [fullMatch, fileName, fileSize] = fileMatch;
+                              return (
+                                <button
+                                  key={idx}
+                                  onClick={async () => {
+                                    try {
+                                      const token = localStorage.getItem("auth_token");
+                                      const headers: Record<string, string> = {
+                                        "X-Tenant-Subdomain": getActiveSubdomain(),
+                                      };
+                                      
+                                      if (token) {
+                                        headers["Authorization"] = `Bearer ${token}`;
+                                      }
+                                      
+                                      const response = await fetch(`/api/medical-images/${selectedStudy.id}/image?t=${Date.now()}`, {
+                                        method: "GET",
+                                        headers,
+                                        credentials: "include",
+                                      });
+                                      
+                                      if (!response.ok) {
+                                        throw new Error(`Failed to load image: ${response.status}`);
+                                      }
+                                      
+                                      const blob = await response.blob();
+                                      const blobUrl = URL.createObjectURL(blob);
+                                      
+                                      const imageForViewer = {
+                                        seriesDescription: `${selectedStudy.modality} ${selectedStudy.bodyPart}`,
+                                        type: "JPEG" as const,
+                                        imageCount: 1,
+                                        size: fileSize,
+                                        imageId: selectedStudy.id,
+                                        imageUrl: blobUrl,
+                                        mimeType: "image/jpeg",
+                                        fileName: fileName,
+                                      };
+                                      setSelectedImageSeries(imageForViewer);
+                                      setShowImageViewer(true);
+                                    } catch (error) {
+                                      console.error("Error loading image:", error);
+                                      toast({
+                                        title: "Error",
+                                        description: "Failed to load medical image. Please try again.",
+                                        variant: "destructive",
+                                      });
+                                    }
+                                  }}
+                                  className="text-blue-600 hover:text-blue-800 hover:underline font-medium"
+                                >
+                                  {fullMatch}
+                                </button>
+                              );
+                            }
+                            return <span key={idx}>{part}</span>;
+                          })}
+                        </div>
+                      ) : (
+                        // For non-patient users, display normally
+                        <p>{selectedStudy.impression}</p>
+                      )}
+                    </div>
                   </div>
                 )}
 
