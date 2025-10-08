@@ -583,13 +583,13 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
                   </span>
                 </div>
                 {nextAppointment.createdBy && usersData && (() => {
-                  const doctor = usersData.find((u: any) => u.id === nextAppointment.createdBy && u.role === 'doctor');
-                  if (doctor) {
+                  const user = usersData.find((u: any) => u.id === nextAppointment.createdBy);
+                  if (user) {
                     return (
                       <div className="flex items-center space-x-2">
                         <Stethoscope className="h-5 w-5 text-blue-600" />
                         <span className="text-gray-700 dark:text-gray-300">
-                          Doctor: Dr. {doctor.firstName} {doctor.lastName}
+                          Doctor: {user.firstName} {user.lastName}
                         </span>
                       </div>
                     );
