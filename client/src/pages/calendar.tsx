@@ -211,18 +211,25 @@ export default function CalendarPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch patients for the dropdown  
+  // Fetch patients for the dropdown - get users with patient role from same organization
   const { data: patients = [], isLoading: patientsLoading } = useQuery<any[]>({
-    queryKey: ["/api/patients"],
+    queryKey: ["/api/users", "patients"],
     retry: false,
     staleTime: 0, // Always fetch fresh data
     refetchOnMount: true, // Refetch when component mounts
     queryFn: async () => {
-      console.log("📋 CALENDAR: Fetching patients...");
-      const response = await apiRequest('GET', '/api/patients');
+      console.log("📋 CALENDAR: Fetching patient users...");
+      const response = await apiRequest('GET', '/api/users');
       const data = await response.json();
-      console.log("📋 CALENDAR: Patients fetched. Count:", Array.isArray(data) ? data.length : 'Not an array!', "Data:", data);
-      return data;
+      console.log("📋 CALENDAR: All users fetched. Count:", Array.isArray(data) ? data.length : 'Not an array!');
+      
+      // Filter for patient role and active users only
+      const patientUsers = Array.isArray(data) 
+        ? data.filter((user: any) => user.role === 'patient' && user.isActive) 
+        : [];
+      
+      console.log("📋 CALENDAR: Patient users filtered. Count:", patientUsers.length, "Data:", patientUsers);
+      return patientUsers;
     },
   });
 
