@@ -232,8 +232,18 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
 
         // Filter by patient ID or NHS number (need to look up in patients table)
         if (filterPatientId || filterNhsNumber) {
-          // Find patient record
-          const patient = patientsData?.find((p: any) => p.id === apt.patientId);
+          // Step 1: Try to find patient record by ID in patients table
+          let patient = patientsData?.find((p: any) => p.id === apt.patientId);
+          
+          // Step 2: If not found, check users table with role='patient' and match by email
+          if (!patient) {
+            const userPatient = usersData?.find((u: any) => u.id === apt.patientId && u.role === 'patient');
+            
+            if (userPatient && userPatient.email) {
+              // Step 3: Match email from users table to patients table
+              patient = patientsData?.find((p: any) => p.email === userPatient.email);
+            }
+          }
           
           if (filterPatientId) {
             if (!patient || !patient.patientId?.toLowerCase().includes(filterPatientId.toLowerCase())) {
@@ -254,7 +264,7 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
 
     console.log('🎯 DOCTOR APPOINTMENTS: Displaying', result.length, 'appointments (filter:', appointmentFilter + ', search filters active:', !!(filterDate || filterPatientName || filterPatientId || filterNhsNumber) + ')');
     return result;
-  }, [doctorAppointments, categorizedAppointments, appointmentFilter, filterDate, filterPatientName, filterPatientId, filterNhsNumber, patientsData]);
+  }, [doctorAppointments, categorizedAppointments, appointmentFilter, filterDate, filterPatientName, filterPatientId, filterNhsNumber, patientsData, usersData]);
 
   // Get next upcoming appointment
   const nextAppointment = categorizedAppointments.upcoming[0] || null;
