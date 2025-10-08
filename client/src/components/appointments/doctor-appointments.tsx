@@ -582,12 +582,20 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
                     Patient: {getPatientName(nextAppointment.patientId)}
                   </span>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Stethoscope className="h-5 w-5 text-blue-600" />
-                  <span className="text-gray-700 dark:text-gray-300">
-                    Doctor: {getDoctorNameWithSpecialization(nextAppointment.doctorId)}
-                  </span>
-                </div>
+                {nextAppointment.createdBy && usersData && (() => {
+                  const doctor = usersData.find((u: any) => u.id === nextAppointment.createdBy && u.role === 'doctor');
+                  if (doctor) {
+                    return (
+                      <div className="flex items-center space-x-2">
+                        <Stethoscope className="h-5 w-5 text-blue-600" />
+                        <span className="text-gray-700 dark:text-gray-300">
+                          Doctor: Dr. {doctor.firstName} {doctor.lastName}
+                        </span>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
                 <div className="text-sm text-gray-600 dark:text-gray-400">
                   Type: {nextAppointment.type}
                 </div>
