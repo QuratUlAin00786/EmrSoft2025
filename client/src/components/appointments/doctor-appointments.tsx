@@ -42,14 +42,14 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
   const { data: usersData, isLoading: usersLoading } = useQuery({
     queryKey: ["/api/users"],
     staleTime: 60000,
-    enabled: !!user?.id && isDoctorLike(user?.role),
+    enabled: !!user?.id,
   });
 
   // Fetch patients
   const { data: patientsData, isLoading: patientsLoading } = useQuery({
     queryKey: ["/api/patients"],
     staleTime: 60000,
-    enabled: !!user?.id && isDoctorLike(user?.role),
+    enabled: !!user?.id,
   });
 
   // Cancel appointment mutation
