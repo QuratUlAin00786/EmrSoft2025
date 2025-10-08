@@ -38,16 +38,18 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
     },
   });
 
-  // Fetch users for patient names
-  const { data: usersData } = useQuery({
+  // Fetch users for patient names and doctor info
+  const { data: usersData, isLoading: usersLoading } = useQuery({
     queryKey: ["/api/users"],
     staleTime: 60000,
+    enabled: !!user?.id,
   });
 
   // Fetch patients
-  const { data: patientsData } = useQuery({
+  const { data: patientsData, isLoading: patientsLoading } = useQuery({
     queryKey: ["/api/patients"],
     staleTime: 60000,
+    enabled: !!user?.id,
   });
 
   // Cancel appointment mutation
@@ -197,7 +199,7 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
   const weekEnd = endOfWeek(selectedDate);
   const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
 
-  if (isLoading) {
+  if (isLoading || usersLoading || patientsLoading) {
     return (
       <Card>
         <CardContent className="p-6">
