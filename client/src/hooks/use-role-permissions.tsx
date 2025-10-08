@@ -30,10 +30,10 @@ interface RoleData {
 export function useRolePermissions() {
   const { user } = useAuth();
   
-  // Fetch role permissions from database
+  // Fetch role permissions from database (skip for admin - they have hardcoded full access)
   const { data: roleData, isLoading } = useQuery<RoleData>({
     queryKey: ['/api/roles/by-name', user?.role],
-    enabled: !!user?.role,
+    enabled: !!user?.role && user.role !== 'admin', // Don't fetch for admin
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes
     refetchOnWindowFocus: true, // Refetch when window regains focus to catch updates
   });
@@ -42,6 +42,11 @@ export function useRolePermissions() {
   
   const hasPermission = (module: string, action: PermissionAction): boolean => {
     if (!user?.role) return false;
+    
+    // HARDCODED: Admin role has ALL permissions to ALL modules
+    if (user.role === 'admin') {
+      return true;
+    }
     
     // Map frontend module names to backend module names
     const moduleMapping: Record<string, string> = {
