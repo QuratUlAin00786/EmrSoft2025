@@ -89,7 +89,7 @@ export function Sidebar() {
   const [location] = useLocation();
   const { tenant } = useTenant();
   const { user, logout } = useAuth();
-  const { canAccess, getUserRole } = useRolePermissions();
+  const { canAccess, getUserRole, isLoading } = useRolePermissions();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -118,8 +118,12 @@ export function Sidebar() {
   const patientOnlyItems = ["Patient Portal"];
   
   const filteredNavigation = ALL_NAVIGATION.filter(item => {
-    // First check role permissions
-    if (!canAccess(item.module)) return false;
+    // While permissions are loading, show all items (except role-specific restrictions)
+    // This prevents the sidebar from being empty while fetching permissions from database
+    if (!isLoading) {
+      // First check role permissions from database
+      if (!canAccess(item.module)) return false;
+    }
     
     // Hide specific items from Patient role users
     if (currentRole === "patient" && patientHiddenItems.includes(item.name)) {
@@ -134,7 +138,13 @@ export function Sidebar() {
     return true;
   });
   
-  const filteredAdminNavigation = ADMIN_NAVIGATION.filter(item => canAccess(item.module));
+  const filteredAdminNavigation = ADMIN_NAVIGATION.filter(item => {
+    // While permissions are loading, show items (will be filtered after load)
+    if (!isLoading) {
+      return canAccess(item.module);
+    }
+    return true;
+  });
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);

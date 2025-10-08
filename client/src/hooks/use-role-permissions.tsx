@@ -1,6 +1,7 @@
 import { useAuth } from "./use-auth";
 import { isDoctorLike } from "@/lib/role-utils";
 import { useQuery } from "@tanstack/react-query";
+import { getActiveSubdomain } from "@/lib/subdomain-utils";
 
 export type UserRole = string;
 export type PermissionAction = 'view' | 'create' | 'edit' | 'delete';
@@ -33,6 +34,29 @@ export function useRolePermissions() {
   // Fetch role permissions from database (skip for admin - they have hardcoded full access)
   const { data: roleData, isLoading } = useQuery<RoleData>({
     queryKey: ['/api/roles/by-name', user?.role],
+    queryFn: async () => {
+      if (!user?.role) return null;
+      const token = localStorage.getItem('auth_token');
+      const subdomain = getActiveSubdomain(); // Use the same subdomain detection logic as queryClient
+      const headers: Record<string, string> = {
+        'X-Tenant-Subdomain': subdomain
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch(`/api/roles/by-name/${user.role}`, {
+        headers,
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch role permissions: ${response.status}`);
+      }
+      
+      return response.json();
+    },
     enabled: !!user?.role && user.role !== 'admin', // Don't fetch for admin
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes
     refetchOnWindowFocus: true, // Refetch when window regains focus to catch updates
