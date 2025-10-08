@@ -1503,7 +1503,7 @@ export default function CalendarPage() {
               <div className="mb-4">
                 <h4 className="font-medium text-gray-900 dark:text-white flex items-center gap-2 mb-3">
                   <Users className="h-4 w-4 text-gray-900 dark:text-white" />
-                  Available Staff
+                  {isDoctorLike(user?.role) ? "Available Patient" : "Available Staff"}
                 </h4>
               </div>
               <DoctorList 
