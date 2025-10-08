@@ -5,6 +5,7 @@ import DoctorAppointments from "./doctor-appointments";
 import PatientAppointments from "./patient-appointments";
 import NurseAppointments from "./nurse-appointments";
 import HRAppointments from "./hr-appointments";
+import { isDoctorLike } from "@/lib/role-utils";
 
 interface RoleBasedAppointmentsProps {
   onNewAppointment?: () => void;
@@ -23,15 +24,16 @@ export default function RoleBasedAppointmentRouter({ onNewAppointment }: RoleBas
     );
   }
 
+  // Check for doctor-like roles first
+  if (isDoctorLike(user.role)) {
+    return <DoctorAppointments onNewAppointment={onNewAppointment} />;
+  }
+
   // Route to appropriate view based on user role
   switch (user.role) {
     case 'admin':
       // Admin users get the full calendar view (appointment-calendar.tsx)
       return <AppointmentCalendar onNewAppointment={onNewAppointment} />;
-    
-    case 'doctor':
-      // Doctors get their specialized schedule view
-      return <DoctorAppointments onNewAppointment={onNewAppointment} />;
     
     case 'patient':
       // Patients get their personal appointment view
