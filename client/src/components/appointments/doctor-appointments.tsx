@@ -141,19 +141,26 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
   const nextAppointment = categorizedAppointments.upcoming[0] || null;
 
   const getPatientName = (patientId: number) => {
-    // First try to find in patientsData
+    // Note: patientId in appointments table stores USER ID, not patients table ID
+    
+    // First check if this user has a corresponding patient record in patients table
     if (patientsData && Array.isArray(patientsData)) {
-      const patient = patientsData.find((p: any) => p.id === patientId);
+      // Find patient record where the user relationship matches
+      const patient = patientsData.find((p: any) => {
+        // Check if patient record exists for this user ID
+        return p.id === patientId;
+      });
+      
       if (patient) {
         const name = `${patient.firstName || ''} ${patient.lastName || ''}`.trim();
         return name || `Patient ${patientId}`;
       }
     }
     
-    // Fallback to usersData (for patient users) - check without role filter first
+    // Fallback: Check users table for patient role users
     if (usersData && Array.isArray(usersData)) {
-      const userPatient = usersData.find((u: any) => u.id === patientId);
-      if (userPatient && userPatient.role === 'patient') {
+      const userPatient = usersData.find((u: any) => u.id === patientId && u.role === 'patient');
+      if (userPatient) {
         const name = `${userPatient.firstName || ''} ${userPatient.lastName || ''}`.trim();
         return name || `Patient ${patientId}`;
       }
@@ -469,6 +476,12 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
                   <User className="h-5 w-5 text-blue-600" />
                   <span className="text-gray-700 dark:text-gray-300">
                     Patient: {getPatientName(nextAppointment.patientId)}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Stethoscope className="h-5 w-5 text-blue-600" />
+                  <span className="text-gray-700 dark:text-gray-300">
+                    Doctor: {getDoctorNameWithSpecialization(nextAppointment.doctorId)}
                   </span>
                 </div>
                 <div className="text-sm text-gray-600 dark:text-gray-400">
