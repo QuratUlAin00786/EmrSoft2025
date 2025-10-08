@@ -235,6 +235,14 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
 
   // Get next upcoming appointment
   const nextAppointment = categorizedAppointments.upcoming[0] || null;
+  
+  // Get doctor info for next appointment
+  const nextAppointmentDoctor = React.useMemo(() => {
+    if (nextAppointment?.createdBy && usersData && Array.isArray(usersData)) {
+      return usersData.find((u: any) => u.id === nextAppointment.createdBy);
+    }
+    return null;
+  }, [nextAppointment, usersData]);
 
   const weekStart = startOfWeek(selectedDate);
   const weekEnd = endOfWeek(selectedDate);
@@ -582,20 +590,14 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
                     Patient: {getPatientName(nextAppointment.patientId)}
                   </span>
                 </div>
-                {nextAppointment.createdBy && usersData && (() => {
-                  const user = usersData.find((u: any) => u.id === nextAppointment.createdBy);
-                  if (user) {
-                    return (
-                      <div className="flex items-center space-x-2">
-                        <Stethoscope className="h-5 w-5 text-blue-600" />
-                        <span className="text-gray-700 dark:text-gray-300">
-                          Doctor: {user.firstName} {user.lastName}
-                        </span>
-                      </div>
-                    );
-                  }
-                  return null;
-                })()}
+                {nextAppointmentDoctor && (
+                  <div className="flex items-center space-x-2">
+                    <Stethoscope className="h-5 w-5 text-blue-600" />
+                    <span className="text-gray-700 dark:text-gray-300">
+                      Doctor: {nextAppointmentDoctor.firstName} {nextAppointmentDoctor.lastName}
+                    </span>
+                  </div>
+                )}
                 <div className="text-sm text-gray-600 dark:text-gray-400">
                   Type: {nextAppointment.type}
                 </div>
