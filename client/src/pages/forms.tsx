@@ -8967,6 +8967,25 @@ Registration No: [Number]`
                                 <span style="color: #dc2626; font-size: 20px;">✚</span>
                               </div>
                             `;
+                          case "health-plus":
+                            return `
+                              <div style="width: 80px; height: 80px; background-color: #dbeafe; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                <span style="color: #2563eb; font-size: 24px;">⚕️</span>
+                              </div>
+                            `;
+                          case "custom":
+                            if (customLogoData) {
+                              return `
+                                <div style="width: 80px; height: 80px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                  <img src="${customLogoData}" alt="Custom Logo" style="max-width: 80px; max-height: 80px; object-fit: contain;" />
+                                </div>
+                              `;
+                            }
+                            return `
+                              <div style="width: 80px; height: 80px; background-color: #fef3c7; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                <span style="color: #d97706; font-size: 24px;">📁</span>
+                              </div>
+                            `;
                           default:
                             return `
                               <div style="width: 80px; height: 80px; background-color: #2563eb; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
