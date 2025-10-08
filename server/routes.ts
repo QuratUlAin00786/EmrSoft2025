@@ -2303,7 +2303,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Create medical record for patient
-  app.post("/api/patients/:id/records", authMiddleware, requireRole(["doctor", "nurse"]), async (req: TenantRequest, res) => {
+  app.post("/api/patients/:id/records", authMiddleware, requireNonPatientRole(), async (req: TenantRequest, res) => {
     try {
       const patientId = parseInt(req.params.id);
       
