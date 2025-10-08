@@ -2426,7 +2426,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Use database transaction to ensure atomicity
       const patient = await db.transaction(async (tx) => {
         // Step 1: Create user record in users table with hashed password
+        console.log("🔵 [PATIENT_CREATION] Starting transaction...");
         const hashedPassword = await bcrypt.hash("cura123", 10);
+        console.log("🔵 [PATIENT_CREATION] Password hashed successfully");
         
         const [newUser] = await tx.insert(users).values({
           organizationId: req.tenant!.id,
@@ -2445,6 +2447,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           isActive: true,
           isSaaSOwner: false
         }).returning();
+        
+        console.log("✅ [PATIENT_CREATION] User created successfully:", { id: newUser.id, email: newUser.email, role: newUser.role });
 
         // Step 2: Create patient record with user_id foreign key
         const medicalHistoryData = {
@@ -2481,6 +2485,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           emergencyContact: patientData.emergencyContact || {},
           medicalHistory: medicalHistoryData
         } as any).returning();
+        
+        console.log("✅ [PATIENT_CREATION] Patient record created successfully:", { id: patientRecord.id, patientId: patientRecord.patientId, userId: newUser.id });
+        console.log("🎉 [PATIENT_CREATION] Transaction completed successfully!");
 
         return patientRecord;
       });
@@ -2509,7 +2516,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.status(201).json(patient);
     } catch (error) {
-      console.error("Patient creation error:", error);
+      console.error("❌ [PATIENT_CREATION] Patient creation error:", error);
+      if (error instanceof Error) {
+        console.error("❌ [PATIENT_CREATION] Error message:", error.message);
+        console.error("❌ [PATIENT_CREATION] Error stack:", error.stack);
+      }
       res.status(500).json({ error: "Failed to create patient" });
     }
   });
