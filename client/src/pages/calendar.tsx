@@ -1548,7 +1548,9 @@ export default function CalendarPage() {
                             setSelectedDate(date);
                             // Update form with selected date and current time slot
                             if (date && selectedTimeSlot) {
-                              const dateTime = `${format(date, 'yyyy-MM-dd')}T${selectedTimeSlot}:00`;
+                              // Convert time slot to 24-hour format for consistent datetime string
+                              const time24 = timeSlotTo24Hour(selectedTimeSlot);
+                              const dateTime = `${format(date, 'yyyy-MM-dd')}T${time24}:00`;
                               setBookingForm(prev => ({ ...prev, scheduledAt: dateTime }));
                             }
                           }}
@@ -1582,7 +1584,9 @@ export default function CalendarPage() {
                                     setSelectedTimeSlot(timeSlot);
                                     // Update form with selected date and time
                                     if (selectedDate) {
-                                      const dateTime = `${format(selectedDate, 'yyyy-MM-dd')}T${timeSlot}:00`;
+                                      // Convert time slot to 24-hour format for consistent datetime string
+                                      const time24 = timeSlotTo24Hour(timeSlot);
+                                      const dateTime = `${format(selectedDate, 'yyyy-MM-dd')}T${time24}:00`;
                                       setBookingForm(prev => ({ ...prev, scheduledAt: dateTime }));
                                     }
                                   }}
@@ -1994,7 +1998,17 @@ export default function CalendarPage() {
                                       : ""
                                     }
                                   `}
-                                  onClick={() => !isBooked && setSelectedTimeSlot(timeSlot)}
+                                  onClick={() => {
+                                    if (!isBooked) {
+                                      setSelectedTimeSlot(timeSlot);
+                                      // Update bookingForm with proper datetime format
+                                      if (selectedDate) {
+                                        const time24 = timeSlotTo24Hour(timeSlot);
+                                        const dateTime = `${format(selectedDate, 'yyyy-MM-dd')}T${time24}:00`;
+                                        setBookingForm(prev => ({ ...prev, scheduledAt: dateTime }));
+                                      }
+                                    }
+                                  }}
                                   disabled={isBooked}
                                   data-testid={`time-slot-${timeSlot.replace(/[: ]/g, '-')}`}
                                 >
@@ -2338,7 +2352,17 @@ export default function CalendarPage() {
                                       : ""
                                     }
                                   `}
-                                  onClick={() => !isBooked && setSelectedTimeSlot(timeSlot)}
+                                  onClick={() => {
+                                    if (!isBooked) {
+                                      setSelectedTimeSlot(timeSlot);
+                                      // Update bookingForm with proper datetime format
+                                      if (selectedDate) {
+                                        const time24 = timeSlotTo24Hour(timeSlot);
+                                        const dateTime = `${format(selectedDate, 'yyyy-MM-dd')}T${time24}:00`;
+                                        setBookingForm(prev => ({ ...prev, scheduledAt: dateTime }));
+                                      }
+                                    }
+                                  }}
                                   disabled={isBooked}
                                   data-testid={`time-slot-${timeSlot.replace(/[: ]/g, '-')}`}
                                 >
@@ -2723,7 +2747,17 @@ export default function CalendarPage() {
                                       : ""
                                     }
                                   `}
-                                  onClick={() => !isBooked && setSelectedTimeSlot(timeSlot)}
+                                  onClick={() => {
+                                    if (!isBooked) {
+                                      setSelectedTimeSlot(timeSlot);
+                                      // Update bookingForm with proper datetime format
+                                      if (selectedDate) {
+                                        const time24 = timeSlotTo24Hour(timeSlot);
+                                        const dateTime = `${format(selectedDate, 'yyyy-MM-dd')}T${time24}:00`;
+                                        setBookingForm(prev => ({ ...prev, scheduledAt: dateTime }));
+                                      }
+                                    }
+                                  }}
                                   disabled={isBooked}
                                   data-testid={`time-slot-${timeSlot.replace(/[: ]/g, '-')}`}
                                 >
