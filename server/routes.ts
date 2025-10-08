@@ -2428,7 +2428,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Step 1: Create user record in users table with hashed password
         const hashedPassword = await bcrypt.hash("cura123", 10);
         
-        const newUser = await storage.createUser({
+        const [newUser] = await tx.insert(users).values({
           organizationId: req.tenant!.id,
           email: patientData.email || `patient_${Date.now()}@placeholder.com`,
           username: patientData.email || `patient_${Date.now()}`,
@@ -2444,41 +2444,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
           permissions: {},
           isActive: true,
           isSaaSOwner: false
-        });
+        }).returning();
 
         // Step 2: Create patient record with user_id foreign key
-        const patientRecord = await storage.createPatient({
+        const medicalHistoryData = {
+          allergies: patientData.medicalHistory?.allergies || [],
+          chronicConditions: patientData.medicalHistory?.chronicConditions || [],
+          medications: patientData.medicalHistory?.medications || [],
+          familyHistory: {
+            father: [],
+            mother: [],
+            siblings: [],
+            grandparents: [],
+            ...patientData.medicalHistory?.familyHistory
+          },
+          socialHistory: {
+            smoking: { status: "never" },
+            alcohol: { status: "never" },
+            drugs: { status: "never" },
+            occupation: "",
+            maritalStatus: "single",
+            education: "",
+            exercise: { frequency: "none" },
+            ...patientData.medicalHistory?.socialHistory
+          },
+          immunizations: patientData.medicalHistory?.immunizations || [],
+          ...patientData.medicalHistory
+        };
+
+        const [patientRecord] = await tx.insert(patients).values({
           ...patientData,
           organizationId: req.tenant!.id,
           userId: newUser.id, // Foreign key to users table
           patientId,
           address: patientData.address || {},
           emergencyContact: patientData.emergencyContact || {},
-          medicalHistory: {
-            allergies: patientData.medicalHistory?.allergies || [],
-            chronicConditions: patientData.medicalHistory?.chronicConditions || [],
-            medications: patientData.medicalHistory?.medications || [],
-            familyHistory: {
-              father: [],
-              mother: [],
-              siblings: [],
-              grandparents: [],
-              ...patientData.medicalHistory?.familyHistory
-            },
-            socialHistory: {
-              smoking: { status: "never" },
-              alcohol: { status: "never" },
-              drugs: { status: "never" },
-              occupation: "",
-              maritalStatus: "single",
-              education: "",
-              exercise: { frequency: "none" },
-              ...patientData.medicalHistory?.socialHistory
-            },
-            immunizations: patientData.medicalHistory?.immunizations || [],
-            ...patientData.medicalHistory
-          }
-        });
+          medicalHistory: medicalHistoryData
+        } as any).returning();
 
         return patientRecord;
       });
