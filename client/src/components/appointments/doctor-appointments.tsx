@@ -373,14 +373,9 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
                             <User className="h-4 w-4 text-gray-400" />
                             <span className="text-sm">{getPatientName(appointment.patientId)}</span>
                           </div>
-                          {appointment.providerId && (
-                            <div className="text-xs text-gray-500 mt-1">
-                              Provider: {getDoctorNameWithSpecialization(appointment.providerId)}
-                            </div>
-                          )}
                           {appointment.createdBy && (
                             <div className="text-xs text-gray-500 mt-1">
-                              Created by: {getCreatedByName(appointment.createdBy)}
+                              Booked by: {getCreatedByName(appointment.createdBy)}
                             </div>
                           )}
                         </div>
@@ -480,14 +475,9 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
                 <div className="text-sm text-gray-600 dark:text-gray-400">
                   Type: {nextAppointment.type}
                 </div>
-                {nextAppointment.providerId && (
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
-                    Provider: {getDoctorNameWithSpecialization(nextAppointment.providerId)}
-                  </div>
-                )}
                 {nextAppointment.createdBy && (
                   <div className="text-sm text-gray-600 dark:text-gray-400">
-                    Created by: {getCreatedByName(nextAppointment.createdBy)}
+                    Booked by: {getCreatedByName(nextAppointment.createdBy)}
                   </div>
                 )}
                 {nextAppointment.description && (
@@ -543,14 +533,9 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
                           <User className="h-4 w-4 text-gray-400" />
                           <span className="text-sm">{getPatientName(appointment.patientId)}</span>
                         </div>
-                        {appointment.providerId && (
-                          <div className="text-xs text-gray-500 mt-1">
-                            Provider: {getDoctorNameWithSpecialization(appointment.providerId)}
-                          </div>
-                        )}
                         {appointment.createdBy && (
                           <div className="text-xs text-gray-500 mt-1">
-                            Created by: {getCreatedByName(appointment.createdBy)}
+                            Booked by: {getCreatedByName(appointment.createdBy)}
                           </div>
                         )}
                       </div>
