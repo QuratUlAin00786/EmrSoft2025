@@ -2603,6 +2603,11 @@ export default function CalendarPage() {
                                         onSelect={() => {
                                           setSelectedProviderId(provider.id.toString());
                                           setOpenProviderCombo(false);
+                                          setProviderError("");
+                                          // Auto-set current date when doctor is selected for patient bookings (only if no date selected yet)
+                                          if (user?.role === 'patient' && !selectedDate) {
+                                            setSelectedDate(new Date());
+                                          }
                                         }}
                                       >
                                         <Check
