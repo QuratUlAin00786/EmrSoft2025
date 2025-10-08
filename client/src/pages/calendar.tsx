@@ -207,6 +207,11 @@ export default function CalendarPage() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showInsufficientTimeModal, setShowInsufficientTimeModal] = useState(false);
   const [insufficientTimeMessage, setInsufficientTimeMessage] = useState("");
+  
+  // Error modal state for booking errors
+  const [showBookingErrorModal, setShowBookingErrorModal] = useState(false);
+  const [bookingErrorMessage, setBookingErrorMessage] = useState("");
+  
   const [location] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -1136,11 +1141,13 @@ export default function CalendarPage() {
         errorMessage = "The selected doctor is not available at this time. Please choose a different time slot.";
       }
       
-      toast({
-        title: "Booking Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
+      // Show error in modal instead of toast
+      setBookingErrorMessage(errorMessage);
+      setShowBookingErrorModal(true);
+      
+      // Close other modals
+      setShowConfirmationModal(false);
+      setShowNewAppointmentModal(false);
     },
   });
 
@@ -3049,6 +3056,37 @@ export default function CalendarPage() {
                     data-testid="button-close-success"
                   >
                     Close
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Booking Error Modal */}
+        {showBookingErrorModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+              <div className="p-6">
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                    <X className="h-8 w-8 text-red-600" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                    Booking Error
+                  </h2>
+                  <p className="text-gray-600 mb-6">
+                    {bookingErrorMessage}
+                  </p>
+                  <Button
+                    onClick={() => {
+                      setShowBookingErrorModal(false);
+                    }}
+                    className="w-full"
+                    variant="destructive"
+                    data-testid="button-close-booking-error"
+                  >
+                    OK
                   </Button>
                 </div>
               </div>
