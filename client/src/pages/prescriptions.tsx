@@ -2391,7 +2391,7 @@ export default function PrescriptionsPage() {
                                 >
                                   {prescription.status}
                                 </Badge>
-                                {user?.role === 'admin' && (
+                                {user?.role && user?.role !== 'patient' && (
                                   <Button
                                     size="sm"
                                     variant="ghost"
