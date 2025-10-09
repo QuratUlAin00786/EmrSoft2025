@@ -17,7 +17,7 @@ import { messagingService } from "./messaging-service";
 import { isDoctorLike } from './utils/role-utils.js';
 // PayPal imports moved to dynamic imports to avoid initialization errors when credentials are missing
 import { gdprComplianceService } from "./services/gdpr-compliance";
-import { insertGdprConsentSchema, insertGdprDataRequestSchema, updateMedicalImageReportFieldSchema, insertAiInsightSchema, medicationsDatabase, patientDrugInteractions, type Appointment, organizations, subscriptions, users, patients, symptomChecks, quickbooksConnections } from "../shared/schema";
+import { insertGdprConsentSchema, insertGdprDataRequestSchema, updateMedicalImageReportFieldSchema, insertAiInsightSchema, medicationsDatabase, patientDrugInteractions, insuranceVerifications, type Appointment, organizations, subscriptions, users, patients, symptomChecks, quickbooksConnections } from "../shared/schema";
 import { db } from "./db";
 import { and, eq, sql, desc } from "drizzle-orm";
 import { processAppointmentBookingChat, generateAppointmentSummary } from "./anthropic";
@@ -2535,6 +2535,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const [patientRecord] = await tx.insert(patients).values(enforceCreatedBy(req, patientInsertData as any)).returning();
         
         console.log("✅ [PATIENT_CREATION] Patient record created successfully:", { id: patientRecord.id, patientId: patientRecord.patientId, userId: newUser.id });
+
+        // Step 3: Create insurance verification record if insurance info is provided
+        if (patientData.insuranceInfo && (patientData.insuranceInfo.provider || patientData.insuranceInfo.policyNumber)) {
+          const insuranceData: any = {
+            organizationId: req.tenant!.id,
+            patientId: patientRecord.id,
+            patientName: `${patientData.firstName} ${patientData.lastName}`,
+            provider: patientData.insuranceInfo.provider || '',
+            policyNumber: patientData.insuranceInfo.policyNumber || '',
+            groupNumber: patientData.insuranceInfo.groupNumber || null,
+            memberNumber: patientData.insuranceInfo.memberNumber || null,
+            nhsNumber: patientData.nhsNumber || null,
+            planType: patientData.insuranceInfo.planType || null,
+            coverageType: 'primary' as const,
+            status: patientData.insuranceInfo.isActive ? ('active' as const) : ('inactive' as const),
+            eligibilityStatus: 'pending' as const,
+            effectiveDate: patientData.insuranceInfo.effectiveDate ? new Date(patientData.insuranceInfo.effectiveDate) : null,
+            expirationDate: patientData.insuranceInfo.expirationDate ? new Date(patientData.insuranceInfo.expirationDate) : null,
+            lastVerified: null,
+            benefits: {
+              deductible: patientData.insuranceInfo.deductible || 0,
+              copay: patientData.insuranceInfo.copay || 0
+            }
+          };
+
+          const [insuranceRecord] = await tx.insert(insuranceVerifications).values(insuranceData as any).returning();
+          console.log("✅ [PATIENT_CREATION] Insurance verification record created:", { id: insuranceRecord.id, provider: insuranceRecord.provider });
+        }
+
         console.log("🎉 [PATIENT_CREATION] Transaction completed successfully!");
 
         return patientRecord;
