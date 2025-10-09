@@ -1016,7 +1016,7 @@ export function DoctorList({
                           e.stopPropagation();
                           openScheduleDialog(item);
                         }}
-                        className="flex-shrink-0"
+                        className="flex-shrink-0 hidden"
                       >
                         <Edit className="h-3 w-3 mr-1" />
                         Edit Schedule
