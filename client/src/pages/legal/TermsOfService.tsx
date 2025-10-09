@@ -1,7 +1,8 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, FileText, Scale, AlertTriangle } from "lucide-react";
-import curaLogoPath from "@assets/Cura Logo Main_1751893631982.png";
+
+const curaLogoPath = "/cura-logo.png";
 
 export default function TermsOfService() {
   return (

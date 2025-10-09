@@ -13,9 +13,10 @@ import { Check, ChevronsUpDown } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Calendar, Clock, MapPin, User, Users, Video, Stethoscope, FileText, Plus, Save, X, Mic, Square, Edit, Trash2 } from "lucide-react";
-import anatomicalDiagramImage from "@assets/2_1754469563272.png";
-import facialDiagramImage from "@assets/1_1754469776185.png";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday } from "date-fns";
+
+const anatomicalDiagramImage = "/anatomical-diagram-clean.svg";
+const facialDiagramImage = "/clean-facial-diagram.png";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";

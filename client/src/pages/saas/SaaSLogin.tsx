@@ -11,7 +11,8 @@ import { useMutation } from '@tanstack/react-query';
 import { saasApiRequest } from '@/lib/saasQueryClient';
 import { useToast } from '@/hooks/use-toast';
 import { Shield, Lock } from 'lucide-react';
-import curaLogoPath from '@assets/Cura Logo Main AI_1755589894912.png';
+
+const curaLogoPath = "/cura-logo.png";
 
 const saasLoginSchema = z.object({
   username: z.string().min(1, 'Username is required'),

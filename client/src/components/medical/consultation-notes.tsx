@@ -21,9 +21,10 @@ import { useToast } from "@/hooks/use-toast";
 import { FileText, Plus, Calendar, User, Stethoscope, Pill, AlertTriangle, Mic, Square, Heart, Thermometer, Activity, Weight, Ruler, Calculator, History, Eye, ClipboardCheck, FileSpreadsheet, BookOpen, X, Printer, Save, CheckCircle, Clock } from "lucide-react";
 import { format } from "date-fns";
 import type { MedicalRecord } from "@/types";
-import anatomicalDiagramImage from "@assets/2_1754469563272.png";
-import facialMuscleImage from "@assets/generated_images/Updated_facial_muscle_diagram.png";
-import facialOutlineImage from "@assets/generated_images/Clean_facial_outline_v2.png";
+
+const anatomicalDiagramImage = "/anatomical-diagram-clean.svg";
+const facialMuscleImage = "/clean-facial-diagram.png";
+const facialOutlineImage = "/clean-facial-diagram.png";
 
 // Helper function to get the correct tenant subdomain
 function getTenantSubdomain(): string {

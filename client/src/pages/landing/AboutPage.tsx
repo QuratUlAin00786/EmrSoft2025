@@ -12,8 +12,9 @@ import {
   ArrowLeft,
   Clock
 } from "lucide-react";
-import curaLogoPath from "@assets/Cura Logo Main_1751893631982.png";
 import { WebsiteChatbot } from "@/components/WebsiteChatbot";
+
+const curaLogoPath = "/cura-logo.png";
 
 export default function AboutPage() {
   return (

@@ -2,7 +2,8 @@ import { forwardRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import curaLogo from "@assets/Cura Logo Main AI_1755605903988.png";
+
+const curaLogo = "/cura-logo.png";
 
 interface InvoiceTemplateProps {
   invoice: {

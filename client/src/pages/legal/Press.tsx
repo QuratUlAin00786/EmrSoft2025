@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Calendar, Download, ExternalLink, Mail, Phone } from "lucide-react";
-import curaLogoPath from "@assets/Cura Logo Main_1751893631982.png";
+
+const curaLogoPath = "/cura-logo.png";
 
 export default function Press() {
   const pressReleases = [

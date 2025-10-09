@@ -27,11 +27,12 @@ import {
   Activity,
   Pill
 } from "lucide-react";
-import curaLogoPath from "@assets/Cura Logo Main_1751893631982.png";
-import dashboardScreenshot from "@assets/Screenshot 2025-08-19 at 12.12.03_1755587692183.png";
 import { AppStoreBadge } from "@/components/AppStoreBadge";
 import { PlayStoreBadge } from "@/components/PlayStoreBadge";
 import { WebsiteChatbot } from "@/components/WebsiteChatbot";
+
+const curaLogoPath = "/cura-logo.png";
+const dashboardScreenshot = "/cura-logo.png";
 
 export default function FeaturesPage() {
   return (

@@ -15,7 +15,8 @@ import {
   EyeOff,
   Loader2
 } from "lucide-react";
-import curaLogoPath from "@assets/Cura Logo Main_1751893631982.png";
+
+const curaLogoPath = "/cura-logo.png";
 
 export default function LoginPage() {
   const [, setLocation] = useLocation();

@@ -4,7 +4,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { NotificationBell } from "@/components/layout/notification-bell";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
-import curaIconPath from "@assets/Cura Icon Main_1751893631980.png";
+
+const curaIconPath = "/cura-logo.png";
 
 interface HeaderProps {
   title: string;

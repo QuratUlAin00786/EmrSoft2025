@@ -13,7 +13,8 @@ import { getActiveSubdomain } from "@/lib/subdomain-utils";
 
 import { useAuth } from "@/hooks/use-auth";
 import { useEffect } from "react";
-import curaLogoPath from "@assets/Cura Logo Main_1751893631982.png";
+
+const curaLogoPath = "/cura-logo.png";
 
 // Pages
 import Dashboard from "@/pages/dashboard";

@@ -6,8 +6,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/hooks/use-auth";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
-import curaLogoPath from "@assets/Cura Logo Main_1751893631982.png";
 import { getActiveSubdomain } from "@/lib/subdomain-utils";
+
+const curaLogoPath = "/cura-logo.png";
 
 export default function Login() {
   const [email, setEmail] = useState("");

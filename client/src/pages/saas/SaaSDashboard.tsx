@@ -19,8 +19,9 @@ import {
   AlertTriangle,
   CheckCircle
 } from 'lucide-react';
-import curaLogoPath from '@assets/Cura Logo Main AI_1755589894912.png';
 import SaaSUsers from './components/SaaSUsers';
+
+const curaLogoPath = "/cura-logo.png";
 import SaaSCustomers from './components/SaaSCustomers';
 import SaaSBilling from './components/SaaSBilling';
 import SaaSPackages from './components/SaaSPackages';
