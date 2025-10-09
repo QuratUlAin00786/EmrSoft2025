@@ -2537,7 +2537,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("✅ [PATIENT_CREATION] Patient record created successfully:", { id: patientRecord.id, patientId: patientRecord.patientId, userId: newUser.id });
 
         // Step 3: Create insurance verification record if insurance info is provided
+        console.log("🔍 [INSURANCE_CHECK] Checking insurance info:", {
+          hasInsuranceInfo: !!patientData.insuranceInfo,
+          provider: patientData.insuranceInfo?.provider,
+          policyNumber: patientData.insuranceInfo?.policyNumber,
+          conditionResult: !!(patientData.insuranceInfo && (patientData.insuranceInfo.provider || patientData.insuranceInfo.policyNumber))
+        });
+        
         if (patientData.insuranceInfo && (patientData.insuranceInfo.provider || patientData.insuranceInfo.policyNumber)) {
+          console.log("✅ [INSURANCE_CHECK] Condition passed - Creating insurance verification record");
           const insuranceData: any = {
             organizationId: req.tenant!.id,
             patientId: patientRecord.id,
