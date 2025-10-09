@@ -9466,18 +9466,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const isTemplatesOnly = req.query.templates === 'true';
+      const isDoctor = req.user.role && ['doctor', 'nurse', 'dentist', 'dental_nurse', 'phlebotomist', 'aesthetician', 'optician', 'paramedic', 'physiotherapist', 'sample_taker'].includes(req.user.role.toLowerCase());
       
       if (isTemplatesOnly) {
-        // Fetch only templates
-        const templates = await storage.getTemplatesByOrganization(req.tenant!.id, 50);
+        // Fetch only templates - doctors see only their own, others see all
+        let templates;
+        if (isDoctor) {
+          templates = await storage.getDocumentsByUser(req.user.id, req.tenant!.id);
+          // Filter to only templates
+          templates = templates.filter((t: any) => t.isTemplate);
+        } else {
+          templates = await storage.getTemplatesByOrganization(req.tenant!.id, 50);
+        }
         // Load template content from file system for each template
         const templatesWithContent = await Promise.all(
           templates.map((template: any) => loadTemplateContent(template, req.tenant!.id))
         );
         res.json(templatesWithContent);
       } else {
-        // Fetch all documents
-        const documents = await storage.getDocumentsByOrganization(req.tenant!.id, 50);
+        // Fetch all documents - doctors see only their own, others see all
+        let documents;
+        if (isDoctor) {
+          documents = await storage.getDocumentsByUser(req.user.id, req.tenant!.id);
+        } else {
+          documents = await storage.getDocumentsByOrganization(req.tenant!.id, 50);
+        }
         // Load template content from file system for templates
         const documentsWithContent = await Promise.all(
           documents.map((doc: any) => loadTemplateContent(doc, req.tenant!.id))
