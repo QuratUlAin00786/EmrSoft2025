@@ -8,7 +8,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { Header } from "@/components/layout/header";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
-import { isDoctorLike } from "@/lib/role-utils";
+import { isDoctorLike, formatRoleLabel } from "@/lib/role-utils";
 
 // Medical Specialties Data Structure
 const medicalSpecialties = {
@@ -1841,7 +1841,7 @@ Report generated from Cura EMR System`;
                       <div className="flex items-center h-10 px-3 py-2 border border-input bg-background rounded-md text-sm ring-offset-background">
                         <User className="h-4 w-4 mr-2 text-muted-foreground" />
                         <span data-testid="provider-role-display">
-                          {user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : ''}
+                          {formatRoleLabel(user?.role)}
                         </span>
                       </div>
                     </div>

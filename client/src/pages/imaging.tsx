@@ -53,6 +53,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { format } from "date-fns";
+import { isDoctorLike, formatRoleLabel } from "@/lib/role-utils";
 
 interface ImagingStudy {
   id: string;
@@ -3968,6 +3969,31 @@ export default function ImagingPage() {
                 </Select>
               )}
             </div>
+
+            {/* Provider Information - Show only for doctor roles */}
+            {isDoctorLike(user?.role) && (
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="role">Role</Label>
+                  <div className="flex items-center h-10 px-3 py-2 border border-input bg-background rounded-md text-sm ring-offset-background">
+                    <User className="h-4 w-4 mr-2 text-muted-foreground" />
+                    <span data-testid="provider-role-display">
+                      {formatRoleLabel(user?.role)}
+                    </span>
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="provider">Provider Name</Label>
+                  <div className="flex items-center h-10 px-3 py-2 border border-input bg-background rounded-md text-sm ring-offset-background">
+                    <User className="h-4 w-4 mr-2 text-muted-foreground" />
+                    <span data-testid="provider-name-display">
+                      {user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : ''}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Study Information */}
             <div className="grid grid-cols-2 gap-4">

@@ -48,7 +48,7 @@ import { format } from "date-fns";
 import { useAuth } from "@/hooks/use-auth";
 import { getActiveSubdomain } from "@/lib/subdomain-utils";
 import { useLocation } from "wouter";
-import { isDoctorLike } from "@/lib/role-utils";
+import { isDoctorLike, formatRoleLabel } from "@/lib/role-utils";
 
 interface Prescription {
   id: string;
@@ -1916,7 +1916,7 @@ export default function PrescriptionsPage() {
                               <div className="flex items-center h-10 px-3 py-2 border border-input bg-background rounded-md text-sm ring-offset-background">
                                 <User className="h-4 w-4 mr-2 text-muted-foreground" />
                                 <span data-testid="provider-role-display">
-                                  {user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : ''}
+                                  {formatRoleLabel(user?.role)}
                                 </span>
                               </div>
                             </div>

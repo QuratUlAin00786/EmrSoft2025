@@ -69,3 +69,16 @@ export function isPatient(role: string | undefined | null): boolean {
 export function getDoctorLikeRoles(): string[] {
   return [...DOCTOR_LIKE_ROLES];
 }
+
+/**
+ * Format a role string for display (e.g., "lab_technician" -> "Lab Technician")
+ * @param role - The role string to format
+ * @returns Formatted role string with proper capitalization
+ */
+export function formatRoleLabel(role: string | undefined | null): string {
+  if (!role) return '';
+  return role
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+}
