@@ -3870,8 +3870,11 @@ Coverage Details: [Insurance Coverage]`;
 
       const savedTemplate = await response.json();
 
-      // Invalidate templates query to refresh the list
-      queryClient.invalidateQueries({ queryKey: ["/api/documents/templates"] });
+      // Invalidate and refetch templates query to refresh the list
+      await queryClient.invalidateQueries({ 
+        queryKey: ["/api/documents/templates"],
+        refetchType: 'active'
+      });
 
       toast({
         title: "✓ Template Saved",
