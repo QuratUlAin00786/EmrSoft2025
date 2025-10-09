@@ -279,6 +279,7 @@ export const staffShifts = pgTable("staff_shifts", {
   status: varchar("status", { length: 20 }).notNull().default("scheduled"), // scheduled, completed, cancelled, absent
   notes: text("notes"),
   isAvailable: boolean("is_available").notNull().default(true),
+  createdBy: integer("created_by").references(() => users.id), // User who created the shift
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -369,6 +370,7 @@ export const patients = pgTable("patients", {
   }>().default({}),
   isActive: boolean("is_active").notNull().default(true),
   isInsured: boolean("is_insured").notNull().default(false),
+  createdBy: integer("created_by").references(() => users.id), // User who created the patient record
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
