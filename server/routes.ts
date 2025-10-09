@@ -9429,23 +9429,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Helper function to load template content from file system
   async function loadTemplateContent(document: any, organizationId: number): Promise<any> {
     if (document.isTemplate && document.content) {
-      const userId = document.userId;
-      const filename = document.content;
-      const filePath = path.join(process.cwd(), 'uploads', 'Forms', String(organizationId), String(userId), filename);
+      // Check if content is a filename (new templates) or actual content (legacy templates)
+      const isFilename = document.content.endsWith('.json');
       
-      if (fs.existsSync(filePath)) {
-        try {
-          const fileContent = await fs.promises.readFile(filePath, 'utf8');
-          const templateData = JSON.parse(fileContent);
-          return {
-            ...document,
-            content: templateData.content,
-            metadata: templateData.metadata || document.metadata,
-          };
-        } catch (error) {
-          console.error('Error reading template file:', filePath, error);
+      if (isFilename) {
+        const userId = document.userId;
+        const filename = document.content;
+        const filePath = path.join(process.cwd(), 'uploads', 'Forms', String(organizationId), String(userId), filename);
+        
+        if (fs.existsSync(filePath)) {
+          try {
+            const fileContent = await fs.promises.readFile(filePath, 'utf8');
+            const templateData = JSON.parse(fileContent);
+            return {
+              ...document,
+              content: templateData.content,
+              metadata: templateData.metadata || document.metadata,
+            };
+          } catch (error) {
+            console.error('Error reading template file:', filePath, error);
+          }
+        } else {
+          console.log('Template file not found, returning DB content:', filePath);
         }
       }
+      // For legacy templates with content in DB, return as-is
     }
     return document;
   }
