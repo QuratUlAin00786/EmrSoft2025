@@ -749,13 +749,11 @@ export default function ShiftsPage() {
   return (
     <div className="p-6">
       <Tabs defaultValue="custom-shifts" className="w-full">
-        <TabsList className={`grid w-full ${isDoctor ? 'grid-cols-1' : 'grid-cols-2'} mb-6`}>
-          {!isDoctor && (
-            <TabsTrigger value="default-shifts" className="flex items-center gap-2">
-              <Settings className="h-4 w-4" />
-              Default Shifts
-            </TabsTrigger>
-          )}
+        <TabsList className="grid w-full grid-cols-2 mb-6">
+          <TabsTrigger value="default-shifts" className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            Default Shifts
+          </TabsTrigger>
           <TabsTrigger value="custom-shifts" className="flex items-center gap-2">
             <Calendar className="h-4 w-4" />
             Custom Shifts
