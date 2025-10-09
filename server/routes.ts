@@ -6105,7 +6105,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/prescriptions/:id", authMiddleware, requireRole(["doctor", "nurse", "paramedic", "optician", "lab_technician", "pharmacist", "dentist", "dental_nurse", "phlebotomist", "aesthetician", "podiatrist", "physiotherapist", "physician"]), async (req: TenantRequest, res) => {
+  app.delete("/api/prescriptions/:id", authMiddleware, requireRole(["admin", "doctor", "nurse", "paramedic", "optician", "lab_technician", "pharmacist", "dentist", "dental_nurse", "phlebotomist", "aesthetician", "podiatrist", "physiotherapist", "physician"]), async (req: TenantRequest, res) => {
     try {
       if (!req.user) {
         return res.status(401).json({ error: "User not authenticated" });
@@ -6126,8 +6126,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // E-signature endpoint for prescriptions - allow all doctor-like roles and nurses to sign
-  app.post("/api/prescriptions/:id/e-sign", authMiddleware, requireRole(["doctor", "nurse", "paramedic", "optician", "lab_technician", "pharmacist", "dentist", "dental_nurse", "phlebotomist", "aesthetician", "podiatrist", "physiotherapist", "physician"]), async (req: TenantRequest, res) => {
+  // E-signature endpoint for prescriptions - allow all doctor-like roles, nurses, and admins to sign
+  app.post("/api/prescriptions/:id/e-sign", authMiddleware, requireRole(["admin", "doctor", "nurse", "paramedic", "optician", "lab_technician", "pharmacist", "dentist", "dental_nurse", "phlebotomist", "aesthetician", "podiatrist", "physiotherapist", "physician"]), async (req: TenantRequest, res) => {
     try {
       if (!req.user) {
         return res.status(401).json({ error: "User not authenticated" });
