@@ -9426,6 +9426,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Helper function to load template content from file system
+  async function loadTemplateContent(document: any, organizationId: number): Promise<any> {
+    if (document.isTemplate && document.content) {
+      const userId = document.userId;
+      const filename = document.content;
+      const filePath = path.join(process.cwd(), 'uploads', 'Forms', String(organizationId), String(userId), filename);
+      
+      if (fs.existsSync(filePath)) {
+        try {
+          const fileContent = await fs.promises.readFile(filePath, 'utf8');
+          const templateData = JSON.parse(fileContent);
+          return {
+            ...document,
+            content: templateData.content,
+            metadata: templateData.metadata || document.metadata,
+          };
+        } catch (error) {
+          console.error('Error reading template file:', filePath, error);
+        }
+      }
+    }
+    return document;
+  }
+
   // Document API routes
   app.get("/api/documents", authMiddleware, async (req: TenantRequest, res) => {
     try {
@@ -9438,11 +9462,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (isTemplatesOnly) {
         // Fetch only templates
         const templates = await storage.getTemplatesByOrganization(req.tenant!.id, 50);
-        res.json(templates);
+        // Load template content from file system for each template
+        const templatesWithContent = await Promise.all(
+          templates.map((template: any) => loadTemplateContent(template, req.tenant!.id))
+        );
+        res.json(templatesWithContent);
       } else {
         // Fetch all documents
         const documents = await storage.getDocumentsByOrganization(req.tenant!.id, 50);
-        res.json(documents);
+        // Load template content from file system for templates
+        const documentsWithContent = await Promise.all(
+          documents.map((doc: any) => loadTemplateContent(doc, req.tenant!.id))
+        );
+        res.json(documentsWithContent);
       }
     } catch (error) {
       console.error("Error fetching documents:", error);
@@ -9457,7 +9489,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const documents = await storage.getDocumentsByUser(req.user.id, req.tenant!.id);
-      res.json(documents);
+      // Load template content from file system for templates
+      const documentsWithContent = await Promise.all(
+        documents.map((doc: any) => loadTemplateContent(doc, req.tenant!.id))
+      );
+      res.json(documentsWithContent);
     } catch (error) {
       console.error("Error fetching user documents:", error);
       res.status(500).json({ error: "Failed to fetch user documents" });
@@ -9485,13 +9521,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isTemplate: z.boolean().optional().default(false),
       }).parse(req.body);
 
-      const document = await storage.createDocument({
-        ...documentData,
-        organizationId: req.tenant!.id,
-        userId: req.user.id,
-      });
-
-      res.status(201).json(document);
+      // For templates, save to file system with organization_id/user_id directory structure
+      if (documentData.isTemplate) {
+        const organizationId = req.tenant!.id;
+        const userId = req.user.id;
+        
+        // Create directory structure: uploads/Forms/{organization_id}/{user_id}/
+        const formsDir = path.join(process.cwd(), 'uploads', 'Forms', String(organizationId), String(userId));
+        
+        // Create directory if it doesn't exist
+        if (!fs.existsSync(formsDir)) {
+          fs.mkdirSync(formsDir, { recursive: true });
+          console.log('📁 Created Forms directory:', formsDir);
+        }
+        
+        // Generate unique filename
+        const timestamp = Date.now();
+        const sanitizedName = documentData.name.replace(/[^a-z0-9_-]/gi, '_');
+        const filename = `${sanitizedName}_${timestamp}.json`;
+        const filePath = path.join(formsDir, filename);
+        
+        // Prepare template data for file system
+        const templateFileData = {
+          name: documentData.name,
+          type: documentData.type,
+          content: documentData.content,
+          metadata: documentData.metadata,
+          createdAt: new Date().toISOString(),
+          organizationId,
+          userId,
+        };
+        
+        // Save template to file system
+        await fs.promises.writeFile(filePath, JSON.stringify(templateFileData, null, 2), 'utf8');
+        console.log('✅ Template saved to file system:', filePath);
+        
+        // Also save metadata to database for querying/listing
+        const document = await storage.createDocument({
+          ...documentData,
+          organizationId: req.tenant!.id,
+          userId: req.user.id,
+          content: filename, // Store filename instead of content
+        });
+        
+        res.status(201).json({
+          ...document,
+          filePath: `uploads/Forms/${organizationId}/${userId}/${filename}`,
+        });
+      } else {
+        // For non-templates, save to database as before
+        const document = await storage.createDocument({
+          ...documentData,
+          organizationId: req.tenant!.id,
+          userId: req.user.id,
+        });
+        
+        res.status(201).json(document);
+      }
     } catch (error) {
       console.error("Error creating document:", error);
       res.status(500).json({ error: "Failed to create document" });
@@ -9514,7 +9600,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Document not found" });
       }
 
-      res.json(document);
+      // Load template content from file system if it's a template
+      const documentWithContent = await loadTemplateContent(document, req.tenant!.id);
+      res.json(documentWithContent);
     } catch (error) {
       console.error("Error fetching document:", error);
       res.status(500).json({ error: "Failed to fetch document" });
