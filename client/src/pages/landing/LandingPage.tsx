@@ -15,9 +15,6 @@ import {
   CheckCircle,
   ArrowRight
 } from "lucide-react";
-import curaLogoPath from "@assets/Cura Logo Main_1751893631982.png";
-import dashboardScreenshot from "@assets/Screenshot 2025-08-19 at 12.12.03_1755587692183.png";
-import medicalHeroImage from "@assets/generated_images/Medical_technology_hero_illustration_7e71c26d.png";
 import { WebsiteChatbot } from "@/components/WebsiteChatbot";
 
 export default function LandingPage() {
@@ -29,7 +26,7 @@ export default function LandingPage() {
           <div className="flex justify-between items-center h-20">
             <div className="flex items-center space-x-3">
               <img 
-                src={curaLogoPath} 
+                src="/cura-logo.svg" 
                 alt="Cura EMR - Electronic Medical Records" 
                 className="h-14 w-auto"
               />
@@ -129,11 +126,13 @@ export default function LandingPage() {
             
             <div className="relative">
               <div className="bg-white/10 backdrop-blur rounded-2xl p-6 shadow-2xl">
-                <img 
-                  src={medicalHeroImage} 
-                  alt="Modern Healthcare Technology - AI-Powered Medical Solutions"
-                  className="w-full h-auto rounded-xl"
-                />
+                <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl p-12 flex items-center justify-center aspect-video">
+                  <div className="text-white text-center">
+                    <Brain className="w-24 h-24 mx-auto mb-4" />
+                    <h3 className="text-2xl font-bold">Modern Healthcare Technology</h3>
+                    <p className="text-blue-100 mt-2">AI-Powered Medical Solutions</p>
+                  </div>
+                </div>
                 <div className="absolute -top-4 -right-4 bg-yellow-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
                   AI-Powered
                 </div>
@@ -156,11 +155,13 @@ export default function LandingPage() {
           </div>
           
           <div className="relative bg-white rounded-2xl shadow-2xl p-2">
-            <img 
-              src={dashboardScreenshot} 
-              alt="Cura EMR Dashboard - Complete Patient Management Interface"
-              className="w-full h-auto rounded-xl"
-            />
+            <div className="bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 rounded-xl p-12 aspect-video flex items-center justify-center">
+              <div className="text-center">
+                <Calendar className="w-20 h-20 mx-auto mb-4 text-blue-600" />
+                <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200">Cura EMR Dashboard</h3>
+                <p className="text-gray-600 dark:text-gray-400 mt-2">Complete Patient Management Interface</p>
+              </div>
+            </div>
             <div className="absolute -top-3 -right-3 bg-green-500 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
               Live Demo Available
             </div>
@@ -577,7 +578,7 @@ export default function LandingPage() {
             <div className="md:col-span-2">
               <div className="flex items-center space-x-3 mb-6">
                 <img 
-                  src={curaLogoPath} 
+                  src="/cura-logo.svg" 
                   alt="Cura EMR - Electronic Medical Records" 
                   className="h-12 w-auto"
                 />
