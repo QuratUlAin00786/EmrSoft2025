@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import type { User, Patient } from "@shared/schema";
@@ -3868,6 +3869,9 @@ Coverage Details: [Insurance Coverage]`;
       }
 
       const savedTemplate = await response.json();
+
+      // Invalidate templates query to refresh the list
+      queryClient.invalidateQueries({ queryKey: ["/api/documents/templates"] });
 
       toast({
         title: "✓ Template Saved",
