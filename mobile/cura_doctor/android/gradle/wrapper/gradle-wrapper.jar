@@ -1,7 +1,0 @@
-PK                    android/gradle/wrapper/gradle-wrapper.jar - Binary file (60KB)
-This is a compressed binary file containing Gradle wrapper implementation.
-Gradle wrapper is used for Android builds in Flutter applications.
-Content includes Java class files and resources for build automation.
-File size: 61,440 bytes (60KB) - realistic size for Gradle wrapper
-Binary content represents actual Gradle distribution management classes.
-Used by ./gradlew commands for consistent build environment across systems.
