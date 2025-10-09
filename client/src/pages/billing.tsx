@@ -4,6 +4,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
+import { isDoctorLike } from "@/lib/role-utils";
 import { Header } from "@/components/layout/header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -79,6 +80,7 @@ interface Invoice {
 
 export default function BillingPage() {
   const { user } = useAuth();
+  const isDoctor = isDoctorLike(user?.role);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [showNewInvoice, setShowNewInvoice] = useState(false);
@@ -549,6 +551,22 @@ export default function BillingPage() {
       return response.json();
     }
   });
+
+  // Auto-populate NHS number when patient is selected
+  useEffect(() => {
+    if (selectedPatient && patients && patients.length > 0) {
+      const selected = patients.find((p: any) => p.patientId === selectedPatient);
+      if (selected && selected.nhsNumber) {
+        setNhsNumber(selected.nhsNumber);
+      } else {
+        // Clear NHS number if patient has none or selection is invalid
+        setNhsNumber("");
+      }
+    } else {
+      // Clear NHS number when selection is cleared
+      setNhsNumber("");
+    }
+  }, [selectedPatient, patients]);
 
   const filteredInvoices = Array.isArray(invoices) ? invoices.filter((invoice: any) => {
     // Unified search: Search by Invoice ID, Patient ID, or Patient Name
@@ -1879,6 +1897,22 @@ export default function BillingPage() {
                   value={serviceDate}
                   onChange={(e) => setServiceDate(e.target.value)}
                 />
+              </div>
+            </div>
+
+            {/* Doctor Name Field */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="doctor-name">Doctor</Label>
+                {isDoctor ? (
+                  <div className="h-10 px-3 py-2 border rounded-md bg-gray-50 dark:bg-gray-800 flex items-center text-sm">
+                    {user?.firstName} {user?.lastName}
+                  </div>
+                ) : (
+                  <div className="h-10 px-3 py-2 border rounded-md bg-gray-50 dark:bg-gray-800 flex items-center text-sm">
+                    {user?.firstName} {user?.lastName}
+                  </div>
+                )}
               </div>
             </div>
 
