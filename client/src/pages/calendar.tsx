@@ -12,7 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Calendar, Plus, Users, Clock, User, X, Check, ChevronsUpDown, Phone, Mail, FileText, MapPin, Filter, FilterX } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
-import { format, isBefore, startOfDay } from "date-fns";
+import { format, isBefore, startOfDay, addMonths, isAfter } from "date-fns";
 import { useLocation } from "wouter";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -1209,7 +1209,7 @@ export default function CalendarPage() {
         subtitle="Schedule and manage patient appointments efficiently."
       />
       
-      <div className="flex-1 overflow-auto p-6">
+      <div className="flex-1 overflow-auto p-6 max-w-[1800px] mx-auto">
         <div className="mb-6">
           <div className="flex justify-between items-center mb-4">
          
@@ -1390,6 +1390,13 @@ export default function CalendarPage() {
                           mode="single"
                           selected={filterDate}
                           onSelect={setFilterDate}
+                          disabled={(date) => {
+                            // Disable past dates
+                            if (isBefore(date, startOfDay(new Date()))) return true;
+                            // Disable dates beyond 3 months
+                            if (isAfter(date, addMonths(new Date(), 3))) return true;
+                            return false;
+                          }}
                           initialFocus
                         />
                       </PopoverContent>
@@ -1556,7 +1563,13 @@ export default function CalendarPage() {
                               setBookingForm(prev => ({ ...prev, scheduledAt: dateTime }));
                             }
                           }}
-                          disabled={(date) => isBefore(date, startOfDay(new Date()))}
+                          disabled={(date) => {
+                            // Disable past dates
+                            if (isBefore(date, startOfDay(new Date()))) return true;
+                            // Disable dates beyond 3 months
+                            if (isAfter(date, addMonths(new Date(), 3))) return true;
+                            return false;
+                          }}
                           className="rounded-md border mt-1"
                         />
                       </div>
@@ -1977,6 +1990,9 @@ export default function CalendarPage() {
                             // Disable past dates (but allow today)
                             if (isBefore(startOfDay(date), startOfDay(new Date()))) return true;
                             
+                            // Disable dates beyond 3 months
+                            if (isAfter(date, addMonths(new Date(), 3))) return true;
+                            
                             // Disable dates without shifts for selected provider
                             if (selectedProviderId && !hasShiftsOnDate(date)) {
                               return true;
@@ -2330,6 +2346,9 @@ export default function CalendarPage() {
                           disabled={(date) => {
                             // Disable past dates (but allow today)
                             if (isBefore(startOfDay(date), startOfDay(new Date()))) return true;
+                            
+                            // Disable dates beyond 3 months
+                            if (isAfter(date, addMonths(new Date(), 3))) return true;
                             
                             // Disable dates without shifts for selected provider
                             if (selectedProviderId && !hasShiftsOnDate(date)) {
@@ -2730,6 +2749,9 @@ export default function CalendarPage() {
                           disabled={(date) => {
                             // Disable past dates (but allow today)
                             if (isBefore(startOfDay(date), startOfDay(new Date()))) return true;
+                            
+                            // Disable dates beyond 3 months
+                            if (isAfter(date, addMonths(new Date(), 3))) return true;
                             
                             // Disable dates without shifts for selected provider
                             if (selectedProviderId && !hasShiftsOnDate(date)) {
