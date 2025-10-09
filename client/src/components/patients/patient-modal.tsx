@@ -612,6 +612,84 @@ export function PatientModal({ open, onOpenChange, editMode = false, editPatient
                 </CardContent>
               </Card>
 
+              {/* Health Insurance Information */}
+              <Card>
+                <CardContent className="p-6">
+                  <h3 className="text-lg font-semibold mb-4">Health Insurance Information</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="insuranceInfo.provider"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Insurance Provider</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="Enter insurance provider" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="insuranceInfo.planType"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Plan Type</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="Enter plan type" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="insuranceInfo.policyNumber"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Policy Number</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="Enter policy number" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="insuranceInfo.memberNumber"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Member Number</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="Enter member number" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="nhsNumber"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>NHS Number</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="Enter NHS number" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Emergency Contact */}
               <Card>
                 <CardContent className="p-6">
