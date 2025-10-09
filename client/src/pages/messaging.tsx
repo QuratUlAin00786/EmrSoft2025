@@ -45,6 +45,7 @@ import {
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
+import { isDoctorLike, formatRoleLabel } from "@/lib/role-utils";
 
 interface Message {
   id: string;
@@ -168,6 +169,9 @@ export default function MessagingPage() {
       return data.user;
     }
   });
+
+  // Check if user is a doctor role
+  const isDoctor = isDoctorLike(user?.role);
 
   // Fetch patients for searchable dropdown
   const { data: patientsData, isLoading: patientsLoading, error: patientsError } = useQuery({
@@ -1458,11 +1462,27 @@ export default function MessagingPage() {
                 New Message
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="w-[1670px] max-w-[95vw] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Compose New Message</DialogTitle>
               </DialogHeader>
               <div className="space-y-6">
+                {/* From/Sender Field */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="message-sender">From</Label>
+                    {isDoctor ? (
+                      <div className="h-10 px-3 py-2 border rounded-md bg-gray-50 dark:bg-gray-800 flex items-center text-sm">
+                        {formatRoleLabel(user?.role)} {user?.firstName} {user?.lastName}
+                      </div>
+                    ) : (
+                      <div className="h-10 px-3 py-2 border rounded-md bg-gray-50 dark:bg-gray-800 flex items-center text-sm">
+                        {user?.firstName} {user?.lastName}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   {(user?.role === 'admin' || user?.role === 'patient') ? (
                     <>
