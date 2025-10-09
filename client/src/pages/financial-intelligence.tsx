@@ -3107,6 +3107,12 @@ export default function FinancialIntelligence() {
                                   ...prev,
                                   patientName: `${patient.firstName} ${patient.lastName}`,
                                   patientId: patient.id.toString(),
+                                  nhsNumber: patient.nhsNumber || "",
+                                  provider: patient.insuranceInfo?.provider || prev.provider,
+                                  policyNumber: patient.insuranceInfo?.policyNumber || prev.policyNumber,
+                                  groupNumber: patient.insuranceInfo?.groupNumber || prev.groupNumber,
+                                  memberNumber: patient.insuranceInfo?.memberNumber || prev.memberNumber,
+                                  planType: patient.insuranceInfo?.planType || prev.planType,
                                 }));
                                 setPatientSearchOpen(false);
                               }}
