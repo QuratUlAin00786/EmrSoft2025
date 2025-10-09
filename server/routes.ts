@@ -2395,6 +2395,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           relationship: z.string().optional(),
           phone: z.string().optional()
         }).optional(),
+        insuranceInfo: z.object({
+          provider: z.string().optional(),
+          policyNumber: z.string().optional(),
+          groupNumber: z.string().optional(),
+          memberNumber: z.string().optional(),
+          planType: z.string().optional(),
+          effectiveDate: z.string().optional(),
+          expirationDate: z.string().optional(),
+          copay: z.number().optional(),
+          deductible: z.number().optional(),
+          isActive: z.boolean().optional()
+        }).optional(),
         medicalHistory: z.object({
           allergies: z.array(z.string()).optional(),
           chronicConditions: z.array(z.string()).optional(),
@@ -2506,6 +2518,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           patientId,
           address: patientData.address || {},
           emergencyContact: patientData.emergencyContact || {},
+          insuranceInfo: patientData.insuranceInfo || {},
           medicalHistory: medicalHistoryData
         } as any)).returning();
         
