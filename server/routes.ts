@@ -45,6 +45,29 @@ function requireOrgId(req: TenantRequest): number {
   return req.organizationId;
 }
 
+/**
+ * Security helper: Enforces created_by field with logged-in user ID
+ * Prevents client from spoofing creator identity
+ * @param req - Request with authenticated user
+ * @param payload - Data object to modify
+ * @param fieldName - Name of the created_by field (varies by module)
+ * @returns Modified payload with enforced created_by field
+ */
+function enforceCreatedBy<T extends Record<string, any>>(
+  req: TenantRequest,
+  payload: T,
+  fieldName: string = 'createdBy'
+): T {
+  if (!req.user?.id) {
+    throw new Error('User authentication required to set creator');
+  }
+  // Always overwrite client-provided value with server-side user ID
+  return {
+    ...payload,
+    [fieldName]: req.user.id
+  };
+}
+
 // In-memory storage for voice notes - persistent across server restarts
 let voiceNotes: any[] = [];
 
@@ -2476,7 +2499,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ...patientData.medicalHistory
         };
 
-        const [patientRecord] = await tx.insert(patients).values({
+        const [patientRecord] = await tx.insert(patients).values(enforceCreatedBy(req, {
           ...patientData,
           organizationId: req.tenant!.id,
           userId: newUser.id, // Foreign key to users table
@@ -2484,7 +2507,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           address: patientData.address || {},
           emergencyContact: patientData.emergencyContact || {},
           medicalHistory: medicalHistoryData
-        } as any).returning();
+        } as any)).returning();
         
         console.log("✅ [PATIENT_CREATION] Patient record created successfully:", { id: patientRecord.id, patientId: patientRecord.patientId, userId: newUser.id });
         console.log("🎉 [PATIENT_CREATION] Transaction completed successfully!");
@@ -5892,12 +5915,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Extract first medication for legacy columns (required for backward compatibility)
       const firstMedication = prescriptionData.medications?.[0] || {};
       
-      // Create prescription data for database
-      const prescriptionToInsert = {
+      // Create prescription data for database (with enforced created_by)
+      const prescriptionToInsert = enforceCreatedBy(req, {
         organizationId: req.tenant!.id,
         patientId: parseInt(prescriptionData.patientId),
         doctorId: providerId,
-        prescriptionCreatedBy: prescriptionData.prescriptionCreatedBy ? parseInt(prescriptionData.prescriptionCreatedBy) : providerId,
         prescriptionNumber: `RX-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
         status: prescriptionData.status || "active",
         diagnosis: prescriptionData.diagnosis,
@@ -5913,7 +5935,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         notes: prescriptionData.notes,
         validUntil: prescriptionData.validUntil ? new Date(prescriptionData.validUntil) : null,
         interactions: prescriptionData.interactions || []
-      };
+      }, 'prescriptionCreatedBy');
 
       console.log("About to create prescription with data:", prescriptionToInsert);
       const newPrescription = await storage.createPrescription(prescriptionToInsert);
@@ -6142,12 +6164,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Valid patient ID is required" });
       }
       
-      const newLabResult = await storage.createLabResult({
+      const newLabResult = await storage.createLabResult(enforceCreatedBy(req, {
         organizationId: req.tenant!.id,
         patientId: patientId,
         testId: testId,
         testType: labData.testType,
-        orderedBy: labData.orderedBy || req.user.id,
         doctorName: labData.selectedUserName || null,
         mainSpecialty: null,
         subSpecialty: null,
@@ -6155,7 +6176,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         orderedAt: new Date(),
         status: "pending",
         notes: labData.notes || null
-      });
+      }, 'orderedBy'));
 
       res.status(201).json(newLabResult);
     } catch (error) {
@@ -9623,8 +9644,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: z.string().optional() // Add status field for orders vs uploads
       }).parse(req.body);
 
-      // Create proper object for database insertion
-      const dbImageData = {
+      // Create proper object for database insertion (with enforced created_by)
+      const dbImageData = enforceCreatedBy(req, {
         patientId: imageData.patientId,
         studyType: imageData.studyType || imageData.imageType || "Unknown Study", // Use studyType first, then imageType as fallback
         modality: imageData.modality || "X-Ray", // Use provided modality or default
@@ -9634,11 +9655,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         fileName: imageData.filename,
         fileSize: imageData.fileSize,
         mimeType: imageData.mimeType || "image/jpeg", // Use provided MIME type or default
-        uploadedBy: req.user!.id, // Use authenticated user's ID instead of frontend value
         organizationId: req.tenant!.id,
         imageData: imageData.imageData || null, // Store the base64 image data
         status: imageData.status || "uploaded" // Use provided status or default to uploaded
-      };
+      }, 'uploadedBy');
 
 
       const image = await storage.createMedicalImage(dbImageData);
@@ -11286,11 +11306,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isAvailable: z.boolean().default(true)
       }).parse(req.body);
 
-      const shift = await storage.createStaffShift({
+      const shift = await storage.createStaffShift(enforceCreatedBy(req, {
         ...shiftData,
         organizationId: req.tenant!.id,
         date: new Date(shiftData.date)
-      });
+      }));
 
       res.status(201).json(shift);
     } catch (error) {
@@ -13341,9 +13361,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         paidAmount: 0
       } : null;
 
-      // Prepare invoice for database
+      // Prepare invoice for database (with enforced created_by)
       const totalAmt = parseFloat(invoiceData.totalAmount);
-      const invoiceToCreate = {
+      const invoiceToCreate = enforceCreatedBy(req, {
         organizationId: req.tenant!.id,
         patientId: invoiceData.patientId,
         patientName: `${patient.firstName} ${patient.lastName}`,
@@ -13370,9 +13390,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ],
         notes: invoiceData.notes || null,
         insurance: insuranceData,
-        payments: [],
-        createdBy: req.user!.id
-      };
+        payments: []
+      });
 
       console.log("📝 Creating patient invoice in database:", invoiceNumber);
       const createdInvoice = await storage.createPatientInvoice(invoiceToCreate);
