@@ -555,6 +555,15 @@ export default function LabResultsPage() {
         }));
       }
     }
+    // For doctor roles: Auto-populate role and user ID
+    else if (user && isDoctorLike(user.role)) {
+      setOrderFormData((prev) => ({
+        ...prev,
+        selectedRole: user.role,
+        selectedUserId: user.id.toString(),
+        selectedUserName: `${user.firstName} ${user.lastName}`,
+      }));
+    }
     
     setShowOrderDialog(true);
   };
@@ -1824,69 +1833,97 @@ Report generated from Cura EMR System`;
 
             {user?.role !== "patient" && (
               <>
-                <div className="space-y-2">
-                  <Label htmlFor="role">Select Role</Label>
-                  <Select
-                    value={orderFormData.selectedRole}
-                    onValueChange={(value) => {
-                      setOrderFormData((prev) => ({
-                        ...prev,
-                        selectedRole: value,
-                        selectedUserId: "",
-                        selectedUserName: "",
-                      }));
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {rolesData
-                        .filter((role: any) => {
-                          const roleName = (role.name || '').toLowerCase();
-                          return !['patient', 'admin', 'administrator'].includes(roleName);
-                        })
-                        .map((role: any) => (
-                          <SelectItem key={role.id} value={role.name}>
-                            {role.displayName || role.name}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                {isDoctorLike(user?.role) ? (
+                  // For doctor roles: Show labels instead of dropdowns
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="role">Role</Label>
+                      <div className="flex items-center h-10 px-3 py-2 border border-input bg-background rounded-md text-sm ring-offset-background">
+                        <User className="h-4 w-4 mr-2 text-muted-foreground" />
+                        <span data-testid="provider-role-display">
+                          {user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : ''}
+                        </span>
+                      </div>
+                    </div>
 
-                {orderFormData.selectedRole && (
-                  <div className="space-y-2">
-                    <Label htmlFor="user">Select Name</Label>
-                    <Select
-                      value={orderFormData.selectedUserId}
-                      onValueChange={(value) => {
-                        const selectedUser = users.find(
-                          (u: any) => u.id.toString() === value,
-                        );
-                        setOrderFormData((prev) => ({
-                          ...prev,
-                          selectedUserId: value,
-                          selectedUserName: selectedUser
-                            ? `${selectedUser.firstName} ${selectedUser.lastName}`
-                            : "",
-                        }));
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a user" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {users
-                          .filter((u: any) => u.role === orderFormData.selectedRole)
-                          .map((u: any) => (
-                            <SelectItem key={u.id} value={u.id.toString()}>
-                              {u.firstName} {u.lastName} ({u.email})
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="provider">Provider Name</Label>
+                      <div className="flex items-center h-10 px-3 py-2 border border-input bg-background rounded-md text-sm ring-offset-background">
+                        <User className="h-4 w-4 mr-2 text-muted-foreground" />
+                        <span data-testid="provider-name-display">
+                          {user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : ''}
+                        </span>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  // For non-doctor roles: Show original dropdown behavior
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="role">Select Role</Label>
+                      <Select
+                        value={orderFormData.selectedRole}
+                        onValueChange={(value) => {
+                          setOrderFormData((prev) => ({
+                            ...prev,
+                            selectedRole: value,
+                            selectedUserId: "",
+                            selectedUserName: "",
+                          }));
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {rolesData
+                            .filter((role: any) => {
+                              const roleName = (role.name || '').toLowerCase();
+                              return !['patient', 'admin', 'administrator'].includes(roleName);
+                            })
+                            .map((role: any) => (
+                              <SelectItem key={role.id} value={role.name}>
+                                {role.displayName || role.name}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {orderFormData.selectedRole && (
+                      <div className="space-y-2">
+                        <Label htmlFor="user">Select Name</Label>
+                        <Select
+                          value={orderFormData.selectedUserId}
+                          onValueChange={(value) => {
+                            const selectedUser = users.find(
+                              (u: any) => u.id.toString() === value,
+                            );
+                            setOrderFormData((prev) => ({
+                              ...prev,
+                              selectedUserId: value,
+                              selectedUserName: selectedUser
+                                ? `${selectedUser.firstName} ${selectedUser.lastName}`
+                                : "",
+                            }));
+                          }}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a user" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {users
+                              .filter((u: any) => u.role === orderFormData.selectedRole)
+                              .map((u: any) => (
+                                <SelectItem key={u.id} value={u.id.toString()}>
+                                  {u.firstName} {u.lastName} ({u.email})
+                                </SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                  </>
                 )}
               </>
             )}
