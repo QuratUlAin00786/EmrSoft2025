@@ -2375,6 +2375,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/patients", requireRole(["doctor", "nurse", "admin"]), async (req: TenantRequest, res) => {
     try {
+      console.log("🔍 [PATIENT_CREATION] Received request body:", JSON.stringify(req.body, null, 2));
+      console.log("🔍 [PATIENT_CREATION] Insurance info from body:", req.body.insuranceInfo);
+      
       const patientData = z.object({
         firstName: z.string().min(1),
         lastName: z.string().min(1),
