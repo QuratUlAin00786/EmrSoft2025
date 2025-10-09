@@ -7383,7 +7383,7 @@ Registration No: [Number]`
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              Letter Details 2
+              Share letter
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
@@ -7407,49 +7407,43 @@ Registration No: [Number]`
                 <Label htmlFor="share-recipient" className="text-sm font-medium">
                   Recipient (optional)
                 </Label>
-                <Select
+                <Input
+                  id="share-recipient"
+                  type="email"
                   value={shareFormData.recipient}
-                  onValueChange={(value) =>
-                    setShareFormData((prev) => ({ ...prev, recipient: value }))
+                  onChange={(e) =>
+                    setShareFormData((prev) => ({ ...prev, recipient: e.target.value }))
                   }
-                >
-                  <SelectTrigger className="w-full mt-1">
-                    <SelectValue placeholder="Select recipient" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {user?.role === 'patient' ? (
-                      // For patient role, show doctors from users table
-                      usersLoading ? (
-                        <SelectItem value="loading" disabled>Loading doctors...</SelectItem>
-                      ) : users.filter(u => isDoctorLike(u.role)).length > 0 ? (
-                        users
-                          .filter((doctor) => isDoctorLike(doctor.role) && doctor.email && doctor.email.trim() !== "")
-                          .map((doctor) => (
-                            <SelectItem key={doctor.id} value={doctor.email!}>
-                              Dr. {doctor.firstName} {doctor.lastName} ({doctor.email})
-                            </SelectItem>
-                          ))
-                      ) : (
-                        <SelectItem value="no-doctors" disabled>No doctors available</SelectItem>
-                      )
-                    ) : (
-                      // For other roles, show patients
-                      patientsLoading ? (
-                        <SelectItem value="loading" disabled>Loading patients...</SelectItem>
-                      ) : patientsFromTable.length > 0 ? (
-                        patientsFromTable
-                          .filter((patient) => patient.email && patient.email.trim() !== "")
-                          .map((patient) => (
-                          <SelectItem key={patient.id} value={patient.email!}>
-                            {patient.firstName} {patient.lastName} ({patient.email})
-                          </SelectItem>
+                  placeholder="Enter or select recipient email"
+                  className="w-full mt-1"
+                  list="recipient-suggestions"
+                  data-testid="input-recipient-email"
+                />
+                <datalist id="recipient-suggestions">
+                  {user?.role === 'patient' ? (
+                    // For patient role, show doctors from users table
+                    usersLoading ? null : (
+                      users
+                        .filter((doctor) => isDoctorLike(doctor.role) && doctor.email && doctor.email.trim() !== "")
+                        .map((doctor) => (
+                          <option key={doctor.id} value={doctor.email!}>
+                            Dr. {doctor.firstName} {doctor.lastName}
+                          </option>
                         ))
-                      ) : (
-                        <SelectItem value="no-patients" disabled>No patients available</SelectItem>
-                      )
-                    )}
-                  </SelectContent>
-                </Select>
+                    )
+                  ) : (
+                    // For other roles, show patients
+                    patientsLoading ? null : (
+                      patientsFromTable
+                        .filter((patient) => patient.email && patient.email.trim() !== "")
+                        .map((patient) => (
+                          <option key={patient.id} value={patient.email!}>
+                            {patient.firstName} {patient.lastName}
+                          </option>
+                        ))
+                    )
+                  )}
+                </datalist>
               </div>
             </div>
 
