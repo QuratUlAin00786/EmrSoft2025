@@ -2541,10 +2541,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           hasInsuranceInfo: !!patientData.insuranceInfo,
           provider: patientData.insuranceInfo?.provider,
           policyNumber: patientData.insuranceInfo?.policyNumber,
-          conditionResult: !!(patientData.insuranceInfo && (patientData.insuranceInfo.provider || patientData.insuranceInfo.policyNumber))
+          providerLength: (patientData.insuranceInfo?.provider?.trim() ?? "").length,
+          policyNumberLength: (patientData.insuranceInfo?.policyNumber?.trim() ?? "").length,
+          conditionResult: !!(patientData.insuranceInfo && (patientData.insuranceInfo.provider?.trim() || patientData.insuranceInfo.policyNumber?.trim()))
         });
         
-        if (patientData.insuranceInfo && (patientData.insuranceInfo.provider || patientData.insuranceInfo.policyNumber)) {
+        // Check if either provider or policyNumber has a non-empty value (trim to handle whitespace-only strings)
+        if (patientData.insuranceInfo && (patientData.insuranceInfo.provider?.trim() || patientData.insuranceInfo.policyNumber?.trim())) {
           console.log("✅ [INSURANCE_CHECK] Condition passed - Creating insurance verification record");
           const insuranceData: any = {
             organizationId: req.tenant!.id,
