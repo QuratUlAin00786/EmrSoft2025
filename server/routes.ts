@@ -2376,7 +2376,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/patients", requireRole(["doctor", "nurse", "admin"]), async (req: TenantRequest, res) => {
     try {
       console.log("🔍 [PATIENT_CREATION] Received request body:", JSON.stringify(req.body, null, 2));
-      console.log("🔍 [PATIENT_CREATION] Insurance info from body:", req.body.insuranceInfo);
+      console.log("🔍 [PATIENT_CREATION] Insurance info from body:", JSON.stringify(req.body.insuranceInfo, null, 2));
+      console.log("🔍 [PATIENT_CREATION] Insurance info type:", typeof req.body.insuranceInfo);
+      console.log("🔍 [PATIENT_CREATION] Insurance info keys:", req.body.insuranceInfo ? Object.keys(req.body.insuranceInfo) : 'null/undefined');
       
       const patientData = z.object({
         firstName: z.string().min(1),
@@ -2457,6 +2459,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }).optional()
       }).parse(req.body);
 
+      console.log("🔍 [PATIENT_CREATION] After Zod validation - insuranceInfo:", JSON.stringify(patientData.insuranceInfo, null, 2));
+      console.log("🔍 [PATIENT_CREATION] After Zod validation - insuranceInfo type:", typeof patientData.insuranceInfo);
+
       // Generate patient ID
       const patientCount = await storage.getPatientsByOrganization(req.tenant!.id, 999999);
       const patientId = `P${(patientCount.length + 1).toString().padStart(6, '0')}`;
@@ -2514,7 +2519,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ...patientData.medicalHistory
         };
 
-        const [patientRecord] = await tx.insert(patients).values(enforceCreatedBy(req, {
+        const patientInsertData = {
           ...patientData,
           organizationId: req.tenant!.id,
           userId: newUser.id, // Foreign key to users table
@@ -2523,7 +2528,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           emergencyContact: patientData.emergencyContact || {},
           insuranceInfo: patientData.insuranceInfo || {},
           medicalHistory: medicalHistoryData
-        } as any)).returning();
+        };
+
+        console.log("🔍 [PATIENT_CREATION] Data being inserted into database - insuranceInfo:", JSON.stringify(patientInsertData.insuranceInfo, null, 2));
+
+        const [patientRecord] = await tx.insert(patients).values(enforceCreatedBy(req, patientInsertData as any)).returning();
         
         console.log("✅ [PATIENT_CREATION] Patient record created successfully:", { id: patientRecord.id, patientId: patientRecord.patientId, userId: newUser.id });
         console.log("🎉 [PATIENT_CREATION] Transaction completed successfully!");
