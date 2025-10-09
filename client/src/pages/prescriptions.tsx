@@ -315,6 +315,8 @@ export default function PrescriptionsPage() {
   const [showESignDialog, setShowESignDialog] = useState(false);
   const [isDrawing, setIsDrawing] = useState(false);
   const [signature, setSignature] = useState<string>("");
+  const [signatureSaved, setSignatureSaved] = useState(false);
+  const [lastPosition, setLastPosition] = useState<{ x: number; y: number } | null>(null);
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
 
   // Form state for prescription editing
@@ -1011,12 +1013,52 @@ export default function PrescriptionsPage() {
 
   // E-signature functions
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!canvasRef.current) return;
+
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
     setIsDrawing(true);
-    draw(e);
+    setLastPosition({ x, y });
+
+    // Begin a new path
+    ctx.beginPath();
+    ctx.moveTo(x, y);
   };
 
-  const stopDrawing = () => {
+  const stopDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!canvasRef.current || !isDrawing) return;
+
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const currentX = e.clientX - rect.left;
+    const currentY = e.clientY - rect.top;
+
+    // Check if mouse moved (tolerance of 2 pixels for click detection)
+    const moved = lastPosition && (
+      Math.abs(currentX - lastPosition.x) > 2 || 
+      Math.abs(currentY - lastPosition.y) > 2
+    );
+
+    // If no movement detected, draw a dot
+    if (!moved && lastPosition) {
+      ctx.lineWidth = 2;
+      ctx.fillStyle = "#000000";
+      ctx.beginPath();
+      ctx.arc(lastPosition.x, lastPosition.y, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
     setIsDrawing(false);
+    setLastPosition(null);
   };
 
   const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -1038,13 +1080,62 @@ export default function PrescriptionsPage() {
     ctx.stroke();
     ctx.beginPath();
     ctx.moveTo(x, y);
+
+    // Update last position
+    setLastPosition({ x, y });
   };
 
   // Touch event handlers
   const startDrawingTouch = (e: React.TouchEvent<HTMLCanvasElement>) => {
     e.preventDefault();
+    if (!canvasRef.current) return;
+
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const touch = e.touches[0];
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+
     setIsDrawing(true);
-    drawTouch(e);
+    setLastPosition({ x, y });
+
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+  };
+
+  const stopDrawingTouch = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    if (!canvasRef.current || !isDrawing) return;
+    e.preventDefault();
+
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const touch = e.changedTouches[0];
+    const currentX = touch.clientX - rect.left;
+    const currentY = touch.clientY - rect.top;
+
+    // Check if touch moved (tolerance of 2 pixels for tap detection)
+    const moved = lastPosition && (
+      Math.abs(currentX - lastPosition.x) > 2 || 
+      Math.abs(currentY - lastPosition.y) > 2
+    );
+
+    // If no movement detected, draw a dot
+    if (!moved && lastPosition) {
+      ctx.lineWidth = 2;
+      ctx.fillStyle = "#000000";
+      ctx.beginPath();
+      ctx.arc(lastPosition.x, lastPosition.y, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    setIsDrawing(false);
+    setLastPosition(null);
   };
 
   const drawTouch = (e: React.TouchEvent<HTMLCanvasElement>) => {
@@ -1068,6 +1159,9 @@ export default function PrescriptionsPage() {
     ctx.stroke();
     ctx.beginPath();
     ctx.moveTo(x, y);
+
+    // Update last position
+    setLastPosition({ x, y });
   };
 
   const clearSignature = () => {
@@ -1077,6 +1171,7 @@ export default function PrescriptionsPage() {
     if (!ctx) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     setSignature("");
+    setSignatureSaved(false);
   };
 
   const saveSignature = async () => {
@@ -1084,6 +1179,19 @@ export default function PrescriptionsPage() {
 
     const canvas = canvasRef.current;
     const signatureData = canvas.toDataURL();
+
+    // Check if canvas is blank
+    const blankCanvas = document.createElement('canvas');
+    blankCanvas.width = canvas.width;
+    blankCanvas.height = canvas.height;
+    if (signatureData === blankCanvas.toDataURL()) {
+      toast({
+        title: "Error",
+        description: "Please draw your signature before saving.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
       const response = await apiRequest(
@@ -1100,23 +1208,25 @@ export default function PrescriptionsPage() {
         // Update the prescription queries to refresh data
         queryClient.invalidateQueries({ queryKey: ["/api/prescriptions"] });
 
-        // Clear canvas and close dialog
-        clearSignature();
-        setShowESignDialog(false);
+        // Show success message in modal
+        setSignatureSaved(true);
 
-        toast({
-          title: "Success",
-          description:
-            "Prescription has been electronically signed and saved to database",
-        });
+        // Auto-close after 2 seconds
+        setTimeout(() => {
+          clearSignature();
+          setShowESignDialog(false);
+          setSignatureSaved(false);
+        }, 2000);
       } else {
-        throw new Error("Failed to save signature");
+        const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
+        throw new Error(errorData.error || "Failed to save signature");
       }
     } catch (error) {
       console.error("Error saving e-signature:", error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to save electronic signature. Please try again.";
       toast({
         title: "Error",
-        description: "Failed to save electronic signature. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -3310,7 +3420,7 @@ export default function PrescriptionsPage() {
                       onMouseLeave={stopDrawing}
                       onTouchStart={startDrawingTouch}
                       onTouchMove={drawTouch}
-                      onTouchEnd={stopDrawing}
+                      onTouchEnd={stopDrawingTouch}
                     />
                     <div className="absolute top-2 right-2 text-xs text-gray-400">
                       Advanced Capture Mode
@@ -3710,10 +3820,30 @@ export default function PrescriptionsPage() {
             </TabsContent>
           </Tabs>
 
+          {/* Success Message */}
+          {signatureSaved && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
+              <div className="flex-shrink-0">
+                <CheckCircle className="h-6 w-6 text-green-600" />
+              </div>
+              <div className="flex-1">
+                <h4 className="font-semibold text-green-900">
+                  Signature Saved Successfully!
+                </h4>
+                <p className="text-sm text-green-700">
+                  Prescription has been electronically signed and saved to database.
+                </p>
+              </div>
+            </div>
+          )}
+
           <div className="flex gap-3 pt-4 border-t">
             <Button
               variant="outline"
-              onClick={() => setShowESignDialog(false)}
+              onClick={() => {
+                setShowESignDialog(false);
+                setSignatureSaved(false);
+              }}
               className="flex-1"
             >
               Cancel Signature Process
@@ -3721,10 +3851,10 @@ export default function PrescriptionsPage() {
             <Button
               onClick={saveSignature}
               className="flex-2 bg-medical-blue hover:bg-blue-700"
-              disabled={!selectedPrescription}
+              disabled={!selectedPrescription || signatureSaved}
             >
               <PenTool className="h-4 w-4 mr-2" />
-              Apply Advanced E-Signature
+              {signatureSaved ? "Signature Applied" : "Apply Advanced E-Signature"}
             </Button>
           </div>
         </DialogContent>
