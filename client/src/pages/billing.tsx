@@ -2660,8 +2660,10 @@ function PaymentModal({ invoice, open, onClose, onSuccess }: {
   );
 }
 
-// Initialize Stripe
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
+// Initialize Stripe only if public key is available
+const stripePromise = import.meta.env.VITE_STRIPE_PUBLIC_KEY 
+  ? loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY)
+  : null;
 
 // Stripe Payment Form Component
 function StripePaymentForm({ invoice, onSuccess, onCancel }: {
@@ -2768,6 +2770,16 @@ function StripePaymentForm({ invoice, onSuccess, onCancel }: {
       <div className="text-center py-8">
         <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
         <p className="text-sm text-red-600 dark:text-red-400">{error || 'Failed to initialize payment'}</p>
+        <Button variant="outline" onClick={onCancel} className="mt-4">Close</Button>
+      </div>
+    );
+  }
+
+  if (!stripePromise) {
+    return (
+      <div className="text-center py-8">
+        <AlertTriangle className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
+        <p className="text-sm text-gray-600 dark:text-gray-400">Payment processing is not configured. Please contact support.</p>
         <Button variant="outline" onClick={onCancel} className="mt-4">Close</Button>
       </div>
     );

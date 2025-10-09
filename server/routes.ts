@@ -29,10 +29,12 @@ import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs';
 import * as fse from 'fs-extra';
 
-// Initialize Stripe with secret key
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2024-12-18.acacia',
-});
+// Initialize Stripe with secret key only if provided (conditional to avoid crashes)
+const stripe = process.env.STRIPE_SECRET_KEY 
+  ? new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2025-07-30.basil',
+    })
+  : null;
 
 /**
  * Helper to validate organizationId after multiTenantEnforcer middleware
@@ -13658,6 +13660,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Invoice is already fully paid" });
       }
 
+      // Check if Stripe is configured
+      if (!stripe) {
+        return res.status(503).json({ error: "Payment processing is not configured. Please contact support." });
+      }
+
       // Create Stripe payment intent
       const paymentIntent = await stripe.paymentIntents.create({
         amount: Math.round(amountToPay * 100), // Convert to pence/cents
@@ -13706,6 +13713,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (!paymentIntentId || !invoiceId) {
         return res.status(400).json({ error: "Payment intent ID and invoice ID are required" });
+      }
+
+      // Check if Stripe is configured
+      if (!stripe) {
+        return res.status(503).json({ error: "Payment processing is not configured. Please contact support." });
       }
 
       // Retrieve payment intent from Stripe to verify payment
