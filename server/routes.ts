@@ -11266,8 +11266,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/shifts", authMiddleware, async (req: TenantRequest, res) => {
     try {
       const { date } = req.query as { date?: string };
-      console.log("GET /api/shifts - Fetching shifts for organization:", req.tenant!.id, "date filter:", date);
-      const shifts = await storage.getStaffShiftsByOrganization(req.tenant!.id, date);
+      
+      // Server-side enforcement: Doctors can only see their own shifts
+      let createdByFilter: number | undefined = undefined;
+      if (req.user && isDoctorLike(req.user.role)) {
+        createdByFilter = req.user.id;
+        console.log("GET /api/shifts - Doctor role detected, enforcing created_by filter:", createdByFilter);
+      }
+      
+      console.log("GET /api/shifts - Fetching shifts for organization:", req.tenant!.id, "date filter:", date, "createdBy filter:", createdByFilter);
+      const shifts = await storage.getStaffShiftsByOrganization(req.tenant!.id, date, createdByFilter);
       console.log("GET /api/shifts - Found shifts count:", shifts.length);
       console.log("GET /api/shifts - Shifts data:", shifts.map(s => ({ id: s.id, staffId: s.staffId, date: s.date, startTime: s.startTime, endTime: s.endTime })));
       res.json(shifts);

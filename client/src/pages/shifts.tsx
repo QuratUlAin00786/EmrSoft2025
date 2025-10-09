@@ -44,6 +44,9 @@ export default function ShiftsPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  
+  // Compute isDoctor before any hooks that reference it
+  const isDoctor = isDoctorLike(user?.role);
 
   // Pre-select time slots from 10:00 AM to 3:00 PM only once on initial load
   useEffect(() => {
@@ -270,11 +273,12 @@ export default function ShiftsPage() {
 
   // Fetch all shifts for the selected staff member to determine available dates
   const { data: allStaffShifts = [] } = useQuery({
-    queryKey: ["/api/shifts/staff", selectedStaffId],
+    queryKey: ["/api/shifts/staff", selectedStaffId, isDoctor ? user?.id : null],
     staleTime: 30000,
     enabled: !!selectedStaffId,
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/shifts?staffId=${selectedStaffId}`);
+      const createdByParam = isDoctor && user?.id ? `&createdBy=${user.id}` : '';
+      const response = await apiRequest('GET', `/api/shifts?staffId=${selectedStaffId}${createdByParam}`);
       const data = await response.json();
       return Array.isArray(data) ? data : [];
     },
@@ -285,14 +289,18 @@ export default function ShiftsPage() {
   const queryDateString = getLocalDateString(dateForQuery);
   
   const { data: shifts = [], isLoading: shiftsLoading, refetch: refetchShifts } = useQuery({
-    queryKey: ["/api/shifts", queryDateString, showAvailability],
+    queryKey: ["/api/shifts", queryDateString, showAvailability, isDoctor ? user?.id : null],
     queryFn: async () => {
       try {
         // Always use the current state values when the query runs
         const currentDate = showAvailability ? selectedAvailabilityDay : selectedDate;
         const dateString = getLocalDateString(currentDate);
-        console.log("Query executing: fetching shifts for date:", dateString, "Modal open:", showAvailability);
-        const response = await apiRequest("GET", `/api/shifts?date=${dateString}`);
+        
+        // For doctors, filter shifts by created_by
+        const createdByParam = isDoctor && user?.id ? `&createdBy=${user.id}` : '';
+        console.log("Query executing: fetching shifts for date:", dateString, "Modal open:", showAvailability, "Doctor filter:", isDoctor, "User ID:", user?.id);
+        
+        const response = await apiRequest("GET", `/api/shifts?date=${dateString}${createdByParam}`);
         const data = await response.json();
         return Array.isArray(data) ? data : [];
       } catch (error) {
@@ -741,11 +749,13 @@ export default function ShiftsPage() {
   return (
     <div className="p-6">
       <Tabs defaultValue="custom-shifts" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-6">
-          <TabsTrigger value="default-shifts" className="flex items-center gap-2">
-            <Settings className="h-4 w-4" />
-            Default Shifts
-          </TabsTrigger>
+        <TabsList className={`grid w-full ${isDoctor ? 'grid-cols-1' : 'grid-cols-2'} mb-6`}>
+          {!isDoctor && (
+            <TabsTrigger value="default-shifts" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              Default Shifts
+            </TabsTrigger>
+          )}
           <TabsTrigger value="custom-shifts" className="flex items-center gap-2">
             <Calendar className="h-4 w-4" />
             Custom Shifts

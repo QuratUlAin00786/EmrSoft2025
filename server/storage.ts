@@ -382,7 +382,7 @@ export interface IStorage {
 
   // Staff Shifts (Database-driven)
   getStaffShift(id: number, organizationId: number): Promise<StaffShift | undefined>;
-  getStaffShiftsByOrganization(organizationId: number, date?: string): Promise<StaffShift[]>;
+  getStaffShiftsByOrganization(organizationId: number, date?: string, createdBy?: number): Promise<StaffShift[]>;
   getStaffShiftsByStaff(staffId: number, organizationId: number, date?: string): Promise<StaffShift[]>;
   createStaffShift(shift: InsertStaffShift): Promise<StaffShift>;
   updateStaffShift(id: number, organizationId: number, updates: Partial<InsertStaffShift>): Promise<StaffShift | undefined>;
@@ -4303,7 +4303,7 @@ export class DatabaseStorage implements IStorage {
     return shift || undefined;
   }
 
-  async getStaffShiftsByOrganization(organizationId: number, date?: string): Promise<StaffShift[]> {
+  async getStaffShiftsByOrganization(organizationId: number, date?: string, createdBy?: number): Promise<StaffShift[]> {
     let conditions = [eq(staffShifts.organizationId, organizationId)];
 
     if (date) {
@@ -4311,6 +4311,11 @@ export class DatabaseStorage implements IStorage {
         gte(staffShifts.date, new Date(date)),
         lt(staffShifts.date, new Date(new Date(date).getTime() + 24 * 60 * 60 * 1000))
       );
+    }
+
+    // Add created_by filter for doctor roles
+    if (createdBy !== undefined) {
+      conditions.push(eq(staffShifts.createdBy, createdBy));
     }
 
     return await db.select()
