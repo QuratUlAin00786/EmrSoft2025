@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Calendar, Clock, User, Video, Stethoscope, Plus, ArrowRight, Edit, Search, X, Filter } from "lucide-react";
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, isToday, isPast, isFuture, parseISO } from "date-fns";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -29,6 +30,9 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
   const [filterPatientName, setFilterPatientName] = useState<string>("");
   const [filterPatientId, setFilterPatientId] = useState<string>("");
   const [filterNhsNumber, setFilterNhsNumber] = useState<string>("");
+  
+  // Cancel confirmation modal state
+  const [appointmentToCancel, setAppointmentToCancel] = useState<number | null>(null);
   
   const { user } = useAuth();
   const { toast } = useToast();
@@ -689,13 +693,12 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
                         >
                           {appointment.status.toUpperCase()}
                         </Badge>
-                        {appointment.status !== 'cancelled' && (
+                        {appointment.status !== 'cancelled' && isDoctorLike(user?.role || '') && (
                           <Button
                             variant="outline"
                             size="sm"
                             className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
-                            onClick={() => cancelAppointmentMutation.mutate(appointment.id)}
-                            disabled={cancelAppointmentMutation.isPending}
+                            onClick={() => setAppointmentToCancel(appointment.id)}
                             data-testid={`button-cancel-${appointment.id}`}
                           >
                             <Edit className="h-4 w-4" />
@@ -723,6 +726,40 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
           </div>
         </CardContent>
       </Card>
+
+      {/* Cancel Appointment Confirmation Modal */}
+      <Dialog open={appointmentToCancel !== null} onOpenChange={(open) => !open && setAppointmentToCancel(null)}>
+        <DialogContent data-testid="dialog-cancel-appointment">
+          <DialogHeader>
+            <DialogTitle>Cancel Appointment</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to cancel this appointment? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setAppointmentToCancel(null)}
+              data-testid="button-cancel-modal"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (appointmentToCancel) {
+                  cancelAppointmentMutation.mutate(appointmentToCancel);
+                  setAppointmentToCancel(null);
+                }
+              }}
+              disabled={cancelAppointmentMutation.isPending}
+              data-testid="button-delete-appointment"
+            >
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
