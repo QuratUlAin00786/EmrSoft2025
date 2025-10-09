@@ -4410,12 +4410,13 @@ export class DatabaseStorage implements IStorage {
       const existingShift = await this.getDefaultShiftByUser(user.id, organizationId);
       
       if (!existingShift) {
+        // Create 24/7 availability (always available)
         await db.insert(doctorDefaultShifts).values({
           userId: user.id,
           organizationId: organizationId,
-          startTime: '09:00',
-          endTime: '17:00',
-          workingDays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+          startTime: '00:00',
+          endTime: '23:59',
+          workingDays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
         } as any);
         created++;
       } else {
