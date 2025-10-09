@@ -1,0 +1,16 @@
+{
+  "name": "Document_2025-10-09_14-16",
+  "type": "medical_form",
+  "content": "gg",
+  "metadata": {
+    "subject": "Medical Form Template",
+    "recipient": "Patient",
+    "location": "Your Clinic",
+    "practitioner": "Dr. Provider",
+    "header": "your-clinic",
+    "templateUsed": "Custom Form"
+  },
+  "createdAt": "2025-10-09T09:16:36.423Z",
+  "organizationId": 2,
+  "userId": 2
+}
