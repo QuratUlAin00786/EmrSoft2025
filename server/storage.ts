@@ -4344,7 +4344,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createStaffShift(shift: InsertStaffShift): Promise<StaffShift> {
+    console.log("🔍 [SHIFT_CREATION] Received shift data:", JSON.stringify(shift, null, 2));
+    console.log("🔍 [SHIFT_CREATION] Has createdBy?", 'createdBy' in shift, "Value:", (shift as any).createdBy);
+    
     const [result] = await db.insert(staffShifts).values(shift as any).returning();
+    
+    console.log("✅ [SHIFT_CREATION] Created shift:", { id: result.id, staffId: result.staffId, createdBy: result.createdBy });
     return result;
   }
 
