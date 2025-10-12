@@ -5962,20 +5962,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const providerId = parseInt(prescriptionData.providerId);
       console.log("Using selected provider ID:", providerId);
       
-      // Check for duplicate prescriptions only within the last hour (to prevent accidental double-clicks)
-      // Allow duplicates at different times as prescriptions may need to be renewed/refilled
+      // Check for duplicate prescriptions only if created_at timestamp is exactly the same
+      // This prevents accidental double-clicks but allows duplicates at different times
       const existingPrescriptions = await storage.getPrescriptionsByOrganization(req.tenant!.id);
-      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000); // 1 hour ago
       
       const isDuplicate = existingPrescriptions.some(existing => {
-        // Only check prescriptions created in the last hour
-        const existingCreatedAt = existing.createdAt ? new Date(existing.createdAt) : new Date(0);
-        if (existingCreatedAt < oneHourAgo) {
-          return false; // Allow if created more than 1 hour ago
-        }
+        const existingCreatedAt = existing.createdAt ? new Date(existing.createdAt).getTime() : 0;
+        const newCreatedAt = new Date().getTime();
         
+        // Only reject if created_at timestamps are exactly the same (same millisecond)
+        // This handles double-click scenarios while allowing legitimate duplicates at different times
         return existing.patientId === parseInt(prescriptionData.patientId) &&
           existing.status === 'active' &&
+          existingCreatedAt === newCreatedAt &&
           existing.medications?.some(med => 
             prescriptionData.medications?.some((newMed: any) => 
               newMed.name === med.name && 
@@ -5985,7 +5984,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       if (isDuplicate) {
-        return res.status(400).json({ error: "A similar prescription was just created. Please wait a moment before creating another one." });
+        return res.status(400).json({ error: "A duplicate prescription was just created at the exact same time. Please try again." });
       }
       
       // Extract first medication for legacy columns (required for backward compatibility)
