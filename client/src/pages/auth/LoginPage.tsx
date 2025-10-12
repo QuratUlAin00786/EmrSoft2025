@@ -7,16 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Link } from "wouter";
 import { storeSubdomain } from "@/lib/subdomain-utils";
-import { 
-  ArrowLeft,
-  Mail,
-  Lock,
-  Eye,
-  EyeOff,
-  Loader2
-} from "lucide-react";
+import { ArrowLeft, Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
 
-const curaLogoPath = "/cura-logo.png";
+const curaLogoPath = "/cura-logo-chatbot.png";
 
 export default function LoginPage() {
   const [, setLocation] = useLocation();
@@ -32,35 +25,35 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      console.log('🔐 UNIVERSAL LOGIN: Attempting login for:', email);
-      
+      console.log("🔐 UNIVERSAL LOGIN: Attempting login for:", email);
+
       // Use universal login API that determines subdomain from user's organization
-      const response = await fetch('/api/auth/universal-login', {
-        method: 'POST',
+      const response = await fetch("/api/auth/universal-login", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ email, password }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Login failed');
+        throw new Error(errorData.error || "Login failed");
       }
 
       const data = await response.json();
-      
+
       // Store token in localStorage (same key as auth context uses)
-      localStorage.setItem('auth_token', data.token);
-      
+      localStorage.setItem("auth_token", data.token);
+
       // Store subdomain for tenant context
       const subdomain = data.organization.subdomain;
       storeSubdomain(subdomain);
-      
-      console.log('🔐 UNIVERSAL LOGIN SUCCESS:', {
+
+      console.log("🔐 UNIVERSAL LOGIN SUCCESS:", {
         user: data.user.email,
         organization: data.organization.name,
-        subdomain: subdomain
+        subdomain: subdomain,
       });
 
       // Redirect to dashboard with organization's subdomain
@@ -78,18 +71,17 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <Link href="/landing" className="inline-flex items-center text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 mb-6">
+          <Link
+            href="/landing"
+            className="inline-flex items-center text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 mb-6"
+          >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Landing Page
           </Link>
-          
+
           <div className="flex items-center justify-center space-x-2 mb-4">
-            <img 
-              src={curaLogoPath} 
-              alt="Cura EMR" 
-              className="h-10 w-auto"
-            />
-            <span className="text-2xl font-bold text-gray-900 dark:text-white">Cura EMR</span>
+            <img src={curaLogoPath} alt="Cura EMR" className="h-10 w-auto" />
+            <span className="text-2xl font-bold text-gray-900 dark:text-white"></span>
           </div>
           <p className="text-gray-600 dark:text-gray-300">
             Sign in to access your healthcare dashboard
@@ -154,9 +146,9 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              <Button 
-                type="submit" 
-                className="w-full bg-blue-600 hover:bg-blue-700" 
+              <Button
+                type="submit"
+                className="w-full bg-blue-600 hover:bg-blue-700"
                 disabled={loading}
               >
                 {loading ? (
@@ -172,7 +164,9 @@ export default function LoginPage() {
 
             {/* Demo Credentials */}
             <div className="mt-8 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-              <h4 className="font-semibold text-sm text-gray-900 dark:text-white mb-3">Demo Credentials</h4>
+              <h4 className="font-semibold text-sm text-gray-900 dark:text-white mb-3">
+                Demo Credentials
+              </h4>
               <div className="space-y-2 text-xs text-gray-600 dark:text-gray-300">
                 <div className="flex justify-between">
                   <span>Admin:</span>
@@ -235,9 +229,24 @@ export default function LoginPage() {
         <div className="text-center mt-8 text-sm text-gray-600 dark:text-gray-300">
           <p>&copy; 2025 Halo Group Ltd. All rights reserved.</p>
           <div className="mt-2 space-x-4">
-            <Link href="/landing/about" className="hover:text-blue-600 dark:hover:text-blue-400">About Us</Link>
-            <Link href="/landing/features" className="hover:text-blue-600 dark:hover:text-blue-400">Features</Link>
-            <a href="#" className="hover:text-blue-600 dark:hover:text-blue-400">Support</a>
+            <Link
+              href="/landing/about"
+              className="hover:text-blue-600 dark:hover:text-blue-400"
+            >
+              About Us
+            </Link>
+            <Link
+              href="/landing/features"
+              className="hover:text-blue-600 dark:hover:text-blue-400"
+            >
+              Features
+            </Link>
+            <a
+              href="#"
+              className="hover:text-blue-600 dark:hover:text-blue-400"
+            >
+              Support
+            </a>
           </div>
         </div>
       </div>
