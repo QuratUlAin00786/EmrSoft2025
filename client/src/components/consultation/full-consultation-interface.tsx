@@ -41,8 +41,10 @@ import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 
-const facialMuscleImage = "/clean-facial-diagram.png";
-const facialOutlineImage = "/clean-facial-diagram.png";
+import updatedFacialMuscleImage from "@assets/generated_images/Updated_facial_muscle_diagram.png";
+
+const facialMuscleImage = updatedFacialMuscleImage;
+const facialOutlineImage = updatedFacialMuscleImage;
 
 // Helper function to get the correct tenant subdomain
 function getTenantSubdomain(): string {
@@ -1248,7 +1250,7 @@ Patient should be advised of potential side effects and expected timeline for re
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
-          'X-Tenant-Subdomain': 'demo'
+          'X-Tenant-Subdomain': getTenantSubdomain()
         },
         body: JSON.stringify(analysisData)
       });
