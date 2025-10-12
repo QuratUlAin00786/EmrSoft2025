@@ -2430,9 +2430,13 @@ export default function PrescriptionsPage() {
 
                             // Run comprehensive validation
                             if (!validateForm()) {
+                              const errorMessage = user?.role === 'doctor' 
+                                ? "Please ensure all required fields are filled: Patient, Diagnosis, and at least one complete medication entry (name, dosage, frequency, duration, and quantity)."
+                                : "Please fix the errors in the form before submitting";
+                              
                               toast({
-                                title: "Validation Error",
-                                description: "Please fix the errors in the form before submitting",
+                                title: "Required Information Missing",
+                                description: errorMessage,
                                 variant: "destructive",
                               });
                               return;
