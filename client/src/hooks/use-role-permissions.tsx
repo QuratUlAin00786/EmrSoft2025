@@ -58,8 +58,9 @@ export function useRolePermissions() {
       return response.json();
     },
     enabled: !!user?.role && user.role !== 'admin', // Don't fetch for admin
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    staleTime: 0, // No caching - always fetch fresh permissions
     refetchOnWindowFocus: true, // Refetch when window regains focus to catch updates
+    refetchInterval: 30000, // Auto-refetch every 30 seconds to catch permission changes
   });
 
   const rolePermissions: RolePermissions = roleData?.permissions || {};
