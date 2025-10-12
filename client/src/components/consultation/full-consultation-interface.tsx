@@ -900,7 +900,7 @@ ${
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'demo',
+          'X-Tenant-Subdomain': getTenantSubdomain(),
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -1313,7 +1313,7 @@ Patient should be advised of potential side effects and expected timeline for re
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
-          'X-Tenant-Subdomain': 'demo'
+          'X-Tenant-Subdomain': getTenantSubdomain()
         },
         body: JSON.stringify(physicalExamData)
       });
@@ -1380,7 +1380,7 @@ Patient should be advised of potential side effects and expected timeline for re
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
-          'X-Tenant-Subdomain': 'demo'
+          'X-Tenant-Subdomain': getTenantSubdomain()
         },
         body: JSON.stringify(respiratoryExamRecord)
       });
@@ -1514,7 +1514,7 @@ Patient should be advised of potential side effects and expected timeline for re
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
-          'X-Tenant-Subdomain': 'demo'
+          'X-Tenant-Subdomain': getTenantSubdomain()
         },
         body: JSON.stringify(neurologicalExamRecord)
       });
@@ -1581,7 +1581,7 @@ Patient should be advised of potential side effects and expected timeline for re
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
-          'X-Tenant-Subdomain': 'demo'
+          'X-Tenant-Subdomain': getTenantSubdomain()
         },
         body: JSON.stringify(generalExamRecord)
       });
