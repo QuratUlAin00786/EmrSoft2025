@@ -960,6 +960,10 @@ export default function PrescriptionsPage() {
   const validateForm = () => {
     const errors: any = { medications: [] };
     
+    console.log("🔍 VALIDATE FORM - formData:", formData);
+    console.log("🔍 VALIDATE FORM - user:", user);
+    console.log("🔍 VALIDATE FORM - isDoctorLike:", user?.role && isDoctorLike(user.role));
+    
     // Validate medications
     formData.medications.forEach((med, index) => {
       const medErrors = validateMedication(med, index);
@@ -975,21 +979,28 @@ export default function PrescriptionsPage() {
     // Check required fields
     if (!formData.patientId) {
       errors.general = errors.general || "Patient is required";
+      console.log("❌ VALIDATE: Missing patientId");
     }
     
     if (!formData.providerId) {
       errors.general = errors.general || "Provider is required";
+      console.log("❌ VALIDATE: Missing providerId");
     }
     
     if (!formData.diagnosis.trim()) {
       errors.general = errors.general || "Diagnosis is required";
+      console.log("❌ VALIDATE: Missing diagnosis");
     }
+    
+    console.log("🔍 VALIDATE FORM - errors:", errors);
     
     setFormErrors(errors);
     
     // Return true if no errors
     const hasErrors = errors.general || 
       errors.medications.some((medError: any) => Object.keys(medError).length > 0);
+    
+    console.log("🔍 VALIDATE FORM - hasErrors:", hasErrors);
     
     return !hasErrors;
   };
