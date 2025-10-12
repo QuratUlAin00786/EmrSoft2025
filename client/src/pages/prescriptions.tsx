@@ -891,6 +891,29 @@ export default function PrescriptionsPage() {
 
   const handleCreatePrescription = () => {
     setSelectedPrescription(null); // Clear any selected prescription for new creation
+    // Reset form data for new prescription
+    const autoProviderId = (user && isDoctorLike(user.role)) ? user.id.toString() : "";
+    setFormData({
+      patientId: "",
+      patientName: "",
+      providerId: autoProviderId,
+      diagnosis: "",
+      medications: [{
+        name: "",
+        dosage: "",
+        frequency: "",
+        duration: "",
+        quantity: "",
+        refills: "",
+        instructions: "",
+        genericAllowed: true,
+      }],
+      pharmacyName: "Halo Health",
+      pharmacyAddress: "Unit 2 Drayton Court, Solihull, B90 4NG",
+      pharmacyPhone: "+44(0)121 827 5531",
+      pharmacyEmail: "pharmacy@halohealth.co.uk",
+    });
+    setFormErrors({ medications: [] });
     setShowNewPrescription(true);
   };
 
