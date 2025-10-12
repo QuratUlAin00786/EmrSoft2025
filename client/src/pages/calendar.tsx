@@ -475,9 +475,17 @@ export default function CalendarPage() {
   const availableRoles: Array<{ name: string; displayName: string }> = useMemo(() => {
     if (!rolesData || !Array.isArray(rolesData)) return [];
     return rolesData
-      .filter((role: any) => role.name !== 'patient')
+      .filter((role: any) => {
+        const roleName = role.name?.toLowerCase();
+        // For patient users, exclude Administrator, Patient, admin, and patient roles
+        if (user?.role === 'patient') {
+          return roleName !== 'patient' && roleName !== 'admin' && roleName !== 'administrator';
+        }
+        // For other users, only exclude patient role
+        return roleName !== 'patient';
+      })
       .map((role: any) => ({ name: role.name, displayName: role.displayName }));
-  }, [rolesData]);
+  }, [rolesData, user?.role]);
 
   // Check if a date has shifts (custom or default)
   const hasShiftsOnDate = (date: Date): boolean => {
