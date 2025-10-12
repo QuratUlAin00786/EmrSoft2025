@@ -18,7 +18,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { FileText, Plus, Calendar, User, Stethoscope, Pill, AlertTriangle, Mic, Square, Heart, Thermometer, Activity, Weight, Ruler, Calculator, History, Eye, ClipboardCheck, FileSpreadsheet, BookOpen, X, Printer, Save, CheckCircle, Clock } from "lucide-react";
+import { FileText, Plus, Calendar, User, Stethoscope, Pill, AlertTriangle, Mic, Square, Heart, Thermometer, Activity, Weight, Ruler, Calculator, History, Eye, ClipboardCheck, FileSpreadsheet, BookOpen, X, Printer, Save, CheckCircle, Clock, Trash2, Edit } from "lucide-react";
 import { format } from "date-fns";
 import type { MedicalRecord } from "@/types";
 
@@ -101,7 +101,9 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
   const [isAddingNote, setIsAddingNote] = useState(false);
   const [editingRecord, setEditingRecord] = useState<any>(null);
   const [isEditingVitals, setIsEditingVitals] = useState(false);
+  const [isEditingFullRecord, setIsEditingFullRecord] = useState(false);
   const [editingVitalsData, setEditingVitalsData] = useState<any>({});
+  const [editingFullRecordData, setEditingFullRecordData] = useState<any>({});
   const [activeTab, setActiveTab] = useState("vitals");
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -720,6 +722,55 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
     setIsEditingVitals(true);
   };
 
+  // Handle edit full record
+  const handleEditFullRecord = (record: any) => {
+    setEditingRecord(record);
+    setEditingFullRecordData({
+      title: record.title || '',
+      notes: record.notes || '',
+      diagnosis: record.diagnosis || '',
+      treatment: record.treatment || ''
+    });
+    setIsEditingFullRecord(true);
+  };
+
+  // Update full record
+  const updateFullRecord = async (recordId: number, data: any) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`/api/patients/${patientId}/records/${recordId}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'X-Tenant-Subdomain': getTenantSubdomain()
+        },
+        credentials: 'include',
+        body: JSON.stringify(data)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['/api/patients', patientId, 'records'] });
+      
+      toast({
+        title: "Record Updated",
+        description: "The medical record has been updated successfully.",
+      });
+
+      setIsEditingFullRecord(false);
+      setEditingRecord(null);
+    } catch (error: any) {
+      toast({
+        title: "Update Failed",
+        description: error.message || "Failed to update record. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleCancel = () => {
     setIsAddingNote(false);
     setEditingRecord(null);
@@ -876,22 +927,41 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
                       {record.type}
                     </Badge>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-between">
                     <div className="text-sm text-gray-500 dark:text-neutral-400 flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
                       {format(new Date(record.createdAt), "MMM d, yyyy 'at' h:mm a")}
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        handleEditVitalSigns(record);
-                      }}
-                    >
-                      Edit Medical Record
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleEditFullRecord(record);
+                        }}
+                        data-testid={`button-edit-record-${record.id}`}
+                      >
+                        <Edit className="h-4 w-4 mr-1" />
+                        Edit
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (confirm('Are you sure you want to delete this medical record? This action cannot be undone.')) {
+                            deleteRecord(record.id);
+                          }
+                        }}
+                        data-testid={`button-delete-record-${record.id}`}
+                      >
+                        <Trash2 className="h-4 w-4 mr-1" />
+                        Delete
+                      </Button>
+                    </div>
                   </div>
 
                   {record.notes && (
@@ -919,6 +989,82 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
           )}
         </div>
       </CardContent>
+
+      {/* Full Record Edit Dialog */}
+      <Dialog open={isEditingFullRecord} onOpenChange={setIsEditingFullRecord}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Edit className="h-5 w-5" />
+              Edit Medical Record
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-title">Title</Label>
+              <Input
+                id="edit-title"
+                value={editingFullRecordData.title || ''}
+                onChange={(e) => setEditingFullRecordData((prev: any) => ({ ...prev, title: e.target.value }))}
+                placeholder="Enter record title"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-notes">Notes</Label>
+              <Textarea
+                id="edit-notes"
+                value={editingFullRecordData.notes || ''}
+                onChange={(e) => setEditingFullRecordData((prev: any) => ({ ...prev, notes: e.target.value }))}
+                placeholder="Enter clinical notes"
+                rows={6}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-diagnosis">Diagnosis</Label>
+              <Textarea
+                id="edit-diagnosis"
+                value={editingFullRecordData.diagnosis || ''}
+                onChange={(e) => setEditingFullRecordData((prev: any) => ({ ...prev, diagnosis: e.target.value }))}
+                placeholder="Enter diagnosis"
+                rows={4}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-treatment">Treatment</Label>
+              <Textarea
+                id="edit-treatment"
+                value={editingFullRecordData.treatment || ''}
+                onChange={(e) => setEditingFullRecordData((prev: any) => ({ ...prev, treatment: e.target.value }))}
+                placeholder="Enter treatment plan"
+                rows={4}
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4 border-t">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsEditingFullRecord(false);
+                  setEditingRecord(null);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => updateFullRecord(editingRecord?.id, editingFullRecordData)}
+                className="flex items-center gap-2"
+              >
+                <Save className="h-4 w-4" />
+                Save Changes
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Vital Signs Edit Dialog */}
       <Dialog open={isEditingVitals} onOpenChange={setIsEditingVitals}>

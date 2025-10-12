@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -173,6 +173,13 @@ export default function PatientFamilyHistory({
   const [newChronicCondition, setNewChronicCondition] = useState("");
   const [editingCondition, setEditingCondition] =
     useState<FamilyCondition | null>(null);
+
+  // Ensure Family History tab is selected when dialog opens
+  useEffect(() => {
+    if (isEditing) {
+      setActiveTab("family");
+    }
+  }, [isEditing]);
 
   const updateMedicalHistoryMutation = useMutation({
     mutationFn: async (medicalHistory: any) => {
