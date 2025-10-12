@@ -2025,63 +2025,90 @@ export default function PrescriptionsPage() {
                             </Select>
                           )}
                         </div>
-                        {/* Show Select Role and Select Name dropdowns for ALL roles */}
-                        <div>
-                          <Label htmlFor="role">Select Role</Label>
-                          <Select
-                            value={selectedRole}
-                            onValueChange={(value) => {
-                              setSelectedRole(value);
-                              setFormData((prev) => ({ ...prev, providerId: "" }));
-                            }}
-                          >
-                            <SelectTrigger data-testid="select-role">
-                              <SelectValue placeholder="Select a role..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {rolesData
-                                .filter((role: any) => {
-                                  const roleName = (role.name || '').toLowerCase();
-                                  return !['patient', 'admin', 'administrator'].includes(roleName);
-                                })
-                                .map((role: any) => (
-                                  <SelectItem key={role.id} value={role.name}>
-                                    {role.displayName || role.name}
-                                  </SelectItem>
-                                ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
+                        {isDoctorLike(user?.role) ? (
+                          // For doctor roles: Show labels instead of dropdowns
+                          <>
+                            <div>
+                              <Label htmlFor="role">Role</Label>
+                              <div className="flex items-center h-10 px-3 py-2 border border-input bg-background rounded-md text-sm ring-offset-background">
+                                <User className="h-4 w-4 mr-2 text-muted-foreground" />
+                                <span data-testid="provider-role-display">
+                                  {formatRoleLabel(user?.role)}
+                                </span>
+                              </div>
+                            </div>
 
-                        <div>
-                          <Label htmlFor="provider">Select Name</Label>
-                          <Select
-                            value={formData.providerId}
-                            onValueChange={(value) =>
-                              setFormData((prev) => ({
-                                ...prev,
-                                providerId: value,
-                              }))
-                            }
-                            disabled={!selectedRole}
-                          >
-                            <SelectTrigger data-testid="select-provider">
-                              <SelectValue placeholder={selectedRole ? "Select name..." : "Select a role first"} />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {allUsers
-                                .filter((usr: any) => usr.role === selectedRole)
-                                .map((usr: any) => (
-                                  <SelectItem
-                                    key={usr.id}
-                                    value={usr.id.toString()}
-                                  >
-                                    {usr.firstName} {usr.lastName}
-                                  </SelectItem>
-                                ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
+                            <div>
+                              <Label htmlFor="provider">Provider Name</Label>
+                              <div className="flex items-center h-10 px-3 py-2 border border-input bg-background rounded-md text-sm ring-offset-background">
+                                <User className="h-4 w-4 mr-2 text-muted-foreground" />
+                                <span data-testid="provider-name-display">
+                                  {user?.firstName} {user?.lastName}
+                                </span>
+                              </div>
+                            </div>
+                          </>
+                        ) : (
+                          // For non-doctor roles: Show dropdowns
+                          <>
+                            <div>
+                              <Label htmlFor="role">Select Role</Label>
+                              <Select
+                                value={selectedRole}
+                                onValueChange={(value) => {
+                                  setSelectedRole(value);
+                                  setFormData((prev) => ({ ...prev, providerId: "" }));
+                                }}
+                              >
+                                <SelectTrigger data-testid="select-role">
+                                  <SelectValue placeholder="Select a role..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {rolesData
+                                    .filter((role: any) => {
+                                      const roleName = (role.name || '').toLowerCase();
+                                      return !['patient', 'admin', 'administrator'].includes(roleName);
+                                    })
+                                    .map((role: any) => (
+                                      <SelectItem key={role.id} value={role.name}>
+                                        {role.displayName || role.name}
+                                      </SelectItem>
+                                    ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            <div>
+                              <Label htmlFor="provider">Select Name</Label>
+                              <Select
+                                value={formData.providerId}
+                                onValueChange={(value) =>
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    providerId: value,
+                                  }))
+                                }
+                                disabled={!selectedRole}
+                              >
+                                <SelectTrigger data-testid="select-provider">
+                                  <SelectValue placeholder={selectedRole ? "Select name..." : "Select a role first"} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {allUsers
+                                    .filter((usr: any) => usr.role === selectedRole)
+                                    .map((usr: any) => (
+                                      <SelectItem
+                                        key={usr.id}
+                                        value={usr.id.toString()}
+                                      >
+                                        {usr.firstName} {usr.lastName}
+                                      </SelectItem>
+                                    ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </>
+                        )}
                       </div>
 
                       <div className="grid grid-cols-1 gap-4">
