@@ -565,6 +565,17 @@ export default function PrescriptionsPage() {
     fetchProviders();
   }, []);
 
+  // Ensure providerId is always set for doctors when dialog is open
+  useEffect(() => {
+    if (showNewPrescription && user && isDoctorLike(user.role) && !formData.providerId) {
+      console.log("🔧 FIXING MISSING PROVIDER ID - Setting to:", user.id.toString());
+      setFormData(prev => ({
+        ...prev,
+        providerId: user.id.toString()
+      }));
+    }
+  }, [showNewPrescription, user, formData.providerId]);
+
   // Role-based prescription fetching
   const {
     data: rawPrescriptions = [],
