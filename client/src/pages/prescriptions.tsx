@@ -2946,22 +2946,40 @@ export default function PrescriptionsPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-2">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">
-                        Provider
-                      </p>
-                      <p className="font-medium">
-                        {selectedPrescription.providerName}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">
-                        Provider ID
-                      </p>
-                      <p className="font-mono text-sm">
-                        {selectedPrescription.providerId}
-                      </p>
-                    </div>
+                    {(() => {
+                      const provider = allUsers.find(u => u.id === Number(selectedPrescription.providerId));
+                      return provider ? (
+                        <>
+                          <div>
+                            <p className="text-sm font-medium text-gray-600">
+                              Provider
+                            </p>
+                            <p className="font-medium">
+                              Dr. {provider.firstName} {provider.lastName}
+                            </p>
+                          </div>
+                          {provider.department && (
+                            <div>
+                              <p className="text-sm font-medium text-gray-600">
+                                Specialization
+                              </p>
+                              <p className="font-medium">
+                                {provider.department}
+                              </p>
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">
+                            Provider
+                          </p>
+                          <p className="font-medium">
+                            {selectedPrescription.providerName || 'Provider information unavailable'}
+                          </p>
+                        </div>
+                      );
+                    })()}
                   </CardContent>
                 </Card>
               </div>
