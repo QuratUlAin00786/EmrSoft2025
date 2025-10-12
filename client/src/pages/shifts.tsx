@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { Header } from "@/components/layout/header";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -755,8 +756,14 @@ export default function ShiftsPage() {
   const isAdmin = user?.role === 'admin' || user?.role === 'administrator';
 
   return (
-    <div className="p-6">
-      <Tabs defaultValue="custom-shifts" className="w-full">
+    <>
+      <Header 
+        title="Shifts Management" 
+        subtitle="Manage staff shifts, schedules, and availability efficiently."
+      />
+      
+      <div className="p-6">
+        <Tabs defaultValue="custom-shifts" className="w-full">
         <TabsList className="grid w-full grid-cols-2 mb-6">
           <TabsTrigger value="default-shifts" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
@@ -1850,6 +1857,7 @@ export default function ShiftsPage() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+    </>
   );
 }
