@@ -141,6 +141,9 @@ export function DoctorList({
   const [showInsufficientTimeModal, setShowInsufficientTimeModal] = useState(false);
   const [insufficientTimeMessage, setInsufficientTimeMessage] = useState("");
   
+  // Track currently booking slot to prevent duplicates
+  const [bookingInProgress, setBookingInProgress] = useState<string | null>(null);
+  
   // Role filter state
   const [selectedRole, setSelectedRole] = useState<string>("all");
 
@@ -282,6 +285,15 @@ export function DoctorList({
     if (!date || !timeSlot || !appointments) return true;
     
     const selectedDateString = format(date, 'yyyy-MM-dd');
+    const slot24Hour = timeSlotTo24Hour(timeSlot);
+    
+    // Check if this slot is currently being booked
+    if (bookingInProgress) {
+      const bookingKey = `${selectedDateString}_${slot24Hour}_${selectedBookingDoctor?.id}`;
+      if (bookingInProgress === bookingKey) {
+        return false;
+      }
+    }
     
     // Convert the time slot to minutes (this represents the START time of the slot)
     const [time, period] = timeSlot.split(' ');
@@ -506,6 +518,9 @@ export function DoctorList({
         ],
       });
 
+      // Clear booking in progress
+      setBookingInProgress(null);
+
       // Close confirmation dialog and show success modal
       setIsConfirmationOpen(false);
       setIsBookingOpen(false);
@@ -518,6 +533,9 @@ export function DoctorList({
           error.message || "Failed to book appointment. Please try again.",
         variant: "destructive",
       });
+      
+      // Clear booking in progress
+      setBookingInProgress(null);
       setIsConfirmationOpen(false);
     },
   });
@@ -567,6 +585,11 @@ export function DoctorList({
     const minuteStr = String(minutes).padStart(2, "0");
     
     const scheduledAtString = `${year}-${month}-${day}T${hourStr}:${minuteStr}:00`;
+    const selectedDateString = format(selectedDate, 'yyyy-MM-dd');
+    
+    // Mark this slot as being booked to prevent duplicates
+    const bookingKey = `${selectedDateString}_${selectedTimeSlot}_${selectedBookingDoctor.id}`;
+    setBookingInProgress(bookingKey);
 
     const appointmentData = {
       patientId: parseInt(selectedPatient),
@@ -625,6 +648,7 @@ export function DoctorList({
     setAppointmentTitle("");
     setAppointmentDescription("");
     setAppointmentLocation("");
+    setBookingInProgress(null);
     setIsBookingOpen(true);
   };
 
@@ -1156,7 +1180,12 @@ export function DoctorList({
       </Dialog>
 
       {/* Booking Dialog */}
-      <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
+      <Dialog open={isBookingOpen} onOpenChange={(open) => {
+        setIsBookingOpen(open);
+        if (!open) {
+          setBookingInProgress(null);
+        }
+      }}>
         <DialogContent
           className="max-w-6xl max-h-[90vh] overflow-y-auto"
           aria-describedby="booking-dialog-description"
@@ -1424,7 +1453,12 @@ export function DoctorList({
       </Dialog>
 
       {/* Confirmation Dialog */}
-      <Dialog open={isConfirmationOpen} onOpenChange={setIsConfirmationOpen}>
+      <Dialog open={isConfirmationOpen} onOpenChange={(open) => {
+        setIsConfirmationOpen(open);
+        if (!open && !bookAppointmentMutation.isPending) {
+          setBookingInProgress(null);
+        }
+      }}>
         <DialogContent className="max-w-2xl" aria-describedby="confirmation-dialog-description">
           <DialogHeader>
             <DialogTitle>Appointment Booking Confirmation</DialogTitle>
