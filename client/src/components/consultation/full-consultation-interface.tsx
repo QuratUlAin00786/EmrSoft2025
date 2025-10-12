@@ -198,6 +198,7 @@ export function FullConsultationInterface({ open, onOpenChange, patient, patient
     },
     onSuccess: () => {
       const currentPatientId = patientId || patient?.id;
+      const subdomain = getTenantSubdomain();
       toast({
         title: "History Saved",
         description: "The medical history has been saved to medical records successfully.",
@@ -205,7 +206,7 @@ export function FullConsultationInterface({ open, onOpenChange, patient, patient
       queryClient.invalidateQueries({ queryKey: ['/api/patients', currentPatientId, 'records'] });
       // Navigate to Medical Records & Consultation Notes
       onOpenChange(false);
-      setLocation(`/patients/${currentPatientId}`);
+      setLocation(`/${subdomain}/patients/${currentPatientId}`);
     },
     onError: (error: any) => {
       toast({
