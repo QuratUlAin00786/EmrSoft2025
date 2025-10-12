@@ -1560,7 +1560,7 @@ export default function PrescriptionsPage() {
               <div class="provider-section">
                 <div class="provider-title">RESIDENT PHYSICIAN M.D</div>
                 <div class="provider-details">
-                  Provider undefined<br>
+                  ${prescription.providerName}<br>
                   Halo Health Clinic<br>
                   Unit 2 Drayton Court, Solihull<br>
                   B90 4NG, UK<br>
