@@ -1447,7 +1447,7 @@ Patient should be advised of potential side effects and expected timeline for re
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
-          'X-Tenant-Subdomain': 'demo'
+          'X-Tenant-Subdomain': getTenantSubdomain()
         },
         body: JSON.stringify(cardiovascularExamRecord)
       });
