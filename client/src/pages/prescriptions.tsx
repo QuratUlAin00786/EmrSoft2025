@@ -712,9 +712,18 @@ export default function PrescriptionsPage() {
       if (!response.ok) {
         const errorText = await response.text();
         console.error("❌ API Error:", errorText);
-        throw new Error(
-          `Failed to ${isUpdate ? "update" : "create"} prescription: ${response.status}`,
-        );
+        
+        // Try to parse error message from JSON response
+        let errorMessage = `Failed to ${isUpdate ? "update" : "create"} prescription`;
+        try {
+          const errorJson = JSON.parse(errorText);
+          errorMessage = errorJson.error || errorJson.message || errorMessage;
+        } catch {
+          // If not JSON, use the text as-is
+          errorMessage = errorText || errorMessage;
+        }
+        
+        throw new Error(errorMessage);
       }
 
       const result = await response.json();
