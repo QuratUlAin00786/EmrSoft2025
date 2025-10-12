@@ -4,6 +4,10 @@ import { Users, Calendar, Brain, Stethoscope, Pill, FileText } from "lucide-reac
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 
+function getTenantSubdomain(): string {
+  return localStorage.getItem('user_subdomain') || 'demo';
+}
+
 export function DoctorDashboard() {
   const { data: stats, isLoading } = useQuery({
     queryKey: ["/api/dashboard/stats"],
@@ -28,7 +32,7 @@ export function DoctorDashboard() {
     queryFn: async () => {
       const token = localStorage.getItem('auth_token');
       const headers: Record<string, string> = {
-        'X-Tenant-Subdomain': 'demo'
+        'X-Tenant-Subdomain': getTenantSubdomain()
       };
       
       if (token) {
@@ -57,7 +61,7 @@ export function DoctorDashboard() {
     queryFn: async () => {
       const token = localStorage.getItem('auth_token');
       const headers: Record<string, string> = {
-        'X-Tenant-Subdomain': 'demo'
+        'X-Tenant-Subdomain': getTenantSubdomain()
       };
       
       if (token) {

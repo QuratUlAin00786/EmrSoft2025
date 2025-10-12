@@ -14,6 +14,10 @@ import { useLocation } from "wouter";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 
+function getTenantSubdomain(): string {
+  return localStorage.getItem('user_subdomain') || 'demo';
+}
+
 export default function CalendarPage() {
   const [selectedDoctor, setSelectedDoctor] = useState<any>(null);
   const [showNewAppointment, setShowNewAppointment] = useState(false);
@@ -49,7 +53,7 @@ export default function CalendarPage() {
         body: JSON.stringify(appointmentData),
         headers: {
           "Content-Type": "application/json",
-          'X-Tenant-Subdomain': 'demo'
+          'X-Tenant-Subdomain': getTenantSubdomain()
         },
         credentials: 'include'
       });

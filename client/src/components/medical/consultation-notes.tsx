@@ -323,7 +323,7 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'demo',
+          'X-Tenant-Subdomain': getTenantSubdomain(),
           'Content-Type': 'application/json'
         },
         credentials: 'include',
@@ -455,7 +455,7 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
         const response = await fetch(`/api/patients/${patientId}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
-            'X-Tenant-Subdomain': 'demo',
+            'X-Tenant-Subdomain': getTenantSubdomain(),
             'Content-Type': 'application/json'
           },
           credentials: 'include'
@@ -519,7 +519,7 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
-          'X-Tenant-Subdomain': 'demo'
+          'X-Tenant-Subdomain': getTenantSubdomain()
         },
         credentials: 'include',
         body: JSON.stringify(recordData)
@@ -643,7 +643,7 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
-          'X-Tenant-Subdomain': 'demo'
+          'X-Tenant-Subdomain': getTenantSubdomain()
         },
         credentials: 'include',
         body: JSON.stringify({
@@ -685,7 +685,7 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'demo'
+          'X-Tenant-Subdomain': getTenantSubdomain()
         },
         credentials: 'include'
       });

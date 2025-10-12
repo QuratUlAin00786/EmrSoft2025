@@ -684,7 +684,7 @@ export default function ImagingPage() {
       // Manual fetch to handle FormData properly (apiRequest doesn't work with FormData)
       const token = localStorage.getItem('auth_token');
       const headers: Record<string, string> = {
-        'X-Tenant-Subdomain': 'demo'
+        'X-Tenant-Subdomain': getActiveSubdomain()
       };
       
       if (token) {

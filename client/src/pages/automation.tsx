@@ -28,6 +28,10 @@ import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 
+function getTenantSubdomain(): string {
+  return localStorage.getItem('user_subdomain') || 'demo';
+}
+
 interface AutomationRule {
   id: string;
   name: string;
@@ -104,7 +108,7 @@ export default function AutomationPage() {
       const response = await fetch('/api/automation/rules', {
         headers: {
           'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'demo'
+          'X-Tenant-Subdomain': getTenantSubdomain()
         }
       });
       if (!response.ok) {
@@ -121,7 +125,7 @@ export default function AutomationPage() {
       const response = await fetch('/api/automation/stats', {
         headers: {
           'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'demo'
+          'X-Tenant-Subdomain': getTenantSubdomain()
         }
       });
       if (!response.ok) {
@@ -151,7 +155,7 @@ export default function AutomationPage() {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'demo'
+          'X-Tenant-Subdomain': getTenantSubdomain()
         }
       });
       return response.json();

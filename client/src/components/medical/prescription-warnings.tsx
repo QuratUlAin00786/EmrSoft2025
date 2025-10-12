@@ -4,6 +4,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, AlertCircle, Info, Pill, Shield, Clock } from "lucide-react";
 
+function getTenantSubdomain(): string {
+  return localStorage.getItem('user_subdomain') || 'demo';
+}
+
 interface PrescriptionWarningsProps {
   patientId: number;
   medications: Array<{
@@ -67,7 +71,7 @@ export default function PrescriptionWarnings({ patientId, medications, recordId 
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'X-Tenant-Subdomain': 'demo'
+            'X-Tenant-Subdomain': getTenantSubdomain()
           },
           credentials: 'include',
           body: JSON.stringify({

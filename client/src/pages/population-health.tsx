@@ -51,6 +51,10 @@ import {
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 
+function getTenantSubdomain(): string {
+  return localStorage.getItem('user_subdomain') || 'demo';
+}
+
 interface Cohort {
   id: string;
   name: string;
@@ -144,7 +148,7 @@ export default function PopulationHealth() {
       const response = await fetch('/api/population-health/interventions', {
         headers: {
           'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'demo'
+          'X-Tenant-Subdomain': getTenantSubdomain()
         }
       });
       if (!response.ok) {

@@ -1191,7 +1191,7 @@ export default function VoiceDocumentation() {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-                'X-Tenant-Subdomain': 'demo',
+                'X-Tenant-Subdomain': getActiveSubdomain(),
               },
               credentials: 'include',
             });
@@ -1205,7 +1205,7 @@ export default function VoiceDocumentation() {
             const saveResponse = await fetch('/api/voice-documentation/audio', {
               method: 'POST',
               headers: {
-                'X-Tenant-Subdomain': 'demo',
+                'X-Tenant-Subdomain': getActiveSubdomain(),
               },
               body: formData,
               credentials: 'include',

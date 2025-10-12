@@ -13,6 +13,10 @@ import { useToast } from "@/hooks/use-toast";
 import { Lightbulb, CheckCircle, AlertTriangle, Sparkles, Clock, CheckCheck, X, Brain, Zap } from "lucide-react";
 import type { AiInsight } from "@/types";
 
+function getTenantSubdomain(): string {
+  return localStorage.getItem('user_subdomain') || 'demo';
+}
+
 const insightIcons = {
   risk_alert: Lightbulb,
   treatment_suggestion: CheckCircle,
@@ -64,7 +68,7 @@ export default function AiInsights() {
       const response = await fetch('/api/dashboard/ai-insights', {
         headers: {
           'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'demo'
+          'X-Tenant-Subdomain': getTenantSubdomain()
         }
       });
       if (!response.ok) {
@@ -85,7 +89,7 @@ export default function AiInsights() {
       const response = await fetch('/api/patients?limit=50', {
         headers: {
           'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'demo'
+          'X-Tenant-Subdomain': getTenantSubdomain()
         }
       });
       if (!response.ok) {

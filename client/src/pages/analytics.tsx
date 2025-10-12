@@ -40,6 +40,10 @@ import {
 import { format } from "date-fns";
 import { useLocation } from "wouter";
 
+function getTenantSubdomain(): string {
+  return localStorage.getItem('user_subdomain') || 'demo';
+}
+
 interface AnalyticsData {
   overview: {
     totalPatients: number;
@@ -91,7 +95,7 @@ export default function AnalyticsPage() {
       const response = await fetch('/api/analytics', {
         headers: {
           'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'demo'
+          'X-Tenant-Subdomain': getTenantSubdomain()
         }
       });
       if (!response.ok) {

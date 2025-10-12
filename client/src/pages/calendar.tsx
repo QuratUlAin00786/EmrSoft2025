@@ -20,6 +20,10 @@ import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import { isDoctorLike } from "@/lib/role-utils";
 
+function getTenantSubdomain(): string {
+  return localStorage.getItem('user_subdomain') || 'demo';
+}
+
 // Medical Specialties Data Structure - same as user-management.tsx
 const medicalSpecialties = {
   "General & Primary Care": {
@@ -888,7 +892,7 @@ export default function CalendarPage() {
       // Query database directly for appointments
       const token = localStorage.getItem('auth_token');
       const headers: Record<string, string> = {
-        'X-Tenant-Subdomain': 'demo'
+        'X-Tenant-Subdomain': getTenantSubdomain()
       };
       
       if (token) {

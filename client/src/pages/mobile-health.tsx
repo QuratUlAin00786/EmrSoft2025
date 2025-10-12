@@ -40,6 +40,10 @@ import {
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 
+function getTenantSubdomain(): string {
+  return localStorage.getItem('user_subdomain') || 'demo';
+}
+
 interface WearableDevice {
   id: string;
   patientId: string;
@@ -133,7 +137,7 @@ export default function MobileHealth() {
       const response = await fetch('/api/mobile-health/devices', {
         headers: {
           'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'demo'
+          'X-Tenant-Subdomain': getTenantSubdomain()
         }
       });
       if (!response.ok) throw new Error('Failed to fetch devices');
@@ -149,7 +153,7 @@ export default function MobileHealth() {
       const response = await fetch('/api/mobile-health/apps', {
         headers: {
           'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'demo'
+          'X-Tenant-Subdomain': getTenantSubdomain()
         }
       });
       if (!response.ok) throw new Error('Failed to fetch apps');
@@ -165,7 +169,7 @@ export default function MobileHealth() {
       const response = await fetch('/api/mobile-health/notifications', {
         headers: {
           'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'demo'
+          'X-Tenant-Subdomain': getTenantSubdomain()
         }
       });
       if (!response.ok) throw new Error('Failed to fetch notifications');
@@ -181,7 +185,7 @@ export default function MobileHealth() {
       const response = await fetch('/api/patients', {
         headers: {
           'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'demo'
+          'X-Tenant-Subdomain': getTenantSubdomain()
         }
       });
       if (!response.ok) throw new Error('Failed to fetch patients');
@@ -218,7 +222,7 @@ export default function MobileHealth() {
         method: "POST",
         headers: {
           'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'demo',
+          'X-Tenant-Subdomain': getTenantSubdomain(),
           'Content-Type': 'application/json'
         }
       });
@@ -267,7 +271,7 @@ export default function MobileHealth() {
         method: "PUT",
         headers: {
           'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'demo',
+          'X-Tenant-Subdomain': getTenantSubdomain(),
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(consentData),
@@ -353,7 +357,7 @@ export default function MobileHealth() {
       const response = await fetch('/api/patients', {
         headers: {
           'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'demo'
+          'X-Tenant-Subdomain': getTenantSubdomain()
         }
       });
       if (!response.ok) throw new Error('Failed to fetch patients');

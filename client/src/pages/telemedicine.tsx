@@ -463,7 +463,7 @@ export default function Telemedicine() {
         method: "DELETE",
         headers: {
           'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'demo'
+          'X-Tenant-Subdomain': getActiveSubdomain()
         }
       });
       if (!response.ok) throw new Error("Failed to delete patient");

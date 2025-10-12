@@ -2205,7 +2205,7 @@ function AddDrugInteractionDialog({ open, onClose, onSuccess }: {
       const response = await fetch('/api/patients', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-          'X-Tenant-Subdomain': 'demo'
+          'X-Tenant-Subdomain': getActiveSubdomain()
         },
         credentials: 'include'
       });

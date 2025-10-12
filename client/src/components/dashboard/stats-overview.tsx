@@ -4,6 +4,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
 import type { DashboardStats } from "@/types";
 
+function getTenantSubdomain(): string {
+  return localStorage.getItem('user_subdomain') || 'demo';
+}
+
 const statCards = [
   {
     title: "Total Patients",
@@ -58,7 +62,7 @@ export function StatsOverview() {
         const response = await fetch('/api/dashboard/stats', {
           headers: {
             'Authorization': `Bearer ${token}`,
-            'X-Tenant-Subdomain': 'demo',
+            'X-Tenant-Subdomain': getTenantSubdomain(),
             'Content-Type': 'application/json'
           },
           credentials: 'include'
