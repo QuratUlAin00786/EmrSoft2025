@@ -2431,7 +2431,7 @@ export default function PrescriptionsPage() {
                             // Run comprehensive validation
                             if (!validateForm()) {
                               const errorMessage = user?.role === 'doctor' 
-                                ? "Please ensure all required fields are filled: Patient, Diagnosis, and at least one complete medication entry (name, dosage, frequency, duration, and quantity)."
+                                ? "Please fill in all required fields: Select a Patient, enter the Diagnosis, and add at least one complete Medication with Name, Dosage, Frequency, Duration, and Quantity."
                                 : "Please fix the errors in the form before submitting";
                               
                               toast({
