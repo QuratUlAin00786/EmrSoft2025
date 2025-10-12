@@ -127,8 +127,8 @@ type RoleFormData = z.infer<typeof roleSchema>;
 
 // Permission templates for complete module and field initialization
 const MODULE_KEYS = [
-  'patients', 'appointments', 'medicalRecords', 'prescriptions', 'billing', 
-  'analytics', 'userManagement', 'settings', 'aiInsights', 'messaging', 
+  'dashboard', 'patients', 'appointments', 'medicalRecords', 'prescriptions', 'billing', 
+  'analytics', 'userManagement', 'shiftManagement', 'settings', 'aiInsights', 'messaging', 
   'telemedicine', 'labResults', 'medicalImaging', 'forms', 'integrations',
   'automation', 'patientPortal', 'populationHealth', 'voiceDocumentation',
   'inventory', 'gdprCompliance', 'subscription'
@@ -2699,6 +2699,7 @@ export default function UserManagement() {
 
                           {/* Module Permissions */}
                           {[
+                            { key: 'dashboard', name: 'Dashboard', description: 'Access main dashboard' },
                             { key: 'patients', name: 'Patients', description: 'Manage patient records and information' },
                             { key: 'appointments', name: 'Appointments', description: 'Schedule and manage appointments' },
                             { key: 'medicalRecords', name: 'Medical Records', description: 'Create and view medical records' },
@@ -2719,6 +2720,7 @@ export default function UserManagement() {
                             { key: 'inventory', name: 'Inventory', description: 'Manage medical inventory' },
                             { key: 'gdprCompliance', name: 'GDPR Compliance', description: 'Data privacy and compliance' },
                             { key: 'userManagement', name: 'User Management', description: 'Manage system users and roles' },
+                            { key: 'shiftManagement', name: 'Shift Management', description: 'Manage staff shifts and schedules' },
                             { key: 'settings', name: 'Settings', description: 'Configure system settings' },
                             { key: 'subscription', name: 'Subscription', description: 'Manage subscription and packages' }
                           ].map((module) => {

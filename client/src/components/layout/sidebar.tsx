@@ -79,7 +79,7 @@ const ALL_NAVIGATION = [
 
 const ADMIN_NAVIGATION = [
   { name: "User Management", href: "/users", icon: UserCog, module: "user_management" },
-  { name: "Shift Management", href: "/shifts", icon: Calendar, module: "user_management" },
+  { name: "Shift Management", href: "/shifts", icon: Calendar, module: "shift_management" },
   { name: "Subscription/Packages", href: "/subscription", icon: Crown, module: "subscription" },  
   { name: "Settings", href: "/settings", icon: Settings, module: "settings" },
 ];

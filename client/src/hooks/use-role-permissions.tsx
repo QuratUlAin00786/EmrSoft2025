@@ -96,6 +96,7 @@ export function useRolePermissions() {
       'inventory': 'inventory',
       'gdpr_compliance': 'gdprCompliance',
       'user_management': 'userManagement',
+      'shift_management': 'shiftManagement',
       'settings': 'settings',
       'subscription': 'subscription'
     };
