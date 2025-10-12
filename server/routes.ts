@@ -3122,25 +3122,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       } else if (userRole === 'patient') {
         // Patients can only see their own appointments
-        // Find the patient record using multiple matching strategies
+        // Find the patient record by userId field
         const patients = await storage.getPatientsByOrganization(req.tenant!.id, 100);
         const user = req.user! as any; // Cast to access firstName/lastName properties
         
-        // Try multiple matching strategies (same as frontend)
-        const patient = 
-          // 1. Match by exact email
-          patients.find(p => p.email && user.email && p.email.toLowerCase() === user.email.toLowerCase()) ||
-          // 2. Match by exact name
-          patients.find(p => 
-            p.firstName && user.firstName && 
-            p.lastName && user.lastName &&
-            p.firstName.toLowerCase() === user.firstName.toLowerCase() && 
-            p.lastName.toLowerCase() === user.lastName.toLowerCase()
-          ) ||
-          // 3. Match by user ID (patient ID might equal user ID)
-          patients.find(p => p.id === userId) ||
-          // 4. Fallback: first patient (for demo/production)
-          (patients.length > 0 ? patients[0] : null);
+        // Match by userId field first (primary method)
+        const patient = patients.find(p => p.userId === userId);
         
         if (patient) {
           appointments = await storage.getAppointmentsByPatient(patient.id, req.tenant!.id);
