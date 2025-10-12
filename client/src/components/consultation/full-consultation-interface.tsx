@@ -197,14 +197,15 @@ export function FullConsultationInterface({ open, onOpenChange, patient, patient
       return response.json();
     },
     onSuccess: () => {
+      const currentPatientId = patientId || patient?.id;
       toast({
         title: "History Saved",
         description: "The medical history has been saved to medical records successfully.",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/patients', patient?.id, 'records'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/patients', currentPatientId, 'records'] });
       // Navigate to Medical Records & Consultation Notes
       onOpenChange(false);
-      setLocation(`/patients/${patient?.id}`);
+      setLocation(`/patients/${currentPatientId}`);
     },
     onError: (error: any) => {
       toast({
