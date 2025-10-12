@@ -56,7 +56,7 @@ interface Prescription {
   patientName: string;
   providerId: string;
   providerName: string;
-  doctorId?: string;
+  doctorId?: number;
   prescriptionNumber?: string;
   prescriptionCreatedBy?: number;
   createdAt?: string;
@@ -2996,16 +2996,6 @@ export default function PrescriptionsPage() {
                         ).toLocaleDateString()}
                       </p>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">
-                        Prescription ID
-                      </p>
-                      <p className="font-mono text-sm">
-                        {selectedPrescription.id}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-3 gap-4">
                     {selectedPrescription.prescriptionNumber && (
                       <div>
                         <p className="text-sm font-medium text-gray-600">
@@ -3016,6 +3006,8 @@ export default function PrescriptionsPage() {
                         </p>
                       </div>
                     )}
+                  </div>
+                  <div className="grid grid-cols-3 gap-4">
                     {selectedPrescription.issuedDate && (
                       <div>
                         <p className="text-sm font-medium text-gray-600">
@@ -3026,18 +3018,44 @@ export default function PrescriptionsPage() {
                         </p>
                       </div>
                     )}
-                    {selectedPrescription.doctorId && (
-                      <div>
-                        <p className="text-sm font-medium text-gray-600">
-                          Doctor ID
-                        </p>
-                        <p className="font-mono text-sm">
-                          {selectedPrescription.doctorId}
-                        </p>
-                      </div>
-                    )}
+                    {selectedPrescription.doctorId && (() => {
+                      const doctor = allUsers.find(u => u.id === selectedPrescription.doctorId);
+                      return doctor && (
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">
+                            Prescribing Doctor
+                          </p>
+                          <p className="font-medium">
+                            Dr. {doctor.firstName} {doctor.lastName}
+                          </p>
+                          {doctor.department && (
+                            <p className="text-sm text-gray-500">
+                              {doctor.department}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })()}
+                    {selectedPrescription.prescriptionCreatedBy && (() => {
+                      const creator = allUsers.find(u => u.id === selectedPrescription.prescriptionCreatedBy);
+                      return creator && (
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">
+                            Created By
+                          </p>
+                          <p className="font-medium">
+                            {creator.firstName} {creator.lastName}
+                          </p>
+                          {creator.role && (
+                            <p className="text-sm text-gray-500 capitalize">
+                              {formatRoleLabel(creator.role)}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-2 gap-4">
                     {selectedPrescription.createdAt && (
                       <div>
                         <p className="text-sm font-medium text-gray-600">
@@ -3055,16 +3073,6 @@ export default function PrescriptionsPage() {
                         </p>
                         <p className="font-medium">
                           {new Date(selectedPrescription.updatedAt).toLocaleString()}
-                        </p>
-                      </div>
-                    )}
-                    {selectedPrescription.prescriptionCreatedBy && (
-                      <div>
-                        <p className="text-sm font-medium text-gray-600">
-                          Created By (User ID)
-                        </p>
-                        <p className="font-mono text-sm">
-                          {selectedPrescription.prescriptionCreatedBy}
                         </p>
                       </div>
                     )}
