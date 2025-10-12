@@ -2054,7 +2054,7 @@ export default function PrescriptionsPage() {
                             </div>
 
                             <div>
-                              <Label htmlFor="provider">Provider Name</Label>
+                              <Label htmlFor="provider"> Name (doctor/nurse etc)</Label>
                               <div className="flex items-center h-10 px-3 py-2 border border-input bg-background rounded-md text-sm ring-offset-background">
                                 <User className="h-4 w-4 mr-2 text-muted-foreground" />
                                 <span data-testid="provider-name-display">
