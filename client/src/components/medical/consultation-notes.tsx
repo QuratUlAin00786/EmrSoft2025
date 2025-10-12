@@ -9,6 +9,16 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
@@ -105,6 +115,8 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
   const [editingVitalsData, setEditingVitalsData] = useState<any>({});
   const [editingFullRecordData, setEditingFullRecordData] = useState<any>({});
   const [activeTab, setActiveTab] = useState("vitals");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [recordToDelete, setRecordToDelete] = useState<any>(null);
   const queryClient = useQueryClient();
   const { toast } = useToast();
   
@@ -952,9 +964,8 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
-                          if (confirm('Are you sure you want to delete this medical record? This action cannot be undone.')) {
-                            deleteRecord(record.id);
-                          }
+                          setRecordToDelete(record);
+                          setDeleteDialogOpen(true);
                         }}
                         data-testid={`button-delete-record-${record.id}`}
                       >
@@ -1214,9 +1225,8 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
               <Button
                 variant="destructive"
                 onClick={() => {
-                  if (confirm('Are you sure you want to delete this medical record? This action cannot be undone.')) {
-                    deleteRecord(editingRecord?.id);
-                  }
+                  setRecordToDelete(editingRecord);
+                  setDeleteDialogOpen(true);
                 }}
                 className="flex items-center gap-2"
               >
@@ -1246,6 +1256,34 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to delete this medical record?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the medical record
+              {recordToDelete?.title ? ` "${recordToDelete.title}"` : ''} from the patient's history.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setRecordToDelete(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (recordToDelete?.id) {
+                  deleteRecord(recordToDelete.id);
+                  setDeleteDialogOpen(false);
+                  setRecordToDelete(null);
+                }
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }
