@@ -1723,7 +1723,7 @@ The Cura EMR Team`,
           metadata: paymentData.metadata || {},
         };
 
-        const payment = await storage.createPayment(processedPaymentData);
+        const payment = await storage.createSaasPayment(processedPaymentData);
 
         res.status(201).json(payment);
       } catch (error) {

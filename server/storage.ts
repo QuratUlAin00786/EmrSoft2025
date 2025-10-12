@@ -431,7 +431,7 @@ export interface IStorage {
   deletePackage(id: number): Promise<any>;
   getBillingData(searchTerm?: string, dateRange?: string): Promise<{ invoices: any[], total: number }>;
   getBillingStats(dateRange?: string): Promise<any>;
-  createPayment(paymentData: any): Promise<any>;
+  createSaasPayment(paymentData: any): Promise<any>;
   updatePaymentStatus(paymentId: number, status: string, transactionId?: string): Promise<any>;
   suspendUnpaidSubscriptions(): Promise<void>;
   createPatientInvoice(invoiceData: any): Promise<any>;
@@ -5295,7 +5295,7 @@ export class DatabaseStorage implements IStorage {
 
   // Payment Management Methods
   
-  async createPayment(paymentData: any): Promise<any> {
+  async createSaasPayment(paymentData: any): Promise<any> {
     const [payment] = await db.insert(saasPayments).values({
       organizationId: paymentData.organizationId,
       subscriptionId: paymentData.subscriptionId,
