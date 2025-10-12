@@ -8,6 +8,7 @@
  */
 const DOCTOR_LIKE_ROLES = [
   'doctor',
+  'nurse',
   'paramedic',
   'optician',
   'lab_technician',
