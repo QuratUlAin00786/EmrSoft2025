@@ -60,7 +60,7 @@ import NotFound from "@/pages/not-found";
 import Login from "@/pages/login";
 
 // Landing Pages
-import LandingPage from "@/pages/landing/LandingPage";
+import LandingPage from "@/pages/auth/LoginPage";
 import AboutPage from "@/pages/landing/AboutPage";
 import FeaturesPage from "@/pages/landing/FeaturesPage";
 import PricingPage from "@/pages/landing/PricingPage";
@@ -80,15 +80,15 @@ import Press from "@/pages/legal/Press";
 function LegacyRouteRedirect() {
   const [, setLocation] = useLocation();
   const { isAuthenticated } = useAuth();
-  
+
   useEffect(() => {
     // Get subdomain ignoring current path (since we're on a legacy path)
     const subdomain = getActiveSubdomain({ ignorePath: true });
-    
+
     // Preserve full path including dynamic segments and query strings
     const currentPath = window.location.pathname;
     const search = window.location.search;
-    
+
     if (isAuthenticated) {
       const newPath = `/${subdomain}${currentPath}${search}`;
       console.log(`🔄 Redirecting legacy route ${currentPath} to ${newPath}`);
@@ -100,7 +100,7 @@ function LegacyRouteRedirect() {
       setLocation(loginPath);
     }
   }, [isAuthenticated, setLocation]);
-  
+
   return <LoadingPage />;
 }
 
@@ -114,108 +114,108 @@ function ProtectedApp() {
   // Apply theme colors to CSS variables
   const applyTheme = (themeValue: string) => {
     const root = document.documentElement;
-    
+
     switch (themeValue) {
-      case 'electric-lilac':
+      case "electric-lilac":
         // Electric Lilac Theme
-        root.style.setProperty('--primary', '#7279FB', 'important'); 
-        root.style.setProperty('--primary-foreground', '#FFFFFF', 'important');
-        root.style.setProperty('--ring', '#7279FB', 'important');
-        root.style.setProperty('--cura-bluewave', '#7279FB', 'important');
-        root.style.setProperty('--cura-electric-lilac', '#7279FB', 'important');
-        root.style.setProperty('--cura-mint-drift', '#C073FF', 'important');
-        root.style.setProperty('--medical-blue', '#7279FB', 'important');
+        root.style.setProperty("--primary", "#7279FB", "important");
+        root.style.setProperty("--primary-foreground", "#FFFFFF", "important");
+        root.style.setProperty("--ring", "#7279FB", "important");
+        root.style.setProperty("--cura-bluewave", "#7279FB", "important");
+        root.style.setProperty("--cura-electric-lilac", "#7279FB", "important");
+        root.style.setProperty("--cura-mint-drift", "#C073FF", "important");
+        root.style.setProperty("--medical-blue", "#7279FB", "important");
         break;
-      case 'midnight':
+      case "midnight":
         // Midnight Theme
-        root.style.setProperty('--primary', '#162B61', 'important'); 
-        root.style.setProperty('--primary-foreground', '#FFFFFF', 'important');
-        root.style.setProperty('--ring', '#162B61', 'important');
-        root.style.setProperty('--cura-bluewave', '#162B61', 'important');
-        root.style.setProperty('--cura-electric-lilac', '#2A4082', 'important');
-        root.style.setProperty('--cura-mint-drift', '#4A6FA5', 'important');
-        root.style.setProperty('--medical-blue', '#162B61', 'important');
+        root.style.setProperty("--primary", "#162B61", "important");
+        root.style.setProperty("--primary-foreground", "#FFFFFF", "important");
+        root.style.setProperty("--ring", "#162B61", "important");
+        root.style.setProperty("--cura-bluewave", "#162B61", "important");
+        root.style.setProperty("--cura-electric-lilac", "#2A4082", "important");
+        root.style.setProperty("--cura-mint-drift", "#4A6FA5", "important");
+        root.style.setProperty("--medical-blue", "#162B61", "important");
         break;
-      case 'steel':
+      case "steel":
         // Steel Theme
-        root.style.setProperty('--primary', '#9B9EAF', 'important'); 
-        root.style.setProperty('--primary-foreground', '#FFFFFF', 'important');
-        root.style.setProperty('--ring', '#9B9EAF', 'important');
-        root.style.setProperty('--cura-bluewave', '#9B9EAF', 'important');
-        root.style.setProperty('--cura-electric-lilac', '#B5B8C7', 'important');
-        root.style.setProperty('--cura-mint-drift', '#A8ABBA', 'important');
-        root.style.setProperty('--medical-blue', '#9B9EAF', 'important');
+        root.style.setProperty("--primary", "#9B9EAF", "important");
+        root.style.setProperty("--primary-foreground", "#FFFFFF", "important");
+        root.style.setProperty("--ring", "#9B9EAF", "important");
+        root.style.setProperty("--cura-bluewave", "#9B9EAF", "important");
+        root.style.setProperty("--cura-electric-lilac", "#B5B8C7", "important");
+        root.style.setProperty("--cura-mint-drift", "#A8ABBA", "important");
+        root.style.setProperty("--medical-blue", "#9B9EAF", "important");
         break;
-      case 'mist':
+      case "mist":
         // Mist Theme
-        root.style.setProperty('--primary', '#E0E1F4', 'important'); 
-        root.style.setProperty('--primary-foreground', '#162B61', 'important');
-        root.style.setProperty('--ring', '#E0E1F4', 'important');
-        root.style.setProperty('--cura-bluewave', '#E0E1F4', 'important');
-        root.style.setProperty('--cura-electric-lilac', '#D1D3E8', 'important');
-        root.style.setProperty('--cura-mint-drift', '#E8E9F6', 'important');
-        root.style.setProperty('--medical-blue', '#E0E1F4', 'important');
+        root.style.setProperty("--primary", "#E0E1F4", "important");
+        root.style.setProperty("--primary-foreground", "#162B61", "important");
+        root.style.setProperty("--ring", "#E0E1F4", "important");
+        root.style.setProperty("--cura-bluewave", "#E0E1F4", "important");
+        root.style.setProperty("--cura-electric-lilac", "#D1D3E8", "important");
+        root.style.setProperty("--cura-mint-drift", "#E8E9F6", "important");
+        root.style.setProperty("--medical-blue", "#E0E1F4", "important");
         break;
-      case 'mint-drift':
+      case "mint-drift":
         // Mint Drift Theme
-        root.style.setProperty('--primary', '#6CFFEB', 'important'); 
-        root.style.setProperty('--primary-foreground', '#162B61', 'important');
-        root.style.setProperty('--ring', '#6CFFEB', 'important');
-        root.style.setProperty('--cura-bluewave', '#6CFFEB', 'important');
-        root.style.setProperty('--cura-electric-lilac', '#5CFCE6', 'important');
-        root.style.setProperty('--cura-mint-drift', '#6CFFEB', 'important');
-        root.style.setProperty('--medical-blue', '#6CFFEB', 'important');
+        root.style.setProperty("--primary", "#6CFFEB", "important");
+        root.style.setProperty("--primary-foreground", "#162B61", "important");
+        root.style.setProperty("--ring", "#6CFFEB", "important");
+        root.style.setProperty("--cura-bluewave", "#6CFFEB", "important");
+        root.style.setProperty("--cura-electric-lilac", "#5CFCE6", "important");
+        root.style.setProperty("--cura-mint-drift", "#6CFFEB", "important");
+        root.style.setProperty("--medical-blue", "#6CFFEB", "important");
         break;
-      case 'green':
+      case "green":
         // Medical Green Theme - Force high specificity
-        root.style.setProperty('--primary', '#22C55E', 'important'); 
-        root.style.setProperty('--primary-foreground', '#FFFFFF', 'important');
-        root.style.setProperty('--ring', '#22C55E', 'important');
-        root.style.setProperty('--cura-bluewave', '#22C55E', 'important');
-        root.style.setProperty('--cura-electric-lilac', '#10B981', 'important');
-        root.style.setProperty('--cura-mint-drift', '#34D399', 'important');
-        root.style.setProperty('--medical-blue', '#22C55E', 'important');
+        root.style.setProperty("--primary", "#22C55E", "important");
+        root.style.setProperty("--primary-foreground", "#FFFFFF", "important");
+        root.style.setProperty("--ring", "#22C55E", "important");
+        root.style.setProperty("--cura-bluewave", "#22C55E", "important");
+        root.style.setProperty("--cura-electric-lilac", "#10B981", "important");
+        root.style.setProperty("--cura-mint-drift", "#34D399", "important");
+        root.style.setProperty("--medical-blue", "#22C55E", "important");
         break;
-      case 'purple':
+      case "purple":
         // Professional Purple Theme
-        root.style.setProperty('--primary', '#7C3AED', 'important');
-        root.style.setProperty('--primary-foreground', '#FFFFFF', 'important');
-        root.style.setProperty('--ring', '#7C3AED', 'important');
-        root.style.setProperty('--cura-bluewave', '#7C3AED', 'important');
-        root.style.setProperty('--cura-electric-lilac', '#A855F7', 'important');
-        root.style.setProperty('--cura-mint-drift', '#C084FC', 'important');
-        root.style.setProperty('--medical-blue', '#7C3AED', 'important');
+        root.style.setProperty("--primary", "#7C3AED", "important");
+        root.style.setProperty("--primary-foreground", "#FFFFFF", "important");
+        root.style.setProperty("--ring", "#7C3AED", "important");
+        root.style.setProperty("--cura-bluewave", "#7C3AED", "important");
+        root.style.setProperty("--cura-electric-lilac", "#A855F7", "important");
+        root.style.setProperty("--cura-mint-drift", "#C084FC", "important");
+        root.style.setProperty("--medical-blue", "#7C3AED", "important");
         break;
-      case 'dark':
+      case "dark":
         // Dark Mode Theme
-        root.style.setProperty('--primary', '#374151', 'important');
-        root.style.setProperty('--primary-foreground', '#FFFFFF', 'important');
-        root.style.setProperty('--ring', '#374151', 'important');
-        root.style.setProperty('--cura-bluewave', '#374151', 'important');
-        root.style.setProperty('--cura-electric-lilac', '#4B5563', 'important');
-        root.style.setProperty('--cura-mint-drift', '#6B7280', 'important');
-        root.style.setProperty('--medical-blue', '#374151', 'important');
+        root.style.setProperty("--primary", "#374151", "important");
+        root.style.setProperty("--primary-foreground", "#FFFFFF", "important");
+        root.style.setProperty("--ring", "#374151", "important");
+        root.style.setProperty("--cura-bluewave", "#374151", "important");
+        root.style.setProperty("--cura-electric-lilac", "#4B5563", "important");
+        root.style.setProperty("--cura-mint-drift", "#6B7280", "important");
+        root.style.setProperty("--medical-blue", "#374151", "important");
         break;
       default: // Bluewave (Default)
-        root.style.setProperty('--primary', '#4A7DFF', 'important');
-        root.style.setProperty('--primary-foreground', '#FFFFFF', 'important');
-        root.style.setProperty('--ring', '#4A7DFF', 'important');
-        root.style.setProperty('--cura-bluewave', '#4A7DFF', 'important');
-        root.style.setProperty('--cura-electric-lilac', '#7279FB', 'important');
-        root.style.setProperty('--cura-mint-drift', '#6CFFEB', 'important');
-        root.style.setProperty('--medical-blue', '#4A7DFF', 'important');
+        root.style.setProperty("--primary", "#4A7DFF", "important");
+        root.style.setProperty("--primary-foreground", "#FFFFFF", "important");
+        root.style.setProperty("--ring", "#4A7DFF", "important");
+        root.style.setProperty("--cura-bluewave", "#4A7DFF", "important");
+        root.style.setProperty("--cura-electric-lilac", "#7279FB", "important");
+        root.style.setProperty("--cura-mint-drift", "#6CFFEB", "important");
+        root.style.setProperty("--medical-blue", "#4A7DFF", "important");
         break;
     }
-    
+
     // Force a re-render by triggering a style recalculation
-    document.body.style.display = 'none';
+    document.body.style.display = "none";
     document.body.offsetHeight; // Trigger reflow
-    document.body.style.display = '';
+    document.body.style.display = "";
   };
 
   // Apply theme immediately on component mount from localStorage
   useEffect(() => {
-    const savedTheme = localStorage.getItem('cura-theme');
+    const savedTheme = localStorage.getItem("cura-theme");
     if (savedTheme) {
       applyTheme(savedTheme);
     }
@@ -223,12 +223,23 @@ function ProtectedApp() {
 
   // Apply theme when organization data loads and save to localStorage
   useEffect(() => {
-    if (organization && typeof organization === 'object' && organization !== null && 'settings' in organization) {
+    if (
+      organization &&
+      typeof organization === "object" &&
+      organization !== null &&
+      "settings" in organization
+    ) {
       const settings = (organization as any).settings;
-      if (settings && typeof settings === 'object' && 'theme' in settings && settings.theme && 'primaryColor' in settings.theme) {
+      if (
+        settings &&
+        typeof settings === "object" &&
+        "theme" in settings &&
+        settings.theme &&
+        "primaryColor" in settings.theme
+      ) {
         const themeColor = settings.theme.primaryColor as string;
         applyTheme(themeColor);
-        localStorage.setItem('cura-theme', themeColor);
+        localStorage.setItem("cura-theme", themeColor);
       }
     }
   }, [organization]);
@@ -246,7 +257,10 @@ function ProtectedApp() {
           <Route path="/:subdomain/patients/:id/records" component={Patients} />
           <Route path="/:subdomain/calendar" component={CalendarPage} />
           <Route path="/:subdomain/appointments" component={CalendarPage} />
-          <Route path="/:subdomain/prescriptions" component={PrescriptionsPage} />
+          <Route
+            path="/:subdomain/prescriptions"
+            component={PrescriptionsPage}
+          />
           <Route path="/:subdomain/lab-results" component={LabResultsPage} />
           <Route path="/:subdomain/imaging" component={ImagingPage} />
           <Route path="/:subdomain/forms" component={FormsPage} />
@@ -257,32 +271,71 @@ function ProtectedApp() {
           <Route path="/:subdomain/automation" component={AutomationPage} />
           <Route path="/:subdomain/patient-portal" component={PatientPortal} />
           <Route path="/:subdomain/ai-insights" component={AiInsights} />
-          <Route path="/:subdomain/symptom-checker" component={SymptomChecker} />
+          <Route
+            path="/:subdomain/symptom-checker"
+            component={SymptomChecker}
+          />
           <Route path="/:subdomain/chatbot" component={ChatbotPage} />
-          <Route path="/:subdomain/clinical-decision-support" component={ClinicalDecisionSupport} />
+          <Route
+            path="/:subdomain/clinical-decision-support"
+            component={ClinicalDecisionSupport}
+          />
           <Route path="/:subdomain/telemedicine" component={Telemedicine} />
-          <Route path="/:subdomain/population-health" component={PopulationHealth} />
+          <Route
+            path="/:subdomain/population-health"
+            component={PopulationHealth}
+          />
           <Route path="/:subdomain/mobile-health" component={MobileHealth} />
-          <Route path="/:subdomain/voice-documentation" component={VoiceDocumentation} />
-          <Route path="/:subdomain/financial-intelligence" component={FinancialIntelligence} />
-          <Route path="/:subdomain/emergency-protocols" component={EmergencyProtocols} />
-          <Route path="/:subdomain/medication-guide" component={MedicationGuide} />
-          <Route path="/:subdomain/prevention-guidelines" component={PreventionGuidelines} />
-          <Route path="/:subdomain/clinical-procedures" component={ClinicalProcedures} />
+          <Route
+            path="/:subdomain/voice-documentation"
+            component={VoiceDocumentation}
+          />
+          <Route
+            path="/:subdomain/financial-intelligence"
+            component={FinancialIntelligence}
+          />
+          <Route
+            path="/:subdomain/emergency-protocols"
+            component={EmergencyProtocols}
+          />
+          <Route
+            path="/:subdomain/medication-guide"
+            component={MedicationGuide}
+          />
+          <Route
+            path="/:subdomain/prevention-guidelines"
+            component={PreventionGuidelines}
+          />
+          <Route
+            path="/:subdomain/clinical-procedures"
+            component={ClinicalProcedures}
+          />
           <Route path="/:subdomain/inventory" component={Inventory} />
-          <Route path="/:subdomain/gdpr-compliance" component={GDPRCompliance} />
+          <Route
+            path="/:subdomain/gdpr-compliance"
+            component={GDPRCompliance}
+          />
           <Route path="/:subdomain/ai-agent" component={AiAgent} />
           <Route path="/:subdomain/quickbooks" component={QuickBooks} />
           <Route path="/:subdomain/font-test" component={FontTest} />
-          <Route path="/:subdomain/tech-spec-export" component={TechSpecExport} />
+          <Route
+            path="/:subdomain/tech-spec-export"
+            component={TechSpecExport}
+          />
           <Route path="/:subdomain/users" component={UserManagement} />
-          <Route path="/:subdomain/user-management" component={UserManagement} />
+          <Route
+            path="/:subdomain/user-management"
+            component={UserManagement}
+          />
           <Route path="/:subdomain/shifts" component={ShiftsPage} />
-          <Route path="/:subdomain/permissions-reference" component={PermissionsReference} />
+          <Route
+            path="/:subdomain/permissions-reference"
+            component={PermissionsReference}
+          />
           <Route path="/:subdomain/staff/:id" component={StaffProfile} />
           <Route path="/:subdomain/subscription" component={Subscription} />
           <Route path="/:subdomain/settings" component={Settings} />
-          
+
           {/* Legacy routes without subdomain - redirect to subdomain-prefixed versions */}
           <Route path="/dashboard" component={LegacyRouteRedirect} />
           <Route path="/patients" component={LegacyRouteRedirect} />
@@ -300,13 +353,13 @@ function ProtectedApp() {
           <Route path="/symptom-checker" component={LegacyRouteRedirect} />
           <Route path="/users" component={LegacyRouteRedirect} />
           <Route path="/settings" component={LegacyRouteRedirect} />
-          
+
           {/* Root redirect */}
           <Route path="/" component={LegacyRouteRedirect} />
           <Route component={NotFound} />
         </Switch>
       </main>
-      
+
       {/* AI Chat Widget available on all pages */}
       <AIChatWidget />
     </div>
@@ -315,18 +368,18 @@ function ProtectedApp() {
 
 function SubdomainRedirect({ params }: { params: { subdomain: string } }) {
   const [, setLocation] = useLocation();
-  
+
   useEffect(() => {
     if (params.subdomain) {
       const subdomain = params.subdomain;
       // Don't redirect if it's a known public route path
-      const publicPaths = ['landing', 'auth', 'legal', 'saas'];
+      const publicPaths = ["landing", "auth", "legal", "saas"];
       if (!publicPaths.includes(subdomain)) {
         setLocation(`/${subdomain}/auth/login`);
       }
     }
   }, [params.subdomain, setLocation]);
-  
+
   return null;
 }
 
@@ -339,45 +392,62 @@ function AppRouter() {
     if (loading) return;
 
     // Exclude SaaS routes from main app authentication redirects - COMPLETELY
-    const isSaaSRoute = location.startsWith('/saas');
+    const isSaaSRoute = location.startsWith("/saas");
     if (isSaaSRoute) {
-      console.log('🔧 SaaS route detected, skipping main app redirects:', location);
+      console.log(
+        "🔧 SaaS route detected, skipping main app redirects:",
+        location,
+      );
       return;
     }
 
     // Extract subdomain from current location
-    const pathParts = location.split('/').filter(Boolean);
+    const pathParts = location.split("/").filter(Boolean);
     const potentialSubdomain = pathParts[0];
-    const isPublicRoute = ['landing', 'auth', 'legal', 'saas'].includes(potentialSubdomain);
-    
+    const isPublicRoute = ["landing", "auth", "legal", "saas"].includes(
+      potentialSubdomain,
+    );
+
     // Determine if this is a subdomain route
     const isSubdomainRoute = pathParts.length >= 1 && !isPublicRoute;
     const subdomain = isSubdomainRoute ? potentialSubdomain : null;
 
-    const isLandingPage = location.startsWith('/landing') || 
-                         location.startsWith('/auth/login') ||
-                         location.includes('/auth/login') || 
-                         location.startsWith('/legal') || 
-                         location === '/';
+    const isLandingPage =
+      location.startsWith("/landing") ||
+      location.startsWith("/auth/login") ||
+      location.includes("/auth/login") ||
+      location.startsWith("/legal") ||
+      location === "/";
 
     // If user is authenticated and on a public/login page, redirect to dashboard with subdomain
-    if (isAuthenticated && (isLandingPage || location.includes('/auth/login'))) {
-      const dashboardPath = subdomain ? `/${subdomain}/dashboard` : '/demo/dashboard';
-      console.log('🔄 Redirecting authenticated user to:', dashboardPath);
+    if (
+      isAuthenticated &&
+      (isLandingPage || location.includes("/auth/login"))
+    ) {
+      const dashboardPath = subdomain
+        ? `/${subdomain}/dashboard`
+        : "/demo/dashboard";
+      console.log("🔄 Redirecting authenticated user to:", dashboardPath);
       setLocation(dashboardPath);
       return;
     }
 
     // If user is not authenticated and not on a public page, redirect to universal login
     // BUT: If on a subdomain route, redirect to universal login instead of landing
-    if (!isAuthenticated && !isLandingPage && !location.includes('/auth/login')) {
+    if (
+      !isAuthenticated &&
+      !isLandingPage &&
+      !location.includes("/auth/login")
+    ) {
       // Check if we're on a subdomain route (e.g., /maryamkhan/dashboard)
       if (isSubdomainRoute) {
-        console.log('🔄 Redirecting unauthenticated user from subdomain route to universal login');
-        setLocation('/auth/login');
+        console.log(
+          "🔄 Redirecting unauthenticated user from subdomain route to universal login",
+        );
+        setLocation("/auth/login");
       } else {
-        console.log('🔄 Redirecting unauthenticated user to landing');
-        setLocation('/landing');
+        console.log("🔄 Redirecting unauthenticated user to landing");
+        setLocation("/landing");
       }
       return;
     }
@@ -388,17 +458,18 @@ function AppRouter() {
   }
 
   // Check if we're on a SaaS route - if so, always render SaaS portal regardless of auth state
-  const isSaaSRoute = location.startsWith('/saas');
+  const isSaaSRoute = location.startsWith("/saas");
   if (isSaaSRoute) {
-    console.log('🔧 Rendering SaaS Portal for route:', location);
+    console.log("🔧 Rendering SaaS Portal for route:", location);
     return <SaaSPortal />;
   }
 
-  const isLandingPage = location.startsWith('/landing') || 
-                       location.startsWith('/auth/login') ||
-                       location.includes('/auth/login') || 
-                       location.startsWith('/legal') || 
-                       location === '/';
+  const isLandingPage =
+    location.startsWith("/landing") ||
+    location.startsWith("/auth/login") ||
+    location.includes("/auth/login") ||
+    location.startsWith("/legal") ||
+    location === "/";
 
   // Render public pages for unauthenticated users
   if (!isAuthenticated) {
@@ -428,19 +499,22 @@ function AppRouter() {
 
 function App() {
   const [location, setLocation] = useLocation();
-  
+
   // CRITICAL FIX: Handle SaaS routes at the VERY TOP LEVEL before any other logic
-  console.log('🔍 APP: Current location:', location);
-  
+  console.log("🔍 APP: Current location:", location);
+
   // Handle common typo: /sass -> /saas
-  if (location.startsWith('/sass')) {
-    console.log('🔧 Redirecting /sass to /saas');
-    setLocation('/saas');
+  if (location.startsWith("/sass")) {
+    console.log("🔧 Redirecting /sass to /saas");
+    setLocation("/saas");
     return null;
   }
-  
-  if (location.startsWith('/saas')) {
-    console.log('🚀 TOP-LEVEL: SaaS route detected, rendering SaaS Portal:', location);
+
+  if (location.startsWith("/saas")) {
+    console.log(
+      "🚀 TOP-LEVEL: SaaS route detected, rendering SaaS Portal:",
+      location,
+    );
     return (
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
@@ -455,7 +529,7 @@ function App() {
     );
   }
 
-  console.log('🔧 APP: Non-SaaS route, using regular app routing');
+  console.log("🔧 APP: Non-SaaS route, using regular app routing");
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
