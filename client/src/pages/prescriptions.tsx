@@ -56,6 +56,12 @@ interface Prescription {
   patientName: string;
   providerId: string;
   providerName: string;
+  doctorId?: string;
+  prescriptionNumber?: string;
+  prescriptionCreatedBy?: number;
+  createdAt?: string;
+  updatedAt?: string;
+  issuedDate?: string;
   medications: Array<{
     name: string;
     dosage: string;
@@ -2998,6 +3004,70 @@ export default function PrescriptionsPage() {
                         {selectedPrescription.id}
                       </p>
                     </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4">
+                    {selectedPrescription.prescriptionNumber && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">
+                          Prescription Number
+                        </p>
+                        <p className="font-mono text-sm">
+                          {selectedPrescription.prescriptionNumber}
+                        </p>
+                      </div>
+                    )}
+                    {selectedPrescription.issuedDate && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">
+                          Issued Date
+                        </p>
+                        <p className="font-medium">
+                          {new Date(selectedPrescription.issuedDate).toLocaleDateString()}
+                        </p>
+                      </div>
+                    )}
+                    {selectedPrescription.doctorId && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">
+                          Doctor ID
+                        </p>
+                        <p className="font-mono text-sm">
+                          {selectedPrescription.doctorId}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-3 gap-4">
+                    {selectedPrescription.createdAt && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">
+                          Created At
+                        </p>
+                        <p className="font-medium">
+                          {new Date(selectedPrescription.createdAt).toLocaleString()}
+                        </p>
+                      </div>
+                    )}
+                    {selectedPrescription.updatedAt && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">
+                          Updated At
+                        </p>
+                        <p className="font-medium">
+                          {new Date(selectedPrescription.updatedAt).toLocaleString()}
+                        </p>
+                      </div>
+                    )}
+                    {selectedPrescription.prescriptionCreatedBy && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">
+                          Created By (User ID)
+                        </p>
+                        <p className="font-mono text-sm">
+                          {selectedPrescription.prescriptionCreatedBy}
+                        </p>
+                      </div>
+                    )}
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-600">
