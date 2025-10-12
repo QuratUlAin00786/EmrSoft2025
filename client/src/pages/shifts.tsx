@@ -57,6 +57,14 @@ export default function ShiftsPage() {
     }
   }, [hasInitialized]);
 
+  // Auto-select doctor's own role and ID when user is a doctor
+  useEffect(() => {
+    if (isDoctor && user?.role && user?.id) {
+      setSelectedRole(user.role);
+      setSelectedStaffId(user.id.toString());
+    }
+  }, [isDoctor, user]);
+
   // Clear pre-selected time slots when staff member is selected
   useEffect(() => {
     if (selectedStaffId) {
@@ -890,64 +898,66 @@ export default function ShiftsPage() {
         </div>
       </div>
 
-      {/* Role and Name Selection */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border dark:border-slate-700 p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <UserCheck className="h-6 w-6 text-blue-600" />
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Select Role</h2>
-          </div>
-          <Select value={selectedRole} onValueChange={setSelectedRole}>
-            <SelectTrigger className="w-full h-12">
-              <SelectValue placeholder="Choose a role..." />
-            </SelectTrigger>
-            <SelectContent>
-              {roleOptions.map((role) => (
-                <SelectItem key={role.value} value={role.value}>
-                  {role.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border dark:border-slate-700 p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <Users className="h-6 w-6 text-blue-600" />
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Select Name</h2>
-          </div>
-          <Select 
-            value={selectedStaffId} 
-            onValueChange={setSelectedStaffId}
-            disabled={!selectedRole}
-          >
-            <SelectTrigger className="w-full h-12">
-              <SelectValue placeholder={!selectedRole ? "Select a role first" : "Choose a staff member..."} />
-            </SelectTrigger>
-            <SelectContent>
-              {staffLoading ? (
-                <SelectItem value="loading" disabled>Loading staff...</SelectItem>
-              ) : filteredStaff.length > 0 ? (
-                filteredStaff.map((member: any) => (
-                  <SelectItem key={member.id} value={member.id.toString()}>
-                    {isDoctorLike(member.role) ? 'Dr.' : ''} {member.firstName} {member.lastName}
+      {/* Role and Name Selection - Hidden for doctors */}
+      {!isDoctor && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border dark:border-slate-700 p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <UserCheck className="h-6 w-6 text-blue-600" />
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Select Role</h2>
+            </div>
+            <Select value={selectedRole} onValueChange={setSelectedRole}>
+              <SelectTrigger className="w-full h-12">
+                <SelectValue placeholder="Choose a role..." />
+              </SelectTrigger>
+              <SelectContent>
+                {roleOptions.map((role) => (
+                  <SelectItem key={role.value} value={role.value}>
+                    {role.label}
                   </SelectItem>
-                ))
-              ) : selectedRole ? (
-                <SelectItem value="no-staff" disabled>
-                  No {
-                    selectedRole === 'lab_technician' ? 'lab technicians' : 
-                    selectedRole === 'sample_taker' ? 'sample takers' :
-                    `${selectedRole}s`
-                  } found
-                </SelectItem>
-              ) : (
-                <SelectItem value="select-role" disabled>Please select a role first</SelectItem>
-              )}
-            </SelectContent>
-          </Select>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border dark:border-slate-700 p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <Users className="h-6 w-6 text-blue-600" />
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Select Name</h2>
+            </div>
+            <Select 
+              value={selectedStaffId} 
+              onValueChange={setSelectedStaffId}
+              disabled={!selectedRole}
+            >
+              <SelectTrigger className="w-full h-12">
+                <SelectValue placeholder={!selectedRole ? "Select a role first" : "Choose a staff member..."} />
+              </SelectTrigger>
+              <SelectContent>
+                {staffLoading ? (
+                  <SelectItem value="loading" disabled>Loading staff...</SelectItem>
+                ) : filteredStaff.length > 0 ? (
+                  filteredStaff.map((member: any) => (
+                    <SelectItem key={member.id} value={member.id.toString()}>
+                      {isDoctorLike(member.role) ? 'Dr.' : ''} {member.firstName} {member.lastName}
+                    </SelectItem>
+                  ))
+                ) : selectedRole ? (
+                  <SelectItem value="no-staff" disabled>
+                    No {
+                      selectedRole === 'lab_technician' ? 'lab technicians' : 
+                      selectedRole === 'sample_taker' ? 'sample takers' :
+                      `${selectedRole}s`
+                    } found
+                  </SelectItem>
+                ) : (
+                  <SelectItem value="select-role" disabled>Please select a role first</SelectItem>
+                )}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Calendar and Time Selection */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
