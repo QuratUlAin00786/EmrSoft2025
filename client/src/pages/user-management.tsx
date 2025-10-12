@@ -514,19 +514,7 @@ export default function UserManagement() {
         errors.combined = "Date of birth cannot be in the future";
       }
       
-      // Check 18+ age requirement
-      const age = today.getFullYear() - yearNum;
-      const monthDiff = today.getMonth() - (monthNum - 1);
-      const dayDiff = today.getDate() - dayNum;
-      
-      let actualAge = age;
-      if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
-        actualAge = age - 1;
-      }
-      
-      if (actualAge < 18) {
-        errors.combined = "Patient must be at least 18 years old";
-      }
+      // Age calculation removed - no age limit for patients
     }
     
     setDobErrors(errors);
