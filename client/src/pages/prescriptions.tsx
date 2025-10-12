@@ -2606,9 +2606,7 @@ export default function PrescriptionsPage() {
                         <h3 className="text-md font-semibold text-gray-800 dark:text-gray-100">
                           RESIDENT PHYSICIAN M.D
                         </h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-300">
-                          {prescription.providerName}
-                        </p>
+                      
                         <p className="text-sm text-gray-600 dark:text-gray-300">
                           Halo Health Clinic
                         </p>
@@ -2947,24 +2945,24 @@ export default function PrescriptionsPage() {
                   </CardHeader>
                   <CardContent className="space-y-2">
                     {(() => {
-                      const provider = allUsers.find(u => u.id === Number(selectedPrescription.providerId));
-                      return provider ? (
+                      const doctor = allUsers.find(u => u.id === selectedPrescription.doctorId);
+                      return doctor ? (
                         <>
                           <div>
                             <p className="text-sm font-medium text-gray-600">
                               Provider
                             </p>
                             <p className="font-medium">
-                              Dr. {provider.firstName} {provider.lastName}
+                              Dr. {doctor.firstName} {doctor.lastName}
                             </p>
                           </div>
-                          {provider.department && (
+                          {doctor.department && (
                             <div>
                               <p className="text-sm font-medium text-gray-600">
                                 Specialization
                               </p>
                               <p className="font-medium">
-                                {provider.department}
+                                {doctor.department}
                               </p>
                             </div>
                           )}
@@ -2975,7 +2973,7 @@ export default function PrescriptionsPage() {
                             Provider
                           </p>
                           <p className="font-medium">
-                            {selectedPrescription.providerName || 'Provider information unavailable'}
+                            Provider information unavailable
                           </p>
                         </div>
                       );
