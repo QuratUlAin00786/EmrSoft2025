@@ -987,22 +987,6 @@ export function DoctorList({
                         </div>
                       )}
 
-                      {/* Row 5: Working Hours */}
-                      {item.workingDays &&
-                        item.workingDays.length > 0 &&
-                        item.workingHours && (
-                          <div className="flex items-start gap-1 w-full">
-                            <Clock className="h-3 w-3 text-blue-500 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-                            <span className="text-sm text-blue-700 dark:text-blue-300 font-medium flex-1 min-w-0">
-                              {item.workingDays.slice(0, 3).join(", ")}
-                              {item.workingDays.length > 3 &&
-                                ` +${item.workingDays.length - 3} more`}
-                              {" · "}
-                              {item.workingHours.start} -{" "}
-                              {item.workingHours.end}
-                            </span>
-                          </div>
-                        )}
 
                       {/* Row 6: Last Active */}
                       {item.lastLoginAt && (
