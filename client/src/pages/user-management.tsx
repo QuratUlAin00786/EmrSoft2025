@@ -2224,57 +2224,6 @@ export default function UserManagement() {
                   </>
                 )}
 
-                {/* Working Days - Hide only for Patient role */}
-                {selectedRole !== 'patient' && (
-                  <div className="space-y-2">
-                    <Label>Working Days</Label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day) => (
-                        <div key={day} className="flex items-center space-x-2">
-                          <input
-                            type="checkbox"
-                            id={day}
-                            key={`${day}-${editingUser?.id || 'new'}`}
-                            defaultChecked={form.getValues("workingDays")?.includes(day)}
-                            onChange={(e) => {
-                              const currentDays = form.getValues("workingDays") || [];
-                              if (e.target.checked) {
-                                form.setValue("workingDays", [...currentDays, day]);
-                              } else {
-                                form.setValue("workingDays", currentDays.filter(d => d !== day));
-                              }
-                            }}
-                            className="rounded border-gray-300"
-                          />
-                          <Label htmlFor={day} className="text-sm font-normal">{day}</Label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Working Hours - Hide only for Patient role */}
-                {selectedRole !== 'patient' && (
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="startTime">Start Time</Label>
-                      <Input
-                        id="startTime"
-                        type="time"
-                        {...form.register("workingHours.start")}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="endTime">End Time</Label>
-                      <Input
-                        id="endTime"
-                        type="time"
-                        {...form.register("workingHours.end")}
-                      />
-                    </div>
-                  </div>
-                )}
-
                 {/* Department (Optional), Password in one row */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
