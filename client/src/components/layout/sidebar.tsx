@@ -296,8 +296,8 @@ export function Sidebar() {
         <div className="p-6 border-b border-neutral-100 dark:border-border">
           <div className="flex flex-col items-center text-center">
             <img
-              src="/cura-logo-chatbot.png"
-              alt="Cura"
+              src={tenant?.settings?.theme?.logoUrl || "/cura-logo-chatbot.png"}
+              alt={tenant?.name || "Cura"}
               className="h-30 w-auto mb-2"
             />
           </div>

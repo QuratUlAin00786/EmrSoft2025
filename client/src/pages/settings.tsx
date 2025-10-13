@@ -12,7 +12,7 @@ import { LoadingSpinner } from "@/components/common/loading-spinner";
 import { apiRequest } from "@/lib/queryClient";
 import { useTenant } from "@/hooks/use-tenant";
 import { useToast } from "@/hooks/use-toast";
-import { Settings as SettingsIcon, Globe, Shield, Palette, Save, Check } from "lucide-react";
+import { Settings as SettingsIcon, Globe, Shield, Palette, Save, Check, Upload, X } from "lucide-react";
 import type { Organization } from "@/types";
 
 const regions = [
@@ -67,6 +67,7 @@ export default function Settings() {
     brandName: "",
     region: "UK",
     theme: "default",
+    logoUrl: "",
     gdprEnabled: true,
     aiEnabled: true,
     billingEnabled: true
@@ -182,6 +183,7 @@ export default function Settings() {
         brandName: organization.brandName || "",
         region: organization.region || "UK",
         theme: organization.settings?.theme?.primaryColor || "default",
+        logoUrl: organization.settings?.theme?.logoUrl || "",
         gdprEnabled: organization.settings?.compliance?.gdprEnabled || true,
         aiEnabled: organization.settings?.features?.aiEnabled || true,
         billingEnabled: organization.settings?.features?.billingEnabled || true
@@ -235,13 +237,46 @@ export default function Settings() {
     }
   };
 
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "Invalid file type",
+          description: "Please upload an image file (PNG, JPG, etc.)",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Validate file size (max 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        toast({
+          title: "File too large",
+          description: "Please upload an image smaller than 2MB",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Convert to base64
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        handleInputChange('logoUrl', base64String);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSave = () => {
     const updatedSettings = {
       name: settings.name,
       brandName: settings.brandName,
       region: settings.region,
       settings: {
-        theme: { primaryColor: settings.theme },
+        theme: { primaryColor: settings.theme, logoUrl: settings.logoUrl },
         compliance: { gdprEnabled: settings.gdprEnabled },
         features: { 
           aiEnabled: settings.aiEnabled, 
@@ -451,6 +486,44 @@ export default function Settings() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="logo">Organization Logo</Label>
+                <div className="flex items-start gap-4">
+                  {settings.logoUrl && (
+                    <div className="relative">
+                      <img 
+                        src={settings.logoUrl} 
+                        alt="Organization Logo" 
+                        className="h-20 w-auto object-contain border rounded-lg p-2"
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        className="absolute -top-2 -right-2 h-6 w-6"
+                        onClick={() => handleInputChange('logoUrl', '')}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <Input
+                      id="logo"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleLogoUpload}
+                      className="cursor-pointer"
+                    />
+                    <p className="text-sm text-neutral-600 dark:text-gray-400 mt-2">
+                      Upload your organization logo (PNG, JPG, max 2MB). This will appear in the sidebar.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              <Separator />
+              
               <div className="space-y-2">
                 <Label htmlFor="theme">Color Theme</Label>
                 <Select 
