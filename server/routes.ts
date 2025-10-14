@@ -6206,7 +6206,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/lab-results", authMiddleware, requireRole(["doctor", "nurse", "paramedic", "optician", "lab_technician", "pharmacist", "dentist", "dental_nurse", "phlebotomist", "aesthetician", "podiatrist", "physiotherapist", "physician"]), async (req: TenantRequest, res) => {
+  app.post("/api/lab-results", authMiddleware, requireRole(["admin", "doctor", "nurse", "paramedic", "optician", "lab_technician", "pharmacist", "dentist", "dental_nurse", "phlebotomist", "aesthetician", "podiatrist", "physiotherapist", "physician"]), async (req: TenantRequest, res) => {
     try {
       if (!req.user) {
         return res.status(401).json({ error: "User not authenticated" });
