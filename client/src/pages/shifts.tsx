@@ -349,6 +349,102 @@ export default function ShiftsPage() {
     return filtered;
   }, [staff, selectedRole, staffLoading]);
 
+  // Filter shifts for display based on role, name, and date
+  const filteredShiftsForDisplay = useMemo(() => {
+    console.log("=== SHIFT FILTERING DEBUG ===");
+    console.log("All shifts:", shifts);
+    console.log("Selected role:", selectedRole);
+    console.log("Selected staff ID:", selectedStaffId);
+    console.log("Selected date:", selectedDate.toISOString().split('T')[0]);
+    
+    // If no role selected, return all shifts for the date
+    if (!selectedRole) {
+      console.log("No role selected, returning all shifts");
+      return shifts;
+    }
+    
+    // Filter shifts by role
+    let roleFilteredShifts = shifts.filter((shift: any) => {
+      const staffMember = staff.find((s: any) => s.id === shift.staffId);
+      return staffMember && staffMember.role === selectedRole;
+    });
+    
+    // If staff member is selected, further filter by staffId
+    if (selectedStaffId) {
+      roleFilteredShifts = roleFilteredShifts.filter((shift: any) => 
+        shift.staffId.toString() === selectedStaffId
+      );
+    }
+    
+    console.log(`Filtered shifts for role "${selectedRole}":`, roleFilteredShifts.length);
+    console.log("=== END SHIFT FILTERING DEBUG ===");
+    
+    return roleFilteredShifts;
+  }, [shifts, selectedRole, selectedStaffId, staff, selectedDate]);
+
+  // Get staff members without shifts for selected role and date
+  const staffWithoutShifts = useMemo(() => {
+    if (!selectedRole) return [];
+    
+    // If a specific staff member is selected, only check that staff member
+    if (selectedStaffId) {
+      const dateString = getLocalDateString(selectedDate);
+      const selectedStaff = staff.find((s: any) => s.id.toString() === selectedStaffId);
+      if (!selectedStaff) return [];
+      
+      // Check if selected staff has a shift on this date
+      const hasShift = shifts.some((shift: any) => {
+        const shiftDateStr = shift.date.substring(0, 10);
+        return shift.staffId.toString() === selectedStaffId && shiftDateStr === dateString;
+      });
+      
+      // Return the selected staff if they don't have a shift
+      return hasShift ? [] : [selectedStaff];
+    }
+    
+    // If only role is selected (no specific staff), show all staff without shifts
+    const dateString = getLocalDateString(selectedDate);
+    const staffMembersWithShifts = new Set(
+      shifts
+        .filter((shift: any) => {
+          const staffMember = staff.find((s: any) => s.id === shift.staffId);
+          const shiftDateStr = shift.date.substring(0, 10);
+          return staffMember && staffMember.role === selectedRole && shiftDateStr === dateString;
+        })
+        .map((shift: any) => shift.staffId)
+    );
+    
+    return filteredStaff.filter((member: any) => !staffMembersWithShifts.has(member.id));
+  }, [selectedRole, selectedStaffId, filteredStaff, shifts, selectedDate, staff]);
+
+  // Get default shifts for selected role and date
+  const defaultShiftsForRole = useMemo(() => {
+    if (!selectedRole || !selectedDate) return [];
+    
+    const dayOfWeek = selectedDate.toLocaleDateString('en-US', { weekday: 'long' });
+    
+    // If a specific staff member is selected, only show their default shift
+    if (selectedStaffId) {
+      return defaultShifts.filter((defaultShift: any) => {
+        const staffMember = staff.find((s: any) => s.id === defaultShift.userId);
+        return staffMember && 
+               staffMember.id.toString() === selectedStaffId &&
+               staffMember.role === selectedRole && 
+               defaultShift.workingDays && 
+               defaultShift.workingDays.includes(dayOfWeek);
+      });
+    }
+    
+    // If only role is selected, show all default shifts for that role
+    return defaultShifts.filter((defaultShift: any) => {
+      const staffMember = staff.find((s: any) => s.id === defaultShift.userId);
+      return staffMember && 
+             staffMember.role === selectedRole && 
+             defaultShift.workingDays && 
+             defaultShift.workingDays.includes(dayOfWeek);
+    });
+  }, [selectedRole, selectedStaffId, selectedDate, defaultShifts, staff]);
+
   // Check if time slot is booked for selected staff member
   const isTimeSlotBooked = (timeSlot: string) => {
     if (!selectedStaffId || !selectedDate) return false;
@@ -1164,84 +1260,167 @@ export default function ShiftsPage() {
             <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4" />
             <p className="text-gray-600 dark:text-gray-400">Loading shifts...</p>
           </div>
-        ) : shifts.length === 0 ? (
-          <div className="p-12 text-center">
-            <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No shifts scheduled for this date</h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">Use the calendar above to schedule new shifts</p>
-          </div>
         ) : (
           <div className="divide-y divide-gray-200 dark:divide-slate-600">
-            {shifts
-              .sort((a: any, b: any) => {
-                // Sort by creation date (newest first), then by start time
-                const dateA = new Date(a.createdAt || a.date);
-                const dateB = new Date(b.createdAt || b.date);
-                if (dateA.getTime() !== dateB.getTime()) {
-                  return dateB.getTime() - dateA.getTime(); // Newest first
-                }
-                // If same creation date, sort by start time
-                const timeA = typeof a.startTime === 'string' && a.startTime.includes(':') 
-                  ? parseInt(a.startTime.replace(':', ''))
-                  : parseInt(a.startTime);
-                const timeB = typeof b.startTime === 'string' && b.startTime.includes(':')
-                  ? parseInt(b.startTime.replace(':', ''))
-                  : parseInt(b.startTime);
-                return timeA - timeB;
-              })
-              .map((shift: any) => {
-              const staffMember = staff.find((s: any) => s.id === shift.staffId);
-              const staffName = staffMember 
-                ? `${isDoctorLike(staffMember.role) ? 'Dr.' : ''} ${staffMember.firstName} ${staffMember.lastName}`
-                : 'Unknown Staff';
-              
-              return (
-                <div key={shift.id} className="p-6 flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 
-                        className="text-lg font-medium text-blue-600 cursor-pointer hover:text-blue-800 hover:underline transition-colors"
-                        onClick={() => handleDoctorClick(shift.staffId)}
-                      >
-                        {staffName}
-                      </h3>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        shift.shiftType === 'regular' ? 'bg-blue-100 text-blue-800' :
-                        shift.shiftType === 'overtime' ? 'bg-purple-100 text-purple-800' :
-                        shift.shiftType === 'on_call' ? 'bg-orange-100 text-orange-800' :
-                        'bg-red-100 text-red-800'
-                      }`}>
-                        {shift.shiftType.replace('_', ' ').toUpperCase()}
-                      </span>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        shift.status === 'scheduled' ? 'bg-green-100 text-green-800' :
-                        shift.status === 'completed' ? 'bg-gray-100 text-gray-800' :
-                        'bg-red-100 text-red-800'
-                      }`}>
-                        {shift.status.toUpperCase()}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
-                      <div className="flex items-center gap-1">
-                        <Clock className="h-4 w-4" />
-{shift.startTime}-{shift.endTime}
-                      </div>
-                      {shift.notes && <span>• {shift.notes}</span>}
-                    </div>
-                  </div>
-                  
-                  {/* Delete Button */}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDeleteShift(shift.id)}
-                    className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+            {/* Custom Shifts from staff_shifts table */}
+            {filteredShiftsForDisplay.length > 0 && (
+              <>
+                <div className="p-4 bg-blue-50 dark:bg-blue-900/20">
+                  <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-100">Custom Shifts</h3>
                 </div>
-              );
-            })}
+                {filteredShiftsForDisplay
+                  .sort((a: any, b: any) => {
+                    // Sort by creation date (newest first), then by start time
+                    const dateA = new Date(a.createdAt || a.date);
+                    const dateB = new Date(b.createdAt || b.date);
+                    if (dateA.getTime() !== dateB.getTime()) {
+                      return dateB.getTime() - dateA.getTime(); // Newest first
+                    }
+                    // If same creation date, sort by start time
+                    const timeA = typeof a.startTime === 'string' && a.startTime.includes(':') 
+                      ? parseInt(a.startTime.replace(':', ''))
+                      : parseInt(a.startTime);
+                    const timeB = typeof b.startTime === 'string' && b.startTime.includes(':')
+                      ? parseInt(b.startTime.replace(':', ''))
+                      : parseInt(b.startTime);
+                    return timeA - timeB;
+                  })
+                  .map((shift: any) => {
+                    const staffMember = staff.find((s: any) => s.id === shift.staffId);
+                    const staffName = staffMember 
+                      ? `${isDoctorLike(staffMember.role) ? 'Dr.' : ''} ${staffMember.firstName} ${staffMember.lastName}`
+                      : 'Unknown Staff';
+                    
+                    return (
+                      <div key={shift.id} className="p-6 flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h3 
+                              className="text-lg font-medium text-blue-600 cursor-pointer hover:text-blue-800 hover:underline transition-colors"
+                              onClick={() => handleDoctorClick(shift.staffId)}
+                            >
+                              {staffName}
+                            </h3>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              shift.shiftType === 'regular' ? 'bg-blue-100 text-blue-800' :
+                              shift.shiftType === 'overtime' ? 'bg-purple-100 text-purple-800' :
+                              shift.shiftType === 'on_call' ? 'bg-orange-100 text-orange-800' :
+                              'bg-red-100 text-red-800'
+                            }`}>
+                              {shift.shiftType.replace('_', ' ').toUpperCase()}
+                            </span>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              shift.status === 'scheduled' ? 'bg-green-100 text-green-800' :
+                              shift.status === 'completed' ? 'bg-gray-100 text-gray-800' :
+                              'bg-red-100 text-red-800'
+                            }`}>
+                              {shift.status.toUpperCase()}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                            <div className="flex items-center gap-1">
+                              <Clock className="h-4 w-4" />
+{shift.startTime}-{shift.endTime}
+                            </div>
+                            {shift.notes && <span>• {shift.notes}</span>}
+                          </div>
+                        </div>
+                        
+                        {/* Delete Button */}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDeleteShift(shift.id)}
+                          className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    );
+                  })}
+              </>
+            )}
+
+            {/* Staff without shifts */}
+            {selectedRole && staffWithoutShifts.length > 0 && (
+              <>
+                <div className="p-4 bg-orange-50 dark:bg-orange-900/20">
+                  <h3 className="text-sm font-semibold text-orange-900 dark:text-orange-100">Staff Without Shifts</h3>
+                </div>
+                {staffWithoutShifts.map((member: any) => (
+                  <div key={member.id} className="p-6">
+                    <div className="flex items-center gap-3">
+                      <Users className="h-5 w-5 text-orange-600" />
+                      <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                        {isDoctorLike(member.role) ? 'Dr.' : ''} {member.firstName} {member.lastName}
+                      </h3>
+                      <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                        {member.role.replace('_', ' ').toUpperCase()}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">No shift scheduled for this date</p>
+                  </div>
+                ))}
+              </>
+            )}
+
+            {/* Default shifts from doctor_default_shifts table */}
+            {selectedRole && filteredShiftsForDisplay.length === 0 && defaultShiftsForRole.length > 0 && (
+              <>
+                <div className="p-4 bg-green-50 dark:bg-green-900/20">
+                  <h3 className="text-sm font-semibold text-green-900 dark:text-green-100">Default Shifts</h3>
+                </div>
+                {defaultShiftsForRole.map((defaultShift: any) => {
+                  const staffMember = staff.find((s: any) => s.id === defaultShift.userId);
+                  const staffName = staffMember 
+                    ? `${isDoctorLike(staffMember.role) ? 'Dr.' : ''} ${staffMember.firstName} ${staffMember.lastName}`
+                    : 'Unknown Staff';
+                  
+                  return (
+                    <div key={defaultShift.id} className="p-6">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="text-lg font-medium text-green-600">
+                          {staffName}
+                        </h3>
+                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          DEFAULT SHIFT
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-4 w-4" />
+                          {defaultShift.startTime}-{defaultShift.endTime}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span>Days:</span>
+                          {defaultShift.workingDays?.map((day: string) => (
+                            <span key={day} className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs rounded">
+                              {day.substring(0, 3)}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </>
+            )}
+
+            {/* No data message */}
+            {!selectedRole && shifts.length === 0 && (
+              <div className="p-12 text-center">
+                <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No shifts scheduled for this date</h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-4">Select a role above or use the calendar to schedule new shifts</p>
+              </div>
+            )}
+            {selectedRole && filteredShiftsForDisplay.length === 0 && staffWithoutShifts.length === 0 && defaultShiftsForRole.length === 0 && (
+              <div className="p-12 text-center">
+                <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No shifts found</h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-4">No staff or shifts found for the selected role and date</p>
+              </div>
+            )}
           </div>
         )}
       </div>
