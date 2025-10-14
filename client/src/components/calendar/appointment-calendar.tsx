@@ -277,9 +277,14 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
     // Each slot is 15 minutes, but we need to check if starting an appointment HERE would fit
     const slotEndMinutes = slotStartMinutes + 15; // Just this 15-min slot
     
+    // *** CHANGE 2: Enhanced conflict checking with logging ***
     // Check if this slot overlaps with any existing appointment
     const isBooked = appointments.some((apt: any) => {
-      if (editingAppointment && apt.id === editingAppointment.id) return false;
+      // Exclude the appointment being edited from conflict checks
+      if (editingAppointment && apt.id === editingAppointment.id) {
+        console.log('[Availability Check] Excluding current editing appointment:', apt.id);
+        return false;
+      }
       
       // For new appointments, only check the selected provider's appointments
       if (selectedProviderId && apt.providerId !== parseInt(selectedProviderId)) {
@@ -302,7 +307,22 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
       
       // Check if this 15-minute slot overlaps with the existing appointment
       // Two time ranges overlap if: slot_start < existing_end AND slot_end > existing_start
-      return slotStartMinutes < aptEndMinutes && slotEndMinutes > aptStartMinutes;
+      const hasConflict = slotStartMinutes < aptEndMinutes && slotEndMinutes > aptStartMinutes;
+      
+      if (hasConflict) {
+        console.log('[Availability Check] Conflict detected:', {
+          slot: timeSlot,
+          slotRange: `${slotStartMinutes}-${slotEndMinutes}`,
+          conflictingAppointment: {
+            id: apt.id,
+            time: timeString,
+            range: `${aptStartMinutes}-${aptEndMinutes}`,
+            duration: aptDuration
+          }
+        });
+      }
+      
+      return hasConflict;
     });
     
     return !isBooked;
@@ -476,7 +496,12 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
   };
 
   // Handle edit appointment
-  const handleEditAppointment = (appointment: any) => {
+  const handleEditAppointment = async (appointment: any) => {
+    // *** CHANGE 1: Refetch appointments from database to ensure we have latest data for conflict checking ***
+    console.log('[Edit Appointment] Fetching latest appointments data from database...');
+    await refetch();
+    console.log('[Edit Appointment] Appointments data refreshed');
+    
     setEditingAppointment(appointment);
     
     // Initialize the date and time slot states properly - avoid timezone conversion
@@ -491,6 +516,13 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
     const displayHours = hours > 12 ? hours - 12 : (hours === 0 ? 12 : hours);
     const timeString = `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
     setEditSelectedTimeSlot(timeString);
+    
+    console.log('[Edit Appointment] Opening edit dialog with appointment:', {
+      id: appointment.id,
+      scheduledAt: appointment.scheduledAt,
+      selectedDate: appointmentDate,
+      selectedTimeSlot: timeString
+    });
     
     setShowEditAppointment(true);
   };
@@ -2609,6 +2641,7 @@ Medical License: [License Number]
                   </Button>
                   <Button
                     onClick={() => {
+                      // *** CHANGE 3: Validate date and time slot selection ***
                       if (!editAppointmentDate || !editSelectedTimeSlot) {
                         toast({
                           title: "Missing Information",
@@ -2617,6 +2650,21 @@ Medical License: [License Number]
                         });
                         return;
                       }
+                      
+                      // *** CHANGE 3: Check for appointment conflicts before saving ***
+                      const isSlotAvailable = isTimeSlotAvailable(editAppointmentDate, editSelectedTimeSlot);
+                      
+                      if (!isSlotAvailable) {
+                        console.log('[Edit Appointment] Validation failed - slot not available');
+                        toast({
+                          title: "Time Slot Unavailable",
+                          description: "This time slot is already booked or blocked. Please select a different time.",
+                          variant: "destructive",
+                        });
+                        return;
+                      }
+                      
+                      console.log('[Edit Appointment] Validation passed - proceeding with update');
                       
                       // Create new datetime without timezone conversion
                       const selectedDate = format(editAppointmentDate, 'yyyy-MM-dd');
@@ -2631,6 +2679,13 @@ Medical License: [License Number]
                       }
                       
                       const newScheduledAt = `${selectedDate}T${hour24.toString().padStart(2, '0')}:${minutes}:00.000Z`;
+                      
+                      console.log('[Edit Appointment] Submitting update:', {
+                        appointmentId: editingAppointment.id,
+                        newScheduledAt,
+                        title: editingAppointment.title,
+                        status: editingAppointment.status
+                      });
                       
                       editAppointmentMutation.mutate({
                         id: editingAppointment.id,
