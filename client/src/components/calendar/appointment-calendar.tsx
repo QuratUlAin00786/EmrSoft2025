@@ -919,6 +919,125 @@ Medical License: [License Number]
     return allSlots;
   }, [selectedProviderId, newAppointmentDate, shiftsData, defaultShiftsData, selectedDuration]);
 
+  // *** CHANGE 4: Fetch shifts for EDIT appointment date ***
+  const { data: editShiftsData } = useQuery({
+    queryKey: ["/api/shifts", editAppointmentDate ? format(editAppointmentDate, 'yyyy-MM-dd') : null, "edit"],
+    staleTime: 30000,
+    enabled: !!editAppointmentDate && !!editingAppointment,
+    queryFn: async () => {
+      const dateStr = format(editAppointmentDate!, 'yyyy-MM-dd');
+      const response = await apiRequest('GET', `/api/shifts?date=${dateStr}`);
+      const data = await response.json();
+      console.log('[EDIT TIME_SLOTS] Fetched shifts for date:', dateStr, data);
+      return data;
+    },
+  });
+
+  // *** CHANGE 4: Generate time slots for EDIT appointment dialog ***
+  const editTimeSlots = useMemo(() => {
+    // If no editing appointment or date selected, return empty array
+    if (!editingAppointment || !editAppointmentDate) {
+      console.log('[EDIT TIME_SLOTS] No editing appointment or date');
+      return [];
+    }
+
+    // TIER 1: Check for custom shifts for the provider AND date
+    const selectedDateStr = format(editAppointmentDate, 'yyyy-MM-dd');
+    let providerShifts = editShiftsData?.filter((shift: any) => {
+      // Filter by staff ID from the editing appointment's provider
+      if (shift.staffId !== editingAppointment.providerId) return false;
+      
+      // Filter by selected date
+      const shiftDateStr = shift.date instanceof Date 
+        ? format(shift.date, 'yyyy-MM-dd')
+        : shift.date.substring(0, 10);
+      
+      return shiftDateStr === selectedDateStr;
+    }) || [];
+
+    console.log(`[EDIT TIME_SLOTS] Provider ${editingAppointment.providerId}, Date: ${format(editAppointmentDate, 'yyyy-MM-dd EEEE')}`);
+    console.log(`[EDIT TIME_SLOTS] Custom shifts found: ${providerShifts.length}`, providerShifts);
+
+    // TIER 2: If no custom shifts, use default shifts from doctor_default_shifts
+    if (providerShifts.length === 0 && defaultShiftsData.length > 0) {
+      console.log('[EDIT TIME_SLOTS] No custom shifts, checking default shifts...');
+      
+      const defaultShift = defaultShiftsData.find((ds: any) => 
+        ds.userId === editingAppointment.providerId
+      );
+
+      if (defaultShift) {
+        const dayOfWeek = format(editAppointmentDate, 'EEEE');
+        const workingDays = defaultShift.workingDays || [];
+        
+        console.log(`[EDIT TIME_SLOTS] Day: ${dayOfWeek}, Working days:`, workingDays);
+        
+        if (workingDays.includes(dayOfWeek)) {
+          providerShifts = [{
+            staffId: defaultShift.userId,
+            startTime: defaultShift.startTime,
+            endTime: defaultShift.endTime,
+            date: editAppointmentDate,
+            isDefault: true
+          }];
+          console.log('[EDIT TIME_SLOTS] Using default shift:', providerShifts[0]);
+        } else {
+          console.log('[EDIT TIME_SLOTS] Not a working day');
+        }
+      } else {
+        console.log('[EDIT TIME_SLOTS] No default shift found');
+      }
+    }
+
+    // If still no shifts found, return empty array
+    if (!providerShifts || providerShifts.length === 0) {
+      console.log('[EDIT TIME_SLOTS] No shifts available');
+      return [];
+    }
+
+    const allSlots: string[] = [];
+
+    // Generate time slots for each shift
+    for (const shift of providerShifts) {
+      // Parse start and end times from shift
+      const [startHour, startMinute] = shift.startTime.split(':').map(Number);
+      const [endHour, endMinute] = shift.endTime.split(':').map(Number);
+
+      let currentHour = startHour;
+      let currentMinute = startMinute;
+
+      // Generate 15-minute interval slots between start and end time
+      while (currentHour < endHour || (currentHour === endHour && currentMinute < endMinute)) {
+        const hour12 = currentHour === 0 ? 12 : currentHour > 12 ? currentHour - 12 : currentHour;
+        const period = currentHour < 12 ? 'AM' : 'PM';
+        const timeString = `${hour12}:${currentMinute.toString().padStart(2, '0')} ${period}`;
+        
+        // Only add if not already in the array
+        if (!allSlots.includes(timeString)) {
+          allSlots.push(timeString);
+        }
+
+        // Move to next 15-minute slot
+        currentMinute += 15;
+        if (currentMinute >= 60) {
+          currentMinute = 0;
+          currentHour++;
+        }
+      }
+    }
+
+    // Sort slots chronologically
+    allSlots.sort((a, b) => {
+      const timeA = timeSlotTo24Hour(a);
+      const timeB = timeSlotTo24Hour(b);
+      return timeA.localeCompare(timeB);
+    });
+
+    console.log(`[EDIT TIME_SLOTS] Generated ${allSlots.length} slots for provider ${editingAppointment.providerId}:`, allSlots);
+
+    return allSlots;
+  }, [editingAppointment, editAppointmentDate, editShiftsData, defaultShiftsData]);
+
   const isDataLoaded = !isUsersLoading && !isPatientsLoading;
 
   // Get filtered users by selected role
@@ -2549,45 +2668,52 @@ Medical License: [License Number]
                   <div>
                     <Label className="text-lg font-semibold text-gray-800 mb-3 block">Select Time Slot</Label>
                     <div className="border rounded-lg p-4 bg-gray-50 h-[300px] overflow-y-auto">
-                      <div className="grid grid-cols-2 gap-2">
-                        {timeSlots.map((slot) => {
-                          const isAvailable = isTimeSlotAvailable(editAppointmentDate || new Date(editingAppointment.scheduledAt), slot);
-                          const isSelected = editSelectedTimeSlot === slot || 
-                            (editSelectedTimeSlot === "" && format(new Date(editingAppointment.scheduledAt), 'h:mm a') === slot);
-                          
-                          return (
-                            <Button
-                              key={slot}
-                              variant={isSelected ? "default" : "outline"}
-                              className={`h-12 text-sm font-medium ${
-                                !isAvailable 
-                                  ? "bg-red-100 text-red-400 cursor-not-allowed border-red-200" 
-                                  : isSelected 
-                                    ? "bg-blue-500 hover:bg-blue-600 text-white border-blue-500" 
-                                    : "bg-green-500 hover:bg-green-600 text-white border-green-500"
-                              }`}
-                              disabled={!isAvailable}
-                              onClick={() => {
-                                setEditSelectedTimeSlot(slot);
-                                if (editAppointmentDate || editingAppointment.scheduledAt) {
-                                  const date = editAppointmentDate || new Date(editingAppointment.scheduledAt);
-                                  // Parse time slot to get hours and minutes
-                                  const [time, period] = slot.split(' ');
-                                  const [hours, minutes] = time.split(':').map(Number);
-                                  const hour24 = period === 'AM' ? (hours === 12 ? 0 : hours) : (hours === 12 ? 12 : hours + 12);
-                                  
-                                  // Create new date with correct local time (no timezone conversion)
-                                  const newDateTime = new Date(date);
-                                  newDateTime.setHours(hour24, minutes, 0, 0);
-                                  setEditingAppointment({ ...editingAppointment, scheduledAt: newDateTime.toISOString() });
-                                }
-                              }}
-                            >
-                              {slot}
-                            </Button>
-                          );
-                        })}
-                      </div>
+                      {/* *** CHANGE 5: Use editTimeSlots instead of timeSlots *** */}
+                      {editTimeSlots.length === 0 ? (
+                        <div className="flex items-center justify-center h-full text-gray-500">
+                          No available time slots for this date. Please select a different date.
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-2 gap-2">
+                          {editTimeSlots.map((slot) => {
+                            const isAvailable = isTimeSlotAvailable(editAppointmentDate || new Date(editingAppointment.scheduledAt), slot);
+                            const isSelected = editSelectedTimeSlot === slot || 
+                              (editSelectedTimeSlot === "" && format(new Date(editingAppointment.scheduledAt), 'h:mm a') === slot);
+                            
+                            return (
+                              <Button
+                                key={slot}
+                                variant={isSelected ? "default" : "outline"}
+                                className={`h-12 text-sm font-medium ${
+                                  !isAvailable 
+                                    ? "bg-red-100 text-red-400 cursor-not-allowed border-red-200" 
+                                    : isSelected 
+                                      ? "bg-blue-500 hover:bg-blue-600 text-white border-blue-500" 
+                                      : "bg-green-500 hover:bg-green-600 text-white border-green-500"
+                                }`}
+                                disabled={!isAvailable}
+                                onClick={() => {
+                                  setEditSelectedTimeSlot(slot);
+                                  if (editAppointmentDate || editingAppointment.scheduledAt) {
+                                    const date = editAppointmentDate || new Date(editingAppointment.scheduledAt);
+                                    // Parse time slot to get hours and minutes
+                                    const [time, period] = slot.split(' ');
+                                    const [hours, minutes] = time.split(':').map(Number);
+                                    const hour24 = period === 'AM' ? (hours === 12 ? 0 : hours) : (hours === 12 ? 12 : hours + 12);
+                                    
+                                    // Create new date with correct local time (no timezone conversion)
+                                    const newDateTime = new Date(date);
+                                    newDateTime.setHours(hour24, minutes, 0, 0);
+                                    setEditingAppointment({ ...editingAppointment, scheduledAt: newDateTime.toISOString() });
+                                  }
+                                }}
+                              >
+                                {slot}
+                              </Button>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
