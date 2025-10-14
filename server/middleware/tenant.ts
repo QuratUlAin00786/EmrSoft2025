@@ -158,14 +158,25 @@ export async function authMiddleware(req: TenantRequest, res: Response, next: Ne
 
 export function requireRole(roles: string[]) {
   return (req: TenantRequest, res: Response, next: NextFunction) => {
+    console.log('[REQUIRE-ROLE] Checking permissions:', {
+      hasUser: !!req.user,
+      userRole: req.user?.role,
+      userEmail: req.user?.email,
+      requiredRoles: roles,
+      hasPermission: req.user ? authService.hasPermission(req.user.role, roles) : false
+    });
+
     if (!req.user) {
+      console.log('[REQUIRE-ROLE] ❌ No user found - returning 401');
       return res.status(401).json({ error: "Authentication required" });
     }
 
     if (!authService.hasPermission(req.user.role, roles)) {
+      console.log('[REQUIRE-ROLE] ❌ Permission denied - User role:', req.user.role, 'Required roles:', roles);
       return res.status(403).json({ error: "Insufficient permissions" });
     }
 
+    console.log('[REQUIRE-ROLE] ✅ User is authorized (role:', req.user.role, ')');
     next();
   };
 }
