@@ -516,25 +516,39 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
     
     setEditingAppointment(appointment);
     
-    // Initialize the date and time slot states properly - avoid timezone conversion
-    const cleanTimeString = appointment.scheduledAt.replace('Z', '');
-    const appointmentDate = new Date(cleanTimeString);
-    setEditAppointmentDate(appointmentDate);
+    // *** FIX: Parse ISO string without timezone conversion ***
+    // Extract date and time components directly from ISO string
+    const isoString = appointment.scheduledAt;
+    const dateMatch = isoString.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})/);
     
-    // Convert the time to the correct format to match timeSlots
-    const hours = appointmentDate.getHours();
-    const minutes = appointmentDate.getMinutes();
-    const period = hours >= 12 ? 'PM' : 'AM';
-    const displayHours = hours > 12 ? hours - 12 : (hours === 0 ? 12 : hours);
-    const timeString = `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
-    setEditSelectedTimeSlot(timeString);
-    
-    console.log('[Edit Appointment] Opening edit dialog with appointment:', {
-      id: appointment.id,
-      scheduledAt: appointment.scheduledAt,
-      selectedDate: appointmentDate,
-      selectedTimeSlot: timeString
-    });
+    if (dateMatch) {
+      const [, year, month, day, hour, minute] = dateMatch;
+      // Create date using local timezone (no conversion)
+      const appointmentDate = new Date(
+        parseInt(year),
+        parseInt(month) - 1, // JavaScript months are 0-indexed
+        parseInt(day),
+        parseInt(hour),
+        parseInt(minute),
+        0
+      );
+      setEditAppointmentDate(appointmentDate);
+      
+      // Convert to 12-hour format for display
+      const hours = parseInt(hour);
+      const minutes = parseInt(minute);
+      const period = hours >= 12 ? 'PM' : 'AM';
+      const displayHours = hours > 12 ? hours - 12 : (hours === 0 ? 12 : hours);
+      const timeString = `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+      setEditSelectedTimeSlot(timeString);
+      
+      console.log('[Edit Appointment] Opening edit dialog with appointment:', {
+        id: appointment.id,
+        scheduledAt: appointment.scheduledAt,
+        selectedDate: appointmentDate,
+        selectedTimeSlot: timeString
+      });
+    }
     
     setShowEditAppointment(true);
   };
@@ -1104,6 +1118,37 @@ Medical License: [License Number]
     if (defaultShiftsData && defaultShiftsData.length > 0) {
       const defaultShift = defaultShiftsData.find((ds: any) => 
         ds.userId.toString() === selectedProviderId
+      );
+      
+      if (defaultShift) {
+        const dayOfWeek = format(date, 'EEEE');
+        const workingDays = defaultShift.workingDays || [];
+        return workingDays.includes(dayOfWeek);
+      }
+    }
+    
+    return false;
+  };
+
+  // *** FIX: Check if a date has shifts for EDIT mode (uses editing appointment's provider) ***
+  const hasShiftsOnDateForEdit = (date: Date): boolean => {
+    if (!editingAppointment) return false;
+    
+    const providerId = editingAppointment.providerId;
+    const dateStr = format(date, 'yyyy-MM-dd');
+    
+    // Check for custom shifts first in allProviderShifts
+    const hasCustomShift = allProviderShifts?.some((shift: any) => {
+      const shiftDateStr = shift.date.substring(0, 10);
+      return shiftDateStr === dateStr && shift.staffId === providerId;
+    });
+    
+    if (hasCustomShift) return true;
+    
+    // Check for default shifts - if the day is a working day
+    if (defaultShiftsData && defaultShiftsData.length > 0) {
+      const defaultShift = defaultShiftsData.find((ds: any) => 
+        ds.userId === providerId
       );
       
       if (defaultShift) {
@@ -2668,7 +2713,8 @@ Medical License: [License Number]
                           
                           if (date < today) return true;
                           
-                          return !hasShiftsOnDate(date);
+                          // *** FIX: Use hasShiftsOnDateForEdit for Edit mode to check editing appointment's provider ***
+                          return !hasShiftsOnDateForEdit(date);
                         }}
                         className="rounded-md"
                         initialFocus
