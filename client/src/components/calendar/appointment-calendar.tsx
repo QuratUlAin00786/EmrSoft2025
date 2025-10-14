@@ -260,12 +260,19 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
   const isTimeSlotAvailable = (date: Date, timeSlot: string) => {
     if (!date || !timeSlot || !appointments) return true;
     
-    // Check if slot is within staff's working hours (for new appointments with provider selected)
-    if (selectedProviderId && !isTimeSlotInShift(timeSlot, date)) {
+    // Determine which provider to check for shift validation
+    const providerForShift = editingAppointment ? editingAppointment.providerId : (selectedProviderId ? parseInt(selectedProviderId) : null);
+    
+    // Check if slot is within staff's working hours
+    if (providerForShift && !isTimeSlotInShift(timeSlot, date)) {
+      console.log('[Availability Check] Slot not in shift for provider:', providerForShift, 'Time:', timeSlot);
       return false;
     }
     
     const selectedDateString = format(date, 'yyyy-MM-dd');
+    
+    // Log the provider being checked
+    console.log('[Availability Check] Checking slot:', timeSlot, 'for provider:', providerForShift || 'ALL', 'on date:', selectedDateString);
     
     // Convert the time slot to minutes (this represents the START time of the slot)
     const [time, period] = timeSlot.split(' ');
@@ -286,8 +293,11 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
         return false;
       }
       
-      // For new appointments, only check the selected provider's appointments
-      if (selectedProviderId && apt.providerId !== parseInt(selectedProviderId)) {
+      // Determine which provider to check: editing appointment's provider or selected provider for new appointments
+      const providerToCheck = editingAppointment ? editingAppointment.providerId : (selectedProviderId ? parseInt(selectedProviderId) : null);
+      
+      // Only check appointments for the relevant provider
+      if (providerToCheck && apt.providerId !== providerToCheck) {
         return false;
       }
       
@@ -310,13 +320,15 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
       const hasConflict = slotStartMinutes < aptEndMinutes && slotEndMinutes > aptStartMinutes;
       
       if (hasConflict) {
-        console.log('[Availability Check] Conflict detected:', {
+        console.log('[Availability Check] ❌ CONFLICT DETECTED:', {
           slot: timeSlot,
-          slotRange: `${slotStartMinutes}-${slotEndMinutes}`,
+          slotRange: `${slotStartMinutes}-${slotEndMinutes} mins`,
+          providerChecking: providerToCheck,
           conflictingAppointment: {
             id: apt.id,
+            providerId: apt.providerId,
             time: timeString,
-            range: `${aptStartMinutes}-${aptEndMinutes}`,
+            range: `${aptStartMinutes}-${aptEndMinutes} mins`,
             duration: aptDuration
           }
         });
