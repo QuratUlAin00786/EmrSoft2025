@@ -256,62 +256,12 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
     return slotTime >= startTime && slotTime <= endTime;
   };
 
-  // ============================================================================
-  // EDIT MODE - Check if time slot is within staff shift hours
-  // ============================================================================
-  const isTimeSlotInEditShift = (timeSlot: string, date: Date): boolean => {
-    if (!editingAppointment || !editingAppointment.providerId) return true;
-    
-    const slotTime = timeSlotTo24Hour(timeSlot);
-    
-    // TIER 1: Check staff_shifts for custom shifts on this date
-    if (editShiftsData && Array.isArray(editShiftsData) && editShiftsData.length > 0) {
-      const providerShift = editShiftsData.find((shift: any) => 
-        shift.staffId === editingAppointment.providerId
-      );
-      
-      if (providerShift) {
-        console.log('[EDIT_MODE] Using staff_shifts:', providerShift);
-        return slotTime >= providerShift.startTime && slotTime <= providerShift.endTime;
-      }
-    }
-    
-    // TIER 2: Check doctor_default_shifts if no custom shift exists
-    if (defaultShiftsData && defaultShiftsData.length > 0) {
-      const defaultShift = defaultShiftsData.find((ds: any) => 
-        ds.userId === editingAppointment.providerId
-      );
-      
-      if (defaultShift) {
-        const dayOfWeek = format(date, 'EEEE');
-        const workingDays = defaultShift.workingDays || [];
-        
-        if (workingDays.includes(dayOfWeek)) {
-          console.log('[EDIT_MODE] Using doctor_default_shifts:', defaultShift);
-          const startTime = defaultShift.startTime || '00:00';
-          const endTime = defaultShift.endTime || '23:59';
-          return slotTime >= startTime && slotTime <= endTime;
-        }
-        
-        return false; // Not a working day
-      }
-    }
-    
-    // Fallback: allow all times if no shift data found
-    return true;
-  };
-
   // Function to check if a time slot is available and within shift
   const isTimeSlotAvailable = (date: Date, timeSlot: string) => {
     if (!date || !timeSlot || !appointments) return true;
     
     // Check if slot is within staff's working hours (for new appointments with provider selected)
     if (selectedProviderId && !isTimeSlotInShift(timeSlot, date)) {
-      return false;
-    }
-    
-    // Check if slot is within staff's working hours (for edit appointments)
-    if (editingAppointment && !isTimeSlotInEditShift(timeSlot, date)) {
       return false;
     }
     
@@ -333,11 +283,6 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
       
       // For new appointments, only check the selected provider's appointments
       if (selectedProviderId && apt.providerId !== parseInt(selectedProviderId)) {
-        return false;
-      }
-      
-      // For edit appointments, only check the editing appointment's provider's appointments
-      if (editingAppointment && apt.providerId !== editingAppointment.providerId) {
         return false;
       }
       
@@ -532,21 +477,12 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
 
   // Handle edit appointment
   const handleEditAppointment = (appointment: any) => {
-    console.log('[EDIT_MODE] Opening edit dialog for appointment:', appointment.id);
-    console.log('[EDIT_MODE] Provider ID:', appointment.providerId);
-    
     setEditingAppointment(appointment);
     
     // Initialize the date and time slot states properly - avoid timezone conversion
     const cleanTimeString = appointment.scheduledAt.replace('Z', '');
     const appointmentDate = new Date(cleanTimeString);
     setEditAppointmentDate(appointmentDate);
-    
-    console.log('[EDIT_MODE] Appointment date set to:', format(appointmentDate, 'yyyy-MM-dd'));
-    console.log('[EDIT_MODE] This will trigger shift data fetch from:');
-    console.log('[EDIT_MODE]   1. staff_shifts table');
-    console.log('[EDIT_MODE]   2. doctor_default_shifts table (if no staff_shifts found)');
-    console.log('[EDIT_MODE]   3. appointments table (for booked/blocked slots)');
     
     // Convert the time to the correct format to match timeSlots
     const hours = appointmentDate.getHours();
@@ -842,24 +778,6 @@ Medical License: [License Number]
       const response = await apiRequest('GET', '/api/default-shifts?forBooking=true');
       const data = await response.json();
       return Array.isArray(data) ? data : [];
-    },
-  });
-
-  // ============================================================================
-  // EDIT MODE SHIFT QUERIES - Fetch shifts for editing appointments
-  // ============================================================================
-  
-  // Fetch staff_shifts for the edit appointment date and provider
-  const { data: editShiftsData } = useQuery({
-    queryKey: ["/api/shifts/edit", editAppointmentDate ? format(editAppointmentDate, 'yyyy-MM-dd') : null, editingAppointment?.providerId],
-    staleTime: 30000,
-    enabled: !!editAppointmentDate && !!editingAppointment?.providerId,
-    queryFn: async () => {
-      const dateStr = format(editAppointmentDate!, 'yyyy-MM-dd');
-      const response = await apiRequest('GET', `/api/shifts?date=${dateStr}&staffId=${editingAppointment.providerId}`);
-      const data = await response.json();
-      console.log('[EDIT_MODE] Fetched staff_shifts:', data);
-      return data;
     },
   });
 
