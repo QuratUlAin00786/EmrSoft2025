@@ -81,6 +81,10 @@ export function PatientModal({ open, onOpenChange, editMode = false, editPatient
   const [addressSuggestions, setAddressSuggestions] = useState<any[]>([]);
   const [emailError, setEmailError] = useState<string>("");
   const [isCheckingEmail, setIsCheckingEmail] = useState(false);
+  
+  // Success modal state
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
   // Function to calculate age from date of birth
   const calculateAge = (dateOfBirth: string): string => {
@@ -331,10 +335,8 @@ export function PatientModal({ open, onOpenChange, editMode = false, editPatient
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/patients"] });
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
-      toast({
-        title: editMode ? "Patient updated successfully" : "Patient created successfully",
-        description: editMode ? "The patient information has been updated." : "The patient has been added to your records.",
-      });
+      setSuccessMessage(editMode ? "The patient information has been updated." : "The patient has been added to your records.");
+      setShowSuccessModal(true);
       onOpenChange(false);
       form.reset();
       setShowAiInsights(false);
@@ -784,6 +786,30 @@ export function PatientModal({ open, onOpenChange, editMode = false, editPatient
           </Form>
         </div>
       </DialogContent>
+
+      {/* Success Modal */}
+      <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-green-600">Success</DialogTitle>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <p className="text-gray-700">{successMessage}</p>
+          </div>
+
+          <div className="flex justify-end">
+            <Button
+              onClick={() => {
+                setShowSuccessModal(false);
+                setSuccessMessage("");
+              }}
+            >
+              OK
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }

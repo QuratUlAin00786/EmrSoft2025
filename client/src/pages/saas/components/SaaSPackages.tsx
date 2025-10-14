@@ -31,6 +31,8 @@ import {
 export default function SaaSPackages() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingPackage, setEditingPackage] = useState<any>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -47,10 +49,8 @@ export default function SaaSPackages() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/saas/packages'] });
       setIsCreateModalOpen(false);
-      toast({
-        title: "Package Created",
-        description: "New package created successfully",
-      });
+      setSuccessMessage("New package created successfully");
+      setShowSuccessModal(true);
     },
     onError: () => {
       toast({
@@ -69,10 +69,8 @@ export default function SaaSPackages() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/saas/packages'] });
       setEditingPackage(null);
-      toast({
-        title: "Package Updated",
-        description: "Package updated successfully",
-      });
+      setSuccessMessage("Package updated successfully");
+      setShowSuccessModal(true);
     },
     onError: () => {
       toast({
@@ -90,10 +88,8 @@ export default function SaaSPackages() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/saas/packages'] });
-      toast({
-        title: "Package Deleted",
-        description: "Package deleted successfully",
-      });
+      setSuccessMessage("Package deleted successfully");
+      setShowSuccessModal(true);
     },
     onError: () => {
       toast({
@@ -463,6 +459,30 @@ export default function SaaSPackages() {
           )}
         </CardContent>
       </Card>
+
+      {/* Success Modal */}
+      <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-green-600">Success</DialogTitle>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <p className="text-gray-700">{successMessage}</p>
+          </div>
+
+          <div className="flex justify-end">
+            <Button
+              onClick={() => {
+                setShowSuccessModal(false);
+                setSuccessMessage("");
+              }}
+            >
+              OK
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

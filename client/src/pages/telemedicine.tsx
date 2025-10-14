@@ -400,6 +400,8 @@ export default function Telemedicine() {
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState<any>(null);
   const [patientSearchOpen, setPatientSearchOpen] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   const videoRef = useRef<HTMLVideoElement>(null);
   const { toast } = useToast();
 
@@ -448,7 +450,8 @@ export default function Telemedicine() {
     onSuccess: (data) => {
       setCurrentCall(data);
       queryClient.invalidateQueries({ queryKey: ["/api/telemedicine/consultations"] });
-      toast({ title: "Consultation started" });
+      setSuccessMessage("Consultation started");
+      setShowSuccessModal(true);
     },
     onError: () => {
       toast({ title: "Failed to start consultation", variant: "destructive" });
@@ -512,7 +515,8 @@ export default function Telemedicine() {
       setIsAudioEnabled(true);
       setIsRecording(false);
       queryClient.invalidateQueries({ queryKey: ["/api/telemedicine/consultations"] });
-      toast({ title: "Consultation ended and notes saved" });
+      setSuccessMessage("Consultation ended and notes saved");
+      setShowSuccessModal(true);
     },
     onError: (error) => {
       // Even if the API call fails, still end the call locally
@@ -656,10 +660,8 @@ export default function Telemedicine() {
 
   const toggleRecording = () => {
     setIsRecording(!isRecording);
-    toast({ 
-      title: isRecording ? "Recording stopped" : "Recording started",
-      description: isRecording ? "Consultation recording has been saved" : "Consultation is now being recorded"
-    });
+    setSuccessMessage(isRecording ? "Consultation recording has been saved" : "Consultation is now being recorded");
+    setShowSuccessModal(true);
   };
 
   const endCall = () => {
@@ -1041,10 +1043,8 @@ export default function Telemedicine() {
                 <div className="flex gap-3 pt-4 border-t">
                   <Button 
                     onClick={() => {
-                      toast({
-                        title: "Settings Saved",
-                        description: "Telemedicine settings have been updated successfully."
-                      });
+                      setSuccessMessage("Telemedicine settings have been updated successfully.");
+                      setShowSuccessModal(true);
                       setSettingsOpen(false);
                     }}
                     className="flex-1"
@@ -1344,10 +1344,8 @@ export default function Telemedicine() {
                                 document.body.removeChild(link);
                                 URL.revokeObjectURL(url);
                                 
-                                toast({
-                                  title: "Notes Downloaded",
-                                  description: "Consultation notes have been downloaded as CSV file."
-                                });
+                                setSuccessMessage("Consultation notes have been downloaded as CSV file.");
+                                setShowSuccessModal(true);
                               }}
                             >
                               <Download className="w-4 h-4 mr-2" />
@@ -1952,10 +1950,8 @@ export default function Telemedicine() {
                       <div className="flex gap-3 pt-4 border-t">
                         <Button 
                           onClick={() => {
-                            toast({
-                              title: "Monitoring Setup Complete",
-                              description: "Remote patient monitoring has been configured successfully. Patient will receive setup instructions via email."
-                            });
+                            setSuccessMessage("Remote patient monitoring has been configured successfully. Patient will receive setup instructions via email.");
+                            setShowSuccessModal(true);
                             setMonitoringOpen(false);
                           }}
                           className="flex-1"
@@ -2169,28 +2165,22 @@ export default function Telemedicine() {
                 {/* Action Buttons */}
                 <div className="flex space-x-4 mt-6">
                   <Button className="flex-1" onClick={() => {
-                    toast({
-                      title: "Generating Report",
-                      description: "Cardiac monitoring report is being generated for the selected time period."
-                    });
+                    setSuccessMessage("Cardiac monitoring report is being generated for the selected time period.");
+                    setShowSuccessModal(true);
                   }}>
                     <FileText className="w-4 h-4 mr-2" />
                     Generate Report
                   </Button>
                   <Button variant="outline" className="flex-1" onClick={() => {
-                    toast({
-                      title: "Alert Settings Updated",
-                      description: "Cardiac monitoring alert thresholds have been configured."
-                    });
+                    setSuccessMessage("Cardiac monitoring alert thresholds have been configured.");
+                    setShowSuccessModal(true);
                   }}>
                     <Settings className="w-4 h-4 mr-2" />
                     Configure Alerts
                   </Button>
                   <Button variant="outline" className="flex-1" onClick={() => {
-                    toast({
-                      title: "Emergency Protocol",
-                      description: "Emergency contact has been notified of critical cardiac event."
-                    });
+                    setSuccessMessage("Emergency contact has been notified of critical cardiac event.");
+                    setShowSuccessModal(true);
                   }}>
                     <Phone className="w-4 h-4 mr-2" />
                     Emergency Contact
@@ -2201,6 +2191,30 @@ export default function Telemedicine() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Success Modal */}
+      <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-green-600">Success</DialogTitle>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <p className="text-gray-700">{successMessage}</p>
+          </div>
+
+          <div className="flex justify-end">
+            <Button
+              onClick={() => {
+                setShowSuccessModal(false);
+                setSuccessMessage("");
+              }}
+            >
+              OK
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

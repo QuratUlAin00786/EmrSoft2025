@@ -33,6 +33,8 @@ interface AddItemDialogProps {
 
 export default function AddItemDialog({ open, onOpenChange }: AddItemDialogProps) {
   const [showCategoryDialog, setShowCategoryDialog] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -84,10 +86,8 @@ export default function AddItemDialog({ open, onOpenChange }: AddItemDialogProps
       await apiRequest("POST", "/api/inventory/items", itemData);
     },
     onSuccess: () => {
-      toast({
-        title: "Success",
-        description: "Inventory item has been added successfully.",
-      });
+      setSuccessMessage("Inventory item has been added successfully.");
+      setShowSuccessModal(true);
       queryClient.invalidateQueries({ queryKey: ["/api/inventory/items"] });
       queryClient.invalidateQueries({ queryKey: ["/api/inventory/reports/value"] });
       onOpenChange(false);
@@ -454,6 +454,30 @@ export default function AddItemDialog({ open, onOpenChange }: AddItemDialogProps
         open={showCategoryDialog} 
         onOpenChange={setShowCategoryDialog} 
       />
+
+      {/* Success Modal */}
+      <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-green-600">Success</DialogTitle>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <p className="text-gray-700">{successMessage}</p>
+          </div>
+
+          <div className="flex justify-end">
+            <Button
+              onClick={() => {
+                setShowSuccessModal(false);
+                setSuccessMessage("");
+              }}
+            >
+              OK
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }

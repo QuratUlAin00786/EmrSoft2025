@@ -236,6 +236,8 @@ export default function Inventory() {
     useState<PurchaseOrder | null>(null);
   const [emailAddress, setEmailAddress] = useState("");
   const [activeTab, setActiveTab] = useState("item-master");
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -322,10 +324,8 @@ export default function Inventory() {
     },
     onSuccess: (data, variables) => {
       console.log("Delete mutation onSuccess called for ID:", variables);
-      toast({
-        title: "Item Deleted",
-        description: "Inventory item has been deleted successfully.",
-      });
+      setSuccessMessage("Inventory item has been deleted successfully.");
+      setShowSuccessModal(true);
       // Force cache invalidation with refetch
       queryClient.invalidateQueries({ queryKey: ["/api/inventory/items"] });
       queryClient.refetchQueries({ queryKey: ["/api/inventory/items"] });
@@ -455,10 +455,8 @@ export default function Inventory() {
     link.click();
     document.body.removeChild(link);
 
-    toast({
-      title: "Report Generated",
-      description: `Inventory report for ${item.name} has been downloaded as CSV file.`,
-    });
+    setSuccessMessage(`Inventory report for ${item.name} has been downloaded as CSV file.`);
+    setShowSuccessModal(true);
   };
 
   const { data: categories = [], error: categoriesError } = useQuery<
@@ -497,10 +495,8 @@ export default function Inventory() {
       );
     },
     onSuccess: () => {
-      toast({
-        title: "Email Sent",
-        description: "Purchase order has been sent successfully.",
-      });
+      setSuccessMessage("Purchase order has been sent successfully.");
+      setShowSuccessModal(true);
       queryClient.invalidateQueries({
         queryKey: ["/api/inventory/purchase-orders"],
       });
@@ -549,10 +545,8 @@ export default function Inventory() {
       );
     },
     onSuccess: () => {
-      toast({
-        title: "Purchase Order Deleted",
-        description: "Purchase order has been deleted successfully.",
-      });
+      setSuccessMessage("Purchase order has been deleted successfully.");
+      setShowSuccessModal(true);
       queryClient.invalidateQueries({
         queryKey: ["/api/inventory/purchase-orders"],
       });
@@ -2074,6 +2068,30 @@ export default function Inventory() {
             </DialogContent>
           </Dialog>
         )}
+
+        {/* Success Modal */}
+        <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold text-green-600">Success</DialogTitle>
+            </DialogHeader>
+            
+            <div className="py-4">
+              <p className="text-gray-700">{successMessage}</p>
+            </div>
+
+            <div className="flex justify-end">
+              <Button
+                onClick={() => {
+                  setShowSuccessModal(false);
+                  setSuccessMessage("");
+                }}
+              >
+                OK
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

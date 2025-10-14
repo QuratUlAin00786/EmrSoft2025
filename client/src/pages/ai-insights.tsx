@@ -58,6 +58,8 @@ export default function AiInsights() {
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   const [selectedPatientId, setSelectedPatientId] = useState<string>("");
   const [generateDialogOpen, setGenerateDialogOpen] = useState(false);
   
@@ -113,10 +115,8 @@ export default function AiInsights() {
       return apiRequest('POST', '/api/ai/generate-insights', { patientId });
     },
     onSuccess: (data) => {
-      toast({
-        title: "AI Insights Generated",
-        description: `Generated ${data.generated} new insights for ${data.patientName}`,
-      });
+      setSuccessMessage(`Generated ${data.generated} new insights for ${data.patientName}`);
+      setShowSuccessModal(true);
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard/ai-insights"] });
       setGenerateDialogOpen(false);
       setSelectedPatientId("");
@@ -486,6 +486,30 @@ export default function AiInsights() {
           )}
         </div>
       </div>
+
+      {/* Success Modal */}
+      <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-green-600">Success</DialogTitle>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <p className="text-gray-700">{successMessage}</p>
+          </div>
+
+          <div className="flex justify-end">
+            <Button
+              onClick={() => {
+                setShowSuccessModal(false);
+                setSuccessMessage("");
+              }}
+            >
+              OK
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

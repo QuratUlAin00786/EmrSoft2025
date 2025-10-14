@@ -37,6 +37,8 @@ export default function PurchaseOrderDialog({ open, onOpenChange, items }: Purch
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   const [formData, setFormData] = useState({
     supplierId: 1, // Default supplier
     expectedDeliveryDate: "",
@@ -76,10 +78,8 @@ export default function PurchaseOrderDialog({ open, onOpenChange, items }: Purch
       return apiRequest("POST", "/api/inventory/purchase-orders", data);
     },
     onSuccess: () => {
-      toast({
-        title: "Success",
-        description: "Purchase order created successfully",
-      });
+      setSuccessMessage("Purchase order created successfully");
+      setShowSuccessModal(true);
       queryClient.invalidateQueries({ queryKey: ["/api/inventory/purchase-orders"] });
       onOpenChange(false);
       resetForm();
@@ -384,6 +384,30 @@ export default function PurchaseOrderDialog({ open, onOpenChange, items }: Purch
           </div>
         </div>
       </DialogContent>
+
+      {/* Success Modal */}
+      <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-green-600">Success</DialogTitle>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <p className="text-gray-700">{successMessage}</p>
+          </div>
+
+          <div className="flex justify-end">
+            <Button
+              onClick={() => {
+                setShowSuccessModal(false);
+                setSuccessMessage("");
+              }}
+            >
+              OK
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }

@@ -15,6 +15,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { isDoctorLike } from "@/lib/role-utils";
 
 export default function ShiftsPage() {
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedRole, setSelectedRole] = useState("");
   const [selectedStaffId, setSelectedStaffId] = useState("");
@@ -147,10 +149,8 @@ export default function ShiftsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/default-shifts"] });
       setShowDefaultShiftModal(false);
-      toast({
-        title: "Success",
-        description: "Default shift updated successfully",
-      });
+      setSuccessMessage("Default shift updated successfully");
+      setShowSuccessModal(true);
     },
     onError: (error: any) => {
       toast({
@@ -440,10 +440,8 @@ export default function ShiftsPage() {
 
       const response = await apiRequest("POST", "/api/shifts", shiftData);
       if (response.ok) {
-        toast({
-          title: "Shift Scheduled",
-          description: `Successfully scheduled ${startTime} - ${endTime} for selected staff member`,
-        });
+        setSuccessMessage(`Successfully scheduled ${startTime} - ${endTime} for selected staff member`);
+        setShowSuccessModal(true);
         
         // Keep selection to maintain dark green color
         // Selection will be reset when user clicks a new time slot
@@ -518,10 +516,8 @@ export default function ShiftsPage() {
       // Add to pending shifts instead of creating immediately
       setPendingShifts(prev => [...prev, { startTime: selectedStartTime, endTime: endTimeSlot }]);
       
-      toast({
-        title: "Shift Added",
-        description: `${selectedStartTime} - ${endTimeSlot} added to pending shifts. Click "Create Shift" to save.`,
-      });
+      setSuccessMessage(`${selectedStartTime} - ${endTimeSlot} added to pending shifts. Click "Create Shift" to save.`);
+      setShowSuccessModal(true);
       
       // Reset for next selection
       setSelectedStartTime("");
@@ -716,10 +712,8 @@ export default function ShiftsPage() {
         setUpdatedShifts(updatesTracker);
         setShowUpdateModal(true);
       } else {
-        toast({
-          title: "Shifts Created",
-          description: `Successfully created ${uniquePendingShifts.length} shift(s)`,
-        });
+        setSuccessMessage(`Successfully created ${uniquePendingShifts.length} shift(s)`);
+        setShowSuccessModal(true);
       }
 
       // Clear pending shifts and refresh
@@ -794,10 +788,8 @@ export default function ShiftsPage() {
                       try {
                         const response = await apiRequest("POST", "/api/default-shifts/initialize");
                         const result = await response.json();
-                        toast({
-                          title: "Default Shifts Initialized",
-                          description: `Created ${result.created} default shifts. Skipped ${result.skipped} existing shifts.`,
-                        });
+                        setSuccessMessage(`Created ${result.created} default shifts. Skipped ${result.skipped} existing shifts.`);
+                        setShowSuccessModal(true);
                         refetchDefaultShifts();
                       } catch (error) {
                         toast({
@@ -1515,10 +1507,8 @@ export default function ShiftsPage() {
                                     if (response.ok) {
                                       // Refresh shifts data using React Query
                                       queryClient.invalidateQueries({ queryKey: ["/api/shifts"] });
-                                      toast({
-                                        title: "Success",
-                                        description: "Shift removed successfully",
-                                      });
+                                      setSuccessMessage("Shift removed successfully");
+                                      setShowSuccessModal(true);
                                     }
                                   }
                                 } else {
@@ -1547,10 +1537,8 @@ export default function ShiftsPage() {
                                   if (response.ok) {
                                     // Refresh shifts data using React Query
                                     queryClient.invalidateQueries({ queryKey: ["/api/shifts"] });
-                                    toast({
-                                      title: "Success",
-                                      description: "Shift added successfully",
-                                    });
+                                    setSuccessMessage("Shift added successfully");
+                                    setShowSuccessModal(true);
                                   }
                                 }
                               } catch (error) {
@@ -1853,6 +1841,30 @@ export default function ShiftsPage() {
             </Button>
             <Button onClick={handleSaveDefaultShift} disabled={updateDefaultShiftMutation.isPending}>
               {updateDefaultShiftMutation.isPending ? "Saving..." : "Save Changes"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Success Modal */}
+      <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-green-600">Success</DialogTitle>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <p className="text-gray-700">{successMessage}</p>
+          </div>
+
+          <div className="flex justify-end">
+            <Button
+              onClick={() => {
+                setShowSuccessModal(false);
+                setSuccessMessage("");
+              }}
+            >
+              OK
             </Button>
           </div>
         </DialogContent>

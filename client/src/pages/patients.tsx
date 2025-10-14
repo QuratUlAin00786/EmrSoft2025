@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -72,6 +73,10 @@ export default function Patients() {
   
   // State for view mode (true = List view, false = Grid view)
   const [isListView, setIsListView] = useState(false);
+  
+  // Success modal state
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
   // Fetch specific patient data if viewing records
   useEffect(() => {
@@ -154,10 +159,8 @@ export default function Patients() {
       setSelectedPatient(updatedPatient);
       // Auto refresh - invalidate and refetch patients
       queryClient.invalidateQueries({ queryKey: ['/api/patients'] });
-      toast({
-        title: 'Status Updated',
-        description: 'Patient active status has been updated successfully.',
-      });
+      setSuccessMessage('Patient active status has been updated successfully.');
+      setShowSuccessModal(true);
     },
     onError: (error) => {
       toast({
@@ -502,6 +505,30 @@ export default function Patients() {
         open={showPatientModal}
         onOpenChange={setShowPatientModal}
       />
+
+      {/* Success Modal */}
+      <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-green-600">Success</DialogTitle>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <p className="text-gray-700">{successMessage}</p>
+          </div>
+
+          <div className="flex justify-end">
+            <Button
+              onClick={() => {
+                setShowSuccessModal(false);
+                setSuccessMessage("");
+              }}
+            >
+              OK
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

@@ -140,7 +140,8 @@ export default function SaaSBilling() {
       return response.json();
     },
     onSuccess: () => {
-      toast({ title: "Success", description: "Payment status updated successfully" });
+      setModalMessage("Payment status updated successfully");
+      setIsSuccessModalOpen(true);
       refetchData();
       refetchStats();
     },
@@ -157,7 +158,8 @@ export default function SaaSBilling() {
       return response.json();
     },
     onSuccess: () => {
-      toast({ title: "Success", description: "Unpaid subscriptions suspended successfully" });
+      setModalMessage("Unpaid subscriptions suspended successfully");
+      setIsSuccessModalOpen(true);
       refetchData();
       refetchStats();
     },
@@ -249,10 +251,8 @@ export default function SaaSBilling() {
     link.click();
     document.body.removeChild(link);
 
-    toast({
-      title: "Export Successful",
-      description: `Exported ${billingData.invoices.length} payments to CSV file.`,
-    });
+    setModalMessage(`Exported ${billingData.invoices.length} payments to CSV file.`);
+    setIsSuccessModalOpen(true);
   };
 
   return (

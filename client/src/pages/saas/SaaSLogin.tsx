@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useMutation } from '@tanstack/react-query';
 import { saasApiRequest } from '@/lib/saasQueryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -27,6 +28,8 @@ interface SaaSLoginProps {
 
 export default function SaaSLogin({ onLoginSuccess }: SaaSLoginProps) {
   const [error, setError] = useState<string | null>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   const { toast } = useToast();
 
   const form = useForm<SaaSLoginForm>({
@@ -47,10 +50,8 @@ export default function SaaSLogin({ onLoginSuccess }: SaaSLoginProps) {
         localStorage.setItem('saasToken', result.token);
         localStorage.setItem('saas_owner', JSON.stringify(result.owner));
         onLoginSuccess(result.token);
-        toast({
-          title: "Login Successful",
-          description: "Welcome to SaaS Administration Portal",
-        });
+        setSuccessMessage("Welcome to SaaS Administration Portal");
+        setShowSuccessModal(true);
       } else {
         setError(result.message || 'Invalid credentials');
       }
@@ -156,6 +157,30 @@ export default function SaaSLogin({ onLoginSuccess }: SaaSLoginProps) {
           </div>
         </CardContent>
       </Card>
+
+      {/* Success Modal */}
+      <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-green-600">Success</DialogTitle>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <p className="text-gray-700">{successMessage}</p>
+          </div>
+
+          <div className="flex justify-end">
+            <Button
+              onClick={() => {
+                setShowSuccessModal(false);
+                setSuccessMessage("");
+              }}
+            >
+              OK
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

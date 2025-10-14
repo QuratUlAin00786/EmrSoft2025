@@ -74,6 +74,8 @@ import {
 } from "lucide-react";
 
 export default function Forms() {
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   const [documentContent, setDocumentContent] = useState("");
   const [fontFamily, setFontFamily] = useState("verdana");
   const [fontSize, setFontSize] = useState("12pt");
@@ -1323,11 +1325,8 @@ Coverage Details: [Insurance Coverage]`;
       setClinicHeaderPosition("center");
       setSelectedLogoTemplate("");
       
-      toast({
-        title: "Template Loaded",
-        description: `${previewTemplateName} template has been loaded into the editor.`,
-        duration: 3000,
-      });
+      setSuccessMessage(`${previewTemplateName} template has been loaded into the editor.`);
+      setShowSuccessModal(true);
     }
   };
 
@@ -1525,10 +1524,8 @@ Coverage Details: [Insurance Coverage]`;
         // Refetch user preferences to stay in sync
         refetchPreferences();
         
-        toast({
-          title: "Clinic Information Updated",
-          description: "Your clinic information has been saved successfully.",
-        });
+        setSuccessMessage("Your clinic information has been saved successfully.");
+        setShowSuccessModal(true);
         setShowEditClinic(false);
         setShowEditClinicDialog(false);
       } else {
@@ -1591,12 +1588,6 @@ Coverage Details: [Insurance Coverage]`;
         setDocumentContent(textareaRef.innerHTML);
         textareaRef.focus();
       }
-
-      toast({
-        title: "✓ Bold Applied",
-        description: "Bold formatting applied to selected text",
-        duration: 2000,
-      });
     } catch (error) {
       console.error("Error in handleBold:", error);
       toast({
@@ -1668,12 +1659,6 @@ Coverage Details: [Insurance Coverage]`;
       if (textareaRef) {
         textareaRef.focus();
       }
-
-      toast({
-        title: "✓ Italic Applied",
-        description: "Italic formatting applied to selected text",
-        duration: 2000,
-      });
     } catch (error) {
       console.error("Error in handleItalic:", error);
       toast({
@@ -1730,12 +1715,6 @@ Coverage Details: [Insurance Coverage]`;
     if (textareaRef) {
       textareaRef.focus();
     }
-
-    toast({
-      title: "✓ Underline Applied",
-      description: "Underline formatting applied to selected text",
-      duration: 2000,
-    });
   };
   const handleBulletList = () => {
     const selection = window.getSelection();
@@ -1831,12 +1810,6 @@ Coverage Details: [Insurance Coverage]`;
 
     // Clear selection
     selection.removeAllRanges();
-
-    toast({
-      title: "✓ Bullet List Applied",
-      description: `Bullet list created with ${lines.length} items`,
-      duration: 2000,
-    });
   };
   const handleNumberedList = () => {
     const selection = window.getSelection();
@@ -1933,12 +1906,6 @@ Coverage Details: [Insurance Coverage]`;
 
     // Clear selection
     selection.removeAllRanges();
-
-    toast({
-      title: "✓ Numbered List Applied",
-      description: `Numbered list created with ${lines.length} items`,
-      duration: 2000,
-    });
   };
   const handleAlignLeft = () => {
     const selection = window.getSelection();
@@ -1963,12 +1930,6 @@ Coverage Details: [Insurance Coverage]`;
       if (textareaRef) {
         setDocumentContent(textareaRef.innerHTML);
       }
-
-      toast({
-        title: "✓ Left Alignment Applied",
-        description: "Text aligned to the left",
-        duration: 2000,
-      });
     } catch (error) {
       console.error("Left alignment error:", error);
       toast({
@@ -2002,12 +1963,6 @@ Coverage Details: [Insurance Coverage]`;
       if (textareaRef) {
         setDocumentContent(textareaRef.innerHTML);
       }
-
-      toast({
-        title: "✓ Center Alignment Applied",
-        description: "Text centered successfully",
-        duration: 2000,
-      });
     } catch (error) {
       console.error("Center alignment error:", error);
       toast({
@@ -2041,12 +1996,6 @@ Coverage Details: [Insurance Coverage]`;
       if (textareaRef) {
         setDocumentContent(textareaRef.innerHTML);
       }
-
-      toast({
-        title: "✓ Right Alignment Applied",
-        description: "Text aligned to the right",
-        duration: 2000,
-      });
     } catch (error) {
       console.error("Right alignment error:", error);
       toast({
@@ -2080,12 +2029,6 @@ Coverage Details: [Insurance Coverage]`;
       if (textareaRef) {
         setDocumentContent(textareaRef.innerHTML);
       }
-
-      toast({
-        title: "✓ Justify Alignment Applied",
-        description: "Text justified successfully",
-        duration: 2000,
-      });
     } catch (error) {
       console.error("Justify alignment error:", error);
       toast({
@@ -7677,10 +7620,8 @@ Registration No: [Number]`
                         if (response.ok) {
                           if (responseData.success) {
                             // Email sent successfully
-                            toast({
-                              title: "Letter Sent",
-                              description: `Letter has been sent successfully to ${shareFormData.recipient}`,
-                            });
+                            setSuccessMessage(`Letter has been sent successfully to ${shareFormData.recipient}`);
+                            setShowSuccessModal(true);
                             setShowShareDialog(false);
                             // Reset form
                             setShareFormData({
@@ -9111,11 +9052,8 @@ Registration No: [Number]`
                     setClinicHeaderPosition("center");
                     setSelectedLogoTemplate("");
                     
-                    toast({
-                      title: "Template Loaded",
-                      description: `${previewOtherTemplateName} template has been loaded into the editor.`,
-                      duration: 3000,
-                    });
+                    setSuccessMessage(`${previewOtherTemplateName} template has been loaded into the editor.`);
+                    setShowSuccessModal(true);
                   }
                 }}
                 className="bg-blue-600 hover:bg-blue-700 text-white"
@@ -10039,10 +9977,8 @@ Registration No: [Number]`
                             setDocumentContent(draft.documentContent);
                             setShowDraftsDialog(false);
                             setShowShareDialog(true);
-                            toast({
-                              title: "Draft Loaded",
-                              description: "Draft has been loaded into the letter form.",
-                            });
+                            setSuccessMessage("Draft has been loaded into the letter form.");
+                            setShowSuccessModal(true);
                           }}
                           data-testid={`button-load-draft-${draft.id}`}
                         >
@@ -10063,10 +9999,8 @@ Registration No: [Number]`
                               
                               if (response.ok) {
                                 refetchDrafts();
-                                toast({
-                                  title: "Draft Deleted",
-                                  description: "Draft has been deleted successfully.",
-                                });
+                                setSuccessMessage("Draft has been deleted successfully.");
+                                setShowSuccessModal(true);
                               } else {
                                 toast({
                                   title: "Error",
@@ -10174,10 +10108,8 @@ Registration No: [Number]`
                     setShowDraftDetailsDialog(false);
                     setShowDraftsDialog(false);
                     setShowShareDialog(true);
-                    toast({
-                      title: "Draft Loaded",
-                      description: "Draft has been loaded into the letter form.",
-                    });
+                    setSuccessMessage("Draft has been loaded into the letter form.");
+                    setShowSuccessModal(true);
                   }}
                   data-testid="button-load-draft-details"
                 >
@@ -10186,6 +10118,30 @@ Registration No: [Number]`
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Success Modal */}
+      <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-green-600">Success</DialogTitle>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <p className="text-gray-700">{successMessage}</p>
+          </div>
+
+          <div className="flex justify-end">
+            <Button
+              onClick={() => {
+                setShowSuccessModal(false);
+                setSuccessMessage("");
+              }}
+            >
+              OK
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
 

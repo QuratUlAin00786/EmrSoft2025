@@ -127,6 +127,8 @@ export default function MobileHealth() {
   const [settingsDevice, setSettingsDevice] = useState<WearableDevice | null>(null);
   const [pairingCode, setPairingCode] = useState<string | null>(null);
   const [generatingCode, setGeneratingCode] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   const { toast } = useToast();
 
   // Fetch wearable devices
@@ -231,10 +233,8 @@ export default function MobileHealth() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/mobile-health/devices"] });
-      toast({ 
-        title: "Device Synced Successfully", 
-        description: "Device data has been synchronized and updated."
-      });
+      setSuccessMessage("Device data has been synchronized and updated.");
+      setShowSuccessModal(true);
     },
     onError: (error) => {
       toast({
@@ -259,7 +259,8 @@ export default function MobileHealth() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/mobile-health/notifications"] });
-      toast({ title: "Notification sent successfully" });
+      setSuccessMessage("Notification sent successfully");
+      setShowSuccessModal(true);
     }
   });
 
@@ -342,10 +343,8 @@ export default function MobileHealth() {
     },
     onSuccess: (response) => {
       console.log("Consent update response:", response);
-      toast({ 
-        title: "Consent Updated Successfully",
-        description: "Patient monitoring consent has been updated."
-      });
+      setSuccessMessage("Patient monitoring consent has been updated.");
+      setShowSuccessModal(true);
     }
   });
 
@@ -376,10 +375,8 @@ export default function MobileHealth() {
       const code = Math.floor(100000 + Math.random() * 900000).toString();
       setPairingCode(code);
       
-      toast({
-        title: "Pairing Code Generated",
-        description: `Your pairing code is: ${code}`,
-      });
+      setSuccessMessage(`Your pairing code is: ${code}`);
+      setShowSuccessModal(true);
     } catch (error) {
       toast({
         title: "Generation Failed",
@@ -1973,10 +1970,8 @@ export default function MobileHealth() {
                   />
                   <Button size="sm" variant="outline" onClick={() => {
                     navigator.clipboard.writeText(`https://apps.averox.com/${selectedApp.id}`);
-                    toast({
-                      title: "Link Copied",
-                      description: "App link copied to clipboard",
-                    });
+                    setSuccessMessage("App link copied to clipboard");
+                    setShowSuccessModal(true);
                   }}>
                     Copy
                   </Button>
@@ -2043,10 +2038,8 @@ Download link: https://apps.averox.com/${selectedApp.id}`}
                   Close
                 </Button>
                 <Button onClick={() => {
-                  toast({
-                    title: "Link Shared",
-                    description: "App sharing options are ready to use",
-                  });
+                  setSuccessMessage("App sharing options are ready to use");
+                  setShowSuccessModal(true);
                   setShareLinkOpen(false);
                 }}>
                   Done
@@ -2206,10 +2199,8 @@ Download link: https://apps.averox.com/${selectedApp.id}`}
                   Cancel
                 </Button>
                 <Button onClick={() => {
-                  toast({
-                    title: "Settings Saved",
-                    description: "Device settings have been updated successfully",
-                  });
+                  setSuccessMessage("Device settings have been updated successfully");
+                  setShowSuccessModal(true);
                   setDeviceSettingsOpen(false);
                 }}>
                   Save Settings
@@ -2217,6 +2208,30 @@ Download link: https://apps.averox.com/${selectedApp.id}`}
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Success Modal */}
+      <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-green-600">Success</DialogTitle>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <p className="text-gray-700">{successMessage}</p>
+          </div>
+
+          <div className="flex justify-end">
+            <Button
+              onClick={() => {
+                setShowSuccessModal(false);
+                setSuccessMessage("");
+              }}
+            >
+              OK
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

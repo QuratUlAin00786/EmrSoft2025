@@ -120,6 +120,8 @@ export default function PopulationHealth() {
   const [viewInterventionOpen, setViewInterventionOpen] = useState(false);
   const [editInterventionOpen, setEditInterventionOpen] = useState(false);
   const [selectedIntervention, setSelectedIntervention] = useState<any>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   const { toast } = useToast();
 
   // Fetch population health data
@@ -175,7 +177,8 @@ export default function PopulationHealth() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/population-health/cohorts"] });
-      toast({ title: "Cohort created successfully" });
+      setSuccessMessage("Cohort created successfully");
+      setShowSuccessModal(true);
     }
   });
 
@@ -499,10 +502,8 @@ export default function PopulationHealth() {
                       };
 
                       // For now, show success toast and close dialog
-                      toast({
-                        title: "Cohort Created Successfully",
-                        description: `"${cohortName}" has been created with ${selectedConditions.length ? selectedConditions.join(', ') : 'general'} criteria.`
-                      });
+                      setSuccessMessage(`"${cohortName}" has been created with ${selectedConditions.length ? selectedConditions.join(', ') : 'general'} criteria.`);
+                      setShowSuccessModal(true);
                       
                       // Reset form
                       setCohortName("");
@@ -592,10 +593,8 @@ export default function PopulationHealth() {
               document.body.removeChild(link);
               URL.revokeObjectURL(url);
               
-              toast({
-                title: "Report Exported",
-                description: "Population health report has been downloaded as CSV file."
-              });
+              setSuccessMessage("Population health report has been downloaded as CSV file.");
+              setShowSuccessModal(true);
             }}
           >
             <Download className="w-4 h-4 mr-2" />
@@ -1248,10 +1247,8 @@ export default function PopulationHealth() {
                   Cancel
                 </Button>
                 <Button onClick={() => {
-                  toast({
-                    title: "Cohort Updated",
-                    description: "Cohort criteria have been successfully updated.",
-                  });
+                  setSuccessMessage("Cohort criteria have been successfully updated.");
+                  setShowSuccessModal(true);
                   setEditCohortOpen(false);
                 }}>
                   Save Changes
@@ -1347,10 +1344,8 @@ export default function PopulationHealth() {
                   Cancel
                 </Button>
                 <Button onClick={() => {
-                  toast({
-                    title: "Alert Created",
-                    description: "Population health alert has been configured successfully.",
-                  });
+                  setSuccessMessage("Population health alert has been configured successfully.");
+                  setShowSuccessModal(true);
                   setSetAlertsOpen(false);
                 }}>
                   Create Alert
@@ -1446,10 +1441,8 @@ export default function PopulationHealth() {
                   Cancel
                 </Button>
                 <Button onClick={() => {
-                  toast({
-                    title: "Appointment Scheduled",
-                    description: `Appointment scheduled for ${selectedPatientCare?.patientName}. Confirmation will be sent via email.`,
-                  });
+                  setSuccessMessage(`Appointment scheduled for ${selectedPatientCare?.patientName}. Confirmation will be sent via email.`);
+                  setShowSuccessModal(true);
                   setScheduleOpen(false);
                 }}>
                   Schedule Appointment
@@ -1558,10 +1551,8 @@ export default function PopulationHealth() {
                   Cancel
                 </Button>
                 <Button onClick={() => {
-                  toast({
-                    title: "Contact Initiated",
-                    description: `Contact attempt logged for ${selectedPatientCare?.patientName}. Follow-up scheduled as needed.`,
-                  });
+                  setSuccessMessage(`Contact attempt logged for ${selectedPatientCare?.patientName}. Follow-up scheduled as needed.`);
+                  setShowSuccessModal(true);
                   setContactOpen(false);
                 }}>
                   Send Communication
@@ -1730,10 +1721,8 @@ export default function PopulationHealth() {
                 Cancel
               </Button>
               <Button onClick={() => {
-                toast({
-                  title: "Intervention Created",
-                  description: "Population health intervention has been successfully created and scheduled.",
-                });
+                setSuccessMessage("Population health intervention has been successfully created and scheduled.");
+                setShowSuccessModal(true);
                 setCreateInterventionOpen(false);
               }}>
                 Create Intervention
@@ -1902,10 +1891,8 @@ export default function PopulationHealth() {
                   Cancel
                 </Button>
                 <Button onClick={() => {
-                  toast({
-                    title: "Intervention Updated",
-                    description: "The intervention has been successfully updated.",
-                  });
+                  setSuccessMessage("The intervention has been successfully updated.");
+                  setShowSuccessModal(true);
                   setEditInterventionOpen(false);
                 }}>
                   Save Changes
@@ -1913,6 +1900,30 @@ export default function PopulationHealth() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Success Modal */}
+      <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-green-600">Success</DialogTitle>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <p className="text-gray-700">{successMessage}</p>
+          </div>
+
+          <div className="flex justify-end">
+            <Button
+              onClick={() => {
+                setShowSuccessModal(false);
+                setSuccessMessage("");
+              }}
+            >
+              OK
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

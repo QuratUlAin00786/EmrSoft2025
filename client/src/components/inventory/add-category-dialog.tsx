@@ -21,6 +21,8 @@ interface AddCategoryDialogProps {
 }
 
 export default function AddCategoryDialog({ open, onOpenChange }: AddCategoryDialogProps) {
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -34,10 +36,8 @@ export default function AddCategoryDialog({ open, onOpenChange }: AddCategoryDia
       await apiRequest("POST", "/api/inventory/categories", data);
     },
     onSuccess: () => {
-      toast({
-        title: "Success",
-        description: "Category has been added successfully.",
-      });
+      setSuccessMessage("Category has been added successfully.");
+      setShowSuccessModal(true);
       queryClient.invalidateQueries({ queryKey: ["/api/inventory/categories"] });
       onOpenChange(false);
       resetForm();
@@ -125,6 +125,30 @@ export default function AddCategoryDialog({ open, onOpenChange }: AddCategoryDia
           </Button>
         </DialogFooter>
       </DialogContent>
+
+      {/* Success Modal */}
+      <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-green-600">Success</DialogTitle>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <p className="text-gray-700">{successMessage}</p>
+          </div>
+
+          <div className="flex justify-end">
+            <Button
+              onClick={() => {
+                setShowSuccessModal(false);
+                setSuccessMessage("");
+              }}
+            >
+              OK
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }

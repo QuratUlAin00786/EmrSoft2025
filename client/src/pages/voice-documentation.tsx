@@ -198,6 +198,8 @@ export default function VoiceDocumentation() {
   const [photoToDelete, setPhotoToDelete] = useState<any>(null);
   const [voiceNoteDeleteDialogOpen, setVoiceNoteDeleteDialogOpen] = useState(false);
   const [voiceNoteToDelete, setVoiceNoteToDelete] = useState<VoiceNote | null>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const { toast } = useToast();
 
@@ -346,7 +348,8 @@ export default function VoiceDocumentation() {
         setCurrentTranscript("");
       }
 
-      toast({ title: "Voice note saved successfully!" });
+      setSuccessMessage("Voice note saved successfully!");
+      setShowSuccessModal(true);
 
       // Trigger UI refresh by updating the refresh trigger
       setRefreshTrigger((prev) => prev + 1);
@@ -383,7 +386,8 @@ export default function VoiceDocumentation() {
         return newMap;
       });
 
-      toast({ title: "Voice note deleted successfully!" });
+      setSuccessMessage("Voice note deleted successfully!");
+      setShowSuccessModal(true);
       console.log("Voice note deleted from backend:", noteId);
 
       // Trigger UI refresh by updating the refresh trigger
@@ -416,7 +420,8 @@ export default function VoiceDocumentation() {
       return await response.json();
     },
     onSuccess: async (data, variables) => {
-      toast({ title: "Changes saved successfully!" });
+      setSuccessMessage("Changes saved successfully!");
+      setShowSuccessModal(true);
 
       // Trigger UI refresh by updating the refresh trigger
       setRefreshTrigger((prev) => prev + 1);
@@ -464,7 +469,8 @@ export default function VoiceDocumentation() {
       queryClient.invalidateQueries({
         queryKey: ["/api/voice-documentation/photos"],
       });
-      toast({ title: "Photo uploaded and analyzed" });
+      setSuccessMessage("Photo uploaded and analyzed");
+      setShowSuccessModal(true);
     },
   });
 
@@ -496,7 +502,8 @@ export default function VoiceDocumentation() {
         queryKey: ["/api/voice-documentation/photos"],
       });
 
-      toast({ title: "Photo deleted successfully!" });
+      setSuccessMessage("Photo deleted successfully!");
+      setShowSuccessModal(true);
       console.log("Photo deleted from backend:", photoId);
     },
     onError: (err, photoId) => {
@@ -754,7 +761,8 @@ export default function VoiceDocumentation() {
       mediaRecorderRef.current.start();
       setIsRecording(true);
       setRecordingTime(0);
-      toast({ title: "Recording started" });
+      setSuccessMessage("Recording started");
+      setShowSuccessModal(true);
     } catch (error) {
       toast({ title: "Failed to start recording", variant: "destructive" });
     }
@@ -1034,10 +1042,8 @@ export default function VoiceDocumentation() {
       // Keep camera running - don't stop it automatically
       // User can choose to take another photo or stop manually
 
-      toast({
-        title: "Photo Captured!",
-        description: "Review your photo and choose to save, retake, or cancel.",
-      });
+      setSuccessMessage("Review your photo and choose to save, retake, or cancel.");
+      setShowSuccessModal(true);
     } catch (error) {
       console.error("Failed to capture photo:", error);
       toast({
@@ -1071,10 +1077,8 @@ export default function VoiceDocumentation() {
       const dataUrl = e.target?.result as string;
       setCapturedPhoto(dataUrl);
 
-      toast({
-        title: "File selected",
-        description: "Photo loaded successfully. Fill in the details and save.",
-      });
+      setSuccessMessage("Photo loaded successfully. Fill in the details and save.");
+      setShowSuccessModal(true);
     };
     fileReader.readAsDataURL(file);
   };
@@ -1123,11 +1127,8 @@ export default function VoiceDocumentation() {
       setActiveTab("photos");
 
       // Show success message
-      toast({
-        title: "Photo Saved Successfully!",
-        description:
-          "Your clinical photo has been saved to the Clinical Photos tab.",
-      });
+      setSuccessMessage("Your clinical photo has been saved to the Clinical Photos tab.");
+      setShowSuccessModal(true);
     } catch (error) {
       toast({
         title: "Failed to save photo",
@@ -1145,7 +1146,8 @@ export default function VoiceDocumentation() {
       }
       setIsPlaying(false);
       setCurrentlyPlayingId(null);
-      toast({ title: "Recording Stopped" });
+      setSuccessMessage("Recording Stopped");
+      setShowSuccessModal(true);
       return;
     }
 
@@ -1154,10 +1156,8 @@ export default function VoiceDocumentation() {
       setIsPlaying(true);
       setCurrentlyPlayingId(note.id);
       
-      toast({
-        title: "Starting Recording",
-        description: `Recording audio for ${note.patientName}`,
-      });
+      setSuccessMessage(`Recording audio for ${note.patientName}`);
+      setShowSuccessModal(true);
 
       // Request microphone access
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -1212,10 +1212,8 @@ export default function VoiceDocumentation() {
             });
 
             if (saveResponse.ok) {
-              toast({
-                title: "Recording Saved",
-                description: `Audio recorded and saved for ${note.patientName}`,
-              });
+              setSuccessMessage(`Audio recorded and saved for ${note.patientName}`);
+              setShowSuccessModal(true);
               console.log('Recorded audio saved to uploads/VoiceNotes directory');
             } else {
               throw new Error('Failed to save recording');
@@ -1261,16 +1259,15 @@ export default function VoiceDocumentation() {
       audioRef.current.onloadstart = () => {
         setIsPlaying(true);
         setCurrentlyPlayingId(note.id);
-        toast({
-          title: "Playing Recorded Audio",
-          description: `Playing original recording for ${note.patientName}`,
-        });
+        setSuccessMessage(`Playing original recording for ${note.patientName}`);
+        setShowSuccessModal(true);
       };
 
       audioRef.current.onended = () => {
         setIsPlaying(false);
         setCurrentlyPlayingId(null);
-        toast({ title: "Playback Complete" });
+        setSuccessMessage("Playback Complete");
+        setShowSuccessModal(true);
       };
 
       audioRef.current.onerror = () => {
@@ -1304,16 +1301,15 @@ export default function VoiceDocumentation() {
         utterance.onstart = () => {
           setIsPlaying(true);
           setCurrentlyPlayingId(note.id);
-          toast({
-            title: "Playing Text-to-Speech",
-            description: `Reading transcript for ${note.patientName}`,
-          });
+          setSuccessMessage(`Reading transcript for ${note.patientName}`);
+          setShowSuccessModal(true);
         };
 
         utterance.onend = () => {
           setIsPlaying(false);
           setCurrentlyPlayingId(null);
-          toast({ title: "Playback Complete" });
+          setSuccessMessage("Playback Complete");
+          setShowSuccessModal(true);
         };
 
         utterance.onerror = () => {
@@ -1351,10 +1347,8 @@ export default function VoiceDocumentation() {
 
           setIsPlaying(true);
           setCurrentlyPlayingId(note.id);
-          toast({
-            title: "Playing Demo Audio",
-            description: "Audio recording not available - playing demo tone",
-          });
+          setSuccessMessage("Audio recording not available - playing demo tone");
+          setShowSuccessModal(true);
 
           oscillator.start(audioContext.currentTime);
           oscillator.stop(audioContext.currentTime + 2);
@@ -1362,7 +1356,8 @@ export default function VoiceDocumentation() {
           oscillator.onended = () => {
             setIsPlaying(false);
             setCurrentlyPlayingId(null);
-            toast({ title: "Demo Playback Complete" });
+            setSuccessMessage("Demo Playback Complete");
+            setShowSuccessModal(true);
           };
 
           // Backup timeout in case onended doesn't fire
@@ -2206,10 +2201,8 @@ export default function VoiceDocumentation() {
                             }
 
                             if (copySuccess) {
-                              toast({
-                                title: "Text Copied",
-                                description: `${textToCopy.length} characters copied to clipboard`,
-                              });
+                              setSuccessMessage(`${textToCopy.length} characters copied to clipboard`);
+                              setShowSuccessModal(true);
                             } else {
                               throw new Error("Copy operation failed");
                             }
@@ -3898,6 +3891,30 @@ export default function VoiceDocumentation() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Success Modal */}
+        <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold text-green-600">Success</DialogTitle>
+            </DialogHeader>
+            
+            <div className="py-4">
+              <p className="text-gray-700">{successMessage}</p>
+            </div>
+
+            <div className="flex justify-end">
+              <Button
+                onClick={() => {
+                  setShowSuccessModal(false);
+                  setSuccessMessage("");
+                }}
+              >
+                OK
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

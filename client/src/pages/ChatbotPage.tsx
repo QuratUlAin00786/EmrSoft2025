@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Copy, MessageCircle, Code, BarChart3, Settings, ExternalLink } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { ChatWidget } from '@/components/ChatWidget';
@@ -49,6 +50,8 @@ interface ChatbotAnalytics {
 export default function ChatbotPage() {
   const [activeTab, setActiveTab] = useState('config');
   const [showPreview, setShowPreview] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -83,7 +86,8 @@ export default function ChatbotPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/chatbot/config'] });
-      toast({ title: "Configuration saved successfully!" });
+      setSuccessMessage("Configuration saved successfully!");
+      setShowSuccessModal(true);
     },
     onError: () => {
       toast({ title: "Failed to save configuration", variant: "destructive" });
@@ -409,6 +413,30 @@ export default function ChatbotPage() {
           welcomeMessage={formData.welcomeMessage}
         />
       )}
+
+      {/* Success Modal */}
+      <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-green-600">Success</DialogTitle>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <p className="text-gray-700">{successMessage}</p>
+          </div>
+
+          <div className="flex justify-end">
+            <Button
+              onClick={() => {
+                setShowSuccessModal(false);
+                setSuccessMessage("");
+              }}
+            >
+              OK
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

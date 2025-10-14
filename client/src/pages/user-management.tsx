@@ -375,6 +375,8 @@ const medicalSpecialties = {
 };
 
 export default function UserManagement() {
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -795,10 +797,8 @@ export default function UserManagement() {
       setIsRoleModalOpen(false);
       setEditingRole(null);
       roleForm.reset();
-      toast({
-        title: "Role Created",
-        description: "The new role has been created successfully.",
-      });
+      setSuccessMessage("The new role has been created successfully.");
+      setShowSuccessModal(true);
     },
     onError: (error: any) => {
       toast({
@@ -827,10 +827,8 @@ export default function UserManagement() {
       setEditingRole(null);
       roleForm.reset();
       
-      toast({
-        title: "Role Updated",
-        description: "The role permissions have been updated successfully.",
-      });
+      setSuccessMessage("The role permissions have been updated successfully.");
+      setShowSuccessModal(true);
     },
     onError: (error: any) => {
       toast({
@@ -847,10 +845,8 @@ export default function UserManagement() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/roles"] });
-      toast({
-        title: "Role Deleted",
-        description: "The role has been deleted successfully.",
-      });
+      setSuccessMessage("The role has been deleted successfully.");
+      setShowSuccessModal(true);
     },
     onError: (error: any) => {
       toast({
@@ -984,10 +980,8 @@ export default function UserManagement() {
       return result;
     },
     onSuccess: (newUser) => {
-      toast({
-        title: "User created successfully",
-        description: "The new user has been added to the system.",
-      });
+      setSuccessMessage("The new user has been added to the system.");
+      setShowSuccessModal(true);
       // Immediately add user to list for instant display
       setUsers(prevUsers => [...prevUsers, newUser]);
       // Also fetch fresh data
@@ -1066,10 +1060,8 @@ export default function UserManagement() {
       return await response.json();
     },
     onSuccess: (updatedUserData) => {
-      toast({
-        title: "User updated successfully",
-        description: "The user information has been updated.",
-      });
+      setSuccessMessage("The user information has been updated.");
+      setShowSuccessModal(true);
       
       // Update the form with fresh data from server response
       if (editingUser && updatedUserData) {
@@ -1161,10 +1153,8 @@ export default function UserManagement() {
       return response.json();
     },
     onSuccess: (data, userId) => {
-      toast({
-        title: "User deleted successfully",
-        description: "The user has been removed from the system.",
-      });
+      setSuccessMessage("The user has been removed from the system.");
+      setShowSuccessModal(true);
       // Immediately remove user from list for instant display
       setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
       // Also fetch fresh data
@@ -2983,6 +2973,30 @@ export default function UserManagement() {
           </>
         )}
       </div>
+
+      {/* Success Modal */}
+      <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-green-600">Success</DialogTitle>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <p className="text-gray-700">{successMessage}</p>
+          </div>
+
+          <div className="flex justify-end">
+            <Button
+              onClick={() => {
+                setShowSuccessModal(false);
+                setSuccessMessage("");
+              }}
+            >
+              OK
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

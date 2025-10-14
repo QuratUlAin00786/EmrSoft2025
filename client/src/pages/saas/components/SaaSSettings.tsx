@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { saasApiRequest, saasQueryFn } from '@/lib/saasApiClient';
 import { useToast } from '@/hooks/use-toast';
@@ -20,6 +21,8 @@ import {
 } from 'lucide-react';
 
 export default function SaaSSettings() {
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -79,10 +82,8 @@ export default function SaaSSettings() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/saas/settings'] });
-      toast({
-        title: "Settings Updated",
-        description: "System settings have been updated successfully",
-      });
+      setSuccessMessage("System settings have been updated successfully");
+      setShowSuccessModal(true);
     },
     onError: () => {
       toast({
@@ -99,10 +100,8 @@ export default function SaaSSettings() {
       return response.json();
     },
     onSuccess: () => {
-      toast({
-        title: "Test Email Sent",
-        description: "Test email sent successfully",
-      });
+      setSuccessMessage("Test email sent successfully");
+      setShowSuccessModal(true);
     },
     onError: () => {
       toast({
@@ -474,6 +473,30 @@ export default function SaaSSettings() {
           {updateSettingsMutation.isPending ? 'Saving...' : 'Save Settings'}
         </Button>
       </div>
+
+      {/* Success Modal */}
+      <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-green-600">Success</DialogTitle>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <p className="text-gray-700">{successMessage}</p>
+          </div>
+
+          <div className="flex justify-end">
+            <Button
+              onClick={() => {
+                setShowSuccessModal(false);
+                setSuccessMessage("");
+              }}
+            >
+              OK
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </form>
   );
 }

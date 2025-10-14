@@ -75,6 +75,8 @@ export default function GoodsReceiptDialog({ open, onOpenChange, items }: GoodsR
   
   const [receiptItems, setReceiptItems] = useState<ReceiptItem[]>([]);
   const [purchaseOrderOpen, setPurchaseOrderOpen] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
   // Fetch purchase orders
   const { data: purchaseOrders = [], isLoading: purchaseOrdersLoading } = useQuery<PurchaseOrder[]>({
@@ -110,10 +112,8 @@ export default function GoodsReceiptDialog({ open, onOpenChange, items }: GoodsR
       return apiRequest("POST", "/api/inventory/goods-receipts", data);
     },
     onSuccess: () => {
-      toast({
-        title: "Success",
-        description: "Goods receipt created successfully",
-      });
+      setSuccessMessage("Goods receipt created successfully");
+      setShowSuccessModal(true);
       queryClient.invalidateQueries({ queryKey: ["/api/inventory/goods-receipts"] });
       queryClient.invalidateQueries({ queryKey: ["/api/inventory/items"] });
       onOpenChange(false);
@@ -491,6 +491,30 @@ export default function GoodsReceiptDialog({ open, onOpenChange, items }: GoodsR
           </Form>
         </div>
       </DialogContent>
+
+      {/* Success Modal */}
+      <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-green-600">Success</DialogTitle>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <p className="text-gray-700">{successMessage}</p>
+          </div>
+
+          <div className="flex justify-end">
+            <Button
+              onClick={() => {
+                setShowSuccessModal(false);
+                setSuccessMessage("");
+              }}
+            >
+              OK
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }

@@ -40,6 +40,8 @@ export default function SaaSUsers() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteSuccessDialogOpen, setDeleteSuccessDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -71,10 +73,8 @@ export default function SaaSUsers() {
       return response.json();
     },
     onSuccess: () => {
-      toast({
-        title: "Password Reset",
-        description: "Password reset email sent successfully",
-      });
+      setSuccessMessage("Password reset email sent successfully");
+      setShowSuccessModal(true);
     },
     onError: () => {
       toast({
@@ -92,10 +92,8 @@ export default function SaaSUsers() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/saas/users'] });
-      toast({
-        title: "User Status Updated",
-        description: "User status changed successfully",
-      });
+      setSuccessMessage("User status changed successfully");
+      setShowSuccessModal(true);
     },
     onError: () => {
       toast({
@@ -134,10 +132,8 @@ export default function SaaSUsers() {
       queryClient.invalidateQueries({ queryKey: ['/api/saas/users'] });
       setEditDialogOpen(false);
       setSelectedUser(null);
-      toast({
-        title: "User Updated",
-        description: "User information has been updated successfully",
-      });
+      setSuccessMessage("User information has been updated successfully");
+      setShowSuccessModal(true);
     },
     onError: () => {
       toast({
@@ -485,6 +481,30 @@ export default function SaaSUsers() {
                 Close
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Success Modal */}
+      <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-green-600">Success</DialogTitle>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <p className="text-gray-700">{successMessage}</p>
+          </div>
+
+          <div className="flex justify-end">
+            <Button
+              onClick={() => {
+                setShowSuccessModal(false);
+                setSuccessMessage("");
+              }}
+            >
+              OK
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

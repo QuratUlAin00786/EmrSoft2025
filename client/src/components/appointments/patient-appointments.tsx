@@ -74,6 +74,11 @@ export default function PatientAppointments({
   const [providerFilter, setProviderFilter] = useState<string>("");
   const [dateTimeFilter, setDateTimeFilter] = useState<string>("");
   const [showAdvancedFilters, setShowAdvancedFilters] = useState<boolean>(false);
+  
+  // Success modal state
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -303,10 +308,8 @@ export default function PatientAppointments({
       }
     },
     onSuccess: () => {
-      toast({
-        title: "Appointment Updated",
-        description: "The appointment has been successfully updated.",
-      });
+      setSuccessMessage("The appointment has been successfully updated.");
+      setShowSuccessModal(true);
       queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
       queryClient.refetchQueries({ queryKey: ["/api/appointments"] });
       setEditingAppointment(null);
@@ -330,10 +333,8 @@ export default function PatientAppointments({
       return response.json();
     },
     onSuccess: () => {
-      toast({
-        title: "Appointment Deleted",
-        description: "The appointment has been successfully deleted.",
-      });
+      setSuccessMessage("The appointment has been successfully deleted.");
+      setShowSuccessModal(true);
       queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
     },
     onError: (error) => {
@@ -362,10 +363,8 @@ export default function PatientAppointments({
       return response.json();
     },
     onSuccess: () => {
-      toast({
-        title: "Appointment Cancelled",
-        description: "The appointment has been successfully cancelled.",
-      });
+      setSuccessMessage("The appointment has been successfully cancelled.");
+      setShowSuccessModal(true);
       queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
     },
     onError: (error) => {
@@ -1518,6 +1517,30 @@ export default function PatientAppointments({
           </div>
         </CardContent>
       </Card>
+
+      {/* Success Modal */}
+      <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-green-600">Success</DialogTitle>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <p className="text-gray-700">{successMessage}</p>
+          </div>
+
+          <div className="flex justify-end">
+            <Button
+              onClick={() => {
+                setShowSuccessModal(false);
+                setSuccessMessage("");
+              }}
+            >
+              OK
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
