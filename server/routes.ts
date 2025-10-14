@@ -10212,7 +10212,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Lab Results API endpoints (Database-driven)
+  // Lab Results API endpoints (Database-driven) - LEGACY ROUTES COMMENTED OUT
+  // These duplicate routes were causing permission issues - the correct routes are defined earlier (around line 6177-6248)
+  /*
   app.get("/api/lab-results", authMiddleware, async (req: TenantRequest, res) => {
     try {
       const results = await storage.getLabResultsByOrganization(req.tenant!.id);
@@ -10251,6 +10253,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Failed to create lab result" });
     }
   });
+  */
 
   // Claims API endpoints (Database-driven)
   app.get("/api/claims", authMiddleware, async (req: TenantRequest, res) => {
