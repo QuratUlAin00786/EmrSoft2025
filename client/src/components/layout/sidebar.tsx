@@ -51,6 +51,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LogOut, User, Settings as SettingsIcon } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import type { Organization } from "@/types";
 
 const ALL_NAVIGATION = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard, module: "dashboard" },
@@ -187,6 +189,25 @@ export function Sidebar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
+  // Fetch organization data with React Query to automatically update when settings change
+  const { data: organizationData } = useQuery<Organization>({
+    queryKey: ["/api/tenant/info"],
+    queryFn: async () => {
+      const response = await fetch('/api/tenant/info', {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      return response.json();
+    },
+    retry: false,
+  });
+
   // Check if we're on mobile
   useEffect(() => {
     const checkMobile = () => {
@@ -296,8 +317,8 @@ export function Sidebar() {
         <div className="p-6 border-b border-neutral-100 dark:border-border">
           <div className="flex flex-col items-center text-center">
             <img
-              src={tenant?.settings?.theme?.logoUrl || "/cura-logo-chatbot.png"}
-              alt={tenant?.name || "Cura"}
+              src={organizationData?.settings?.theme?.logoUrl || tenant?.settings?.theme?.logoUrl || "/cura-logo-chatbot.png"}
+              alt={organizationData?.name || tenant?.name || "Cura"}
               className="h-30 w-auto mb-2"
             />
           </div>
