@@ -3476,9 +3476,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`Updating appointment ${appointmentId} with data:`, updateData);
 
-      // Store scheduledAt string directly without timezone conversion
+      // Convert scheduledAt string to Date object for database
       const updatePayload: any = { ...updateData };
-      // Note: Removed timezone validation since we're now storing naive timestamps
+      if (updateData.scheduledAt) {
+        updatePayload.scheduledAt = new Date(updateData.scheduledAt);
+      }
 
       const updated = await storage.updateAppointment(appointmentId, req.tenant!.id, updatePayload);
       
