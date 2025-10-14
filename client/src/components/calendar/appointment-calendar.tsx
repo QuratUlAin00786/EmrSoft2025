@@ -2679,6 +2679,7 @@ Medical License: [License Number]
                   {/* Time Slot Selection */}
                   <div>
                     <Label className="text-lg font-semibold text-gray-800 mb-3 block">Select Time Slot</Label>
+                    {/* *** CHANGE 6: Color Legend - Orange: Current appointment | Blue: Newly selected | Grey: Booked | Green: Available *** */}
                     <div className="border rounded-lg p-4 bg-gray-50 h-[300px] overflow-y-auto">
                       {/* *** CHANGE 5: Use editTimeSlots instead of timeSlots *** */}
                       {editTimeSlots.length === 0 ? (
@@ -2689,8 +2690,18 @@ Medical License: [License Number]
                         <div className="grid grid-cols-2 gap-2">
                           {editTimeSlots.map((slot) => {
                             const isAvailable = isTimeSlotAvailable(editAppointmentDate || new Date(editingAppointment.scheduledAt), slot);
+                            
+                            // *** CHANGE 6: Add ORANGE color for the original editing time slot ***
+                            // Get the original appointment time slot
+                            const originalTimeSlot = format(new Date(editingAppointment.scheduledAt), 'h:mm a');
+                            const isOriginalSlot = slot === originalTimeSlot;
+                            
+                            // Check if this slot is selected (newly chosen by user)
                             const isSelected = editSelectedTimeSlot === slot || 
-                              (editSelectedTimeSlot === "" && format(new Date(editingAppointment.scheduledAt), 'h:mm a') === slot);
+                              (editSelectedTimeSlot === "" && isOriginalSlot);
+                            
+                            // Determine if user changed to a different slot
+                            const isNewlySelected = editSelectedTimeSlot === slot && !isOriginalSlot;
                             
                             return (
                               <Button
@@ -2698,9 +2709,11 @@ Medical License: [License Number]
                                 variant={isSelected ? "default" : "outline"}
                                 className={`h-12 text-sm font-medium ${
                                   !isAvailable 
-                                    ? "bg-red-100 text-red-400 cursor-not-allowed border-red-200" 
-                                    : isSelected 
-                                      ? "bg-blue-500 hover:bg-blue-600 text-white border-blue-500" 
+                                    ? "bg-gray-400 text-gray-600 cursor-not-allowed border-gray-300" 
+                                    : isNewlySelected
+                                      ? "bg-blue-500 hover:bg-blue-600 text-white border-blue-500"
+                                    : isOriginalSlot 
+                                      ? "bg-orange-500 hover:bg-orange-600 text-white border-orange-500" 
                                       : "bg-green-500 hover:bg-green-600 text-white border-green-500"
                                 }`}
                                 disabled={!isAvailable}
