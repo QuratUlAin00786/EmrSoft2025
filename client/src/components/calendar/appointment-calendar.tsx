@@ -2890,7 +2890,8 @@ Medical License: [License Number]
                           title: editingAppointment.title,
                           type: editingAppointment.type,
                           status: editingAppointment.status,
-                          scheduledAt: newScheduledAt,
+                          // *** FIX: Convert ISO string to Date object for database ***
+                          scheduledAt: new Date(newScheduledAt),
                           description: editingAppointment.description,
                         }
                       });
