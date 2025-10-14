@@ -187,7 +187,19 @@ CREATE TABLE staff_shifts (
     created_by INTEGER,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
+);Everything about the structure, such as:
+
+All tables (with column definitions, data types, defaults)
+
+All primary keys, foreign keys, and unique constraints
+
+All indexes
+
+All sequences (for auto-increment IDs)
+
+All views, functions, triggers, and extensions
+
+All constraints (check constraints, not null, etc.)
 
 -- Doctor Default Shifts
 CREATE TABLE doctor_default_shifts (
