@@ -151,6 +151,7 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
   const [showNewAppointment, setShowNewAppointment] = useState(false);
   const [showConfirmationDialog, setShowConfirmationDialog] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showEditSuccessModal, setShowEditSuccessModal] = useState(false);
   const [validationErrorMessage, setValidationErrorMessage] = useState<string>("");
   const [showValidationError, setShowValidationError] = useState(false);
   const [newAppointmentDate, setNewAppointmentDate] = useState<Date | undefined>(undefined);
@@ -454,13 +455,7 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
       setShowEditAppointment(false);
-      setEditingAppointment(null);
-      setEditAppointmentDate(undefined);
-      setEditSelectedTimeSlot("");
-      toast({
-        title: "Appointment Updated",
-        description: "The appointment has been successfully updated.",
-      });
+      setShowEditSuccessModal(true);
     },
     onError: (error) => {
       console.error("Edit appointment error:", error);
@@ -2629,6 +2624,33 @@ Medical License: [License Number]
                   description: "",
                 });
               }}
+            >
+              OK
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Success Modal */}
+      <Dialog open={showEditSuccessModal} onOpenChange={setShowEditSuccessModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-green-600">Success</DialogTitle>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <p className="text-gray-700">Appointment updated successfully.</p>
+          </div>
+
+          <div className="flex justify-end">
+            <Button
+              onClick={() => {
+                setShowEditSuccessModal(false);
+                setEditingAppointment(null);
+                setEditAppointmentDate(undefined);
+                setEditSelectedTimeSlot("");
+              }}
+              data-testid="button-edit-success-ok"
             >
               OK
             </Button>
