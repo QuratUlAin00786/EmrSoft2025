@@ -2821,8 +2821,8 @@ Medical License: [License Number]
                   </div>
                 </div>
 
-                {/* Status and Description Row */}
-                <div className="grid grid-cols-2 gap-6">
+                {/* Status, Duration and Description Row */}
+                <div className="grid grid-cols-3 gap-6">
                   <div>
                     <Label className="text-sm font-medium text-gray-600">Status</Label>
                     <Select 
@@ -2839,6 +2839,24 @@ Medical License: [License Number]
                         <SelectItem value="completed">Completed</SelectItem>
                         <SelectItem value="cancelled">Cancelled</SelectItem>
                         <SelectItem value="no_show">No Show</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Duration (minutes)</Label>
+                    <Select 
+                      defaultValue={String(editingAppointment.duration || 30)}
+                      onValueChange={(value) => {
+                        setEditingAppointment({ ...editingAppointment, duration: parseInt(value) });
+                      }}
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="15">15 minutes</SelectItem>
+                        <SelectItem value="30">30 minutes</SelectItem>
+                        <SelectItem value="60">60 minutes</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -2925,6 +2943,7 @@ Medical License: [License Number]
                           // *** FIX: Convert ISO string to Date object for database ***
                           scheduledAt: new Date(newScheduledAt),
                           description: editingAppointment.description,
+                          duration: editingAppointment.duration,
                         }
                       });
                     }}
