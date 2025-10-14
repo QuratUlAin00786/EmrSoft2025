@@ -2691,7 +2691,7 @@ Medical License: [License Number]
                     <div className="border rounded-lg p-4 bg-gray-50">
                       <CalendarComponent
                         mode="single"
-                        selected={editAppointmentDate || new Date(editingAppointment.scheduledAt)}
+                        selected={editAppointmentDate}
                         onSelect={(date) => {
                           setEditAppointmentDate(date);
                           if (date && editSelectedTimeSlot) {
@@ -2735,11 +2735,22 @@ Medical License: [License Number]
                       ) : (
                         <div className="grid grid-cols-2 gap-2">
                           {editTimeSlots.map((slot) => {
-                            const isAvailable = isTimeSlotAvailable(editAppointmentDate || new Date(editingAppointment.scheduledAt), slot);
+                            const isAvailable = editAppointmentDate ? isTimeSlotAvailable(editAppointmentDate, slot) : true;
                             
                             // *** CHANGE 6: Add ORANGE color for the original editing time slot ***
-                            // Get the original appointment time slot
-                            const originalTimeSlot = format(new Date(editingAppointment.scheduledAt), 'h:mm a');
+                            // Get the original appointment time slot (no timezone conversion)
+                            const originalTimeSlot = (() => {
+                              const isoString = editingAppointment.scheduledAt;
+                              const match = isoString.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})/);
+                              if (match) {
+                                const hours = parseInt(match[4]);
+                                const minutes = parseInt(match[5]);
+                                const period = hours >= 12 ? 'PM' : 'AM';
+                                const displayHours = hours > 12 ? hours - 12 : (hours === 0 ? 12 : hours);
+                                return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+                              }
+                              return '';
+                            })();
                             const isOriginalSlot = slot === originalTimeSlot;
                             
                             // Check if this slot is selected (newly chosen by user)
@@ -2765,15 +2776,14 @@ Medical License: [License Number]
                                 disabled={!isAvailable}
                                 onClick={() => {
                                   setEditSelectedTimeSlot(slot);
-                                  if (editAppointmentDate || editingAppointment.scheduledAt) {
-                                    const date = editAppointmentDate || new Date(editingAppointment.scheduledAt);
+                                  if (editAppointmentDate) {
                                     // Parse time slot to get hours and minutes
                                     const [time, period] = slot.split(' ');
                                     const [hours, minutes] = time.split(':').map(Number);
                                     const hour24 = period === 'AM' ? (hours === 12 ? 0 : hours) : (hours === 12 ? 12 : hours + 12);
                                     
                                     // Create new date with correct local time (no timezone conversion)
-                                    const newDateTime = new Date(date);
+                                    const newDateTime = new Date(editAppointmentDate);
                                     newDateTime.setHours(hour24, minutes, 0, 0);
                                     setEditingAppointment({ ...editingAppointment, scheduledAt: newDateTime.toISOString() });
                                   }
