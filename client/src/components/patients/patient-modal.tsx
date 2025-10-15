@@ -31,6 +31,20 @@ const COUNTRY_CODES = [
   { code: "+34", name: "Spain", flag: "🇪🇸" }
 ] as const;
 
+// Digit limits for each country code (excluding country code itself)
+const COUNTRY_DIGIT_LIMITS: Record<string, number> = {
+  "+1": 10,    // United States / Canada
+  "+44": 10,   // United Kingdom
+  "+92": 10,   // Pakistan
+  "+966": 9,   // Saudi Arabia
+  "+971": 9,   // UAE
+  "+91": 10,   // India
+  "+33": 9,    // France
+  "+49": 11,   // Germany
+  "+39": 10,   // Italy
+  "+34": 9     // Spain
+};
+
 const patientSchema = z.object({
   firstName: z.string().trim().min(1, "First name is required"),
   lastName: z.string().trim().min(1, "Last name is required"),
@@ -574,8 +588,16 @@ export function PatientModal({ open, onOpenChange, editMode = false, editPatient
                                 placeholder="123 456 7890"
                                 type="tel"
                                 className="flex-1"
+                                maxLength={COUNTRY_DIGIT_LIMITS[selectedCountryCode] || 15}
                                 onChange={(e) => {
-                                  let value = e.target.value.replace(/[^\d\s]/g, '').trim();
+                                  let value = e.target.value.replace(/[^\d]/g, '');
+                                  const maxDigits = COUNTRY_DIGIT_LIMITS[selectedCountryCode] || 15;
+                                  
+                                  // Limit to max digits for selected country
+                                  if (value.length > maxDigits) {
+                                    value = value.slice(0, maxDigits);
+                                  }
+                                  
                                   // If the phone number is empty, set the field to empty string
                                   if (value === '') {
                                     field.onChange('');
@@ -591,6 +613,9 @@ export function PatientModal({ open, onOpenChange, editMode = false, editPatient
                               />
                             </div>
                           </FormControl>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Must be exactly {COUNTRY_DIGIT_LIMITS[selectedCountryCode]} digits (excluding country code)
+                          </p>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -863,8 +888,16 @@ export function PatientModal({ open, onOpenChange, editMode = false, editPatient
                                 placeholder="123 456 7890"
                                 type="tel"
                                 className="flex-1"
+                                maxLength={COUNTRY_DIGIT_LIMITS[emergencyCountryCode] || 15}
                                 onChange={(e) => {
-                                  let value = e.target.value.replace(/[^\d\s]/g, '').trim();
+                                  let value = e.target.value.replace(/[^\d]/g, '');
+                                  const maxDigits = COUNTRY_DIGIT_LIMITS[emergencyCountryCode] || 15;
+                                  
+                                  // Limit to max digits for selected country
+                                  if (value.length > maxDigits) {
+                                    value = value.slice(0, maxDigits);
+                                  }
+                                  
                                   // If the phone number is empty, set the field to empty string
                                   if (value === '') {
                                     field.onChange('');
@@ -880,6 +913,9 @@ export function PatientModal({ open, onOpenChange, editMode = false, editPatient
                               />
                             </div>
                           </FormControl>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Must be exactly {COUNTRY_DIGIT_LIMITS[emergencyCountryCode]} digits (excluding country code)
+                          </p>
                           <FormMessage />
                         </FormItem>
                       )}
