@@ -321,6 +321,27 @@ export default function ImagingPage() {
   });
   const [summaryData, setSummaryData] = useState<any>(null);
   const [uploadedImageData, setUploadedImageData] = useState<any>(null);
+  
+  // Invoice form fields
+  const [invoicePatient, setInvoicePatient] = useState("");
+  const [invoiceServiceDate, setInvoiceServiceDate] = useState(new Date().toISOString().split('T')[0]);
+  const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().split('T')[0]);
+  const [invoiceDueDate, setInvoiceDueDate] = useState(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
+  const [invoiceServiceCode, setInvoiceServiceCode] = useState("");
+  const [invoiceServiceDesc, setInvoiceServiceDesc] = useState("");
+  const [invoiceServiceQty, setInvoiceServiceQty] = useState("");
+  const [invoiceServiceAmount, setInvoiceServiceAmount] = useState("");
+  const [invoiceInsuranceProvider, setInvoiceInsuranceProvider] = useState("none");
+  const [invoiceNhsNumber, setInvoiceNhsNumber] = useState("");
+  const [invoiceTotalAmount, setInvoiceTotalAmount] = useState("");
+  const [invoiceNotes, setInvoiceNotes] = useState("");
+  
+  // Validation errors
+  const [invoicePatientError, setInvoicePatientError] = useState("");
+  const [invoiceServiceError, setInvoiceServiceError] = useState("");
+  const [invoiceNhsError, setInvoiceNhsError] = useState("");
+  const [invoiceTotalError, setInvoiceTotalError] = useState("");
+  
   const { toast } = useToast();
 
   // Fetch patients to find the current user's patient record
@@ -1084,6 +1105,16 @@ export default function ImagingPage() {
       const subtotal = selectedFiles.length * 50; // £50 per image
       const tax = subtotal * 0.2; // 20% VAT
       const totalAmount = subtotal + tax;
+      
+      // Pre-populate invoice fields
+      setInvoicePatient(selectedPatient.patientId || "");
+      setInvoiceServiceDate(new Date().toISOString().split('T')[0]);
+      setInvoiceServiceCode("IMG-001");
+      setInvoiceServiceDesc("Medical Imaging - " + uploadFormData.studyType);
+      setInvoiceServiceQty(selectedFiles.length.toString());
+      setInvoiceServiceAmount("50.00");
+      setInvoiceTotalAmount(totalAmount.toFixed(2));
+      setInvoiceNotes(`Imaging study: ${uploadFormData.studyType}, Modality: ${uploadFormData.modality}`);
       
       setInvoiceFormData({
         paymentMethod: "",
@@ -4404,30 +4435,206 @@ export default function ImagingPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Invoice Dialog */}
+      {/* Invoice Dialog - Comprehensive Billing Format */}
       <Dialog open={showInvoiceDialog} onOpenChange={setShowInvoiceDialog}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Invoice</DialogTitle>
+            <DialogTitle>Create New Invoice</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg space-y-2">
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-300">Subtotal:</span>
-                <span className="font-semibold">£{invoiceFormData.subtotal.toFixed(2)}</span>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="invoice-patient">Patient</Label>
+                <Select value={invoicePatient} onValueChange={setInvoicePatient}>
+                  <SelectTrigger id="invoice-patient">
+                    <SelectValue placeholder="Select patient" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {patients && patients.length > 0 ? (
+                      patients.map((patient: any) => (
+                        <SelectItem key={patient.id} value={patient.patientId}>
+                          {patient.firstName} {patient.lastName}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="no-patients" disabled>No patients found</SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+                {invoicePatientError && (
+                  <p className="text-sm text-red-600 mt-1">{invoicePatientError}</p>
+                )}
               </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-300">Tax (20%):</span>
-                <span className="font-semibold">£{invoiceFormData.tax.toFixed(2)}</span>
+              
+              <div>
+                <Label htmlFor="invoice-service-date">Service Date</Label>
+                <Input 
+                  id="invoice-service-date" 
+                  type="date" 
+                  value={invoiceServiceDate}
+                  onChange={(e) => setInvoiceServiceDate(e.target.value)}
+                />
               </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-300">Discount:</span>
-                <span className="font-semibold">£{invoiceFormData.discount.toFixed(2)}</span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="invoice-doctor">Doctor</Label>
+                <div className="h-10 px-3 py-2 border rounded-md bg-gray-50 dark:bg-gray-800 flex items-center text-sm">
+                  {user?.firstName} {user?.lastName}
+                </div>
               </div>
-              <div className="border-t pt-2 flex justify-between">
-                <span className="font-bold">Total Amount:</span>
-                <span className="font-bold text-lg text-blue-600">£{invoiceFormData.totalAmount.toFixed(2)}</span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="invoice-invoice-date">Invoice Date</Label>
+                <Input 
+                  id="invoice-invoice-date" 
+                  type="date" 
+                  value={invoiceDate}
+                  onChange={(e) => setInvoiceDate(e.target.value)}
+                />
               </div>
+              
+              <div>
+                <Label htmlFor="invoice-due-date">Due Date</Label>
+                <Input 
+                  id="invoice-due-date" 
+                  type="date" 
+                  value={invoiceDueDate}
+                  onChange={(e) => setInvoiceDueDate(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label>Services & Procedures</Label>
+              <div className="border rounded-md p-4 space-y-3">
+                <div className="grid grid-cols-4 gap-2 text-sm font-medium text-gray-600 dark:text-gray-300">
+                  <span>Code</span>
+                  <span>Description</span>
+                  <span>Qty</span>
+                  <span>Amount</span>
+                </div>
+                
+                <div className="grid grid-cols-4 gap-2">
+                  <Input placeholder="Enter CPT Code" value={invoiceServiceCode} onChange={(e) => setInvoiceServiceCode(e.target.value)} />
+                  <Input placeholder="Enter Description" value={invoiceServiceDesc} onChange={(e) => setInvoiceServiceDesc(e.target.value)} />
+                  <Input placeholder="Qty" value={invoiceServiceQty} onChange={(e) => setInvoiceServiceQty(e.target.value)} />
+                  <Input placeholder="Amount" value={invoiceServiceAmount} onChange={(e) => setInvoiceServiceAmount(e.target.value)} />
+                </div>
+                
+                <div className="grid grid-cols-4 gap-2">
+                  <Input placeholder="CPT Code" disabled />
+                  <Input placeholder="Description" disabled />
+                  <Input placeholder="1" disabled />
+                  <Input placeholder="0.00" disabled />
+                </div>
+              </div>
+              {invoiceServiceError && (
+                <p className="text-sm text-red-600 mt-1">{invoiceServiceError}</p>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="invoice-insurance">Insurance Provider</Label>
+                <Select value={invoiceInsuranceProvider} onValueChange={setInvoiceInsuranceProvider}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select insurance provider..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None (Patient Self-Pay)</SelectItem>
+                    <SelectItem value="nhs">NHS (National Health Service)</SelectItem>
+                    <SelectItem value="bupa">Bupa</SelectItem>
+                    <SelectItem value="axa">AXA PPP Healthcare</SelectItem>
+                    <SelectItem value="vitality">Vitality Health</SelectItem>
+                    <SelectItem value="aviva">Aviva Health</SelectItem>
+                    <SelectItem value="simply">Simply Health</SelectItem>
+                    <SelectItem value="wpa">WPA</SelectItem>
+                    <SelectItem value="benenden">Benenden Health</SelectItem>
+                    <SelectItem value="healix">Healix Health Services</SelectItem>
+                    <SelectItem value="sovereign">Sovereign Health Care</SelectItem>
+                    <SelectItem value="exeter">Exeter Friendly Society</SelectItem>
+                    <SelectItem value="selfpay">Self-Pay</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {invoiceInsuranceProvider && invoiceInsuranceProvider !== '' && invoiceInsuranceProvider !== 'none' && (
+                <div>
+                  <Label htmlFor="invoice-nhs-number">NHS Number</Label>
+                  <Input 
+                    id="invoice-nhs-number" 
+                    placeholder="123 456 7890 (10 digits)" 
+                    value={invoiceNhsNumber}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setInvoiceNhsNumber(value);
+                      const digitsOnly = value.replace(/\s+/g, '');
+                      if (digitsOnly.length > 0 && digitsOnly.length !== 10) {
+                        setInvoiceNhsError("NHS number must be exactly 10 digits");
+                      } else if (digitsOnly.length > 0 && !/^\d+$/.test(digitsOnly)) {
+                        setInvoiceNhsError("NHS number must contain only digits");
+                      } else {
+                        setInvoiceNhsError("");
+                      }
+                    }}
+                    maxLength={12}
+                  />
+                  {invoiceNhsError && (
+                    <p className="text-sm text-red-600 mt-1">{invoiceNhsError}</p>
+                  )}
+                </div>
+              )}
+              
+              <div>
+                <Label htmlFor="invoice-total">Total Amount</Label>
+                <Input 
+                  id="invoice-total" 
+                  placeholder="Enter amount (e.g., 150.00)" 
+                  value={invoiceTotalAmount}
+                  onChange={(e) => setInvoiceTotalAmount(e.target.value)}
+                />
+                {invoiceTotalError && (
+                  <p className="text-sm text-red-600 mt-1">{invoiceTotalError}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <div className="flex items-center gap-2">
+                <Label className="font-semibold">Invoice Type:</Label>
+                <Badge 
+                  className={
+                    invoiceInsuranceProvider && invoiceInsuranceProvider !== '' && invoiceInsuranceProvider !== 'none' 
+                      ? "bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400" 
+                      : "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400"
+                  }
+                >
+                  {invoiceInsuranceProvider && invoiceInsuranceProvider !== '' && invoiceInsuranceProvider !== 'none' 
+                    ? "Insurance Claim" 
+                    : "Payment (Self-Pay)"}
+                </Badge>
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                {invoiceInsuranceProvider && invoiceInsuranceProvider !== '' && invoiceInsuranceProvider !== 'none' 
+                  ? "This invoice will be billed to the insurance provider" 
+                  : "This invoice will be paid directly by the patient"}
+              </p>
+            </div>
+
+            <div>
+              <Label htmlFor="invoice-notes">Notes</Label>
+              <Textarea 
+                id="invoice-notes" 
+                placeholder="Additional notes or instructions..."
+                rows={3}
+                value={invoiceNotes}
+                onChange={(e) => setInvoiceNotes(e.target.value)}
+              />
             </div>
 
             <div>
@@ -4456,16 +4663,72 @@ export default function ImagingPage() {
                   setShowUploadDialog(true);
                 }}
               >
-                Back
+                Cancel
               </Button>
               <Button
                 onClick={async () => {
+                  // Clear validation errors
+                  setInvoicePatientError("");
+                  setInvoiceServiceError("");
+                  setInvoiceNhsError("");
+                  setInvoiceTotalError("");
+                  
+                  let hasError = false;
+                  
+                  // Validate patient
+                  if (!invoicePatient || invoicePatient === '' || invoicePatient === 'no-patients') {
+                    setInvoicePatientError('Please select a patient');
+                    hasError = true;
+                  }
+                  
+                  // Validate service
+                  if (!invoiceServiceCode.trim()) {
+                    setInvoiceServiceError('Please enter a service code');
+                    hasError = true;
+                  } else if (!invoiceServiceDesc.trim()) {
+                    setInvoiceServiceError('Please enter a service description');
+                    hasError = true;
+                  } else if (!invoiceServiceQty.trim() || isNaN(parseInt(invoiceServiceQty)) || parseInt(invoiceServiceQty) <= 0) {
+                    setInvoiceServiceError('Please enter a valid service quantity');
+                    hasError = true;
+                  } else if (!invoiceServiceAmount.trim() || isNaN(parseFloat(invoiceServiceAmount)) || parseFloat(invoiceServiceAmount) <= 0) {
+                    setInvoiceServiceError('Please enter a valid service amount');
+                    hasError = true;
+                  }
+                  
+                  // Validate total
+                  const total = parseFloat(invoiceTotalAmount || '0');
+                  if (isNaN(total) || total <= 0) {
+                    setInvoiceTotalError('Please enter a valid total amount greater than 0');
+                    hasError = true;
+                  }
+                  
+                  // Validate NHS number if insurance selected
+                  if (invoiceInsuranceProvider && invoiceInsuranceProvider !== '' && invoiceInsuranceProvider !== 'none') {
+                    const digitsOnly = invoiceNhsNumber.replace(/\s+/g, '');
+                    if (!invoiceNhsNumber.trim()) {
+                      setInvoiceNhsError('NHS number is required for insurance claims');
+                      hasError = true;
+                    } else if (digitsOnly.length !== 10) {
+                      setInvoiceNhsError('NHS number must be exactly 10 digits');
+                      hasError = true;
+                    } else if (!/^\d+$/.test(digitsOnly)) {
+                      setInvoiceNhsError('NHS number must contain only digits');
+                      hasError = true;
+                    }
+                  }
+                  
+                  // Validate payment method
                   if (!invoiceFormData.paymentMethod) {
                     toast({
                       title: "Payment Method Required",
                       description: "Please select a payment method",
                       variant: "destructive",
                     });
+                    hasError = true;
+                  }
+                  
+                  if (hasError) {
                     return;
                   }
 
@@ -4478,17 +4741,29 @@ export default function ImagingPage() {
                       
                       const { clientSecret } = response as any;
                       
-                      // For now, simulate successful payment
-                      // In production, this would redirect to Stripe checkout
                       toast({
                         title: "Payment Processing",
                         description: "Stripe payment initialized successfully",
                       });
                       
-                      // Proceed to summary
+                      // Proceed to summary with all invoice data
                       setSummaryData({
                         ...uploadedImageData,
-                        invoice: invoiceFormData,
+                        invoice: {
+                          ...invoiceFormData,
+                          patient: invoicePatient,
+                          serviceDate: invoiceServiceDate,
+                          invoiceDate: invoiceDate,
+                          dueDate: invoiceDueDate,
+                          serviceCode: invoiceServiceCode,
+                          serviceDesc: invoiceServiceDesc,
+                          serviceQty: invoiceServiceQty,
+                          serviceAmount: invoiceServiceAmount,
+                          insuranceProvider: invoiceInsuranceProvider,
+                          nhsNumber: invoiceNhsNumber,
+                          totalAmount: parseFloat(invoiceTotalAmount),
+                          notes: invoiceNotes,
+                        },
                         paymentClientSecret: clientSecret,
                       });
                       
@@ -4502,10 +4777,24 @@ export default function ImagingPage() {
                       });
                     }
                   } else {
-                    // Cash payment - proceed directly to summary
+                    // Cash payment - proceed directly to summary with all invoice data
                     setSummaryData({
                       ...uploadedImageData,
-                      invoice: invoiceFormData,
+                      invoice: {
+                        ...invoiceFormData,
+                        patient: invoicePatient,
+                        serviceDate: invoiceServiceDate,
+                        invoiceDate: invoiceDate,
+                        dueDate: invoiceDueDate,
+                        serviceCode: invoiceServiceCode,
+                        serviceDesc: invoiceServiceDesc,
+                        serviceQty: invoiceServiceQty,
+                        serviceAmount: invoiceServiceAmount,
+                        insuranceProvider: invoiceInsuranceProvider,
+                        nhsNumber: invoiceNhsNumber,
+                        totalAmount: parseFloat(invoiceTotalAmount),
+                        notes: invoiceNotes,
+                      },
                     });
                     
                     setShowInvoiceDialog(false);
@@ -4553,23 +4842,61 @@ export default function ImagingPage() {
 
               <div className="border rounded-lg p-4">
                 <h3 className="font-semibold mb-3">Invoice Details</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <span className="text-gray-600">Patient:</span>
+                    <p className="font-medium">{summaryData.invoice?.patient}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Service Date:</span>
+                    <p className="font-medium">{summaryData.invoice?.serviceDate}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Invoice Date:</span>
+                    <p className="font-medium">{summaryData.invoice?.invoiceDate}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Due Date:</span>
+                    <p className="font-medium">{summaryData.invoice?.dueDate}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <span className="text-gray-600">Service:</span>
+                    <p className="font-medium">{summaryData.invoice?.serviceDesc} (Code: {summaryData.invoice?.serviceCode})</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Quantity:</span>
+                    <p className="font-medium">{summaryData.invoice?.serviceQty}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Amount:</span>
+                    <p className="font-medium">£{summaryData.invoice?.serviceAmount}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Insurance Provider:</span>
+                    <p className="font-medium capitalize">{summaryData.invoice?.insuranceProvider === 'none' ? 'Self-Pay' : summaryData.invoice?.insuranceProvider}</p>
+                  </div>
+                  {summaryData.invoice?.nhsNumber && (
+                    <div>
+                      <span className="text-gray-600">NHS Number:</span>
+                      <p className="font-medium">{summaryData.invoice?.nhsNumber}</p>
+                    </div>
+                  )}
+                  <div>
                     <span className="text-gray-600">Payment Method:</span>
-                    <span className="font-medium capitalize">{summaryData.invoice?.paymentMethod.replace('_', ' ')}</span>
+                    <p className="font-medium capitalize">{summaryData.invoice?.paymentMethod.replace('_', ' ')}</p>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Subtotal:</span>
-                    <span className="font-medium">£{summaryData.invoice?.subtotal.toFixed(2)}</span>
+                  <div className="col-span-2 pt-2 border-t mt-2">
+                    <div className="flex justify-between font-bold">
+                      <span>Total Amount:</span>
+                      <span className="text-blue-600">£{summaryData.invoice?.totalAmount?.toFixed(2)}</span>
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Tax:</span>
-                    <span className="font-medium">£{summaryData.invoice?.tax.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between font-bold pt-2 border-t">
-                    <span>Total:</span>
-                    <span className="text-blue-600">£{summaryData.invoice?.totalAmount.toFixed(2)}</span>
-                  </div>
+                  {summaryData.invoice?.notes && (
+                    <div className="col-span-2">
+                      <span className="text-gray-600">Notes:</span>
+                      <p className="font-medium text-sm mt-1">{summaryData.invoice?.notes}</p>
+                    </div>
+                  )}
                 </div>
               </div>
 
