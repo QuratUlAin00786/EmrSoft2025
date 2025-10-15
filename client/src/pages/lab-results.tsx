@@ -3272,6 +3272,31 @@ Report generated from Cura EMR System`;
               </Popover>
             </div>
 
+            {/* Test ID Field */}
+            <div className="space-y-2">
+              <Label htmlFor="generate-test-id">Test ID</Label>
+              <Input
+                id="generate-test-id"
+                type="text"
+                placeholder="Auto-generated Test ID"
+                value={
+                  generateFormData.testId ||
+                  `LAB${Date.now()}${Math.random().toString(36).substring(2, 9).toUpperCase()}`
+                }
+                onChange={(e) =>
+                  setGenerateFormData((prev: any) => ({
+                    ...prev,
+                    testId: e.target.value,
+                  }))
+                }
+                data-testid="input-test-id"
+                className="font-mono"
+              />
+              <p className="text-xs text-gray-500">
+                Auto-generated unique test identifier (can be customized)
+              </p>
+            </div>
+
             {/* Test Type Multi-Selection */}
             <div className="space-y-2">
               <Label>Select Test Types *</Label>
@@ -3484,16 +3509,26 @@ Report generated from Cura EMR System`;
                     return;
                   }
 
+                  // Generate or use provided test ID
+                  const baseTestId = generateFormData.testId || 
+                    `LAB${Date.now()}${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
+
                   // Create lab result for each selected test
-                  generateFormData.selectedTests.forEach((testType: string) => {
+                  generateFormData.selectedTests.forEach((testType: string, index: number) => {
                     const testResults = results.filter((r) => {
                       const fields = TEST_FIELD_DEFINITIONS[testType];
                       return fields?.some((f) => f.name === r.name);
                     });
 
                     if (testResults.length > 0) {
+                      // For multiple tests, append index to test ID
+                      const testId = generateFormData.selectedTests.length > 1 
+                        ? `${baseTestId}-${index + 1}`
+                        : baseTestId;
+
                       const labResultData = {
                         patientId: generateFormData.patientId,
+                        testId: testId,
                         testType: testType,
                         orderedBy: user?.id,
                         priority: "routine",
