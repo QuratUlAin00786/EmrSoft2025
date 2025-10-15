@@ -495,6 +495,29 @@ const physiotherapistSubcategories = [
   "Hand Therapist"
 ] as const;
 
+// Aesthetician Subcategories
+const aestheticianSubcategories = [
+  "Medical Aesthetician",
+  "Clinical Aesthetician",
+  "Spa Aesthetician",
+  "Laser Technician",
+  "Paramedical Aesthetician",
+  "Oncology Aesthetician",
+  "Acne Specialist",
+  "Anti-Aging Aesthetician",
+  "Cosmetic Tattoo Technician",
+  "Chemical Peel Specialist",
+  "Microneedling Specialist",
+  "Hydrafacial Specialist",
+  "Body Contouring Specialist",
+  "Eyebrow & Eyelash Technician",
+  "Waxing / Hair Removal Specialist",
+  "Makeup Artist (Certified Aesthetician)",
+  "Dermaplaning Specialist",
+  "Aesthetic Trainer / Educator",
+  "Natural / Organic Aesthetician"
+] as const;
+
 export default function UserManagement() {
   const [, setLocation] = useLocation();
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -538,6 +561,9 @@ export default function UserManagement() {
   
   // Physiotherapist subcategory state
   const [selectedPhysiotherapistSubcategory, setSelectedPhysiotherapistSubcategory] = useState<string>("");
+  
+  // Aesthetician subcategory state
+  const [selectedAestheticianSubcategory, setSelectedAestheticianSubcategory] = useState<string>("");
   
   // Role management states
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
@@ -1459,6 +1485,14 @@ export default function UserManagement() {
       setSelectedPhysiotherapistSubcategory("");
     }
 
+    // Set aesthetician subcategory for Aesthetician role
+    if (user.role.toLowerCase() === 'aesthetician') {
+      setSelectedAestheticianSubcategory(user.subSpecialty || "");
+      userData.subSpecialty = user.subSpecialty || "";
+    } else {
+      setSelectedAestheticianSubcategory("");
+    }
+
     // SECTION 2: Patient table data (if role === 'patient')
     if (user.role === 'patient') {
       console.log("📋 SECTION 2: Loading patients table data (matched by email)");
@@ -1961,6 +1995,10 @@ export default function UserManagement() {
                         if (value.toLowerCase() !== 'physiotherapist') {
                           setSelectedPhysiotherapistSubcategory("");
                         }
+                        // Clear aesthetician subcategory when switching from aesthetician
+                        if (value.toLowerCase() !== 'aesthetician') {
+                          setSelectedAestheticianSubcategory("");
+                        }
                       }} defaultValue={form.getValues("role")}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a role" />
@@ -2169,6 +2207,31 @@ export default function UserManagement() {
                       </SelectTrigger>
                       <SelectContent>
                         {physiotherapistSubcategories.map((subcategory) => (
+                          <SelectItem key={subcategory} value={subcategory}>
+                            {subcategory}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {/* Aesthetician Subcategory Dropdown - Only show when role is Aesthetician */}
+                {selectedRole.toLowerCase() === 'aesthetician' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="aestheticianSubcategory">Aesthetician Subcategory</Label>
+                    <Select 
+                      onValueChange={(value) => {
+                        setSelectedAestheticianSubcategory(value);
+                        form.setValue("subSpecialty", value);
+                      }} 
+                      value={selectedAestheticianSubcategory}
+                    >
+                      <SelectTrigger data-testid="dropdown-aesthetician-subcategory">
+                        <SelectValue placeholder="Select subcategory" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {aestheticianSubcategories.map((subcategory) => (
                           <SelectItem key={subcategory} value={subcategory}>
                             {subcategory}
                           </SelectItem>
