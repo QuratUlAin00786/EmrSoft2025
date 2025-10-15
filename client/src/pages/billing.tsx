@@ -48,6 +48,8 @@ import {
 
 interface Invoice {
   id: string;
+  organizationId: number;
+  invoiceNumber?: string;
   patientId: string;
   patientName: string;
   dateOfService: string;
@@ -133,6 +135,25 @@ export default function BillingPage() {
       await apiRequest('PATCH', `/api/billing/invoices/${selectedInvoice.id}`, {
         status: editedStatus
       });
+      
+      // If status is changed to "paid", create a payment record
+      if (editedStatus === 'paid' && selectedInvoice.status !== 'paid') {
+        await apiRequest('POST', '/api/billing/payments', {
+          organizationId: selectedInvoice.organizationId,
+          invoiceId: selectedInvoice.id,
+          patientId: selectedInvoice.patientId,
+          amount: typeof selectedInvoice.totalAmount === 'string' ? parseFloat(selectedInvoice.totalAmount) : selectedInvoice.totalAmount,
+          currency: 'GBP',
+          paymentMethod: 'manual',
+          paymentProvider: 'manual',
+          paymentStatus: 'completed',
+          paymentDate: new Date().toISOString(),
+          transactionId: `TXN-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+        });
+        
+        // Refresh payments list
+        queryClient.invalidateQueries({ queryKey: ["/api/billing/payments"] });
+      }
       
       // Update the local state
       setSelectedInvoice({ ...selectedInvoice, status: editedStatus as any });
