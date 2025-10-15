@@ -13683,6 +13683,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all payments for the organization
+  app.get("/api/billing/payments", requireRole(["admin", "doctor", "nurse", "receptionist"]), async (req: TenantRequest, res) => {
+    try {
+      const payments = await storage.getPaymentsByOrganization(req.tenant!.id);
+      res.json(payments);
+    } catch (error) {
+      console.error("Failed to fetch payments:", error);
+      res.status(500).json({ error: "Failed to fetch payments" });
+    }
+  });
+
   // Create payment record
   app.post("/api/billing/payments", (req, res, next) => {
     console.log("🔵🔵🔵 PAYMENT ROUTE HIT - Body:", req.body);
