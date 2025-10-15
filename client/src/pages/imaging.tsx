@@ -4968,7 +4968,7 @@ export default function ImagingPage() {
                         const paymentData = {
                           organizationId: createdInvoice.organizationId,
                           invoiceId: createdInvoice.id,
-                          patientId: summaryData.invoice.patientId,
+                          patientId: summaryData.selectedPatient.patientId,
                           transactionId: `TXN-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
                           amount: summaryData.invoice.totalAmount,
                           currency: 'GBP',
