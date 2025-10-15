@@ -65,10 +65,9 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // ALWAYS serve the app on port 5000 FIRST - critical for health checks
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = 5000;
+  // Use PORT from environment (Replit deployment) or default to 5000 for local dev
+  // In production, Replit provides the PORT environment variable
+  const port = process.env.PORT ? parseInt(process.env.PORT) : 5000;
   server.listen(port, "0.0.0.0", () => {
     log(`serving on port ${port}`);
     log("🚀 Server is ready for health checks!");
@@ -122,7 +121,8 @@ app.use((req, res, next) => {
     console.log("🎯 PRODUCTION DEMO: Creating essential demo users for login screen...");
     setImmediate(async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/production-demo-setup', {
+        const apiPort = process.env.PORT || 5000;
+        const response = await fetch(`http://localhost:${apiPort}/api/production-demo-setup`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({})
