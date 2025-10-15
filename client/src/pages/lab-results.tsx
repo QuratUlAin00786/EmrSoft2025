@@ -2317,6 +2317,127 @@ Report generated from Cura EMR System`;
         </DialogContent>
       </Dialog>
 
+      {/* Invoice Dialog */}
+      <Dialog open={showInvoiceDialog} onOpenChange={setShowInvoiceDialog}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-medical-blue">Invoice Details</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            {/* Patient & Service Info */}
+            <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <div>
+                <Label className="text-sm text-gray-600 dark:text-gray-400">Patient Name</Label>
+                <p className="font-semibold">{pendingOrderData?.patientName}</p>
+              </div>
+              <div>
+                <Label className="text-sm text-gray-600 dark:text-gray-400">Service Date</Label>
+                <p className="font-semibold">{invoiceData.serviceDate}</p>
+              </div>
+              <div>
+                <Label className="text-sm text-gray-600 dark:text-gray-400">Invoice Date</Label>
+                <p className="font-semibold">{invoiceData.invoiceDate}</p>
+              </div>
+              <div>
+                <Label className="text-sm text-gray-600 dark:text-gray-400">Due Date</Label>
+                <p className="font-semibold">{invoiceData.dueDate}</p>
+              </div>
+            </div>
+
+            {/* Line Items Table */}
+            <div className="border rounded-lg overflow-hidden">
+              <table className="w-full">
+                <thead className="bg-medical-blue text-white">
+                  <tr>
+                    <th className="text-left p-3">Code</th>
+                    <th className="text-left p-3">Description</th>
+                    <th className="text-center p-3">Qty</th>
+                    <th className="text-right p-3">Unit Price</th>
+                    <th className="text-right p-3">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {invoiceData.items.map((item: any, index: number) => (
+                    <tr key={index} className="border-t">
+                      <td className="p-3">{item.code}</td>
+                      <td className="p-3">{item.description}</td>
+                      <td className="text-center p-3">{item.quantity}</td>
+                      <td className="text-right p-3">${item.unitPrice.toFixed(2)}</td>
+                      <td className="text-right p-3">${item.total.toFixed(2)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot className="bg-gray-50 dark:bg-gray-800">
+                  <tr>
+                    <td colSpan={4} className="text-right p-3 font-bold">Total Amount:</td>
+                    <td className="text-right p-3 font-bold text-xl text-medical-blue">
+                      ${invoiceData.totalAmount.toFixed(2)}
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+
+            {/* Insurance Provider */}
+            <div>
+              <Label>Insurance Provider (Optional)</Label>
+              <Input
+                placeholder="Enter insurance provider name"
+                value={invoiceData.insuranceProvider}
+                onChange={(e) => setInvoiceData({ ...invoiceData, insuranceProvider: e.target.value })}
+                className="mt-1"
+              />
+            </div>
+
+            {/* Payment Method Selection */}
+            <div>
+              <Label>Payment Method *</Label>
+              <Select
+                value={invoiceData.paymentMethod}
+                onValueChange={(value) => setInvoiceData({ ...invoiceData, paymentMethod: value })}
+              >
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Select payment method" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="cash">Cash</SelectItem>
+                  <SelectItem value="debit_card">Debit Card</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowInvoiceDialog(false);
+                  setInvoiceData({
+                    ...invoiceData,
+                    paymentMethod: '',
+                    insuranceProvider: ''
+                  });
+                }}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  setShowInvoiceDialog(false);
+                  setShowSummaryDialog(true);
+                }}
+                disabled={!invoiceData.paymentMethod}
+                className="flex-1 bg-medical-blue hover:bg-blue-700"
+              >
+                Proceed to Summary
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* View Lab Result Dialog */}
       <Dialog
         open={showViewDialog}
