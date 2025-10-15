@@ -691,7 +691,7 @@ Report generated from Cura EMR System`;
       priority: selectedResult.priority,
       notes: selectedResult.notes || "",
       status: selectedResult.status,
-      doctorName: selectedResult.doctorName || "",
+      doctorName: "",
       mainSpecialty: selectedResult.mainSpecialty || "",
       subSpecialty: selectedResult.subSpecialty || "",
     });
@@ -2364,11 +2364,7 @@ Report generated from Cura EMR System`;
 
                         {selectedEditRole && (
                           <Select
-                            value={
-                              editFormData.doctorName ||
-                              selectedResult.doctorName ||
-                              ""
-                            }
+                            value={editFormData.doctorName || ""}
                             onValueChange={(value) =>
                               setEditFormData((prev: any) => ({
                                 ...prev,
@@ -2397,97 +2393,27 @@ Report generated from Cura EMR System`;
                     )}
                   </div>
 
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">
-                      Main Specialization:
-                    </p>
-                    {isEditMode ? (
-                      <Select
-                        value={
-                          editFormData.mainSpecialty ||
-                          selectedResult.mainSpecialty ||
-                          ""
-                        }
-                        onValueChange={(value) =>
-                          setEditFormData((prev: any) => ({
-                            ...prev,
-                            mainSpecialty: value,
-                          }))
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select main specialization" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Surgical Specialties">
-                            Surgical Specialties
-                          </SelectItem>
-                          <SelectItem value="Medical Specialties">
-                            Medical Specialties
-                          </SelectItem>
-                          <SelectItem value="Diagnostic Specialties">
-                            Diagnostic Specialties
-                          </SelectItem>
-                          <SelectItem value="Emergency Medicine">
-                            Emergency Medicine
-                          </SelectItem>
-                          <SelectItem value="Primary Care">
-                            Primary Care
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    ) : (
-                      <p className="text-gray-600 font-medium">
-                        {selectedResult.mainSpecialty || "Surgical Specialties"}
-                      </p>
-                    )}
-                  </div>
+                  {!isEditMode && (
+                    <>
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">
+                          Main Specialization:
+                        </p>
+                        <p className="text-gray-600 font-medium">
+                          {selectedResult.mainSpecialty || "Surgical Specialties"}
+                        </p>
+                      </div>
 
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">
-                      Sub-Specialization:
-                    </p>
-                    {isEditMode ? (
-                      <Select
-                        value={
-                          editFormData.subSpecialty ||
-                          selectedResult.subSpecialty ||
-                          ""
-                        }
-                        onValueChange={(value) =>
-                          setEditFormData((prev: any) => ({
-                            ...prev,
-                            subSpecialty: value,
-                          }))
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select sub-specialization" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Orthopedic Surgeon">
-                            Orthopedic Surgeon
-                          </SelectItem>
-                          <SelectItem value="Cardiovascular Surgeon">
-                            Cardiovascular Surgeon
-                          </SelectItem>
-                          <SelectItem value="Neurosurgeon">
-                            Neurosurgeon
-                          </SelectItem>
-                          <SelectItem value="General Surgeon">
-                            General Surgeon
-                          </SelectItem>
-                          <SelectItem value="Plastic Surgeon">
-                            Plastic Surgeon
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    ) : (
-                      <p className="text-gray-600 font-medium">
-                        {selectedResult.subSpecialty || "Orthopedic Surgeon"}
-                      </p>
-                    )}
-                  </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">
+                          Sub-Specialization:
+                        </p>
+                        <p className="text-gray-600 font-medium">
+                          {selectedResult.subSpecialty || "Orthopedic Surgeon"}
+                        </p>
+                      </div>
+                    </>
+                  )}
 
                   <div>
                     <p className="text-sm font-medium text-blue-600">
