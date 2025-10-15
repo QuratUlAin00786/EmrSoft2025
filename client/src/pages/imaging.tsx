@@ -4991,7 +4991,7 @@ export default function ImagingPage() {
                         // Show success modal with invoice details
                         setPaymentSuccessData({
                           invoiceId: createdInvoice.invoiceNumber,
-                          patientName: summaryData.invoice.patient,
+                          patientName: `${summaryData.selectedPatient.firstName} ${summaryData.selectedPatient.lastName}`,
                           amount: summaryData.invoice.totalAmount,
                         });
                         setShowPaymentSuccessDialog(true);
