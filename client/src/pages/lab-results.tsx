@@ -203,6 +203,8 @@ import {
   ChevronsUpDown,
   X,
   Edit,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 
 interface DatabaseLabResult {
@@ -339,6 +341,7 @@ export default function LabResultsPage() {
   const [testTypePopoverOpen, setTestTypePopoverOpen] = useState(false);
   const [generateFormData, setGenerateFormData] = useState<any>({});
   const [fillResultFormData, setFillResultFormData] = useState<any>({});
+  const [expandedResults, setExpandedResults] = useState<Set<number>>(new Set());
 
   // Fetch roles from the roles table filtered by organization_id
   const { data: rolesData = [] } = useQuery({
@@ -1728,40 +1731,64 @@ Report generated from Cura EMR System`;
                     {/* Test Results section (if available) - with right margin for blue box */}
                     {result.results && result.results.length > 0 && (
                       <div className="mt-6 mr-72">
-                        <h4 className="font-medium mb-3">Test Results:</h4>
-                        <div className="grid gap-3">
-                          {result.results.map(
-                            (testResult: any, index: number) => (
-                              <div
-                                key={index}
-                                className="p-3 rounded-lg border bg-gray-50 border-gray-200"
-                              >
-                                <div className="flex items-center justify-between">
-                                  <span className="font-medium">
-                                    {testResult.name}
-                                  </span>
-                                  <Badge
-                                    className={getResultStatusColor(
-                                      testResult.status,
-                                    )}
-                                  >
-                                    {testResult.status
-                                      .replace("_", " ")
-                                      .toUpperCase()}
-                                  </Badge>
-                                </div>
-                                <div className="text-sm text-gray-600 mt-1">
-                                  <span className="font-medium">
-                                    {testResult.value} {testResult.unit}
-                                  </span>
-                                  <span className="ml-2">
-                                    Ref: {testResult.referenceRange}
-                                  </span>
-                                </div>
-                              </div>
-                            ),
+                        <button
+                          onClick={() => {
+                            setExpandedResults((prev) => {
+                              const newSet = new Set(prev);
+                              if (newSet.has(result.id)) {
+                                newSet.delete(result.id);
+                              } else {
+                                newSet.add(result.id);
+                              }
+                              return newSet;
+                            });
+                          }}
+                          className="flex items-center gap-2 font-medium mb-3 hover:text-blue-600 transition-colors"
+                          data-testid="button-toggle-test-results"
+                        >
+                          {expandedResults.has(result.id) ? (
+                            <ChevronDown className="h-5 w-5" />
+                          ) : (
+                            <ChevronRight className="h-5 w-5" />
                           )}
-                        </div>
+                          <span>Test Results:</span>
+                        </button>
+                        
+                        {expandedResults.has(result.id) && (
+                          <div className="grid gap-3">
+                            {result.results.map(
+                              (testResult: any, index: number) => (
+                                <div
+                                  key={index}
+                                  className="p-3 rounded-lg border bg-gray-50 border-gray-200"
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <span className="font-medium">
+                                      {testResult.name}
+                                    </span>
+                                    <Badge
+                                      className={getResultStatusColor(
+                                        testResult.status,
+                                      )}
+                                    >
+                                      {testResult.status
+                                        .replace("_", " ")
+                                        .toUpperCase()}
+                                    </Badge>
+                                  </div>
+                                  <div className="text-sm text-gray-600 mt-1">
+                                    <span className="font-medium">
+                                      {testResult.value} {testResult.unit}
+                                    </span>
+                                    <span className="ml-2">
+                                      Ref: {testResult.referenceRange}
+                                    </span>
+                                  </div>
+                                </div>
+                              ),
+                            )}
+                          </div>
+                        )}
                       </div>
                     )}
 
@@ -3643,9 +3670,9 @@ Report generated from Cura EMR System`;
               {/* Test Result Fields Based on Test Type */}
               {TEST_FIELD_DEFINITIONS[selectedLabOrder.testType] && (
                 <div className="space-y-4">
-                  <h3 className="font-semibold text-gray-900">
+                  <h4 className="font-semibold text-gray-900">
                     Enter Test Results for {selectedLabOrder.testType}
-                  </h3>
+                  </h4>
                   <div className="grid grid-cols-2 gap-4">
                     {TEST_FIELD_DEFINITIONS[selectedLabOrder.testType].map((field) => (
                       <div key={field.name} className="space-y-2">
