@@ -170,6 +170,16 @@ export function FullConsultationInterface({ open, onOpenChange, patient, patient
       return;
     }
 
+    // Validate vitals before saving
+    if (!validateAllVitals()) {
+      toast({
+        title: "Validation Error",
+        description: "Please correct the errors in the vitals fields before saving.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     saveVitalsMutation.mutate(vitals);
   };
 
@@ -597,6 +607,115 @@ ${
     height: "",
     bmi: ""
   });
+
+  const [vitalsErrors, setVitalsErrors] = useState({
+    bloodPressure: "",
+    heartRate: "",
+    temperature: "",
+    respiratoryRate: "",
+    oxygenSaturation: "",
+    weight: "",
+    height: "",
+    bmi: ""
+  });
+
+  // Vitals validation functions
+  const validateBloodPressure = (value: string): string => {
+    if (!value) return "";
+    const bpPattern = /^\d{2,3}\/\d{2,3}$/;
+    if (!bpPattern.test(value)) {
+      return "Must match pattern: NNN/NNN (e.g., 120/80)";
+    }
+    const [systolic, diastolic] = value.split('/').map(Number);
+    if (systolic < 90 || systolic > 200) {
+      return "Systolic must be between 90-200";
+    }
+    if (diastolic < 60 || diastolic > 130) {
+      return "Diastolic must be between 60-130";
+    }
+    return "";
+  };
+
+  const validateHeartRate = (value: string): string => {
+    if (!value) return "Required";
+    const num = Number(value);
+    if (isNaN(num) || num < 30 || num > 200) {
+      return "Range: 30-200 bpm";
+    }
+    return "";
+  };
+
+  const validateTemperature = (value: string): string => {
+    if (!value) return "Required";
+    const num = parseFloat(value);
+    if (isNaN(num) || num < 35.0 || num > 42.0) {
+      return "Range: 35.0-42.0°C";
+    }
+    return "";
+  };
+
+  const validateRespiratoryRate = (value: string): string => {
+    if (!value) return "Required";
+    const num = Number(value);
+    if (isNaN(num) || num < 8 || num > 40) {
+      return "Range: 8-40 breaths/min";
+    }
+    return "";
+  };
+
+  const validateOxygenSaturation = (value: string): string => {
+    if (!value) return "Required";
+    const num = Number(value);
+    if (isNaN(num) || num < 70 || num > 100) {
+      return "Range: 70-100%";
+    }
+    return "";
+  };
+
+  const validateWeight = (value: string): string => {
+    if (!value) return "Required";
+    const num = parseFloat(value);
+    if (isNaN(num) || num < 2 || num > 300) {
+      return "Range: 2-300 kg";
+    }
+    return "";
+  };
+
+  const validateHeight = (value: string): string => {
+    if (!value) return "Required";
+    const num = parseFloat(value);
+    if (isNaN(num) || num < 30 || num > 250) {
+      return "Range: 30-250 cm";
+    }
+    return "";
+  };
+
+  const validateBMI = (value: string): string => {
+    if (!value) return ""; // BMI is optional
+    const num = parseFloat(value);
+    if (isNaN(num) || num < 10 || num > 60) {
+      return "Range: 10-60";
+    }
+    return "";
+  };
+
+  const validateAllVitals = (): boolean => {
+    const errors = {
+      bloodPressure: validateBloodPressure(vitals.bloodPressure),
+      heartRate: validateHeartRate(vitals.heartRate),
+      temperature: validateTemperature(vitals.temperature),
+      respiratoryRate: validateRespiratoryRate(vitals.respiratoryRate),
+      oxygenSaturation: validateOxygenSaturation(vitals.oxygenSaturation),
+      weight: validateWeight(vitals.weight),
+      height: validateHeight(vitals.height),
+      bmi: validateBMI(vitals.bmi)
+    };
+
+    setVitalsErrors(errors);
+
+    // Check if there are any errors
+    return !Object.values(errors).some(error => error !== "");
+  };
 
   const [consultationData, setConsultationData] = useState({
     chiefComplaint: "",
@@ -1807,92 +1926,191 @@ Patient should be advised of potential side effects and expected timeline for re
                         id="bp"
                         placeholder="120/80"
                         value={vitals.bloodPressure}
-                        onChange={(e) => setVitals(prev => ({ ...prev, bloodPressure: e.target.value }))}
+                        onChange={(e) => {
+                          setVitals(prev => ({ ...prev, bloodPressure: e.target.value }));
+                          setVitalsErrors(prev => ({ ...prev, bloodPressure: "" }));
+                        }}
+                        onBlur={(e) => {
+                          const error = validateBloodPressure(e.target.value);
+                          setVitalsErrors(prev => ({ ...prev, bloodPressure: error }));
+                        }}
+                        className={vitalsErrors.bloodPressure ? "border-red-500" : ""}
                       />
+                      {vitalsErrors.bloodPressure && (
+                        <p className="text-sm text-red-500">{vitalsErrors.bloodPressure}</p>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="hr" className="flex items-center gap-2">
                         <HeartPulse className="w-4 h-4 text-red-500" />
-                        Heart Rate (bpm)
+                        Heart Rate (bpm) <span className="text-red-500">*</span>
                       </Label>
                       <Input
                         id="hr"
+                        type="number"
                         placeholder="72"
                         value={vitals.heartRate}
-                        onChange={(e) => setVitals(prev => ({ ...prev, heartRate: e.target.value }))}
+                        onChange={(e) => {
+                          setVitals(prev => ({ ...prev, heartRate: e.target.value }));
+                          setVitalsErrors(prev => ({ ...prev, heartRate: "" }));
+                        }}
+                        onBlur={(e) => {
+                          const error = validateHeartRate(e.target.value);
+                          setVitalsErrors(prev => ({ ...prev, heartRate: error }));
+                        }}
+                        className={vitalsErrors.heartRate ? "border-red-500" : ""}
                       />
+                      {vitalsErrors.heartRate && (
+                        <p className="text-sm text-red-500">{vitalsErrors.heartRate}</p>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="temp" className="flex items-center gap-2">
                         <Thermometer className="w-4 h-4 text-orange-500" />
-                        Temperature (°C)
+                        Temperature (°C) <span className="text-red-500">*</span>
                       </Label>
                       <Input
                         id="temp"
+                        type="number"
+                        step="0.1"
                         placeholder="36.5"
                         value={vitals.temperature}
-                        onChange={(e) => setVitals(prev => ({ ...prev, temperature: e.target.value }))}
+                        onChange={(e) => {
+                          setVitals(prev => ({ ...prev, temperature: e.target.value }));
+                          setVitalsErrors(prev => ({ ...prev, temperature: "" }));
+                        }}
+                        onBlur={(e) => {
+                          const error = validateTemperature(e.target.value);
+                          setVitalsErrors(prev => ({ ...prev, temperature: error }));
+                        }}
+                        className={vitalsErrors.temperature ? "border-red-500" : ""}
                       />
+                      {vitalsErrors.temperature && (
+                        <p className="text-sm text-red-500">{vitalsErrors.temperature}</p>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="rr" className="flex items-center gap-2">
                         <Activity className="w-4 h-4 text-blue-500" />
-                        Respiratory Rate
+                        Respiratory Rate <span className="text-red-500">*</span>
                       </Label>
                       <Input
                         id="rr"
+                        type="number"
                         placeholder="16"
                         value={vitals.respiratoryRate}
-                        onChange={(e) => setVitals(prev => ({ ...prev, respiratoryRate: e.target.value }))}
+                        onChange={(e) => {
+                          setVitals(prev => ({ ...prev, respiratoryRate: e.target.value }));
+                          setVitalsErrors(prev => ({ ...prev, respiratoryRate: "" }));
+                        }}
+                        onBlur={(e) => {
+                          const error = validateRespiratoryRate(e.target.value);
+                          setVitalsErrors(prev => ({ ...prev, respiratoryRate: error }));
+                        }}
+                        className={vitalsErrors.respiratoryRate ? "border-red-500" : ""}
                       />
+                      {vitalsErrors.respiratoryRate && (
+                        <p className="text-sm text-red-500">{vitalsErrors.respiratoryRate}</p>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="spo2" className="flex items-center gap-2">
                         <Activity className="w-4 h-4 text-blue-500" />
-                        Oxygen Saturation (%)
+                        Oxygen Saturation (%) <span className="text-red-500">*</span>
                       </Label>
                       <Input
                         id="spo2"
+                        type="number"
                         placeholder="98"
                         value={vitals.oxygenSaturation}
-                        onChange={(e) => setVitals(prev => ({ ...prev, oxygenSaturation: e.target.value }))}
+                        onChange={(e) => {
+                          setVitals(prev => ({ ...prev, oxygenSaturation: e.target.value }));
+                          setVitalsErrors(prev => ({ ...prev, oxygenSaturation: "" }));
+                        }}
+                        onBlur={(e) => {
+                          const error = validateOxygenSaturation(e.target.value);
+                          setVitalsErrors(prev => ({ ...prev, oxygenSaturation: error }));
+                        }}
+                        className={vitalsErrors.oxygenSaturation ? "border-red-500" : ""}
                       />
+                      {vitalsErrors.oxygenSaturation && (
+                        <p className="text-sm text-red-500">{vitalsErrors.oxygenSaturation}</p>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="weight" className="flex items-center gap-2">
                         <Scale className="w-4 h-4 text-green-500" />
-                        Weight (kg)
+                        Weight (kg) <span className="text-red-500">*</span>
                       </Label>
                       <Input
                         id="weight"
+                        type="number"
+                        step="0.1"
                         placeholder="70"
                         value={vitals.weight}
-                        onChange={(e) => setVitals(prev => ({ ...prev, weight: e.target.value }))}
+                        onChange={(e) => {
+                          setVitals(prev => ({ ...prev, weight: e.target.value }));
+                          setVitalsErrors(prev => ({ ...prev, weight: "" }));
+                        }}
+                        onBlur={(e) => {
+                          const error = validateWeight(e.target.value);
+                          setVitalsErrors(prev => ({ ...prev, weight: error }));
+                        }}
+                        className={vitalsErrors.weight ? "border-red-500" : ""}
                       />
+                      {vitalsErrors.weight && (
+                        <p className="text-sm text-red-500">{vitalsErrors.weight}</p>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="height" className="flex items-center gap-2">
                         <Ruler className="w-4 h-4 text-green-500" />
-                        Height (cm)
+                        Height (cm) <span className="text-red-500">*</span>
                       </Label>
                       <Input
                         id="height"
+                        type="number"
+                        step="0.1"
                         placeholder="170"
                         value={vitals.height}
-                        onChange={(e) => setVitals(prev => ({ ...prev, height: e.target.value }))}
+                        onChange={(e) => {
+                          setVitals(prev => ({ ...prev, height: e.target.value }));
+                          setVitalsErrors(prev => ({ ...prev, height: "" }));
+                        }}
+                        onBlur={(e) => {
+                          const error = validateHeight(e.target.value);
+                          setVitalsErrors(prev => ({ ...prev, height: error }));
+                        }}
+                        className={vitalsErrors.height ? "border-red-500" : ""}
                       />
+                      {vitalsErrors.height && (
+                        <p className="text-sm text-red-500">{vitalsErrors.height}</p>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="bmi" className="flex items-center gap-2">
                         <Activity className="w-4 h-4 text-purple-500" />
-                        BMI
+                        BMI (Optional)
                       </Label>
                       <Input
                         id="bmi"
+                        type="number"
+                        step="0.1"
                         placeholder="24.2"
                         value={vitals.bmi}
-                        onChange={(e) => setVitals(prev => ({ ...prev, bmi: e.target.value }))}
+                        onChange={(e) => {
+                          setVitals(prev => ({ ...prev, bmi: e.target.value }));
+                          setVitalsErrors(prev => ({ ...prev, bmi: "" }));
+                        }}
+                        onBlur={(e) => {
+                          const error = validateBMI(e.target.value);
+                          setVitalsErrors(prev => ({ ...prev, bmi: error }));
+                        }}
+                        className={vitalsErrors.bmi ? "border-red-500" : ""}
                       />
+                      {vitalsErrors.bmi && (
+                        <p className="text-sm text-red-500">{vitalsErrors.bmi}</p>
+                      )}
                     </div>
                   </div>
                 </CardContent>
