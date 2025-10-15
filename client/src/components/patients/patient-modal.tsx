@@ -5,6 +5,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,32 +30,234 @@ import { useTenant } from "@/hooks/use-tenant";
 import { useToast } from "@/hooks/use-toast";
 import { Brain, Save, X } from "lucide-react";
 
-// Country codes with flags
+// Comprehensive country codes with ISO codes for flag API
 const COUNTRY_CODES = [
-  { code: "+44", name: "United Kingdom", flag: "🇬🇧" },
-  { code: "+1", name: "United States", flag: "🇺🇸" },
-  { code: "+92", name: "Pakistan", flag: "🇵🇰" },
-  { code: "+966", name: "Saudi Arabia", flag: "🇸🇦" },
-  { code: "+971", name: "UAE", flag: "🇦🇪" },
-  { code: "+91", name: "India", flag: "🇮🇳" },
-  { code: "+33", name: "France", flag: "🇫🇷" },
-  { code: "+49", name: "Germany", flag: "🇩🇪" },
-  { code: "+39", name: "Italy", flag: "🇮🇹" },
-  { code: "+34", name: "Spain", flag: "🇪🇸" }
+  { code: "+93", name: "Afghanistan", iso: "af" },
+  { code: "+355", name: "Albania", iso: "al" },
+  { code: "+213", name: "Algeria", iso: "dz" },
+  { code: "+376", name: "Andorra", iso: "ad" },
+  { code: "+244", name: "Angola", iso: "ao" },
+  { code: "+54", name: "Argentina", iso: "ar" },
+  { code: "+374", name: "Armenia", iso: "am" },
+  { code: "+61", name: "Australia", iso: "au" },
+  { code: "+43", name: "Austria", iso: "at" },
+  { code: "+994", name: "Azerbaijan", iso: "az" },
+  { code: "+1-242", name: "Bahamas", iso: "bs" },
+  { code: "+973", name: "Bahrain", iso: "bh" },
+  { code: "+880", name: "Bangladesh", iso: "bd" },
+  { code: "+1-246", name: "Barbados", iso: "bb" },
+  { code: "+375", name: "Belarus", iso: "by" },
+  { code: "+32", name: "Belgium", iso: "be" },
+  { code: "+501", name: "Belize", iso: "bz" },
+  { code: "+229", name: "Benin", iso: "bj" },
+  { code: "+975", name: "Bhutan", iso: "bt" },
+  { code: "+591", name: "Bolivia", iso: "bo" },
+  { code: "+387", name: "Bosnia and Herzegovina", iso: "ba" },
+  { code: "+267", name: "Botswana", iso: "bw" },
+  { code: "+55", name: "Brazil", iso: "br" },
+  { code: "+673", name: "Brunei", iso: "bn" },
+  { code: "+359", name: "Bulgaria", iso: "bg" },
+  { code: "+226", name: "Burkina Faso", iso: "bf" },
+  { code: "+257", name: "Burundi", iso: "bi" },
+  { code: "+855", name: "Cambodia", iso: "kh" },
+  { code: "+237", name: "Cameroon", iso: "cm" },
+  { code: "+1", name: "Canada", iso: "ca" },
+  { code: "+238", name: "Cape Verde", iso: "cv" },
+  { code: "+236", name: "Central African Republic", iso: "cf" },
+  { code: "+235", name: "Chad", iso: "td" },
+  { code: "+56", name: "Chile", iso: "cl" },
+  { code: "+86", name: "China", iso: "cn" },
+  { code: "+57", name: "Colombia", iso: "co" },
+  { code: "+269", name: "Comoros", iso: "km" },
+  { code: "+242", name: "Congo (Brazzaville)", iso: "cg" },
+  { code: "+243", name: "Congo (Kinshasa)", iso: "cd" },
+  { code: "+506", name: "Costa Rica", iso: "cr" },
+  { code: "+385", name: "Croatia", iso: "hr" },
+  { code: "+53", name: "Cuba", iso: "cu" },
+  { code: "+357", name: "Cyprus", iso: "cy" },
+  { code: "+420", name: "Czech Republic", iso: "cz" },
+  { code: "+45", name: "Denmark", iso: "dk" },
+  { code: "+253", name: "Djibouti", iso: "dj" },
+  { code: "+1-767", name: "Dominica", iso: "dm" },
+  { code: "+1-809", name: "Dominican Republic", iso: "do" },
+  { code: "+670", name: "East Timor", iso: "tl" },
+  { code: "+593", name: "Ecuador", iso: "ec" },
+  { code: "+20", name: "Egypt", iso: "eg" },
+  { code: "+503", name: "El Salvador", iso: "sv" },
+  { code: "+240", name: "Equatorial Guinea", iso: "gq" },
+  { code: "+291", name: "Eritrea", iso: "er" },
+  { code: "+372", name: "Estonia", iso: "ee" },
+  { code: "+268", name: "Eswatini", iso: "sz" },
+  { code: "+251", name: "Ethiopia", iso: "et" },
+  { code: "+679", name: "Fiji", iso: "fj" },
+  { code: "+358", name: "Finland", iso: "fi" },
+  { code: "+33", name: "France", iso: "fr" },
+  { code: "+241", name: "Gabon", iso: "ga" },
+  { code: "+220", name: "Gambia", iso: "gm" },
+  { code: "+995", name: "Georgia", iso: "ge" },
+  { code: "+49", name: "Germany", iso: "de" },
+  { code: "+233", name: "Ghana", iso: "gh" },
+  { code: "+30", name: "Greece", iso: "gr" },
+  { code: "+1-473", name: "Grenada", iso: "gd" },
+  { code: "+502", name: "Guatemala", iso: "gt" },
+  { code: "+224", name: "Guinea", iso: "gn" },
+  { code: "+245", name: "Guinea-Bissau", iso: "gw" },
+  { code: "+592", name: "Guyana", iso: "gy" },
+  { code: "+509", name: "Haiti", iso: "ht" },
+  { code: "+504", name: "Honduras", iso: "hn" },
+  { code: "+36", name: "Hungary", iso: "hu" },
+  { code: "+354", name: "Iceland", iso: "is" },
+  { code: "+91", name: "India", iso: "in" },
+  { code: "+62", name: "Indonesia", iso: "id" },
+  { code: "+98", name: "Iran", iso: "ir" },
+  { code: "+964", name: "Iraq", iso: "iq" },
+  { code: "+353", name: "Ireland", iso: "ie" },
+  { code: "+972", name: "Israel", iso: "il" },
+  { code: "+39", name: "Italy", iso: "it" },
+  { code: "+225", name: "Ivory Coast", iso: "ci" },
+  { code: "+1-876", name: "Jamaica", iso: "jm" },
+  { code: "+81", name: "Japan", iso: "jp" },
+  { code: "+962", name: "Jordan", iso: "jo" },
+  { code: "+7", name: "Kazakhstan", iso: "kz" },
+  { code: "+254", name: "Kenya", iso: "ke" },
+  { code: "+686", name: "Kiribati", iso: "ki" },
+  { code: "+850", name: "Korea, North", iso: "kp" },
+  { code: "+82", name: "Korea, South", iso: "kr" },
+  { code: "+965", name: "Kuwait", iso: "kw" },
+  { code: "+996", name: "Kyrgyzstan", iso: "kg" },
+  { code: "+856", name: "Laos", iso: "la" },
+  { code: "+371", name: "Latvia", iso: "lv" },
+  { code: "+961", name: "Lebanon", iso: "lb" },
+  { code: "+266", name: "Lesotho", iso: "ls" },
+  { code: "+231", name: "Liberia", iso: "lr" },
+  { code: "+218", name: "Libya", iso: "ly" },
+  { code: "+423", name: "Liechtenstein", iso: "li" },
+  { code: "+370", name: "Lithuania", iso: "lt" },
+  { code: "+352", name: "Luxembourg", iso: "lu" },
+  { code: "+261", name: "Madagascar", iso: "mg" },
+  { code: "+265", name: "Malawi", iso: "mw" },
+  { code: "+60", name: "Malaysia", iso: "my" },
+  { code: "+960", name: "Maldives", iso: "mv" },
+  { code: "+223", name: "Mali", iso: "ml" },
+  { code: "+356", name: "Malta", iso: "mt" },
+  { code: "+692", name: "Marshall Islands", iso: "mh" },
+  { code: "+222", name: "Mauritania", iso: "mr" },
+  { code: "+230", name: "Mauritius", iso: "mu" },
+  { code: "+52", name: "Mexico", iso: "mx" },
+  { code: "+691", name: "Micronesia", iso: "fm" },
+  { code: "+373", name: "Moldova", iso: "md" },
+  { code: "+377", name: "Monaco", iso: "mc" },
+  { code: "+976", name: "Mongolia", iso: "mn" },
+  { code: "+382", name: "Montenegro", iso: "me" },
+  { code: "+212", name: "Morocco", iso: "ma" },
+  { code: "+258", name: "Mozambique", iso: "mz" },
+  { code: "+95", name: "Myanmar", iso: "mm" },
+  { code: "+264", name: "Namibia", iso: "na" },
+  { code: "+674", name: "Nauru", iso: "nr" },
+  { code: "+977", name: "Nepal", iso: "np" },
+  { code: "+31", name: "Netherlands", iso: "nl" },
+  { code: "+64", name: "New Zealand", iso: "nz" },
+  { code: "+505", name: "Nicaragua", iso: "ni" },
+  { code: "+227", name: "Niger", iso: "ne" },
+  { code: "+234", name: "Nigeria", iso: "ng" },
+  { code: "+389", name: "North Macedonia", iso: "mk" },
+  { code: "+47", name: "Norway", iso: "no" },
+  { code: "+968", name: "Oman", iso: "om" },
+  { code: "+92", name: "Pakistan", iso: "pk" },
+  { code: "+680", name: "Palau", iso: "pw" },
+  { code: "+507", name: "Panama", iso: "pa" },
+  { code: "+675", name: "Papua New Guinea", iso: "pg" },
+  { code: "+595", name: "Paraguay", iso: "py" },
+  { code: "+51", name: "Peru", iso: "pe" },
+  { code: "+63", name: "Philippines", iso: "ph" },
+  { code: "+48", name: "Poland", iso: "pl" },
+  { code: "+351", name: "Portugal", iso: "pt" },
+  { code: "+974", name: "Qatar", iso: "qa" },
+  { code: "+40", name: "Romania", iso: "ro" },
+  { code: "+7", name: "Russia", iso: "ru" },
+  { code: "+250", name: "Rwanda", iso: "rw" },
+  { code: "+1-869", name: "Saint Kitts and Nevis", iso: "kn" },
+  { code: "+1-758", name: "Saint Lucia", iso: "lc" },
+  { code: "+1-784", name: "Saint Vincent & Grenadines", iso: "vc" },
+  { code: "+685", name: "Samoa", iso: "ws" },
+  { code: "+378", name: "San Marino", iso: "sm" },
+  { code: "+239", name: "Sao Tome and Principe", iso: "st" },
+  { code: "+966", name: "Saudi Arabia", iso: "sa" },
+  { code: "+221", name: "Senegal", iso: "sn" },
+  { code: "+381", name: "Serbia", iso: "rs" },
+  { code: "+248", name: "Seychelles", iso: "sc" },
+  { code: "+232", name: "Sierra Leone", iso: "sl" },
+  { code: "+65", name: "Singapore", iso: "sg" },
+  { code: "+421", name: "Slovakia", iso: "sk" },
+  { code: "+386", name: "Slovenia", iso: "si" },
+  { code: "+677", name: "Solomon Islands", iso: "sb" },
+  { code: "+252", name: "Somalia", iso: "so" },
+  { code: "+27", name: "South Africa", iso: "za" },
+  { code: "+211", name: "South Sudan", iso: "ss" },
+  { code: "+34", name: "Spain", iso: "es" },
+  { code: "+94", name: "Sri Lanka", iso: "lk" },
+  { code: "+249", name: "Sudan", iso: "sd" },
+  { code: "+597", name: "Suriname", iso: "sr" },
+  { code: "+46", name: "Sweden", iso: "se" },
+  { code: "+41", name: "Switzerland", iso: "ch" },
+  { code: "+963", name: "Syria", iso: "sy" },
+  { code: "+886", name: "Taiwan", iso: "tw" },
+  { code: "+992", name: "Tajikistan", iso: "tj" },
+  { code: "+255", name: "Tanzania", iso: "tz" },
+  { code: "+66", name: "Thailand", iso: "th" },
+  { code: "+228", name: "Togo", iso: "tg" },
+  { code: "+676", name: "Tonga", iso: "to" },
+  { code: "+1-868", name: "Trinidad and Tobago", iso: "tt" },
+  { code: "+216", name: "Tunisia", iso: "tn" },
+  { code: "+90", name: "Turkey", iso: "tr" },
+  { code: "+993", name: "Turkmenistan", iso: "tm" },
+  { code: "+688", name: "Tuvalu", iso: "tv" },
+  { code: "+256", name: "Uganda", iso: "ug" },
+  { code: "+380", name: "Ukraine", iso: "ua" },
+  { code: "+971", name: "United Arab Emirates", iso: "ae" },
+  { code: "+44", name: "United Kingdom", iso: "gb" },
+  { code: "+1", name: "United States", iso: "us" },
+  { code: "+598", name: "Uruguay", iso: "uy" },
+  { code: "+998", name: "Uzbekistan", iso: "uz" },
+  { code: "+678", name: "Vanuatu", iso: "vu" },
+  { code: "+379", name: "Vatican City", iso: "va" },
+  { code: "+58", name: "Venezuela", iso: "ve" },
+  { code: "+84", name: "Vietnam", iso: "vn" },
+  { code: "+967", name: "Yemen", iso: "ye" },
+  { code: "+260", name: "Zambia", iso: "zm" },
+  { code: "+263", name: "Zimbabwe", iso: "zw" }
 ] as const;
 
 // Digit limits for each country code (excluding country code itself)
 const COUNTRY_DIGIT_LIMITS: Record<string, number> = {
-  "+1": 10,    // United States / Canada
-  "+44": 10,   // United Kingdom
-  "+92": 10,   // Pakistan
-  "+966": 9,   // Saudi Arabia
-  "+971": 9,   // UAE
-  "+91": 10,   // India
-  "+33": 9,    // France
-  "+49": 11,   // Germany
-  "+39": 10,   // Italy
-  "+34": 9     // Spain
+  "+1": 10, "+44": 10, "+32": 9, "+971": 9, "+966": 9, "+93": 9, "+355": 9,
+  "+213": 9, "+376": 9, "+244": 9, "+54": 10, "+374": 8, "+61": 9, "+43": 10,
+  "+994": 9, "+1-242": 10, "+973": 8, "+880": 10, "+1-246": 10, "+375": 9,
+  "+501": 7, "+229": 8, "+975": 8, "+591": 8, "+387": 8, "+267": 8, "+55": 11,
+  "+673": 7, "+359": 9, "+226": 8, "+257": 8, "+855": 9, "+237": 9, "+238": 7,
+  "+236": 8, "+235": 8, "+56": 9, "+86": 11, "+57": 10, "+269": 7, "+242": 9,
+  "+243": 9, "+506": 8, "+385": 9, "+53": 8, "+357": 8, "+420": 9, "+45": 8,
+  "+253": 8, "+1-767": 10, "+1-809": 10, "+670": 8, "+593": 9, "+20": 10,
+  "+503": 8, "+240": 9, "+291": 7, "+372": 8, "+268": 8, "+251": 9, "+679": 7,
+  "+358": 10, "+33": 9, "+241": 8, "+220": 7, "+995": 9, "+49": 11, "+233": 9,
+  "+30": 10, "+1-473": 10, "+502": 8, "+224": 9, "+245": 9, "+592": 7, "+509": 8,
+  "+504": 8, "+36": 9, "+354": 7, "+91": 10, "+62": 11, "+98": 10, "+964": 10,
+  "+353": 9, "+972": 9, "+39": 10, "+225": 10, "+1-876": 10, "+81": 10, "+962": 9,
+  "+7": 10, "+254": 10, "+686": 8, "+850": 10, "+82": 10, "+965": 8, "+996": 9,
+  "+856": 10, "+371": 8, "+961": 8, "+266": 8, "+231": 9, "+218": 10, "+423": 7,
+  "+370": 8, "+352": 9, "+261": 9, "+265": 9, "+60": 10, "+960": 7, "+223": 8,
+  "+356": 8, "+692": 7, "+222": 8, "+230": 8, "+52": 10, "+691": 7, "+373": 8,
+  "+377": 8, "+976": 8, "+382": 8, "+212": 9, "+258": 9, "+95": 9, "+264": 9,
+  "+674": 7, "+977": 10, "+31": 9, "+64": 9, "+505": 8, "+227": 8, "+234": 10,
+  "+389": 8, "+47": 8, "+968": 8, "+92": 10, "+680": 7, "+507": 8, "+675": 8,
+  "+595": 9, "+51": 9, "+63": 10, "+48": 9, "+351": 9, "+974": 8, "+40": 10,
+  "+250": 9, "+1-869": 10, "+1-758": 10, "+1-784": 10, "+685": 7, "+378": 10,
+  "+239": 7, "+221": 9, "+381": 9, "+248": 7, "+232": 8, "+65": 8, "+421": 9,
+  "+386": 8, "+677": 7, "+252": 9, "+27": 9, "+211": 9, "+34": 9, "+94": 9,
+  "+249": 9, "+597": 7, "+46": 10, "+41": 9, "+963": 9, "+886": 9, "+992": 9,
+  "+255": 9, "+66": 9, "+228": 8, "+676": 7, "+1-868": 10, "+216": 8, "+90": 10,
+  "+993": 8, "+688": 6, "+256": 9, "+380": 9, "+598": 8, "+998": 9, "+678": 7,
+  "+379": 10, "+58": 10, "+84": 10, "+967": 9, "+260": 9, "+263": 9
 };
 
 const patientSchema = z.object({
@@ -113,6 +328,8 @@ export function PatientModal({ open, onOpenChange, editMode = false, editPatient
   // Country code state
   const [selectedCountryCode, setSelectedCountryCode] = useState("+44");
   const [emergencyCountryCode, setEmergencyCountryCode] = useState("+44");
+  const [phoneCodePopoverOpen, setPhoneCodePopoverOpen] = useState(false);
+  const [emergencyPhoneCodePopoverOpen, setEmergencyPhoneCodePopoverOpen] = useState(false);
   
   // Success modal state
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -552,37 +769,69 @@ export function PatientModal({ open, onOpenChange, editMode = false, editPatient
                           <FormLabel>Phone Number</FormLabel>
                           <FormControl>
                             <div className="flex gap-2">
-                              <Select 
-                                value={selectedCountryCode} 
-                                onValueChange={(value) => {
-                                  setSelectedCountryCode(value);
-                                  // Extract local number by removing current country code
-                                  let localNumber = field.value;
-                                  if (localNumber.startsWith(selectedCountryCode)) {
-                                    localNumber = localNumber.slice(selectedCountryCode.length).trim();
-                                  }
-                                  field.onChange(localNumber ? `${value} ${localNumber}` : '');
-                                }}
-                              >
-                                <SelectTrigger className="w-[140px]">
-                                  <SelectValue>
+                              <Popover open={phoneCodePopoverOpen} onOpenChange={setPhoneCodePopoverOpen}>
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    role="combobox"
+                                    aria-expanded={phoneCodePopoverOpen}
+                                    className="w-[180px] justify-between"
+                                    data-testid="button-phone-country-code"
+                                  >
                                     <div className="flex items-center gap-2">
-                                      <span>{COUNTRY_CODES.find(c => c.code === selectedCountryCode)?.flag}</span>
+                                      <img 
+                                        src={`https://flagcdn.com/16x12/${COUNTRY_CODES.find(c => c.code === selectedCountryCode)?.iso}.png`}
+                                        alt={COUNTRY_CODES.find(c => c.code === selectedCountryCode)?.name}
+                                        className="w-4 h-3"
+                                        onError={(e) => {
+                                          e.currentTarget.style.display = 'none';
+                                        }}
+                                      />
                                       <span>{selectedCountryCode}</span>
                                     </div>
-                                  </SelectValue>
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {COUNTRY_CODES.map((country) => (
-                                    <SelectItem key={country.code} value={country.code}>
-                                      <div className="flex items-center gap-2">
-                                        <span>{country.flag}</span>
-                                        <span>{country.name}</span>
-                                      </div>
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
+                                    <span className="ml-2 h-4 w-4 shrink-0 opacity-50">▼</span>
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[300px] p-0" align="start">
+                                  <Command>
+                                    <CommandInput placeholder="Search country..." />
+                                    <CommandList>
+                                      <CommandEmpty>No country found.</CommandEmpty>
+                                      <CommandGroup>
+                                        {COUNTRY_CODES.map((country, index) => (
+                                          <CommandItem
+                                            key={`${country.code}-${country.iso}-${index}`}
+                                            value={`${country.name} ${country.code}`}
+                                            onSelect={() => {
+                                              let localNumber = field.value;
+                                              if (localNumber.startsWith(selectedCountryCode)) {
+                                                localNumber = localNumber.slice(selectedCountryCode.length).trim();
+                                              }
+                                              setSelectedCountryCode(country.code);
+                                              field.onChange(localNumber ? `${country.code} ${localNumber}` : '');
+                                              setPhoneCodePopoverOpen(false);
+                                            }}
+                                            className="cursor-pointer"
+                                          >
+                                            <div className="flex items-center gap-2">
+                                              <img 
+                                                src={`https://flagcdn.com/16x12/${country.iso}.png`}
+                                                alt={country.name}
+                                                className="w-4 h-3"
+                                                onError={(e) => {
+                                                  e.currentTarget.style.display = 'none';
+                                                }}
+                                              />
+                                              <span className="flex-1">{country.name}</span>
+                                              <span className="text-muted-foreground">{country.code}</span>
+                                            </div>
+                                          </CommandItem>
+                                        ))}
+                                      </CommandGroup>
+                                    </CommandList>
+                                  </Command>
+                                </PopoverContent>
+                              </Popover>
                               <Input 
                                 {...field} 
                                 placeholder="123 456 7890"
@@ -883,37 +1132,69 @@ export function PatientModal({ open, onOpenChange, editMode = false, editPatient
                           <FormLabel>Contact Phone</FormLabel>
                           <FormControl>
                             <div className="flex gap-2">
-                              <Select 
-                                value={emergencyCountryCode} 
-                                onValueChange={(value) => {
-                                  setEmergencyCountryCode(value);
-                                  // Extract local number by removing current country code
-                                  let localNumber = field.value;
-                                  if (localNumber.startsWith(emergencyCountryCode)) {
-                                    localNumber = localNumber.slice(emergencyCountryCode.length).trim();
-                                  }
-                                  field.onChange(localNumber ? `${value} ${localNumber}` : '');
-                                }}
-                              >
-                                <SelectTrigger className="w-[140px]">
-                                  <SelectValue>
+                              <Popover open={emergencyPhoneCodePopoverOpen} onOpenChange={setEmergencyPhoneCodePopoverOpen}>
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    role="combobox"
+                                    aria-expanded={emergencyPhoneCodePopoverOpen}
+                                    className="w-[180px] justify-between"
+                                    data-testid="button-emergency-phone-country-code"
+                                  >
                                     <div className="flex items-center gap-2">
-                                      <span>{COUNTRY_CODES.find(c => c.code === emergencyCountryCode)?.flag}</span>
+                                      <img 
+                                        src={`https://flagcdn.com/16x12/${COUNTRY_CODES.find(c => c.code === emergencyCountryCode)?.iso}.png`}
+                                        alt={COUNTRY_CODES.find(c => c.code === emergencyCountryCode)?.name}
+                                        className="w-4 h-3"
+                                        onError={(e) => {
+                                          e.currentTarget.style.display = 'none';
+                                        }}
+                                      />
                                       <span>{emergencyCountryCode}</span>
                                     </div>
-                                  </SelectValue>
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {COUNTRY_CODES.map((country) => (
-                                    <SelectItem key={country.code} value={country.code}>
-                                      <div className="flex items-center gap-2">
-                                        <span>{country.flag}</span>
-                                        <span>{country.name}</span>
-                                      </div>
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
+                                    <span className="ml-2 h-4 w-4 shrink-0 opacity-50">▼</span>
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[300px] p-0" align="start">
+                                  <Command>
+                                    <CommandInput placeholder="Search country..." />
+                                    <CommandList>
+                                      <CommandEmpty>No country found.</CommandEmpty>
+                                      <CommandGroup>
+                                        {COUNTRY_CODES.map((country, index) => (
+                                          <CommandItem
+                                            key={`emerg-${country.code}-${country.iso}-${index}`}
+                                            value={`${country.name} ${country.code}`}
+                                            onSelect={() => {
+                                              let localNumber = field.value;
+                                              if (localNumber.startsWith(emergencyCountryCode)) {
+                                                localNumber = localNumber.slice(emergencyCountryCode.length).trim();
+                                              }
+                                              setEmergencyCountryCode(country.code);
+                                              field.onChange(localNumber ? `${country.code} ${localNumber}` : '');
+                                              setEmergencyPhoneCodePopoverOpen(false);
+                                            }}
+                                            className="cursor-pointer"
+                                          >
+                                            <div className="flex items-center gap-2">
+                                              <img 
+                                                src={`https://flagcdn.com/16x12/${country.iso}.png`}
+                                                alt={country.name}
+                                                className="w-4 h-3"
+                                                onError={(e) => {
+                                                  e.currentTarget.style.display = 'none';
+                                                }}
+                                              />
+                                              <span className="flex-1">{country.name}</span>
+                                              <span className="text-muted-foreground">{country.code}</span>
+                                            </div>
+                                          </CommandItem>
+                                        ))}
+                                      </CommandGroup>
+                                    </CommandList>
+                                  </Command>
+                                </PopoverContent>
+                              </Popover>
                               <Input 
                                 {...field} 
                                 placeholder="123 456 7890"
