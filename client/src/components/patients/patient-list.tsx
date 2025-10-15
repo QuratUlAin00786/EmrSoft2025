@@ -552,6 +552,29 @@ function PatientDetailsModal({
     enabled: !!patient?.id && open,
   });
 
+  // Fetch users data for provider details
+  const { data: users = [], isLoading: usersLoading } = useQuery({
+    queryKey: ["/api/users"],
+    queryFn: async () => {
+      const token = localStorage.getItem("auth_token");
+      const headers: Record<string, string> = {
+        "X-Tenant-Subdomain": getTenantSubdomain(),
+      };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const response = await fetch("/api/users", {
+        headers,
+        credentials: "include",
+      });
+
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return response.json();
+    },
+    enabled: open,
+  });
+
   if (!patient) return null;
 
   return (
@@ -1862,14 +1885,125 @@ function PatientDetailsModal({
                               {appointment.status || "pending"}
                             </Badge>
                           </div>
-                          {appointment.providerId && (
-                            <div>
-                              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Provider ID
-                              </p>
-                              <p>{appointment.providerId}</p>
-                            </div>
-                          )}
+                          {appointment.providerId && (() => {
+                            const provider = users.find((u: any) => u.id === appointment.providerId);
+                            return provider ? (
+                              <div className="md:col-span-2 lg:col-span-3 border-t pt-4 mt-4">
+                                <p className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
+                                  Provider Details
+                                </p>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                  <div>
+                                    <p className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                                      Provider Name
+                                    </p>
+                                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                      {provider.firstName} {provider.lastName}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <p className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                                      Provider ID
+                                    </p>
+                                    <p className="text-sm text-gray-900 dark:text-white">
+                                      #{provider.id}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <p className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                                      Email
+                                    </p>
+                                    <p className="text-sm text-gray-900 dark:text-white">
+                                      {provider.email}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <p className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                                      Role
+                                    </p>
+                                    <Badge variant="outline" className="capitalize">
+                                      {provider.role}
+                                    </Badge>
+                                  </div>
+                                  {provider.department && (
+                                    <div>
+                                      <p className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                                        Department
+                                      </p>
+                                      <p className="text-sm text-gray-900 dark:text-white">
+                                        {provider.department}
+                                      </p>
+                                    </div>
+                                  )}
+                                  {provider.medicalSpecialtyCategory && (
+                                    <div>
+                                      <p className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                                        Specialty
+                                      </p>
+                                      <p className="text-sm text-gray-900 dark:text-white">
+                                        {provider.medicalSpecialtyCategory}
+                                      </p>
+                                    </div>
+                                  )}
+                                  {provider.subSpecialty && (
+                                    <div>
+                                      <p className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                                        Sub-Specialty
+                                      </p>
+                                      <p className="text-sm text-gray-900 dark:text-white">
+                                        {provider.subSpecialty}
+                                      </p>
+                                    </div>
+                                  )}
+                                  {provider.workingDays && provider.workingDays.length > 0 && (
+                                    <div>
+                                      <p className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                                        Working Days
+                                      </p>
+                                      <p className="text-sm text-gray-900 dark:text-white">
+                                        {provider.workingDays.join(", ")}
+                                      </p>
+                                    </div>
+                                  )}
+                                  {provider.workingHours && (
+                                    <div>
+                                      <p className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                                        Working Hours
+                                      </p>
+                                      <p className="text-sm text-gray-900 dark:text-white">
+                                        {provider.workingHours.start} - {provider.workingHours.end}
+                                      </p>
+                                    </div>
+                                  )}
+                                  {provider.username && (
+                                    <div>
+                                      <p className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                                        Username
+                                      </p>
+                                      <p className="text-sm text-gray-900 dark:text-white">
+                                        {provider.username}
+                                      </p>
+                                    </div>
+                                  )}
+                                  <div>
+                                    <p className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                                      Status
+                                    </p>
+                                    <Badge variant={provider.isActive ? "default" : "secondary"}>
+                                      {provider.isActive ? "Active" : "Inactive"}
+                                    </Badge>
+                                  </div>
+                                </div>
+                              </div>
+                            ) : (
+                              <div>
+                                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                  Provider ID
+                                </p>
+                                <p>{appointment.providerId}</p>
+                              </div>
+                            );
+                          })()}
                           {appointment.reason && (
                             <div className="md:col-span-2">
                               <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
