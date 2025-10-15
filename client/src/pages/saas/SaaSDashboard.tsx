@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import SaaSUsers from './components/SaaSUsers';
 
-const curaLogoPath = "./client/public/cura-logo-chatbot";
+const curaLogoPath = "./cura-logo-chatbot.png";
 import SaaSCustomers from './components/SaaSCustomers';
 import SaaSBilling from './components/SaaSBilling';
 import SaaSPackages from './components/SaaSPackages';

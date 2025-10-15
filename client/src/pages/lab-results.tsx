@@ -255,6 +255,63 @@ const TEST_TYPES = [
   "Iron Studies",
 ];
 
+// Test field definitions for dynamic lab result generation
+const TEST_FIELD_DEFINITIONS: Record<string, Array<{
+  name: string;
+  unit: string;
+  referenceRange: string;
+}>> = {
+  "Complete Blood Count (CBC)": [
+    { name: "Hemoglobin (Hb)", unit: "g/dL", referenceRange: "13.0 - 17.0" },
+    { name: "Total WBC Count", unit: "x10³/L", referenceRange: "4.0 - 10.0" },
+    { name: "RBC Count", unit: "x10¹²/L", referenceRange: "4.5 - 5.9" },
+    { name: "Hematocrit (HCT/PCV)", unit: "%", referenceRange: "40 - 50" },
+    { name: "MCV", unit: "fL", referenceRange: "80 - 96" },
+    { name: "MCH", unit: "pg", referenceRange: "27 - 32" },
+    { name: "MCHC", unit: "g/dL", referenceRange: "32 - 36" },
+    { name: "Platelet Count", unit: "x10³/L", referenceRange: "150 - 450" },
+    { name: "Neutrophils", unit: "%", referenceRange: "40 - 75" },
+    { name: "Lymphocytes", unit: "%", referenceRange: "20 - 45" },
+    { name: "Monocytes", unit: "%", referenceRange: "2 - 10" },
+    { name: "Eosinophils", unit: "%", referenceRange: "1 - 6" },
+    { name: "Basophils", unit: "%", referenceRange: "<2" },
+  ],
+  "Basic Metabolic Panel": [
+    { name: "Glucose", unit: "mg/dL", referenceRange: "70 - 100" },
+    { name: "Calcium", unit: "mg/dL", referenceRange: "8.5 - 10.5" },
+    { name: "Sodium", unit: "mmol/L", referenceRange: "136 - 145" },
+    { name: "Potassium", unit: "mmol/L", referenceRange: "3.5 - 5.0" },
+    { name: "Chloride", unit: "mmol/L", referenceRange: "98 - 107" },
+    { name: "CO2", unit: "mmol/L", referenceRange: "23 - 29" },
+    { name: "BUN", unit: "mg/dL", referenceRange: "7 - 20" },
+    { name: "Creatinine", unit: "mg/dL", referenceRange: "0.6 - 1.2" },
+  ],
+  "Liver Function Tests": [
+    { name: "ALT (SGPT)", unit: "U/L", referenceRange: "7 - 56" },
+    { name: "AST (SGOT)", unit: "U/L", referenceRange: "10 - 40" },
+    { name: "ALP", unit: "U/L", referenceRange: "44 - 147" },
+    { name: "Total Bilirubin", unit: "mg/dL", referenceRange: "0.1 - 1.2" },
+    { name: "Direct Bilirubin", unit: "mg/dL", referenceRange: "0.0 - 0.3" },
+    { name: "Total Protein", unit: "g/dL", referenceRange: "6.0 - 8.3" },
+    { name: "Albumin", unit: "g/dL", referenceRange: "3.5 - 5.5" },
+    { name: "Globulin", unit: "g/dL", referenceRange: "2.0 - 3.5" },
+  ],
+  "Lipid Panel": [
+    { name: "Total Cholesterol", unit: "mg/dL", referenceRange: "<200" },
+    { name: "LDL Cholesterol", unit: "mg/dL", referenceRange: "<100" },
+    { name: "HDL Cholesterol", unit: "mg/dL", referenceRange: ">40" },
+    { name: "Triglycerides", unit: "mg/dL", referenceRange: "<150" },
+    { name: "VLDL Cholesterol", unit: "mg/dL", referenceRange: "5 - 40" },
+  ],
+  "Thyroid Function Tests": [
+    { name: "TSH", unit: "mIU/L", referenceRange: "0.4 - 4.0" },
+    { name: "Free T4", unit: "ng/dL", referenceRange: "0.8 - 1.8" },
+    { name: "Free T3", unit: "pg/mL", referenceRange: "2.3 - 4.2" },
+    { name: "Total T4", unit: "μg/dL", referenceRange: "5.0 - 12.0" },
+    { name: "Total T3", unit: "ng/dL", referenceRange: "80 - 200" },
+  ],
+};
+
 // Database-driven lab results - no more mock data
 
 export default function LabResultsPage() {
@@ -266,6 +323,7 @@ export default function LabResultsPage() {
   const [showReviewDialog, setShowReviewDialog] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [showPrescriptionDialog, setShowPrescriptionDialog] = useState(false);
+  const [showGenerateDialog, setShowGenerateDialog] = useState(false);
   const [selectedResult, setSelectedResult] =
     useState<DatabaseLabResult | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -273,6 +331,7 @@ export default function LabResultsPage() {
   const [selectedEditRole, setSelectedEditRole] = useState<string>("");
   const [selectedTestTypes, setSelectedTestTypes] = useState<string[]>([]);
   const [testTypePopoverOpen, setTestTypePopoverOpen] = useState(false);
+  const [generateFormData, setGenerateFormData] = useState<any>({});
 
   // Fetch roles from the roles table filtered by organization_id
   const { data: rolesData = [] } = useQuery({
@@ -1466,15 +1525,25 @@ Report generated from Cura EMR System`;
                     <SelectItem value="cancelled">Cancelled</SelectItem>
                   </SelectContent>
                 </Select>
-                {/* Right Side: Button */}
+                {/* Right Side: Buttons */}
                 {user?.role !== "patient" && (
-                  <Button
-                    onClick={handleOrderTest}
-                    className="bg-medical-blue hover:bg-blue-700 ml-auto"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Order Lab Test
-                  </Button>
+                  <div className="flex gap-3 ml-auto">
+                    <Button
+                      onClick={handleOrderTest}
+                      className="bg-medical-blue hover:bg-blue-700"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Order Lab Test
+                    </Button>
+                    <Button
+                      onClick={() => setShowGenerateDialog(true)}
+                      className="bg-green-600 hover:bg-green-700"
+                      data-testid="button-generate-lab-result"
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
+                      Generate Lab Test Result
+                    </Button>
+                  </div>
                 )}
               </div>
             </CardContent>
@@ -3130,6 +3199,328 @@ Report generated from Cura EMR System`;
               >
                 <Download className="h-4 w-4 mr-2" />
                 Download PDF
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Generate Lab Test Result Dialog */}
+      <Dialog open={showGenerateDialog} onOpenChange={setShowGenerateDialog}>
+        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">
+              Generate Lab Test Result
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6 py-4">
+            {/* Patient Selection */}
+            <div className="space-y-2">
+              <Label htmlFor="generate-patient">Select Patient *</Label>
+              <Popover open={patientSearchOpen} onOpenChange={setPatientSearchOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    className="w-full justify-between"
+                    data-testid="button-select-patient-generate"
+                  >
+                    {generateFormData.patientId
+                      ? patients.find((p: any) => p.id.toString() === generateFormData.patientId.toString())
+                          ? `${patients.find((p: any) => p.id.toString() === generateFormData.patientId.toString()).firstName} ${patients.find((p: any) => p.id.toString() === generateFormData.patientId.toString()).lastName}`
+                          : "Select patient..."
+                      : "Select patient..."}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Search patients..." />
+                    <CommandEmpty>No patient found.</CommandEmpty>
+                    <CommandGroup className="max-h-64 overflow-auto">
+                      {patients.map((patient: any) => (
+                        <CommandItem
+                          key={patient.id}
+                          value={`${patient.firstName} ${patient.lastName}`}
+                          onSelect={() => {
+                            setGenerateFormData((prev: any) => ({
+                              ...prev,
+                              patientId: patient.id,
+                              patientName: `${patient.firstName} ${patient.lastName}`,
+                            }));
+                            setPatientSearchOpen(false);
+                          }}
+                        >
+                          <Check
+                            className={`mr-2 h-4 w-4 ${
+                              generateFormData.patientId === patient.id
+                                ? "opacity-100"
+                                : "opacity-0"
+                            }`}
+                          />
+                          {patient.firstName} {patient.lastName} ({patient.patientId})
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            {/* Test Type Multi-Selection */}
+            <div className="space-y-2">
+              <Label>Select Test Types *</Label>
+              <Popover open={testTypeOpen} onOpenChange={setTestTypeOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    className="w-full justify-between"
+                    data-testid="button-select-test-types"
+                  >
+                    {generateFormData.selectedTests && generateFormData.selectedTests.length > 0
+                      ? `${generateFormData.selectedTests.length} test(s) selected`
+                      : "Select test types..."}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Search test types..." />
+                    <CommandEmpty>No test type found.</CommandEmpty>
+                    <CommandGroup className="max-h-64 overflow-auto">
+                      {TEST_TYPES.map((testType) => (
+                        <CommandItem
+                          key={testType}
+                          value={testType}
+                          onSelect={() => {
+                            setGenerateFormData((prev: any) => {
+                              const currentTests = prev.selectedTests || [];
+                              const isSelected = currentTests.includes(testType);
+                              const newTests = isSelected
+                                ? currentTests.filter((t: string) => t !== testType)
+                                : [...currentTests, testType];
+                              return {
+                                ...prev,
+                                selectedTests: newTests,
+                              };
+                            });
+                          }}
+                        >
+                          <Checkbox
+                            checked={generateFormData.selectedTests?.includes(testType) || false}
+                            className="mr-2"
+                          />
+                          {testType}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+              
+              {/* Display selected tests */}
+              {generateFormData.selectedTests && generateFormData.selectedTests.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {generateFormData.selectedTests.map((test: string) => (
+                    <Badge
+                      key={test}
+                      variant="secondary"
+                      className="cursor-pointer"
+                      onClick={() => {
+                        setGenerateFormData((prev: any) => ({
+                          ...prev,
+                          selectedTests: prev.selectedTests.filter((t: string) => t !== test),
+                        }));
+                      }}
+                    >
+                      {test}
+                      <X className="ml-2 h-3 w-3" />
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Dynamic Test Fields - Show fields for each selected test */}
+            {generateFormData.selectedTests && generateFormData.selectedTests.length > 0 && (
+              <div className="space-y-6">
+                <div className="border-t pt-4">
+                  <h3 className="text-lg font-semibold mb-4">Test Result Values</h3>
+                  
+                  {generateFormData.selectedTests.map((testType: string) => {
+                    const testFields = TEST_FIELD_DEFINITIONS[testType];
+                    if (!testFields) return null;
+
+                    return (
+                      <div key={testType} className="mb-6 p-4 bg-gray-50 rounded-lg border">
+                        <h4 className="font-semibold text-blue-700 mb-4">{testType}</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {testFields.map((field) => (
+                            <div key={field.name} className="space-y-1">
+                              <Label htmlFor={`${testType}-${field.name}`} className="text-sm">
+                                {field.name}
+                                <span className="text-gray-500 text-xs ml-2">
+                                  ({field.unit}) - Ref: {field.referenceRange}
+                                </span>
+                              </Label>
+                              <Input
+                                id={`${testType}-${field.name}`}
+                                type="text"
+                                placeholder={`Enter ${field.name} value`}
+                                value={generateFormData.testValues?.[testType]?.[field.name] || ""}
+                                onChange={(e) => {
+                                  setGenerateFormData((prev: any) => ({
+                                    ...prev,
+                                    testValues: {
+                                      ...prev.testValues,
+                                      [testType]: {
+                                        ...prev.testValues?.[testType],
+                                        [field.name]: e.target.value,
+                                      },
+                                    },
+                                  }));
+                                }}
+                                data-testid={`input-${testType.toLowerCase().replace(/\s+/g, '-')}-${field.name.toLowerCase().replace(/\s+/g, '-')}`}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Notes */}
+            <div className="space-y-2">
+              <Label htmlFor="generate-notes">Clinical Notes (Optional)</Label>
+              <Textarea
+                id="generate-notes"
+                placeholder="Add any clinical notes or observations..."
+                value={generateFormData.notes || ""}
+                onChange={(e) =>
+                  setGenerateFormData((prev: any) => ({
+                    ...prev,
+                    notes: e.target.value,
+                  }))
+                }
+                rows={3}
+                data-testid="textarea-clinical-notes"
+              />
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex justify-between items-center pt-4 border-t">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowGenerateDialog(false);
+                  setGenerateFormData({});
+                }}
+                data-testid="button-cancel-generate"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  // Validate required fields
+                  if (!generateFormData.patientId) {
+                    toast({
+                      title: "Validation Error",
+                      description: "Please select a patient",
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+
+                  if (!generateFormData.selectedTests || generateFormData.selectedTests.length === 0) {
+                    toast({
+                      title: "Validation Error",
+                      description: "Please select at least one test type",
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+
+                  // Build results array from test values
+                  const results: any[] = [];
+                  generateFormData.selectedTests.forEach((testType: string) => {
+                    const testFields = TEST_FIELD_DEFINITIONS[testType];
+                    const testValues = generateFormData.testValues?.[testType];
+                    
+                    if (testFields && testValues) {
+                      testFields.forEach((field) => {
+                        const value = testValues[field.name];
+                        if (value && value.trim() !== "") {
+                          // Determine status based on reference range (simplified)
+                          const numValue = parseFloat(value);
+                          let status = "normal";
+                          
+                          results.push({
+                            name: field.name,
+                            value: value,
+                            unit: field.unit,
+                            referenceRange: field.referenceRange,
+                            status: status,
+                          });
+                        }
+                      });
+                    }
+                  });
+
+                  if (results.length === 0) {
+                    toast({
+                      title: "Validation Error",
+                      description: "Please enter at least one test result value",
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+
+                  // Create lab result for each selected test
+                  generateFormData.selectedTests.forEach((testType: string) => {
+                    const testResults = results.filter((r) => {
+                      const fields = TEST_FIELD_DEFINITIONS[testType];
+                      return fields?.some((f) => f.name === r.name);
+                    });
+
+                    if (testResults.length > 0) {
+                      const labResultData = {
+                        patientId: generateFormData.patientId,
+                        testType: testType,
+                        orderedBy: user?.id,
+                        priority: "routine",
+                        status: "completed",
+                        results: testResults,
+                        notes: generateFormData.notes || "",
+                        criticalValues: false,
+                      };
+
+                      createLabOrderMutation.mutate(labResultData);
+                    }
+                  });
+
+                  toast({
+                    title: "Success",
+                    description: `Lab result${generateFormData.selectedTests.length > 1 ? 's' : ''} generated successfully`,
+                  });
+                  
+                  setShowGenerateDialog(false);
+                  setGenerateFormData({});
+                }}
+                disabled={
+                  !generateFormData.patientId ||
+                  !generateFormData.selectedTests ||
+                  generateFormData.selectedTests.length === 0
+                }
+                className="bg-green-600 hover:bg-green-700"
+                data-testid="button-submit-generate"
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                Generate Lab Result
               </Button>
             </div>
           </div>
