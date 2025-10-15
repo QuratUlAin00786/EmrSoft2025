@@ -471,6 +471,30 @@ const paramedicSubcategories = [
   "Sports Paramedic"
 ] as const;
 
+// Physiotherapist Subcategories
+const physiotherapistSubcategories = [
+  "Orthopedic Physiotherapist",
+  "Neurological Physiotherapist",
+  "Cardiopulmonary Physiotherapist",
+  "Pediatric Physiotherapist",
+  "Geriatric Physiotherapist",
+  "Sports Physiotherapist",
+  "Women's Health Physiotherapist",
+  "Vestibular Physiotherapist",
+  "Rehabilitation Physiotherapist",
+  "ICU/Respiratory Physiotherapist",
+  "Occupational Health Physiotherapist",
+  "Manual Therapy Specialist",
+  "Community Physiotherapist",
+  "Aquatic Physiotherapist",
+  "Pain Management Physiotherapist",
+  "Pelvic Health Physiotherapist",
+  "Amputee Physiotherapist",
+  "Burn Rehabilitation Physiotherapist",
+  "Spinal Physiotherapist",
+  "Hand Therapist"
+] as const;
+
 export default function UserManagement() {
   const [, setLocation] = useLocation();
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -511,6 +535,9 @@ export default function UserManagement() {
   
   // Paramedic subcategory state
   const [selectedParamedicSubcategory, setSelectedParamedicSubcategory] = useState<string>("");
+  
+  // Physiotherapist subcategory state
+  const [selectedPhysiotherapistSubcategory, setSelectedPhysiotherapistSubcategory] = useState<string>("");
   
   // Role management states
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
@@ -1424,6 +1451,14 @@ export default function UserManagement() {
       setSelectedParamedicSubcategory("");
     }
 
+    // Set physiotherapist subcategory for Physiotherapist role
+    if (user.role.toLowerCase() === 'physiotherapist') {
+      setSelectedPhysiotherapistSubcategory(user.subSpecialty || "");
+      userData.subSpecialty = user.subSpecialty || "";
+    } else {
+      setSelectedPhysiotherapistSubcategory("");
+    }
+
     // SECTION 2: Patient table data (if role === 'patient')
     if (user.role === 'patient') {
       console.log("📋 SECTION 2: Loading patients table data (matched by email)");
@@ -1922,6 +1957,10 @@ export default function UserManagement() {
                         if (value.toLowerCase() !== 'paramedic') {
                           setSelectedParamedicSubcategory("");
                         }
+                        // Clear physiotherapist subcategory when switching from physiotherapist
+                        if (value.toLowerCase() !== 'physiotherapist') {
+                          setSelectedPhysiotherapistSubcategory("");
+                        }
                       }} defaultValue={form.getValues("role")}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a role" />
@@ -2105,6 +2144,31 @@ export default function UserManagement() {
                       </SelectTrigger>
                       <SelectContent>
                         {paramedicSubcategories.map((subcategory) => (
+                          <SelectItem key={subcategory} value={subcategory}>
+                            {subcategory}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {/* Physiotherapist Subcategory Dropdown - Only show when role is Physiotherapist */}
+                {selectedRole.toLowerCase() === 'physiotherapist' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="physiotherapistSubcategory">Physiotherapist Subcategory</Label>
+                    <Select 
+                      onValueChange={(value) => {
+                        setSelectedPhysiotherapistSubcategory(value);
+                        form.setValue("subSpecialty", value);
+                      }} 
+                      value={selectedPhysiotherapistSubcategory}
+                    >
+                      <SelectTrigger data-testid="dropdown-physiotherapist-subcategory">
+                        <SelectValue placeholder="Select subcategory" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {physiotherapistSubcategories.map((subcategory) => (
                           <SelectItem key={subcategory} value={subcategory}>
                             {subcategory}
                           </SelectItem>
