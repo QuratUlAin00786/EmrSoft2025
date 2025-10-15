@@ -2482,7 +2482,7 @@ export function PatientList({ onSelectPatient, showActiveOnly = true, genderFilt
                               <Button
                                 size="sm"
                                 variant="ghost"
-                                onClick={() => setLocation(`/patients/${patient.id}`)}
+                                onClick={() => handleViewRecords(patient)}
                                 className="h-7 w-7 p-0"
                                 style={{ color: '#4A7DFF' }}
                               >
