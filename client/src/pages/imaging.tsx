@@ -4913,69 +4913,85 @@ export default function ImagingPage() {
                 <Button
                   onClick={async () => {
                     try {
-                      // Create invoice in database
-                      const invoiceData = {
-                        patientId: summaryData.selectedPatient.patientId,
-                        patientName: `${summaryData.selectedPatient.firstName} ${summaryData.selectedPatient.lastName}`,
-                        dateOfService: new Date().toISOString(),
-                        invoiceDate: new Date().toISOString(),
-                        dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-                        status: summaryData.invoice.paymentMethod === 'cash' ? 'paid' : 'paid',
-                        subtotal: summaryData.invoice.subtotal,
-                        tax: summaryData.invoice.tax,
-                        discount: summaryData.invoice.discount,
-                        totalAmount: summaryData.invoice.totalAmount,
-                        paidAmount: summaryData.invoice.totalAmount,
-                        items: summaryData.uploadedFiles.map((file: File, index: number) => ({
-                          code: `IMG-${index + 1}`,
-                          description: `${summaryData.studyType} - Image ${index + 1}`,
-                          quantity: 1,
-                          unitPrice: 50,
-                          total: 50,
-                        })),
-                        payments: [{
-                          id: `pay_${Date.now()}`,
+                      if (summaryData.invoice.paymentMethod === 'cash') {
+                        // For Cash payment: Create invoice with payment record
+                        const invoiceData = {
+                          patientId: summaryData.invoice.patient,
+                          serviceDate: summaryData.invoice.serviceDate,
+                          invoiceDate: summaryData.invoice.invoiceDate,
+                          dueDate: summaryData.invoice.dueDate,
+                          totalAmount: summaryData.invoice.totalAmount.toString(),
+                          firstServiceCode: summaryData.invoice.serviceCode,
+                          firstServiceDesc: summaryData.invoice.serviceDesc,
+                          firstServiceQty: summaryData.invoice.serviceQty,
+                          firstServiceAmount: summaryData.invoice.serviceAmount,
+                          insuranceProvider: summaryData.invoice.insuranceProvider,
+                          nhsNumber: summaryData.invoice.nhsNumber || '',
+                          notes: summaryData.invoice.notes || '',
+                        };
+
+                        // Create invoice
+                        const invoiceResponse = await apiRequest("POST", "/api/billing/invoices", invoiceData);
+                        const createdInvoice = invoiceResponse as any;
+
+                        // Create payment record
+                        const paymentData = {
+                          organizationId: createdInvoice.organizationId,
+                          invoiceId: createdInvoice.id,
                           amount: summaryData.invoice.totalAmount,
-                          method: summaryData.invoice.paymentMethod === 'cash' ? 'cash' : 'card',
-                          date: new Date().toISOString(),
-                          reference: summaryData.paymentClientSecret || '',
-                        }],
-                      };
+                          paymentMethod: 'cash',
+                          paymentDate: new Date().toISOString(),
+                          reference: `CASH-${Date.now().toString().slice(-8)}`,
+                          status: 'completed',
+                          notes: 'Cash payment for imaging services',
+                        };
 
-                      await apiRequest("POST", "/api/invoices", invoiceData);
+                        await apiRequest("POST", "/api/billing/payments", paymentData);
 
-                      toast({
-                        title: "Success",
-                        description: "Imaging study and invoice saved successfully",
-                      });
+                        // Update invoice status to paid
+                        await apiRequest("PATCH", `/api/billing/invoices/${createdInvoice.id}`, {
+                          status: 'paid',
+                        });
 
-                      // Reset all state
-                      setUploadFormData({
-                        patientId: "",
-                        studyType: "",
-                        modality: "X-Ray",
-                        bodyPart: "",
-                        indication: "",
-                        priority: "routine",
-                      });
-                      setSelectedFiles([]);
-                      setUploadedImageData(null);
-                      setSummaryData(null);
-                      setShowSummaryDialog(false);
+                        toast({
+                          title: "Payment Successful",
+                          description: "Cash payment recorded and invoice marked as paid",
+                        });
 
-                      // Refresh the medical images list
-                      refetchImages();
+                        // Reset all state
+                        setUploadFormData({
+                          patientId: "",
+                          studyType: "",
+                          modality: "X-Ray",
+                          bodyPart: "",
+                          indication: "",
+                          priority: "routine",
+                        });
+                        setSelectedFiles([]);
+                        setUploadedImageData(null);
+                        setSummaryData(null);
+                        setShowSummaryDialog(false);
+
+                        // Refresh the medical images list
+                        refetchImages();
+                      } else {
+                        // For Debit Card payment - handle Stripe flow
+                        toast({
+                          title: "Payment Processing",
+                          description: "Please complete Stripe payment",
+                        });
+                      }
                     } catch (error) {
                       toast({
                         title: "Error",
-                        description: "Failed to save invoice",
+                        description: "Failed to process payment",
                         variant: "destructive",
                       });
                     }
                   }}
                   className="bg-blue-600 hover:bg-blue-700"
                 >
-                  Confirm
+                  {summaryData.invoice?.paymentMethod === 'cash' ? 'Confirm Pay' : 'Confirm'}
                 </Button>
               </div>
             </div>

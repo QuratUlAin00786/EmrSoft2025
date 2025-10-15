@@ -13683,6 +13683,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create payment record
+  app.post("/api/billing/payments", requireRole(["admin", "doctor", "nurse", "receptionist"]), async (req: TenantRequest, res) => {
+    try {
+      const paymentData = z.object({
+        organizationId: z.number(),
+        invoiceId: z.number(),
+        amount: z.number(),
+        paymentMethod: z.string(),
+        paymentDate: z.string(),
+        reference: z.string().optional(),
+        status: z.string().default('completed'),
+        notes: z.string().optional(),
+      }).parse(req.body);
+
+      console.log("💰 Creating payment record:", paymentData);
+      const createdPayment = await storage.createPayment(paymentData);
+      console.log("✅ Payment record created successfully:", createdPayment.id);
+      
+      res.status(201).json(createdPayment);
+    } catch (error) {
+      console.error("Payment creation error:", error);
+      res.status(500).json({ error: "Failed to create payment" });
+    }
+  });
+
   // Create Stripe Payment Intent for invoice payment
   app.post("/api/billing/create-payment-intent", authMiddleware, async (req: TenantRequest, res) => {
     try {
