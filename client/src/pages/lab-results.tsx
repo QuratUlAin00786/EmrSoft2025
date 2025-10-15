@@ -482,7 +482,8 @@ export default function LabResultsPage() {
     items: [] as any[],
     totalAmount: 0,
     paymentMethod: '',
-    insuranceProvider: ''
+    insuranceProvider: '',
+    notes: ''
   });
   const [paymentResult, setPaymentResult] = useState<any>(null);
   const [stripeClientSecret, setStripeClientSecret] = useState<string>("");
@@ -2434,82 +2435,245 @@ Report generated from Cura EMR System`;
         </DialogContent>
       </Dialog>
 
-      {/* Invoice Dialog */}
+      {/* Create New Invoice Dialog */}
       <Dialog open={showInvoiceDialog} onOpenChange={setShowInvoiceDialog}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-medical-blue">Invoice Details</DialogTitle>
+            <DialogTitle className="text-xl font-semibold">Create New Invoice</DialogTitle>
           </DialogHeader>
           
-          <div className="space-y-6">
-            {/* Patient & Service Info */}
-            <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <div className="space-y-4">
+            {/* Row 1: Patient & Service Date */}
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label className="text-sm text-gray-600 dark:text-gray-400">Patient Name</Label>
-                <p className="font-semibold">{pendingOrderData?.patientName}</p>
+                <Label className="text-sm font-medium">Patient</Label>
+                <Select
+                  value={pendingOrderData?.patientId?.toString() || ""}
+                  onValueChange={(value) => {
+                    const patient = patients.find((p: any) => p.id.toString() === value);
+                    if (patient) {
+                      setPendingOrderData({
+                        ...pendingOrderData,
+                        patientId: patient.id,
+                        patientName: `${patient.firstName || ''} ${patient.lastName || ''}`.trim()
+                      });
+                    }
+                  }}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select patient" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {patients.map((patient: any) => (
+                      <SelectItem key={patient.id} value={patient.id.toString()}>
+                        {patient.firstName} {patient.lastName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div>
-                <Label className="text-sm text-gray-600 dark:text-gray-400">Service Date</Label>
-                <p className="font-semibold">{invoiceData.serviceDate}</p>
-              </div>
-              <div>
-                <Label className="text-sm text-gray-600 dark:text-gray-400">Invoice Date</Label>
-                <p className="font-semibold">{invoiceData.invoiceDate}</p>
-              </div>
-              <div>
-                <Label className="text-sm text-gray-600 dark:text-gray-400">Due Date</Label>
-                <p className="font-semibold">{invoiceData.dueDate}</p>
+                <Label className="text-sm font-medium">Service Date</Label>
+                <Input
+                  type="date"
+                  value={invoiceData.serviceDate}
+                  onChange={(e) => setInvoiceData({ ...invoiceData, serviceDate: e.target.value })}
+                  className="mt-1"
+                />
               </div>
             </div>
 
-            {/* Line Items Table */}
-            <div className="border rounded-lg overflow-hidden">
-              <table className="w-full">
-                <thead className="bg-medical-blue text-white">
-                  <tr>
-                    <th className="text-left p-3">Code</th>
-                    <th className="text-left p-3">Description</th>
-                    <th className="text-center p-3">Qty</th>
-                    <th className="text-right p-3">Unit Price</th>
-                    <th className="text-right p-3">Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {invoiceData.items.map((item: any, index: number) => (
-                    <tr key={index} className="border-t">
-                      <td className="p-3">{item.code}</td>
-                      <td className="p-3">{item.description}</td>
-                      <td className="text-center p-3">{item.quantity}</td>
-                      <td className="text-right p-3">${item.unitPrice.toFixed(2)}</td>
-                      <td className="text-right p-3">${item.total.toFixed(2)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-                <tfoot className="bg-gray-50 dark:bg-gray-800">
-                  <tr>
-                    <td colSpan={4} className="text-right p-3 font-bold">Total Amount:</td>
-                    <td className="text-right p-3 font-bold text-xl text-medical-blue">
-                      ${invoiceData.totalAmount.toFixed(2)}
-                    </td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-
-            {/* Insurance Provider */}
+            {/* Row 2: Doctor */}
             <div>
-              <Label>Insurance Provider (Optional)</Label>
+              <Label className="text-sm font-medium">Doctor</Label>
               <Input
-                placeholder="Enter insurance provider name"
-                value={invoiceData.insuranceProvider}
-                onChange={(e) => setInvoiceData({ ...invoiceData, insuranceProvider: e.target.value })}
-                className="mt-1"
+                value={`${user?.firstName || ''} ${user?.lastName || 'Admin User'}`}
+                readOnly
+                className="mt-1 bg-gray-50 dark:bg-gray-800"
               />
             </div>
 
-            {/* Payment Method Selection */}
+            {/* Row 3: Invoice Date & Due Date */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-sm font-medium">Invoice Date</Label>
+                <Input
+                  type="date"
+                  value={invoiceData.invoiceDate}
+                  onChange={(e) => setInvoiceData({ ...invoiceData, invoiceDate: e.target.value })}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label className="text-sm font-medium">Due Date</Label>
+                <Input
+                  type="date"
+                  value={invoiceData.dueDate}
+                  onChange={(e) => setInvoiceData({ ...invoiceData, dueDate: e.target.value })}
+                  className="mt-1"
+                />
+              </div>
+            </div>
+
+            {/* Services & Procedures - Editable Table */}
             <div>
-              <Label>Payment Method *</Label>
+              <Label className="text-sm font-medium mb-2 block">Services & Procedures</Label>
+              <div className="border rounded-lg">
+                <div className="grid grid-cols-12 gap-2 bg-gray-100 dark:bg-gray-800 p-2 font-medium text-sm">
+                  <div className="col-span-2">Code</div>
+                  <div className="col-span-5">Description</div>
+                  <div className="col-span-2">Qty</div>
+                  <div className="col-span-2">Amount</div>
+                  <div className="col-span-1"></div>
+                </div>
+                {invoiceData.items.map((item: any, index: number) => (
+                  <div key={index} className="grid grid-cols-12 gap-2 p-2 border-t items-center">
+                    <Input
+                      value={item.code}
+                      onChange={(e) => {
+                        const newItems = [...invoiceData.items];
+                        newItems[index].code = e.target.value;
+                        setInvoiceData({ ...invoiceData, items: newItems });
+                      }}
+                      placeholder="Code"
+                      className="col-span-2 h-9 text-sm"
+                    />
+                    <Input
+                      value={item.description}
+                      onChange={(e) => {
+                        const newItems = [...invoiceData.items];
+                        newItems[index].description = e.target.value;
+                        setInvoiceData({ ...invoiceData, items: newItems });
+                      }}
+                      placeholder="Description"
+                      className="col-span-5 h-9 text-sm"
+                    />
+                    <Input
+                      type="number"
+                      value={item.quantity}
+                      onChange={(e) => {
+                        const newItems = [...invoiceData.items];
+                        newItems[index].quantity = parseInt(e.target.value) || 1;
+                        newItems[index].total = newItems[index].quantity * newItems[index].unitPrice;
+                        const total = newItems.reduce((sum, it) => sum + it.total, 0);
+                        setInvoiceData({ ...invoiceData, items: newItems, totalAmount: total });
+                      }}
+                      placeholder="Qty"
+                      className="col-span-2 h-9 text-sm"
+                    />
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={item.unitPrice}
+                      onChange={(e) => {
+                        const newItems = [...invoiceData.items];
+                        newItems[index].unitPrice = parseFloat(e.target.value) || 0;
+                        newItems[index].total = newItems[index].quantity * newItems[index].unitPrice;
+                        const total = newItems.reduce((sum, it) => sum + it.total, 0);
+                        setInvoiceData({ ...invoiceData, items: newItems, totalAmount: total });
+                      }}
+                      placeholder="0.00"
+                      className="col-span-2 h-9 text-sm"
+                    />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        const newItems = invoiceData.items.filter((_: any, i: number) => i !== index);
+                        const total = newItems.reduce((sum: number, it: any) => sum + it.total, 0);
+                        setInvoiceData({ ...invoiceData, items: newItems, totalAmount: total });
+                      }}
+                      className="col-span-1 h-9 p-0"
+                    >
+                      <Trash2 className="h-4 w-4 text-red-500" />
+                    </Button>
+                  </div>
+                ))}
+                {/* Add New Row Button */}
+                <div className="p-2 border-t">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setInvoiceData({
+                        ...invoiceData,
+                        items: [
+                          ...invoiceData.items,
+                          { code: '', description: '', quantity: 1, unitPrice: 0, total: 0 }
+                        ]
+                      });
+                    }}
+                    className="w-full text-sm"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Row
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Row 4: Insurance Provider & Total Amount */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-sm font-medium">Insurance Provider</Label>
+                <Select
+                  value={invoiceData.insuranceProvider || "none"}
+                  onValueChange={(value) => setInvoiceData({ ...invoiceData, insuranceProvider: value === 'none' ? '' : value })}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select insurance" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None (Patient Self-Pay)</SelectItem>
+                    <SelectItem value="bupa">Bupa</SelectItem>
+                    <SelectItem value="axa">AXA Health</SelectItem>
+                    <SelectItem value="vitality">Vitality Health</SelectItem>
+                    <SelectItem value="aviva">Aviva</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-sm font-medium">Total Amount</Label>
+                <Input
+                  value={invoiceData.totalAmount.toFixed(2)}
+                  readOnly
+                  className="mt-1 bg-gray-50 dark:bg-gray-800 font-semibold"
+                />
+              </div>
+            </div>
+
+            {/* Invoice Type Info Box */}
+            <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+              <div className="flex items-start gap-2">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Invoice Type:</span>
+                    <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 border-green-300 dark:border-green-700">
+                      Payment (Self-Pay)
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    This invoice will be paid directly by the patient
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Notes */}
+            <div>
+              <Label className="text-sm font-medium">Notes</Label>
+              <Textarea
+                value={invoiceData.notes || pendingOrderData?.notes || ''}
+                onChange={(e) => setInvoiceData({ ...invoiceData, notes: e.target.value })}
+                placeholder="Add any additional notes about this invoice..."
+                className="mt-1"
+                rows={3}
+              />
+            </div>
+
+            {/* Payment Method */}
+            <div>
+              <Label className="text-sm font-medium">Payment Method</Label>
               <Select
                 value={invoiceData.paymentMethod}
                 onValueChange={(value) => setInvoiceData({ ...invoiceData, paymentMethod: value })}
@@ -2533,10 +2697,12 @@ Report generated from Cura EMR System`;
                   setInvoiceData({
                     ...invoiceData,
                     paymentMethod: '',
-                    insuranceProvider: ''
+                    insuranceProvider: '',
+                    notes: ''
                   });
                 }}
                 className="flex-1"
+                data-testid="button-cancel-invoice"
               >
                 Cancel
               </Button>
@@ -2545,10 +2711,11 @@ Report generated from Cura EMR System`;
                   setShowInvoiceDialog(false);
                   setShowSummaryDialog(true);
                 }}
-                disabled={!invoiceData.paymentMethod}
+                disabled={!invoiceData.paymentMethod || invoiceData.items.length === 0}
                 className="flex-1 bg-medical-blue hover:bg-blue-700"
+                data-testid="button-create-invoice"
               >
-                Proceed to Summary
+                Create Invoice
               </Button>
             </div>
           </div>
