@@ -1727,7 +1727,7 @@ export default function BillingPage() {
                             <CardContent className="p-4">
                               <div className="flex items-center justify-between">
                                 <div>
-                                  <p className="text-sm text-gray-600 dark:text-gray-400">Overdue (>30 days)</p>
+                                  <p className="text-sm text-gray-600 dark:text-gray-400">Overdue (&gt;30 days)</p>
                                   <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">£4,230</p>
                                 </div>
                                 <Clock className="h-8 w-8 text-orange-600" />
@@ -1738,7 +1738,7 @@ export default function BillingPage() {
                             <CardContent className="p-4">
                               <div className="flex items-center justify-between">
                                 <div>
-                                  <p className="text-sm text-gray-600 dark:text-gray-400">Pending (<30 days)</p>
+                                  <p className="text-sm text-gray-600 dark:text-gray-400">Pending (&lt;30 days)</p>
                                   <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">£8,220</p>
                                 </div>
                                 <FileText className="h-8 w-8 text-yellow-600" />
