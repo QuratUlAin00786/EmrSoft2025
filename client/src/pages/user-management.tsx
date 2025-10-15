@@ -518,6 +518,26 @@ const aestheticianSubcategories = [
   "Natural / Organic Aesthetician"
 ] as const;
 
+// Sample Taker Subcategories
+const sampleTakerSubcategories = [
+  "Phlebotomist",
+  "Nasopharyngeal Swab Collector",
+  "Urine Sample Collector",
+  "Saliva Sample Collector",
+  "Stool Sample Collector",
+  "Sputum Sample Collector",
+  "Skin/Biopsy Sample Assistant",
+  "Blood Culture Specialist",
+  "Pediatric Sample Taker",
+  "Geriatric Sample Taker",
+  "Mobile Sample Collector",
+  "Prenatal Sample Collector",
+  "Toxicology Sample Collector",
+  "Sexual Health Sample Collector",
+  "Research Sample Collector",
+  "Infection Control Sample Taker"
+] as const;
+
 export default function UserManagement() {
   const [, setLocation] = useLocation();
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -564,6 +584,9 @@ export default function UserManagement() {
   
   // Aesthetician subcategory state
   const [selectedAestheticianSubcategory, setSelectedAestheticianSubcategory] = useState<string>("");
+  
+  // Sample Taker subcategory state
+  const [selectedSampleTakerSubcategory, setSelectedSampleTakerSubcategory] = useState<string>("");
   
   // Role management states
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
@@ -1493,6 +1516,14 @@ export default function UserManagement() {
       setSelectedAestheticianSubcategory("");
     }
 
+    // Set sample taker subcategory for Sample Taker role
+    if (user.role.toLowerCase() === 'sample taker') {
+      setSelectedSampleTakerSubcategory(user.subSpecialty || "");
+      userData.subSpecialty = user.subSpecialty || "";
+    } else {
+      setSelectedSampleTakerSubcategory("");
+    }
+
     // SECTION 2: Patient table data (if role === 'patient')
     if (user.role === 'patient') {
       console.log("📋 SECTION 2: Loading patients table data (matched by email)");
@@ -1999,6 +2030,10 @@ export default function UserManagement() {
                         if (value.toLowerCase() !== 'aesthetician') {
                           setSelectedAestheticianSubcategory("");
                         }
+                        // Clear sample taker subcategory when switching from sample taker
+                        if (value.toLowerCase() !== 'sample taker') {
+                          setSelectedSampleTakerSubcategory("");
+                        }
                       }} defaultValue={form.getValues("role")}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a role" />
@@ -2232,6 +2267,31 @@ export default function UserManagement() {
                       </SelectTrigger>
                       <SelectContent>
                         {aestheticianSubcategories.map((subcategory) => (
+                          <SelectItem key={subcategory} value={subcategory}>
+                            {subcategory}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {/* Sample Taker Subcategory Dropdown - Only show when role is Sample Taker */}
+                {selectedRole.toLowerCase() === 'sample taker' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="sampleTakerSubcategory">Sample Taker Subcategory</Label>
+                    <Select 
+                      onValueChange={(value) => {
+                        setSelectedSampleTakerSubcategory(value);
+                        form.setValue("subSpecialty", value);
+                      }} 
+                      value={selectedSampleTakerSubcategory}
+                    >
+                      <SelectTrigger data-testid="dropdown-sample-taker-subcategory">
+                        <SelectValue placeholder="Select subcategory" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {sampleTakerSubcategories.map((subcategory) => (
                           <SelectItem key={subcategory} value={subcategory}>
                             {subcategory}
                           </SelectItem>
