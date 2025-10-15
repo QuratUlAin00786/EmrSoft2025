@@ -528,11 +528,35 @@ function PatientDetailsModal({
       enabled: !!patient?.id && open,
     });
 
+  // Fetch appointments by patient ID
+  const { data: patientAppointments = [], isLoading: appointmentsLoading } = useQuery({
+    queryKey: ["/api/appointments", "patient", patient?.id],
+    queryFn: async () => {
+      if (!patient?.id) return [];
+      const token = localStorage.getItem("auth_token");
+      const headers: Record<string, string> = {
+        "X-Tenant-Subdomain": getTenantSubdomain(),
+      };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`/api/appointments?patientId=${patient.id}`, {
+        headers,
+        credentials: "include",
+      });
+
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return response.json();
+    },
+    enabled: !!patient?.id && open,
+  });
+
   if (!patient) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[1100px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-screen h-screen max-w-none max-h-none overflow-y-auto p-6">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">
             Patient Details - {patient.firstName} {patient.lastName}
@@ -540,7 +564,7 @@ function PatientDetailsModal({
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-9">
+          <TabsList className="grid w-full grid-cols-10">
             <TabsTrigger value="basic">Basic Info</TabsTrigger>
             <TabsTrigger value="records">Medical Records</TabsTrigger>
             <TabsTrigger value="history">History</TabsTrigger>
@@ -550,6 +574,7 @@ function PatientDetailsModal({
             <TabsTrigger value="insurance">Insurance</TabsTrigger>
             <TabsTrigger value="address">Address</TabsTrigger>
             <TabsTrigger value="emergency">Emergency</TabsTrigger>
+            <TabsTrigger value="appointments">Appointments</TabsTrigger>
           </TabsList>
 
           {/* Basic Information Tab */}
@@ -1770,6 +1795,135 @@ function PatientDetailsModal({
                           <p>No emergency contact information available</p>
                         </div>
                       )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Appointments Tab */}
+          <TabsContent value="appointments" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5" />
+                  Patient Appointments
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {appointmentsLoading ? (
+                  <div className="text-center py-4">
+                    Loading appointments...
+                  </div>
+                ) : patientAppointments.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>No appointments found for this patient</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {patientAppointments.map((appointment: any) => (
+                      <div
+                        key={appointment.id}
+                        className="p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                      >
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          <div>
+                            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                              Appointment ID
+                            </p>
+                            <p className="text-lg font-semibold">#{appointment.id}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                              Date & Time
+                            </p>
+                            <p className="text-lg">
+                              {appointment.scheduledAt
+                                ? format(new Date(appointment.scheduledAt), "MMM dd, yyyy HH:mm")
+                                : "Not scheduled"}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                              Status
+                            </p>
+                            <Badge
+                              variant={
+                                appointment.status === "confirmed"
+                                  ? "default"
+                                  : appointment.status === "completed"
+                                  ? "secondary"
+                                  : appointment.status === "cancelled"
+                                  ? "destructive"
+                                  : "outline"
+                              }
+                            >
+                              {appointment.status || "pending"}
+                            </Badge>
+                          </div>
+                          {appointment.providerId && (
+                            <div>
+                              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Provider ID
+                              </p>
+                              <p>{appointment.providerId}</p>
+                            </div>
+                          )}
+                          {appointment.reason && (
+                            <div className="md:col-span-2">
+                              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Reason
+                              </p>
+                              <p className="text-gray-600 dark:text-gray-400">
+                                {appointment.reason}
+                              </p>
+                            </div>
+                          )}
+                          {appointment.notes && (
+                            <div className="md:col-span-2 lg:col-span-3">
+                              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Notes
+                              </p>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">
+                                {appointment.notes}
+                              </p>
+                            </div>
+                          )}
+                          {appointment.type && (
+                            <div>
+                              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Type
+                              </p>
+                              <Badge variant="outline">{appointment.type}</Badge>
+                            </div>
+                          )}
+                          {appointment.duration && (
+                            <div>
+                              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Duration
+                              </p>
+                              <p className="flex items-center gap-1">
+                                <Clock className="h-4 w-4" />
+                                {appointment.duration} minutes
+                              </p>
+                            </div>
+                          )}
+                          {appointment.createdAt && (
+                            <div>
+                              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Created
+                              </p>
+                              <p className="text-sm">
+                                {formatDistanceToNow(new Date(appointment.createdAt), {
+                                  addSuffix: true,
+                                })}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </CardContent>
