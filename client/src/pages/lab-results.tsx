@@ -9,6 +9,11 @@ import { Header } from "@/components/layout/header";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { isDoctorLike, formatRoleLabel } from "@/lib/role-utils";
+import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
+
+// Load Stripe
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || '');
 
 // Medical Specialties Data Structure
 const medicalSpecialties = {
@@ -393,6 +398,23 @@ export default function LabResultsPage() {
   const [fillResultFormData, setFillResultFormData] = useState<any>({});
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [expandedResults, setExpandedResults] = useState<Set<number>>(new Set());
+  
+  // Invoice workflow states
+  const [showInvoiceDialog, setShowInvoiceDialog] = useState(false);
+  const [showSummaryDialog, setShowSummaryDialog] = useState(false);
+  const [showPaymentConfirmation, setShowPaymentConfirmation] = useState(false);
+  const [pendingOrderData, setPendingOrderData] = useState<any>(null);
+  const [invoiceData, setInvoiceData] = useState<any>({
+    serviceDate: new Date().toISOString().split('T')[0],
+    invoiceDate: new Date().toISOString().split('T')[0],
+    dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    items: [] as any[],
+    totalAmount: 0,
+    paymentMethod: '',
+    insuranceProvider: ''
+  });
+  const [paymentResult, setPaymentResult] = useState<any>(null);
+  const [stripeClientSecret, setStripeClientSecret] = useState<string>("");
 
   // Fetch roles from the roles table filtered by organization_id
   const { data: rolesData = [] } = useQuery({
@@ -563,23 +585,39 @@ export default function LabResultsPage() {
     mutationFn: async (labOrderData: any) => {
       return await apiRequest("POST", "/api/lab-results", labOrderData);
     },
-    onSuccess: () => {
-      toast({
-        title: "Success",
-        description: "Lab test ordered successfully",
+    onSuccess: (response, variables) => {
+      // Store pending order data for invoice
+      setPendingOrderData({
+        ...variables,
+        patientName: orderFormData.patientName,
+        testTypes: orderFormData.testType
       });
+      
+      // Prepare invoice items from test types
+      const testTypes = orderFormData.testType;
+      const invoiceItems = testTypes.map((testType: string, index: number) => ({
+        code: `LAB-${(index + 1).toString().padStart(3, '0')}`,
+        description: testType,
+        quantity: 1,
+        unitPrice: 50.00, // Default price per test
+        total: 50.00
+      }));
+      
+      const totalAmount = invoiceItems.reduce((sum, item) => sum + item.total, 0);
+      
+      setInvoiceData({
+        ...invoiceData,
+        items: invoiceItems,
+        totalAmount: totalAmount
+      });
+      
+      // Close order dialog and open invoice dialog
       setShowOrderDialog(false);
+      setShowInvoiceDialog(true);
+      
       queryClient.invalidateQueries({ queryKey: ["/api/lab-results"] });
-      setOrderFormData({
-        patientId: "",
-        patientName: "",
-        testType: [],
-        priority: "routine",
-        notes: "",
-        selectedRole: "",
-        selectedUserId: "",
-        selectedUserName: "",
-      });
+      
+      // Don't reset form data yet - we'll need it for the invoice
     },
     onError: (error: any) => {
       toast({
@@ -3675,7 +3713,7 @@ Report generated from Cura EMR System`;
             <div className="space-y-6 py-4">
               {/* Lab Order Details - Read Only */}
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
-                <h3 className="font-semibold text-blue-900 mb-2">Lab Order Details</h3>
+                <h4 className="font-semibold text-blue-900 mb-2">Lab Order Details</h4>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <span className="text-sm text-gray-600">Patient Name:</span>
