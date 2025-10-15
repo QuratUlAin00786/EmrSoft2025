@@ -805,15 +805,26 @@ ${
 
   // History validation functions
   const validateTextField = (value: string, fieldName: string, minLength: number = 5, maxLength: number = 255): string => {
+    // If field is optional (minLength = 0) and empty, no error
+    if (minLength === 0 && (!value || value.trim().length === 0)) {
+      return "";
+    }
+    
+    // If field is required and empty
     if (!value || value.trim().length === 0) {
       return `${fieldName} is required and must be at least ${minLength} characters.`;
     }
+    
+    // If field has content but below minimum
     if (value.trim().length < minLength) {
       return `${fieldName} must be at least ${minLength} characters.`;
     }
+    
+    // If field exceeds maximum
     if (value.length > maxLength) {
       return `${fieldName} must not exceed ${maxLength} characters.`;
     }
+    
     return "";
   };
 
