@@ -316,6 +316,16 @@ export function FullConsultationInterface({ open, onOpenChange, patient, patient
       return;
     }
 
+    // Validate examination before saving
+    if (!validateAllExamination()) {
+      toast({
+        title: "Validation Error",
+        description: "Please correct the errors in the examination fields before saving.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const examinationData = {
       clinicalNotes: clinicalNotes + transcript,
       diagnosis: examinationDiagnosis,
@@ -830,6 +840,40 @@ ${
     const hasReviewErrors = Object.values(errors.reviewOfSystems).some(error => error !== "");
     
     return !hasMainFieldErrors && !hasReviewErrors;
+  };
+
+  // Examination validation state
+  const [examinationErrors, setExaminationErrors] = useState({
+    clinicalNotes: "",
+    diagnosis: "",
+    treatmentPlan: ""
+  });
+
+  // Examination validation functions
+  const validateExaminationField = (value: string, fieldName: string, minLength: number = 5, maxLength: number = 500): string => {
+    if (!value || value.trim().length === 0) {
+      return `${fieldName} is required and must be at least ${minLength} characters.`;
+    }
+    if (value.trim().length < minLength) {
+      return `${fieldName} must be at least ${minLength} characters.`;
+    }
+    if (value.length > maxLength) {
+      return `${fieldName} must not exceed ${maxLength} characters.`;
+    }
+    return "";
+  };
+
+  const validateAllExamination = (): boolean => {
+    const errors = {
+      clinicalNotes: validateExaminationField(clinicalNotes + transcript, "Clinical Notes", 5, 500),
+      diagnosis: validateExaminationField(examinationDiagnosis, "Diagnosis", 5, 500),
+      treatmentPlan: validateExaminationField(examinationTreatmentPlan, "Treatment Plan", 5, 500)
+    };
+
+    setExaminationErrors(errors);
+
+    // Check if there are any errors
+    return !Object.values(errors).some(error => error !== "");
   };
 
   // Examination modal states
@@ -2367,7 +2411,9 @@ Patient should be advised of potential side effects and expected timeline for re
                 <Card>
                   <CardHeader>
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg">Clinical Notes</CardTitle>
+                      <CardTitle className="text-lg">
+                        Clinical Notes <span className="text-red-500">*</span>
+                      </CardTitle>
                       <Button 
                         variant={isRecording ? "destructive" : "outline"} 
                         size="sm"
@@ -2381,10 +2427,21 @@ Patient should be advised of potential side effects and expected timeline for re
                   <CardContent>
                     <Textarea
                       placeholder="Detailed consultation notes, observations, and findings. Click 'Transcribe Audio' to dictate your notes."
-                      className="h-32"
+                      className={`h-32 ${examinationErrors.clinicalNotes ? "border-red-500" : ""}`}
+                      maxLength={500}
                       value={clinicalNotes + transcript}
-                      onChange={(e) => setClinicalNotes(e.target.value)}
+                      onChange={(e) => {
+                        setClinicalNotes(e.target.value);
+                        setExaminationErrors(prev => ({ ...prev, clinicalNotes: "" }));
+                      }}
+                      onBlur={(e) => {
+                        const error = validateExaminationField(e.target.value, "Clinical Notes", 5, 500);
+                        setExaminationErrors(prev => ({ ...prev, clinicalNotes: error }));
+                      }}
                     />
+                    {examinationErrors.clinicalNotes && (
+                      <p className="text-sm text-red-500 mt-1">{examinationErrors.clinicalNotes}</p>
+                    )}
                   </CardContent>
                 </Card>
 
@@ -2392,29 +2449,55 @@ Patient should be advised of potential side effects and expected timeline for re
                 <div className="grid grid-cols-2 gap-4">
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-lg">Diagnosis</CardTitle>
+                      <CardTitle className="text-lg">
+                        Diagnosis <span className="text-red-500">*</span>
+                      </CardTitle>
                     </CardHeader>
                     <CardContent>
                       <Textarea
                         placeholder="Primary and secondary diagnoses with ICD codes..."
-                        className="h-32"
+                        className={`h-32 ${examinationErrors.diagnosis ? "border-red-500" : ""}`}
+                        maxLength={500}
                         value={examinationDiagnosis}
-                        onChange={(e) => setExaminationDiagnosis(e.target.value)}
+                        onChange={(e) => {
+                          setExaminationDiagnosis(e.target.value);
+                          setExaminationErrors(prev => ({ ...prev, diagnosis: "" }));
+                        }}
+                        onBlur={(e) => {
+                          const error = validateExaminationField(e.target.value, "Diagnosis", 5, 500);
+                          setExaminationErrors(prev => ({ ...prev, diagnosis: error }));
+                        }}
                       />
+                      {examinationErrors.diagnosis && (
+                        <p className="text-sm text-red-500 mt-1">{examinationErrors.diagnosis}</p>
+                      )}
                     </CardContent>
                   </Card>
 
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-lg">Treatment Plan</CardTitle>
+                      <CardTitle className="text-lg">
+                        Treatment Plan <span className="text-red-500">*</span>
+                      </CardTitle>
                     </CardHeader>
                     <CardContent>
                       <Textarea
                         placeholder="Treatment recommendations and care plan..."
-                        className="h-32"
+                        className={`h-32 ${examinationErrors.treatmentPlan ? "border-red-500" : ""}`}
+                        maxLength={500}
                         value={examinationTreatmentPlan}
-                        onChange={(e) => setExaminationTreatmentPlan(e.target.value)}
+                        onChange={(e) => {
+                          setExaminationTreatmentPlan(e.target.value);
+                          setExaminationErrors(prev => ({ ...prev, treatmentPlan: "" }));
+                        }}
+                        onBlur={(e) => {
+                          const error = validateExaminationField(e.target.value, "Treatment Plan", 5, 500);
+                          setExaminationErrors(prev => ({ ...prev, treatmentPlan: error }));
+                        }}
                       />
+                      {examinationErrors.treatmentPlan && (
+                        <p className="text-sm text-red-500 mt-1">{examinationErrors.treatmentPlan}</p>
+                      )}
                     </CardContent>
                   </Card>
                 </div>
