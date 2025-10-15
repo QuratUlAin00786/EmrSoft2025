@@ -2438,6 +2438,107 @@ Report generated from Cura EMR System`;
         </DialogContent>
       </Dialog>
 
+      {/* Summary Dialog */}
+      <Dialog open={showSummaryDialog} onOpenChange={setShowSummaryDialog}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-medical-blue">Order Summary</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            {/* Order Details */}
+            <div className="border rounded-lg p-4 space-y-3">
+              <h3 className="font-semibold text-lg border-b pb-2">Order Information</h3>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-sm text-gray-600 dark:text-gray-400">Patient Name</Label>
+                  <p className="font-medium">{pendingOrderData?.patientName}</p>
+                </div>
+                <div>
+                  <Label className="text-sm text-gray-600 dark:text-gray-400">Priority</Label>
+                  <p className="font-medium capitalize">{pendingOrderData?.priority}</p>
+                </div>
+                <div className="col-span-2">
+                  <Label className="text-sm text-gray-600 dark:text-gray-400">Test Types</Label>
+                  <p className="font-medium">{pendingOrderData?.testTypes?.join(', ')}</p>
+                </div>
+                {pendingOrderData?.notes && (
+                  <div className="col-span-2">
+                    <Label className="text-sm text-gray-600 dark:text-gray-400">Notes</Label>
+                    <p className="font-medium">{pendingOrderData.notes}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Invoice Summary */}
+            <div className="border rounded-lg p-4 space-y-3">
+              <h3 className="font-semibold text-lg border-b pb-2">Invoice Summary</h3>
+              <div className="space-y-2">
+                {invoiceData.items.map((item: any, index: number) => (
+                  <div key={index} className="flex justify-between items-center py-2 border-b last:border-0">
+                    <div>
+                      <p className="font-medium">{item.description}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Code: {item.code} | Qty: {item.quantity}</p>
+                    </div>
+                    <p className="font-semibold">${item.total.toFixed(2)}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="flex justify-between items-center pt-3 border-t-2">
+                <p className="text-lg font-bold">Total Amount:</p>
+                <p className="text-2xl font-bold text-medical-blue">${invoiceData.totalAmount.toFixed(2)}</p>
+              </div>
+            </div>
+
+            {/* Payment Details */}
+            <div className="border rounded-lg p-4 space-y-3 bg-blue-50 dark:bg-blue-950">
+              <h3 className="font-semibold text-lg">Payment Information</h3>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-sm text-gray-600 dark:text-gray-400">Payment Method</Label>
+                  <p className="font-medium capitalize">{invoiceData.paymentMethod.replace('_', ' ')}</p>
+                </div>
+                {invoiceData.insuranceProvider && (
+                  <div>
+                    <Label className="text-sm text-gray-600 dark:text-gray-400">Insurance Provider</Label>
+                    <p className="font-medium">{invoiceData.insuranceProvider}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowSummaryDialog(false);
+                  setShowInvoiceDialog(true);
+                }}
+                className="flex-1"
+              >
+                Back to Invoice
+              </Button>
+              <Button
+                onClick={async () => {
+                  if (invoiceData.paymentMethod === 'cash') {
+                    // Handle cash payment - will implement in next step
+                    console.log('Processing cash payment...');
+                  } else if (invoiceData.paymentMethod === 'debit_card') {
+                    // Handle Stripe payment - will implement in next step
+                    console.log('Processing debit card payment...');
+                  }
+                }}
+                className="flex-1 bg-medical-blue hover:bg-blue-700"
+              >
+                Confirm & Pay
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* View Lab Result Dialog */}
       <Dialog
         open={showViewDialog}
