@@ -1801,8 +1801,8 @@ export default function UserManagement() {
                   </div>
                 </div>
 
-                {/* Doctor Specialty Dropdowns - Only show when role is doctor-like */}
-                {isDoctorLike(selectedRole) && (
+                {/* Doctor Specialty Dropdowns - Only show when role is doctor-like, excluding Lab Technician and Pharmacist */}
+                {isDoctorLike(selectedRole) && !['lab technician', 'lab_technician', 'pharmacist'].includes(selectedRole.toLowerCase()) && (
                   <>
                     <div className="space-y-2">
                       <Label htmlFor="specialtyCategory">Medical Specialty Category</Label>
