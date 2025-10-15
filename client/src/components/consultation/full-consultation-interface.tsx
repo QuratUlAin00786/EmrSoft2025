@@ -1076,6 +1076,42 @@ Healthcare Management System - Averox Healthcare
   const [primarySymptoms, setPrimarySymptoms] = useState<string>("");
   const [severityScale, setSeverityScale] = useState<string>("");
   const [followUpPlan, setFollowUpPlan] = useState<string>("");
+
+  // Anatomical analysis validation state
+  const [anatomicalErrors, setAnatomicalErrors] = useState({
+    muscleGroup: "",
+    analysisType: "",
+    treatment: "",
+    treatmentIntensity: "",
+    sessionFrequency: "",
+    symptoms: "",
+    severity: "",
+    followUp: ""
+  });
+
+  // Anatomical analysis validation functions
+  const validateAnatomicalFields = (): boolean => {
+    const errors = {
+      muscleGroup: selectedMuscleGroup ? "" : "Target Muscle Group is required.",
+      analysisType: selectedAnalysisType ? "" : "Analysis Type is required.",
+      treatment: selectedTreatment ? "" : "Primary Treatment is required.",
+      treatmentIntensity: selectedTreatmentIntensity ? "" : "Treatment Intensity is required.",
+      sessionFrequency: selectedSessionFrequency ? "" : "Session Frequency is required.",
+      symptoms: primarySymptoms ? "" : "Primary symptoms are required.",
+      severity: severityScale ? "" : "Severity rating is required.",
+      followUp: followUpPlan ? "" : "Follow-up timeline is required."
+    };
+
+    setAnatomicalErrors(errors);
+
+    // Return true if no errors
+    return !Object.values(errors).some(error => error !== "");
+  };
+
+  const clearAnatomicalError = (field: string) => {
+    setAnatomicalErrors(prev => ({ ...prev, [field]: "" }));
+  };
+
   const [highlightedMuscleFromDB, setHighlightedMuscleFromDB] = useState<any[]>([]);
   const [generatedTreatmentPlan, setGeneratedTreatmentPlan] = useState<string>("");
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -1584,10 +1620,11 @@ Healthcare Management System - Averox Healthcare
   };
 
   const generateTreatmentPlan = async () => {
-    if (!selectedMuscleGroup || !selectedAnalysisType || !selectedTreatment) {
+    // Validate all fields before generating plan
+    if (!validateAnatomicalFields()) {
       toast({
-        title: "Missing Information",
-        description: "Please select muscle group, analysis type, and treatment.",
+        title: "Validation Error",
+        description: "Please fill in all required fields before generating treatment plan.",
         variant: "destructive"
       });
       return;
@@ -1628,6 +1665,16 @@ Patient should be advised of potential side effects and expected timeline for re
   };
 
   const saveAnalysis = async () => {
+    // Validate all fields before saving
+    if (!validateAnatomicalFields()) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields before saving analysis.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsSavingAnalysis(true);
     
     try {
@@ -3504,8 +3551,14 @@ Patient should be advised of potential side effects and expected timeline for re
                     <CardContent className="space-y-4">
                       <div className="space-y-2">
                         <Label>Target Muscle Group</Label>
-                        <Select value={selectedMuscleGroup} onValueChange={setSelectedMuscleGroup}>
-                          <SelectTrigger>
+                        <Select 
+                          value={selectedMuscleGroup} 
+                          onValueChange={(value) => {
+                            setSelectedMuscleGroup(value);
+                            clearAnatomicalError('muscleGroup');
+                          }}
+                        >
+                          <SelectTrigger className={anatomicalErrors.muscleGroup ? "border-red-500" : ""}>
                             <SelectValue placeholder="Select muscle group" />
                           </SelectTrigger>
                           <SelectContent>
@@ -3526,12 +3579,21 @@ Patient should be advised of potential side effects and expected timeline for re
                             <SelectItem value="platysma">Platysma</SelectItem>
                           </SelectContent>
                         </Select>
+                        {anatomicalErrors.muscleGroup && (
+                          <p className="text-sm text-red-500 mt-1">{anatomicalErrors.muscleGroup}</p>
+                        )}
                       </div>
 
                       <div className="space-y-2">
                         <Label>Analysis Type</Label>
-                        <Select value={selectedAnalysisType} onValueChange={setSelectedAnalysisType}>
-                          <SelectTrigger>
+                        <Select 
+                          value={selectedAnalysisType} 
+                          onValueChange={(value) => {
+                            setSelectedAnalysisType(value);
+                            clearAnatomicalError('analysisType');
+                          }}
+                        >
+                          <SelectTrigger className={anatomicalErrors.analysisType ? "border-red-500" : ""}>
                             <SelectValue placeholder="Select analysis type" />
                           </SelectTrigger>
                           <SelectContent>
@@ -3543,6 +3605,9 @@ Patient should be advised of potential side effects and expected timeline for re
                             <SelectItem value="functional_assessment">Functional Assessment</SelectItem>
                           </SelectContent>
                         </Select>
+                        {anatomicalErrors.analysisType && (
+                          <p className="text-sm text-red-500 mt-1">{anatomicalErrors.analysisType}</p>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -3555,8 +3620,14 @@ Patient should be advised of potential side effects and expected timeline for re
                     <CardContent className="space-y-4">
                       <div className="space-y-2">
                         <Label>Primary Treatment</Label>
-                        <Select value={selectedTreatment} onValueChange={setSelectedTreatment}>
-                          <SelectTrigger>
+                        <Select 
+                          value={selectedTreatment} 
+                          onValueChange={(value) => {
+                            setSelectedTreatment(value);
+                            clearAnatomicalError('treatment');
+                          }}
+                        >
+                          <SelectTrigger className={anatomicalErrors.treatment ? "border-red-500" : ""}>
                             <SelectValue placeholder="Select primary treatment" />
                           </SelectTrigger>
                           <SelectContent>
@@ -3568,12 +3639,21 @@ Patient should be advised of potential side effects and expected timeline for re
                             <SelectItem value="neuromuscular_reeducation">Neuromuscular Reeducation</SelectItem>
                           </SelectContent>
                         </Select>
+                        {anatomicalErrors.treatment && (
+                          <p className="text-sm text-red-500 mt-1">{anatomicalErrors.treatment}</p>
+                        )}
                       </div>
 
                       <div className="space-y-2">
                         <Label>Treatment Intensity</Label>
-                        <Select value={selectedTreatmentIntensity} onValueChange={setSelectedTreatmentIntensity}>
-                          <SelectTrigger>
+                        <Select 
+                          value={selectedTreatmentIntensity} 
+                          onValueChange={(value) => {
+                            setSelectedTreatmentIntensity(value);
+                            clearAnatomicalError('treatmentIntensity');
+                          }}
+                        >
+                          <SelectTrigger className={anatomicalErrors.treatmentIntensity ? "border-red-500" : ""}>
                             <SelectValue placeholder="Select intensity level" />
                           </SelectTrigger>
                           <SelectContent>
@@ -3583,12 +3663,21 @@ Patient should be advised of potential side effects and expected timeline for re
                             <SelectItem value="progressive">Progressive Intensity</SelectItem>
                           </SelectContent>
                         </Select>
+                        {anatomicalErrors.treatmentIntensity && (
+                          <p className="text-sm text-red-500 mt-1">{anatomicalErrors.treatmentIntensity}</p>
+                        )}
                       </div>
 
                       <div className="space-y-2">
                         <Label>Session Frequency</Label>
-                        <Select value={selectedSessionFrequency} onValueChange={setSelectedSessionFrequency}>
-                          <SelectTrigger>
+                        <Select 
+                          value={selectedSessionFrequency} 
+                          onValueChange={(value) => {
+                            setSelectedSessionFrequency(value);
+                            clearAnatomicalError('sessionFrequency');
+                          }}
+                        >
+                          <SelectTrigger className={anatomicalErrors.sessionFrequency ? "border-red-500" : ""}>
                             <SelectValue placeholder="Select frequency" />
                           </SelectTrigger>
                           <SelectContent>
@@ -3599,6 +3688,9 @@ Patient should be advised of potential side effects and expected timeline for re
                             <SelectItem value="monthly">Monthly</SelectItem>
                           </SelectContent>
                         </Select>
+                        {anatomicalErrors.sessionFrequency && (
+                          <p className="text-sm text-red-500 mt-1">{anatomicalErrors.sessionFrequency}</p>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -3613,8 +3705,14 @@ Patient should be advised of potential side effects and expected timeline for re
                     <CardContent>
                       <div className="space-y-2">
                         <Label>Primary symptoms</Label>
-                        <Select value={primarySymptoms} onValueChange={setPrimarySymptoms}>
-                          <SelectTrigger>
+                        <Select 
+                          value={primarySymptoms} 
+                          onValueChange={(value) => {
+                            setPrimarySymptoms(value);
+                            clearAnatomicalError('symptoms');
+                          }}
+                        >
+                          <SelectTrigger className={anatomicalErrors.symptoms ? "border-red-500" : ""}>
                             <SelectValue placeholder="Select primary symptoms" />
                           </SelectTrigger>
                           <SelectContent>
@@ -3628,6 +3726,9 @@ Patient should be advised of potential side effects and expected timeline for re
                             <SelectItem value="other">Other</SelectItem>
                           </SelectContent>
                         </Select>
+                        {anatomicalErrors.symptoms && (
+                          <p className="text-sm text-red-500 mt-1">{anatomicalErrors.symptoms}</p>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -3639,8 +3740,14 @@ Patient should be advised of potential side effects and expected timeline for re
                     <CardContent>
                       <div className="space-y-2">
                         <Label>Rate severity</Label>
-                        <Select value={severityScale} onValueChange={setSeverityScale}>
-                          <SelectTrigger>
+                        <Select 
+                          value={severityScale} 
+                          onValueChange={(value) => {
+                            setSeverityScale(value);
+                            clearAnatomicalError('severity');
+                          }}
+                        >
+                          <SelectTrigger className={anatomicalErrors.severity ? "border-red-500" : ""}>
                             <SelectValue placeholder="Rate severity level" />
                           </SelectTrigger>
                           <SelectContent>
@@ -3650,6 +3757,9 @@ Patient should be advised of potential side effects and expected timeline for re
                             <SelectItem value="9">Critical (9-10)</SelectItem>
                           </SelectContent>
                         </Select>
+                        {anatomicalErrors.severity && (
+                          <p className="text-sm text-red-500 mt-1">{anatomicalErrors.severity}</p>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -3661,8 +3771,14 @@ Patient should be advised of potential side effects and expected timeline for re
                     <CardContent>
                       <div className="space-y-2">
                         <Label>Follow-up timeline</Label>
-                        <Select value={followUpPlan} onValueChange={setFollowUpPlan}>
-                          <SelectTrigger>
+                        <Select 
+                          value={followUpPlan} 
+                          onValueChange={(value) => {
+                            setFollowUpPlan(value);
+                            clearAnatomicalError('followUp');
+                          }}
+                        >
+                          <SelectTrigger className={anatomicalErrors.followUp ? "border-red-500" : ""}>
                             <SelectValue placeholder="Select follow-up timeline" />
                           </SelectTrigger>
                           <SelectContent>
@@ -3674,6 +3790,9 @@ Patient should be advised of potential side effects and expected timeline for re
                             <SelectItem value="as_needed">As Needed</SelectItem>
                           </SelectContent>
                         </Select>
+                        {anatomicalErrors.followUp && (
+                          <p className="text-sm text-red-500 mt-1">{anatomicalErrors.followUp}</p>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
