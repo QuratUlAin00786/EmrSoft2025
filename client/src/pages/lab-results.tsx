@@ -3717,41 +3717,60 @@ Report generated from Cura EMR System`;
                 )}
               </div>
 
-              {/* Test Result Fields Based on Test Type */}
-              {TEST_FIELD_DEFINITIONS[selectedLabOrder.testType] && (
-                <div className="space-y-4">
-                  <h4 className="font-semibold text-gray-900">
-                    Enter Test Results for {selectedLabOrder.testType}
-                  </h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    {TEST_FIELD_DEFINITIONS[selectedLabOrder.testType].map((field) => (
-                      <div key={field.name} className="space-y-2">
-                        <Label htmlFor={`fill-${field.name}`}>
-                          {field.name}
-                          <span className="text-xs text-gray-500 ml-2">
-                            (Ref: {field.referenceRange} {field.unit})
-                          </span>
-                        </Label>
-                        <Input
-                          id={`fill-${field.name}`}
-                          type="text"
-                          placeholder={`Enter ${field.name}`}
-                          value={
-                            fillResultFormData[field.name] || ""
-                          }
-                          onChange={(e) =>
-                            setFillResultFormData((prev: any) => ({
-                              ...prev,
-                              [field.name]: e.target.value,
-                            }))
-                          }
-                          data-testid={`input-fill-${field.name}`}
-                        />
+              {/* Test Result Fields Based on Test Type(s) - Multiple tests support */}
+              {(() => {
+                // Parse test types - may be comma-separated for multiple tests
+                const testTypes = selectedLabOrder.testType
+                  .split(',')
+                  .map((t: string) => t.trim())
+                  .filter((t: string) => TEST_FIELD_DEFINITIONS[t]);
+
+                if (testTypes.length === 0) return null;
+
+                return (
+                  <div className="space-y-6">
+                    {testTypes.map((testType: string, testIndex: number) => (
+                      <div key={testType} className="space-y-4">
+                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-600 p-3 rounded">
+                          <h4 className="font-semibold text-blue-900 text-lg">
+                            {testIndex + 1}. {testType}
+                          </h4>
+                          <p className="text-sm text-gray-600 mt-1">
+                            {TEST_FIELD_DEFINITIONS[testType].length} parameters
+                          </p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 pl-2">
+                          {TEST_FIELD_DEFINITIONS[testType].map((field) => (
+                            <div key={`${testType}-${field.name}`} className="space-y-2">
+                              <Label htmlFor={`fill-${testType}-${field.name}`}>
+                                {field.name}
+                                <span className="text-xs text-gray-500 ml-2">
+                                  (Ref: {field.referenceRange} {field.unit})
+                                </span>
+                              </Label>
+                              <Input
+                                id={`fill-${testType}-${field.name}`}
+                                type="text"
+                                placeholder={`Enter ${field.name}`}
+                                value={
+                                  fillResultFormData[`${testType}::${field.name}`] || ""
+                                }
+                                onChange={(e) =>
+                                  setFillResultFormData((prev: any) => ({
+                                    ...prev,
+                                    [`${testType}::${field.name}`]: e.target.value,
+                                  }))
+                                }
+                                data-testid={`input-fill-${testType}-${field.name}`}
+                              />
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     ))}
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
               {/* Clinical Notes */}
               <div className="space-y-2">
@@ -3785,24 +3804,32 @@ Report generated from Cura EMR System`;
                 <Button
                   variant="outline"
                   onClick={() => {
-                    // Build results array from filled values
+                    // Build results array from filled values - supports multiple tests
                     const results: any[] = [];
-                    const testFields = TEST_FIELD_DEFINITIONS[selectedLabOrder.testType];
+                    const testTypes = selectedLabOrder.testType
+                      .split(',')
+                      .map((t: string) => t.trim())
+                      .filter((t: string) => TEST_FIELD_DEFINITIONS[t]);
                     
-                    if (testFields) {
-                      testFields.forEach((field) => {
-                        const value = fillResultFormData[field.name];
-                        if (value && value.trim() !== "") {
-                          results.push({
-                            name: field.name,
-                            value: value,
-                            unit: field.unit,
-                            referenceRange: field.referenceRange,
-                            status: "normal",
-                          });
-                        }
-                      });
-                    }
+                    // Process all test types
+                    testTypes.forEach((testType: string) => {
+                      const testFields = TEST_FIELD_DEFINITIONS[testType];
+                      if (testFields) {
+                        testFields.forEach((field) => {
+                          const fieldKey = `${testType}::${field.name}`;
+                          const value = fillResultFormData[fieldKey];
+                          if (value && value.trim() !== "") {
+                            results.push({
+                              name: `${testType} - ${field.name}`,
+                              value: value,
+                              unit: field.unit,
+                              referenceRange: field.referenceRange,
+                              status: "normal",
+                            });
+                          }
+                        });
+                      }
+                    });
 
                     if (results.length === 0) {
                       toast({
@@ -3962,24 +3989,32 @@ Report generated from Cura EMR System`;
                 </Button>
                 <Button
                   onClick={() => {
-                    // Build results array from filled values
+                    // Build results array from filled values - supports multiple tests
                     const results: any[] = [];
-                    const testFields = TEST_FIELD_DEFINITIONS[selectedLabOrder.testType];
+                    const testTypes = selectedLabOrder.testType
+                      .split(',')
+                      .map((t: string) => t.trim())
+                      .filter((t: string) => TEST_FIELD_DEFINITIONS[t]);
                     
-                    if (testFields) {
-                      testFields.forEach((field) => {
-                        const value = fillResultFormData[field.name];
-                        if (value && value.trim() !== "") {
-                          results.push({
-                            name: field.name,
-                            value: value,
-                            unit: field.unit,
-                            referenceRange: field.referenceRange,
-                            status: "normal",
-                          });
-                        }
-                      });
-                    }
+                    // Process all test types
+                    testTypes.forEach((testType: string) => {
+                      const testFields = TEST_FIELD_DEFINITIONS[testType];
+                      if (testFields) {
+                        testFields.forEach((field) => {
+                          const fieldKey = `${testType}::${field.name}`;
+                          const value = fillResultFormData[fieldKey];
+                          if (value && value.trim() !== "") {
+                            results.push({
+                              name: `${testType} - ${field.name}`,
+                              value: value,
+                              unit: field.unit,
+                              referenceRange: field.referenceRange,
+                              status: "normal",
+                            });
+                          }
+                        });
+                      }
+                    });
 
                     if (results.length === 0) {
                       toast({
@@ -4003,7 +4038,7 @@ Report generated from Cura EMR System`;
 
                     toast({
                       title: "Success",
-                      description: "Lab test result generated successfully",
+                      description: "Lab test results generated successfully",
                     });
                     
                     setShowFillResultDialog(false);
