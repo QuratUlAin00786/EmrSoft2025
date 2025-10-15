@@ -1053,16 +1053,16 @@ export default function BillingPage() {
             ) : (
               /* Admin View: Tabs Navigation */
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-3 md:grid-cols-4 lg:grid-cols-10 gap-1">
+                <TabsList className="grid w-full grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-1">
                   <TabsTrigger value="invoices">Invoices</TabsTrigger>
                   <TabsTrigger value="payment-history">Payment History</TabsTrigger>
                   <TabsTrigger value="insurance-claims">Insurance Claims</TabsTrigger>
-                  <TabsTrigger value="revenue-report">Revenue Report</TabsTrigger>
+                  {/* <TabsTrigger value="revenue-report">Revenue Report</TabsTrigger>
                   <TabsTrigger value="outstanding-invoices">Outstanding Invoices</TabsTrigger>
                   <TabsTrigger value="insurance-analytics">Insurance Analytics</TabsTrigger>
                   <TabsTrigger value="aging-report">Aging Report</TabsTrigger>
                   <TabsTrigger value="provider-performance">Provider Performance</TabsTrigger>
-                  <TabsTrigger value="procedure-analysis">Procedure Analysis</TabsTrigger>
+                  <TabsTrigger value="procedure-analysis">Procedure Analysis</TabsTrigger> */}
                   <TabsTrigger value="custom-reports">Custom Reports</TabsTrigger>
                 </TabsList>
 
@@ -1570,7 +1570,7 @@ export default function BillingPage() {
               )}
 
               {/* Revenue Report Tab */}
-              {isAdmin && (
+              {false && isAdmin && (
                 <TabsContent value="revenue-report" className="space-y-4 mt-6">
                   <Card>
                     <CardHeader>
@@ -1699,7 +1699,7 @@ export default function BillingPage() {
               )}
 
               {/* Outstanding Invoices Tab */}
-              {isAdmin && (
+              {false && isAdmin && (
                 <TabsContent value="outstanding-invoices" className="space-y-4 mt-6">
                   <Card>
                     <CardHeader>
@@ -1838,7 +1838,7 @@ export default function BillingPage() {
               )}
 
               {/* Insurance Analytics Tab */}
-              {isAdmin && (
+              {false && isAdmin && (
                 <TabsContent value="insurance-analytics" className="space-y-4 mt-6">
                   <Card>
                     <CardHeader>
@@ -1981,7 +1981,7 @@ export default function BillingPage() {
               )}
 
               {/* Aging Report Tab */}
-              {isAdmin && (
+              {false && isAdmin && (
                 <TabsContent value="aging-report" className="space-y-4 mt-6">
                   <Card>
                     <CardHeader>
@@ -2108,7 +2108,7 @@ export default function BillingPage() {
               )}
 
               {/* Provider Performance Tab */}
-              {isAdmin && (
+              {false && isAdmin && (
                 <TabsContent value="provider-performance" className="space-y-4 mt-6">
                   <Card>
                     <CardHeader>
@@ -2251,7 +2251,7 @@ export default function BillingPage() {
               )}
 
               {/* Procedure Analysis Tab */}
-              {isAdmin && (
+              {false && isAdmin && (
                 <TabsContent value="procedure-analysis" className="space-y-4 mt-6">
                   <Card>
                     <CardHeader>
@@ -2558,7 +2558,7 @@ export default function BillingPage() {
             </Tabs>
             )}
 
-          {isAdmin && (
+          {false && isAdmin && (
             <div className="space-y-6">
               {/* Report Selection Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
