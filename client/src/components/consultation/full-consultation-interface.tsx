@@ -388,6 +388,16 @@ export function FullConsultationInterface({ open, onOpenChange, patient, patient
       return;
     }
 
+    // Validate assessment before saving
+    if (!validateAssessment()) {
+      toast({
+        title: "Validation Error",
+        description: "Please fix the validation errors before saving.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const assessmentData = {
       assessment: consultationData.assessment
     };
@@ -885,6 +895,35 @@ ${
 
     // Check if there are any errors
     return !Object.values(errors).some(error => error !== "");
+  };
+
+  // Assessment validation state
+  const [assessmentError, setAssessmentError] = useState("");
+
+  // Assessment validation function
+  const validateAssessmentField = (value: string): string => {
+    // If field is optional and empty, no error
+    if (!value || value.trim().length === 0) {
+      return "";
+    }
+    
+    // If field has content but below minimum
+    if (value.trim().length < 5) {
+      return "Assessment & Working Diagnosis must be at least 5 characters.";
+    }
+    
+    // If field exceeds maximum
+    if (value.length > 255) {
+      return "Assessment & Working Diagnosis must not exceed 255 characters.";
+    }
+    
+    return "";
+  };
+
+  const validateAssessment = (): boolean => {
+    const error = validateAssessmentField(consultationData.assessment);
+    setAssessmentError(error);
+    return error === "";
   };
 
   // Examination modal states
@@ -2549,9 +2588,20 @@ Patient should be advised of potential side effects and expected timeline for re
                         id="assessment"
                         placeholder="Clinical assessment, differential diagnosis, working diagnosis, and clinical reasoning..."
                         value={consultationData.assessment}
-                        onChange={(e) => setConsultationData(prev => ({ ...prev, assessment: e.target.value }))}
-                        className="mt-2 h-40"
+                        maxLength={255}
+                        className={`mt-2 h-40 ${assessmentError ? "border-red-500" : ""}`}
+                        onChange={(e) => {
+                          setConsultationData(prev => ({ ...prev, assessment: e.target.value }));
+                          setAssessmentError("");
+                        }}
+                        onBlur={(e) => {
+                          const error = validateAssessmentField(e.target.value);
+                          setAssessmentError(error);
+                        }}
                       />
+                      {assessmentError && (
+                        <p className="text-sm text-red-500 mt-1">{assessmentError}</p>
+                      )}
                     </div>
                   </div>
                 </CardContent>
