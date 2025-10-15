@@ -337,7 +337,7 @@ export default function MessagingPage() {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'cura',
+          'X-Tenant-Subdomain': localStorage.getItem('user_subdomain') || 'demo',
           'Content-Type': 'application/json'
         },
         credentials: 'include'
@@ -359,7 +359,7 @@ export default function MessagingPage() {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'cura',
+          'X-Tenant-Subdomain': localStorage.getItem('user_subdomain') || 'demo',
           'Content-Type': 'application/json'
         },
         credentials: 'include'
@@ -380,7 +380,7 @@ export default function MessagingPage() {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'cura',
+          'X-Tenant-Subdomain': localStorage.getItem('user_subdomain') || 'demo',
           'Content-Type': 'application/json'
         },
         credentials: 'include'
@@ -407,11 +407,12 @@ export default function MessagingPage() {
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData: any) => {
       const token = localStorage.getItem('auth_token');
+      const subdomain = localStorage.getItem('user_subdomain') || 'demo';
       const response = await fetch('/api/messaging/send', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'cura',
+          'X-Tenant-Subdomain': subdomain,
           'Content-Type': 'application/json'
         },
         credentials: 'include',
@@ -512,7 +513,7 @@ export default function MessagingPage() {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'cura',
+          'X-Tenant-Subdomain': localStorage.getItem('user_subdomain') || 'demo',
           'Content-Type': 'application/json'
         },
         credentials: 'include'
@@ -581,7 +582,7 @@ export default function MessagingPage() {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'cura',
+          'X-Tenant-Subdomain': localStorage.getItem('user_subdomain') || 'demo',
           'Content-Type': 'application/json'
         },
         credentials: 'include',
@@ -625,7 +626,7 @@ export default function MessagingPage() {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'cura',
+          'X-Tenant-Subdomain': localStorage.getItem('user_subdomain') || 'demo',
           'Content-Type': 'application/json'
         },
         credentials: 'include',
@@ -871,7 +872,7 @@ export default function MessagingPage() {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'X-Tenant-Subdomain': 'cura',
+          'X-Tenant-Subdomain': localStorage.getItem('user_subdomain') || 'demo',
           'Content-Type': 'application/json'
         },
         credentials: 'include',
@@ -1951,7 +1952,7 @@ export default function MessagingPage() {
                                             method: 'DELETE',
                                             headers: {
                                               'Authorization': `Bearer ${token}`,
-                                              'X-Tenant-Subdomain': 'cura',
+                                              'X-Tenant-Subdomain': localStorage.getItem('user_subdomain') || 'demo',
                                               'Content-Type': 'application/json'
                                             },
                                             credentials: 'include'
