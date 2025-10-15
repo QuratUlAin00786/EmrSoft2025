@@ -42,7 +42,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Plus, Edit, Trash2, UserPlus, Shield, Stethoscope, Users, Calendar, User, TestTube, Lock, BookOpen, X, Check, LayoutGrid, LayoutList } from "lucide-react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { toast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Header } from "@/components/layout/header";
@@ -375,6 +375,7 @@ const medicalSpecialties = {
 };
 
 export default function UserManagement() {
+  const [, setLocation] = useLocation();
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -988,6 +989,14 @@ export default function UserManagement() {
       refetch();
       setIsCreateModalOpen(false);
       form.reset();
+      
+      // Redirect to shifts page if role is doctor
+      if (newUser.role && (newUser.role.toLowerCase() === 'doctor')) {
+        const subdomain = getActiveSubdomain();
+        setTimeout(() => {
+          setLocation(`/${subdomain}/shifts`);
+        }, 1500);
+      }
     },
     onError: (error: any) => {
       console.error("User creation error (full):", error);
