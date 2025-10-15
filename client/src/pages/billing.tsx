@@ -1053,7 +1053,7 @@ export default function BillingPage() {
             ) : (
               /* Admin View: Tabs Navigation */
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-3 md:grid-cols-4 lg:grid-cols-9 gap-1">
+                <TabsList className="grid w-full grid-cols-3 md:grid-cols-4 lg:grid-cols-10 gap-1">
                   <TabsTrigger value="invoices">Invoices</TabsTrigger>
                   <TabsTrigger value="payment-history">Payment History</TabsTrigger>
                   <TabsTrigger value="insurance-claims">Insurance Claims</TabsTrigger>
@@ -1063,6 +1063,7 @@ export default function BillingPage() {
                   <TabsTrigger value="aging-report">Aging Report</TabsTrigger>
                   <TabsTrigger value="provider-performance">Provider Performance</TabsTrigger>
                   <TabsTrigger value="procedure-analysis">Procedure Analysis</TabsTrigger>
+                  <TabsTrigger value="custom-reports">Custom Reports</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="invoices" className="space-y-4 mt-6">
@@ -2399,6 +2400,161 @@ export default function BillingPage() {
                   </Card>
                 </TabsContent>
               )}
+
+              {/* Custom Reports Tab */}
+              {isAdmin && (
+                <TabsContent value="custom-reports" className="space-y-4 mt-6">
+                  {/* Report Filters */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Filter className="h-5 w-5" />
+                        Report Filters
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div>
+                          <Label>Date Range</Label>
+                          <Select defaultValue="this-month">
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="today">Today</SelectItem>
+                              <SelectItem value="this-week">This Week</SelectItem>
+                              <SelectItem value="this-month">This Month</SelectItem>
+                              <SelectItem value="last-month">Last Month</SelectItem>
+                              <SelectItem value="this-quarter">This Quarter</SelectItem>
+                              <SelectItem value="this-year">This Year</SelectItem>
+                              <SelectItem value="custom">Custom Range</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label>Provider</Label>
+                          <Select defaultValue="all">
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">All Providers</SelectItem>
+                              <SelectItem value="dr-smith">Dr. Smith</SelectItem>
+                              <SelectItem value="dr-jones">Dr. Jones</SelectItem>
+                              <SelectItem value="dr-brown">Dr. Brown</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label>Insurance Type</Label>
+                          <Select defaultValue="all">
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">All Insurance</SelectItem>
+                              <SelectItem value="nhs">NHS</SelectItem>
+                              <SelectItem value="private">Private</SelectItem>
+                              <SelectItem value="self-pay">Self Pay</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="flex items-end">
+                          <Button className="w-full">
+                            <FileBarChart className="h-4 w-4 mr-2" />
+                            Generate Report
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Revenue Breakdown - Current Month */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Revenue Breakdown - Current Month</CardTitle>
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm">
+                          <Download className="h-4 w-4 mr-2" />
+                          Export CSV
+                        </Button>
+                        <Button variant="outline" size="sm">
+                          <FileText className="h-4 w-4 mr-2" />
+                          Export PDF
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="border-b bg-gray-50 dark:bg-gray-800">
+                              <th className="text-left p-3">Service Type</th>
+                              <th className="text-left p-3">Procedures</th>
+                              <th className="text-left p-3">Revenue</th>
+                              <th className="text-left p-3">Insurance</th>
+                              <th className="text-left p-3">Self-Pay</th>
+                              <th className="text-left p-3">Collection Rate</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
+                              <td className="p-3 font-medium">General Consultation</td>
+                              <td className="p-3">24</td>
+                              <td className="p-3 font-semibold">{formatCurrency(3600)}</td>
+                              <td className="p-3">{formatCurrency(2800)}</td>
+                              <td className="p-3">{formatCurrency(800)}</td>
+                              <td className="p-3">
+                                <Badge className="bg-green-100 text-green-800">95%</Badge>
+                              </td>
+                            </tr>
+                            <tr className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
+                              <td className="p-3 font-medium">Specialist Consultation</td>
+                              <td className="p-3">12</td>
+                              <td className="p-3 font-semibold">{formatCurrency(2400)}</td>
+                              <td className="p-3">{formatCurrency(1900)}</td>
+                              <td className="p-3">{formatCurrency(500)}</td>
+                              <td className="p-3">
+                                <Badge className="bg-green-100 text-green-800">92%</Badge>
+                              </td>
+                            </tr>
+                            <tr className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
+                              <td className="p-3 font-medium">Diagnostic Tests</td>
+                              <td className="p-3">18</td>
+                              <td className="p-3 font-semibold">{formatCurrency(1800)}</td>
+                              <td className="p-3">{formatCurrency(1600)}</td>
+                              <td className="p-3">{formatCurrency(200)}</td>
+                              <td className="p-3">
+                                <Badge className="bg-yellow-100 text-yellow-800">88%</Badge>
+                              </td>
+                            </tr>
+                            <tr className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
+                              <td className="p-3 font-medium">Minor Procedures</td>
+                              <td className="p-3">8</td>
+                              <td className="p-3 font-semibold">{formatCurrency(1200)}</td>
+                              <td className="p-3">{formatCurrency(900)}</td>
+                              <td className="p-3">{formatCurrency(300)}</td>
+                              <td className="p-3">
+                                <Badge className="bg-green-100 text-green-800">94%</Badge>
+                              </td>
+                            </tr>
+                            <tr className="border-b bg-gray-50 dark:bg-gray-800 font-semibold">
+                              <td className="p-3">Total</td>
+                              <td className="p-3">62</td>
+                              <td className="p-3">{formatCurrency(9000)}</td>
+                              <td className="p-3">{formatCurrency(7200)}</td>
+                              <td className="p-3">{formatCurrency(1800)}</td>
+                              <td className="p-3">
+                                <Badge className="bg-green-100 text-green-800">92%</Badge>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              )}
             </Tabs>
             )}
 
@@ -2527,156 +2683,6 @@ export default function BillingPage() {
                     <div className="text-sm text-gray-600 dark:text-gray-300">Avg Collection Time</div>
                     <div className="text-xs text-orange-600 mt-1">Industry: 25 days</div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Report Filters */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Filter className="h-5 w-5" />
-                  Report Filters
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div>
-                    <Label>Date Range</Label>
-                    <Select defaultValue="this-month">
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="today">Today</SelectItem>
-                        <SelectItem value="this-week">This Week</SelectItem>
-                        <SelectItem value="this-month">This Month</SelectItem>
-                        <SelectItem value="last-month">Last Month</SelectItem>
-                        <SelectItem value="this-quarter">This Quarter</SelectItem>
-                        <SelectItem value="this-year">This Year</SelectItem>
-                        <SelectItem value="custom">Custom Range</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Provider</Label>
-                    <Select defaultValue="all">
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Providers</SelectItem>
-                        <SelectItem value="dr-smith">Dr. Smith</SelectItem>
-                        <SelectItem value="dr-jones">Dr. Jones</SelectItem>
-                        <SelectItem value="dr-brown">Dr. Brown</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Insurance Type</Label>
-                    <Select defaultValue="all">
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Insurance</SelectItem>
-                        <SelectItem value="nhs">NHS</SelectItem>
-                        <SelectItem value="private">Private</SelectItem>
-                        <SelectItem value="self-pay">Self Pay</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="flex items-end">
-                    <Button className="w-full">
-                      <FileBarChart className="h-4 w-4 mr-2" />
-                      Generate Report
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Sample Report Table */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Revenue Breakdown - Current Month</CardTitle>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm">
-                    <Download className="h-4 w-4 mr-2" />
-                    Export CSV
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <FileText className="h-4 w-4 mr-2" />
-                    Export PDF
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b bg-gray-50 dark:bg-gray-800">
-                        <th className="text-left p-3">Service Type</th>
-                        <th className="text-left p-3">Procedures</th>
-                        <th className="text-left p-3">Revenue</th>
-                        <th className="text-left p-3">Insurance</th>
-                        <th className="text-left p-3">Self-Pay</th>
-                        <th className="text-left p-3">Collection Rate</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
-                        <td className="p-3 font-medium">General Consultation</td>
-                        <td className="p-3">24</td>
-                        <td className="p-3 font-semibold">{formatCurrency(3600)}</td>
-                        <td className="p-3">{formatCurrency(2800)}</td>
-                        <td className="p-3">{formatCurrency(800)}</td>
-                        <td className="p-3">
-                          <Badge className="bg-green-100 text-green-800">95%</Badge>
-                        </td>
-                      </tr>
-                      <tr className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
-                        <td className="p-3 font-medium">Specialist Consultation</td>
-                        <td className="p-3">12</td>
-                        <td className="p-3 font-semibold">{formatCurrency(2400)}</td>
-                        <td className="p-3">{formatCurrency(1900)}</td>
-                        <td className="p-3">{formatCurrency(500)}</td>
-                        <td className="p-3">
-                          <Badge className="bg-green-100 text-green-800">92%</Badge>
-                        </td>
-                      </tr>
-                      <tr className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
-                        <td className="p-3 font-medium">Diagnostic Tests</td>
-                        <td className="p-3">18</td>
-                        <td className="p-3 font-semibold">{formatCurrency(1800)}</td>
-                        <td className="p-3">{formatCurrency(1600)}</td>
-                        <td className="p-3">{formatCurrency(200)}</td>
-                        <td className="p-3">
-                          <Badge className="bg-yellow-100 text-yellow-800">88%</Badge>
-                        </td>
-                      </tr>
-                      <tr className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
-                        <td className="p-3 font-medium">Minor Procedures</td>
-                        <td className="p-3">8</td>
-                        <td className="p-3 font-semibold">{formatCurrency(1200)}</td>
-                        <td className="p-3">{formatCurrency(900)}</td>
-                        <td className="p-3">{formatCurrency(300)}</td>
-                        <td className="p-3">
-                          <Badge className="bg-green-100 text-green-800">94%</Badge>
-                        </td>
-                      </tr>
-                      <tr className="border-b bg-gray-50 dark:bg-gray-800 font-semibold">
-                        <td className="p-3">Total</td>
-                        <td className="p-3">62</td>
-                        <td className="p-3">{formatCurrency(9000)}</td>
-                        <td className="p-3">{formatCurrency(7200)}</td>
-                        <td className="p-3">{formatCurrency(1800)}</td>
-                        <td className="p-3">
-                          <Badge className="bg-green-100 text-green-800">92%</Badge>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
                 </div>
               </CardContent>
             </Card>
