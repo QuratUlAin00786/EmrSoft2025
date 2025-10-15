@@ -434,6 +434,21 @@ const pharmacistSubcategories = [
   "Telepharmacist"
 ] as const;
 
+// Optician Subcategories
+const opticianSubcategories = [
+  "Dispensing Optician",
+  "Contact Lens Optician",
+  "Pediatric Optician",
+  "Low Vision Optician",
+  "Ophthalmic Optician",
+  "Retail/Store Optician",
+  "Technical/Manufacturing Optician",
+  "Refractive Surgery Optician",
+  "Frame Stylist/Optical Consultant",
+  "Clinical Optician",
+  "Mobile/Field Optician"
+] as const;
+
 export default function UserManagement() {
   const [, setLocation] = useLocation();
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -468,6 +483,9 @@ export default function UserManagement() {
   
   // Pharmacist subcategory state
   const [selectedPharmacistSubcategory, setSelectedPharmacistSubcategory] = useState<string>("");
+  
+  // Optician subcategory state
+  const [selectedOpticianSubcategory, setSelectedOpticianSubcategory] = useState<string>("");
   
   // Role management states
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
@@ -1365,6 +1383,14 @@ export default function UserManagement() {
       setSelectedPharmacistSubcategory("");
     }
 
+    // Set optician subcategory for Optician role
+    if (user.role.toLowerCase() === 'optician') {
+      setSelectedOpticianSubcategory(user.subSpecialty || "");
+      userData.subSpecialty = user.subSpecialty || "";
+    } else {
+      setSelectedOpticianSubcategory("");
+    }
+
     // SECTION 2: Patient table data (if role === 'patient')
     if (user.role === 'patient') {
       console.log("📋 SECTION 2: Loading patients table data (matched by email)");
@@ -1855,6 +1881,10 @@ export default function UserManagement() {
                         if (value.toLowerCase() !== 'pharmacist') {
                           setSelectedPharmacistSubcategory("");
                         }
+                        // Clear optician subcategory when switching from optician
+                        if (value.toLowerCase() !== 'optician') {
+                          setSelectedOpticianSubcategory("");
+                        }
                       }} defaultValue={form.getValues("role")}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a role" />
@@ -1988,6 +2018,31 @@ export default function UserManagement() {
                       </SelectTrigger>
                       <SelectContent>
                         {pharmacistSubcategories.map((subcategory) => (
+                          <SelectItem key={subcategory} value={subcategory}>
+                            {subcategory}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {/* Optician Subcategory Dropdown - Only show when role is Optician */}
+                {selectedRole.toLowerCase() === 'optician' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="opticianSubcategory">Optician Subcategory</Label>
+                    <Select 
+                      onValueChange={(value) => {
+                        setSelectedOpticianSubcategory(value);
+                        form.setValue("subSpecialty", value);
+                      }} 
+                      value={selectedOpticianSubcategory}
+                    >
+                      <SelectTrigger data-testid="dropdown-optician-subcategory">
+                        <SelectValue placeholder="Select subcategory" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {opticianSubcategories.map((subcategory) => (
                           <SelectItem key={subcategory} value={subcategory}>
                             {subcategory}
                           </SelectItem>
