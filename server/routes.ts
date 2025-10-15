@@ -13738,11 +13738,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Lab Test Cash Payment - Create invoice and payment record immediately
   app.post("/api/payments/cash", authMiddleware, multiTenantEnforcer(), async (req: TenantRequest, res) => {
     try {
+      console.log('[CASH PAYMENT] Request received, body:', JSON.stringify(req.body, null, 2));
       const organizationId = requireOrgId(req);
       const { patientId, patientName, items, totalAmount, insuranceProvider, serviceDate, invoiceDate, dueDate } = req.body;
 
       // Generate unique invoice number
       const invoiceNumber = `INV-${Date.now()}-${Math.random().toString(36).substring(7).toUpperCase()}`;
+      console.log('[CASH PAYMENT] Generated invoice number:', invoiceNumber);
       
       // Create invoice
       const invoiceData = {
@@ -13780,7 +13782,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         createdBy: req.user?.id
       };
 
+      console.log('[CASH PAYMENT] Creating invoice...');
       const invoice = await storage.createInvoice(invoiceData);
+      console.log('[CASH PAYMENT] Invoice created:', invoice.id, invoice.invoiceNumber);
 
       // Create payment record
       const paymentData = {
@@ -13798,9 +13802,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         notes: `Cash payment for lab test invoice ${invoiceNumber}`
       };
 
+      console.log('[CASH PAYMENT] Creating payment record...');
       const payment = await storage.createPayment(paymentData);
+      console.log('[CASH PAYMENT] Payment created:', payment.id);
 
-      res.json({ 
+      const responseData = { 
         success: true, 
         invoice: {
           id: invoice.id,
@@ -13810,9 +13816,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: payment.id,
           transactionId: payment.transactionId
         }
-      });
+      };
+      
+      console.log('[CASH PAYMENT] Sending response:', JSON.stringify(responseData, null, 2));
+      res.setHeader('Content-Type', 'application/json');
+      res.json(responseData);
     } catch (error) {
-      console.error("Cash payment error:", error);
+      console.error("[CASH PAYMENT] Error:", error);
       res.status(500).json({ error: "Failed to process cash payment" });
     }
   });
