@@ -732,9 +732,30 @@ export function PatientModal({ open, onOpenChange, editMode = false, editPatient
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Insurance Provider</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="Enter insurance provider" />
-                          </FormControl>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select insurance provider..." />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="NHS (National Health Service)" className="bg-cyan-300 hover:bg-cyan-400 dark:bg-cyan-500 dark:hover:bg-cyan-600">
+                                NHS (National Health Service)
+                              </SelectItem>
+                              <SelectItem value="Bupa">Bupa</SelectItem>
+                              <SelectItem value="AXA PPP Healthcare">AXA PPP Healthcare</SelectItem>
+                              <SelectItem value="Vitality Health">Vitality Health</SelectItem>
+                              <SelectItem value="Aviva Health">Aviva Health</SelectItem>
+                              <SelectItem value="Simply Health">Simply Health</SelectItem>
+                              <SelectItem value="WPA">WPA</SelectItem>
+                              <SelectItem value="Benenden Health">Benenden Health</SelectItem>
+                              <SelectItem value="Healix Health Services">Healix Health Services</SelectItem>
+                              <SelectItem value="Sovereign Health Care">Sovereign Health Care</SelectItem>
+                              <SelectItem value="Exeter Friendly Society">Exeter Friendly Society</SelectItem>
+                              <SelectItem value="Self-Pay">Self-Pay</SelectItem>
+                              <SelectItem value="Other">Other</SelectItem>
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}
