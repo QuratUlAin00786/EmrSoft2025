@@ -239,6 +239,16 @@ export function FullConsultationInterface({ open, onOpenChange, patient, patient
       return;
     }
 
+    // Validate history before saving
+    if (!validateAllHistory()) {
+      toast({
+        title: "Validation Error",
+        description: "Please correct the errors in the history fields before saving.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const historyData = {
       chiefComplaint: consultationData.chiefComplaint,
       historyPresentingComplaint: consultationData.historyPresentingComplaint,
@@ -766,6 +776,61 @@ ${
       reason: string;
     }>
   });
+
+  // History validation state
+  const [historyErrors, setHistoryErrors] = useState({
+    chiefComplaint: "",
+    historyPresentingComplaint: "",
+    reviewOfSystems: {
+      cardiovascular: "",
+      respiratory: "",
+      gastrointestinal: "",
+      genitourinary: "",
+      neurological: "",
+      musculoskeletal: "",
+      skin: "",
+      psychiatric: ""
+    }
+  });
+
+  // History validation functions
+  const validateTextField = (value: string, fieldName: string, minLength: number = 5, maxLength: number = 255): string => {
+    if (!value || value.trim().length === 0) {
+      return `${fieldName} is required and must be at least ${minLength} characters.`;
+    }
+    if (value.trim().length < minLength) {
+      return `${fieldName} must be at least ${minLength} characters.`;
+    }
+    if (value.length > maxLength) {
+      return `${fieldName} must not exceed ${maxLength} characters.`;
+    }
+    return "";
+  };
+
+  const validateAllHistory = (): boolean => {
+    const errors = {
+      chiefComplaint: validateTextField(consultationData.chiefComplaint, "Chief Complaint", 5, 255),
+      historyPresentingComplaint: validateTextField(consultationData.historyPresentingComplaint, "History of Presenting Complaint", 5, 500),
+      reviewOfSystems: {
+        cardiovascular: validateTextField(consultationData.reviewOfSystems.cardiovascular, "Cardiovascular", 0, 500),
+        respiratory: validateTextField(consultationData.reviewOfSystems.respiratory, "Respiratory", 0, 500),
+        gastrointestinal: validateTextField(consultationData.reviewOfSystems.gastrointestinal, "Gastrointestinal", 0, 500),
+        genitourinary: validateTextField(consultationData.reviewOfSystems.genitourinary, "Genitourinary", 0, 500),
+        neurological: validateTextField(consultationData.reviewOfSystems.neurological, "Neurological", 0, 500),
+        musculoskeletal: validateTextField(consultationData.reviewOfSystems.musculoskeletal, "Musculoskeletal", 0, 500),
+        skin: validateTextField(consultationData.reviewOfSystems.skin, "Skin", 0, 500),
+        psychiatric: validateTextField(consultationData.reviewOfSystems.psychiatric, "Psychiatric", 0, 500)
+      }
+    };
+
+    setHistoryErrors(errors);
+
+    // Check if there are any errors
+    const hasMainFieldErrors = errors.chiefComplaint !== "" || errors.historyPresentingComplaint !== "";
+    const hasReviewErrors = Object.values(errors.reviewOfSystems).some(error => error !== "");
+    
+    return !hasMainFieldErrors && !hasReviewErrors;
+  };
 
   // Examination modal states
   const [selectedExaminationType, setSelectedExaminationType] = useState<string>("");
@@ -2134,29 +2199,55 @@ Patient should be advised of potential side effects and expected timeline for re
               <div className="grid gap-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-lg">Chief Complaint</CardTitle>
+                    <CardTitle className="text-lg">
+                      Chief Complaint <span className="text-red-500">*</span>
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <Textarea
                       placeholder="Patient's main concern or reason for today's visit..."
                       value={consultationData.chiefComplaint}
-                      onChange={(e) => setConsultationData(prev => ({ ...prev, chiefComplaint: e.target.value }))}
-                      className="h-20"
+                      maxLength={255}
+                      onChange={(e) => {
+                        setConsultationData(prev => ({ ...prev, chiefComplaint: e.target.value }));
+                        setHistoryErrors(prev => ({ ...prev, chiefComplaint: "" }));
+                      }}
+                      onBlur={(e) => {
+                        const error = validateTextField(e.target.value, "Chief Complaint", 5, 255);
+                        setHistoryErrors(prev => ({ ...prev, chiefComplaint: error }));
+                      }}
+                      className={`h-20 ${historyErrors.chiefComplaint ? "border-red-500" : ""}`}
                     />
+                    {historyErrors.chiefComplaint && (
+                      <p className="text-sm text-red-500 mt-1">{historyErrors.chiefComplaint}</p>
+                    )}
                   </CardContent>
                 </Card>
                 
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-lg">History of Presenting Complaint</CardTitle>
+                    <CardTitle className="text-lg">
+                      History of Presenting Complaint <span className="text-red-500">*</span>
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <Textarea
                       placeholder="Detailed history of the current problem - onset, duration, character, location, radiation, associations, time course, exacerbating/relieving factors, severity..."
                       value={consultationData.historyPresentingComplaint}
-                      onChange={(e) => setConsultationData(prev => ({ ...prev, historyPresentingComplaint: e.target.value }))}
-                      className="h-32"
+                      maxLength={500}
+                      onChange={(e) => {
+                        setConsultationData(prev => ({ ...prev, historyPresentingComplaint: e.target.value }));
+                        setHistoryErrors(prev => ({ ...prev, historyPresentingComplaint: "" }));
+                      }}
+                      onBlur={(e) => {
+                        const error = validateTextField(e.target.value, "History of Presenting Complaint", 5, 500);
+                        setHistoryErrors(prev => ({ ...prev, historyPresentingComplaint: error }));
+                      }}
+                      className={`h-32 ${historyErrors.historyPresentingComplaint ? "border-red-500" : ""}`}
                     />
+                    {historyErrors.historyPresentingComplaint && (
+                      <p className="text-sm text-red-500 mt-1">{historyErrors.historyPresentingComplaint}</p>
+                    )}
                   </CardContent>
                 </Card>
 
@@ -2168,16 +2259,36 @@ Patient should be advised of potential side effects and expected timeline for re
                     <div className="grid grid-cols-2 gap-4">
                       {Object.entries(consultationData.reviewOfSystems).map(([system, value]) => (
                         <div key={system} className="space-y-2">
-                          <Label className="capitalize font-medium">{system.replace('_', ' ')}</Label>
+                          <Label className="capitalize font-medium">{system.replace(/_/g, ' ')}</Label>
                           <Textarea
-                            placeholder={`${system} related symptoms...`}
+                            placeholder={`${system.replace(/_/g, ' ')} related symptoms...`}
                             value={value}
-                            onChange={(e) => setConsultationData(prev => ({
-                              ...prev,
-                              reviewOfSystems: { ...prev.reviewOfSystems, [system]: e.target.value }
-                            }))}
-                            className="h-16"
+                            maxLength={500}
+                            onChange={(e) => {
+                              setConsultationData(prev => ({
+                                ...prev,
+                                reviewOfSystems: { ...prev.reviewOfSystems, [system]: e.target.value }
+                              }));
+                              setHistoryErrors(prev => ({
+                                ...prev,
+                                reviewOfSystems: { ...prev.reviewOfSystems, [system]: "" }
+                              }));
+                            }}
+                            onBlur={(e) => {
+                              const systemName = system.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                              const error = validateTextField(e.target.value, systemName, 0, 500);
+                              setHistoryErrors(prev => ({
+                                ...prev,
+                                reviewOfSystems: { ...prev.reviewOfSystems, [system]: error }
+                              }));
+                            }}
+                            className={`h-16 ${historyErrors.reviewOfSystems[system as keyof typeof historyErrors.reviewOfSystems] ? "border-red-500" : ""}`}
                           />
+                          {historyErrors.reviewOfSystems[system as keyof typeof historyErrors.reviewOfSystems] && (
+                            <p className="text-sm text-red-500 mt-1">
+                              {historyErrors.reviewOfSystems[system as keyof typeof historyErrors.reviewOfSystems]}
+                            </p>
+                          )}
                         </div>
                       ))}
                     </div>
