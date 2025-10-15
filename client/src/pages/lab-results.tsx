@@ -310,6 +310,10 @@ const TEST_FIELD_DEFINITIONS: Record<string, Array<{
     { name: "Total T4", unit: "μg/dL", referenceRange: "5.0 - 12.0" },
     { name: "Total T3", unit: "ng/dL", referenceRange: "80 - 200" },
   ],
+  "Hemoglobin A1C": [
+    { name: "Hemoglobin A1C (HbA1c)", unit: "%", referenceRange: "4.0 - 5.6" },
+    { name: "Estimated Average Glucose (eAG)", unit: "mg/dL", referenceRange: "< 117" },
+  ],
 };
 
 // Database-driven lab results - no more mock data
