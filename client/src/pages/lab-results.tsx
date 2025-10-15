@@ -328,6 +328,8 @@ export default function LabResultsPage() {
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [showPrescriptionDialog, setShowPrescriptionDialog] = useState(false);
   const [showGenerateDialog, setShowGenerateDialog] = useState(false);
+  const [showFillResultDialog, setShowFillResultDialog] = useState(false);
+  const [selectedLabOrder, setSelectedLabOrder] = useState<any>(null);
   const [selectedResult, setSelectedResult] =
     useState<DatabaseLabResult | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -336,6 +338,7 @@ export default function LabResultsPage() {
   const [selectedTestTypes, setSelectedTestTypes] = useState<string[]>([]);
   const [testTypePopoverOpen, setTestTypePopoverOpen] = useState(false);
   const [generateFormData, setGenerateFormData] = useState<any>({});
+  const [fillResultFormData, setFillResultFormData] = useState<any>({});
 
   // Fetch roles from the roles table filtered by organization_id
   const { data: rolesData = [] } = useQuery({
@@ -1812,6 +1815,21 @@ Report generated from Cura EMR System`;
                         >
                           <User className="h-4 w-4 mr-2" />
                           Review
+                        </Button>
+                      )}
+                      {user?.role !== 'patient' && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedLabOrder(result);
+                            setShowFillResultDialog(true);
+                          }}
+                          className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
+                          data-testid="button-generate-lab-result"
+                        >
+                          <FileText className="h-4 w-4 mr-2" />
+                          Generate Lab Test Result
                         </Button>
                       )}
                       {user?.role !== 'patient' && (
@@ -3563,6 +3581,188 @@ Report generated from Cura EMR System`;
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Fill Lab Test Result Dialog (for existing lab orders) */}
+      <Dialog open={showFillResultDialog} onOpenChange={setShowFillResultDialog}>
+        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">
+              Generate Lab Test Result
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedLabOrder && (
+            <div className="space-y-6 py-4">
+              {/* Lab Order Details - Read Only */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
+                <h3 className="font-semibold text-blue-900 mb-2">Lab Order Details</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <span className="text-sm text-gray-600">Patient Name:</span>
+                    <p className="font-medium text-gray-900">
+                      {getPatientName(selectedLabOrder.patientId)}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-sm text-gray-600">Test Name:</span>
+                    <p className="font-medium text-gray-900">{selectedLabOrder.testType}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm text-gray-600">Test ID:</span>
+                    <p className="font-medium text-gray-900">{selectedLabOrder.testId || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm text-gray-600">Ordered Date:</span>
+                    <p className="font-medium text-gray-900">
+                      {selectedLabOrder.orderedDate
+                        ? format(new Date(selectedLabOrder.orderedDate), "PPp")
+                        : "N/A"}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-sm text-gray-600">Ordered By:</span>
+                    <p className="font-medium text-gray-900">
+                      {getUserName(selectedLabOrder.orderedBy)}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-sm text-gray-600">Priority:</span>
+                    <p className="font-medium text-gray-900 capitalize">{selectedLabOrder.priority}</p>
+                  </div>
+                </div>
+                {selectedLabOrder.notes && (
+                  <div>
+                    <span className="text-sm text-gray-600">Notes:</span>
+                    <p className="font-medium text-gray-900">{selectedLabOrder.notes}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Test Result Fields Based on Test Type */}
+              {TEST_FIELD_DEFINITIONS[selectedLabOrder.testType] && (
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-gray-900">
+                    Enter Test Results for {selectedLabOrder.testType}
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    {TEST_FIELD_DEFINITIONS[selectedLabOrder.testType].map((field) => (
+                      <div key={field.name} className="space-y-2">
+                        <Label htmlFor={`fill-${field.name}`}>
+                          {field.name}
+                          <span className="text-xs text-gray-500 ml-2">
+                            (Ref: {field.referenceRange} {field.unit})
+                          </span>
+                        </Label>
+                        <Input
+                          id={`fill-${field.name}`}
+                          type="text"
+                          placeholder={`Enter ${field.name}`}
+                          value={
+                            fillResultFormData[field.name] || ""
+                          }
+                          onChange={(e) =>
+                            setFillResultFormData((prev: any) => ({
+                              ...prev,
+                              [field.name]: e.target.value,
+                            }))
+                          }
+                          data-testid={`input-fill-${field.name}`}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Clinical Notes */}
+              <div className="space-y-2">
+                <Label htmlFor="fill-clinical-notes">Clinical Notes (Optional)</Label>
+                <textarea
+                  id="fill-clinical-notes"
+                  className="w-full min-h-[100px] p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter any clinical observations or notes..."
+                  value={fillResultFormData.notes || ""}
+                  onChange={(e) =>
+                    setFillResultFormData((prev: any) => ({
+                      ...prev,
+                      notes: e.target.value,
+                    }))
+                  }
+                  data-testid="textarea-fill-clinical-notes"
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-end gap-3 pt-4 border-t">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowFillResultDialog(false);
+                    setFillResultFormData({});
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => {
+                    // Build results array from filled values
+                    const results: any[] = [];
+                    const testFields = TEST_FIELD_DEFINITIONS[selectedLabOrder.testType];
+                    
+                    if (testFields) {
+                      testFields.forEach((field) => {
+                        const value = fillResultFormData[field.name];
+                        if (value && value.trim() !== "") {
+                          results.push({
+                            name: field.name,
+                            value: value,
+                            unit: field.unit,
+                            referenceRange: field.referenceRange,
+                            status: "normal",
+                          });
+                        }
+                      });
+                    }
+
+                    if (results.length === 0) {
+                      toast({
+                        title: "Validation Error",
+                        description: "Please enter at least one test result value",
+                        variant: "destructive",
+                      });
+                      return;
+                    }
+
+                    // Update the existing lab order with results
+                    updateLabResultMutation.mutate({
+                      id: selectedLabOrder.id,
+                      data: {
+                        status: "completed",
+                        results: results,
+                        notes: fillResultFormData.notes || selectedLabOrder.notes || "",
+                        criticalValues: false,
+                      },
+                    });
+
+                    toast({
+                      title: "Success",
+                      description: "Lab test result generated successfully",
+                    });
+                    
+                    setShowFillResultDialog(false);
+                    setFillResultFormData({});
+                  }}
+                  className="bg-green-600 hover:bg-green-700"
+                  data-testid="button-submit-fill-result"
+                >
+                  <FileText className="h-4 w-4 mr-2" />
+                  Generate Lab Result
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 
