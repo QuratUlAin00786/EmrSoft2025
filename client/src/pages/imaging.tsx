@@ -281,6 +281,12 @@ export default function ImagingPage() {
     string | null
   >(null);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [showPaymentSuccessDialog, setShowPaymentSuccessDialog] = useState(false);
+  const [paymentSuccessData, setPaymentSuccessData] = useState<{
+    invoiceId: string;
+    patientName: string;
+    amount: number;
+  } | null>(null);
   const [uploadFormData, setUploadFormData] = useState({
     patientId: "",
     studyType: "",
@@ -4057,8 +4063,32 @@ export default function ImagingPage() {
 
             <div>
               <Label htmlFor="upload-study-type">Study Type *</Label>
+              <Select
+                value={uploadFormData.studyType}
+                onValueChange={(value) => {
+                  if (value === "__custom__") {
+                    // Do nothing, will switch to input
+                  } else {
+                    setUploadFormData({
+                      ...uploadFormData,
+                      studyType: value,
+                    });
+                  }
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select or type study type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Chest X-ray">Chest X-ray</SelectItem>
+                  <SelectItem value="Abdominal Ultrasound">Abdominal Ultrasound</SelectItem>
+                  <SelectItem value="Brain MRI">Brain MRI</SelectItem>
+                  <SelectItem value="Lumbar Spine CT">Lumbar Spine CT</SelectItem>
+                  <SelectItem value="Knee X-ray">Knee X-ray</SelectItem>
+                </SelectContent>
+              </Select>
               <Input
-                id="upload-study-type"
+                className="mt-2"
                 value={uploadFormData.studyType}
                 onChange={(e) =>
                   setUploadFormData({
@@ -4066,7 +4096,7 @@ export default function ImagingPage() {
                     studyType: e.target.value,
                   })
                 }
-                placeholder="e.g., Chest X-Ray PA and Lateral"
+                placeholder="Or type custom study type..."
               />
             </div>
 
@@ -4954,10 +4984,13 @@ export default function ImagingPage() {
                           paidAmount: summaryData.invoice.totalAmount.toString(),
                         });
 
-                        toast({
-                          title: "Payment Successful",
-                          description: "Cash payment recorded and invoice marked as paid",
+                        // Show success modal with invoice details
+                        setPaymentSuccessData({
+                          invoiceId: createdInvoice.invoiceNumber,
+                          patientName: summaryData.invoice.patient,
+                          amount: summaryData.invoice.totalAmount,
                         });
+                        setShowPaymentSuccessDialog(true);
 
                         // Reset all state
                         setUploadFormData({
@@ -5080,6 +5113,56 @@ export default function ImagingPage() {
                   )}
                 </Button>
               )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Payment Success Dialog */}
+      <Dialog open={showPaymentSuccessDialog} onOpenChange={setShowPaymentSuccessDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <div className="h-12 w-12 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
+                <Check className="h-6 w-6 text-green-600 dark:text-green-400" />
+              </div>
+              <span>Payment Successful</span>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              Cash payment recorded and invoice marked as paid
+            </p>
+            
+            {paymentSuccessData && (
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Invoice ID:</span>
+                  <span className="text-sm font-semibold">{paymentSuccessData.invoiceId}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Patient Name:</span>
+                  <span className="text-sm font-semibold">{paymentSuccessData.patientName}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Amount:</span>
+                  <span className="text-sm font-semibold text-green-600 dark:text-green-400">
+                    £{paymentSuccessData.amount.toFixed(2)}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-end pt-4">
+              <Button
+                onClick={() => {
+                  setShowPaymentSuccessDialog(false);
+                  setPaymentSuccessData(null);
+                }}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                Close
+              </Button>
             </div>
           </div>
         </DialogContent>
