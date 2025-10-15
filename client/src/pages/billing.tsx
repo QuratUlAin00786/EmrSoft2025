@@ -1053,16 +1053,11 @@ export default function BillingPage() {
             ) : (
               /* Admin View: Tabs Navigation */
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-1">
+                <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 lg:grid-cols-5 gap-1">
                   <TabsTrigger value="invoices">Invoices</TabsTrigger>
                   <TabsTrigger value="payment-history">Payment History</TabsTrigger>
                   <TabsTrigger value="insurance-claims">Insurance Claims</TabsTrigger>
-                  {/* <TabsTrigger value="revenue-report">Revenue Report</TabsTrigger>
-                  <TabsTrigger value="outstanding-invoices">Outstanding Invoices</TabsTrigger>
-                  <TabsTrigger value="insurance-analytics">Insurance Analytics</TabsTrigger>
-                  <TabsTrigger value="aging-report">Aging Report</TabsTrigger>
-                  <TabsTrigger value="provider-performance">Provider Performance</TabsTrigger>
-                  <TabsTrigger value="procedure-analysis">Procedure Analysis</TabsTrigger> */}
+                  <TabsTrigger value="revenue">Revenue</TabsTrigger>
                   <TabsTrigger value="custom-reports">Custom Reports</TabsTrigger>
                 </TabsList>
 
@@ -1569,8 +1564,20 @@ export default function BillingPage() {
               </TabsContent>
               )}
 
+              {/* Revenue Tab with nested sub-tabs */}
+              <TabsContent value="revenue" className="space-y-4 mt-6">
+                <Tabs defaultValue="revenue-report" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2 md:grid-cols-6 lg:grid-cols-6 gap-1">
+                    <TabsTrigger value="revenue-report">Revenue Report</TabsTrigger>
+                    <TabsTrigger value="outstanding-invoices">Outstanding Invoices</TabsTrigger>
+                    <TabsTrigger value="insurance-analytics">Insurance Analytics</TabsTrigger>
+                    <TabsTrigger value="aging-report">Aging Report</TabsTrigger>
+                    <TabsTrigger value="provider-performance">Provider Performance</TabsTrigger>
+                    <TabsTrigger value="procedure-analysis">Procedure Analysis</TabsTrigger>
+                  </TabsList>
+
               {/* Revenue Report Tab */}
-              {false && isAdmin && (
+              {isAdmin && (
                 <TabsContent value="revenue-report" className="space-y-4 mt-6">
                   <Card>
                     <CardHeader>
@@ -1699,7 +1706,7 @@ export default function BillingPage() {
               )}
 
               {/* Outstanding Invoices Tab */}
-              {false && isAdmin && (
+              {isAdmin && (
                 <TabsContent value="outstanding-invoices" className="space-y-4 mt-6">
                   <Card>
                     <CardHeader>
@@ -1838,7 +1845,7 @@ export default function BillingPage() {
               )}
 
               {/* Insurance Analytics Tab */}
-              {false && isAdmin && (
+              {isAdmin && (
                 <TabsContent value="insurance-analytics" className="space-y-4 mt-6">
                   <Card>
                     <CardHeader>
@@ -1981,7 +1988,7 @@ export default function BillingPage() {
               )}
 
               {/* Aging Report Tab */}
-              {false && isAdmin && (
+              {isAdmin && (
                 <TabsContent value="aging-report" className="space-y-4 mt-6">
                   <Card>
                     <CardHeader>
@@ -2108,7 +2115,7 @@ export default function BillingPage() {
               )}
 
               {/* Provider Performance Tab */}
-              {false && isAdmin && (
+              {isAdmin && (
                 <TabsContent value="provider-performance" className="space-y-4 mt-6">
                   <Card>
                     <CardHeader>
@@ -2251,7 +2258,7 @@ export default function BillingPage() {
               )}
 
               {/* Procedure Analysis Tab */}
-              {false && isAdmin && (
+              {isAdmin && (
                 <TabsContent value="procedure-analysis" className="space-y-4 mt-6">
                   <Card>
                     <CardHeader>
@@ -2400,6 +2407,9 @@ export default function BillingPage() {
                   </Card>
                 </TabsContent>
               )}
+
+                </Tabs>
+              </TabsContent>
 
               {/* Custom Reports Tab */}
               {isAdmin && (
