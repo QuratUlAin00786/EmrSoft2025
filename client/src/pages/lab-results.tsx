@@ -316,6 +316,56 @@ const TEST_FIELD_DEFINITIONS: Record<string, Array<{
     { name: "Hemoglobin A1C (HbA1c)", unit: "%", referenceRange: "4.0 - 5.6" },
     { name: "Estimated Average Glucose (eAG)", unit: "mg/dL", referenceRange: "< 117" },
   ],
+  "Comprehensive Metabolic Panel": [
+    { name: "Glucose", unit: "mg/dL", referenceRange: "70 - 100" },
+    { name: "Calcium", unit: "mg/dL", referenceRange: "8.5 - 10.5" },
+    { name: "Sodium", unit: "mmol/L", referenceRange: "136 - 145" },
+    { name: "Potassium", unit: "mmol/L", referenceRange: "3.5 - 5.0" },
+    { name: "Chloride", unit: "mmol/L", referenceRange: "98 - 107" },
+    { name: "CO2", unit: "mmol/L", referenceRange: "23 - 29" },
+    { name: "BUN", unit: "mg/dL", referenceRange: "7 - 20" },
+    { name: "Creatinine", unit: "mg/dL", referenceRange: "0.6 - 1.2" },
+    { name: "ALT (SGPT)", unit: "U/L", referenceRange: "7 - 56" },
+    { name: "AST (SGOT)", unit: "U/L", referenceRange: "10 - 40" },
+    { name: "ALP", unit: "U/L", referenceRange: "44 - 147" },
+    { name: "Total Bilirubin", unit: "mg/dL", referenceRange: "0.1 - 1.2" },
+    { name: "Total Protein", unit: "g/dL", referenceRange: "6.0 - 8.3" },
+    { name: "Albumin", unit: "g/dL", referenceRange: "3.5 - 5.5" },
+  ],
+  "Urinalysis": [
+    { name: "Color", unit: "", referenceRange: "Yellow to Amber" },
+    { name: "Appearance", unit: "", referenceRange: "Clear" },
+    { name: "Specific Gravity", unit: "", referenceRange: "1.005 - 1.030" },
+    { name: "pH", unit: "", referenceRange: "4.5 - 8.0" },
+    { name: "Protein", unit: "mg/dL", referenceRange: "Negative" },
+    { name: "Glucose", unit: "mg/dL", referenceRange: "Negative" },
+    { name: "Ketones", unit: "", referenceRange: "Negative" },
+    { name: "Blood", unit: "", referenceRange: "Negative" },
+    { name: "Bilirubin", unit: "", referenceRange: "Negative" },
+    { name: "Urobilinogen", unit: "mg/dL", referenceRange: "0.1 - 1.0" },
+    { name: "Nitrites", unit: "", referenceRange: "Negative" },
+    { name: "Leukocyte Esterase", unit: "", referenceRange: "Negative" },
+    { name: "WBC", unit: "/hpf", referenceRange: "0 - 5" },
+    { name: "RBC", unit: "/hpf", referenceRange: "0 - 2" },
+    { name: "Epithelial Cells", unit: "/hpf", referenceRange: "Few" },
+    { name: "Bacteria", unit: "", referenceRange: "None to Few" },
+    { name: "Casts", unit: "/lpf", referenceRange: "0 - 2" },
+    { name: "Crystals", unit: "", referenceRange: "None to Few" },
+  ],
+  "Vitamin D": [
+    { name: "25-Hydroxyvitamin D", unit: "ng/mL", referenceRange: "30 - 100" },
+    { name: "Vitamin D2 (Ergocalciferol)", unit: "ng/mL", referenceRange: "Variable" },
+    { name: "Vitamin D3 (Cholecalciferol)", unit: "ng/mL", referenceRange: "Variable" },
+    { name: "Total Vitamin D", unit: "ng/mL", referenceRange: "30 - 100" },
+  ],
+  "Iron Studies": [
+    { name: "Serum Iron", unit: "μg/dL", referenceRange: "60 - 170" },
+    { name: "TIBC (Total Iron Binding Capacity)", unit: "μg/dL", referenceRange: "240 - 450" },
+    { name: "UIBC (Unsaturated Iron Binding Capacity)", unit: "μg/dL", referenceRange: "111 - 343" },
+    { name: "Transferrin Saturation", unit: "%", referenceRange: "20 - 50" },
+    { name: "Ferritin", unit: "ng/mL", referenceRange: "12 - 300" },
+    { name: "Transferrin", unit: "mg/dL", referenceRange: "200 - 360" },
+  ],
 };
 
 // Database-driven lab results - no more mock data
@@ -1793,8 +1843,8 @@ Report generated from Cura EMR System`;
                     )}
 
                     {/* Action buttons at bottom - with right margin for blue box */}
-                    <div className="flex gap-2 mt-6 pt-4 border-t border-gray-200 mr-72 justify-end">
-                      {user?.role !== 'patient' && (
+                      <div className="flex justify-end gap-2 mt-6 pt-4 border-t border-gray-200">
+    {user?.role !== 'patient' && (
                         <Button
                           variant="outline"
                           size="sm"
@@ -1856,7 +1906,7 @@ Report generated from Cura EMR System`;
                           data-testid="button-generate-lab-result"
                         >
                           <FileText className="h-4 w-4 mr-2" />
-                          Generate Lab Test Result
+                          Generate Test Result
                         </Button>
                       )}
                       {user?.role !== 'patient' && (
@@ -3615,7 +3665,7 @@ Report generated from Cura EMR System`;
       <Dialog open={showFillResultDialog} onOpenChange={setShowFillResultDialog}>
         <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold">
+            <DialogTitle className="text-lg font-bold">
               Generate Lab Test Result
             </DialogTitle>
           </DialogHeader>
