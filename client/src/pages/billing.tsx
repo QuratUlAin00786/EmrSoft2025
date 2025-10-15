@@ -552,6 +552,24 @@ export default function BillingPage() {
     }
   });
 
+  // Fetch payments for Payment History tab
+  const { data: payments = [], isLoading: paymentsLoading } = useQuery({
+    queryKey: ["/api/billing/payments"],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const subdomain = localStorage.getItem('user_subdomain') || 'demo';
+      const response = await fetch('/api/billing/payments', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': subdomain
+        }
+      });
+      if (!response.ok) throw new Error('Failed to fetch payments');
+      return response.json();
+    },
+    enabled: isAdmin,
+  });
+
   // Auto-populate NHS number when patient is selected
   useEffect(() => {
     if (selectedPatient && patients && patients.length > 0) {
@@ -1414,61 +1432,78 @@ export default function BillingPage() {
                     </p>
                   </CardHeader>
                   <CardContent>
-                    <div className="rounded-md border">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="border-b bg-gray-50 dark:bg-gray-800">
-                            <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Invoice</th>
-                            <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Payer</th>
-                            <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Date</th>
-                            <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Method</th>
-                            <th className="px-4 py-3 text-right text-sm font-medium text-gray-700 dark:text-gray-300">Amount</th>
-                            <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Status</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {Array.isArray(invoices) && invoices.flatMap((invoice: any) => 
-                            (invoice.payments || []).map((payment: any, idx: number) => ({
-                              ...payment,
-                              invoiceNumber: invoice.invoiceNumber || invoice.id,
-                              patientName: invoice.patientName,
-                              paymentId: `${invoice.id}-${idx}`
-                            }))
-                          ).map((payment: any) => (
-                            <tr key={payment.paymentId} className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
-                              <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
-                                {payment.invoiceNumber}
-                              </td>
-                              <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
-                                {payment.patientName}
-                              </td>
-                              <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
-                                {format(new Date(payment.date), 'MMM d, yyyy')}
-                              </td>
-                              <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300 capitalize">
-                                {payment.method === 'card' ? 'Credit Card' : payment.method === 'bank_transfer' ? 'Bank Transfer' : payment.method.replace('_', ' ')}
-                              </td>
-                              <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100 text-right font-medium">
-                                £{(typeof payment.amount === 'string' ? parseFloat(payment.amount) : payment.amount).toFixed(2)}
-                              </td>
-                              <td className="px-4 py-3 text-sm">
-                                <span className="inline-flex items-center gap-1 text-green-700 dark:text-green-400">
-                                  <span className="text-green-600">✓</span> Successful
-                                </span>
-                              </td>
+                    {paymentsLoading ? (
+                      <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                        <p className="text-sm">Loading payments...</p>
+                      </div>
+                    ) : (
+                      <div className="rounded-md border">
+                        <table className="w-full">
+                          <thead>
+                            <tr className="border-b bg-gray-50 dark:bg-gray-800">
+                              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Invoice</th>
+                              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Payer</th>
+                              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Date</th>
+                              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Method</th>
+                              <th className="px-4 py-3 text-right text-sm font-medium text-gray-700 dark:text-gray-300">Amount</th>
+                              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Status</th>
                             </tr>
-                          ))}
-                          {(!Array.isArray(invoices) || invoices.flatMap((inv: any) => inv.payments || []).length === 0) && (
-                            <tr>
-                              <td colSpan={6} className="px-4 py-12 text-center text-gray-500 dark:text-gray-400">
-                                <Receipt className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                                <p className="text-sm">No payment history available</p>
-                              </td>
-                            </tr>
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
+                          </thead>
+                          <tbody>
+                            {Array.isArray(payments) && payments.length > 0 ? (
+                              payments.map((payment: any) => {
+                                // Find the patient by patientId
+                                const patient = patients?.find((p: any) => p.patientId === payment.patientId);
+                                const patientName = patient ? `${patient.firstName} ${patient.lastName}` : payment.patientId;
+                                
+                                // Find the invoice by invoiceId
+                                const invoice = invoices?.find((inv: any) => inv.id === payment.invoiceId);
+                                const invoiceNumber = invoice?.invoiceNumber || payment.invoiceId;
+                                
+                                return (
+                                  <tr key={payment.id} className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
+                                    <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
+                                      {invoiceNumber}
+                                    </td>
+                                    <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
+                                      {patientName}
+                                    </td>
+                                    <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
+                                      {format(new Date(payment.paymentDate), 'MMM d, yyyy')}
+                                    </td>
+                                    <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300 capitalize">
+                                      {payment.paymentMethod === 'cash' ? 'Cash' : payment.paymentMethod === 'debit_card' ? 'Debit Card' : payment.paymentMethod.replace('_', ' ')}
+                                    </td>
+                                    <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100 text-right font-medium">
+                                      £{(typeof payment.amount === 'string' ? parseFloat(payment.amount) : payment.amount).toFixed(2)}
+                                    </td>
+                                    <td className="px-4 py-3 text-sm">
+                                      <span className={`inline-flex items-center gap-1 ${
+                                        payment.paymentStatus === 'completed' ? 'text-green-700 dark:text-green-400' : 
+                                        payment.paymentStatus === 'pending' ? 'text-yellow-700 dark:text-yellow-400' : 
+                                        'text-red-700 dark:text-red-400'
+                                      }`}>
+                                        <span className={payment.paymentStatus === 'completed' ? 'text-green-600' : payment.paymentStatus === 'pending' ? 'text-yellow-600' : 'text-red-600'}>
+                                          {payment.paymentStatus === 'completed' ? '✓' : payment.paymentStatus === 'pending' ? '⏱' : '✗'}
+                                        </span> 
+                                        {payment.paymentStatus === 'completed' ? 'Successful' : payment.paymentStatus === 'pending' ? 'Pending' : 'Failed'}
+                                      </span>
+                                    </td>
+                                  </tr>
+                                );
+                              })
+                            ) : (
+                              <tr>
+                                <td colSpan={6} className="px-4 py-12 text-center text-gray-500 dark:text-gray-400">
+                                  <Receipt className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                                  <p className="text-sm">No payment history available</p>
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </TabsContent>
