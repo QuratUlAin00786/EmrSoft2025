@@ -386,6 +386,30 @@ const medicalSpecialties = {
   }
 };
 
+// Lab Technician Subcategories
+const labTechnicianSubcategories = [
+  "Phlebotomy Technician",
+  "Medical Laboratory Technician (MLT)",
+  "Clinical Chemistry Technician",
+  "Hematology Technician",
+  "Microbiology Technician",
+  "Pathology Technician",
+  "Histology Technician",
+  "Cytology Technician",
+  "Immunology Technician",
+  "Molecular Biology Technician",
+  "Serology Technician",
+  "Toxicology Technician",
+  "Biochemistry Technician",
+  "Blood Bank Technician",
+  "Urinalysis Technician",
+  "Lab Information Technician (LIS)",
+  "Forensic Lab Technician",
+  "Environmental Lab Technician",
+  "Quality Control Lab Technician",
+  "Research Lab Technician"
+] as const;
+
 export default function UserManagement() {
   const [, setLocation] = useLocation();
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -414,6 +438,9 @@ export default function UserManagement() {
   const [selectedSpecialtyCategory, setSelectedSpecialtyCategory] = useState<string>("");
   const [selectedSubSpecialty, setSelectedSubSpecialty] = useState<string>("");
   const [selectedSpecificArea, setSelectedSpecificArea] = useState<string>("");
+  
+  // Lab Technician subcategory state
+  const [selectedLabTechSubcategory, setSelectedLabTechSubcategory] = useState<string>("");
   
   // Role management states
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
@@ -1295,6 +1322,14 @@ export default function UserManagement() {
       setSelectedSubSpecialty("");
     }
 
+    // Set lab technician subcategory for Lab Technician role
+    if (['lab technician', 'lab_technician'].includes(user.role.toLowerCase())) {
+      setSelectedLabTechSubcategory(user.subSpecialty || "");
+      userData.subSpecialty = user.subSpecialty || "";
+    } else {
+      setSelectedLabTechSubcategory("");
+    }
+
     // SECTION 2: Patient table data (if role === 'patient')
     if (user.role === 'patient') {
       console.log("📋 SECTION 2: Loading patients table data (matched by email)");
@@ -1777,6 +1812,10 @@ export default function UserManagement() {
                           setSelectedSubSpecialty("");
                           setSelectedSpecificArea("");
                         }
+                        // Clear lab tech subcategory when switching from lab technician
+                        if (!['lab technician', 'lab_technician'].includes(value.toLowerCase())) {
+                          setSelectedLabTechSubcategory("");
+                        }
                       }} defaultValue={form.getValues("role")}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a role" />
@@ -1867,6 +1906,31 @@ export default function UserManagement() {
                       </div>
                     )}
                   </>
+                )}
+
+                {/* Lab Technician Subcategory Dropdown - Only show when role is Lab Technician */}
+                {['lab technician', 'lab_technician'].includes(selectedRole.toLowerCase()) && (
+                  <div className="space-y-2">
+                    <Label htmlFor="labTechSubcategory">Lab Technician Subcategory</Label>
+                    <Select 
+                      onValueChange={(value) => {
+                        setSelectedLabTechSubcategory(value);
+                        form.setValue("subSpecialty", value);
+                      }} 
+                      value={selectedLabTechSubcategory}
+                    >
+                      <SelectTrigger data-testid="dropdown-lab-tech-subcategory">
+                        <SelectValue placeholder="Select subcategory" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {labTechnicianSubcategories.map((subcategory) => (
+                          <SelectItem key={subcategory} value={subcategory}>
+                            {subcategory}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 )}
 
                 {/* Patient-specific fields */}
