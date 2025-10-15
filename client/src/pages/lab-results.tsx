@@ -271,6 +271,8 @@ export default function LabResultsPage() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [editFormData, setEditFormData] = useState<any>({});
   const [selectedEditRole, setSelectedEditRole] = useState<string>("");
+  const [selectedTestTypes, setSelectedTestTypes] = useState<string[]>([]);
+  const [testTypePopoverOpen, setTestTypePopoverOpen] = useState(false);
 
   // Fetch roles from the roles table filtered by organization_id
   const { data: rolesData = [] } = useQuery({
@@ -696,6 +698,7 @@ Report generated from Cura EMR System`;
       subSpecialty: selectedResult.subSpecialty || "",
     });
     setSelectedEditRole("");
+    setSelectedTestTypes(selectedResult.testType ? [selectedResult.testType] : []);
     setIsEditMode(true);
   };
 
@@ -2189,51 +2192,49 @@ Report generated from Cura EMR System`;
                     <div>
                       <p className="text-sm text-black font-bold">Test:</p>
                       {isEditMode ? (
-                        <Select
-                          value={
-                            editFormData.testType || selectedResult.testType
-                          }
-                          onValueChange={(value) =>
-                            setEditFormData((prev: any) => ({
-                              ...prev,
-                              testType: value,
-                            }))
-                          }
-                        >
-                          <SelectTrigger className="bg-white text-black">
-                            <SelectValue placeholder="Select test type" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Complete Blood Count (CBC)">
-                              Complete Blood Count (CBC)
-                            </SelectItem>
-                            <SelectItem value="Basic Metabolic Panel">
-                              Basic Metabolic Panel
-                            </SelectItem>
-                            <SelectItem value="Comprehensive Metabolic Panel">
-                              Comprehensive Metabolic Panel
-                            </SelectItem>
-                            <SelectItem value="Lipid Panel">
-                              Lipid Panel
-                            </SelectItem>
-                            <SelectItem value="Liver Function Tests">
-                              Liver Function Tests
-                            </SelectItem>
-                            <SelectItem value="Thyroid Function Tests">
-                              Thyroid Function Tests
-                            </SelectItem>
-                            <SelectItem value="Hemoglobin A1C">
-                              Hemoglobin A1C
-                            </SelectItem>
-                            <SelectItem value="Urinalysis">
-                              Urinalysis
-                            </SelectItem>
-                            <SelectItem value="Vitamin D">Vitamin D</SelectItem>
-                            <SelectItem value="Iron Studies">
-                              Iron Studies
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <Popover open={testTypePopoverOpen} onOpenChange={setTestTypePopoverOpen}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              className="w-full justify-between bg-white text-black"
+                            >
+                              {selectedTestTypes.length > 0
+                                ? `${selectedTestTypes.length} selected`
+                                : "Select test types"}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-full p-0" align="start">
+                            <Command>
+                              <CommandInput placeholder="Search test types..." />
+                              <CommandEmpty>No test type found.</CommandEmpty>
+                              <CommandGroup className="max-h-64 overflow-auto">
+                                {TEST_TYPES.map((testType) => (
+                                  <CommandItem
+                                    key={testType}
+                                    onSelect={() => {
+                                      const newSelection = selectedTestTypes.includes(testType)
+                                        ? selectedTestTypes.filter((t) => t !== testType)
+                                        : [...selectedTestTypes, testType];
+                                      setSelectedTestTypes(newSelection);
+                                      setEditFormData((prev: any) => ({
+                                        ...prev,
+                                        testType: newSelection.join(", "),
+                                      }));
+                                    }}
+                                  >
+                                    <Checkbox
+                                      checked={selectedTestTypes.includes(testType)}
+                                      className="mr-2"
+                                    />
+                                    {testType}
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
                       ) : (
                         <p className="font-medium">{selectedResult.testType}</p>
                       )}
