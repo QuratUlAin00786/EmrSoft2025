@@ -13684,7 +13684,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Create payment record
-  app.post("/api/billing/payments", requireRole(["admin", "doctor", "nurse", "receptionist"]), async (req: TenantRequest, res) => {
+  app.post("/api/billing/payments", (req, res, next) => {
+    console.log("🔵🔵🔵 PAYMENT ROUTE HIT - Body:", req.body);
+    next();
+  }, requireRole(["admin", "doctor", "nurse", "receptionist"]), async (req: TenantRequest, res) => {
+    console.log("🔵 Payment endpoint handler executing - req.body:", req.body);
     try {
       const paymentData = z.object({
         organizationId: z.number(),
@@ -13703,7 +13707,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.status(201).json(createdPayment);
     } catch (error) {
-      console.error("Payment creation error:", error);
+      console.error("❌ Payment creation error:", error);
       res.status(500).json({ error: "Failed to create payment" });
     }
   });
