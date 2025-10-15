@@ -17,6 +17,20 @@ import { useTenant } from "@/hooks/use-tenant";
 import { useToast } from "@/hooks/use-toast";
 import { Brain, Save, X } from "lucide-react";
 
+// Country codes with flags
+const COUNTRY_CODES = [
+  { code: "+44", name: "United Kingdom", flag: "🇬🇧" },
+  { code: "+1", name: "United States", flag: "🇺🇸" },
+  { code: "+92", name: "Pakistan", flag: "🇵🇰" },
+  { code: "+966", name: "Saudi Arabia", flag: "🇸🇦" },
+  { code: "+971", name: "UAE", flag: "🇦🇪" },
+  { code: "+91", name: "India", flag: "🇮🇳" },
+  { code: "+33", name: "France", flag: "🇫🇷" },
+  { code: "+49", name: "Germany", flag: "🇩🇪" },
+  { code: "+39", name: "Italy", flag: "🇮🇹" },
+  { code: "+34", name: "Spain", flag: "🇪🇸" }
+] as const;
+
 const patientSchema = z.object({
   firstName: z.string().trim().min(1, "First name is required"),
   lastName: z.string().trim().min(1, "Last name is required"),
@@ -81,6 +95,10 @@ export function PatientModal({ open, onOpenChange, editMode = false, editPatient
   const [addressSuggestions, setAddressSuggestions] = useState<any[]>([]);
   const [emailError, setEmailError] = useState<string>("");
   const [isCheckingEmail, setIsCheckingEmail] = useState(false);
+  
+  // Country code state
+  const [selectedCountryCode, setSelectedCountryCode] = useState("+44");
+  const [emergencyCountryCode, setEmergencyCountryCode] = useState("+44");
   
   // Success modal state
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -312,6 +330,30 @@ export function PatientModal({ open, onOpenChange, editMode = false, editPatient
 
     form.reset(formValues);
     setEmailError(""); // Clear email error when form resets
+
+    // Extract country codes from phone numbers after form reset
+    if (editMode && editPatient) {
+      const phoneValue = editPatient.phone || "";
+      const emergencyPhoneValue = editPatient.emergencyContact?.phone || "";
+      
+      const matchedPhoneCode = COUNTRY_CODES.find(c => phoneValue.startsWith(c.code));
+      if (matchedPhoneCode) {
+        setSelectedCountryCode(matchedPhoneCode.code);
+      } else {
+        setSelectedCountryCode("+44"); // Default to UK
+      }
+
+      const matchedEmergencyCode = COUNTRY_CODES.find(c => emergencyPhoneValue.startsWith(c.code));
+      if (matchedEmergencyCode) {
+        setEmergencyCountryCode(matchedEmergencyCode.code);
+      } else {
+        setEmergencyCountryCode("+44"); // Default to UK
+      }
+    } else {
+      // Reset to defaults for new patient
+      setSelectedCountryCode("+44");
+      setEmergencyCountryCode("+44");
+    }
   }, [editPatient, editMode, open, tenant?.region, form]);
 
   const patientMutation = useMutation({
@@ -495,19 +537,59 @@ export function PatientModal({ open, onOpenChange, editMode = false, editPatient
                         <FormItem>
                           <FormLabel>Phone Number</FormLabel>
                           <FormControl>
-                            <Input 
-                              {...field} 
-                              placeholder="+44 123 456 7890"
-                              type="tel"
-                              onChange={(e) => {
-                                // Auto-format UK phone numbers
-                                let value = e.target.value.replace(/[^\d+]/g, '');
-                                if (value.startsWith('0')) {
-                                  value = '+44' + value.substring(1);
+                            <div className="flex gap-2">
+                              <Select 
+                                value={selectedCountryCode} 
+                                onValueChange={(value) => {
+                                  setSelectedCountryCode(value);
+                                  // Extract local number by removing current country code
+                                  let localNumber = field.value;
+                                  if (localNumber.startsWith(selectedCountryCode)) {
+                                    localNumber = localNumber.slice(selectedCountryCode.length).trim();
+                                  }
+                                  field.onChange(localNumber ? `${value} ${localNumber}` : '');
+                                }}
+                              >
+                                <SelectTrigger className="w-[140px]">
+                                  <SelectValue>
+                                    <div className="flex items-center gap-2">
+                                      <span>{COUNTRY_CODES.find(c => c.code === selectedCountryCode)?.flag}</span>
+                                      <span>{selectedCountryCode}</span>
+                                    </div>
+                                  </SelectValue>
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {COUNTRY_CODES.map((country) => (
+                                    <SelectItem key={country.code} value={country.code}>
+                                      <div className="flex items-center gap-2">
+                                        <span>{country.flag}</span>
+                                        <span>{country.name}</span>
+                                      </div>
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <Input 
+                                {...field} 
+                                placeholder="123 456 7890"
+                                type="tel"
+                                className="flex-1"
+                                onChange={(e) => {
+                                  let value = e.target.value.replace(/[^\d\s]/g, '').trim();
+                                  // If the phone number is empty, set the field to empty string
+                                  if (value === '') {
+                                    field.onChange('');
+                                  } else {
+                                    field.onChange(`${selectedCountryCode} ${value}`);
+                                  }
+                                }}
+                                value={
+                                  field.value.startsWith(selectedCountryCode)
+                                    ? field.value.slice(selectedCountryCode.length).trim()
+                                    : field.value
                                 }
-                                field.onChange(value);
-                              }}
-                            />
+                              />
+                            </div>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -744,7 +826,59 @@ export function PatientModal({ open, onOpenChange, editMode = false, editPatient
                         <FormItem>
                           <FormLabel>Contact Phone</FormLabel>
                           <FormControl>
-                            <Input {...field} placeholder="+44 123 456 7890" />
+                            <div className="flex gap-2">
+                              <Select 
+                                value={emergencyCountryCode} 
+                                onValueChange={(value) => {
+                                  setEmergencyCountryCode(value);
+                                  // Extract local number by removing current country code
+                                  let localNumber = field.value;
+                                  if (localNumber.startsWith(emergencyCountryCode)) {
+                                    localNumber = localNumber.slice(emergencyCountryCode.length).trim();
+                                  }
+                                  field.onChange(localNumber ? `${value} ${localNumber}` : '');
+                                }}
+                              >
+                                <SelectTrigger className="w-[140px]">
+                                  <SelectValue>
+                                    <div className="flex items-center gap-2">
+                                      <span>{COUNTRY_CODES.find(c => c.code === emergencyCountryCode)?.flag}</span>
+                                      <span>{emergencyCountryCode}</span>
+                                    </div>
+                                  </SelectValue>
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {COUNTRY_CODES.map((country) => (
+                                    <SelectItem key={country.code} value={country.code}>
+                                      <div className="flex items-center gap-2">
+                                        <span>{country.flag}</span>
+                                        <span>{country.name}</span>
+                                      </div>
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <Input 
+                                {...field} 
+                                placeholder="123 456 7890"
+                                type="tel"
+                                className="flex-1"
+                                onChange={(e) => {
+                                  let value = e.target.value.replace(/[^\d\s]/g, '').trim();
+                                  // If the phone number is empty, set the field to empty string
+                                  if (value === '') {
+                                    field.onChange('');
+                                  } else {
+                                    field.onChange(`${emergencyCountryCode} ${value}`);
+                                  }
+                                }}
+                                value={
+                                  field.value.startsWith(emergencyCountryCode)
+                                    ? field.value.slice(emergencyCountryCode.length).trim()
+                                    : field.value
+                                }
+                              />
+                            </div>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
