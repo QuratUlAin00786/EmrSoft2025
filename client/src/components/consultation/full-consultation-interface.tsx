@@ -1112,6 +1112,77 @@ Healthcare Management System - Averox Healthcare
     setAnatomicalErrors(prev => ({ ...prev, [field]: "" }));
   };
 
+  // General Examination validation functions
+  const validateGeneralExam = (): boolean => {
+    const errors = {
+      generalAppearance: generalExamData.generalAppearance ? "" : "General Appearance is required.",
+      mentalStatus: generalExamData.mentalStatus ? "" : "Mental Status is required.",
+      skinAssessment: generalExamData.skinAssessment ? "" : "Skin Assessment is required.",
+      lymphNodes: generalExamData.lymphNodes ? "" : "Lymph Nodes assessment is required."
+    };
+    setGeneralExamErrors(errors);
+    return !Object.values(errors).some(error => error !== "");
+  };
+
+  // Respiratory Examination validation functions
+  const validateRespiratoryExam = (): boolean => {
+    const errors = {
+      respiratoryRate: respiratoryExamData.respiratoryRate ? "" : "Respiratory Rate is required.",
+      chestInspection: respiratoryExamData.chestInspection ? "" : "Chest Inspection is required.",
+      auscultation: respiratoryExamData.auscultation ? "" : "Auscultation is required.",
+      percussion: respiratoryExamData.percussion ? "" : "Percussion is required.",
+      palpation: respiratoryExamData.palpation ? "" : "Palpation is required.",
+      oxygenSaturation: respiratoryExamData.oxygenSaturation ? "" : "Oxygen Saturation is required."
+    };
+    setRespiratoryExamErrors(errors);
+    return !Object.values(errors).some(error => error !== "");
+  };
+
+  // Cardiovascular Examination validation functions
+  const validateCardiovascularExam = (): boolean => {
+    const errors = {
+      heartRateRhythm: cardiovascularExamData.heartRateRhythm ? "" : "Heart Rate & Rhythm is required.",
+      heartSounds: cardiovascularExamData.heartSounds ? "" : "Heart Sounds is required.",
+      bloodPressure: cardiovascularExamData.bloodPressure ? "" : "Blood Pressure is required.",
+      peripheralPulses: cardiovascularExamData.peripheralPulses ? "" : "Peripheral Pulses is required.",
+      edemaAssessment: cardiovascularExamData.edemaAssessment ? "" : "Edema Assessment is required.",
+      chestInspection: cardiovascularExamData.chestInspection ? "" : "Chest Inspection is required."
+    };
+    setCardiovascularExamErrors(errors);
+    return !Object.values(errors).some(error => error !== "");
+  };
+
+  // Neurological Examination validation functions
+  const validateNeurologicalExam = (): boolean => {
+    const errors = {
+      mentalStatus: neurologicalExamData.mentalStatus ? "" : "Mental Status is required.",
+      cranialNerves: neurologicalExamData.cranialNerves ? "" : "Cranial Nerves is required.",
+      motorFunction: neurologicalExamData.motorFunction ? "" : "Motor Function is required.",
+      sensoryFunction: neurologicalExamData.sensoryFunction ? "" : "Sensory Function is required.",
+      reflexes: neurologicalExamData.reflexes ? "" : "Reflexes is required.",
+      gaitCoordination: neurologicalExamData.gaitCoordination ? "" : "Gait & Coordination is required."
+    };
+    setNeurologicalExamErrors(errors);
+    return !Object.values(errors).some(error => error !== "");
+  };
+
+  // Physical Examination validation functions
+  const validatePhysicalExam = (): boolean => {
+    const errors = {
+      general: consultationData.examination.general ? "" : "General examination findings are required.",
+      cardiovascular: consultationData.examination.cardiovascular ? "" : "Cardiovascular findings are required.",
+      respiratory: consultationData.examination.respiratory ? "" : "Respiratory findings are required.",
+      abdomen: consultationData.examination.abdomen ? "" : "Abdomen findings are required.",
+      neurological: consultationData.examination.neurological ? "" : "Neurological findings are required.",
+      musculoskeletal: consultationData.examination.musculoskeletal ? "" : "Musculoskeletal findings are required.",
+      skin: consultationData.examination.skin ? "" : "Skin findings are required.",
+      head_neck: consultationData.examination.head_neck ? "" : "Head & Neck findings are required.",
+      ears_nose_throat: consultationData.examination.ears_nose_throat ? "" : "Ears, Nose & Throat findings are required."
+    };
+    setPhysicalExamErrors(errors);
+    return !Object.values(errors).some(error => error !== "");
+  };
+
   const [highlightedMuscleFromDB, setHighlightedMuscleFromDB] = useState<any[]>([]);
   const [generatedTreatmentPlan, setGeneratedTreatmentPlan] = useState<string>("");
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -1571,8 +1642,26 @@ Healthcare Management System - Averox Healthcare
     lymphNodes: ""
   });
 
+  // General examination validation state
+  const [generalExamErrors, setGeneralExamErrors] = useState({
+    generalAppearance: "",
+    mentalStatus: "",
+    skinAssessment: "",
+    lymphNodes: ""
+  });
+
   // Respiratory examination state
   const [respiratoryExamData, setRespiratoryExamData] = useState({
+    respiratoryRate: "",
+    chestInspection: "",
+    auscultation: "",
+    percussion: "",
+    palpation: "",
+    oxygenSaturation: ""
+  });
+
+  // Respiratory examination validation state
+  const [respiratoryExamErrors, setRespiratoryExamErrors] = useState({
     respiratoryRate: "",
     chestInspection: "",
     auscultation: "",
@@ -1591,6 +1680,16 @@ Healthcare Management System - Averox Healthcare
     chestInspection: ""
   });
 
+  // Cardiovascular examination validation state
+  const [cardiovascularExamErrors, setCardiovascularExamErrors] = useState({
+    heartRateRhythm: "",
+    heartSounds: "",
+    bloodPressure: "",
+    peripheralPulses: "",
+    edemaAssessment: "",
+    chestInspection: ""
+  });
+
   // Neurological examination state
   const [neurologicalExamData, setNeurologicalExamData] = useState({
     mentalStatus: "",
@@ -1599,6 +1698,29 @@ Healthcare Management System - Averox Healthcare
     sensoryFunction: "",
     reflexes: "",
     gaitCoordination: ""
+  });
+
+  // Neurological examination validation state
+  const [neurologicalExamErrors, setNeurologicalExamErrors] = useState({
+    mentalStatus: "",
+    cranialNerves: "",
+    motorFunction: "",
+    sensoryFunction: "",
+    reflexes: "",
+    gaitCoordination: ""
+  });
+
+  // Physical examination validation state
+  const [physicalExamErrors, setPhysicalExamErrors] = useState({
+    general: "",
+    cardiovascular: "",
+    respiratory: "",
+    abdomen: "",
+    neurological: "",
+    musculoskeletal: "",
+    skin: "",
+    head_neck: "",
+    ears_nose_throat: ""
   });
 
   // Speech recognition state
@@ -1742,6 +1864,16 @@ Patient should be advised of potential side effects and expected timeline for re
   };
 
   const savePhysicalExamination = async () => {
+    // Validate all fields before saving
+    if (!validatePhysicalExam()) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields before saving.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsSavingPhysicalExam(true);
     
     try {
@@ -1806,6 +1938,16 @@ Patient should be advised of potential side effects and expected timeline for re
   };
 
   const saveRespiratoryExamination = async () => {
+    // Validate all fields before saving
+    if (!validateRespiratoryExam()) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields before saving.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsSavingRespiratoryExam(true);
     
     try {
@@ -1873,6 +2015,16 @@ Patient should be advised of potential side effects and expected timeline for re
   };
 
   const saveCardiovascularExamination = async () => {
+    // Validate all fields before saving
+    if (!validateCardiovascularExam()) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields before saving.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsSavingCardiovascularExam(true);
     
     try {
@@ -1940,6 +2092,16 @@ Patient should be advised of potential side effects and expected timeline for re
   };
 
   const saveNeurologicalExamination = async () => {
+    // Validate all fields before saving
+    if (!validateNeurologicalExam()) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields before saving.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsSavingNeurologicalExam(true);
     
     try {
@@ -2007,6 +2169,16 @@ Patient should be advised of potential side effects and expected timeline for re
   };
 
   const saveGeneralExamination = async () => {
+    // Validate all fields before saving
+    if (!validateGeneralExam()) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields before saving.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsSavingGeneralExam(true);
     
     try {
@@ -4221,12 +4393,21 @@ Patient should be advised of potential side effects and expected timeline for re
                   <Textarea
                     placeholder={`${system} examination findings...`}
                     value={value}
-                    onChange={(e) => setConsultationData(prev => ({
-                      ...prev,
-                      examination: { ...prev.examination, [system]: e.target.value }
-                    }))}
-                    className="h-20"
+                    onChange={(e) => {
+                      setConsultationData(prev => ({
+                        ...prev,
+                        examination: { ...prev.examination, [system]: e.target.value }
+                      }));
+                      // Clear error when user starts typing
+                      setPhysicalExamErrors(prev => ({ ...prev, [system]: "" }));
+                    }}
+                    className={`h-20 ${physicalExamErrors[system as keyof typeof physicalExamErrors] ? 'border-red-500' : ''}`}
                   />
+                  {physicalExamErrors[system as keyof typeof physicalExamErrors] && (
+                    <p className="text-xs text-red-500">
+                      {physicalExamErrors[system as keyof typeof physicalExamErrors]}
+                    </p>
+                  )}
                 </div>
               ))}
             </div>
@@ -4268,37 +4449,61 @@ Patient should be advised of potential side effects and expected timeline for re
                 <Label>General Appearance</Label>
                 <Textarea 
                   placeholder="Overall appearance, posture, gait..." 
-                  className="h-20"
+                  className={`h-20 ${generalExamErrors.generalAppearance ? 'border-red-500' : ''}`}
                   value={generalExamData.generalAppearance}
-                  onChange={(e) => setGeneralExamData(prev => ({...prev, generalAppearance: e.target.value}))}
+                  onChange={(e) => {
+                    setGeneralExamData(prev => ({...prev, generalAppearance: e.target.value}));
+                    setGeneralExamErrors(prev => ({...prev, generalAppearance: ""}));
+                  }}
                 />
+                {generalExamErrors.generalAppearance && (
+                  <p className="text-xs text-red-500">{generalExamErrors.generalAppearance}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Mental Status</Label>
                 <Textarea 
                   placeholder="Consciousness level, orientation..." 
-                  className="h-20"
+                  className={`h-20 ${generalExamErrors.mentalStatus ? 'border-red-500' : ''}`}
                   value={generalExamData.mentalStatus}
-                  onChange={(e) => setGeneralExamData(prev => ({...prev, mentalStatus: e.target.value}))}
+                  onChange={(e) => {
+                    setGeneralExamData(prev => ({...prev, mentalStatus: e.target.value}));
+                    setGeneralExamErrors(prev => ({...prev, mentalStatus: ""}));
+                  }}
                 />
+                {generalExamErrors.mentalStatus && (
+                  <p className="text-xs text-red-500">{generalExamErrors.mentalStatus}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Skin Assessment</Label>
                 <Textarea 
                   placeholder="Color, texture, lesions..." 
-                  className="h-20"
+                  className={`h-20 ${generalExamErrors.skinAssessment ? 'border-red-500' : ''}`}
                   value={generalExamData.skinAssessment}
-                  onChange={(e) => setGeneralExamData(prev => ({...prev, skinAssessment: e.target.value}))}
+                  onChange={(e) => {
+                    setGeneralExamData(prev => ({...prev, skinAssessment: e.target.value}));
+                    setGeneralExamErrors(prev => ({...prev, skinAssessment: ""}));
+                  }}
                 />
+                {generalExamErrors.skinAssessment && (
+                  <p className="text-xs text-red-500">{generalExamErrors.skinAssessment}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Lymph Nodes</Label>
                 <Textarea 
                   placeholder="Palpable lymph nodes..." 
-                  className="h-20"
+                  className={`h-20 ${generalExamErrors.lymphNodes ? 'border-red-500' : ''}`}
                   value={generalExamData.lymphNodes}
-                  onChange={(e) => setGeneralExamData(prev => ({...prev, lymphNodes: e.target.value}))}
+                  onChange={(e) => {
+                    setGeneralExamData(prev => ({...prev, lymphNodes: e.target.value}));
+                    setGeneralExamErrors(prev => ({...prev, lymphNodes: ""}));
+                  }}
                 />
+                {generalExamErrors.lymphNodes && (
+                  <p className="text-xs text-red-500">{generalExamErrors.lymphNodes}</p>
+                )}
               </div>
             </div>
           </div>
@@ -4339,55 +4544,91 @@ Patient should be advised of potential side effects and expected timeline for re
                 <Label>Heart Rate & Rhythm</Label>
                 <Textarea 
                   placeholder="Rate, rhythm, regularity..." 
-                  className="h-20"
+                  className={`h-20 ${cardiovascularExamErrors.heartRateRhythm ? 'border-red-500' : ''}`}
                   value={cardiovascularExamData.heartRateRhythm}
-                  onChange={(e) => setCardiovascularExamData(prev => ({...prev, heartRateRhythm: e.target.value}))}
+                  onChange={(e) => {
+                    setCardiovascularExamData(prev => ({...prev, heartRateRhythm: e.target.value}));
+                    setCardiovascularExamErrors(prev => ({...prev, heartRateRhythm: ""}));
+                  }}
                 />
+                {cardiovascularExamErrors.heartRateRhythm && (
+                  <p className="text-xs text-red-500">{cardiovascularExamErrors.heartRateRhythm}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Heart Sounds</Label>
                 <Textarea 
                   placeholder="S1, S2, murmurs, gallops..." 
-                  className="h-20"
+                  className={`h-20 ${cardiovascularExamErrors.heartSounds ? 'border-red-500' : ''}`}
                   value={cardiovascularExamData.heartSounds}
-                  onChange={(e) => setCardiovascularExamData(prev => ({...prev, heartSounds: e.target.value}))}
+                  onChange={(e) => {
+                    setCardiovascularExamData(prev => ({...prev, heartSounds: e.target.value}));
+                    setCardiovascularExamErrors(prev => ({...prev, heartSounds: ""}));
+                  }}
                 />
+                {cardiovascularExamErrors.heartSounds && (
+                  <p className="text-xs text-red-500">{cardiovascularExamErrors.heartSounds}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Blood Pressure</Label>
                 <Textarea 
                   placeholder="Systolic/Diastolic measurements..." 
-                  className="h-20"
+                  className={`h-20 ${cardiovascularExamErrors.bloodPressure ? 'border-red-500' : ''}`}
                   value={cardiovascularExamData.bloodPressure}
-                  onChange={(e) => setCardiovascularExamData(prev => ({...prev, bloodPressure: e.target.value}))}
+                  onChange={(e) => {
+                    setCardiovascularExamData(prev => ({...prev, bloodPressure: e.target.value}));
+                    setCardiovascularExamErrors(prev => ({...prev, bloodPressure: ""}));
+                  }}
                 />
+                {cardiovascularExamErrors.bloodPressure && (
+                  <p className="text-xs text-red-500">{cardiovascularExamErrors.bloodPressure}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Peripheral Pulses</Label>
                 <Textarea 
                   placeholder="Radial, pedal, carotid pulses..." 
-                  className="h-20"
+                  className={`h-20 ${cardiovascularExamErrors.peripheralPulses ? 'border-red-500' : ''}`}
                   value={cardiovascularExamData.peripheralPulses}
-                  onChange={(e) => setCardiovascularExamData(prev => ({...prev, peripheralPulses: e.target.value}))}
+                  onChange={(e) => {
+                    setCardiovascularExamData(prev => ({...prev, peripheralPulses: e.target.value}));
+                    setCardiovascularExamErrors(prev => ({...prev, peripheralPulses: ""}));
+                  }}
                 />
+                {cardiovascularExamErrors.peripheralPulses && (
+                  <p className="text-xs text-red-500">{cardiovascularExamErrors.peripheralPulses}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Edema Assessment</Label>
                 <Textarea 
                   placeholder="Peripheral edema, JVP..." 
-                  className="h-20"
+                  className={`h-20 ${cardiovascularExamErrors.edemaAssessment ? 'border-red-500' : ''}`}
                   value={cardiovascularExamData.edemaAssessment}
-                  onChange={(e) => setCardiovascularExamData(prev => ({...prev, edemaAssessment: e.target.value}))}
+                  onChange={(e) => {
+                    setCardiovascularExamData(prev => ({...prev, edemaAssessment: e.target.value}));
+                    setCardiovascularExamErrors(prev => ({...prev, edemaAssessment: ""}));
+                  }}
                 />
+                {cardiovascularExamErrors.edemaAssessment && (
+                  <p className="text-xs text-red-500">{cardiovascularExamErrors.edemaAssessment}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Chest Inspection</Label>
                 <Textarea 
                   placeholder="Chest wall, point of maximal impulse..." 
-                  className="h-20"
+                  className={`h-20 ${cardiovascularExamErrors.chestInspection ? 'border-red-500' : ''}`}
                   value={cardiovascularExamData.chestInspection}
-                  onChange={(e) => setCardiovascularExamData(prev => ({...prev, chestInspection: e.target.value}))}
+                  onChange={(e) => {
+                    setCardiovascularExamData(prev => ({...prev, chestInspection: e.target.value}));
+                    setCardiovascularExamErrors(prev => ({...prev, chestInspection: ""}));
+                  }}
                 />
+                {cardiovascularExamErrors.chestInspection && (
+                  <p className="text-xs text-red-500">{cardiovascularExamErrors.chestInspection}</p>
+                )}
               </div>
             </div>
           </div>
@@ -4428,55 +4669,91 @@ Patient should be advised of potential side effects and expected timeline for re
                 <Label>Respiratory Rate</Label>
                 <Textarea 
                   placeholder="Rate, depth, pattern..." 
-                  className="h-20"
+                  className={`h-20 ${respiratoryExamErrors.respiratoryRate ? 'border-red-500' : ''}`}
                   value={respiratoryExamData.respiratoryRate}
-                  onChange={(e) => setRespiratoryExamData(prev => ({...prev, respiratoryRate: e.target.value}))}
+                  onChange={(e) => {
+                    setRespiratoryExamData(prev => ({...prev, respiratoryRate: e.target.value}));
+                    setRespiratoryExamErrors(prev => ({...prev, respiratoryRate: ""}));
+                  }}
                 />
+                {respiratoryExamErrors.respiratoryRate && (
+                  <p className="text-xs text-red-500">{respiratoryExamErrors.respiratoryRate}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Chest Inspection</Label>
                 <Textarea 
                   placeholder="Shape, symmetry, expansion..." 
-                  className="h-20"
+                  className={`h-20 ${respiratoryExamErrors.chestInspection ? 'border-red-500' : ''}`}
                   value={respiratoryExamData.chestInspection}
-                  onChange={(e) => setRespiratoryExamData(prev => ({...prev, chestInspection: e.target.value}))}
+                  onChange={(e) => {
+                    setRespiratoryExamData(prev => ({...prev, chestInspection: e.target.value}));
+                    setRespiratoryExamErrors(prev => ({...prev, chestInspection: ""}));
+                  }}
                 />
+                {respiratoryExamErrors.chestInspection && (
+                  <p className="text-xs text-red-500">{respiratoryExamErrors.chestInspection}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Auscultation</Label>
                 <Textarea 
                   placeholder="Breath sounds, adventitious sounds..." 
-                  className="h-20"
+                  className={`h-20 ${respiratoryExamErrors.auscultation ? 'border-red-500' : ''}`}
                   value={respiratoryExamData.auscultation}
-                  onChange={(e) => setRespiratoryExamData(prev => ({...prev, auscultation: e.target.value}))}
+                  onChange={(e) => {
+                    setRespiratoryExamData(prev => ({...prev, auscultation: e.target.value}));
+                    setRespiratoryExamErrors(prev => ({...prev, auscultation: ""}));
+                  }}
                 />
+                {respiratoryExamErrors.auscultation && (
+                  <p className="text-xs text-red-500">{respiratoryExamErrors.auscultation}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Percussion</Label>
                 <Textarea 
                   placeholder="Resonance, dullness..." 
-                  className="h-20"
+                  className={`h-20 ${respiratoryExamErrors.percussion ? 'border-red-500' : ''}`}
                   value={respiratoryExamData.percussion}
-                  onChange={(e) => setRespiratoryExamData(prev => ({...prev, percussion: e.target.value}))}
+                  onChange={(e) => {
+                    setRespiratoryExamData(prev => ({...prev, percussion: e.target.value}));
+                    setRespiratoryExamErrors(prev => ({...prev, percussion: ""}));
+                  }}
                 />
+                {respiratoryExamErrors.percussion && (
+                  <p className="text-xs text-red-500">{respiratoryExamErrors.percussion}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Palpation</Label>
                 <Textarea 
                   placeholder="Chest expansion, tactile fremitus..." 
-                  className="h-20"
+                  className={`h-20 ${respiratoryExamErrors.palpation ? 'border-red-500' : ''}`}
                   value={respiratoryExamData.palpation}
-                  onChange={(e) => setRespiratoryExamData(prev => ({...prev, palpation: e.target.value}))}
+                  onChange={(e) => {
+                    setRespiratoryExamData(prev => ({...prev, palpation: e.target.value}));
+                    setRespiratoryExamErrors(prev => ({...prev, palpation: ""}));
+                  }}
                 />
+                {respiratoryExamErrors.palpation && (
+                  <p className="text-xs text-red-500">{respiratoryExamErrors.palpation}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Oxygen Saturation</Label>
                 <Textarea 
                   placeholder="SpO2 measurements..." 
-                  className="h-20"
+                  className={`h-20 ${respiratoryExamErrors.oxygenSaturation ? 'border-red-500' : ''}`}
                   value={respiratoryExamData.oxygenSaturation}
-                  onChange={(e) => setRespiratoryExamData(prev => ({...prev, oxygenSaturation: e.target.value}))}
+                  onChange={(e) => {
+                    setRespiratoryExamData(prev => ({...prev, oxygenSaturation: e.target.value}));
+                    setRespiratoryExamErrors(prev => ({...prev, oxygenSaturation: ""}));
+                  }}
                 />
+                {respiratoryExamErrors.oxygenSaturation && (
+                  <p className="text-xs text-red-500">{respiratoryExamErrors.oxygenSaturation}</p>
+                )}
               </div>
             </div>
           </div>
@@ -4517,55 +4794,91 @@ Patient should be advised of potential side effects and expected timeline for re
                 <Label>Mental Status</Label>
                 <Textarea 
                   placeholder="Consciousness, orientation, memory..." 
-                  className="h-20"
+                  className={`h-20 ${neurologicalExamErrors.mentalStatus ? 'border-red-500' : ''}`}
                   value={neurologicalExamData.mentalStatus}
-                  onChange={(e) => setNeurologicalExamData(prev => ({...prev, mentalStatus: e.target.value}))}
+                  onChange={(e) => {
+                    setNeurologicalExamData(prev => ({...prev, mentalStatus: e.target.value}));
+                    setNeurologicalExamErrors(prev => ({...prev, mentalStatus: ""}));
+                  }}
                 />
+                {neurologicalExamErrors.mentalStatus && (
+                  <p className="text-xs text-red-500">{neurologicalExamErrors.mentalStatus}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Cranial Nerves</Label>
                 <Textarea 
                   placeholder="CN I-XII assessment..." 
-                  className="h-20"
+                  className={`h-20 ${neurologicalExamErrors.cranialNerves ? 'border-red-500' : ''}`}
                   value={neurologicalExamData.cranialNerves}
-                  onChange={(e) => setNeurologicalExamData(prev => ({...prev, cranialNerves: e.target.value}))}
+                  onChange={(e) => {
+                    setNeurologicalExamData(prev => ({...prev, cranialNerves: e.target.value}));
+                    setNeurologicalExamErrors(prev => ({...prev, cranialNerves: ""}));
+                  }}
                 />
+                {neurologicalExamErrors.cranialNerves && (
+                  <p className="text-xs text-red-500">{neurologicalExamErrors.cranialNerves}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Motor Function</Label>
                 <Textarea 
                   placeholder="Strength, tone, coordination..." 
-                  className="h-20"
+                  className={`h-20 ${neurologicalExamErrors.motorFunction ? 'border-red-500' : ''}`}
                   value={neurologicalExamData.motorFunction}
-                  onChange={(e) => setNeurologicalExamData(prev => ({...prev, motorFunction: e.target.value}))}
+                  onChange={(e) => {
+                    setNeurologicalExamData(prev => ({...prev, motorFunction: e.target.value}));
+                    setNeurologicalExamErrors(prev => ({...prev, motorFunction: ""}));
+                  }}
                 />
+                {neurologicalExamErrors.motorFunction && (
+                  <p className="text-xs text-red-500">{neurologicalExamErrors.motorFunction}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Sensory Function</Label>
                 <Textarea 
                   placeholder="Touch, pain, temperature, vibration..." 
-                  className="h-20"
+                  className={`h-20 ${neurologicalExamErrors.sensoryFunction ? 'border-red-500' : ''}`}
                   value={neurologicalExamData.sensoryFunction}
-                  onChange={(e) => setNeurologicalExamData(prev => ({...prev, sensoryFunction: e.target.value}))}
+                  onChange={(e) => {
+                    setNeurologicalExamData(prev => ({...prev, sensoryFunction: e.target.value}));
+                    setNeurologicalExamErrors(prev => ({...prev, sensoryFunction: ""}));
+                  }}
                 />
+                {neurologicalExamErrors.sensoryFunction && (
+                  <p className="text-xs text-red-500">{neurologicalExamErrors.sensoryFunction}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Reflexes</Label>
                 <Textarea 
                   placeholder="Deep tendon reflexes, pathological reflexes..." 
-                  className="h-20"
+                  className={`h-20 ${neurologicalExamErrors.reflexes ? 'border-red-500' : ''}`}
                   value={neurologicalExamData.reflexes}
-                  onChange={(e) => setNeurologicalExamData(prev => ({...prev, reflexes: e.target.value}))}
+                  onChange={(e) => {
+                    setNeurologicalExamData(prev => ({...prev, reflexes: e.target.value}));
+                    setNeurologicalExamErrors(prev => ({...prev, reflexes: ""}));
+                  }}
                 />
+                {neurologicalExamErrors.reflexes && (
+                  <p className="text-xs text-red-500">{neurologicalExamErrors.reflexes}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Gait & Coordination</Label>
                 <Textarea 
                   placeholder="Walking pattern, balance, coordination tests..." 
-                  className="h-20"
+                  className={`h-20 ${neurologicalExamErrors.gaitCoordination ? 'border-red-500' : ''}`}
                   value={neurologicalExamData.gaitCoordination}
-                  onChange={(e) => setNeurologicalExamData(prev => ({...prev, gaitCoordination: e.target.value}))}
+                  onChange={(e) => {
+                    setNeurologicalExamData(prev => ({...prev, gaitCoordination: e.target.value}));
+                    setNeurologicalExamErrors(prev => ({...prev, gaitCoordination: ""}));
+                  }}
                 />
+                {neurologicalExamErrors.gaitCoordination && (
+                  <p className="text-xs text-red-500">{neurologicalExamErrors.gaitCoordination}</p>
+                )}
               </div>
             </div>
           </div>
