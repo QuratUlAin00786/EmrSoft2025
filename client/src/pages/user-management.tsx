@@ -49,6 +49,14 @@ import { Header } from "@/components/layout/header";
 import { getActiveSubdomain } from "@/lib/subdomain-utils";
 import { isDoctorLike } from "@/lib/role-utils";
 
+// Country codes with flags for phone numbers
+const COUNTRY_CODES = [
+  { code: "+44", name: "United Kingdom", flag: "🇬🇧" },
+  { code: "+32", name: "European Union", flag: "🇪🇺" },
+  { code: "+971", name: "Middle East", flag: "🌍" },
+  { code: "+966", name: "Saudi Arabia", flag: "🇸🇦" },
+  { code: "+1", name: "United States", flag: "🇺🇸" }
+] as const;
 
 const userSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -69,13 +77,13 @@ const userSchema = z.object({
   dobDay: z.string().optional(),
   dobMonth: z.string().optional(),
   dobYear: z.string().optional(),
-  phone: z.string()
+  phone: z.string().optional(),
+  nhsNumber: z.string()
     .optional()
     .refine(
-      (val) => !val || /^(\+44|0)[0-9\s]{9,13}$/.test(val.replace(/\s/g, '')),
-      "Please enter a valid UK phone number"
+      (val) => !val || /^\d{0,10}$/.test(val.replace(/\s/g, '')),
+      "NHS Number must be exactly 10 digits"
     ),
-  nhsNumber: z.string().optional(),
   genderAtBirth: z.string().optional(),
   address: z.object({
     street: z.string().optional(),
@@ -87,12 +95,7 @@ const userSchema = z.object({
   emergencyContact: z.object({
     name: z.string().optional(),
     relationship: z.string().optional(),
-    phone: z.string()
-      .optional()
-      .refine(
-        (val) => !val || /^(\+44|0)[0-9\s]{9,13}$/.test(val.replace(/\s/g, '')),
-        "Please enter a valid UK phone number"
-      ),
+    phone: z.string().optional(),
     email: z.string().optional(),
   }).optional(),
   insuranceInfo: z.object({
@@ -428,6 +431,10 @@ export default function UserManagement() {
   // Insurance Provider and NHS Number states
   const [insuranceProvider, setInsuranceProvider] = useState<string>("");
   const [nhsNumberError, setNhsNumberError] = useState<string>("");
+  
+  // Phone country code states
+  const [selectedPhoneCountryCode, setSelectedPhoneCountryCode] = useState("+44");
+  const [selectedEmergencyPhoneCountryCode, setSelectedEmergencyPhoneCountryCode] = useState("+44");
 
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -562,7 +569,7 @@ export default function UserManagement() {
     validateDOB(dobDay, dobMonth, value);
   };
   
-  // NHS Number validation function with modulus 11 algorithm
+  // NHS Number validation function - only allows 10 digits
   const validateNHSNumber = (nhsNumber: string): boolean => {
     if (!nhsNumber) {
       setNhsNumberError("");
@@ -581,40 +588,6 @@ export default function UserManagement() {
     // Check if it contains only digits
     if (!/^\d{10}$/.test(cleanedNumber)) {
       setNhsNumberError("Must contain only numbers");
-      return false;
-    }
-    
-    // Modulus 11 check digit validation
-    const digits = cleanedNumber.split('').map(Number);
-    const checkDigit = digits[9]; // 10th digit (index 9)
-    
-    // Multiply first 9 digits by weighting factors 10 down to 2
-    let sum = 0;
-    for (let i = 0; i < 9; i++) {
-      sum += digits[i] * (10 - i);
-    }
-    
-    // Calculate remainder
-    const remainder = sum % 11;
-    
-    // Calculate expected check digit
-    const calculatedCheckDigit = 11 - remainder;
-    
-    // If result is 11, check digit should be 0
-    if (calculatedCheckDigit === 11) {
-      if (checkDigit !== 0) {
-        setNhsNumberError("Invalid NHS Number (check digit should be 0)");
-        return false;
-      }
-    } 
-    // If result is 10, the number is invalid
-    else if (calculatedCheckDigit === 10) {
-      setNhsNumberError("Invalid NHS Number (check digit cannot be 10)");
-      return false;
-    } 
-    // Otherwise, check digit must match calculated value
-    else if (checkDigit !== calculatedCheckDigit) {
-      setNhsNumberError(`Invalid NHS Number (check digit should be ${calculatedCheckDigit})`);
       return false;
     }
     
@@ -1974,12 +1947,53 @@ export default function UserManagement() {
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="phone">Phone Number</Label>
-                        <Input
-                          id="phone"
-                          {...form.register("phone")}
-                          placeholder="+44 123 456 7890"
-                          data-testid="input-phone"
-                        />
+                        <div className="flex gap-2">
+                          <Select 
+                            value={selectedPhoneCountryCode} 
+                            onValueChange={(value) => {
+                              setSelectedPhoneCountryCode(value);
+                              const phoneWithoutCode = form.watch("phone")?.startsWith(selectedPhoneCountryCode) 
+                                ? form.watch("phone")?.slice(selectedPhoneCountryCode.length).trim() 
+                                : form.watch("phone") || "";
+                              form.setValue("phone", phoneWithoutCode ? `${value} ${phoneWithoutCode}` : "");
+                            }}
+                          >
+                            <SelectTrigger className="w-[140px]">
+                              <SelectValue>
+                                <div className="flex items-center gap-2">
+                                  <span>{COUNTRY_CODES.find(c => c.code === selectedPhoneCountryCode)?.flag}</span>
+                                  <span>{selectedPhoneCountryCode}</span>
+                                </div>
+                              </SelectValue>
+                            </SelectTrigger>
+                            <SelectContent>
+                              {COUNTRY_CODES.map((country) => (
+                                <SelectItem key={country.code} value={country.code}>
+                                  <div className="flex items-center gap-2">
+                                    <span>{country.flag}</span>
+                                    <span>{country.name}</span>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <Input
+                            id="phone"
+                            type="tel"
+                            className="flex-1"
+                            placeholder="123 456 7890"
+                            data-testid="input-phone"
+                            value={
+                              form.watch("phone")?.startsWith(selectedPhoneCountryCode)
+                                ? form.watch("phone")?.slice(selectedPhoneCountryCode.length).trim()
+                                : form.watch("phone") || ""
+                            }
+                            onChange={(e) => {
+                              const value = e.target.value.replace(/[^\d\s]/g, '').trim();
+                              form.setValue("phone", value ? `${selectedPhoneCountryCode} ${value}` : "");
+                            }}
+                          />
+                        </div>
                         {form.formState.errors.phone && (
                           <p className="text-sm text-red-500">{form.formState.errors.phone.message}</p>
                         )}
@@ -2084,12 +2098,53 @@ export default function UserManagement() {
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <Label htmlFor="emergencyPhone">Phone</Label>
-                            <Input
-                              id="emergencyPhone"
-                              {...form.register("emergencyContact.phone")}
-                              placeholder="+44 123 456 7890"
-                              data-testid="input-emergency-phone"
-                            />
+                            <div className="flex gap-2">
+                              <Select 
+                                value={selectedEmergencyPhoneCountryCode} 
+                                onValueChange={(value) => {
+                                  setSelectedEmergencyPhoneCountryCode(value);
+                                  const phoneWithoutCode = form.watch("emergencyContact.phone")?.startsWith(selectedEmergencyPhoneCountryCode) 
+                                    ? form.watch("emergencyContact.phone")?.slice(selectedEmergencyPhoneCountryCode.length).trim() 
+                                    : form.watch("emergencyContact.phone") || "";
+                                  form.setValue("emergencyContact.phone", phoneWithoutCode ? `${value} ${phoneWithoutCode}` : "");
+                                }}
+                              >
+                                <SelectTrigger className="w-[140px]">
+                                  <SelectValue>
+                                    <div className="flex items-center gap-2">
+                                      <span>{COUNTRY_CODES.find(c => c.code === selectedEmergencyPhoneCountryCode)?.flag}</span>
+                                      <span>{selectedEmergencyPhoneCountryCode}</span>
+                                    </div>
+                                  </SelectValue>
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {COUNTRY_CODES.map((country) => (
+                                    <SelectItem key={country.code} value={country.code}>
+                                      <div className="flex items-center gap-2">
+                                        <span>{country.flag}</span>
+                                        <span>{country.name}</span>
+                                      </div>
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <Input
+                                id="emergencyPhone"
+                                type="tel"
+                                className="flex-1"
+                                placeholder="123 456 7890"
+                                data-testid="input-emergency-phone"
+                                value={
+                                  form.watch("emergencyContact.phone")?.startsWith(selectedEmergencyPhoneCountryCode)
+                                    ? form.watch("emergencyContact.phone")?.slice(selectedEmergencyPhoneCountryCode.length).trim()
+                                    : form.watch("emergencyContact.phone") || ""
+                                }
+                                onChange={(e) => {
+                                  const value = e.target.value.replace(/[^\d\s]/g, '').trim();
+                                  form.setValue("emergencyContact.phone", value ? `${selectedEmergencyPhoneCountryCode} ${value}` : "");
+                                }}
+                              />
+                            </div>
                             {form.formState.errors.emergencyContact?.phone && (
                               <p className="text-sm text-red-500">{form.formState.errors.emergencyContact.phone.message}</p>
                             )}
@@ -2182,12 +2237,15 @@ export default function UserManagement() {
                               <Label htmlFor="nhsNumber">NHS Number</Label>
                               <Input
                                 id="nhsNumber"
-                                {...form.register("nhsNumber")}
+                                type="tel"
+                                maxLength={10}
                                 placeholder="9434765919"
                                 data-testid="input-nhs-number"
+                                value={form.watch("nhsNumber") || ""}
                                 onChange={(e) => {
-                                  form.setValue("nhsNumber", e.target.value);
-                                  validateNHSNumber(e.target.value);
+                                  const value = e.target.value.replace(/[^\d]/g, '');
+                                  form.setValue("nhsNumber", value);
+                                  validateNHSNumber(value);
                                 }}
                               />
                               {nhsNumberError && (
