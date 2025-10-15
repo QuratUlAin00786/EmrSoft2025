@@ -789,8 +789,18 @@ export function PatientModal({ open, onOpenChange, editMode = false, editPatient
                         <FormItem>
                           <FormLabel>NHS Number</FormLabel>
                           <FormControl>
-                            <Input {...field} placeholder="Enter NHS number" />
+                            <Input 
+                              {...field} 
+                              type="tel"
+                              maxLength={10}
+                              placeholder="9434765919"
+                              onChange={(e) => {
+                                const value = e.target.value.replace(/[^\d]/g, '');
+                                field.onChange(value);
+                              }}
+                            />
                           </FormControl>
+                          <p className="text-xs text-gray-500">Must be exactly 10 digits. Example: 9434765919</p>
                           <FormMessage />
                         </FormItem>
                       )}
