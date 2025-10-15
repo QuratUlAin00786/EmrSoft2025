@@ -4968,11 +4968,15 @@ export default function ImagingPage() {
                         const paymentData = {
                           organizationId: createdInvoice.organizationId,
                           invoiceId: createdInvoice.id,
+                          patientId: summaryData.invoice.patientId,
+                          transactionId: `TXN-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
                           amount: summaryData.invoice.totalAmount,
+                          currency: 'GBP',
                           paymentMethod: 'cash',
+                          paymentProvider: 'cash',
+                          paymentStatus: 'completed',
                           paymentDate: new Date().toISOString(),
                           reference: `CASH-${Date.now().toString().slice(-8)}`,
-                          status: 'completed',
                           notes: 'Cash payment for imaging services',
                         };
 

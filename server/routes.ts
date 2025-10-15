@@ -13690,16 +13690,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }, requireRole(["admin", "doctor", "nurse", "receptionist"]), async (req: TenantRequest, res) => {
     console.log("🔵 Payment endpoint handler executing - req.body:", req.body);
     try {
-      const paymentData = z.object({
+      const validatedData = z.object({
         organizationId: z.number(),
         invoiceId: z.number(),
+        patientId: z.string(),
+        transactionId: z.string(),
         amount: z.number(),
+        currency: z.string().default('GBP'),
         paymentMethod: z.string(),
+        paymentProvider: z.string().optional(),
+        paymentStatus: z.string().default('completed'),
         paymentDate: z.string(),
         reference: z.string().optional(),
-        status: z.string().default('completed'),
         notes: z.string().optional(),
       }).parse(req.body);
+
+      // Convert paymentDate string to Date object for Drizzle
+      const paymentData = {
+        ...validatedData,
+        paymentDate: new Date(validatedData.paymentDate),
+      };
 
       console.log("💰 Creating payment record:", paymentData);
       const createdPayment = await storage.createPayment(paymentData);
