@@ -1053,8 +1053,9 @@ export class DatabaseStorage implements IStorage {
   async deleteMedicalRecord(id: number, organizationId: number): Promise<boolean> {
     const result = await db
       .delete(medicalRecords)
-      .where(and(eq(medicalRecords.id, id), eq(medicalRecords.organizationId, organizationId)));
-    return (result.rowCount || 0) > 0;
+      .where(and(eq(medicalRecords.id, id), eq(medicalRecords.organizationId, organizationId)))
+      .returning();
+    return result.length > 0;
   }
 
   // Appointments
