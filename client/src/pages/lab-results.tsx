@@ -270,6 +270,7 @@ export default function LabResultsPage() {
     useState<DatabaseLabResult | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editFormData, setEditFormData] = useState<any>({});
+  const [selectedEditRole, setSelectedEditRole] = useState<string>("");
 
   // Fetch roles from the roles table filtered by organization_id
   const { data: rolesData = [] } = useQuery({
@@ -486,15 +487,25 @@ export default function LabResultsPage() {
         throw error;
       }
       
-      return response;
+      const updatedData = await response.json();
+      return { updateData, updatedData };
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       toast({
         title: "Success",
         description: "Lab result updated successfully",
       });
       setIsEditMode(false);
       setEditingStatusId(null);
+      
+      // Update selectedResult with the new data
+      if (selectedResult && result.updateData.id === selectedResult.id) {
+        setSelectedResult({
+          ...selectedResult,
+          ...result.updateData.data
+        });
+      }
+      
       queryClient.invalidateQueries({ queryKey: ["/api/lab-results"] });
     },
     onError: (error: any) => {
@@ -684,6 +695,7 @@ Report generated from Cura EMR System`;
       mainSpecialty: selectedResult.mainSpecialty || "",
       subSpecialty: selectedResult.subSpecialty || "",
     });
+    setSelectedEditRole("");
     setIsEditMode(true);
   };
 
@@ -2328,40 +2340,61 @@ Report generated from Cura EMR System`;
                         : selectedResult.doctorName || "Dr. Usman Gardezi"}
                     </h3>
                     {isEditMode && (
-                      <Select
-                        value={
-                          editFormData.doctorName ||
-                          selectedResult.doctorName ||
-                          ""
-                        }
-                        onValueChange={(value) =>
-                          setEditFormData((prev: any) => ({
-                            ...prev,
-                            doctorName: value,
-                          }))
-                        }
-                      >
-                        <SelectTrigger className="mt-2">
-                          <SelectValue placeholder="Select doctor" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Dr. Usman Gardezi">
-                            Dr. Usman Gardezi
-                          </SelectItem>
-                          <SelectItem value="Dr. John Smith">
-                            Dr. John Smith
-                          </SelectItem>
-                          <SelectItem value="Dr. Sarah Williams">
-                            Dr. Sarah Williams
-                          </SelectItem>
-                          <SelectItem value="Dr. Ali Raza">
-                            Dr. Ali Raza
-                          </SelectItem>
-                          <SelectItem value="Dr. Sarah Suleman">
-                            Dr. Sarah Suleman
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <div className="space-y-2 mt-2">
+                        <Select
+                          value={selectedEditRole}
+                          onValueChange={(value) => {
+                            setSelectedEditRole(value);
+                            setEditFormData((prev: any) => ({
+                              ...prev,
+                              doctorName: "",
+                            }));
+                          }}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select Role" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {rolesData.map((role: any) => (
+                              <SelectItem key={role.id} value={role.name}>
+                                {formatRoleLabel(role.name)}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+
+                        {selectedEditRole && (
+                          <Select
+                            value={
+                              editFormData.doctorName ||
+                              selectedResult.doctorName ||
+                              ""
+                            }
+                            onValueChange={(value) =>
+                              setEditFormData((prev: any) => ({
+                                ...prev,
+                                doctorName: value,
+                              }))
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select Name" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {users
+                                .filter((u: User) => u.role === selectedEditRole)
+                                .map((u: User) => (
+                                  <SelectItem 
+                                    key={u.id} 
+                                    value={`${u.firstName} ${u.lastName}`}
+                                  >
+                                    {u.firstName} {u.lastName}
+                                  </SelectItem>
+                                ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      </div>
                     )}
                   </div>
 
