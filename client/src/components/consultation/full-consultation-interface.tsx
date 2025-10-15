@@ -293,7 +293,7 @@ export function FullConsultationInterface({ open, onOpenChange, patient, patient
       queryClient.invalidateQueries({ queryKey: ['/api/patients', patient?.id, 'records'] });
       // Navigate to Medical Records & Consultation Notes
       onOpenChange(false);
-      setLocation(`/patients/${patient?.id}`);
+      setLocation(`/${getTenantSubdomain()}/patients/${patient?.id}`);
     },
     onError: (error: any) => {
       toast({
