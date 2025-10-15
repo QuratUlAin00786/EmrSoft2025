@@ -2814,6 +2814,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete medical record endpoint
+  app.delete("/api/patients/:patientId/records/:recordId", authMiddleware, requireNonPatientRole(), async (req: TenantRequest, res) => {
+    try {
+      const patientId = parseInt(req.params.patientId);
+      const recordId = parseInt(req.params.recordId);
+
+      const existingRecord = await storage.getMedicalRecord(recordId, req.tenant!.id);
+      if (!existingRecord || existingRecord.patientId !== patientId) {
+        return res.status(404).json({ error: "Medical record not found" });
+      }
+
+      const deleted = await storage.deleteMedicalRecord(recordId, req.tenant!.id);
+
+      if (!deleted) {
+        return res.status(404).json({ error: "Failed to delete medical record" });
+      }
+
+      res.json({ success: true, message: "Medical record deleted successfully" });
+    } catch (error) {
+      console.error("Medical record delete error:", error);
+      res.status(500).json({ error: "Failed to delete medical record" });
+    }
+  });
+
   // Enhanced patient reminder endpoint with communication tracking
   // Prescription safety check endpoint
   app.post("/api/prescription/safety-check", authMiddleware, requireRole(["doctor", "nurse"]), async (req: TenantRequest, res) => {

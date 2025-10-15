@@ -193,6 +193,7 @@ export interface IStorage {
   getMedicalRecordsByPatient(patientId: number, organizationId: number): Promise<MedicalRecord[]>;
   createMedicalRecord(record: InsertMedicalRecord): Promise<MedicalRecord>;
   updateMedicalRecord(id: number, organizationId: number, updates: Partial<InsertMedicalRecord>): Promise<MedicalRecord | undefined>;
+  deleteMedicalRecord(id: number, organizationId: number): Promise<boolean>;
 
   // Appointments
   getAppointment(id: number, organizationId: number): Promise<Appointment | undefined>;
@@ -1047,6 +1048,13 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(medicalRecords.id, id), eq(medicalRecords.organizationId, organizationId)))
       .returning();
     return updatedRecord;
+  }
+
+  async deleteMedicalRecord(id: number, organizationId: number): Promise<boolean> {
+    const result = await db
+      .delete(medicalRecords)
+      .where(and(eq(medicalRecords.id, id), eq(medicalRecords.organizationId, organizationId)));
+    return (result.rowCount || 0) > 0;
   }
 
   // Appointments
