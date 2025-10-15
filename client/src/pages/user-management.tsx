@@ -1470,56 +1470,56 @@ export default function UserManagement() {
 
     // Set lab technician subcategory for Lab Technician role
     if (['lab technician', 'lab_technician'].includes(user.role.toLowerCase())) {
-      setSelectedLabTechSubcategory(user.subSpecialty || "");
-      userData.subSpecialty = user.subSpecialty || "";
+      setSelectedLabTechSubcategory(user.medicalSpecialtyCategory || "");
+      userData.medicalSpecialtyCategory = user.medicalSpecialtyCategory || "";
     } else {
       setSelectedLabTechSubcategory("");
     }
 
     // Set pharmacist subcategory for Pharmacist role
     if (user.role.toLowerCase() === 'pharmacist') {
-      setSelectedPharmacistSubcategory(user.subSpecialty || "");
-      userData.subSpecialty = user.subSpecialty || "";
+      setSelectedPharmacistSubcategory(user.medicalSpecialtyCategory || "");
+      userData.medicalSpecialtyCategory = user.medicalSpecialtyCategory || "";
     } else {
       setSelectedPharmacistSubcategory("");
     }
 
     // Set optician subcategory for Optician role
     if (user.role.toLowerCase() === 'optician') {
-      setSelectedOpticianSubcategory(user.subSpecialty || "");
-      userData.subSpecialty = user.subSpecialty || "";
+      setSelectedOpticianSubcategory(user.medicalSpecialtyCategory || "");
+      userData.medicalSpecialtyCategory = user.medicalSpecialtyCategory || "";
     } else {
       setSelectedOpticianSubcategory("");
     }
 
     // Set paramedic subcategory for Paramedic role
     if (user.role.toLowerCase() === 'paramedic') {
-      setSelectedParamedicSubcategory(user.subSpecialty || "");
-      userData.subSpecialty = user.subSpecialty || "";
+      setSelectedParamedicSubcategory(user.medicalSpecialtyCategory || "");
+      userData.medicalSpecialtyCategory = user.medicalSpecialtyCategory || "";
     } else {
       setSelectedParamedicSubcategory("");
     }
 
     // Set physiotherapist subcategory for Physiotherapist role
     if (user.role.toLowerCase() === 'physiotherapist') {
-      setSelectedPhysiotherapistSubcategory(user.subSpecialty || "");
-      userData.subSpecialty = user.subSpecialty || "";
+      setSelectedPhysiotherapistSubcategory(user.medicalSpecialtyCategory || "");
+      userData.medicalSpecialtyCategory = user.medicalSpecialtyCategory || "";
     } else {
       setSelectedPhysiotherapistSubcategory("");
     }
 
     // Set aesthetician subcategory for Aesthetician role
     if (user.role.toLowerCase() === 'aesthetician') {
-      setSelectedAestheticianSubcategory(user.subSpecialty || "");
-      userData.subSpecialty = user.subSpecialty || "";
+      setSelectedAestheticianSubcategory(user.medicalSpecialtyCategory || "");
+      userData.medicalSpecialtyCategory = user.medicalSpecialtyCategory || "";
     } else {
       setSelectedAestheticianSubcategory("");
     }
 
     // Set sample taker subcategory for Sample Taker role
     if (user.role.toLowerCase() === 'sample taker') {
-      setSelectedSampleTakerSubcategory(user.subSpecialty || "");
-      userData.subSpecialty = user.subSpecialty || "";
+      setSelectedSampleTakerSubcategory(user.medicalSpecialtyCategory || "");
+      userData.medicalSpecialtyCategory = user.medicalSpecialtyCategory || "";
     } else {
       setSelectedSampleTakerSubcategory("");
     }
@@ -2133,7 +2133,7 @@ export default function UserManagement() {
                     <Select 
                       onValueChange={(value) => {
                         setSelectedLabTechSubcategory(value);
-                        form.setValue("subSpecialty", value);
+                        form.setValue("medicalSpecialtyCategory", value);
                       }} 
                       value={selectedLabTechSubcategory}
                     >
@@ -2158,7 +2158,7 @@ export default function UserManagement() {
                     <Select 
                       onValueChange={(value) => {
                         setSelectedPharmacistSubcategory(value);
-                        form.setValue("subSpecialty", value);
+                        form.setValue("medicalSpecialtyCategory", value);
                       }} 
                       value={selectedPharmacistSubcategory}
                     >
@@ -2183,7 +2183,7 @@ export default function UserManagement() {
                     <Select 
                       onValueChange={(value) => {
                         setSelectedOpticianSubcategory(value);
-                        form.setValue("subSpecialty", value);
+                        form.setValue("medicalSpecialtyCategory", value);
                       }} 
                       value={selectedOpticianSubcategory}
                     >
@@ -2208,7 +2208,7 @@ export default function UserManagement() {
                     <Select 
                       onValueChange={(value) => {
                         setSelectedParamedicSubcategory(value);
-                        form.setValue("subSpecialty", value);
+                        form.setValue("medicalSpecialtyCategory", value);
                       }} 
                       value={selectedParamedicSubcategory}
                     >
@@ -2233,7 +2233,7 @@ export default function UserManagement() {
                     <Select 
                       onValueChange={(value) => {
                         setSelectedPhysiotherapistSubcategory(value);
-                        form.setValue("subSpecialty", value);
+                        form.setValue("medicalSpecialtyCategory", value);
                       }} 
                       value={selectedPhysiotherapistSubcategory}
                     >
@@ -2258,7 +2258,7 @@ export default function UserManagement() {
                     <Select 
                       onValueChange={(value) => {
                         setSelectedAestheticianSubcategory(value);
-                        form.setValue("subSpecialty", value);
+                        form.setValue("medicalSpecialtyCategory", value);
                       }} 
                       value={selectedAestheticianSubcategory}
                     >
@@ -2283,7 +2283,7 @@ export default function UserManagement() {
                     <Select 
                       onValueChange={(value) => {
                         setSelectedSampleTakerSubcategory(value);
-                        form.setValue("subSpecialty", value);
+                        form.setValue("medicalSpecialtyCategory", value);
                       }} 
                       value={selectedSampleTakerSubcategory}
                     >
