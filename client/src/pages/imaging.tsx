@@ -4932,7 +4932,7 @@ export default function ImagingPage() {
 
                         // Create invoice
                         const invoiceResponse = await apiRequest("POST", "/api/billing/invoices", invoiceData);
-                        const createdInvoice = invoiceResponse as any;
+                        const createdInvoice = await invoiceResponse.json();
 
                         // Create payment record
                         const paymentData = {
@@ -4948,9 +4948,10 @@ export default function ImagingPage() {
 
                         await apiRequest("POST", "/api/billing/payments", paymentData);
 
-                        // Update invoice status to paid
+                        // Update invoice status to paid and paidAmount
                         await apiRequest("PATCH", `/api/billing/invoices/${createdInvoice.id}`, {
                           status: 'paid',
+                          paidAmount: summaryData.invoice.totalAmount.toString(),
                         });
 
                         toast({
