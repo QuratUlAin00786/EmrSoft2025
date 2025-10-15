@@ -1385,9 +1385,7 @@ Report generated from Cura EMR System`;
                     <p className="text-2xl font-bold">
                       {
                         searchFilteredResults.filter(
-                          (r) =>
-                            r.notes?.toLowerCase().includes("critical") ||
-                            r.value?.toLowerCase().includes("high"),
+                          (r) => r.criticalValues === true
                         ).length
                       }
                     </p>
@@ -1409,7 +1407,8 @@ Report generated from Cura EMR System`;
                         searchFilteredResults.filter(
                           (r) =>
                             r.status === "completed" &&
-                            new Date(r.createdAt || "").toDateString() ===
+                            r.completedAt &&
+                            new Date(r.completedAt).toDateString() ===
                               new Date().toDateString(),
                         ).length
                       }
