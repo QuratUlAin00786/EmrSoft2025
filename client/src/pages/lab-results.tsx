@@ -391,6 +391,7 @@ export default function LabResultsPage() {
   const [testTypePopoverOpen, setTestTypePopoverOpen] = useState(false);
   const [generateFormData, setGenerateFormData] = useState<any>({});
   const [fillResultFormData, setFillResultFormData] = useState<any>({});
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [expandedResults, setExpandedResults] = useState<Set<number>>(new Set());
 
   // Fetch roles from the roles table filtered by organization_id
@@ -3727,6 +3728,39 @@ Report generated from Cura EMR System`;
 
                 if (testTypes.length === 0) return null;
 
+                // Validation function for field values
+                const validateField = (fieldKey: string, value: string): string => {
+                  if (!value || value.trim() === "") return "";
+                  
+                  // Check if value is numeric (allows decimals and negative values)
+                  const numericPattern = /^-?\d*\.?\d+$/;
+                  if (!numericPattern.test(value.trim())) {
+                    return "Must be a numeric value";
+                  }
+                  
+                  return "";
+                };
+
+                // Handle field change with validation
+                const handleFieldChange = (fieldKey: string, value: string) => {
+                  setFillResultFormData((prev: any) => ({
+                    ...prev,
+                    [fieldKey]: value,
+                  }));
+
+                  // Validate the field
+                  const error = validateField(fieldKey, value);
+                  setValidationErrors((prev) => {
+                    if (error) {
+                      return { ...prev, [fieldKey]: error };
+                    } else {
+                      const newErrors = { ...prev };
+                      delete newErrors[fieldKey];
+                      return newErrors;
+                    }
+                  });
+                };
+
                 return (
                   <div className="space-y-6">
                     {testTypes.map((testType: string, testIndex: number) => (
@@ -3740,31 +3774,36 @@ Report generated from Cura EMR System`;
                           </p>
                         </div>
                         <div className="grid grid-cols-2 gap-4 pl-2">
-                          {TEST_FIELD_DEFINITIONS[testType].map((field) => (
-                            <div key={`${testType}-${field.name}`} className="space-y-2">
-                              <Label htmlFor={`fill-${testType}-${field.name}`}>
-                                {field.name}
-                                <span className="text-xs text-gray-500 ml-2">
-                                  (Ref: {field.referenceRange} {field.unit})
-                                </span>
-                              </Label>
-                              <Input
-                                id={`fill-${testType}-${field.name}`}
-                                type="text"
-                                placeholder={`Enter ${field.name}`}
-                                value={
-                                  fillResultFormData[`${testType}::${field.name}`] || ""
-                                }
-                                onChange={(e) =>
-                                  setFillResultFormData((prev: any) => ({
-                                    ...prev,
-                                    [`${testType}::${field.name}`]: e.target.value,
-                                  }))
-                                }
-                                data-testid={`input-fill-${testType}-${field.name}`}
-                              />
-                            </div>
-                          ))}
+                          {TEST_FIELD_DEFINITIONS[testType].map((field) => {
+                            const fieldKey = `${testType}::${field.name}`;
+                            const hasError = validationErrors[fieldKey];
+                            
+                            return (
+                              <div key={`${testType}-${field.name}`} className="space-y-1">
+                                <Label htmlFor={`fill-${testType}-${field.name}`}>
+                                  {field.name}
+                                  <span className="text-xs text-gray-500 ml-2">
+                                    (Ref: {field.referenceRange} {field.unit})
+                                  </span>
+                                </Label>
+                                <Input
+                                  id={`fill-${testType}-${field.name}`}
+                                  type="text"
+                                  placeholder={`Enter ${field.name}`}
+                                  value={fillResultFormData[fieldKey] || ""}
+                                  onChange={(e) => handleFieldChange(fieldKey, e.target.value)}
+                                  className={hasError ? "border-red-500 focus:ring-red-500" : ""}
+                                  data-testid={`input-fill-${testType}-${field.name}`}
+                                />
+                                {hasError && (
+                                  <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
+                                    <AlertTriangle className="h-3 w-3" />
+                                    {hasError}
+                                  </p>
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     ))}
@@ -3797,6 +3836,7 @@ Report generated from Cura EMR System`;
                   onClick={() => {
                     setShowFillResultDialog(false);
                     setFillResultFormData({});
+                    setValidationErrors({});
                   }}
                 >
                   Cancel
@@ -3804,6 +3844,16 @@ Report generated from Cura EMR System`;
                 <Button
                   variant="outline"
                   onClick={() => {
+                    // Check for validation errors
+                    if (Object.keys(validationErrors).length > 0) {
+                      toast({
+                        title: "Validation Error",
+                        description: "Please fix all validation errors before downloading",
+                        variant: "destructive",
+                      });
+                      return;
+                    }
+
                     // Build results array from filled values - supports multiple tests
                     const results: any[] = [];
                     const testTypes = selectedLabOrder.testType
@@ -3989,6 +4039,16 @@ Report generated from Cura EMR System`;
                 </Button>
                 <Button
                   onClick={() => {
+                    // Check for validation errors
+                    if (Object.keys(validationErrors).length > 0) {
+                      toast({
+                        title: "Validation Error",
+                        description: "Please fix all validation errors before generating results",
+                        variant: "destructive",
+                      });
+                      return;
+                    }
+
                     // Build results array from filled values - supports multiple tests
                     const results: any[] = [];
                     const testTypes = selectedLabOrder.testType
@@ -4043,6 +4103,7 @@ Report generated from Cura EMR System`;
                     
                     setShowFillResultDialog(false);
                     setFillResultFormData({});
+                    setValidationErrors({});
                   }}
                   className="bg-green-600 hover:bg-green-700"
                   data-testid="button-submit-fill-result"
