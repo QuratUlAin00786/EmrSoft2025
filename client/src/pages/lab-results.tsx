@@ -210,6 +210,7 @@ import {
   Edit,
   ChevronDown,
   ChevronRight,
+  CheckCircle,
 } from "lucide-react";
 
 interface DatabaseLabResult {
@@ -701,6 +702,51 @@ export default function LabResultsPage() {
       toast({
         title: "Error",
         description: error.message || "Failed to delete lab result",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Cash payment mutation
+  const createCashPaymentMutation = useMutation({
+    mutationFn: async (paymentData: any) => {
+      const response = await apiRequest("POST", "/api/payments/cash", paymentData);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setPaymentResult({
+        invoiceId: data.invoice.invoiceNumber,
+        patientName: pendingOrderData?.patientName,
+        amount: invoiceData.totalAmount,
+        paymentMethod: 'cash'
+      });
+      setShowSummaryDialog(false);
+      setShowPaymentConfirmation(true);
+      queryClient.invalidateQueries({ queryKey: ["/api/lab-results"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Payment Failed",
+        description: error.message || "Failed to process cash payment",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Stripe payment mutation
+  const createStripePaymentMutation = useMutation({
+    mutationFn: async (paymentData: any) => {
+      const response = await apiRequest("POST", "/api/payments/stripe", paymentData);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setStripeClientSecret(data.clientSecret);
+      // The actual payment will be completed by Stripe Elements
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Payment Setup Failed",
+        description: error.message || "Failed to setup Stripe payment",
         variant: "destructive",
       });
     },
@@ -2523,18 +2569,93 @@ Report generated from Cura EMR System`;
               <Button
                 onClick={async () => {
                   if (invoiceData.paymentMethod === 'cash') {
-                    // Handle cash payment - will implement in next step
-                    console.log('Processing cash payment...');
+                    // Handle cash payment
+                    createCashPaymentMutation.mutate({
+                      patientId: pendingOrderData?.patientId,
+                      patientName: pendingOrderData?.patientName,
+                      items: invoiceData.items,
+                      totalAmount: invoiceData.totalAmount,
+                      insuranceProvider: invoiceData.insuranceProvider,
+                      serviceDate: invoiceData.serviceDate,
+                      invoiceDate: invoiceData.invoiceDate,
+                      dueDate: invoiceData.dueDate,
+                    });
                   } else if (invoiceData.paymentMethod === 'debit_card') {
-                    // Handle Stripe payment - will implement in next step
-                    console.log('Processing debit card payment...');
+                    // Handle Stripe payment - setup payment intent
+                    createStripePaymentMutation.mutate({
+                      patientId: pendingOrderData?.patientId,
+                      patientName: pendingOrderData?.patientName,
+                      amount: invoiceData.totalAmount,
+                      items: invoiceData.items,
+                      insuranceProvider: invoiceData.insuranceProvider,
+                      serviceDate: invoiceData.serviceDate,
+                      invoiceDate: invoiceData.invoiceDate,
+                      dueDate: invoiceData.dueDate,
+                    });
                   }
                 }}
+                disabled={createCashPaymentMutation.isPending || createStripePaymentMutation.isPending}
                 className="flex-1 bg-medical-blue hover:bg-blue-700"
               >
-                Confirm & Pay
+                {createCashPaymentMutation.isPending || createStripePaymentMutation.isPending ? "Processing..." : "Confirm & Pay"}
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Payment Confirmation Modal */}
+      <Dialog open={showPaymentConfirmation} onOpenChange={setShowPaymentConfirmation}>
+        <DialogContent className="max-w-md">
+          <div className="flex flex-col items-center text-center space-y-4 py-6">
+            <div className="rounded-full bg-green-100 dark:bg-green-900 p-4">
+              <CheckCircle className="h-16 w-16 text-green-600 dark:text-green-400" />
+            </div>
+            
+            <div className="space-y-2">
+              <h3 className="text-2xl font-bold text-green-600 dark:text-green-400">Payment Successful!</h3>
+              <p className="text-gray-600 dark:text-gray-400">Your payment has been processed successfully</p>
+            </div>
+
+            <div className="w-full space-y-3 border-t pt-4">
+              <div className="flex justify-between">
+                <span className="text-gray-600 dark:text-gray-400">Invoice ID:</span>
+                <span className="font-semibold">{paymentResult?.invoiceId}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600 dark:text-gray-400">Patient Name:</span>
+                <span className="font-semibold">{paymentResult?.patientName}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600 dark:text-gray-400">Amount Paid:</span>
+                <span className="font-semibold text-medical-blue">${paymentResult?.amount?.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600 dark:text-gray-400">Payment Method:</span>
+                <span className="font-semibold capitalize">{paymentResult?.paymentMethod?.replace('_', ' ')}</span>
+              </div>
+            </div>
+
+            <Button
+              onClick={() => {
+                setShowPaymentConfirmation(false);
+                setPaymentResult(null);
+                // Reset form
+                setOrderFormData({
+                  patientId: "",
+                  patientName: "",
+                  testType: [],
+                  priority: "routine",
+                  notes: "",
+                  selectedRole: "",
+                  selectedUserId: "",
+                  selectedUserName: "",
+                });
+              }}
+              className="w-full bg-medical-blue hover:bg-blue-700"
+            >
+              Done
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
