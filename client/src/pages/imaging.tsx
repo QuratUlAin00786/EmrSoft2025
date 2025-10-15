@@ -310,6 +310,17 @@ export default function ImagingPage() {
   );
   const [showEditImageDialog, setShowEditImageDialog] = useState(false);
   const [editingStudyId, setEditingStudyId] = useState<string | null>(null);
+  const [showInvoiceDialog, setShowInvoiceDialog] = useState(false);
+  const [showSummaryDialog, setShowSummaryDialog] = useState(false);
+  const [invoiceFormData, setInvoiceFormData] = useState({
+    paymentMethod: "",
+    subtotal: 0,
+    tax: 0,
+    discount: 0,
+    totalAmount: 0,
+  });
+  const [summaryData, setSummaryData] = useState<any>(null);
+  const [uploadedImageData, setUploadedImageData] = useState<any>(null);
   const { toast } = useToast();
 
   // Fetch patients to find the current user's patient record
@@ -1057,25 +1068,32 @@ export default function ImagingPage() {
       const totalSize = selectedFiles.reduce((sum, file) => sum + file.size, 0);
       const totalSizeMB = (totalSize / (1024 * 1024)).toFixed(1);
 
-      toast({
-        title: "Images Uploaded Successfully",
-        description: `${selectedFiles.length} images (${totalSizeMB} MB) uploaded with unique names for ${selectedPatient.firstName} ${selectedPatient.lastName}`,
+      // Store uploaded image data for invoice
+      setUploadedImageData({
+        ...uploadFormData,
+        selectedPatient,
+        uploadedFiles: selectedFiles,
+        totalSizeMB,
+        uploadResult: result,
       });
 
-      // Reset form and close dialog
-      setUploadFormData({
-        patientId: "",
-        studyType: "",
-        modality: "X-Ray",
-        bodyPart: "",
-        indication: "",
-        priority: "routine",
-      });
-      setSelectedFiles([]);
+      // Close upload dialog and open invoice dialog
       setShowUploadDialog(false);
-
-      // Refresh the medical images list
-      refetchImages();
+      
+      // Calculate invoice amounts (example pricing)
+      const subtotal = selectedFiles.length * 50; // £50 per image
+      const tax = subtotal * 0.2; // 20% VAT
+      const totalAmount = subtotal + tax;
+      
+      setInvoiceFormData({
+        paymentMethod: "",
+        subtotal,
+        tax,
+        discount: 0,
+        totalAmount,
+      });
+      
+      setShowInvoiceDialog(true);
     } catch (error) {
       console.error("📷 CLIENT: Upload error:", error);
       toast({
@@ -1101,67 +1119,33 @@ export default function ImagingPage() {
       return;
     }
 
-    try {
-      // Find the selected patient to get the numeric ID
-      const selectedPatient = patients.find(
-        (p) => p.id.toString() === orderFormData.patientId,
-      );
-      if (!selectedPatient) {
-        toast({
-          title: "Order Failed",
-          description: "Selected patient not found",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const orderData = {
-        patientId: selectedPatient.id, // Use the numeric database ID
-        imageType: orderFormData.studyType,
-        studyType: orderFormData.studyType,
-        modality: orderFormData.modality,
-        bodyPart: orderFormData.bodyPart,
-        indication: orderFormData.indication,
-        priority: orderFormData.priority,
-        filename: `${orderFormData.studyType}_${Date.now()}_order.dcm`, // Placeholder filename for order
-        fileUrl: "", // Empty for orders
-        fileSize: 0, // Zero for orders
-        uploadedBy: 348, // Current user ID (admin)
-        imageData: "", // Empty for orders
-        mimeType: "application/dicom", // Standard DICOM MIME type
-        status: "ordered", // Set status as ordered instead of uploaded
-        notes: orderFormData.specialInstructions || "",
-      };
-
-      await apiRequest("POST", "/api/medical-images", orderData);
-
-      toast({
-        title: "Study Ordered Successfully",
-        description: `${orderFormData.studyType} study ordered for ${selectedPatient.firstName} ${selectedPatient.lastName}`,
-      });
-
-      // Reset form and close dialog
-      setOrderFormData({
-        patientId: "",
-        studyType: "",
-        modality: "X-Ray",
-        bodyPart: "",
-        indication: "",
-        priority: "routine",
-        specialInstructions: "",
-      });
-      setShowNewOrder(false);
-
-      // Refresh the medical images list to show the new order
-      refetchImages();
-    } catch (error) {
-      console.error("Order error:", error);
+    // Store data and open upload dialog instead
+    const selectedPatient = patients.find(
+      (p) => p.id.toString() === orderFormData.patientId,
+    );
+    
+    if (!selectedPatient) {
       toast({
         title: "Order Failed",
-        description: "Failed to create imaging study order. Please try again.",
+        description: "Selected patient not found",
         variant: "destructive",
       });
+      return;
     }
+
+    // Transfer data to upload form
+    setUploadFormData({
+      patientId: orderFormData.patientId,
+      studyType: orderFormData.studyType,
+      modality: orderFormData.modality,
+      bodyPart: orderFormData.bodyPart,
+      indication: orderFormData.indication,
+      priority: orderFormData.priority,
+    });
+
+    // Close order dialog and open upload dialog
+    setShowNewOrder(false);
+    setShowUploadDialog(true);
   };
 
   const handleViewStudy = (study: ImagingStudy) => {
@@ -4417,6 +4401,258 @@ export default function ImagingPage() {
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Invoice Dialog */}
+      <Dialog open={showInvoiceDialog} onOpenChange={setShowInvoiceDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Invoice</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg space-y-2">
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-300">Subtotal:</span>
+                <span className="font-semibold">£{invoiceFormData.subtotal.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-300">Tax (20%):</span>
+                <span className="font-semibold">£{invoiceFormData.tax.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-300">Discount:</span>
+                <span className="font-semibold">£{invoiceFormData.discount.toFixed(2)}</span>
+              </div>
+              <div className="border-t pt-2 flex justify-between">
+                <span className="font-bold">Total Amount:</span>
+                <span className="font-bold text-lg text-blue-600">£{invoiceFormData.totalAmount.toFixed(2)}</span>
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="payment-method">Payment Method</Label>
+              <Select
+                value={invoiceFormData.paymentMethod}
+                onValueChange={(value) =>
+                  setInvoiceFormData((prev) => ({ ...prev, paymentMethod: value }))
+                }
+              >
+                <SelectTrigger id="payment-method">
+                  <SelectValue placeholder="Select payment method" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="cash">Cash</SelectItem>
+                  <SelectItem value="debit_card">Debit Card</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowInvoiceDialog(false);
+                  setShowUploadDialog(true);
+                }}
+              >
+                Back
+              </Button>
+              <Button
+                onClick={async () => {
+                  if (!invoiceFormData.paymentMethod) {
+                    toast({
+                      title: "Payment Method Required",
+                      description: "Please select a payment method",
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+
+                  if (invoiceFormData.paymentMethod === "debit_card") {
+                    try {
+                      // Create Stripe payment intent
+                      const response = await apiRequest("POST", "/api/create-payment-intent", {
+                        amount: invoiceFormData.totalAmount,
+                      });
+                      
+                      const { clientSecret } = response as any;
+                      
+                      // For now, simulate successful payment
+                      // In production, this would redirect to Stripe checkout
+                      toast({
+                        title: "Payment Processing",
+                        description: "Stripe payment initialized successfully",
+                      });
+                      
+                      // Proceed to summary
+                      setSummaryData({
+                        ...uploadedImageData,
+                        invoice: invoiceFormData,
+                        paymentClientSecret: clientSecret,
+                      });
+                      
+                      setShowInvoiceDialog(false);
+                      setShowSummaryDialog(true);
+                    } catch (error) {
+                      toast({
+                        title: "Payment Failed",
+                        description: "Could not initialize Stripe payment",
+                        variant: "destructive",
+                      });
+                    }
+                  } else {
+                    // Cash payment - proceed directly to summary
+                    setSummaryData({
+                      ...uploadedImageData,
+                      invoice: invoiceFormData,
+                    });
+                    
+                    setShowInvoiceDialog(false);
+                    setShowSummaryDialog(true);
+                  }
+                }}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                Create Invoice
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Summary Dialog */}
+      <Dialog open={showSummaryDialog} onOpenChange={setShowSummaryDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Summary</DialogTitle>
+          </DialogHeader>
+          {summaryData && (
+            <div className="space-y-4">
+              <div className="border rounded-lg p-4">
+                <h3 className="font-semibold mb-3">Imaging Details</h3>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <span className="text-gray-600">Patient:</span>
+                    <p className="font-medium">{summaryData.selectedPatient?.firstName} {summaryData.selectedPatient?.lastName}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Study Type:</span>
+                    <p className="font-medium">{summaryData.studyType}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Modality:</span>
+                    <p className="font-medium">{summaryData.modality}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Images Uploaded:</span>
+                    <p className="font-medium">{summaryData.uploadedFiles?.length} ({summaryData.totalSizeMB} MB)</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border rounded-lg p-4">
+                <h3 className="font-semibold mb-3">Invoice Details</h3>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Payment Method:</span>
+                    <span className="font-medium capitalize">{summaryData.invoice?.paymentMethod.replace('_', ' ')}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Subtotal:</span>
+                    <span className="font-medium">£{summaryData.invoice?.subtotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Tax:</span>
+                    <span className="font-medium">£{summaryData.invoice?.tax.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between font-bold pt-2 border-t">
+                    <span>Total:</span>
+                    <span className="text-blue-600">£{summaryData.invoice?.totalAmount.toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowSummaryDialog(false);
+                    setShowInvoiceDialog(true);
+                  }}
+                >
+                  Back
+                </Button>
+                <Button
+                  onClick={async () => {
+                    try {
+                      // Create invoice in database
+                      const invoiceData = {
+                        patientId: summaryData.selectedPatient.patientId,
+                        patientName: `${summaryData.selectedPatient.firstName} ${summaryData.selectedPatient.lastName}`,
+                        dateOfService: new Date().toISOString(),
+                        invoiceDate: new Date().toISOString(),
+                        dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+                        status: summaryData.invoice.paymentMethod === 'cash' ? 'paid' : 'paid',
+                        subtotal: summaryData.invoice.subtotal,
+                        tax: summaryData.invoice.tax,
+                        discount: summaryData.invoice.discount,
+                        totalAmount: summaryData.invoice.totalAmount,
+                        paidAmount: summaryData.invoice.totalAmount,
+                        items: summaryData.uploadedFiles.map((file: File, index: number) => ({
+                          code: `IMG-${index + 1}`,
+                          description: `${summaryData.studyType} - Image ${index + 1}`,
+                          quantity: 1,
+                          unitPrice: 50,
+                          total: 50,
+                        })),
+                        payments: [{
+                          id: `pay_${Date.now()}`,
+                          amount: summaryData.invoice.totalAmount,
+                          method: summaryData.invoice.paymentMethod === 'cash' ? 'cash' : 'card',
+                          date: new Date().toISOString(),
+                          reference: summaryData.paymentClientSecret || '',
+                        }],
+                      };
+
+                      await apiRequest("POST", "/api/invoices", invoiceData);
+
+                      toast({
+                        title: "Success",
+                        description: "Imaging study and invoice saved successfully",
+                      });
+
+                      // Reset all state
+                      setUploadFormData({
+                        patientId: "",
+                        studyType: "",
+                        modality: "X-Ray",
+                        bodyPart: "",
+                        indication: "",
+                        priority: "routine",
+                      });
+                      setSelectedFiles([]);
+                      setUploadedImageData(null);
+                      setSummaryData(null);
+                      setShowSummaryDialog(false);
+
+                      // Refresh the medical images list
+                      refetchImages();
+                    } catch (error) {
+                      toast({
+                        title: "Error",
+                        description: "Failed to save invoice",
+                        variant: "destructive",
+                      });
+                    }
+                  }}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  Confirm
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 
