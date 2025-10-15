@@ -902,19 +902,14 @@ ${
 
   // Assessment validation function
   const validateAssessmentField = (value: string): string => {
-    // If field is optional and empty, no error
-    if (!value || value.trim().length === 0) {
-      return "";
-    }
-    
-    // If field has content but below minimum
-    if (value.trim().length < 5) {
-      return "Assessment & Working Diagnosis must be at least 5 characters.";
+    // Required field - check if empty or below minimum
+    if (!value || value.trim().length === 0 || value.trim().length < 5) {
+      return "Diagnosis and Treatment Plan is required and must be at least 5 characters.";
     }
     
     // If field exceeds maximum
     if (value.length > 255) {
-      return "Assessment & Working Diagnosis must not exceed 255 characters.";
+      return "Diagnosis and Treatment Plan must not exceed 255 characters.";
     }
     
     return "";
