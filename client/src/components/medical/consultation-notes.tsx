@@ -119,6 +119,81 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
   const [recordToDelete, setRecordToDelete] = useState<any>(null);
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
+  // Edit Medical Record validation state
+  const [editRecordErrors, setEditRecordErrors] = useState({
+    title: "",
+    notes: "",
+    diagnosis: "",
+    treatment: ""
+  });
+
+  // Edit Medical Record validation functions
+  const validateEditTitle = (value: string): string => {
+    if (!value || value.trim().length === 0) {
+      return "Title is required.";
+    }
+    if (value.trim().length < 3) {
+      return "Title must be at least 3 characters.";
+    }
+    if (value.length > 200) {
+      return "Title must not exceed 200 characters.";
+    }
+    return "";
+  };
+
+  const validateEditNotes = (value: string): string => {
+    if (!value || value.trim().length === 0) {
+      return "Notes are required.";
+    }
+    if (value.trim().length < 10) {
+      return "Notes must be at least 10 characters.";
+    }
+    if (value.length > 5000) {
+      return "Notes must not exceed 5000 characters.";
+    }
+    return "";
+  };
+
+  const validateEditDiagnosis = (value: string): string => {
+    // Diagnosis is optional, but if provided, must meet minimum length
+    if (value && value.trim().length > 0) {
+      if (value.trim().length < 5) {
+        return "Diagnosis must be at least 5 characters.";
+      }
+      if (value.length > 1000) {
+        return "Diagnosis must not exceed 1000 characters.";
+      }
+    }
+    return "";
+  };
+
+  const validateEditTreatment = (value: string): string => {
+    // Treatment is optional, but if provided, must meet minimum length
+    if (value && value.trim().length > 0) {
+      if (value.trim().length < 5) {
+        return "Treatment must be at least 5 characters.";
+      }
+      if (value.length > 1000) {
+        return "Treatment must not exceed 1000 characters.";
+      }
+    }
+    return "";
+  };
+
+  const validateAllEditFields = (): boolean => {
+    const errors = {
+      title: validateEditTitle(editingFullRecordData.title || ''),
+      notes: validateEditNotes(editingFullRecordData.notes || ''),
+      diagnosis: validateEditDiagnosis(editingFullRecordData.diagnosis || ''),
+      treatment: validateEditTreatment(editingFullRecordData.treatment || '')
+    };
+
+    setEditRecordErrors(errors);
+
+    // Check if there are any errors
+    return !Object.values(errors).some(error => error !== "");
+  };
   
   // Vital signs state
   const [vitals, setVitals] = useState({
@@ -743,11 +818,28 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
       diagnosis: record.diagnosis || '',
       treatment: record.treatment || ''
     });
+    // Reset validation errors when opening the dialog
+    setEditRecordErrors({
+      title: "",
+      notes: "",
+      diagnosis: "",
+      treatment: ""
+    });
     setIsEditingFullRecord(true);
   };
 
   // Update full record
   const updateFullRecord = async (recordId: number, data: any) => {
+    // Validate all fields before saving
+    if (!validateAllEditFields()) {
+      toast({
+        title: "Validation Error",
+        description: "Please correct the errors in the form before saving.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const token = localStorage.getItem('auth_token');
       const response = await fetch(`/api/patients/${patientId}/records/${recordId}`, {
@@ -1017,9 +1109,20 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
               <Input
                 id="edit-title"
                 value={editingFullRecordData.title || ''}
-                onChange={(e) => setEditingFullRecordData((prev: any) => ({ ...prev, title: e.target.value }))}
+                className={editRecordErrors.title ? "border-red-500" : ""}
+                onChange={(e) => {
+                  setEditingFullRecordData((prev: any) => ({ ...prev, title: e.target.value }));
+                  setEditRecordErrors((prev) => ({ ...prev, title: "" }));
+                }}
+                onBlur={(e) => {
+                  const error = validateEditTitle(e.target.value);
+                  setEditRecordErrors((prev) => ({ ...prev, title: error }));
+                }}
                 placeholder="Enter record title"
               />
+              {editRecordErrors.title && (
+                <p className="text-sm text-red-500 mt-1">{editRecordErrors.title}</p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -1027,10 +1130,21 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
               <Textarea
                 id="edit-notes"
                 value={editingFullRecordData.notes || ''}
-                onChange={(e) => setEditingFullRecordData((prev: any) => ({ ...prev, notes: e.target.value }))}
+                className={editRecordErrors.notes ? "border-red-500" : ""}
+                onChange={(e) => {
+                  setEditingFullRecordData((prev: any) => ({ ...prev, notes: e.target.value }));
+                  setEditRecordErrors((prev) => ({ ...prev, notes: "" }));
+                }}
+                onBlur={(e) => {
+                  const error = validateEditNotes(e.target.value);
+                  setEditRecordErrors((prev) => ({ ...prev, notes: error }));
+                }}
                 placeholder="Enter clinical notes"
                 rows={6}
               />
+              {editRecordErrors.notes && (
+                <p className="text-sm text-red-500 mt-1">{editRecordErrors.notes}</p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -1038,10 +1152,21 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
               <Textarea
                 id="edit-diagnosis"
                 value={editingFullRecordData.diagnosis || ''}
-                onChange={(e) => setEditingFullRecordData((prev: any) => ({ ...prev, diagnosis: e.target.value }))}
+                className={editRecordErrors.diagnosis ? "border-red-500" : ""}
+                onChange={(e) => {
+                  setEditingFullRecordData((prev: any) => ({ ...prev, diagnosis: e.target.value }));
+                  setEditRecordErrors((prev) => ({ ...prev, diagnosis: "" }));
+                }}
+                onBlur={(e) => {
+                  const error = validateEditDiagnosis(e.target.value);
+                  setEditRecordErrors((prev) => ({ ...prev, diagnosis: error }));
+                }}
                 placeholder="Enter diagnosis"
                 rows={4}
               />
+              {editRecordErrors.diagnosis && (
+                <p className="text-sm text-red-500 mt-1">{editRecordErrors.diagnosis}</p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -1049,10 +1174,21 @@ Analysis completed on: ${format(new Date(), 'PPpp')}`,
               <Textarea
                 id="edit-treatment"
                 value={editingFullRecordData.treatment || ''}
-                onChange={(e) => setEditingFullRecordData((prev: any) => ({ ...prev, treatment: e.target.value }))}
+                className={editRecordErrors.treatment ? "border-red-500" : ""}
+                onChange={(e) => {
+                  setEditingFullRecordData((prev: any) => ({ ...prev, treatment: e.target.value }));
+                  setEditRecordErrors((prev) => ({ ...prev, treatment: "" }));
+                }}
+                onBlur={(e) => {
+                  const error = validateEditTreatment(e.target.value);
+                  setEditRecordErrors((prev) => ({ ...prev, treatment: error }));
+                }}
                 placeholder="Enter treatment plan"
                 rows={4}
               />
+              {editRecordErrors.treatment && (
+                <p className="text-sm text-red-500 mt-1">{editRecordErrors.treatment}</p>
+              )}
             </div>
 
             <div className="flex justify-end gap-2 pt-4 border-t">
