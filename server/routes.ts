@@ -13687,6 +13687,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/billing/payments", requireRole(["admin", "doctor", "nurse", "receptionist"]), async (req: TenantRequest, res) => {
     try {
       const payments = await storage.getPaymentsByOrganization(req.tenant!.id);
+      console.log(`💳 Fetched ${payments.length} payments for organization ${req.tenant!.id}`);
+      console.log("💳 Payment data:", JSON.stringify(payments, null, 2));
       res.json(payments);
     } catch (error) {
       console.error("Failed to fetch payments:", error);

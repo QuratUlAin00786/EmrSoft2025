@@ -556,6 +556,7 @@ export default function BillingPage() {
   const { data: payments = [], isLoading: paymentsLoading } = useQuery({
     queryKey: ["/api/billing/payments"],
     queryFn: async () => {
+      console.log("💳 Fetching payments...");
       const token = localStorage.getItem('auth_token');
       const subdomain = localStorage.getItem('user_subdomain') || 'demo';
       const response = await fetch('/api/billing/payments', {
@@ -565,7 +566,10 @@ export default function BillingPage() {
         }
       });
       if (!response.ok) throw new Error('Failed to fetch payments');
-      return response.json();
+      const data = await response.json();
+      console.log("💳 Payments received from API:", data);
+      console.log("💳 Payments count:", data?.length);
+      return data;
     },
     enabled: isAdmin,
   });
@@ -1432,6 +1436,14 @@ export default function BillingPage() {
                     </p>
                   </CardHeader>
                   <CardContent>
+                    {(() => {
+                      console.log("💳 RENDER - isAdmin:", isAdmin);
+                      console.log("💳 RENDER - paymentsLoading:", paymentsLoading);
+                      console.log("💳 RENDER - payments:", payments);
+                      console.log("💳 RENDER - payments.length:", payments?.length);
+                      console.log("💳 RENDER - Array.isArray(payments):", Array.isArray(payments));
+                      return null;
+                    })()}
                     {paymentsLoading ? (
                       <div className="text-center py-12 text-gray-500 dark:text-gray-400">
                         <p className="text-sm">Loading payments...</p>
