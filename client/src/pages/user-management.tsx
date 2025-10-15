@@ -449,6 +449,28 @@ const opticianSubcategories = [
   "Mobile/Field Optician"
 ] as const;
 
+// Paramedic Subcategories
+const paramedicSubcategories = [
+  "Emergency Medical Technician (EMT)",
+  "Advanced EMT (AEMT)",
+  "Critical Care Paramedic",
+  "Flight Paramedic",
+  "Tactical Paramedic",
+  "Community Paramedic",
+  "Rescue Paramedic",
+  "Industrial/Occupational Paramedic",
+  "Firefighter Paramedic",
+  "Event Paramedic",
+  "Pediatric Paramedic",
+  "Geriatric Paramedic",
+  "Ambulance Paramedic",
+  "Disaster Response Paramedic",
+  "Remote Area Paramedic",
+  "Paramedic Instructor",
+  "Telemedicine Paramedic",
+  "Sports Paramedic"
+] as const;
+
 export default function UserManagement() {
   const [, setLocation] = useLocation();
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -486,6 +508,9 @@ export default function UserManagement() {
   
   // Optician subcategory state
   const [selectedOpticianSubcategory, setSelectedOpticianSubcategory] = useState<string>("");
+  
+  // Paramedic subcategory state
+  const [selectedParamedicSubcategory, setSelectedParamedicSubcategory] = useState<string>("");
   
   // Role management states
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
@@ -1391,6 +1416,14 @@ export default function UserManagement() {
       setSelectedOpticianSubcategory("");
     }
 
+    // Set paramedic subcategory for Paramedic role
+    if (user.role.toLowerCase() === 'paramedic') {
+      setSelectedParamedicSubcategory(user.subSpecialty || "");
+      userData.subSpecialty = user.subSpecialty || "";
+    } else {
+      setSelectedParamedicSubcategory("");
+    }
+
     // SECTION 2: Patient table data (if role === 'patient')
     if (user.role === 'patient') {
       console.log("📋 SECTION 2: Loading patients table data (matched by email)");
@@ -1885,6 +1918,10 @@ export default function UserManagement() {
                         if (value.toLowerCase() !== 'optician') {
                           setSelectedOpticianSubcategory("");
                         }
+                        // Clear paramedic subcategory when switching from paramedic
+                        if (value.toLowerCase() !== 'paramedic') {
+                          setSelectedParamedicSubcategory("");
+                        }
                       }} defaultValue={form.getValues("role")}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a role" />
@@ -2043,6 +2080,31 @@ export default function UserManagement() {
                       </SelectTrigger>
                       <SelectContent>
                         {opticianSubcategories.map((subcategory) => (
+                          <SelectItem key={subcategory} value={subcategory}>
+                            {subcategory}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {/* Paramedic Subcategory Dropdown - Only show when role is Paramedic */}
+                {selectedRole.toLowerCase() === 'paramedic' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="paramedicSubcategory">Paramedic Subcategory</Label>
+                    <Select 
+                      onValueChange={(value) => {
+                        setSelectedParamedicSubcategory(value);
+                        form.setValue("subSpecialty", value);
+                      }} 
+                      value={selectedParamedicSubcategory}
+                    >
+                      <SelectTrigger data-testid="dropdown-paramedic-subcategory">
+                        <SelectValue placeholder="Select subcategory" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {paramedicSubcategories.map((subcategory) => (
                           <SelectItem key={subcategory} value={subcategory}>
                             {subcategory}
                           </SelectItem>
