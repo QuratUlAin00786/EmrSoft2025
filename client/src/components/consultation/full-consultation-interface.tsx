@@ -485,6 +485,119 @@ ${
     saveSummaryMutation.mutate(summaryData);
   };
 
+  // Handle view full consultation - generates and downloads full consultation report
+  const handleViewFullConsultation = () => {
+    const currentPatientId = patientId || patient?.id;
+    const currentPatientName = patientName || (patient ? `${patient.firstName} ${patient.lastName}` : 'Unknown Patient');
+    
+    // Create comprehensive consultation report
+    const reportContent = `
+FULL CONSULTATION REPORT
+========================
+Patient: ${currentPatientName}
+Date: ${format(new Date(), 'MMMM dd, yyyy - HH:mm')}
+Consultation ID: ${currentPatientId}-${Date.now()}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+VITALS
+━━━━━━
+Blood Pressure: ${vitals.bloodPressure || 'Not recorded'}
+Heart Rate: ${vitals.heartRate || 'Not recorded'} bpm
+Temperature: ${vitals.temperature || 'Not recorded'}°C
+Respiratory Rate: ${vitals.respiratoryRate || 'Not recorded'}/min
+Oxygen Saturation: ${vitals.oxygenSaturation || 'Not recorded'}%
+Weight: ${vitals.weight || 'Not recorded'} kg
+Height: ${vitals.height || 'Not recorded'} cm
+BMI: ${vitals.bmi || 'Not recorded'}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+HISTORY
+━━━━━━━
+Chief Complaint:
+${consultationData.chiefComplaint || 'Not recorded'}
+
+History of Presenting Complaint:
+${consultationData.historyPresentingComplaint || 'Not recorded'}
+
+Review of Systems:
+  • Cardiovascular: ${consultationData.reviewOfSystems?.cardiovascular || 'Not recorded'}
+  • Respiratory: ${consultationData.reviewOfSystems?.respiratory || 'Not recorded'}
+  • Gastrointestinal: ${consultationData.reviewOfSystems?.gastrointestinal || 'Not recorded'}
+  • Genitourinary: ${consultationData.reviewOfSystems?.genitourinary || 'Not recorded'}
+  • Neurological: ${consultationData.reviewOfSystems?.neurological || 'Not recorded'}
+  • Musculoskeletal: ${consultationData.reviewOfSystems?.musculoskeletal || 'Not recorded'}
+  • Skin: ${consultationData.reviewOfSystems?.skin || 'Not recorded'}
+  • Psychiatric: ${consultationData.reviewOfSystems?.psychiatric || 'Not recorded'}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+EXAMINATION
+━━━━━━━━━━━
+${clinicalNotes || 'Not recorded'}
+${transcript ? '\n[Live Transcript: ' + transcript + ']' : ''}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ASSESSMENT
+━━━━━━━━━━
+${consultationData.assessment || 'Not recorded'}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PLAN
+━━━━
+Management Plan:
+${consultationData.plan || 'Not recorded'}
+
+${
+  consultationData.prescriptions.length > 0
+    ? `\nPrescriptions (${consultationData.prescriptions.length}):\n${consultationData.prescriptions
+        .map((rx, idx) => `  ${idx + 1}. ${rx.medication} ${rx.dosage}\n     ${rx.frequency} for ${rx.duration}${rx.instructions ? '\n     Instructions: ' + rx.instructions : ''}`)
+        .join('\n\n')}`
+    : ''
+}
+
+${
+  consultationData.referrals.length > 0
+    ? `\nReferrals (${consultationData.referrals.length}):\n${consultationData.referrals
+        .map((ref, idx) => `  ${idx + 1}. ${ref.specialty} - ${ref.urgency.toUpperCase()}\n     Reason: ${ref.reason}`)
+        .join('\n\n')}`
+    : ''
+}
+
+${
+  consultationData.investigations.length > 0
+    ? `\nInvestigations (${consultationData.investigations.length}):\n${consultationData.investigations
+        .map((inv, idx) => `  ${idx + 1}. ${inv.type} - ${inv.urgency.toUpperCase()}\n     Reason: ${inv.reason}`)
+        .join('\n\n')}`
+    : ''
+}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Report Generated: ${format(new Date(), 'MMMM dd, yyyy - HH:mm:ss')}
+Healthcare Management System - Averox Healthcare
+`.trim();
+
+    // Create and download the file
+    const blob = new Blob([reportContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Consultation_${currentPatientName.replace(/\s+/g, '_')}_${format(new Date(), 'yyyy-MM-dd_HHmm')}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "Report Generated",
+      description: "Full consultation report has been downloaded successfully.",
+    });
+  };
+
   // Handle save consultation
   const handleSaveConsultation = () => {
     const currentPatientId = patientId || patient?.id;
@@ -918,6 +1031,30 @@ ${
   const validateAssessment = (): boolean => {
     const error = validateAssessmentField(consultationData.assessment);
     setAssessmentError(error);
+    return error === "";
+  };
+
+  // Plan validation state
+  const [planError, setPlanError] = useState("");
+
+  // Plan validation function
+  const validatePlanField = (value: string): string => {
+    // Required field - check if empty or below minimum
+    if (!value || value.trim().length === 0 || value.trim().length < 5) {
+      return "Management Plan is required and must be at least 5 characters.";
+    }
+    
+    // If field exceeds maximum
+    if (value.length > 255) {
+      return "Management Plan must not exceed 255 characters.";
+    }
+    
+    return "";
+  };
+
+  const validatePlan = (): boolean => {
+    const error = validatePlanField(consultationData.plan);
+    setPlanError(error);
     return error === "";
   };
 
@@ -2632,9 +2769,20 @@ Patient should be advised of potential side effects and expected timeline for re
                     <Textarea
                       placeholder="Treatment plan, lifestyle advice, follow-up instructions, patient education..."
                       value={consultationData.plan}
-                      onChange={(e) => setConsultationData(prev => ({ ...prev, plan: e.target.value }))}
-                      className="h-32"
+                      maxLength={255}
+                      className={`h-32 ${planError ? "border-red-500" : ""}`}
+                      onChange={(e) => {
+                        setConsultationData(prev => ({ ...prev, plan: e.target.value }));
+                        setPlanError("");
+                      }}
+                      onBlur={(e) => {
+                        const error = validatePlanField(e.target.value);
+                        setPlanError(error);
+                      }}
                     />
+                    {planError && (
+                      <p className="text-sm text-red-500 mt-1">{planError}</p>
+                    )}
                   </CardContent>
                 </Card>
 
@@ -2921,22 +3069,33 @@ Patient should be advised of potential side effects and expected timeline for re
                 </CardContent>
               </Card>
               
-              {/* Save Summary Button */}
-              <div className="flex justify-end gap-3 mt-6">
+              {/* Summary Actions */}
+              <div className="flex justify-between gap-3 mt-6">
                 <Button 
                   variant="outline"
-                  onClick={() => onOpenChange(false)}
+                  className="border-blue-600 text-blue-600 hover:bg-blue-50"
+                  onClick={handleViewFullConsultation}
+                  data-testid="button-view-full-consultation"
                 >
-                  Cancel
+                  <FileText className="w-4 h-4 mr-2" />
+                  View Full Consultation
                 </Button>
-                <Button 
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
-                  onClick={handleSaveSummary}
-                  disabled={saveSummaryMutation.isPending}
-                  data-testid="button-save-summary"
-                >
-                  {saveSummaryMutation.isPending ? 'Saving...' : 'Save Summary'}
-                </Button>
+                <div className="flex gap-3">
+                  <Button 
+                    variant="outline"
+                    onClick={() => onOpenChange(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                    onClick={handleSaveSummary}
+                    disabled={saveSummaryMutation.isPending}
+                    data-testid="button-save-summary"
+                  >
+                    {saveSummaryMutation.isPending ? 'Saving...' : 'Save Summary'}
+                  </Button>
+                </div>
               </div>
               </div>
             </TabsContent>
