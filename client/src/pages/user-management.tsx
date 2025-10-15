@@ -58,6 +58,15 @@ const COUNTRY_CODES = [
   { code: "+1", name: "United States", flag: "🇺🇸" }
 ] as const;
 
+// Digit limits for each country code (excluding country code itself)
+const COUNTRY_DIGIT_LIMITS: Record<string, number> = {
+  "+1": 10,    // United States / Canada
+  "+44": 10,   // United Kingdom
+  "+32": 9,    // European Union
+  "+971": 9,   // Middle East / UAE
+  "+966": 9    // Saudi Arabia
+};
+
 const userSchema = z.object({
   email: z.string().email("Invalid email address"),
   firstName: z.string().min(1, "First name is required"),
@@ -1983,17 +1992,28 @@ export default function UserManagement() {
                             className="flex-1"
                             placeholder="123 456 7890"
                             data-testid="input-phone"
+                            maxLength={COUNTRY_DIGIT_LIMITS[selectedPhoneCountryCode] || 15}
                             value={
                               form.watch("phone")?.startsWith(selectedPhoneCountryCode)
                                 ? form.watch("phone")?.slice(selectedPhoneCountryCode.length).trim()
                                 : form.watch("phone") || ""
                             }
                             onChange={(e) => {
-                              const value = e.target.value.replace(/[^\d\s]/g, '').trim();
+                              let value = e.target.value.replace(/[^\d]/g, '');
+                              const maxDigits = COUNTRY_DIGIT_LIMITS[selectedPhoneCountryCode] || 15;
+                              
+                              // Limit to max digits for selected country
+                              if (value.length > maxDigits) {
+                                value = value.slice(0, maxDigits);
+                              }
+                              
                               form.setValue("phone", value ? `${selectedPhoneCountryCode} ${value}` : "");
                             }}
                           />
                         </div>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Must be exactly {COUNTRY_DIGIT_LIMITS[selectedPhoneCountryCode]} digits (excluding country code)
+                        </p>
                         {form.formState.errors.phone && (
                           <p className="text-sm text-red-500">{form.formState.errors.phone.message}</p>
                         )}
@@ -2134,17 +2154,28 @@ export default function UserManagement() {
                                 className="flex-1"
                                 placeholder="123 456 7890"
                                 data-testid="input-emergency-phone"
+                                maxLength={COUNTRY_DIGIT_LIMITS[selectedEmergencyPhoneCountryCode] || 15}
                                 value={
                                   form.watch("emergencyContact.phone")?.startsWith(selectedEmergencyPhoneCountryCode)
                                     ? form.watch("emergencyContact.phone")?.slice(selectedEmergencyPhoneCountryCode.length).trim()
                                     : form.watch("emergencyContact.phone") || ""
                                 }
                                 onChange={(e) => {
-                                  const value = e.target.value.replace(/[^\d\s]/g, '').trim();
+                                  let value = e.target.value.replace(/[^\d]/g, '');
+                                  const maxDigits = COUNTRY_DIGIT_LIMITS[selectedEmergencyPhoneCountryCode] || 15;
+                                  
+                                  // Limit to max digits for selected country
+                                  if (value.length > maxDigits) {
+                                    value = value.slice(0, maxDigits);
+                                  }
+                                  
                                   form.setValue("emergencyContact.phone", value ? `${selectedEmergencyPhoneCountryCode} ${value}` : "");
                                 }}
                               />
                             </div>
+                            <p className="text-xs text-gray-500 mt-1">
+                              Must be exactly {COUNTRY_DIGIT_LIMITS[selectedEmergencyPhoneCountryCode]} digits (excluding country code)
+                            </p>
                             {form.formState.errors.emergencyContact?.phone && (
                               <p className="text-sm text-red-500">{form.formState.errors.emergencyContact.phone.message}</p>
                             )}
