@@ -410,6 +410,30 @@ const labTechnicianSubcategories = [
   "Research Lab Technician"
 ] as const;
 
+// Pharmacist Subcategories
+const pharmacistSubcategories = [
+  "Clinical Pharmacist",
+  "Hospital Pharmacist",
+  "Retail/Community Pharmacist",
+  "Industrial Pharmacist",
+  "Regulatory Affairs Pharmacist",
+  "Compounding Pharmacist",
+  "Oncology Pharmacist",
+  "Geriatric Pharmacist",
+  "Pediatric Pharmacist",
+  "Ambulatory Care Pharmacist",
+  "Nuclear Pharmacist",
+  "Infectious Disease Pharmacist",
+  "Pharmacovigilance Pharmacist",
+  "Academic/Research Pharmacist",
+  "Home Health Pharmacist",
+  "Military Pharmacist",
+  "Cardiology Pharmacist",
+  "Psychiatric Pharmacist",
+  "Emergency Medicine Pharmacist",
+  "Telepharmacist"
+] as const;
+
 export default function UserManagement() {
   const [, setLocation] = useLocation();
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -441,6 +465,9 @@ export default function UserManagement() {
   
   // Lab Technician subcategory state
   const [selectedLabTechSubcategory, setSelectedLabTechSubcategory] = useState<string>("");
+  
+  // Pharmacist subcategory state
+  const [selectedPharmacistSubcategory, setSelectedPharmacistSubcategory] = useState<string>("");
   
   // Role management states
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
@@ -1330,6 +1357,14 @@ export default function UserManagement() {
       setSelectedLabTechSubcategory("");
     }
 
+    // Set pharmacist subcategory for Pharmacist role
+    if (user.role.toLowerCase() === 'pharmacist') {
+      setSelectedPharmacistSubcategory(user.subSpecialty || "");
+      userData.subSpecialty = user.subSpecialty || "";
+    } else {
+      setSelectedPharmacistSubcategory("");
+    }
+
     // SECTION 2: Patient table data (if role === 'patient')
     if (user.role === 'patient') {
       console.log("📋 SECTION 2: Loading patients table data (matched by email)");
@@ -1816,6 +1851,10 @@ export default function UserManagement() {
                         if (!['lab technician', 'lab_technician'].includes(value.toLowerCase())) {
                           setSelectedLabTechSubcategory("");
                         }
+                        // Clear pharmacist subcategory when switching from pharmacist
+                        if (value.toLowerCase() !== 'pharmacist') {
+                          setSelectedPharmacistSubcategory("");
+                        }
                       }} defaultValue={form.getValues("role")}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a role" />
@@ -1924,6 +1963,31 @@ export default function UserManagement() {
                       </SelectTrigger>
                       <SelectContent>
                         {labTechnicianSubcategories.map((subcategory) => (
+                          <SelectItem key={subcategory} value={subcategory}>
+                            {subcategory}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {/* Pharmacist Subcategory Dropdown - Only show when role is Pharmacist */}
+                {selectedRole.toLowerCase() === 'pharmacist' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="pharmacistSubcategory">Pharmacist Subcategory</Label>
+                    <Select 
+                      onValueChange={(value) => {
+                        setSelectedPharmacistSubcategory(value);
+                        form.setValue("subSpecialty", value);
+                      }} 
+                      value={selectedPharmacistSubcategory}
+                    >
+                      <SelectTrigger data-testid="dropdown-pharmacist-subcategory">
+                        <SelectValue placeholder="Select subcategory" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {pharmacistSubcategories.map((subcategory) => (
                           <SelectItem key={subcategory} value={subcategory}>
                             {subcategory}
                           </SelectItem>
