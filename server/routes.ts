@@ -13735,6 +13735,225 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Lab Test Cash Payment - Create invoice and payment record immediately
+  app.post("/api/payments/cash", authMiddleware, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = requireOrgId(req);
+      const { patientId, patientName, items, totalAmount, insuranceProvider, serviceDate, invoiceDate, dueDate } = req.body;
+
+      // Generate unique invoice number
+      const invoiceNumber = `INV-${Date.now()}-${Math.random().toString(36).substring(7).toUpperCase()}`;
+      
+      // Create invoice
+      const invoiceData = {
+        organizationId,
+        invoiceNumber,
+        patientId: patientId.toString(),
+        patientName,
+        dateOfService: new Date(serviceDate),
+        invoiceDate: new Date(invoiceDate),
+        dueDate: new Date(dueDate),
+        status: 'paid',
+        invoiceType: 'payment',
+        subtotal: totalAmount,
+        tax: 0,
+        discount: 0,
+        totalAmount: totalAmount,
+        paidAmount: totalAmount,
+        balanceDue: 0,
+        lineItems: items.map((item: any) => ({
+          serviceCode: item.code,
+          description: item.description,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          amount: item.total,
+          billingType: 'lab_test'
+        })),
+        payments: [{
+          id: `PAY-${Date.now()}`,
+          amount: totalAmount,
+          method: 'cash',
+          date: new Date().toISOString(),
+          reference: invoiceNumber
+        }],
+        notes: insuranceProvider ? `Insurance Provider: ${insuranceProvider}` : undefined,
+        createdBy: req.user?.id
+      };
+
+      const invoice = await storage.createInvoice(invoiceData);
+
+      // Create payment record
+      const paymentData = {
+        organizationId,
+        invoiceId: invoice.id,
+        patientId: patientId.toString(),
+        transactionId: `CASH-${Date.now()}-${Math.random().toString(36).substring(7).toUpperCase()}`,
+        amount: totalAmount,
+        currency: 'GBP',
+        paymentMethod: 'cash',
+        paymentProvider: 'manual',
+        paymentStatus: 'completed',
+        paymentDate: new Date(),
+        reference: invoiceNumber,
+        notes: `Cash payment for lab test invoice ${invoiceNumber}`
+      };
+
+      const payment = await storage.createPayment(paymentData);
+
+      res.json({ 
+        success: true, 
+        invoice: {
+          id: invoice.id,
+          invoiceNumber: invoice.invoiceNumber
+        },
+        payment: {
+          id: payment.id,
+          transactionId: payment.transactionId
+        }
+      });
+    } catch (error) {
+      console.error("Cash payment error:", error);
+      res.status(500).json({ error: "Failed to process cash payment" });
+    }
+  });
+
+  // Lab Test Stripe Payment - Create payment intent
+  app.post("/api/payments/stripe", authMiddleware, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = requireOrgId(req);
+      const { patientId, patientName, amount, items, insuranceProvider, serviceDate, invoiceDate, dueDate } = req.body;
+
+      if (!stripe) {
+        return res.status(503).json({ error: "Stripe is not configured" });
+      }
+
+      // Create payment intent
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(amount * 100), // Convert to cents
+        currency: 'gbp',
+        metadata: {
+          organizationId: organizationId.toString(),
+          patientId: patientId.toString(),
+          patientName,
+          serviceDate,
+          invoiceDate,
+          dueDate,
+          items: JSON.stringify(items),
+          insuranceProvider: insuranceProvider || ''
+        }
+      });
+
+      res.json({ 
+        clientSecret: paymentIntent.client_secret,
+        paymentIntentId: paymentIntent.id
+      });
+    } catch (error) {
+      console.error("Stripe payment intent error:", error);
+      res.status(500).json({ error: "Failed to create payment intent" });
+    }
+  });
+
+  // Lab Test Stripe Payment Confirmation - Create invoice and payment after successful charge
+  app.post("/api/payments/stripe/confirm", authMiddleware, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = requireOrgId(req);
+      const { paymentIntentId } = req.body;
+
+      if (!stripe) {
+        return res.status(503).json({ error: "Stripe is not configured" });
+      }
+
+      // Retrieve payment intent to get metadata
+      const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+      
+      if (paymentIntent.status !== 'succeeded') {
+        return res.status(400).json({ error: "Payment not successful" });
+      }
+
+      const metadata = paymentIntent.metadata;
+      const items = JSON.parse(metadata.items || '[]');
+      const amount = paymentIntent.amount / 100; // Convert from cents
+
+      // Generate unique invoice number
+      const invoiceNumber = `INV-${Date.now()}-${Math.random().toString(36).substring(7).toUpperCase()}`;
+      
+      // Create invoice
+      const invoiceData = {
+        organizationId,
+        invoiceNumber,
+        patientId: metadata.patientId,
+        patientName: metadata.patientName,
+        dateOfService: new Date(metadata.serviceDate),
+        invoiceDate: new Date(metadata.invoiceDate),
+        dueDate: new Date(metadata.dueDate),
+        status: 'paid',
+        invoiceType: 'payment',
+        subtotal: amount,
+        tax: 0,
+        discount: 0,
+        totalAmount: amount,
+        paidAmount: amount,
+        balanceDue: 0,
+        lineItems: items.map((item: any) => ({
+          serviceCode: item.code,
+          description: item.description,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          amount: item.total,
+          billingType: 'lab_test'
+        })),
+        payments: [{
+          id: paymentIntentId,
+          amount: amount,
+          method: 'card',
+          date: new Date().toISOString(),
+          reference: invoiceNumber
+        }],
+        notes: metadata.insuranceProvider ? `Insurance Provider: ${metadata.insuranceProvider}` : undefined,
+        createdBy: req.user?.id
+      };
+
+      const invoice = await storage.createInvoice(invoiceData);
+
+      // Create payment record
+      const paymentData = {
+        organizationId,
+        invoiceId: invoice.id,
+        patientId: metadata.patientId,
+        transactionId: paymentIntentId,
+        amount: amount,
+        currency: 'gbp',
+        paymentMethod: 'debit_card',
+        paymentProvider: 'stripe',
+        paymentStatus: 'completed',
+        paymentDate: new Date(),
+        reference: invoiceNumber,
+        metadata: {
+          stripePaymentIntentId: paymentIntentId,
+          cardLast4: paymentIntent.charges.data[0]?.payment_method_details?.card?.last4
+        },
+        notes: `Stripe payment for lab test invoice ${invoiceNumber}`
+      };
+
+      const payment = await storage.createPayment(paymentData);
+
+      res.json({ 
+        success: true, 
+        invoice: {
+          id: invoice.id,
+          invoiceNumber: invoice.invoiceNumber
+        },
+        payment: {
+          id: payment.id,
+          transactionId: payment.transactionId
+        }
+      });
+    } catch (error) {
+      console.error("Stripe payment confirmation error:", error);
+      res.status(500).json({ error: "Failed to confirm payment" });
+    }
+  });
+
   // Create Stripe Payment Intent for invoice payment
   app.post("/api/billing/create-payment-intent", authMiddleware, async (req: TenantRequest, res) => {
     try {

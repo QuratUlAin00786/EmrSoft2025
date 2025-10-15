@@ -376,6 +376,76 @@ const TEST_FIELD_DEFINITIONS: Record<string, Array<{
 
 // Database-driven lab results - no more mock data
 
+// Stripe Payment Form Component
+function StripePaymentForm({ onSuccess, onCancel }: { onSuccess: (paymentIntentId: string) => void, onCancel: () => void }) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const { toast } = useToast();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!stripe || !elements) {
+      return;
+    }
+
+    setIsProcessing(true);
+
+    try {
+      const { error, paymentIntent } = await stripe.confirmPayment({
+        elements,
+        confirmParams: {
+          return_url: window.location.origin,
+        },
+        redirect: 'if_required'
+      });
+
+      if (error) {
+        toast({
+          title: "Payment Failed",
+          description: error.message || "An error occurred during payment",
+          variant: "destructive",
+        });
+      } else if (paymentIntent && paymentIntent.status === 'succeeded') {
+        onSuccess(paymentIntent.id);
+      }
+    } catch (err: any) {
+      toast({
+        title: "Payment Error",
+        description: err.message || "An unexpected error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <PaymentElement />
+      <div className="flex gap-3 pt-4">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+          disabled={isProcessing}
+          className="flex-1"
+        >
+          Cancel
+        </Button>
+        <Button
+          type="submit"
+          disabled={!stripe || isProcessing}
+          className="flex-1 bg-medical-blue hover:bg-blue-700"
+        >
+          {isProcessing ? "Processing..." : "Pay Now"}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
 export default function LabResultsPage() {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
@@ -741,6 +811,7 @@ export default function LabResultsPage() {
     },
     onSuccess: (data) => {
       setStripeClientSecret(data.clientSecret);
+      setShowSummaryDialog(false);
       // The actual payment will be completed by Stripe Elements
     },
     onError: (error: any) => {
@@ -2603,6 +2674,46 @@ Report generated from Cura EMR System`;
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Stripe Payment Dialog */}
+      {stripeClientSecret && (
+        <Dialog open={!!stripeClientSecret} onOpenChange={(open) => !open && setStripeClientSecret("")}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Complete Payment</DialogTitle>
+            </DialogHeader>
+            <Elements stripe={stripePromise} options={{ clientSecret: stripeClientSecret }}>
+              <StripePaymentForm 
+                onSuccess={(paymentIntentId: string) => {
+                  // Call confirmation endpoint
+                  apiRequest("POST", "/api/payments/stripe/confirm", { paymentIntentId })
+                    .then(res => res.json())
+                    .then(data => {
+                      setPaymentResult({
+                        invoiceId: data.invoice.invoiceNumber,
+                        patientName: pendingOrderData?.patientName,
+                        amount: invoiceData.totalAmount,
+                        paymentMethod: 'debit_card'
+                      });
+                      setStripeClientSecret("");
+                      setShowSummaryDialog(false);
+                      setShowPaymentConfirmation(true);
+                      queryClient.invalidateQueries({ queryKey: ["/api/lab-results"] });
+                    })
+                    .catch(err => {
+                      toast({
+                        title: "Payment Confirmation Failed",
+                        description: err.message || "Failed to confirm payment",
+                        variant: "destructive",
+                      });
+                    });
+                }}
+                onCancel={() => setStripeClientSecret("")}
+              />
+            </Elements>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* Payment Confirmation Modal */}
       <Dialog open={showPaymentConfirmation} onOpenChange={setShowPaymentConfirmation}>
