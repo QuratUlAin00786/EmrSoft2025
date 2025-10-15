@@ -556,15 +556,15 @@ function PatientDetailsModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-screen h-screen max-w-none max-h-none overflow-y-auto p-0">
-        <DialogHeader className="px-6 pt-6 pb-2">
+      <DialogContent className="w-screen h-screen max-w-none max-h-none p-0 flex flex-col">
+        <DialogHeader className="px-6 pt-4 pb-2 flex-shrink-0">
           <DialogTitle className="text-xl font-bold">
             Patient Details - {patient.firstName} {patient.lastName}
           </DialogTitle>
         </DialogHeader>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex flex-col h-full">
-          <TabsList className="grid w-full grid-cols-10 px-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
+          <TabsList className="grid w-full grid-cols-10 flex-shrink-0">
             <TabsTrigger value="basic">Basic Info</TabsTrigger>
             <TabsTrigger value="records">Medical Records</TabsTrigger>
             <TabsTrigger value="history">History</TabsTrigger>
@@ -578,7 +578,7 @@ function PatientDetailsModal({
           </TabsList>
 
           {/* Basic Information Tab */}
-          <TabsContent value="basic" className="flex-1 overflow-y-auto px-6 py-4 mt-0">
+          <TabsContent value="basic" className="flex-1 overflow-y-auto p-0 m-0">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -761,7 +761,7 @@ function PatientDetailsModal({
           </TabsContent>
 
           {/* Medical Records Tab */}
-          <TabsContent value="records" className="flex-1 overflow-y-auto px-6 py-4 mt-0">
+          <TabsContent value="records" className="flex-1 overflow-y-auto p-0 m-0">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -827,7 +827,7 @@ function PatientDetailsModal({
           </TabsContent>
 
           {/* Complete Patient History Tab */}
-          <TabsContent value="history" className="flex-1 overflow-y-auto px-6 py-4 mt-0">
+          <TabsContent value="history" className="flex-1 overflow-y-auto p-0 m-0">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -1042,7 +1042,7 @@ function PatientDetailsModal({
           </TabsContent>
 
           {/* Prescriptions Tab */}
-          <TabsContent value="prescriptions" className="flex-1 overflow-y-auto px-6 py-4 mt-0">
+          <TabsContent value="prescriptions" className="flex-1 overflow-y-auto p-0 m-0">
             {prescriptionsLoading ? (
               <div className="text-center py-4">Loading prescriptions...</div>
             ) : prescriptions.length === 0 ? (
@@ -1254,7 +1254,7 @@ function PatientDetailsModal({
           </TabsContent>
 
           {/* Lab Results Tab */}
-          <TabsContent value="lab" className="flex-1 overflow-y-auto px-6 py-4 mt-0">
+          <TabsContent value="lab" className="flex-1 overflow-y-auto p-0 m-0">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -1347,7 +1347,7 @@ function PatientDetailsModal({
           </TabsContent>
 
           {/* Medical Imaging Tab */}
-          <TabsContent value="imaging" className="flex-1 overflow-y-auto px-6 py-4 mt-0">
+          <TabsContent value="imaging" className="flex-1 overflow-y-auto p-0 m-0">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -1446,7 +1446,7 @@ function PatientDetailsModal({
           </TabsContent>
 
           {/* Health Insurance Information Tab */}
-          <TabsContent value="insurance" className="flex-1 overflow-y-auto px-6 py-4 mt-0">
+          <TabsContent value="insurance" className="flex-1 overflow-y-auto p-0 m-0">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -1570,7 +1570,7 @@ function PatientDetailsModal({
           </TabsContent>
 
           {/* Address Information Tab */}
-          <TabsContent value="address" className="flex-1 overflow-y-auto px-6 py-4 mt-0">
+          <TabsContent value="address" className="flex-1 overflow-y-auto p-0 m-0">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -1680,7 +1680,7 @@ function PatientDetailsModal({
           </TabsContent>
 
           {/* Emergency Contact Tab */}
-          <TabsContent value="emergency" className="flex-1 overflow-y-auto px-6 py-4 mt-0">
+          <TabsContent value="emergency" className="flex-1 overflow-y-auto p-0 m-0">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -1802,7 +1802,7 @@ function PatientDetailsModal({
           </TabsContent>
 
           {/* Appointments Tab */}
-          <TabsContent value="appointments" className="flex-1 overflow-y-auto px-6 py-4 mt-0">
+          <TabsContent value="appointments" className="flex-1 overflow-y-auto p-0 m-0">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
