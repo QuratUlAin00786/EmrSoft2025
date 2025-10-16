@@ -97,6 +97,45 @@ const ROLE_OPTIONS = [
   { value: "receptionist", label: "Receptionist" }
 ];
 
+const LAB_TEST_OPTIONS = [
+  "Complete Blood Count (CBC)",
+  "Basic Metabolic Panel (BMP) / Chem-7",
+  "Comprehensive Metabolic Panel (CMP)",
+  "Lipid Profile (Cholesterol, LDL, HDL, Triglycerides)",
+  "Thyroid Function Tests (TSH, Free T4, Free T3)",
+  "Liver Function Tests (AST, ALT, ALP, Bilirubin)",
+  "Kidney Function Tests (Creatinine, BUN, eGFR)",
+  "Electrolytes (Sodium, Potassium, Chloride, Bicarbonate)",
+  "Blood Glucose (Fasting / Random / Postprandial)",
+  "Hemoglobin A1C (HbA1c)",
+  "C-Reactive Protein (CRP)",
+  "Erythrocyte Sedimentation Rate (ESR)",
+  "Coagulation Tests (PT, PTT, INR)",
+  "Urinalysis (UA)",
+  "Albumin / Total Protein",
+  "Iron Studies (Serum Iron, TIBC, Ferritin)",
+  "Vitamin D",
+  "Vitamin B12 / Folate",
+  "Hormone Panels (e.g., LH, FSH, Testosterone, Estrogen)",
+  "Prostate-Specific Antigen (PSA)",
+  "Thyroid Antibodies (e.g. Anti-TPO, Anti-TG)",
+  "Creatine Kinase (CK)",
+  "Cardiac Biomarkers (Troponin, CK-MB, BNP)",
+  "Electrolyte Panel",
+  "Uric Acid",
+  "Lipase / Amylase (Pancreatic enzymes)",
+  "Hepatitis B / C Serologies",
+  "HIV Antibody / Viral Load",
+  "HCG (Pregnancy / Quantitative)",
+  "Autoimmune Panels (ANA, ENA, Rheumatoid Factor)",
+  "Tumor Markers (e.g. CA-125, CEA, AFP)",
+  "Blood Culture & Sensitivity",
+  "Stool Culture / Ova & Parasites",
+  "Sputum Culture",
+  "Viral Panels / PCR Tests (e.g. COVID-19, Influenza)",
+  "Hormonal tests (Cortisol, ACTH)"
+];
+
 function PricingManagementDashboard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -108,6 +147,9 @@ function PricingManagementDashboard() {
   const [showServiceSuggestions, setShowServiceSuggestions] = useState(false);
   const [showRoleSuggestions, setShowRoleSuggestions] = useState(false);
   const [showDoctorSuggestions, setShowDoctorSuggestions] = useState(false);
+  const [showLabTestSuggestions, setShowLabTestSuggestions] = useState(false);
+  const [showLabRoleSuggestions, setShowLabRoleSuggestions] = useState(false);
+  const [showLabDoctorSuggestions, setShowLabDoctorSuggestions] = useState(false);
 
   const { data: users = [] } = useQuery({
     queryKey: ["/api/users"],
@@ -131,13 +173,23 @@ function PricingManagementDashboard() {
       if (!target.closest('#doctorName') && !target.closest('.doctor-suggestions')) {
         setShowDoctorSuggestions(false);
       }
+      if (!target.closest('#testName') && !target.closest('.lab-test-suggestions')) {
+        setShowLabTestSuggestions(false);
+      }
+      if (!target.closest('#labDoctorRole') && !target.closest('.lab-role-suggestions')) {
+        setShowLabRoleSuggestions(false);
+      }
+      if (!target.closest('#labDoctorName') && !target.closest('.lab-doctor-suggestions')) {
+        setShowLabDoctorSuggestions(false);
+      }
     };
     
-    if (showServiceSuggestions || showRoleSuggestions || showDoctorSuggestions) {
+    if (showServiceSuggestions || showRoleSuggestions || showDoctorSuggestions || 
+        showLabTestSuggestions || showLabRoleSuggestions || showLabDoctorSuggestions) {
       document.addEventListener('mousedown', handleClickOutside);
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
-  }, [showServiceSuggestions, showRoleSuggestions, showDoctorSuggestions]);
+  }, [showServiceSuggestions, showRoleSuggestions, showDoctorSuggestions, showLabTestSuggestions, showLabRoleSuggestions, showLabDoctorSuggestions]);
 
   const getApiPath = (tab: string) => {
     const pathMap: Record<string, string> = {
@@ -577,15 +629,140 @@ function PricingManagementDashboard() {
 
             {pricingTab === "lab-tests" && (
               <>
-                <div className="grid gap-2">
+                <div className="grid gap-2 relative">
                   <Label htmlFor="testName">Test Name *</Label>
                   <Input
                     id="testName"
                     value={formData.testName || ""}
-                    onChange={(e) => setFormData({ ...formData, testName: e.target.value })}
+                    onChange={(e) => {
+                      setFormData({ ...formData, testName: e.target.value });
+                      setShowLabTestSuggestions(true);
+                    }}
+                    onFocus={() => setShowLabTestSuggestions(true)}
                     placeholder="e.g., Complete Blood Count"
+                    autoComplete="off"
                   />
+                  {showLabTestSuggestions && (
+                    <div className="lab-test-suggestions absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg max-h-60 overflow-auto top-full">
+                      {LAB_TEST_OPTIONS
+                        .filter(option => 
+                          !formData.testName || 
+                          option.toLowerCase().includes(formData.testName.toLowerCase())
+                        )
+                        .map((option, index) => (
+                          <div
+                            key={index}
+                            className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-b-0"
+                            onClick={() => {
+                              setFormData({ ...formData, testName: option });
+                              setShowLabTestSuggestions(false);
+                            }}
+                          >
+                            <div className="font-medium text-sm">{option}</div>
+                          </div>
+                        ))}
+                      {LAB_TEST_OPTIONS.filter(option => 
+                        !formData.testName || 
+                        option.toLowerCase().includes(formData.testName.toLowerCase())
+                      ).length === 0 && formData.testName && (
+                        <div className="px-4 py-3 text-sm text-gray-500">
+                          No matches found. You can enter a custom test name.
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
+
+                <div className="grid gap-2 relative">
+                  <Label htmlFor="labDoctorRole">Role</Label>
+                  <Input
+                    id="labDoctorRole"
+                    value={formData.doctorRole || ""}
+                    onChange={(e) => {
+                      setFormData({ ...formData, doctorRole: e.target.value, doctorName: "", doctorId: null });
+                      setShowLabRoleSuggestions(true);
+                    }}
+                    onFocus={() => setShowLabRoleSuggestions(true)}
+                    placeholder="Select role (optional)"
+                    autoComplete="off"
+                  />
+                  {showLabRoleSuggestions && (
+                    <div className="lab-role-suggestions absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg max-h-60 overflow-auto top-full">
+                      {ROLE_OPTIONS
+                        .filter(option => 
+                          !formData.doctorRole || 
+                          option.label.toLowerCase().includes(formData.doctorRole.toLowerCase()) ||
+                          option.value.toLowerCase().includes(formData.doctorRole.toLowerCase())
+                        )
+                        .map((option, index) => (
+                          <div
+                            key={index}
+                            className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+                            onClick={() => {
+                              setFormData({ ...formData, doctorRole: option.value, doctorName: "", doctorId: null });
+                              setShowLabRoleSuggestions(false);
+                            }}
+                          >
+                            <div className="font-medium text-sm">{option.label}</div>
+                          </div>
+                        ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="grid gap-2 relative">
+                  <Label htmlFor="labDoctorName">Select Name</Label>
+                  <Input
+                    id="labDoctorName"
+                    value={formData.doctorName || ""}
+                    onChange={(e) => {
+                      setFormData({ ...formData, doctorName: e.target.value });
+                      setShowLabDoctorSuggestions(true);
+                    }}
+                    onFocus={() => setShowLabDoctorSuggestions(true)}
+                    placeholder="Select or enter name (optional)"
+                    autoComplete="off"
+                  />
+                  {showLabDoctorSuggestions && (
+                    <div className="lab-doctor-suggestions absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg max-h-60 overflow-auto top-full">
+                      {filteredUsers
+                        .filter((user: any) => {
+                          const fullName = `${user.firstName} ${user.lastName}`;
+                          return !formData.doctorName || 
+                            fullName.toLowerCase().includes(formData.doctorName.toLowerCase());
+                        })
+                        .map((user: any, index: number) => (
+                          <div
+                            key={index}
+                            className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+                            onClick={() => {
+                              const fullName = `${user.firstName} ${user.lastName}`;
+                              setFormData({ 
+                                ...formData, 
+                                doctorName: fullName,
+                                doctorId: user.id,
+                                doctorRole: formData.doctorRole || user.role
+                              });
+                              setShowLabDoctorSuggestions(false);
+                            }}
+                          >
+                            <div className="font-medium text-sm">{user.firstName} {user.lastName}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">{user.role}</div>
+                          </div>
+                        ))}
+                      {filteredUsers.filter((user: any) => {
+                        const fullName = `${user.firstName} ${user.lastName}`;
+                        return !formData.doctorName || 
+                          fullName.toLowerCase().includes(formData.doctorName.toLowerCase());
+                      }).length === 0 && (
+                        <div className="px-4 py-3 text-sm text-gray-500">
+                          No users found. {formData.doctorRole && `Try changing the role filter.`}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
                 <div className="grid gap-2">
                   <Label htmlFor="testCode">Test Code</Label>
                   <Input

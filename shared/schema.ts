@@ -2863,6 +2863,9 @@ export const doctorsFee = pgTable("doctors_fee", {
 export const labTestPricing = pgTable("lab_test_pricing", {
   id: serial("id").primaryKey(),
   organizationId: integer("organization_id").notNull().references(() => organizations.id),
+  doctorId: integer("doctor_id").references(() => users.id),
+  doctorName: text("doctor_name"),
+  doctorRole: varchar("doctor_role", { length: 50 }),
   testName: text("test_name").notNull(),
   testCode: varchar("test_code", { length: 50 }),
   category: varchar("category", { length: 100 }),
