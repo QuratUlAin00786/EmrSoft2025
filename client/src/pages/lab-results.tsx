@@ -2589,7 +2589,7 @@ Report generated from Cura EMR System`;
                 onClick={() => {
                   createLabOrderMutation.mutate({
                     patientId: parseInt(orderFormData.patientId),
-                    testType: orderFormData.testType.join(", "),
+                    testType: orderFormData.testType.join(" | "),
                     priority: orderFormData.priority,
                     notes: orderFormData.notes,
                     selectedUserId: orderFormData.selectedUserId
@@ -2925,7 +2925,7 @@ Report generated from Cura EMR System`;
                 </div>
                 <div className="col-span-2">
                   <Label className="text-sm text-gray-600 dark:text-gray-400">Test Types</Label>
-                  <p className="font-medium">{pendingOrderData?.testTypes?.join(', ')}</p>
+                  <p className="font-medium">{pendingOrderData?.testTypes?.join(' | ')}</p>
                 </div>
                 {pendingOrderData?.notes && (
                   <div className="col-span-2">
@@ -3236,7 +3236,7 @@ Report generated from Cura EMR System`;
                                       setSelectedTestTypes(newSelection);
                                       setEditFormData((prev: any) => ({
                                         ...prev,
-                                        testType: newSelection.join(", "),
+                                        testType: newSelection.join(" | "),
                                       }));
                                     }}
                                   >
@@ -4567,9 +4567,9 @@ Report generated from Cura EMR System`;
 
               {/* Test Result Fields Based on Test Type(s) - Multiple tests support */}
               {(() => {
-                // Parse test types - may be comma-separated for multiple tests
+                // Parse test types - may be pipe-separated for multiple tests
                 const allTestTypes = selectedLabOrder.testType
-                  .split(',')
+                  .split(' | ')
                   .map((t: string) => t.trim());
                 
                 const testTypes = allTestTypes.filter((t: string) => TEST_FIELD_DEFINITIONS[t]);
