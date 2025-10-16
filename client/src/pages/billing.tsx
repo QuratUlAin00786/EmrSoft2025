@@ -243,8 +243,8 @@ function PricingManagementDashboard() {
     try {
       const apiPath = getApiPath(pricingTab);
       
-      // Handle multiple services for doctors fees when not editing
-      if (pricingTab === "doctors" && !editingItem) {
+      // Handle multiple services for doctors fees and lab tests when not editing
+      if ((pricingTab === "doctors" || pricingTab === "lab-tests") && !editingItem) {
         const validServices = multipleServices.filter(
           service => service.serviceName && service.basePrice
         );
@@ -252,18 +252,28 @@ function PricingManagementDashboard() {
         if (validServices.length === 0) {
           toast({
             title: "Error",
-            description: "Please add at least one service with name and price",
+            description: pricingTab === "doctors" 
+              ? "Please add at least one service with name and price"
+              : "Please add at least one test with name and price",
             variant: "destructive"
           });
           setIsSaving(false);
           return;
         }
         
-        // Create all services
+        // Create all services/tests
         for (const service of validServices) {
-          const payload = {
+          const payload = pricingTab === "doctors" ? {
             serviceName: service.serviceName,
             serviceCode: service.serviceCode,
+            category: service.category,
+            basePrice: parseFloat(service.basePrice) || 0,
+            isActive: true,
+            currency: "GBP",
+            version: 1
+          } : {
+            testName: service.serviceName,
+            testCode: service.serviceCode,
             category: service.category,
             basePrice: parseFloat(service.basePrice) || 0,
             isActive: true,
@@ -276,7 +286,9 @@ function PricingManagementDashboard() {
         queryClient.invalidateQueries({ queryKey: [`/api/pricing/${apiPath}`] });
         toast({
           title: "Success",
-          description: `${validServices.length} service(s) created successfully`
+          description: pricingTab === "doctors" 
+            ? `${validServices.length} service(s) created successfully`
+            : `${validServices.length} test(s) created successfully`
         });
         setShowAddDialog(false);
         setMultipleServices([{ serviceName: "", serviceCode: "", category: "", basePrice: "" }]);
@@ -333,6 +345,46 @@ function PricingManagementDashboard() {
         { serviceName: "Procedure Consultation", serviceCode: "PC001", category: "Pre- or post-surgery consultation", basePrice: "" }
       ];
       setMultipleServices(predefinedServices);
+    } else if (pricingTab === "lab-tests") {
+      const predefinedLabTests = [
+        { serviceName: "Complete Blood Count (CBC)", serviceCode: "CBC001", category: "Hematology", basePrice: "" },
+        { serviceName: "Basic Metabolic Panel (BMP) / Chem-7", serviceCode: "BMP001", category: "Chemistry", basePrice: "" },
+        { serviceName: "Comprehensive Metabolic Panel (CMP)", serviceCode: "CMP001", category: "Chemistry", basePrice: "" },
+        { serviceName: "Lipid Profile (Cholesterol, LDL, HDL, Triglycerides)", serviceCode: "LP001", category: "Chemistry", basePrice: "" },
+        { serviceName: "Thyroid Function Tests (TSH, Free T4, Free T3)", serviceCode: "TFT001", category: "Endocrinology", basePrice: "" },
+        { serviceName: "Liver Function Tests (AST, ALT, ALP, Bilirubin)", serviceCode: "LFT001", category: "Chemistry", basePrice: "" },
+        { serviceName: "Kidney Function Tests (Creatinine, BUN, eGFR)", serviceCode: "KFT001", category: "Chemistry", basePrice: "" },
+        { serviceName: "Electrolytes (Sodium, Potassium, Chloride, Bicarbonate)", serviceCode: "E001", category: "Chemistry", basePrice: "" },
+        { serviceName: "Blood Glucose (Fasting / Random / Postprandial)", serviceCode: "BG001", category: "Chemistry", basePrice: "" },
+        { serviceName: "Hemoglobin A1C (HbA1c)", serviceCode: "HA001", category: "Chemistry", basePrice: "" },
+        { serviceName: "C-Reactive Protein (CRP)", serviceCode: "CRP001", category: "Immunology", basePrice: "" },
+        { serviceName: "Erythrocyte Sedimentation Rate (ESR)", serviceCode: "ESR001", category: "Hematology", basePrice: "" },
+        { serviceName: "Coagulation Tests (PT, PTT, INR)", serviceCode: "CT001", category: "Hematology", basePrice: "" },
+        { serviceName: "Urinalysis (UA)", serviceCode: "UA001", category: "Urinalysis", basePrice: "" },
+        { serviceName: "Albumin / Total Protein", serviceCode: "ATP001", category: "Chemistry", basePrice: "" },
+        { serviceName: "Iron Studies (Serum Iron, TIBC, Ferritin)", serviceCode: "IS001", category: "Hematology", basePrice: "" },
+        { serviceName: "Vitamin D", serviceCode: "VD001", category: "Chemistry", basePrice: "" },
+        { serviceName: "Vitamin B12 / Folate", serviceCode: "VBF001", category: "Chemistry", basePrice: "" },
+        { serviceName: "Hormone Panels (e.g., LH, FSH, Testosterone, Estrogen)", serviceCode: "HP001", category: "Endocrinology", basePrice: "" },
+        { serviceName: "Prostate-Specific Antigen (PSA)", serviceCode: "PSA001", category: "Oncology", basePrice: "" },
+        { serviceName: "Thyroid Antibodies (e.g. Anti-TPO, Anti-TG)", serviceCode: "TA001", category: "Immunology", basePrice: "" },
+        { serviceName: "Creatine Kinase (CK)", serviceCode: "CK001", category: "Chemistry", basePrice: "" },
+        { serviceName: "Cardiac Biomarkers (Troponin, CK-MB, BNP)", serviceCode: "CB001", category: "Cardiology", basePrice: "" },
+        { serviceName: "Electrolyte Panel", serviceCode: "EP001", category: "Chemistry", basePrice: "" },
+        { serviceName: "Uric Acid", serviceCode: "UA002", category: "Chemistry", basePrice: "" },
+        { serviceName: "Lipase / Amylase (Pancreatic enzymes)", serviceCode: "LA001", category: "Chemistry", basePrice: "" },
+        { serviceName: "Hepatitis B / C Serologies", serviceCode: "HBC001", category: "Serology", basePrice: "" },
+        { serviceName: "HIV Antibody / Viral Load", serviceCode: "HIV001", category: "Serology", basePrice: "" },
+        { serviceName: "HCG (Pregnancy / Quantitative)", serviceCode: "HCG001", category: "Endocrinology", basePrice: "" },
+        { serviceName: "Autoimmune Panels (ANA, ENA, Rheumatoid Factor)", serviceCode: "AP001", category: "Immunology", basePrice: "" },
+        { serviceName: "Tumor Markers (e.g. CA-125, CEA, AFP)", serviceCode: "TM001", category: "Oncology", basePrice: "" },
+        { serviceName: "Blood Culture & Sensitivity", serviceCode: "BCS001", category: "Microbiology", basePrice: "" },
+        { serviceName: "Stool Culture / Ova & Parasites", serviceCode: "SCOP001", category: "Microbiology", basePrice: "" },
+        { serviceName: "Sputum Culture", serviceCode: "SC001", category: "Microbiology", basePrice: "" },
+        { serviceName: "Viral Panels / PCR Tests (e.g. COVID-19, Influenza)", serviceCode: "VP001", category: "Microbiology", basePrice: "" },
+        { serviceName: "Hormonal tests (Cortisol, ACTH)", serviceCode: "HT001", category: "Endocrinology", basePrice: "" }
+      ];
+      setMultipleServices(predefinedLabTests);
     } else {
       setMultipleServices([{ serviceName: "", serviceCode: "", category: "", basePrice: "" }]);
     }
@@ -1036,7 +1088,121 @@ function PricingManagementDashboard() {
               </>
             )}
 
-            {pricingTab === "lab-tests" && (
+            {pricingTab === "lab-tests" && !editingItem && (
+              <>
+                <div className="space-y-2">
+                  <Label>Lab Tests</Label>
+                  <div className="border rounded-md overflow-hidden max-h-96 overflow-y-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-50 dark:bg-gray-800 sticky top-0">
+                        <tr>
+                          <th className="text-left p-2 text-sm font-medium">Test Type *</th>
+                          <th className="text-left p-2 text-sm font-medium">Code</th>
+                          <th className="text-left p-2 text-sm font-medium">Category</th>
+                          <th className="text-left p-2 text-sm font-medium">Price (£) *</th>
+                          <th className="w-10"></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {multipleServices.map((service, index) => (
+                          <tr key={index} className="border-t">
+                            <td className="p-2">
+                              <Input
+                                value={service.serviceName}
+                                onChange={(e) => {
+                                  const updated = [...multipleServices];
+                                  updated[index].serviceName = e.target.value;
+                                  
+                                  const words = e.target.value.trim().split(/\s+/);
+                                  const initials = words.map(word => word.charAt(0).toUpperCase()).join('');
+                                  if (initials) {
+                                    updated[index].serviceCode = `${initials}001`;
+                                  }
+                                  
+                                  setMultipleServices(updated);
+                                }}
+                                placeholder="e.g., Complete Blood Count"
+                                data-testid={`input-test-name-${index}`}
+                              />
+                            </td>
+                            <td className="p-2">
+                              <Input
+                                value={service.serviceCode}
+                                onChange={(e) => {
+                                  const updated = [...multipleServices];
+                                  updated[index].serviceCode = e.target.value;
+                                  setMultipleServices(updated);
+                                }}
+                                placeholder="e.g., CBC001"
+                                data-testid={`input-test-code-${index}`}
+                              />
+                            </td>
+                            <td className="p-2">
+                              <Input
+                                value={service.category}
+                                onChange={(e) => {
+                                  const updated = [...multipleServices];
+                                  updated[index].category = e.target.value;
+                                  setMultipleServices(updated);
+                                }}
+                                placeholder="e.g., Hematology"
+                                data-testid={`input-test-category-${index}`}
+                              />
+                            </td>
+                            <td className="p-2">
+                              <Input
+                                type="number"
+                                step="0.01"
+                                value={service.basePrice}
+                                onChange={(e) => {
+                                  const updated = [...multipleServices];
+                                  updated[index].basePrice = e.target.value;
+                                  setMultipleServices(updated);
+                                }}
+                                placeholder="0.00"
+                                data-testid={`input-test-price-${index}`}
+                              />
+                            </td>
+                            <td className="p-2">
+                              {multipleServices.length > 1 && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    const updated = multipleServices.filter((_, i) => i !== index);
+                                    setMultipleServices(updated);
+                                  }}
+                                  data-testid={`button-remove-test-${index}`}
+                                >
+                                  <Trash2 className="h-4 w-4 text-red-500" />
+                                </Button>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setMultipleServices([
+                        ...multipleServices,
+                        { serviceName: "", serviceCode: "", category: "", basePrice: "" }
+                      ]);
+                    }}
+                    className="w-full"
+                    data-testid="button-add-more-test"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add More Test
+                  </Button>
+                </div>
+              </>
+            )}
+
+            {pricingTab === "lab-tests" && editingItem && (
               <>
                 <div className="grid gap-2 relative">
                   <Label htmlFor="testName">Test Name *</Label>
@@ -1076,105 +1242,6 @@ function PricingManagementDashboard() {
                       ).length === 0 && formData.testName && (
                         <div className="px-4 py-3 text-sm text-gray-500">
                           No matches found. You can enter a custom test name.
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                <div className="grid gap-2 relative">
-                  <Label htmlFor="labDoctorRole">Role</Label>
-                  <Input
-                    id="labDoctorRole"
-                    value={formData.doctorRole || ""}
-                    onChange={(e) => {
-                      setFormData({ ...formData, doctorRole: e.target.value, doctorName: "", doctorId: null });
-                      setShowLabRoleSuggestions(true);
-                    }}
-                    onFocus={() => setShowLabRoleSuggestions(true)}
-                    placeholder="Select role (optional)"
-                    autoComplete="off"
-                  />
-                  {showLabRoleSuggestions && (
-                    <div className="lab-role-suggestions absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg max-h-60 overflow-auto top-full">
-                      {roles
-                        .filter((role: any) => 
-                          !formData.doctorRole || 
-                          role.displayName.toLowerCase().includes(formData.doctorRole.toLowerCase()) ||
-                          role.name.toLowerCase().includes(formData.doctorRole.toLowerCase())
-                        )
-                        .map((role: any, index: number) => (
-                          <div
-                            key={index}
-                            className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
-                            onClick={() => {
-                              setFormData({ ...formData, doctorRole: role.name, doctorName: "", doctorId: null });
-                              setShowLabRoleSuggestions(false);
-                            }}
-                          >
-                            <div className="font-medium text-sm">{role.displayName}</div>
-                          </div>
-                        ))}
-                      {roles.filter((role: any) => 
-                        !formData.doctorRole || 
-                        role.displayName.toLowerCase().includes(formData.doctorRole.toLowerCase()) ||
-                        role.name.toLowerCase().includes(formData.doctorRole.toLowerCase())
-                      ).length === 0 && formData.doctorRole && (
-                        <div className="px-4 py-3 text-sm text-gray-500">
-                          No roles found. You can enter a custom role name.
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                <div className="grid gap-2 relative">
-                  <Label htmlFor="labDoctorName">Select Name</Label>
-                  <Input
-                    id="labDoctorName"
-                    value={formData.doctorName || ""}
-                    onChange={(e) => {
-                      setFormData({ ...formData, doctorName: e.target.value });
-                      setShowLabDoctorSuggestions(true);
-                    }}
-                    onFocus={() => setShowLabDoctorSuggestions(true)}
-                    placeholder="Select or enter name (optional)"
-                    autoComplete="off"
-                  />
-                  {showLabDoctorSuggestions && (
-                    <div className="lab-doctor-suggestions absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg max-h-60 overflow-auto top-full">
-                      {filteredUsers
-                        .filter((user: any) => {
-                          const fullName = `${user.firstName} ${user.lastName}`;
-                          return !formData.doctorName || 
-                            fullName.toLowerCase().includes(formData.doctorName.toLowerCase());
-                        })
-                        .map((user: any, index: number) => (
-                          <div
-                            key={index}
-                            className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
-                            onClick={() => {
-                              const fullName = `${user.firstName} ${user.lastName}`;
-                              setFormData({ 
-                                ...formData, 
-                                doctorName: fullName,
-                                doctorId: user.id,
-                                doctorRole: formData.doctorRole || user.role
-                              });
-                              setShowLabDoctorSuggestions(false);
-                            }}
-                          >
-                            <div className="font-medium text-sm">{user.firstName} {user.lastName}</div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400">{user.role}</div>
-                          </div>
-                        ))}
-                      {filteredUsers.filter((user: any) => {
-                        const fullName = `${user.firstName} ${user.lastName}`;
-                        return !formData.doctorName || 
-                          fullName.toLowerCase().includes(formData.doctorName.toLowerCase());
-                      }).length === 0 && (
-                        <div className="px-4 py-3 text-sm text-gray-500">
-                          No users found. {formData.doctorRole && `Try changing the role filter.`}
                         </div>
                       )}
                     </div>
