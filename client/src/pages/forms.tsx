@@ -3803,6 +3803,7 @@ Coverage Details: [Insurance Coverage]`;
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+          "X-Tenant-Subdomain": localStorage.getItem("user_subdomain") || "",
         },
         body: JSON.stringify(templateData),
       });

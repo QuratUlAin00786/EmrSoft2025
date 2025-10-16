@@ -9577,7 +9577,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }
 
   // Document API routes
-  app.get("/api/documents", authMiddleware, async (req: TenantRequest, res) => {
+  app.get("/api/documents", authMiddleware, multiTenantEnforcer(), async (req: TenantRequest, res) => {
     try {
       if (!req.user) {
         return res.status(401).json({ error: "User not authenticated" });
@@ -9639,7 +9639,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/documents", authMiddleware, async (req: TenantRequest, res) => {
+  app.post("/api/documents", authMiddleware, multiTenantEnforcer(), async (req: TenantRequest, res) => {
     try {
       if (!req.user) {
         return res.status(401).json({ error: "User not authenticated" });
