@@ -1664,7 +1664,11 @@ export default function ImagingPage() {
                       Today's Studies
                     </p>
                     <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                      8
+                      {medicalImages.filter((image: any) => {
+                        const createdDate = new Date(image.createdAt);
+                        const today = new Date();
+                        return createdDate.toDateString() === today.toDateString();
+                      }).length}
                     </p>
                   </div>
                 </div>
