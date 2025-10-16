@@ -613,9 +613,10 @@ export default function BillingPage() {
     
     const matchesStatus = statusFilter === "all" || invoice.status === statusFilter;
     
-    // Filter by Service Date range
+    // Filter by Service Date range - compare date only (ignore time)
     const invoiceServiceDate = new Date(invoice.dateOfService);
-    const matchesServiceDateFrom = !serviceDateFrom || invoiceServiceDate >= new Date(serviceDateFrom);
+    const invoiceDateStr = invoiceServiceDate.toISOString().split('T')[0]; // Get YYYY-MM-DD
+    const matchesServiceDateFrom = !serviceDateFrom || invoiceDateStr >= serviceDateFrom;
     
     return matchesSearch && matchesStatus && matchesServiceDateFrom;
   }) : [];
