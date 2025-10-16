@@ -1471,6 +1471,7 @@ export default function BillingPage() {
                               <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Method</th>
                               <th className="px-4 py-3 text-right text-sm font-medium text-gray-700 dark:text-gray-300">Amount</th>
                               <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Status</th>
+                              <th className="px-4 py-3 text-center text-sm font-medium text-gray-700 dark:text-gray-300">Actions</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -1513,12 +1514,27 @@ export default function BillingPage() {
                                         {payment.paymentStatus === 'completed' ? 'Successful' : payment.paymentStatus === 'pending' ? 'Pending' : 'Failed'}
                                       </span>
                                     </td>
+                                    <td className="px-4 py-3 text-center">
+                                      {invoice ? (
+                                        <Button 
+                                          variant="ghost" 
+                                          size="sm" 
+                                          onClick={() => handleViewInvoice(invoice)} 
+                                          data-testid="button-view-invoice-from-payment"
+                                          title="View Invoice"
+                                        >
+                                          <Eye className="h-4 w-4" />
+                                        </Button>
+                                      ) : (
+                                        <span className="text-xs text-gray-400">N/A</span>
+                                      )}
+                                    </td>
                                   </tr>
                                 );
                               })
                             ) : (
                               <tr>
-                                <td colSpan={6} className="px-4 py-12 text-center text-gray-500 dark:text-gray-400">
+                                <td colSpan={7} className="px-4 py-12 text-center text-gray-500 dark:text-gray-400">
                                   <Receipt className="h-12 w-12 mx-auto mb-4 text-gray-300" />
                                   <p className="text-sm">No payment history available</p>
                                 </td>
