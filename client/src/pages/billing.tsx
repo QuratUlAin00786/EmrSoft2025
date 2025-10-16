@@ -1182,28 +1182,7 @@ function PricingManagementDashboard() {
               </>
             )}
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="category">Category</Label>
-                <Input
-                  id="category"
-                  value={formData.category || ""}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  placeholder="e.g., Diagnostic"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="basePrice">Base Price (£) *</Label>
-                <Input
-                  id="basePrice"
-                  type="number"
-                  step="0.01"
-                  value={formData.basePrice || ""}
-                  onChange={(e) => setFormData({ ...formData, basePrice: e.target.value })}
-                  placeholder="0.00"
-                />
-              </div>
-            </div>
+         
 
             <div className="grid gap-2">
               <Label htmlFor="notes">Notes</Label>
