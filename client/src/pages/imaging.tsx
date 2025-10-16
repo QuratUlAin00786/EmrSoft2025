@@ -4075,6 +4075,55 @@ export default function ImagingPage() {
               )}
             </div>
 
+            {/* Study Type */}
+            <div>
+              <Label htmlFor="upload-study-type">Study Type *</Label>
+              <Popover open={studyTypeOpen} onOpenChange={setStudyTypeOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={studyTypeOpen}
+                    className="w-full justify-between"
+                  >
+                    {uploadFormData.studyType || "Select study type..."}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0">
+                  <Command>
+                    <CommandInput placeholder="Search study type..." />
+                    <CommandEmpty>No study type found.</CommandEmpty>
+                    <CommandGroup>
+                      {pricingLoading ? (
+                        <CommandItem disabled>Loading study types...</CommandItem>
+                      ) : imagingPricing.length === 0 ? (
+                        <CommandItem disabled>No study types available</CommandItem>
+                      ) : (
+                        imagingPricing.map((pricing: any) => (
+                          <CommandItem
+                            key={pricing.id}
+                            value={pricing.imagingType}
+                            onSelect={(currentValue) => {
+                              setUploadFormData({ ...uploadFormData, studyType: currentValue });
+                              setStudyTypeOpen(false);
+                            }}
+                          >
+                            <CheckIcon
+                              className={`mr-2 h-4 w-4 ${
+                                uploadFormData.studyType === pricing.imagingType ? "opacity-100" : "opacity-0"
+                              }`}
+                            />
+                            {pricing.imagingType}
+                          </CommandItem>
+                        ))
+                      )}
+                    </CommandGroup>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
+
             {/* Provider Information - Show only for doctor roles */}
             {isDoctorLike(user?.role) && (
               <div className="grid grid-cols-2 gap-4">
@@ -4204,54 +4253,6 @@ export default function ImagingPage() {
                           {bodyPart}
                         </CommandItem>
                       ))}
-                    </CommandGroup>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            <div>
-              <Label htmlFor="upload-study-type">Study Type *</Label>
-              <Popover open={studyTypeOpen} onOpenChange={setStudyTypeOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    aria-expanded={studyTypeOpen}
-                    className="w-full justify-between"
-                  >
-                    {uploadFormData.studyType || "Select study type..."}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-full p-0">
-                  <Command>
-                    <CommandInput placeholder="Search study type..." />
-                    <CommandEmpty>No study type found.</CommandEmpty>
-                    <CommandGroup>
-                      {pricingLoading ? (
-                        <CommandItem disabled>Loading study types...</CommandItem>
-                      ) : imagingPricing.length === 0 ? (
-                        <CommandItem disabled>No study types available</CommandItem>
-                      ) : (
-                        imagingPricing.map((pricing: any) => (
-                          <CommandItem
-                            key={pricing.id}
-                            value={pricing.imagingType}
-                            onSelect={(currentValue) => {
-                              setUploadFormData({ ...uploadFormData, studyType: currentValue });
-                              setStudyTypeOpen(false);
-                            }}
-                          >
-                            <CheckIcon
-                              className={`mr-2 h-4 w-4 ${
-                                uploadFormData.studyType === pricing.imagingType ? "opacity-100" : "opacity-0"
-                              }`}
-                            />
-                            {pricing.imagingType}
-                          </CommandItem>
-                        ))
-                      )}
                     </CommandGroup>
                   </Command>
                 </PopoverContent>
@@ -4694,8 +4695,34 @@ export default function ImagingPage() {
                 <div className="grid grid-cols-4 gap-2">
                   <Input placeholder="Enter CPT Code" value={invoiceServiceCode} onChange={(e) => setInvoiceServiceCode(e.target.value)} />
                   <Input placeholder="Enter Description" value={invoiceServiceDesc} onChange={(e) => setInvoiceServiceDesc(e.target.value)} />
-                  <Input placeholder="Qty" value={invoiceServiceQty} onChange={(e) => setInvoiceServiceQty(e.target.value)} />
-                  <Input placeholder="Amount" value={invoiceServiceAmount} onChange={(e) => setInvoiceServiceAmount(e.target.value)} />
+                  <Input 
+                    placeholder="Qty" 
+                    value={invoiceServiceQty} 
+                    onChange={(e) => {
+                      setInvoiceServiceQty(e.target.value);
+                      // Auto-calculate total when quantity changes
+                      const qty = parseFloat(e.target.value) || 0;
+                      const amount = parseFloat(invoiceServiceAmount) || 0;
+                      const subtotal = qty * amount;
+                      const tax = subtotal * 0.2; // 20% VAT
+                      const total = subtotal + tax;
+                      setInvoiceTotalAmount(total.toFixed(2));
+                    }}
+                  />
+                  <Input 
+                    placeholder="Amount" 
+                    value={invoiceServiceAmount} 
+                    onChange={(e) => {
+                      setInvoiceServiceAmount(e.target.value);
+                      // Auto-calculate total when amount changes
+                      const qty = parseFloat(invoiceServiceQty) || 1;
+                      const amount = parseFloat(e.target.value) || 0;
+                      const subtotal = qty * amount;
+                      const tax = subtotal * 0.2; // 20% VAT
+                      const total = subtotal + tax;
+                      setInvoiceTotalAmount(total.toFixed(2));
+                    }}
+                  />
                 </div>
                 
                 <div className="grid grid-cols-4 gap-2">
