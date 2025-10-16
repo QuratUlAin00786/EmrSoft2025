@@ -479,6 +479,7 @@ function PricingManagementDashboard() {
                 <thead>
                   <tr className="border-b bg-gray-50 dark:bg-gray-800">
                     <th className="text-left p-3">Service Name</th>
+                    <th className="text-left p-3">Doctor Name</th>
                     <th className="text-left p-3">Code</th>
                     <th className="text-left p-3">Category</th>
                     <th className="text-left p-3">Price</th>
@@ -491,6 +492,7 @@ function PricingManagementDashboard() {
                   {filteredFees.map((fee: any) => (
                     <tr key={fee.id} className="border-b hover:bg-gray-50 dark:hover:bg-gray-800" data-testid={`row-doctor-fee-${fee.id}`}>
                       <td className="p-3 font-medium">{fee.serviceName}</td>
+                      <td className="p-3">{fee.doctorName || '-'}</td>
                       <td className="p-3">{fee.serviceCode || '-'}</td>
                       <td className="p-3">{fee.category || '-'}</td>
                       <td className="p-3 font-semibold">{fee.currency} {fee.basePrice}</td>
