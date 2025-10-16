@@ -13762,14 +13762,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         discount: 0,
         totalAmount: totalAmount,
         paidAmount: totalAmount,
-        balanceDue: 0,
-        lineItems: items.map((item: any) => ({
-          serviceCode: item.code,
+        items: items.map((item: any) => ({
+          code: item.code,
           description: item.description,
           quantity: item.quantity,
           unitPrice: item.unitPrice,
-          amount: item.total,
-          billingType: 'lab_test'
+          total: item.total
         })),
         payments: [{
           id: `PAY-${Date.now()}`,
