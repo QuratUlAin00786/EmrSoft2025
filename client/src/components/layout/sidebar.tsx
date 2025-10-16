@@ -126,12 +126,6 @@ const ALL_NAVIGATION = [
     module: "telemedicine",
   },
   {
-    name: "Population Health",
-    href: "/population-health",
-    icon: Users,
-    module: "population_health",
-  },
-  {
     name: "Voice Documentation",
     href: "/voice-documentation",
     icon: Mic,
