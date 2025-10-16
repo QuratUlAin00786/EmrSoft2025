@@ -316,7 +316,23 @@ function PricingManagementDashboard() {
       currency: "GBP",
       version: 1
     });
-    setMultipleServices([{ serviceName: "", serviceCode: "", category: "", basePrice: "" }]);
+    
+    // Pre-populate with predefined services for doctors fees
+    if (pricingTab === "doctors") {
+      const predefinedServices = [
+        { serviceName: "General Consultation", serviceCode: "GC001", category: "Standard visit for diagnosis or follow-up", basePrice: "50" },
+        { serviceName: "Specialist Consultation", serviceCode: "SC001", category: "Visit with a specialist doctor (e.g., Cardiologist)", basePrice: "120" },
+        { serviceName: "Follow-up Visit", serviceCode: "FV001", category: "Follow-up within a certain time period", basePrice: "30" },
+        { serviceName: "Teleconsultation", serviceCode: "TC001", category: "Online or phone consultation", basePrice: "40" },
+        { serviceName: "Emergency Visit", serviceCode: "EV001", category: "Immediate or off-hours consultation", basePrice: "150" },
+        { serviceName: "Home Visit", serviceCode: "HV001", category: "Doctor visits patient's home", basePrice: "100" },
+        { serviceName: "Procedure Consultation", serviceCode: "PC001", category: "Pre- or post-surgery consultation", basePrice: "" }
+      ];
+      setMultipleServices(predefinedServices);
+    } else {
+      setMultipleServices([{ serviceName: "", serviceCode: "", category: "", basePrice: "" }]);
+    }
+    
     setEditingItem(null);
     setShowAddDialog(true);
   };
@@ -550,6 +566,14 @@ function PricingManagementDashboard() {
                                 onChange={(e) => {
                                   const updated = [...multipleServices];
                                   updated[index].serviceName = e.target.value;
+                                  
+                                  // Auto-generate service code from service name
+                                  const words = e.target.value.trim().split(/\s+/);
+                                  const initials = words.map(word => word.charAt(0).toUpperCase()).join('');
+                                  if (initials) {
+                                    updated[index].serviceCode = `${initials}001`;
+                                  }
+                                  
                                   setMultipleServices(updated);
                                 }}
                                 placeholder="e.g., General Consultation"
