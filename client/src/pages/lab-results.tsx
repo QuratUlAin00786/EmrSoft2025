@@ -211,6 +211,7 @@ import {
   ChevronDown,
   ChevronRight,
   CheckCircle,
+  Sparkles,
 } from "lucide-react";
 
 interface DatabaseLabResult {
@@ -4519,6 +4520,82 @@ Report generated from Cura EMR System`;
 
               {/* Action Buttons */}
               <div className="flex justify-end gap-3 pt-4 border-t">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    // Helper function to generate random value within reference range
+                    const generateValueFromRange = (referenceRange: string): string | null => {
+                      // Handle different range formats
+                      if (referenceRange.includes(' - ')) {
+                        // Format: "13.0 - 17.0" or "4.0 - 10.0"
+                        const parts = referenceRange.split(' - ').map(v => parseFloat(v.trim()));
+                        if (parts.some(isNaN)) return null; // Skip non-numeric ranges
+                        const [min, max] = parts;
+                        const value = min + Math.random() * (max - min);
+                        // Determine decimal places from original range
+                        const decimals = referenceRange.includes('.') ? 1 : 0;
+                        return value.toFixed(decimals);
+                      } else if (referenceRange.startsWith('<')) {
+                        // Format: "<2" or "<200"
+                        const max = parseFloat(referenceRange.substring(1).trim());
+                        if (isNaN(max)) return null; // Skip non-numeric ranges
+                        const value = Math.random() * (max * 0.8); // Use 80% of max for safety
+                        const decimals = referenceRange.includes('.') ? 1 : 0;
+                        return value.toFixed(decimals);
+                      } else if (referenceRange.startsWith('>')) {
+                        // Format: ">40"
+                        const min = parseFloat(referenceRange.substring(1).trim());
+                        if (isNaN(min)) return null; // Skip non-numeric ranges
+                        const value = min + Math.random() * (min * 0.5); // Add up to 50% above min
+                        const decimals = referenceRange.includes('.') ? 1 : 0;
+                        return value.toFixed(decimals);
+                      } else if (referenceRange.includes('< ')) {
+                        // Format: "< 117"
+                        const max = parseFloat(referenceRange.split('< ')[1].trim());
+                        if (isNaN(max)) return null; // Skip non-numeric ranges
+                        const value = Math.random() * (max * 0.8);
+                        const decimals = referenceRange.includes('.') ? 1 : 0;
+                        return value.toFixed(decimals);
+                      }
+                      return null; // Skip unknown or non-numeric formats
+                    };
+
+                    // Auto-generate values for all empty fields
+                    const testTypes = selectedLabOrder.testType
+                      .split(',')
+                      .map((t: string) => t.trim())
+                      .filter((t: string) => TEST_FIELD_DEFINITIONS[t]);
+                    
+                    const newFormData: any = { ...fillResultFormData };
+                    
+                    testTypes.forEach((testType: string) => {
+                      const testFields = TEST_FIELD_DEFINITIONS[testType];
+                      if (testFields) {
+                        testFields.forEach((field) => {
+                          const fieldKey = `${testType}::${field.name}`;
+                          // Only fill if field is empty
+                          if (!newFormData[fieldKey] || newFormData[fieldKey].trim() === "") {
+                            const generatedValue = generateValueFromRange(field.referenceRange);
+                            if (generatedValue !== null) {
+                              newFormData[fieldKey] = generatedValue;
+                            }
+                          }
+                        });
+                      }
+                    });
+                    
+                    setFillResultFormData(newFormData);
+                    toast({
+                      title: "Success",
+                      description: "Test results auto-generated successfully",
+                    });
+                  }}
+                  className="bg-purple-50 hover:bg-purple-100 text-purple-700 border-purple-200"
+                  data-testid="button-auto-fill-results"
+                >
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  Auto-Fill Results
+                </Button>
                 <Button
                   variant="outline"
                   onClick={() => {
