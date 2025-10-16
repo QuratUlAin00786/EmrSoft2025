@@ -107,9 +107,6 @@ export default function BillingPage() {
   
   // Date filter states
   const [serviceDateFrom, setServiceDateFrom] = useState("");
-  const [serviceDateTo, setServiceDateTo] = useState("");
-  const [dueDateFrom, setDueDateFrom] = useState("");
-  const [dueDateTo, setDueDateTo] = useState("");
 
   const { data: billingData = [], isLoading, error } = useQuery({
     queryKey: ["/api/billing"],
@@ -619,15 +616,8 @@ export default function BillingPage() {
     // Filter by Service Date range
     const invoiceServiceDate = new Date(invoice.dateOfService);
     const matchesServiceDateFrom = !serviceDateFrom || invoiceServiceDate >= new Date(serviceDateFrom);
-    const matchesServiceDateTo = !serviceDateTo || invoiceServiceDate <= new Date(serviceDateTo);
     
-    // Filter by Due Date range
-    const invoiceDueDate = new Date(invoice.dueDate);
-    const matchesDueDateFrom = !dueDateFrom || invoiceDueDate >= new Date(dueDateFrom);
-    const matchesDueDateTo = !dueDateTo || invoiceDueDate <= new Date(dueDateTo);
-    
-    return matchesSearch && matchesStatus && 
-           matchesServiceDateFrom && matchesServiceDateTo && matchesDueDateFrom && matchesDueDateTo;
+    return matchesSearch && matchesStatus && matchesServiceDateFrom;
   }) : [];
 
   const getStatusColor = (status: string) => {
@@ -808,55 +798,16 @@ export default function BillingPage() {
                             data-testid="input-service-date-from"
                           />
                         </div>
-
-                        <div>
-                          <Label htmlFor="service-date-to" className="text-xs text-gray-600 dark:text-gray-400 mb-1">Service Date To</Label>
-                          <Input
-                            id="service-date-to"
-                            type="date"
-                            value={serviceDateTo}
-                            onChange={(e) => setServiceDateTo(e.target.value)}
-                            className="h-9 text-sm"
-                            data-testid="input-service-date-to"
-                          />
-                        </div>
-
-                        <div>
-                          <Label htmlFor="due-date-from" className="text-xs text-gray-600 dark:text-gray-400 mb-1">Due Date From</Label>
-                          <Input
-                            id="due-date-from"
-                            type="date"
-                            value={dueDateFrom}
-                            onChange={(e) => setDueDateFrom(e.target.value)}
-                            className="h-9 text-sm"
-                            data-testid="input-due-date-from"
-                          />
-                        </div>
-
-                        <div>
-                          <Label htmlFor="due-date-to" className="text-xs text-gray-600 dark:text-gray-400 mb-1">Due Date To</Label>
-                          <Input
-                            id="due-date-to"
-                            type="date"
-                            value={dueDateTo}
-                            onChange={(e) => setDueDateTo(e.target.value)}
-                            className="h-9 text-sm"
-                            data-testid="input-due-date-to"
-                          />
-                        </div>
                       </div>
 
                       {/* Clear Filters Button */}
-                      {(serviceDateFrom || serviceDateTo || dueDateFrom || dueDateTo) && (
+                      {serviceDateFrom && (
                         <div className="flex justify-end">
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => {
                               setServiceDateFrom("");
-                              setServiceDateTo("");
-                              setDueDateFrom("");
-                              setDueDateTo("");
                             }}
                             data-testid="button-clear-filters"
                           >
@@ -1165,55 +1116,16 @@ export default function BillingPage() {
                               data-testid="input-admin-service-date-from"
                             />
                           </div>
-
-                          <div>
-                            <Label htmlFor="admin-service-date-to" className="text-xs text-gray-600 dark:text-gray-400 mb-1">Service Date To</Label>
-                            <Input
-                              id="admin-service-date-to"
-                              type="date"
-                              value={serviceDateTo}
-                              onChange={(e) => setServiceDateTo(e.target.value)}
-                              className="h-9 text-sm"
-                              data-testid="input-admin-service-date-to"
-                            />
-                          </div>
-
-                          <div>
-                            <Label htmlFor="admin-due-date-from" className="text-xs text-gray-600 dark:text-gray-400 mb-1">Due Date From</Label>
-                            <Input
-                              id="admin-due-date-from"
-                              type="date"
-                              value={dueDateFrom}
-                              onChange={(e) => setDueDateFrom(e.target.value)}
-                              className="h-9 text-sm"
-                              data-testid="input-admin-due-date-from"
-                            />
-                          </div>
-
-                          <div>
-                            <Label htmlFor="admin-due-date-to" className="text-xs text-gray-600 dark:text-gray-400 mb-1">Due Date To</Label>
-                            <Input
-                              id="admin-due-date-to"
-                              type="date"
-                              value={dueDateTo}
-                              onChange={(e) => setDueDateTo(e.target.value)}
-                              className="h-9 text-sm"
-                              data-testid="input-admin-due-date-to"
-                            />
-                          </div>
                         </div>
 
                         {/* Clear Filters Button */}
-                        {(serviceDateFrom || serviceDateTo || dueDateFrom || dueDateTo) && (
+                        {serviceDateFrom && (
                           <div className="flex justify-end">
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => {
                                 setServiceDateFrom("");
-                                setServiceDateTo("");
-                                setDueDateFrom("");
-                                setDueDateTo("");
                               }}
                               data-testid="button-admin-clear-filters"
                             >
