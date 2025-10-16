@@ -772,6 +772,31 @@ export default function BillingPage() {
                               <SelectItem value="cancelled">Cancelled</SelectItem>
                             </SelectContent>
                           </Select>
+
+                          <div className="flex flex-col gap-1">
+                            <Label htmlFor="service-date-from" className="text-xs text-gray-600 dark:text-gray-400">Service Date From</Label>
+                            <Input
+                              id="service-date-from"
+                              type="date"
+                              value={serviceDateFrom}
+                              onChange={(e) => setServiceDateFrom(e.target.value)}
+                              className="h-9 text-sm w-44"
+                              data-testid="input-service-date-from"
+                            />
+                          </div>
+
+                          {serviceDateFrom && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setServiceDateFrom("")}
+                              data-testid="button-clear-filters"
+                              className="mt-5"
+                            >
+                              <Filter className="h-4 w-4 mr-2" />
+                              Clear
+                            </Button>
+                          )}
                         </div>
 
                         <div className="flex items-center gap-2">
@@ -784,38 +809,6 @@ export default function BillingPage() {
                           />
                         </div>
                       </div>
-
-                      {/* Date Filters */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-                        <div>
-                          <Label htmlFor="service-date-from" className="text-xs text-gray-600 dark:text-gray-400 mb-1">Service Date From</Label>
-                          <Input
-                            id="service-date-from"
-                            type="date"
-                            value={serviceDateFrom}
-                            onChange={(e) => setServiceDateFrom(e.target.value)}
-                            className="h-9 text-sm"
-                            data-testid="input-service-date-from"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Clear Filters Button */}
-                      {serviceDateFrom && (
-                        <div className="flex justify-end">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setServiceDateFrom("");
-                            }}
-                            data-testid="button-clear-filters"
-                          >
-                            <Filter className="h-4 w-4 mr-2" />
-                            Clear Date Filters
-                          </Button>
-                        </div>
-                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -1084,6 +1077,31 @@ export default function BillingPage() {
                                 <SelectItem value="cancelled">Cancelled</SelectItem>
                               </SelectContent>
                             </Select>
+
+                            <div className="flex flex-col gap-1">
+                              <Label htmlFor="admin-service-date-from" className="text-xs text-gray-600 dark:text-gray-400">Service Date From</Label>
+                              <Input
+                                id="admin-service-date-from"
+                                type="date"
+                                value={serviceDateFrom}
+                                onChange={(e) => setServiceDateFrom(e.target.value)}
+                                className="h-9 text-sm w-44"
+                                data-testid="input-admin-service-date-from"
+                              />
+                            </div>
+
+                            {serviceDateFrom && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setServiceDateFrom("")}
+                                data-testid="button-admin-clear-filters"
+                                className="mt-5"
+                              >
+                                <Filter className="h-4 w-4 mr-2" />
+                                Clear
+                              </Button>
+                            )}
                           </div>
                           
                           <div className="flex items-center gap-4">
@@ -1102,38 +1120,6 @@ export default function BillingPage() {
                             </Button>
                           </div>
                         </div>
-
-                        {/* Date Filters */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-                          <div>
-                            <Label htmlFor="admin-service-date-from" className="text-xs text-gray-600 dark:text-gray-400 mb-1">Service Date From</Label>
-                            <Input
-                              id="admin-service-date-from"
-                              type="date"
-                              value={serviceDateFrom}
-                              onChange={(e) => setServiceDateFrom(e.target.value)}
-                              className="h-9 text-sm"
-                              data-testid="input-admin-service-date-from"
-                            />
-                          </div>
-                        </div>
-
-                        {/* Clear Filters Button */}
-                        {serviceDateFrom && (
-                          <div className="flex justify-end">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                setServiceDateFrom("");
-                              }}
-                              data-testid="button-admin-clear-filters"
-                            >
-                              <Filter className="h-4 w-4 mr-2" />
-                              Clear Date Filters
-                            </Button>
-                          </div>
-                        )}
                       </div>
                     </CardContent>
                   </Card>
