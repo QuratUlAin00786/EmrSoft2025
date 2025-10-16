@@ -1555,7 +1555,7 @@ export default function BillingPage() {
                   <CardHeader>
                     <CardTitle>Invoices</CardTitle>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Invoices with Insurance Provider (excluding NHS)
+                      Self-Pay Invoices (None or Patient Self-Pay)
                     </p>
                   </CardHeader>
                   <CardContent>
@@ -1579,19 +1579,19 @@ export default function BillingPage() {
                           </thead>
                           <tbody>
                             {(() => {
-                              const nonNhsInvoices = Array.isArray(invoices) ? invoices.filter((inv: any) => {
+                              const selfPayInvoices = Array.isArray(invoices) ? invoices.filter((inv: any) => {
                                 if (!inv.insurance || inv.insurance === null || inv.insurance === '' || inv.insurance === 'none') {
-                                  return false;
+                                  return true;
                                 }
                                 
                                 const provider = typeof inv.insurance === 'object' ? inv.insurance.provider : inv.insurance;
                                 const providerLower = String(provider).toLowerCase();
                                 
-                                return providerLower !== 'nhs' && providerLower !== 'none';
+                                return providerLower === 'none' || providerLower === 'self-pay';
                               }) : [];
                               
-                              return nonNhsInvoices.length > 0 ? (
-                                nonNhsInvoices.map((invoice: any) => {
+                              return selfPayInvoices.length > 0 ? (
+                                selfPayInvoices.map((invoice: any) => {
                                   const totalAmount = typeof invoice.totalAmount === 'string' ? parseFloat(invoice.totalAmount) : invoice.totalAmount;
                                   
                                   return (
@@ -1634,7 +1634,7 @@ export default function BillingPage() {
                                 <tr>
                                   <td colSpan={7} className="px-4 py-12 text-center text-gray-500 dark:text-gray-400">
                                     <Receipt className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                                    <p className="text-sm">No non-NHS insurance invoices available</p>
+                                    <p className="text-sm">No self-pay invoices available</p>
                                   </td>
                                 </tr>
                               );
