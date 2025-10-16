@@ -13,7 +13,7 @@ import { AIChatWidget } from "@/components/ai-chat-widget";
 import { getActiveSubdomain } from "@/lib/subdomain-utils";
 
 import { useAuth } from "@/hooks/use-auth";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 const curaLogoPath = "/cura-logo.png";
 
@@ -30,7 +30,6 @@ import ShiftsPage from "@/pages/shifts";
 import CalendarPage from "@/pages/calendar";
 import FormsPage from "@/pages/forms";
 import MessagingPage from "@/pages/messaging";
-import IntegrationsPage from "@/pages/integrations";
 import PrescriptionsPage from "@/pages/prescriptions";
 import LabResultsPage from "@/pages/lab-results";
 import ImagingPage from "@/pages/imaging";
@@ -50,7 +49,6 @@ import MedicationGuide from "@/pages/medication-guide";
 import PreventionGuidelines from "@/pages/prevention-guidelines";
 import ClinicalProcedures from "@/pages/clinical-procedures";
 import Inventory from "@/pages/inventory";
-import GDPRCompliance from "@/pages/gdpr-compliance";
 import AiAgent from "@/pages/ai-agent";
 import QuickBooks from "@/pages/quickbooks";
 import FontTest from "@/pages/font-test";
@@ -100,6 +98,32 @@ function LegacyRouteRedirect() {
       setLocation(loginPath);
     }
   }, [isAuthenticated, setLocation]);
+
+  return <LoadingPage />;
+}
+
+// Settings tab redirect - redirects old GDPR and Integrations routes to Settings
+function SettingsTabRedirect({ params }: { params?: { subdomain?: string } }) {
+  const [location, setLocation] = useLocation();
+  
+  // Capture the original location on first render to determine which tab
+  const originalLocation = useRef(location);
+
+  useEffect(() => {
+    const subdomain = params?.subdomain || getActiveSubdomain({ ignorePath: true });
+    
+    // Determine which tab to show based on the original route
+    let tab = 'general';
+    if (originalLocation.current.includes('/gdpr-compliance')) {
+      tab = 'gdpr';
+    } else if (originalLocation.current.includes('/integrations')) {
+      tab = 'integrations';
+    }
+    
+    const settingsPath = `/${subdomain}/settings?tab=${tab}`;
+    console.log(`🔄 Redirecting to Settings page with tab: ${settingsPath}`);
+    setLocation(settingsPath);
+  }, [setLocation, params]);
 
   return <LoadingPage />;
 }
@@ -313,7 +337,11 @@ function ProtectedApp() {
           <Route path="/:subdomain/inventory" component={Inventory} />
           <Route
             path="/:subdomain/gdpr-compliance"
-            component={GDPRCompliance}
+            component={SettingsTabRedirect}
+          />
+          <Route
+            path="/:subdomain/integrations"
+            component={SettingsTabRedirect}
           />
           <Route path="/:subdomain/ai-agent" component={AiAgent} />
           <Route path="/:subdomain/quickbooks" component={QuickBooks} />
@@ -353,6 +381,7 @@ function ProtectedApp() {
           <Route path="/symptom-checker" component={LegacyRouteRedirect} />
           <Route path="/users" component={LegacyRouteRedirect} />
           <Route path="/settings" component={LegacyRouteRedirect} />
+          <Route path="/gdpr-compliance" component={LegacyRouteRedirect} />
 
           {/* Root redirect */}
           <Route path="/" component={LegacyRouteRedirect} />

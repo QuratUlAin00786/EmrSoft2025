@@ -89,12 +89,6 @@ const ALL_NAVIGATION = [
     module: "messaging",
   },
   {
-    name: "Integrations",
-    href: "/integrations",
-    icon: LinkIcon,
-    module: "integrations",
-  },
-  {
     name: "Analytics",
     href: "/analytics",
     icon: BarChart3,
@@ -145,12 +139,6 @@ const ALL_NAVIGATION = [
     module: "billing",
   },
   { name: "Inventory", href: "/inventory", icon: Package, module: "inventory" },
-  {
-    name: "GDPR Compliance",
-    href: "/gdpr-compliance",
-    icon: Shield,
-    module: "gdpr_compliance",
-  },
 ];
 
 const ADMIN_NAVIGATION = [
@@ -224,7 +212,6 @@ export function Sidebar() {
   const patientHiddenItems = [
     "Financial Intelligence",
     "QuickBooks",
-    "GDPR Compliance",
   ];
 
   // Items to show ONLY to Patient role users (hide from all other roles)

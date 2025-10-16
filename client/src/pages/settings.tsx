@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Header } from "@/components/layout/header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,12 +9,15 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
 import { apiRequest } from "@/lib/queryClient";
 import { useTenant } from "@/hooks/use-tenant";
 import { useToast } from "@/hooks/use-toast";
-import { Settings as SettingsIcon, Globe, Shield, Palette, Save, Check, Upload, X } from "lucide-react";
+import { Settings as SettingsIcon, Globe, Shield, Palette, Save, Check, Upload, X, Link as LinkIcon } from "lucide-react";
 import type { Organization } from "@/types";
+import GDPRCompliance from "./gdpr-compliance";
+import IntegrationsPage from "./integrations";
 
 const regions = [
   { value: "UK", label: "United Kingdom" },
@@ -39,8 +43,30 @@ export default function Settings() {
   const { tenant } = useTenant();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const [location, setLocation] = useLocation();
   const [hasChanges, setHasChanges] = useState(false);
   const [showSaved, setShowSaved] = useState(false);
+  
+  // Get tab from URL parameter
+  const urlParams = new URLSearchParams(window.location.search);
+  const tabParam = urlParams.get('tab');
+  const [activeTab, setActiveTab] = useState(tabParam || "general");
+  
+  // Sync activeTab with URL changes (for back/forward navigation and direct URL access)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const newTab = params.get('tab') || 'general';
+    if (newTab !== activeTab) {
+      setActiveTab(newTab);
+    }
+  }, [location]);
+  
+  // Handle tab changes and update URL
+  const handleTabChange = (newTab: string) => {
+    setActiveTab(newTab);
+    const currentPath = location.split('?')[0];
+    setLocation(`${currentPath}?tab=${newTab}`);
+  };
 
   const { data: organization, isLoading, error } = useQuery<Organization>({
     queryKey: ["/api/tenant/info"],
@@ -338,9 +364,26 @@ export default function Settings() {
       />
       
       <div className="flex-1 overflow-auto p-6">
-        <div className="max-w-4xl mx-auto space-y-6">
-          {/* Organization Settings */}
-          <Card>
+        <div className="max-w-6xl mx-auto">
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="general">
+                <SettingsIcon className="h-4 w-4 mr-2" />
+                General
+              </TabsTrigger>
+              <TabsTrigger value="gdpr">
+                <Shield className="h-4 w-4 mr-2" />
+                GDPR Compliance
+              </TabsTrigger>
+              <TabsTrigger value="integrations">
+                <LinkIcon className="h-4 w-4 mr-2" />
+                Integrations
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="general" className="space-y-6">
+              {/* Organization Settings */}
+              <Card>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <SettingsIcon className="h-5 w-5" />
@@ -548,32 +591,42 @@ export default function Settings() {
             </CardContent>
           </Card>
 
-          {/* Save Button - Always visible and functional */}
-          <div className="fixed bottom-6 right-6 z-50">
-            <Button 
-              onClick={handleSave}
-              disabled={updateSettingsMutation.isPending}
-              size="lg"
-              className="shadow-lg"
-            >
-              {updateSettingsMutation.isPending ? (
-                <>
-                  <LoadingSpinner className="h-4 w-4 mr-2" />
-                  Saving...
-                </>
-              ) : showSaved ? (
-                <>
-                  <Check className="h-4 w-4 mr-2" />
-                  Saved!
-                </>
-              ) : (
-                <>
-                  <Save className="h-4 w-4 mr-2" />
-                  Save Changes
-                </>
-              )}
-            </Button>
-          </div>
+              {/* Save Button - Always visible and functional */}
+              <div className="fixed bottom-6 right-6 z-50">
+                <Button 
+                  onClick={handleSave}
+                  disabled={updateSettingsMutation.isPending}
+                  size="lg"
+                  className="shadow-lg"
+                >
+                  {updateSettingsMutation.isPending ? (
+                    <>
+                      <LoadingSpinner className="h-4 w-4 mr-2" />
+                      Saving...
+                    </>
+                  ) : showSaved ? (
+                    <>
+                      <Check className="h-4 w-4 mr-2" />
+                      Saved!
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Changes
+                    </>
+                  )}
+                </Button>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="gdpr">
+              <GDPRCompliance />
+            </TabsContent>
+
+            <TabsContent value="integrations">
+              <IntegrationsPage />
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </>
