@@ -4799,23 +4799,24 @@ Report generated from Cura EMR System`;
                       return;
                     }
 
-                    // Build results array from filled values - supports multiple tests
-                    const results: any[] = [];
+                    // Build results grouped by test type
                     const testTypes = selectedLabOrder.testType
                       .split(' | ')
                       .map((t: string) => t.trim())
                       .filter((t: string) => TEST_FIELD_DEFINITIONS[t]);
                     
-                    // Process all test types
+                    // Group results by test type
+                    const resultsByTestType: Record<string, any[]> = {};
                     testTypes.forEach((testType: string) => {
                       const testFields = TEST_FIELD_DEFINITIONS[testType];
                       if (testFields) {
+                        const testResults: any[] = [];
                         testFields.forEach((field) => {
                           const fieldKey = `${testType}::${field.name}`;
                           const value = fillResultFormData[fieldKey];
                           if (value && value.trim() !== "") {
-                            results.push({
-                              name: `${testType} - ${field.name}`,
+                            testResults.push({
+                              name: field.name,
                               value: value,
                               unit: field.unit,
                               referenceRange: field.referenceRange,
@@ -4823,10 +4824,13 @@ Report generated from Cura EMR System`;
                             });
                           }
                         });
+                        if (testResults.length > 0) {
+                          resultsByTestType[testType] = testResults;
+                        }
                       }
                     });
 
-                    if (results.length === 0) {
+                    if (Object.keys(resultsByTestType).length === 0) {
                       toast({
                         title: "Validation Error",
                         description: "Please enter at least one test result value to download",
@@ -4860,11 +4864,6 @@ Report generated from Cura EMR System`;
                     pdf.text(getPatientName(selectedLabOrder.patientId), 70, yPos);
                     yPos += 7;
 
-                    // Test Name
-                    pdf.text("Test Name:", 20, yPos);
-                    pdf.text(selectedLabOrder.testType, 70, yPos);
-                    yPos += 7;
-
                     // Test ID
                     pdf.text("Test ID:", 20, yPos);
                     pdf.text(selectedLabOrder.testId || 'N/A', 70, yPos);
@@ -4891,47 +4890,60 @@ Report generated from Cura EMR System`;
                     pdf.text(selectedLabOrder.priority || 'routine', 70, yPos);
                     yPos += 15;
 
-                    // Test Results Section
-                    pdf.setFontSize(14);
-                    pdf.setFont("helvetica", "bold");
-                    pdf.text("Test Results", 20, yPos);
-                    yPos += 10;
-
-                    // Results Table Header
-                    pdf.setFillColor(240, 240, 240);
-                    pdf.rect(20, yPos - 5, pageWidth - 40, 8, "F");
-                    pdf.setFontSize(10);
-                    pdf.setFont("helvetica", "bold");
-                    pdf.text("Parameter", 25, yPos);
-                    pdf.text("Value", 80, yPos);
-                    pdf.text("Unit", 120, yPos);
-                    pdf.text("Reference Range", 150, yPos);
-                    yPos += 10;
-
-                    // Results Data
-                    pdf.setFont("helvetica", "normal");
-                    results.forEach((result, index) => {
-                      if (yPos > 270) {
+                    // Test Results Section - Separate section for each test type
+                    Object.entries(resultsByTestType).forEach(([testType, results], testIndex) => {
+                      // Check if we need a new page
+                      if (yPos > 240) {
                         pdf.addPage();
                         yPos = 20;
                       }
 
-                      // Alternate row background
-                      if (index % 2 === 0) {
-                        pdf.setFillColor(250, 250, 250);
-                        pdf.rect(20, yPos - 5, pageWidth - 40, 8, "F");
-                      }
+                      // Test Type Header
+                      pdf.setFontSize(14);
+                      pdf.setFont("helvetica", "bold");
+                      pdf.setTextColor(74, 125, 255); // Blue color for test name
+                      pdf.text(testType, 20, yPos);
+                      pdf.setTextColor(0, 0, 0); // Reset to black
+                      yPos += 10;
 
-                      pdf.text(result.name, 25, yPos);
-                      pdf.text(result.value, 80, yPos);
-                      pdf.text(result.unit, 120, yPos);
-                      pdf.text(result.referenceRange, 150, yPos);
-                      yPos += 8;
+                      // Results Table Header
+                      pdf.setFillColor(240, 240, 240);
+                      pdf.rect(20, yPos - 5, pageWidth - 40, 8, "F");
+                      pdf.setFontSize(10);
+                      pdf.setFont("helvetica", "bold");
+                      pdf.text("Parameter", 25, yPos);
+                      pdf.text("Value", 80, yPos);
+                      pdf.text("Unit", 120, yPos);
+                      pdf.text("Reference Range", 150, yPos);
+                      yPos += 10;
+
+                      // Results Data
+                      pdf.setFont("helvetica", "normal");
+                      results.forEach((result, index) => {
+                        if (yPos > 270) {
+                          pdf.addPage();
+                          yPos = 20;
+                        }
+
+                        // Alternate row background
+                        if (index % 2 === 0) {
+                          pdf.setFillColor(250, 250, 250);
+                          pdf.rect(20, yPos - 5, pageWidth - 40, 8, "F");
+                        }
+
+                        pdf.text(result.name, 25, yPos);
+                        pdf.text(result.value, 80, yPos);
+                        pdf.text(result.unit, 120, yPos);
+                        pdf.text(result.referenceRange, 150, yPos);
+                        yPos += 8;
+                      });
+
+                      yPos += 10; // Space between test sections
                     });
 
                     // Clinical Notes Section
                     if (fillResultFormData.notes || selectedLabOrder.notes) {
-                      yPos += 10;
+                      yPos += 5;
                       if (yPos > 250) {
                         pdf.addPage();
                         yPos = 20;
@@ -4967,8 +4979,8 @@ Report generated from Cura EMR System`;
                       );
                     }
 
-                    // Download PDF
-                    const fileName = `Lab_Result_${selectedLabOrder.testType.replace(/\s+/g, '_')}_${selectedLabOrder.testId || Date.now()}.pdf`;
+                    // Download PDF with test ID as filename
+                    const fileName = `${selectedLabOrder.testId || Date.now()}.pdf`;
                     pdf.save(fileName);
 
                     toast({
