@@ -1040,12 +1040,13 @@ export default function BillingPage() {
             ) : (
               /* Admin View: Tabs Navigation */
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 lg:grid-cols-5 gap-1">
+                <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-1">
                   <TabsTrigger value="invoices">Invoices</TabsTrigger>
                   <TabsTrigger value="payment-history">Payment History</TabsTrigger>
                   <TabsTrigger value="insurance-claims">Insurance Claims</TabsTrigger>
                   <TabsTrigger value="revenue">Revenue</TabsTrigger>
                   <TabsTrigger value="custom-reports">Custom Reports</TabsTrigger>
+                  {isAdmin && <TabsTrigger value="pricing-management">Pricing Management</TabsTrigger>}
                 </TabsList>
 
                 <TabsContent value="invoices" className="space-y-4 mt-6">
@@ -2685,6 +2686,71 @@ export default function BillingPage() {
                           </tbody>
                         </table>
                       </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              )}
+
+              {/* Pricing Management Tab */}
+              {isAdmin && (
+                <TabsContent value="pricing-management" className="space-y-4 mt-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <DollarSign className="h-5 w-5" />
+                        Pricing Management
+                      </CardTitle>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Manage pricing for doctors, lab tests, and imaging services with version history tracking
+                      </p>
+                    </CardHeader>
+                    <CardContent>
+                      <Tabs defaultValue="doctors" className="w-full">
+                        <TabsList className="grid w-full grid-cols-3">
+                          <TabsTrigger value="doctors">Doctors Fees</TabsTrigger>
+                          <TabsTrigger value="lab-tests">Lab Tests</TabsTrigger>
+                          <TabsTrigger value="imaging">Imaging</TabsTrigger>
+                        </TabsList>
+
+                        <TabsContent value="doctors" className="space-y-4 mt-4">
+                          <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-lg font-semibold">Doctors Fee Pricing</h3>
+                            <Button size="sm">
+                              <Plus className="h-4 w-4 mr-2" />
+                              Add Doctor Fee
+                            </Button>
+                          </div>
+                          <div className="text-center py-8 text-gray-500">
+                            <p>No doctor fees configured yet. Click "Add Doctor Fee" to get started.</p>
+                          </div>
+                        </TabsContent>
+
+                        <TabsContent value="lab-tests" className="space-y-4 mt-4">
+                          <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-lg font-semibold">Lab Test Pricing</h3>
+                            <Button size="sm">
+                              <Plus className="h-4 w-4 mr-2" />
+                              Add Lab Test
+                            </Button>
+                          </div>
+                          <div className="text-center py-8 text-gray-500">
+                            <p>No lab test pricing configured yet. Click "Add Lab Test" to get started.</p>
+                          </div>
+                        </TabsContent>
+
+                        <TabsContent value="imaging" className="space-y-4 mt-4">
+                          <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-lg font-semibold">Imaging Pricing</h3>
+                            <Button size="sm">
+                              <Plus className="h-4 w-4 mr-2" />
+                              Add Imaging Service
+                            </Button>
+                          </div>
+                          <div className="text-center py-8 text-gray-500">
+                            <p>No imaging pricing configured yet. Click "Add Imaging Service" to get started.</p>
+                          </div>
+                        </TabsContent>
+                      </Tabs>
                     </CardContent>
                   </Card>
                 </TabsContent>
