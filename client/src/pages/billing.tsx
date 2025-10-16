@@ -155,6 +155,8 @@ function PricingManagementDashboard() {
   const [showLabDoctorSuggestions, setShowLabDoctorSuggestions] = useState(false);
   const [labTestFilter, setLabTestFilter] = useState("");
   const [labDoctorFilter, setLabDoctorFilter] = useState("");
+  const [doctorFeeServiceFilter, setDoctorFeeServiceFilter] = useState("");
+  const [doctorFeeDoctorFilter, setDoctorFeeDoctorFilter] = useState("");
 
   const { data: users = [] } = useQuery({
     queryKey: ["/api/users"],
@@ -362,55 +364,107 @@ function PricingManagementDashboard() {
           </Button>
         </div>
         
+        <div className="flex gap-4 mb-4">
+          <div className="flex-1">
+            <Label htmlFor="filter-service-name">Filter by Service Name</Label>
+            <Input
+              id="filter-service-name"
+              placeholder="Search service name..."
+              value={doctorFeeServiceFilter}
+              onChange={(e) => setDoctorFeeServiceFilter(e.target.value)}
+              data-testid="input-filter-service-name"
+            />
+          </div>
+          <div className="flex-1">
+            <Label htmlFor="filter-fee-doctor-name">Filter by Doctor Name</Label>
+            <Input
+              id="filter-fee-doctor-name"
+              placeholder="Search doctor name..."
+              value={doctorFeeDoctorFilter}
+              onChange={(e) => setDoctorFeeDoctorFilter(e.target.value)}
+              data-testid="input-filter-fee-doctor-name"
+            />
+          </div>
+          {(doctorFeeServiceFilter || doctorFeeDoctorFilter) && (
+            <div className="flex items-end">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => {
+                  setDoctorFeeServiceFilter("");
+                  setDoctorFeeDoctorFilter("");
+                }}
+                data-testid="button-clear-fee-filters"
+              >
+                Clear Filters
+              </Button>
+            </div>
+          )}
+        </div>
+        
         {loadingDoctors ? (
           <div className="text-center py-8">Loading...</div>
         ) : doctorsFees.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             <p>No doctor fees configured yet. Click "Add Doctor Fee" to get started.</p>
           </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b bg-gray-50 dark:bg-gray-800">
-                  <th className="text-left p-3">Service Name</th>
-                  <th className="text-left p-3">Code</th>
-                  <th className="text-left p-3">Category</th>
-                  <th className="text-left p-3">Price</th>
-                  <th className="text-left p-3">Status</th>
-                  <th className="text-left p-3">Version</th>
-                  <th className="text-left p-3">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {doctorsFees.map((fee: any) => (
-                  <tr key={fee.id} className="border-b hover:bg-gray-50 dark:hover:bg-gray-800" data-testid={`row-doctor-fee-${fee.id}`}>
-                    <td className="p-3 font-medium">{fee.serviceName}</td>
-                    <td className="p-3">{fee.serviceCode || '-'}</td>
-                    <td className="p-3">{fee.category || '-'}</td>
-                    <td className="p-3 font-semibold">{fee.currency} {fee.basePrice}</td>
-                    <td className="p-3">
-                      <Badge variant={fee.isActive ? "default" : "secondary"}>
-                        {fee.isActive ? "Active" : "Inactive"}
-                      </Badge>
-                    </td>
-                    <td className="p-3">v{fee.version}</td>
-                    <td className="p-3">
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline" onClick={() => openEditDialog(fee)} data-testid={`button-edit-${fee.id}`}>
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={() => handleDelete("doctors-fees", fee.id)} data-testid={`button-delete-${fee.id}`}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </td>
+        ) : (() => {
+          const filteredFees = doctorsFees.filter((fee: any) => {
+            const matchServiceName = !doctorFeeServiceFilter || 
+              fee.serviceName?.toLowerCase().includes(doctorFeeServiceFilter.toLowerCase());
+            const matchDoctorName = !doctorFeeDoctorFilter || 
+              fee.doctorName?.toLowerCase().includes(doctorFeeDoctorFilter.toLowerCase());
+            return matchServiceName && matchDoctorName;
+          });
+
+          return filteredFees.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <p>No doctor fees match your filters. Try adjusting your search criteria.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b bg-gray-50 dark:bg-gray-800">
+                    <th className="text-left p-3">Service Name</th>
+                    <th className="text-left p-3">Code</th>
+                    <th className="text-left p-3">Category</th>
+                    <th className="text-left p-3">Price</th>
+                    <th className="text-left p-3">Status</th>
+                    <th className="text-left p-3">Version</th>
+                    <th className="text-left p-3">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                </thead>
+                <tbody>
+                  {filteredFees.map((fee: any) => (
+                    <tr key={fee.id} className="border-b hover:bg-gray-50 dark:hover:bg-gray-800" data-testid={`row-doctor-fee-${fee.id}`}>
+                      <td className="p-3 font-medium">{fee.serviceName}</td>
+                      <td className="p-3">{fee.serviceCode || '-'}</td>
+                      <td className="p-3">{fee.category || '-'}</td>
+                      <td className="p-3 font-semibold">{fee.currency} {fee.basePrice}</td>
+                      <td className="p-3">
+                        <Badge variant={fee.isActive ? "default" : "secondary"}>
+                          {fee.isActive ? "Active" : "Inactive"}
+                        </Badge>
+                      </td>
+                      <td className="p-3">v{fee.version}</td>
+                      <td className="p-3">
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline" onClick={() => openEditDialog(fee)} data-testid={`button-edit-${fee.id}`}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => handleDelete("doctors-fees", fee.id)} data-testid={`button-delete-${fee.id}`}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          );
+        })()}
       </TabsContent>
 
       <TabsContent value="lab-tests" className="space-y-4 mt-4">
@@ -1183,17 +1237,6 @@ function PricingManagementDashboard() {
             )}
 
          
-
-            <div className="grid gap-2">
-              <Label htmlFor="notes">Notes</Label>
-              <Textarea
-                id="notes"
-                value={formData.notes || ""}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                placeholder="Additional notes or description"
-                rows={3}
-              />
-            </div>
 
             <div className="flex items-center gap-2">
               <Switch
