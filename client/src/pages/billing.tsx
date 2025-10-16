@@ -1550,6 +1550,88 @@ export default function BillingPage() {
                     )}
                   </CardContent>
                 </Card>
+
+                <Card className="mt-6">
+                  <CardHeader>
+                    <CardTitle>Invoices</CardTitle>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      All invoices created in the system
+                    </p>
+                  </CardHeader>
+                  <CardContent>
+                    {invoicesLoading ? (
+                      <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                        <p className="text-sm">Loading invoices...</p>
+                      </div>
+                    ) : (
+                      <div className="rounded-md border">
+                        <table className="w-full">
+                          <thead>
+                            <tr className="border-b bg-gray-50 dark:bg-gray-800">
+                              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Invoice #</th>
+                              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Patient</th>
+                              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Service Date</th>
+                              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Due Date</th>
+                              <th className="px-4 py-3 text-right text-sm font-medium text-gray-700 dark:text-gray-300">Total Amount</th>
+                              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Status</th>
+                              <th className="px-4 py-3 text-center text-sm font-medium text-gray-700 dark:text-gray-300">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {Array.isArray(invoices) && invoices.length > 0 ? (
+                              invoices.map((invoice: any) => {
+                                const totalAmount = typeof invoice.totalAmount === 'string' ? parseFloat(invoice.totalAmount) : invoice.totalAmount;
+                                
+                                return (
+                                  <tr key={invoice.id} className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
+                                    <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">
+                                      {invoice.invoiceNumber || invoice.id}
+                                    </td>
+                                    <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
+                                      {invoice.patientName || invoice.patientId}
+                                    </td>
+                                    <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
+                                      {format(new Date(invoice.dateOfService), 'MMM d, yyyy')}
+                                    </td>
+                                    <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
+                                      {format(new Date(invoice.dueDate), 'MMM d, yyyy')}
+                                    </td>
+                                    <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100 text-right font-medium">
+                                      £{totalAmount.toFixed(2)}
+                                    </td>
+                                    <td className="px-4 py-3 text-sm">
+                                      <Badge className={`${getStatusColor(invoice.status)}`}>
+                                        {invoice.status}
+                                      </Badge>
+                                    </td>
+                                    <td className="px-4 py-3 text-center">
+                                      <Button 
+                                        variant="ghost" 
+                                        size="sm" 
+                                        onClick={() => handleViewInvoice(invoice)} 
+                                        data-testid={`button-view-invoice-${invoice.id}`}
+                                        title="View Invoice"
+                                      >
+                                        <Eye className="h-4 w-4" />
+                                      </Button>
+                                    </td>
+                                  </tr>
+                                );
+                              })
+                            ) : (
+                              <tr>
+                                <td colSpan={7} className="px-4 py-12 text-center text-gray-500 dark:text-gray-400">
+                                  <Receipt className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                                  <p className="text-sm">No invoices available</p>
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
               </TabsContent>
               )}
 
