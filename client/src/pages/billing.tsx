@@ -1259,6 +1259,39 @@ function PricingManagementDashboard() {
                     placeholder="e.g., CBC001"
                   />
                 </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="category">Category</Label>
+                  <Input
+                    id="category"
+                    value={formData.category || ""}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    placeholder="e.g., Hematology"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="currency">Currency</Label>
+                    <Input
+                      id="currency"
+                      value={formData.currency || "USD"}
+                      onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
+                      placeholder="USD"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="basePrice">Price *</Label>
+                    <Input
+                      id="basePrice"
+                      type="number"
+                      step="0.01"
+                      value={formData.basePrice || ""}
+                      onChange={(e) => setFormData({ ...formData, basePrice: e.target.value })}
+                      placeholder="0.00"
+                    />
+                  </div>
+                </div>
               </>
             )}
 
