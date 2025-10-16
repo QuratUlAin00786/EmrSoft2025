@@ -3238,7 +3238,7 @@ export default function BillingPage() {
                             {selectedInvoice.insurance.status}
                           </Badge>
                         </div>
-                        <div><strong>Insurance Paid:</strong> £{selectedInvoice.insurance.paidAmount.toFixed(2)}</div>
+                        <div><strong>Insurance Paid:</strong> £{(typeof selectedInvoice.insurance.paidAmount === 'string' ? parseFloat(selectedInvoice.insurance.paidAmount) : selectedInvoice.insurance.paidAmount).toFixed(2)}</div>
                       </div>
                     </div>
                   </div>
@@ -3249,9 +3249,9 @@ export default function BillingPage() {
               <div>
                 <h3 className="font-semibold text-lg mb-3">Payment History</h3>
                 <div className="text-sm text-gray-600 dark:text-gray-300">
-                  {selectedInvoice.paidAmount > 0 ? (
+                  {(typeof selectedInvoice.paidAmount === 'string' ? parseFloat(selectedInvoice.paidAmount) : selectedInvoice.paidAmount) > 0 ? (
                     <div className="p-3 bg-green-50 rounded-lg">
-                      Payment of £{selectedInvoice.paidAmount.toFixed(2)} received on {format(new Date(selectedInvoice.invoiceDate), 'MMM d, yyyy')}
+                      Payment of £{(typeof selectedInvoice.paidAmount === 'string' ? parseFloat(selectedInvoice.paidAmount) : selectedInvoice.paidAmount).toFixed(2)} received on {format(new Date(selectedInvoice.invoiceDate), 'MMM d, yyyy')}
                     </div>
                   ) : (
                     <div className="p-3 bg-gray-50 rounded-lg">
