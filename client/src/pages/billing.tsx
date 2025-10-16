@@ -136,6 +136,21 @@ const LAB_TEST_OPTIONS = [
   "Hormonal tests (Cortisol, ACTH)"
 ];
 
+const IMAGING_TYPE_OPTIONS = [
+  "X-ray (Radiography)",
+  "CT (Computed Tomography)",
+  "MRI (Magnetic Resonance Imaging)",
+  "Ultrasound (Sonography)",
+  "Mammography",
+  "Fluoroscopy",
+  "PET (Positron Emission Tomography)",
+  "SPECT (Single Photon Emission CT)",
+  "Nuclear Medicine Scans",
+  "DEXA (Bone Densitometry)",
+  "Angiography",
+  "Interventional Radiology (IR)"
+];
+
 function PricingManagementDashboard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -153,6 +168,7 @@ function PricingManagementDashboard() {
   const [showLabTestSuggestions, setShowLabTestSuggestions] = useState(false);
   const [showLabRoleSuggestions, setShowLabRoleSuggestions] = useState(false);
   const [showLabDoctorSuggestions, setShowLabDoctorSuggestions] = useState(false);
+  const [showImagingTypeSuggestions, setShowImagingTypeSuggestions] = useState(false);
   const [labTestFilter, setLabTestFilter] = useState("");
   const [labDoctorFilter, setLabDoctorFilter] = useState("");
   const [doctorFeeServiceFilter, setDoctorFeeServiceFilter] = useState("");
@@ -194,14 +210,17 @@ function PricingManagementDashboard() {
       if (!target.closest('#labDoctorName') && !target.closest('.lab-doctor-suggestions')) {
         setShowLabDoctorSuggestions(false);
       }
+      if (!target.closest('#imagingType') && !target.closest('.imaging-type-suggestions')) {
+        setShowImagingTypeSuggestions(false);
+      }
     };
     
     if (showServiceSuggestions || showRoleSuggestions || showDoctorSuggestions || 
-        showLabTestSuggestions || showLabRoleSuggestions || showLabDoctorSuggestions) {
+        showLabTestSuggestions || showLabRoleSuggestions || showLabDoctorSuggestions || showImagingTypeSuggestions) {
       document.addEventListener('mousedown', handleClickOutside);
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
-  }, [showServiceSuggestions, showRoleSuggestions, showDoctorSuggestions, showLabTestSuggestions, showLabRoleSuggestions, showLabDoctorSuggestions]);
+  }, [showServiceSuggestions, showRoleSuggestions, showDoctorSuggestions, showLabTestSuggestions, showLabRoleSuggestions, showLabDoctorSuggestions, showImagingTypeSuggestions]);
 
   const getApiPath = (tab: string) => {
     const pathMap: Record<string, string> = {
@@ -226,6 +245,27 @@ function PricingManagementDashboard() {
     queryKey: ["/api/pricing/imaging"],
     enabled: pricingTab === "imaging"
   });
+
+  const generateImagingCode = (imagingType: string) => {
+    const codeMap: Record<string, string> = {
+      "X-ray (Radiography)": "XRAY",
+      "CT (Computed Tomography)": "CT",
+      "MRI (Magnetic Resonance Imaging)": "MRI",
+      "Ultrasound (Sonography)": "US",
+      "Mammography": "MAMMO",
+      "Fluoroscopy": "FLUORO",
+      "PET (Positron Emission Tomography)": "PET",
+      "SPECT (Single Photon Emission CT)": "SPECT",
+      "Nuclear Medicine Scans": "NM",
+      "DEXA (Bone Densitometry)": "DEXA",
+      "Angiography": "ANGIO",
+      "Interventional Radiology (IR)": "IR"
+    };
+    
+    const prefix = codeMap[imagingType] || "IMG";
+    const timestamp = Date.now().toString().slice(-4);
+    return `${prefix}${timestamp}`;
+  };
 
   const handleDelete = async (type: string, id: number) => {
     try {
@@ -1297,24 +1337,65 @@ function PricingManagementDashboard() {
 
             {pricingTab === "imaging" && (
               <>
-                <div className="grid gap-2">
+                <div className="grid gap-2 relative">
                   <Label htmlFor="imagingType">Imaging Type *</Label>
                   <Input
                     id="imagingType"
                     value={formData.imagingType || ""}
-                    onChange={(e) => setFormData({ ...formData, imagingType: e.target.value })}
-                    placeholder="e.g., CT Scan"
+                    onChange={(e) => {
+                      setFormData({ ...formData, imagingType: e.target.value });
+                      setShowImagingTypeSuggestions(true);
+                    }}
+                    onFocus={() => setShowImagingTypeSuggestions(true)}
+                    placeholder="Select or type imaging type"
+                    autoComplete="off"
                   />
+                  {showImagingTypeSuggestions && (
+                    <div className="imaging-type-suggestions absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg max-h-60 overflow-auto top-full">
+                      {IMAGING_TYPE_OPTIONS
+                        .filter(option => 
+                          !formData.imagingType || 
+                          option.toLowerCase().includes(formData.imagingType.toLowerCase())
+                        )
+                        .map((option, index) => (
+                          <div
+                            key={index}
+                            className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-b-0"
+                            onClick={() => {
+                              const generatedCode = generateImagingCode(option);
+                              setFormData({ 
+                                ...formData, 
+                                imagingType: option,
+                                imagingCode: generatedCode
+                              });
+                              setShowImagingTypeSuggestions(false);
+                            }}
+                          >
+                            <div className="font-medium text-sm">{option}</div>
+                          </div>
+                        ))}
+                      {IMAGING_TYPE_OPTIONS.filter(option => 
+                        !formData.imagingType || 
+                        option.toLowerCase().includes(formData.imagingType.toLowerCase())
+                      ).length === 0 && formData.imagingType && (
+                        <div className="px-4 py-3 text-sm text-gray-500">
+                          No matches found. You can enter a custom imaging type.
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
+
                 <div className="grid gap-2">
-                  <Label htmlFor="imagingCode">Imaging Code</Label>
+                  <Label htmlFor="imagingCode">Imaging Code (Auto-generated)</Label>
                   <Input
                     id="imagingCode"
                     value={formData.imagingCode || ""}
                     onChange={(e) => setFormData({ ...formData, imagingCode: e.target.value })}
-                    placeholder="e.g., CT001"
+                    placeholder="Auto-generated when selecting type"
                   />
                 </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
                     <Label htmlFor="modality">Modality</Label>
@@ -1332,6 +1413,29 @@ function PricingManagementDashboard() {
                       value={formData.bodyPart || ""}
                       onChange={(e) => setFormData({ ...formData, bodyPart: e.target.value })}
                       placeholder="e.g., Head"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="currency">Currency</Label>
+                    <Input
+                      id="currency"
+                      value={formData.currency || "USD"}
+                      onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
+                      placeholder="USD"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="basePrice">Price *</Label>
+                    <Input
+                      id="basePrice"
+                      type="number"
+                      step="0.01"
+                      value={formData.basePrice || ""}
+                      onChange={(e) => setFormData({ ...formData, basePrice: e.target.value })}
+                      placeholder="0.00"
                     />
                   </div>
                 </div>
