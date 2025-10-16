@@ -153,6 +153,8 @@ function PricingManagementDashboard() {
   const [showLabTestSuggestions, setShowLabTestSuggestions] = useState(false);
   const [showLabRoleSuggestions, setShowLabRoleSuggestions] = useState(false);
   const [showLabDoctorSuggestions, setShowLabDoctorSuggestions] = useState(false);
+  const [labTestFilter, setLabTestFilter] = useState("");
+  const [labDoctorFilter, setLabDoctorFilter] = useState("");
 
   const { data: users = [] } = useQuery({
     queryKey: ["/api/users"],
@@ -420,55 +422,107 @@ function PricingManagementDashboard() {
           </Button>
         </div>
         
+        <div className="flex gap-4 mb-4">
+          <div className="flex-1">
+            <Label htmlFor="filter-test-name">Filter by Test Name</Label>
+            <Input
+              id="filter-test-name"
+              placeholder="Search test name..."
+              value={labTestFilter}
+              onChange={(e) => setLabTestFilter(e.target.value)}
+              data-testid="input-filter-test-name"
+            />
+          </div>
+          <div className="flex-1">
+            <Label htmlFor="filter-doctor-name">Filter by Doctor Name</Label>
+            <Input
+              id="filter-doctor-name"
+              placeholder="Search doctor name..."
+              value={labDoctorFilter}
+              onChange={(e) => setLabDoctorFilter(e.target.value)}
+              data-testid="input-filter-doctor-name"
+            />
+          </div>
+          {(labTestFilter || labDoctorFilter) && (
+            <div className="flex items-end">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => {
+                  setLabTestFilter("");
+                  setLabDoctorFilter("");
+                }}
+                data-testid="button-clear-filters"
+              >
+                Clear Filters
+              </Button>
+            </div>
+          )}
+        </div>
+        
         {loadingLabs ? (
           <div className="text-center py-8">Loading...</div>
         ) : labTests.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             <p>No lab test pricing configured yet. Click "Add Lab Test" to get started.</p>
           </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b bg-gray-50 dark:bg-gray-800">
-                  <th className="text-left p-3">Test Name</th>
-                  <th className="text-left p-3">Code</th>
-                  <th className="text-left p-3">Category</th>
-                  <th className="text-left p-3">Price</th>
-                  <th className="text-left p-3">Status</th>
-                  <th className="text-left p-3">Version</th>
-                  <th className="text-left p-3">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {labTests.map((test: any) => (
-                  <tr key={test.id} className="border-b hover:bg-gray-50 dark:hover:bg-gray-800" data-testid={`row-lab-test-${test.id}`}>
-                    <td className="p-3 font-medium">{test.testName}</td>
-                    <td className="p-3">{test.testCode || '-'}</td>
-                    <td className="p-3">{test.category || '-'}</td>
-                    <td className="p-3 font-semibold">{test.currency} {test.basePrice}</td>
-                    <td className="p-3">
-                      <Badge variant={test.isActive ? "default" : "secondary"}>
-                        {test.isActive ? "Active" : "Inactive"}
-                      </Badge>
-                    </td>
-                    <td className="p-3">v{test.version}</td>
-                    <td className="p-3">
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline" onClick={() => openEditDialog(test)} data-testid={`button-edit-${test.id}`}>
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={() => handleDelete("lab-tests", test.id)} data-testid={`button-delete-${test.id}`}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </td>
+        ) : (() => {
+          const filteredTests = labTests.filter((test: any) => {
+            const matchTestName = !labTestFilter || 
+              test.testName?.toLowerCase().includes(labTestFilter.toLowerCase());
+            const matchDoctorName = !labDoctorFilter || 
+              test.doctorName?.toLowerCase().includes(labDoctorFilter.toLowerCase());
+            return matchTestName && matchDoctorName;
+          });
+
+          return filteredTests.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <p>No lab tests match your filters. Try adjusting your search criteria.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b bg-gray-50 dark:bg-gray-800">
+                    <th className="text-left p-3">Test Name</th>
+                    <th className="text-left p-3">Code</th>
+                    <th className="text-left p-3">Category</th>
+                    <th className="text-left p-3">Price</th>
+                    <th className="text-left p-3">Status</th>
+                    <th className="text-left p-3">Version</th>
+                    <th className="text-left p-3">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                </thead>
+                <tbody>
+                  {filteredTests.map((test: any) => (
+                    <tr key={test.id} className="border-b hover:bg-gray-50 dark:hover:bg-gray-800" data-testid={`row-lab-test-${test.id}`}>
+                      <td className="p-3 font-medium">{test.testName}</td>
+                      <td className="p-3">{test.testCode || '-'}</td>
+                      <td className="p-3">{test.category || '-'}</td>
+                      <td className="p-3 font-semibold">{test.currency} {test.basePrice}</td>
+                      <td className="p-3">
+                        <Badge variant={test.isActive ? "default" : "secondary"}>
+                          {test.isActive ? "Active" : "Inactive"}
+                        </Badge>
+                      </td>
+                      <td className="p-3">v{test.version}</td>
+                      <td className="p-3">
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline" onClick={() => openEditDialog(test)} data-testid={`button-edit-${test.id}`}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => handleDelete("lab-tests", test.id)} data-testid={`button-delete-${test.id}`}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          );
+        })()}
       </TabsContent>
 
       <TabsContent value="imaging" className="space-y-4 mt-4">
