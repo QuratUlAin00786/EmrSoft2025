@@ -4405,18 +4405,28 @@ Report generated from Cura EMR System`;
                       // Auto-fill all test values based on reference ranges
                       const newTestValues: any = {};
                       
+                      console.log('🔄 AUTO-FILL: Selected tests:', generateFormData.selectedTests);
+                      
                       generateFormData.selectedTests.forEach((testType: string) => {
                         const testFields = TEST_FIELD_DEFINITIONS[testType];
+                        console.log(`📝 Processing test: ${testType}, Fields:`, testFields?.length || 0);
+                        
                         if (testFields) {
                           newTestValues[testType] = {};
                           testFields.forEach((field) => {
                             const generatedValue = generateValueFromRange(field.referenceRange);
                             if (generatedValue !== null) {
                               newTestValues[testType][field.name] = generatedValue;
+                              console.log(`  ✅ ${testType} - ${field.name}: ${generatedValue}`);
+                            } else {
+                              console.log(`  ❌ ${testType} - ${field.name}: null (non-numeric range: ${field.referenceRange})`);
                             }
                           });
                         }
                       });
+                      
+                      console.log('📦 Final testValues object:', newTestValues);
+                      console.log('📊 Total tests filled:', Object.keys(newTestValues).length);
                       
                       setGenerateFormData((prev: any) => ({
                         ...prev,
@@ -4425,7 +4435,7 @@ Report generated from Cura EMR System`;
                       
                       toast({
                         title: "Success",
-                        description: "Test results auto-filled successfully",
+                        description: `Auto-filled ${Object.keys(newTestValues).length} test(s) successfully`,
                       });
                     }}
                     className="bg-purple-50 hover:bg-purple-100 text-purple-700 border-purple-200"
