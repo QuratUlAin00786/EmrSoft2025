@@ -80,6 +80,447 @@ interface Invoice {
   }>;
 }
 
+function PricingManagementDashboard() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [pricingTab, setPricingTab] = useState("doctors");
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [editingItem, setEditingItem] = useState<any>(null);
+  const [formData, setFormData] = useState<any>({});
+  const [isSaving, setIsSaving] = useState(false);
+
+  const getApiPath = (tab: string) => {
+    const pathMap: Record<string, string> = {
+      "doctors": "doctors-fees",
+      "lab-tests": "lab-tests",
+      "imaging": "imaging"
+    };
+    return pathMap[tab] || tab;
+  };
+
+  const { data: doctorsFees = [], isLoading: loadingDoctors } = useQuery({
+    queryKey: ["/api/pricing/doctors-fees"],
+    enabled: pricingTab === "doctors"
+  });
+
+  const { data: labTests = [], isLoading: loadingLabs } = useQuery({
+    queryKey: ["/api/pricing/lab-tests"],
+    enabled: pricingTab === "lab-tests"
+  });
+
+  const { data: imaging = [], isLoading: loadingImaging } = useQuery({
+    queryKey: ["/api/pricing/imaging"],
+    enabled: pricingTab === "imaging"
+  });
+
+  const handleDelete = async (type: string, id: number) => {
+    try {
+      const apiPath = getApiPath(type);
+      await apiRequest('DELETE', `/api/pricing/${apiPath}/${id}`, {});
+      queryClient.invalidateQueries({ queryKey: [`/api/pricing/${apiPath}`] });
+      toast({ title: "Success", description: "Pricing entry deleted successfully" });
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message || "Failed to delete pricing entry", variant: "destructive" });
+    }
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      const apiPath = getApiPath(pricingTab);
+      const endpoint = editingItem 
+        ? `/api/pricing/${apiPath}/${editingItem.id}`
+        : `/api/pricing/${apiPath}`;
+      const method = editingItem ? 'PATCH' : 'POST';
+      
+      const payload = {
+        ...formData,
+        basePrice: parseFloat(formData.basePrice) || 0
+      };
+      
+      await apiRequest(method, endpoint, payload);
+
+      queryClient.invalidateQueries({ queryKey: [`/api/pricing/${apiPath}`] });
+      toast({ 
+        title: "Success", 
+        description: editingItem ? "Pricing updated successfully" : "Pricing created successfully" 
+      });
+      setShowAddDialog(false);
+      setEditingItem(null);
+      setFormData({});
+    } catch (error: any) {
+      toast({ 
+        title: "Error", 
+        description: error.message || "Failed to save pricing", 
+        variant: "destructive" 
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const openAddDialog = () => {
+    setFormData({
+      isActive: true,
+      currency: "GBP",
+      version: 1
+    });
+    setEditingItem(null);
+    setShowAddDialog(true);
+  };
+
+  const openEditDialog = (item: any) => {
+    setFormData(item);
+    setEditingItem(item);
+    setShowAddDialog(true);
+  };
+
+  return (
+    <Tabs value={pricingTab} onValueChange={setPricingTab} className="w-full">
+      <TabsList className="grid w-full grid-cols-3">
+        <TabsTrigger value="doctors" data-testid="tab-doctors-pricing">Doctors Fees</TabsTrigger>
+        <TabsTrigger value="lab-tests" data-testid="tab-lab-tests-pricing">Lab Tests</TabsTrigger>
+        <TabsTrigger value="imaging" data-testid="tab-imaging-pricing">Imaging</TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="doctors" className="space-y-4 mt-4">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold">Doctors Fee Pricing</h3>
+          <Button size="sm" onClick={openAddDialog} data-testid="button-add-doctor-fee">
+            <Plus className="h-4 w-4 mr-2" />
+            Add Doctor Fee
+          </Button>
+        </div>
+        
+        {loadingDoctors ? (
+          <div className="text-center py-8">Loading...</div>
+        ) : doctorsFees.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            <p>No doctor fees configured yet. Click "Add Doctor Fee" to get started.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b bg-gray-50 dark:bg-gray-800">
+                  <th className="text-left p-3">Service Name</th>
+                  <th className="text-left p-3">Code</th>
+                  <th className="text-left p-3">Category</th>
+                  <th className="text-left p-3">Price</th>
+                  <th className="text-left p-3">Status</th>
+                  <th className="text-left p-3">Version</th>
+                  <th className="text-left p-3">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {doctorsFees.map((fee: any) => (
+                  <tr key={fee.id} className="border-b hover:bg-gray-50 dark:hover:bg-gray-800" data-testid={`row-doctor-fee-${fee.id}`}>
+                    <td className="p-3 font-medium">{fee.serviceName}</td>
+                    <td className="p-3">{fee.serviceCode || '-'}</td>
+                    <td className="p-3">{fee.category || '-'}</td>
+                    <td className="p-3 font-semibold">{fee.currency} {fee.basePrice}</td>
+                    <td className="p-3">
+                      <Badge variant={fee.isActive ? "default" : "secondary"}>
+                        {fee.isActive ? "Active" : "Inactive"}
+                      </Badge>
+                    </td>
+                    <td className="p-3">v{fee.version}</td>
+                    <td className="p-3">
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" onClick={() => openEditDialog(fee)} data-testid={`button-edit-${fee.id}`}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => handleDelete("doctors-fees", fee.id)} data-testid={`button-delete-${fee.id}`}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </TabsContent>
+
+      <TabsContent value="lab-tests" className="space-y-4 mt-4">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold">Lab Test Pricing</h3>
+          <Button size="sm" onClick={openAddDialog} data-testid="button-add-lab-test">
+            <Plus className="h-4 w-4 mr-2" />
+            Add Lab Test
+          </Button>
+        </div>
+        
+        {loadingLabs ? (
+          <div className="text-center py-8">Loading...</div>
+        ) : labTests.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            <p>No lab test pricing configured yet. Click "Add Lab Test" to get started.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b bg-gray-50 dark:bg-gray-800">
+                  <th className="text-left p-3">Test Name</th>
+                  <th className="text-left p-3">Code</th>
+                  <th className="text-left p-3">Category</th>
+                  <th className="text-left p-3">Price</th>
+                  <th className="text-left p-3">Status</th>
+                  <th className="text-left p-3">Version</th>
+                  <th className="text-left p-3">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {labTests.map((test: any) => (
+                  <tr key={test.id} className="border-b hover:bg-gray-50 dark:hover:bg-gray-800" data-testid={`row-lab-test-${test.id}`}>
+                    <td className="p-3 font-medium">{test.testName}</td>
+                    <td className="p-3">{test.testCode || '-'}</td>
+                    <td className="p-3">{test.category || '-'}</td>
+                    <td className="p-3 font-semibold">{test.currency} {test.basePrice}</td>
+                    <td className="p-3">
+                      <Badge variant={test.isActive ? "default" : "secondary"}>
+                        {test.isActive ? "Active" : "Inactive"}
+                      </Badge>
+                    </td>
+                    <td className="p-3">v{test.version}</td>
+                    <td className="p-3">
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" onClick={() => openEditDialog(test)} data-testid={`button-edit-${test.id}`}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => handleDelete("lab-tests", test.id)} data-testid={`button-delete-${test.id}`}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </TabsContent>
+
+      <TabsContent value="imaging" className="space-y-4 mt-4">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold">Imaging Pricing</h3>
+          <Button size="sm" onClick={openAddDialog} data-testid="button-add-imaging">
+            <Plus className="h-4 w-4 mr-2" />
+            Add Imaging Service
+          </Button>
+        </div>
+        
+        {loadingImaging ? (
+          <div className="text-center py-8">Loading...</div>
+        ) : imaging.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            <p>No imaging pricing configured yet. Click "Add Imaging Service" to get started.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b bg-gray-50 dark:bg-gray-800">
+                  <th className="text-left p-3">Imaging Type</th>
+                  <th className="text-left p-3">Code</th>
+                  <th className="text-left p-3">Modality</th>
+                  <th className="text-left p-3">Body Part</th>
+                  <th className="text-left p-3">Price</th>
+                  <th className="text-left p-3">Status</th>
+                  <th className="text-left p-3">Version</th>
+                  <th className="text-left p-3">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {imaging.map((img: any) => (
+                  <tr key={img.id} className="border-b hover:bg-gray-50 dark:hover:bg-gray-800" data-testid={`row-imaging-${img.id}`}>
+                    <td className="p-3 font-medium">{img.imagingType}</td>
+                    <td className="p-3">{img.imagingCode || '-'}</td>
+                    <td className="p-3">{img.modality || '-'}</td>
+                    <td className="p-3">{img.bodyPart || '-'}</td>
+                    <td className="p-3 font-semibold">{img.currency} {img.basePrice}</td>
+                    <td className="p-3">
+                      <Badge variant={img.isActive ? "default" : "secondary"}>
+                        {img.isActive ? "Active" : "Inactive"}
+                      </Badge>
+                    </td>
+                    <td className="p-3">v{img.version}</td>
+                    <td className="p-3">
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" onClick={() => openEditDialog(img)} data-testid={`button-edit-${img.id}`}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => handleDelete("imaging", img.id)} data-testid={`button-delete-${img.id}`}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </TabsContent>
+
+      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              {editingItem ? "Edit" : "Add"} {pricingTab === "doctors" ? "Doctor Fee" : pricingTab === "lab-tests" ? "Lab Test" : "Imaging Service"}
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            {pricingTab === "doctors" && (
+              <>
+                <div className="grid gap-2">
+                  <Label htmlFor="serviceName">Service Name *</Label>
+                  <Input
+                    id="serviceName"
+                    value={formData.serviceName || ""}
+                    onChange={(e) => setFormData({ ...formData, serviceName: e.target.value })}
+                    placeholder="e.g., General Consultation"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="serviceCode">Service Code</Label>
+                  <Input
+                    id="serviceCode"
+                    value={formData.serviceCode || ""}
+                    onChange={(e) => setFormData({ ...formData, serviceCode: e.target.value })}
+                    placeholder="e.g., GC001"
+                  />
+                </div>
+              </>
+            )}
+
+            {pricingTab === "lab-tests" && (
+              <>
+                <div className="grid gap-2">
+                  <Label htmlFor="testName">Test Name *</Label>
+                  <Input
+                    id="testName"
+                    value={formData.testName || ""}
+                    onChange={(e) => setFormData({ ...formData, testName: e.target.value })}
+                    placeholder="e.g., Complete Blood Count"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="testCode">Test Code</Label>
+                  <Input
+                    id="testCode"
+                    value={formData.testCode || ""}
+                    onChange={(e) => setFormData({ ...formData, testCode: e.target.value })}
+                    placeholder="e.g., CBC001"
+                  />
+                </div>
+              </>
+            )}
+
+            {pricingTab === "imaging" && (
+              <>
+                <div className="grid gap-2">
+                  <Label htmlFor="imagingType">Imaging Type *</Label>
+                  <Input
+                    id="imagingType"
+                    value={formData.imagingType || ""}
+                    onChange={(e) => setFormData({ ...formData, imagingType: e.target.value })}
+                    placeholder="e.g., CT Scan"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="imagingCode">Imaging Code</Label>
+                  <Input
+                    id="imagingCode"
+                    value={formData.imagingCode || ""}
+                    onChange={(e) => setFormData({ ...formData, imagingCode: e.target.value })}
+                    placeholder="e.g., CT001"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="modality">Modality</Label>
+                    <Input
+                      id="modality"
+                      value={formData.modality || ""}
+                      onChange={(e) => setFormData({ ...formData, modality: e.target.value })}
+                      placeholder="e.g., CT"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="bodyPart">Body Part</Label>
+                    <Input
+                      id="bodyPart"
+                      value={formData.bodyPart || ""}
+                      onChange={(e) => setFormData({ ...formData, bodyPart: e.target.value })}
+                      placeholder="e.g., Head"
+                    />
+                  </div>
+                </div>
+              </>
+            )}
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="category">Category</Label>
+                <Input
+                  id="category"
+                  value={formData.category || ""}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  placeholder="e.g., Diagnostic"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="basePrice">Base Price (£) *</Label>
+                <Input
+                  id="basePrice"
+                  type="number"
+                  step="0.01"
+                  value={formData.basePrice || ""}
+                  onChange={(e) => setFormData({ ...formData, basePrice: e.target.value })}
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea
+                id="notes"
+                value={formData.notes || ""}
+                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                placeholder="Additional notes or description"
+                rows={3}
+              />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Switch
+                id="isActive"
+                checked={formData.isActive || false}
+                onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
+              />
+              <Label htmlFor="isActive">Active</Label>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSave} disabled={isSaving}>
+              {isSaving ? "Saving..." : editingItem ? "Update" : "Create"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </Tabs>
+  );
+}
+
 export default function BillingPage() {
   const { user } = useAuth();
   const isDoctor = isDoctorLike(user?.role);
@@ -2705,52 +3146,7 @@ export default function BillingPage() {
                       </p>
                     </CardHeader>
                     <CardContent>
-                      <Tabs defaultValue="doctors" className="w-full">
-                        <TabsList className="grid w-full grid-cols-3">
-                          <TabsTrigger value="doctors">Doctors Fees</TabsTrigger>
-                          <TabsTrigger value="lab-tests">Lab Tests</TabsTrigger>
-                          <TabsTrigger value="imaging">Imaging</TabsTrigger>
-                        </TabsList>
-
-                        <TabsContent value="doctors" className="space-y-4 mt-4">
-                          <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-lg font-semibold">Doctors Fee Pricing</h3>
-                            <Button size="sm">
-                              <Plus className="h-4 w-4 mr-2" />
-                              Add Doctor Fee
-                            </Button>
-                          </div>
-                          <div className="text-center py-8 text-gray-500">
-                            <p>No doctor fees configured yet. Click "Add Doctor Fee" to get started.</p>
-                          </div>
-                        </TabsContent>
-
-                        <TabsContent value="lab-tests" className="space-y-4 mt-4">
-                          <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-lg font-semibold">Lab Test Pricing</h3>
-                            <Button size="sm">
-                              <Plus className="h-4 w-4 mr-2" />
-                              Add Lab Test
-                            </Button>
-                          </div>
-                          <div className="text-center py-8 text-gray-500">
-                            <p>No lab test pricing configured yet. Click "Add Lab Test" to get started.</p>
-                          </div>
-                        </TabsContent>
-
-                        <TabsContent value="imaging" className="space-y-4 mt-4">
-                          <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-lg font-semibold">Imaging Pricing</h3>
-                            <Button size="sm">
-                              <Plus className="h-4 w-4 mr-2" />
-                              Add Imaging Service
-                            </Button>
-                          </div>
-                          <div className="text-center py-8 text-gray-500">
-                            <p>No imaging pricing configured yet. Click "Add Imaging Service" to get started.</p>
-                          </div>
-                        </TabsContent>
-                      </Tabs>
+                      <PricingManagementDashboard />
                     </CardContent>
                   </Card>
                 </TabsContent>
