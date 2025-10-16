@@ -828,86 +828,109 @@ export default function PrescriptionsPage() {
           const { jsPDF } = await import('jspdf');
           const pdf = new jsPDF();
           
-          // Header Section
-          pdf.setFillColor(79, 70, 229); // Primary blue color
-          pdf.rect(0, 0, 210, 35, 'F');
-          
-          // Title
-          pdf.setTextColor(255, 255, 255);
-          pdf.setFontSize(24);
+          // Professional Header - Similar to medical prescription format
+          pdf.setFontSize(16);
           pdf.setFont('helvetica', 'bold');
-          pdf.text('PRESCRIPTION', 105, 20, { align: 'center' });
+          pdf.setTextColor(0, 0, 0);
+          pdf.text('CURA HEALTH EMR', 20, 20);
           
-          // Prescription Number
+          pdf.setFontSize(9);
+          pdf.setFont('helvetica', 'normal');
+          pdf.text('License # 123456', 20, 26);
+          pdf.text('NPI # 1234567890', 20, 31);
+          
+          // Center Title
+          pdf.setFontSize(18);
+          pdf.setFont('helvetica', 'bold');
+          pdf.text('RESIDENT PHYSICIAN M.D', 105, 50, { align: 'center' });
+          
+          // Pharmacy/Clinic Information
           pdf.setFontSize(10);
           pdf.setFont('helvetica', 'normal');
-          pdf.text(`Prescription No: ${prescriptionNumber}`, 105, 28, { align: 'center' });
+          const pharmacyName = pharmacyData?.name || 'Halo Health Clinic';
+          pdf.text(pharmacyName, 105, 58, { align: 'center' });
+          pdf.text('Unit 2 Drayton Court, Solihull', 105, 64, { align: 'center' });
+          pdf.text('B90 4NG, UK', 105, 70, { align: 'center' });
+          pdf.text('+44(0)121 827 5531', 105, 76, { align: 'center' });
           
-          // Reset text color
-          pdf.setTextColor(0, 0, 0);
+          // Horizontal line separator
+          pdf.setDrawColor(200, 200, 200);
+          pdf.line(20, 85, 190, 85);
           
-          // Patient Information Section
-          pdf.setFontSize(14);
-          pdf.setFont('helvetica', 'bold');
-          pdf.text('Patient Information', 20, 50);
-          
+          // Prescription Number - Prominent Display
           pdf.setFontSize(11);
+          pdf.setFont('helvetica', 'bold');
+          pdf.text(`Prescription No: ${prescriptionNumber}`, 20, 95);
+          
+          // Date
+          const prescriptionDate = prescriptionData.issuedDate || prescriptionData.date || new Date();
           pdf.setFont('helvetica', 'normal');
-          pdf.text(`Name: ${prescriptionData.patientName || 'N/A'}`, 20, 60);
-          pdf.text(`Date: ${new Date(prescriptionData.date).toLocaleDateString('en-GB')}`, 20, 68);
+          pdf.text(`Date: ${new Date(prescriptionDate).toLocaleDateString('en-GB')}`, 20, 102);
+          
+          // Patient Information
+          pdf.setFontSize(11);
+          pdf.setFont('helvetica', 'bold');
+          pdf.text('PATIENT INFORMATION', 20, 115);
+          
+          pdf.setFontSize(10);
+          pdf.setFont('helvetica', 'normal');
+          pdf.text(`Name: ${prescriptionData.patientName || 'N/A'}`, 20, 123);
+          pdf.text(`Sex: ${prescriptionData.patientSex || 'Not specified'}`, 20, 130);
           
           // Provider Information
-          pdf.setFontSize(14);
-          pdf.setFont('helvetica', 'bold');
-          pdf.text('Prescribing Provider', 20, 85);
-          
           pdf.setFontSize(11);
-          pdf.setFont('helvetica', 'normal');
-          pdf.text(`Provider: ${prescriptionData.providerName || 'N/A'}`, 20, 95);
-          
-          // Medication Details Section
-          pdf.setFillColor(240, 242, 255);
-          pdf.rect(15, 105, 180, 75, 'F');
-          
-          pdf.setFontSize(14);
           pdf.setFont('helvetica', 'bold');
-          pdf.text('Medication Details', 20, 115);
+          pdf.text('PRESCRIBING PROVIDER', 20, 145);
+          
+          pdf.setFontSize(10);
+          pdf.setFont('helvetica', 'normal');
+          pdf.text(`Provider: ${prescriptionData.providerName || 'N/A'}`, 20, 153);
+          
+          // Medication Details - Highlighted Box
+          pdf.setFillColor(240, 245, 255);
+          pdf.rect(15, 165, 180, 60, 'F');
           
           pdf.setFontSize(12);
           pdf.setFont('helvetica', 'bold');
-          pdf.text(`Rx: ${prescriptionData.medication || 'N/A'}`, 20, 128);
+          pdf.text('MEDICATION PRESCRIBED', 20, 175);
           
           pdf.setFontSize(11);
-          pdf.setFont('helvetica', 'normal');
-          pdf.text(`Dosage: ${prescriptionData.dosage || 'N/A'}`, 20, 140);
-          pdf.text(`Frequency: ${prescriptionData.frequency || 'N/A'}`, 20, 150);
-          pdf.text(`Duration: ${prescriptionData.duration || 'N/A'}`, 20, 160);
+          pdf.setFont('helvetica', 'bold');
+          const medicationName = prescriptionData.medicationName || prescriptionData.medication || 'N/A';
+          pdf.text(`Rx: ${medicationName}`, 20, 186);
           
+          pdf.setFontSize(10);
+          pdf.setFont('helvetica', 'normal');
+          pdf.text(`Dosage: ${prescriptionData.dosage || 'N/A'}`, 20, 195);
+          pdf.text(`Frequency: ${prescriptionData.frequency || 'N/A'}`, 20, 202);
+          pdf.text(`Duration: ${prescriptionData.duration || 'N/A'}`, 20, 209);
+          
+          // Refills if available
           if (prescriptionData.refills !== undefined && prescriptionData.refills !== null) {
-            pdf.text(`Refills: ${prescriptionData.refills}`, 20, 170);
+            pdf.text(`Refills: ${prescriptionData.refills}`, 20, 216);
           }
           
           // Instructions Section
           if (prescriptionData.instructions) {
-            pdf.setFontSize(14);
-            pdf.setFont('helvetica', 'bold');
-            pdf.text('Instructions', 20, 195);
-            
             pdf.setFontSize(11);
+            pdf.setFont('helvetica', 'bold');
+            pdf.text('INSTRUCTIONS', 20, 238);
+            
+            pdf.setFontSize(10);
             pdf.setFont('helvetica', 'normal');
             const splitInstructions = pdf.splitTextToSize(prescriptionData.instructions, 170);
-            pdf.text(splitInstructions, 20, 205);
+            pdf.text(splitInstructions, 20, 246);
           }
           
-          // Footer
-          const footerY = 270;
+          // Footer - Professional
+          const footerY = 275;
           pdf.setDrawColor(200, 200, 200);
           pdf.line(20, footerY, 190, footerY);
           
-          pdf.setFontSize(9);
-          pdf.setTextColor(100, 100, 100);
-          pdf.text('This prescription has been electronically generated and verified', 105, footerY + 8, { align: 'center' });
-          pdf.text('Cura EMR Platform - Electronic Prescription System', 105, footerY + 14, { align: 'center' });
+          pdf.setFontSize(8);
+          pdf.setTextColor(80, 80, 80);
+          pdf.text('This prescription has been electronically generated and verified', 105, footerY + 6, { align: 'center' });
+          pdf.text('Cura EMR Platform - Electronic Prescription System', 105, footerY + 11, { align: 'center' });
           
           // Convert PDF to Blob and then to File
           const pdfBlob = pdf.output('blob');
