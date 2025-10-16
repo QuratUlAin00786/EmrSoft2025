@@ -1,6 +1,6 @@
 import { isDoctorLike } from './utils/role-utils.js';
 import { 
-  organizations, users, patients, medicalRecords, appointments, invoices, payments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages, clinicalPhotos, labResults, claims, revenueRecords, insuranceVerifications, clinicalProcedures, emergencyProtocols, medicationsDatabase, roles, staffShifts, doctorDefaultShifts, gdprConsents, gdprDataRequests, gdprAuditTrail, gdprProcessingActivities, conversations as conversationsTable, messages, voiceNotes, saasOwners, saasPackages, saasSubscriptions, saasPayments, saasInvoices, saasSettings, chatbotConfigs, chatbotSessions, chatbotMessages, chatbotAnalytics, musclePositions, userDocumentPreferences, letterDrafts, forecastModels, financialForecasts, quickbooksConnections, quickbooksSyncLogs, quickbooksCustomerMappings, quickbooksInvoiceMappings, quickbooksPaymentMappings, quickbooksAccountMappings, quickbooksItemMappings, quickbooksSyncConfigs,
+  organizations, users, patients, medicalRecords, appointments, invoices, payments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages, clinicalPhotos, labResults, claims, revenueRecords, insuranceVerifications, clinicalProcedures, emergencyProtocols, medicationsDatabase, roles, staffShifts, doctorDefaultShifts, gdprConsents, gdprDataRequests, gdprAuditTrail, gdprProcessingActivities, conversations as conversationsTable, messages, voiceNotes, saasOwners, saasPackages, saasSubscriptions, saasPayments, saasInvoices, saasSettings, chatbotConfigs, chatbotSessions, chatbotMessages, chatbotAnalytics, musclePositions, userDocumentPreferences, letterDrafts, forecastModels, financialForecasts, quickbooksConnections, quickbooksSyncLogs, quickbooksCustomerMappings, quickbooksInvoiceMappings, quickbooksPaymentMappings, quickbooksAccountMappings, quickbooksItemMappings, quickbooksSyncConfigs, doctorsFee, labTestPricing, imagingPricing,
   type Organization, type InsertOrganization,
   type User, type InsertUser,
   type Role, type InsertRole,
@@ -55,7 +55,10 @@ import {
   type QuickBooksPaymentMapping, type InsertQuickBooksPaymentMapping,
   type QuickBooksAccountMapping, type InsertQuickBooksAccountMapping,
   type QuickBooksItemMapping, type InsertQuickBooksItemMapping,
-  type QuickBooksSyncConfig, type InsertQuickBooksSyncConfig
+  type QuickBooksSyncConfig, type InsertQuickBooksSyncConfig,
+  type DoctorsFee, type InsertDoctorsFee,
+  type LabTestPricing, type InsertLabTestPricing,
+  type ImagingPricing, type InsertImagingPricing
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, count, not, sql, gte, lt, lte, isNotNull, or, ilike, ne } from "drizzle-orm";
@@ -555,6 +558,29 @@ export interface IStorage {
   createQuickBooksSyncConfig(config: InsertQuickBooksSyncConfig): Promise<QuickBooksSyncConfig>;
   updateQuickBooksSyncConfig(id: number, organizationId: number, updates: Partial<InsertQuickBooksSyncConfig>): Promise<QuickBooksSyncConfig | undefined>;
   deleteQuickBooksSyncConfig(id: number, organizationId: number): Promise<boolean>;
+
+  // Pricing Management
+  // Doctors Fee
+  getDoctorsFees(organizationId: number): Promise<DoctorsFee[]>;
+  getDoctorsFee(id: number, organizationId: number): Promise<DoctorsFee | undefined>;
+  getDoctorsFeesByDoctor(doctorId: number, organizationId: number): Promise<DoctorsFee[]>;
+  createDoctorsFee(fee: InsertDoctorsFee): Promise<DoctorsFee>;
+  updateDoctorsFee(id: number, organizationId: number, updates: Partial<InsertDoctorsFee>): Promise<DoctorsFee | undefined>;
+  deleteDoctorsFee(id: number, organizationId: number): Promise<boolean>;
+  
+  // Lab Test Pricing
+  getLabTestPricing(organizationId: number): Promise<LabTestPricing[]>;
+  getLabTestPricingById(id: number, organizationId: number): Promise<LabTestPricing | undefined>;
+  createLabTestPricing(pricing: InsertLabTestPricing): Promise<LabTestPricing>;
+  updateLabTestPricing(id: number, organizationId: number, updates: Partial<InsertLabTestPricing>): Promise<LabTestPricing | undefined>;
+  deleteLabTestPricing(id: number, organizationId: number): Promise<boolean>;
+  
+  // Imaging Pricing
+  getImagingPricing(organizationId: number): Promise<ImagingPricing[]>;
+  getImagingPricingById(id: number, organizationId: number): Promise<ImagingPricing | undefined>;
+  createImagingPricing(pricing: InsertImagingPricing): Promise<ImagingPricing>;
+  updateImagingPricing(id: number, organizationId: number, updates: Partial<InsertImagingPricing>): Promise<ImagingPricing | undefined>;
+  deleteImagingPricing(id: number, organizationId: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {

@@ -2830,6 +2830,116 @@ export const quickbooksSyncConfigs = pgTable("quickbooks_sync_configs", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Pricing Management Tables
+
+// Doctors Fee Pricing Table
+export const doctorsFee = pgTable("doctors_fee", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
+  doctorId: integer("doctor_id").references(() => users.id),
+  serviceName: text("service_name").notNull(),
+  serviceCode: varchar("service_code", { length: 50 }),
+  category: varchar("category", { length: 100 }),
+  basePrice: decimal("base_price", { precision: 10, scale: 2 }).notNull(),
+  currency: varchar("currency", { length: 3 }).notNull().default("GBP"),
+  version: integer("version").notNull().default(1),
+  effectiveDate: timestamp("effective_date").notNull().defaultNow(),
+  expiryDate: timestamp("expiry_date"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  notes: text("notes"),
+  metadata: jsonb("metadata").$type<{
+    previousPrice?: number;
+    changeReason?: string;
+    approvedBy?: number;
+  }>().default({}),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Lab Test Pricing Table
+export const labTestPricing = pgTable("lab_test_pricing", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
+  testName: text("test_name").notNull(),
+  testCode: varchar("test_code", { length: 50 }),
+  category: varchar("category", { length: 100 }),
+  basePrice: decimal("base_price", { precision: 10, scale: 2 }).notNull(),
+  currency: varchar("currency", { length: 3 }).notNull().default("GBP"),
+  version: integer("version").notNull().default(1),
+  effectiveDate: timestamp("effective_date").notNull().defaultNow(),
+  expiryDate: timestamp("expiry_date"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  notes: text("notes"),
+  metadata: jsonb("metadata").$type<{
+    previousPrice?: number;
+    changeReason?: string;
+    approvedBy?: number;
+    sampleType?: string;
+    turnaroundTime?: string;
+  }>().default({}),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Imaging Pricing Table
+export const imagingPricing = pgTable("imaging_pricing", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
+  imagingType: text("imaging_type").notNull(),
+  imagingCode: varchar("imaging_code", { length: 50 }),
+  modality: varchar("modality", { length: 50 }),
+  bodyPart: varchar("body_part", { length: 100 }),
+  category: varchar("category", { length: 100 }),
+  basePrice: decimal("base_price", { precision: 10, scale: 2 }).notNull(),
+  currency: varchar("currency", { length: 3 }).notNull().default("GBP"),
+  version: integer("version").notNull().default(1),
+  effectiveDate: timestamp("effective_date").notNull().defaultNow(),
+  expiryDate: timestamp("expiry_date"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  notes: text("notes"),
+  metadata: jsonb("metadata").$type<{
+    previousPrice?: number;
+    changeReason?: string;
+    approvedBy?: number;
+    contrast?: boolean;
+    duration?: string;
+  }>().default({}),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Pricing Insert Schemas
+export const insertDoctorsFeeSchema = createInsertSchema(doctorsFee).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertLabTestPricingSchema = createInsertSchema(labTestPricing).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertImagingPricingSchema = createInsertSchema(imagingPricing).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Pricing Types
+export type DoctorsFee = typeof doctorsFee.$inferSelect;
+export type InsertDoctorsFee = z.infer<typeof insertDoctorsFeeSchema>;
+
+export type LabTestPricing = typeof labTestPricing.$inferSelect;
+export type InsertLabTestPricing = z.infer<typeof insertLabTestPricingSchema>;
+
+export type ImagingPricing = typeof imagingPricing.$inferSelect;
+export type InsertImagingPricing = z.infer<typeof insertImagingPricingSchema>;
+
 // QuickBooks Insert Schemas
 export const insertQuickBooksConnectionSchema = createInsertSchema(quickbooksConnections).omit({
   id: true,
