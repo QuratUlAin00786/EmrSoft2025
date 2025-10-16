@@ -1645,10 +1645,10 @@ export default function ImagingPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                      Pending Reports
+                      In Process Reports
                     </p>
                     <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                      5
+                      {studies.filter((study: any) => study.status === "in_progress").length}
                     </p>
                   </div>
                   <FileText className="h-8 w-8 text-yellow-600" />
