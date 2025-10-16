@@ -2032,7 +2032,16 @@ export default function ImagingPage() {
                               {study.images.map((series: any) => (
                                 <div
                                   key={series.id}
-                                  className="bg-gray-50 dark:bg-slate-600 p-3 rounded-lg border dark:border-slate-500"
+                                  className="bg-gray-50 dark:bg-slate-600 p-3 rounded-lg border dark:border-slate-500 cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-500 transition-colors"
+                                  onClick={() => {
+                                    const imageUrl = `/uploads/Imaging_Images/${study.patientId}_Images.png`;
+                                    setSelectedImageSeries({
+                                      ...series,
+                                      imageUrl: imageUrl,
+                                      fileName: `${study.patientId}_Images.png`
+                                    });
+                                    setShowImageViewer(true);
+                                  }}
                                 >
                                   <div className="font-medium text-sm text-gray-900 dark:text-gray-100">
                                     {series.seriesDescription}
