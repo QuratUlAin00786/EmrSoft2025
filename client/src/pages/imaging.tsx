@@ -1680,10 +1680,10 @@ export default function ImagingPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                      Urgent Studies
+                      Completed Studies
                     </p>
                     <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                      3
+                      {studies.filter((study: any) => study.status === "completed").length}
                     </p>
                   </div>
                   <Zap className="h-8 w-8 text-red-600" />
