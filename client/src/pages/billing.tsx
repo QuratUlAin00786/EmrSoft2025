@@ -80,6 +80,16 @@ interface Invoice {
   }>;
 }
 
+const DOCTOR_SERVICE_OPTIONS = [
+  { value: "General Consultation", description: "Standard visit for diagnosis or follow-up" },
+  { value: "Specialist Consultation", description: "Visit with a specialist doctor (e.g., Cardiologist)" },
+  { value: "Follow-up Visit", description: "Follow-up within a certain time period" },
+  { value: "Teleconsultation", description: "Online or phone consultation" },
+  { value: "Emergency Visit", description: "Immediate or off-hours consultation" },
+  { value: "Home Visit", description: "Doctor visits patient's home" },
+  { value: "Procedure Consultation", description: "Pre- or post-surgery consultation" }
+];
+
 function PricingManagementDashboard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -88,6 +98,21 @@ function PricingManagementDashboard() {
   const [editingItem, setEditingItem] = useState<any>(null);
   const [formData, setFormData] = useState<any>({});
   const [isSaving, setIsSaving] = useState(false);
+  const [showServiceSuggestions, setShowServiceSuggestions] = useState(false);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('#serviceName') && !target.closest('.service-suggestions')) {
+        setShowServiceSuggestions(false);
+      }
+    };
+    
+    if (showServiceSuggestions) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showServiceSuggestions]);
 
   const getApiPath = (tab: string) => {
     const pathMap: Record<string, string> = {
@@ -376,14 +401,51 @@ function PricingManagementDashboard() {
           <div className="grid gap-4 py-4">
             {pricingTab === "doctors" && (
               <>
-                <div className="grid gap-2">
+                <div className="grid gap-2 relative">
                   <Label htmlFor="serviceName">Service Name *</Label>
                   <Input
                     id="serviceName"
                     value={formData.serviceName || ""}
-                    onChange={(e) => setFormData({ ...formData, serviceName: e.target.value })}
+                    onChange={(e) => {
+                      setFormData({ ...formData, serviceName: e.target.value });
+                      setShowServiceSuggestions(true);
+                    }}
+                    onFocus={() => setShowServiceSuggestions(true)}
                     placeholder="e.g., General Consultation"
+                    autoComplete="off"
                   />
+                  {showServiceSuggestions && (
+                    <div className="service-suggestions absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg max-h-60 overflow-auto top-full">
+                      {DOCTOR_SERVICE_OPTIONS
+                        .filter(option => 
+                          !formData.serviceName || 
+                          option.value.toLowerCase().includes(formData.serviceName.toLowerCase()) ||
+                          option.description.toLowerCase().includes(formData.serviceName.toLowerCase())
+                        )
+                        .map((option, index) => (
+                          <div
+                            key={index}
+                            className="px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-b-0"
+                            onClick={() => {
+                              setFormData({ ...formData, serviceName: option.value });
+                              setShowServiceSuggestions(false);
+                            }}
+                          >
+                            <div className="font-medium text-sm">{option.value}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">{option.description}</div>
+                          </div>
+                        ))}
+                      {DOCTOR_SERVICE_OPTIONS.filter(option => 
+                        !formData.serviceName || 
+                        option.value.toLowerCase().includes(formData.serviceName.toLowerCase()) ||
+                        option.description.toLowerCase().includes(formData.serviceName.toLowerCase())
+                      ).length === 0 && formData.serviceName && (
+                        <div className="px-4 py-3 text-sm text-gray-500">
+                          No matches found. You can enter a custom service name.
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="serviceCode">Service Code</Label>
