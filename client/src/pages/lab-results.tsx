@@ -4568,12 +4568,34 @@ Report generated from Cura EMR System`;
               {/* Test Result Fields Based on Test Type(s) - Multiple tests support */}
               {(() => {
                 // Parse test types - may be comma-separated for multiple tests
-                const testTypes = selectedLabOrder.testType
+                const allTestTypes = selectedLabOrder.testType
                   .split(',')
-                  .map((t: string) => t.trim())
-                  .filter((t: string) => TEST_FIELD_DEFINITIONS[t]);
+                  .map((t: string) => t.trim());
+                
+                const testTypes = allTestTypes.filter((t: string) => TEST_FIELD_DEFINITIONS[t]);
 
-                if (testTypes.length === 0) return null;
+                // Debug: Log test types for troubleshooting
+                console.log('📋 All test types from order:', allTestTypes);
+                console.log('✅ Test types with definitions:', testTypes);
+                console.log('❌ Test types WITHOUT definitions:', allTestTypes.filter(t => !TEST_FIELD_DEFINITIONS[t]));
+
+                if (testTypes.length === 0) {
+                  return (
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                      <p className="text-sm text-yellow-800">
+                        <strong>No parameter fields available for these tests:</strong>
+                      </p>
+                      <ul className="list-disc list-inside mt-2 text-sm text-yellow-700">
+                        {allTestTypes.map((test, idx) => (
+                          <li key={idx}>{test}</li>
+                        ))}
+                      </ul>
+                      <p className="text-xs text-yellow-600 mt-2">
+                        Please contact support if these test types should have parameter fields.
+                      </p>
+                    </div>
+                  );
+                }
 
                 // Validation function for field values
                 const validateField = (fieldKey: string, value: string): string => {
