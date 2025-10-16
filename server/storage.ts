@@ -6637,6 +6637,131 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(quickbooksSyncConfigs.id, id), eq(quickbooksSyncConfigs.organizationId, organizationId)));
     return result.rowCount > 0;
   }
+
+  // Pricing Management - Doctors Fee
+  async getDoctorsFees(organizationId: number): Promise<DoctorsFee[]> {
+    return await db
+      .select()
+      .from(doctorsFee)
+      .where(eq(doctorsFee.organizationId, organizationId))
+      .orderBy(desc(doctorsFee.createdAt));
+  }
+
+  async getDoctorsFee(id: number, organizationId: number): Promise<DoctorsFee | undefined> {
+    const [fee] = await db
+      .select()
+      .from(doctorsFee)
+      .where(and(eq(doctorsFee.id, id), eq(doctorsFee.organizationId, organizationId)));
+    return fee || undefined;
+  }
+
+  async getDoctorsFeesByDoctor(doctorId: number, organizationId: number): Promise<DoctorsFee[]> {
+    return await db
+      .select()
+      .from(doctorsFee)
+      .where(and(eq(doctorsFee.doctorId, doctorId), eq(doctorsFee.organizationId, organizationId)))
+      .orderBy(desc(doctorsFee.createdAt));
+  }
+
+  async createDoctorsFee(fee: InsertDoctorsFee): Promise<DoctorsFee> {
+    const [created] = await db.insert(doctorsFee).values([fee]).returning();
+    return created;
+  }
+
+  async updateDoctorsFee(id: number, organizationId: number, updates: Partial<InsertDoctorsFee>): Promise<DoctorsFee | undefined> {
+    const updateData = { ...updates, updatedAt: new Date() };
+    const [updated] = await db
+      .update(doctorsFee)
+      .set(updateData)
+      .where(and(eq(doctorsFee.id, id), eq(doctorsFee.organizationId, organizationId)))
+      .returning();
+    return updated || undefined;
+  }
+
+  async deleteDoctorsFee(id: number, organizationId: number): Promise<boolean> {
+    const result = await db
+      .delete(doctorsFee)
+      .where(and(eq(doctorsFee.id, id), eq(doctorsFee.organizationId, organizationId)));
+    return result.rowCount > 0;
+  }
+
+  // Pricing Management - Lab Test Pricing
+  async getLabTestPricing(organizationId: number): Promise<LabTestPricing[]> {
+    return await db
+      .select()
+      .from(labTestPricing)
+      .where(eq(labTestPricing.organizationId, organizationId))
+      .orderBy(desc(labTestPricing.createdAt));
+  }
+
+  async getLabTestPricingById(id: number, organizationId: number): Promise<LabTestPricing | undefined> {
+    const [pricing] = await db
+      .select()
+      .from(labTestPricing)
+      .where(and(eq(labTestPricing.id, id), eq(labTestPricing.organizationId, organizationId)));
+    return pricing || undefined;
+  }
+
+  async createLabTestPricing(pricing: InsertLabTestPricing): Promise<LabTestPricing> {
+    const [created] = await db.insert(labTestPricing).values([pricing]).returning();
+    return created;
+  }
+
+  async updateLabTestPricing(id: number, organizationId: number, updates: Partial<InsertLabTestPricing>): Promise<LabTestPricing | undefined> {
+    const updateData = { ...updates, updatedAt: new Date() };
+    const [updated] = await db
+      .update(labTestPricing)
+      .set(updateData)
+      .where(and(eq(labTestPricing.id, id), eq(labTestPricing.organizationId, organizationId)))
+      .returning();
+    return updated || undefined;
+  }
+
+  async deleteLabTestPricing(id: number, organizationId: number): Promise<boolean> {
+    const result = await db
+      .delete(labTestPricing)
+      .where(and(eq(labTestPricing.id, id), eq(labTestPricing.organizationId, organizationId)));
+    return result.rowCount > 0;
+  }
+
+  // Pricing Management - Imaging Pricing
+  async getImagingPricing(organizationId: number): Promise<ImagingPricing[]> {
+    return await db
+      .select()
+      .from(imagingPricing)
+      .where(eq(imagingPricing.organizationId, organizationId))
+      .orderBy(desc(imagingPricing.createdAt));
+  }
+
+  async getImagingPricingById(id: number, organizationId: number): Promise<ImagingPricing | undefined> {
+    const [pricing] = await db
+      .select()
+      .from(imagingPricing)
+      .where(and(eq(imagingPricing.id, id), eq(imagingPricing.organizationId, organizationId)));
+    return pricing || undefined;
+  }
+
+  async createImagingPricing(pricing: InsertImagingPricing): Promise<ImagingPricing> {
+    const [created] = await db.insert(imagingPricing).values([pricing]).returning();
+    return created;
+  }
+
+  async updateImagingPricing(id: number, organizationId: number, updates: Partial<InsertImagingPricing>): Promise<ImagingPricing | undefined> {
+    const updateData = { ...updates, updatedAt: new Date() };
+    const [updated] = await db
+      .update(imagingPricing)
+      .set(updateData)
+      .where(and(eq(imagingPricing.id, id), eq(imagingPricing.organizationId, organizationId)))
+      .returning();
+    return updated || undefined;
+  }
+
+  async deleteImagingPricing(id: number, organizationId: number): Promise<boolean> {
+    const result = await db
+      .delete(imagingPricing)
+      .where(and(eq(imagingPricing.id, id), eq(imagingPricing.organizationId, organizationId)));
+    return result.rowCount > 0;
+  }
 }
 
 export const storage = new DatabaseStorage();
