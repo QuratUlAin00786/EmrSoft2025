@@ -1804,7 +1804,16 @@ export default function BillingPage() {
                               <div className="flex items-center justify-between">
                                 <div>
                                   <p className="text-sm text-gray-600 dark:text-gray-400">Total Outstanding</p>
-                                  <p className="text-2xl font-bold text-red-600 dark:text-red-400">£12,450</p>
+                                  <p className="text-2xl font-bold text-red-600 dark:text-red-400">
+                                    £{(() => {
+                                      const overdueInvoices = invoices.filter((inv: any) => inv.status === 'overdue');
+                                      const total = overdueInvoices.reduce((sum: number, inv: any) => {
+                                        const amount = typeof inv.totalAmount === 'string' ? parseFloat(inv.totalAmount) : inv.totalAmount;
+                                        return sum + amount;
+                                      }, 0);
+                                      return total.toFixed(2);
+                                    })()}
+                                  </p>
                                 </div>
                                 <AlertTriangle className="h-8 w-8 text-red-600" />
                               </div>
@@ -1815,7 +1824,22 @@ export default function BillingPage() {
                               <div className="flex items-center justify-between">
                                 <div>
                                   <p className="text-sm text-gray-600 dark:text-gray-400">Overdue (&gt;30 days)</p>
-                                  <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">£4,230</p>
+                                  <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                                    £{(() => {
+                                      const overdueInvoices = invoices.filter((inv: any) => inv.status === 'overdue');
+                                      const now = new Date();
+                                      const overdue30 = overdueInvoices.filter((inv: any) => {
+                                        const dueDate = new Date(inv.dueDate);
+                                        const daysOverdue = Math.floor((now.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
+                                        return daysOverdue > 30;
+                                      });
+                                      const total = overdue30.reduce((sum: number, inv: any) => {
+                                        const amount = typeof inv.totalAmount === 'string' ? parseFloat(inv.totalAmount) : inv.totalAmount;
+                                        return sum + amount;
+                                      }, 0);
+                                      return total.toFixed(2);
+                                    })()}
+                                  </p>
                                 </div>
                                 <Clock className="h-8 w-8 text-orange-600" />
                               </div>
@@ -1826,7 +1850,22 @@ export default function BillingPage() {
                               <div className="flex items-center justify-between">
                                 <div>
                                   <p className="text-sm text-gray-600 dark:text-gray-400">Pending (&lt;30 days)</p>
-                                  <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">£8,220</p>
+                                  <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+                                    £{(() => {
+                                      const overdueInvoices = invoices.filter((inv: any) => inv.status === 'overdue');
+                                      const now = new Date();
+                                      const pending30 = overdueInvoices.filter((inv: any) => {
+                                        const dueDate = new Date(inv.dueDate);
+                                        const daysOverdue = Math.floor((now.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
+                                        return daysOverdue <= 30;
+                                      });
+                                      const total = pending30.reduce((sum: number, inv: any) => {
+                                        const amount = typeof inv.totalAmount === 'string' ? parseFloat(inv.totalAmount) : inv.totalAmount;
+                                        return sum + amount;
+                                      }, 0);
+                                      return total.toFixed(2);
+                                    })()}
+                                  </p>
                                 </div>
                                 <FileText className="h-8 w-8 text-yellow-600" />
                               </div>
@@ -1850,24 +1889,36 @@ export default function BillingPage() {
                               </tr>
                             </thead>
                             <tbody>
-                              <tr className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
-                                <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">INV-2024-001</td>
-                                <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">John Smith</td>
-                                <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100 text-right font-medium">£2,450</td>
-                                <td className="px-4 py-3 text-sm text-red-600 dark:text-red-400">45 days</td>
-                                <td className="px-4 py-3 text-sm">
-                                  <Badge className="bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400">Overdue</Badge>
-                                </td>
-                              </tr>
-                              <tr className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
-                                <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">INV-2024-002</td>
-                                <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">Jane Doe</td>
-                                <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100 text-right font-medium">£1,780</td>
-                                <td className="px-4 py-3 text-sm text-orange-600 dark:text-orange-400">35 days</td>
-                                <td className="px-4 py-3 text-sm">
-                                  <Badge className="bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400">Overdue</Badge>
-                                </td>
-                              </tr>
+                              {invoices.filter((inv: any) => inv.status === 'overdue').length === 0 ? (
+                                <tr>
+                                  <td colSpan={5} className="px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                                    No overdue invoices found
+                                  </td>
+                                </tr>
+                              ) : (
+                                invoices.filter((inv: any) => inv.status === 'overdue').map((invoice: any) => {
+                                  const dueDate = new Date(invoice.dueDate);
+                                  const now = new Date();
+                                  const daysOverdue = Math.floor((now.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
+                                  const amount = typeof invoice.totalAmount === 'string' ? parseFloat(invoice.totalAmount) : invoice.totalAmount;
+                                  
+                                  return (
+                                    <tr key={invoice.id} className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
+                                      <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">{invoice.invoiceNumber}</td>
+                                      <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{invoice.patientName || invoice.patientId}</td>
+                                      <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100 text-right font-medium">£{amount.toFixed(2)}</td>
+                                      <td className={`px-4 py-3 text-sm ${daysOverdue > 30 ? 'text-red-600 dark:text-red-400' : 'text-orange-600 dark:text-orange-400'}`}>
+                                        {daysOverdue} days
+                                      </td>
+                                      <td className="px-4 py-3 text-sm">
+                                        <Badge className={`${daysOverdue > 30 ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400' : 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400'}`}>
+                                          Overdue
+                                        </Badge>
+                                      </td>
+                                    </tr>
+                                  );
+                                })
+                              )}
                             </tbody>
                           </table>
                         </div>
