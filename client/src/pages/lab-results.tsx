@@ -4802,7 +4802,7 @@ Report generated from Cura EMR System`;
                     // Build results array from filled values - supports multiple tests
                     const results: any[] = [];
                     const testTypes = selectedLabOrder.testType
-                      .split(',')
+                      .split(' | ')
                       .map((t: string) => t.trim())
                       .filter((t: string) => TEST_FIELD_DEFINITIONS[t]);
                     
@@ -4997,7 +4997,7 @@ Report generated from Cura EMR System`;
                     // Build results array from filled values - supports multiple tests
                     const results: any[] = [];
                     const testTypes = selectedLabOrder.testType
-                      .split(',')
+                      .split(' | ')
                       .map((t: string) => t.trim())
                       .filter((t: string) => TEST_FIELD_DEFINITIONS[t]);
                     
