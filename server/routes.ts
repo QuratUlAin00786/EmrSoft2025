@@ -13798,6 +13798,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         paymentStatus: 'completed',
         paymentDate: new Date(),
         reference: invoiceNumber,
+        metadata: {
+          patientName: patientName
+        },
         notes: `Cash payment for lab test invoice ${invoiceNumber}`
       };
 
@@ -13938,6 +13941,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         paymentDate: new Date(),
         reference: invoiceNumber,
         metadata: {
+          patientName: metadata.patientName,
           stripePaymentIntentId: paymentIntentId,
           cardLast4: paymentIntent.charges.data[0]?.payment_method_details?.card?.last4
         },

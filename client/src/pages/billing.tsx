@@ -1477,9 +1477,13 @@ export default function BillingPage() {
                           <tbody>
                             {Array.isArray(payments) && payments.length > 0 ? (
                               payments.map((payment: any) => {
-                                // Find the patient by patientId
-                                const patient = patients?.find((p: any) => p.patientId === payment.patientId);
-                                const patientName = patient ? `${patient.firstName} ${patient.lastName}` : payment.patientId;
+                                // Get patient name from metadata first, then fall back to looking up patient
+                                let patientName = payment.metadata?.patientName;
+                                
+                                if (!patientName) {
+                                  const patient = patients?.find((p: any) => p.patientId === payment.patientId);
+                                  patientName = patient ? `${patient.firstName} ${patient.lastName}` : payment.patientId;
+                                }
                                 
                                 // Find the invoice by invoiceId
                                 const invoice = invoices?.find((inv: any) => inv.id === payment.invoiceId);
