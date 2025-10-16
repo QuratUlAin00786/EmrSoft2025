@@ -544,6 +544,113 @@ function PricingManagementDashboard() {
           <div className="grid gap-4 py-4">
             {pricingTab === "doctors" && !editingItem && (
               <>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2 relative">
+                    <Label htmlFor="bulkDoctorRole">Role</Label>
+                    <Input
+                      id="bulkDoctorRole"
+                      value={formData.doctorRole || ""}
+                      onChange={(e) => {
+                        setFormData({ ...formData, doctorRole: e.target.value, doctorName: "", doctorId: null });
+                        setShowRoleSuggestions(true);
+                      }}
+                      onFocus={() => setShowRoleSuggestions(true)}
+                      placeholder="Select role"
+                      autoComplete="off"
+                      data-testid="input-bulk-role"
+                    />
+                    {showRoleSuggestions && (
+                      <div className="role-suggestions absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg max-h-60 overflow-auto top-full">
+                        {roles
+                          .filter((role: any) => 
+                            role.name !== 'patient' && 
+                            role.name !== 'admin' &&
+                            (!formData.doctorRole || 
+                            role.displayName.toLowerCase().includes(formData.doctorRole.toLowerCase()) ||
+                            role.name.toLowerCase().includes(formData.doctorRole.toLowerCase()))
+                          )
+                          .map((role: any, index: number) => (
+                            <div
+                              key={index}
+                              className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+                              onClick={() => {
+                                setFormData({ ...formData, doctorRole: role.name, doctorName: "", doctorId: null });
+                                setShowRoleSuggestions(false);
+                              }}
+                            >
+                              <div className="font-medium text-sm">{role.displayName}</div>
+                            </div>
+                          ))}
+                        {roles.filter((role: any) => 
+                          role.name !== 'patient' && 
+                          role.name !== 'admin' &&
+                          (!formData.doctorRole || 
+                          role.displayName.toLowerCase().includes(formData.doctorRole.toLowerCase()) ||
+                          role.name.toLowerCase().includes(formData.doctorRole.toLowerCase()))
+                        ).length === 0 && formData.doctorRole && (
+                          <div className="px-4 py-3 text-sm text-gray-500">
+                            No roles found. You can enter a custom role name.
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="grid gap-2 relative">
+                    <Label htmlFor="bulkDoctorName">Select Name</Label>
+                    <Input
+                      id="bulkDoctorName"
+                      value={formData.doctorName || ""}
+                      onChange={(e) => {
+                        setFormData({ ...formData, doctorName: e.target.value });
+                        setShowDoctorSuggestions(true);
+                      }}
+                      onFocus={() => setShowDoctorSuggestions(true)}
+                      placeholder="Select or enter name"
+                      autoComplete="off"
+                      data-testid="input-bulk-name"
+                    />
+                    {showDoctorSuggestions && (
+                      <div className="doctor-suggestions absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg max-h-60 overflow-auto top-full">
+                        {filteredUsers
+                          .filter((user: any) => {
+                            const fullName = `${user.firstName} ${user.lastName}`;
+                            return !formData.doctorName || 
+                              fullName.toLowerCase().includes(formData.doctorName.toLowerCase());
+                          })
+                          .map((user: any, index: number) => (
+                            <div
+                              key={index}
+                              className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+                              onClick={() => {
+                                const fullName = `${user.firstName} ${user.lastName}`;
+                                setFormData({ 
+                                  ...formData, 
+                                  doctorName: fullName,
+                                  doctorId: user.id,
+                                  doctorRole: formData.doctorRole || user.role
+                                });
+                                setShowDoctorSuggestions(false);
+                              }}
+                            >
+                              <div className="font-medium text-sm">{user.firstName} {user.lastName}</div>
+                              <div className="text-xs text-gray-500 dark:text-gray-400">{user.role}</div>
+                            </div>
+                          ))}
+                        {filteredUsers.filter((user: any) => {
+                          const fullName = `${user.firstName} ${user.lastName}`;
+                          return !formData.doctorName || 
+                            fullName.toLowerCase().includes(formData.doctorName.toLowerCase());
+                        }).length === 0 && (
+                          <div className="px-4 py-3 text-sm text-gray-500">
+                            No users found. {formData.doctorRole && `Try changing the role filter.`}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 <div className="space-y-2">
                   <Label>Services</Label>
                   <div className="border rounded-md overflow-hidden">
