@@ -1555,7 +1555,7 @@ export default function BillingPage() {
                   <CardHeader>
                     <CardTitle>Invoices</CardTitle>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      All invoices created in the system
+                      Invoices with Insurance Provider: None (Patient Self-Pay)
                     </p>
                   </CardHeader>
                   <CardContent>
@@ -1578,54 +1578,64 @@ export default function BillingPage() {
                             </tr>
                           </thead>
                           <tbody>
-                            {Array.isArray(invoices) && invoices.length > 0 ? (
-                              invoices.map((invoice: any) => {
-                                const totalAmount = typeof invoice.totalAmount === 'string' ? parseFloat(invoice.totalAmount) : invoice.totalAmount;
-                                
-                                return (
-                                  <tr key={invoice.id} className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
-                                    <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">
-                                      {invoice.invoiceNumber || invoice.id}
-                                    </td>
-                                    <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
-                                      {invoice.patientName || invoice.patientId}
-                                    </td>
-                                    <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
-                                      {format(new Date(invoice.dateOfService), 'MMM d, yyyy')}
-                                    </td>
-                                    <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
-                                      {format(new Date(invoice.dueDate), 'MMM d, yyyy')}
-                                    </td>
-                                    <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100 text-right font-medium">
-                                      £{totalAmount.toFixed(2)}
-                                    </td>
-                                    <td className="px-4 py-3 text-sm">
-                                      <Badge className={`${getStatusColor(invoice.status)}`}>
-                                        {invoice.status}
-                                      </Badge>
-                                    </td>
-                                    <td className="px-4 py-3 text-center">
-                                      <Button 
-                                        variant="ghost" 
-                                        size="sm" 
-                                        onClick={() => handleViewInvoice(invoice)} 
-                                        data-testid={`button-view-invoice-${invoice.id}`}
-                                        title="View Invoice"
-                                      >
-                                        <Eye className="h-4 w-4" />
-                                      </Button>
-                                    </td>
-                                  </tr>
-                                );
-                              })
-                            ) : (
-                              <tr>
-                                <td colSpan={7} className="px-4 py-12 text-center text-gray-500 dark:text-gray-400">
-                                  <Receipt className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                                  <p className="text-sm">No invoices available</p>
-                                </td>
-                              </tr>
-                            )}
+                            {(() => {
+                              const selfPayInvoices = Array.isArray(invoices) ? invoices.filter((inv: any) => 
+                                !inv.insurance || 
+                                inv.insurance === null || 
+                                inv.insurance === '' || 
+                                inv.insurance === 'none' || 
+                                (typeof inv.insurance === 'object' && inv.insurance.provider === 'none')
+                              ) : [];
+                              
+                              return selfPayInvoices.length > 0 ? (
+                                selfPayInvoices.map((invoice: any) => {
+                                  const totalAmount = typeof invoice.totalAmount === 'string' ? parseFloat(invoice.totalAmount) : invoice.totalAmount;
+                                  
+                                  return (
+                                    <tr key={invoice.id} className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
+                                      <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">
+                                        {invoice.invoiceNumber || invoice.id}
+                                      </td>
+                                      <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
+                                        {invoice.patientName || invoice.patientId}
+                                      </td>
+                                      <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
+                                        {format(new Date(invoice.dateOfService), 'MMM d, yyyy')}
+                                      </td>
+                                      <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
+                                        {format(new Date(invoice.dueDate), 'MMM d, yyyy')}
+                                      </td>
+                                      <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100 text-right font-medium">
+                                        £{totalAmount.toFixed(2)}
+                                      </td>
+                                      <td className="px-4 py-3 text-sm">
+                                        <Badge className={`${getStatusColor(invoice.status)}`}>
+                                          {invoice.status}
+                                        </Badge>
+                                      </td>
+                                      <td className="px-4 py-3 text-center">
+                                        <Button 
+                                          variant="ghost" 
+                                          size="sm" 
+                                          onClick={() => handleViewInvoice(invoice)} 
+                                          data-testid={`button-view-invoice-${invoice.id}`}
+                                          title="View Invoice"
+                                        >
+                                          <Eye className="h-4 w-4" />
+                                        </Button>
+                                      </td>
+                                    </tr>
+                                  );
+                                })
+                              ) : (
+                                <tr>
+                                  <td colSpan={7} className="px-4 py-12 text-center text-gray-500 dark:text-gray-400">
+                                    <Receipt className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                                    <p className="text-sm">No self-pay invoices available</p>
+                                  </td>
+                                </tr>
+                              );
+                            })()}
                           </tbody>
                         </table>
                       </div>
