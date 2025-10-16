@@ -2806,11 +2806,18 @@ Report generated from Cura EMR System`;
               </Button>
               <Button
                 onClick={async () => {
+                  // Get patient name from pendingOrderData or find from patients list
+                  const patientName = pendingOrderData?.patientName || 
+                    (() => {
+                      const patient = patients.find((p: any) => p.id === pendingOrderData?.patientId);
+                      return patient ? `${patient.firstName} ${patient.lastName}` : '';
+                    })();
+
                   if (invoiceData.paymentMethod === 'cash') {
                     // Handle cash payment
                     createCashPaymentMutation.mutate({
                       patientId: pendingOrderData?.patientId,
-                      patientName: pendingOrderData?.patientName,
+                      patientName: patientName,
                       items: invoiceData.items,
                       totalAmount: invoiceData.totalAmount,
                       insuranceProvider: invoiceData.insuranceProvider,
@@ -2822,7 +2829,7 @@ Report generated from Cura EMR System`;
                     // Handle Stripe payment - setup payment intent
                     createStripePaymentMutation.mutate({
                       patientId: pendingOrderData?.patientId,
-                      patientName: pendingOrderData?.patientName,
+                      patientName: patientName,
                       amount: invoiceData.totalAmount,
                       items: invoiceData.items,
                       insuranceProvider: invoiceData.insuranceProvider,
