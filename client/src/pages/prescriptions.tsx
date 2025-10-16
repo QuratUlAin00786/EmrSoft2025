@@ -925,6 +925,11 @@ export default function PrescriptionsPage() {
           }
           
           // E-Signature Section (if exists)
+          console.log('[PDF GENERATION] Checking for signature:', {
+            hasSignature: !!prescriptionData.signature,
+            signatureData: prescriptionData.signature
+          });
+          
           if (prescriptionData.signature) {
             currentY += 10;
             pdf.setFontSize(11);
@@ -938,10 +943,13 @@ export default function PrescriptionsPage() {
             // Add signature image if available
             if (prescriptionData.signature.imageData) {
               try {
+                console.log('[PDF GENERATION] Adding signature image to PDF');
                 pdf.addImage(prescriptionData.signature.imageData, 'PNG', 20, currentY + 10, 50, 20);
               } catch (err) {
-                console.log('Could not add signature image to PDF');
+                console.log('[PDF GENERATION] Could not add signature image to PDF:', err);
               }
+            } else {
+              console.log('[PDF GENERATION] No signature image data available');
             }
             
             // Add e-signed by info
@@ -960,6 +968,9 @@ export default function PrescriptionsPage() {
               : '';
             pdf.setTextColor(80, 80, 80);
             pdf.text(signedDate, 20, currentY + 41);
+            console.log('[PDF GENERATION] E-signature section added to PDF');
+          } else {
+            console.log('[PDF GENERATION] No signature found in prescription data');
           }
           
           // Footer - Professional
