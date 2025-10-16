@@ -622,7 +622,8 @@ Cura EMR Team
     pharmacyName: string, 
     prescriptionData?: any,
     clinicLogoUrl?: string,
-    organizationName?: string
+    organizationName?: string,
+    hasAttachments: boolean = true
   ): EmailTemplate {
     const subject = `Prescription PDF - ${patientName}`;
     const html = `
@@ -844,14 +845,14 @@ Cura EMR Team
               </div>
             </div>
 
-            <div class="attachment-notice">
+            ${hasAttachments ? `<div class="attachment-notice">
               <div class="attachment-icon">📄</div>
               <h3 style="color: #15803d; margin: 0 0 8px 0;">PDF Attachment Included</h3>
               <p style="margin: 0; color: #166534;">
                 The complete prescription document is attached to this email as a PDF file.
                 <br>Please review and process according to your standard procedures.
               </p>
-            </div>
+            </div>` : ''}
 
             <h3 style="color: #1f2937; margin-top: 30px;">Important Notes:</h3>
             <ul style="color: #4b5563; line-height: 1.6; padding-left: 20px;">
@@ -896,11 +897,11 @@ Prescription Details:
 - System: Cura EMR Platform
 - Generated: ${new Date().toLocaleDateString('en-GB')} at ${new Date().toLocaleTimeString('en-GB')}
 
-PDF Attachment Included
+${hasAttachments ? `PDF Attachment Included
 The complete prescription document is attached to this email as a PDF file.
 Please review and process according to your standard procedures.
 
-Important Notes:
+` : ''}Important Notes:
 - This prescription has been electronically signed and verified
 - Please check the PDF attachment for complete medication details
 - Contact our system if you need any clarification

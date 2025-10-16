@@ -11433,15 +11433,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const clinicLogoUrl = organization?.settings?.theme?.logoUrl;
       const organizationName = organization?.brandName || organization?.name;
 
-      // Generate professional HTML email template with clinic logo and branding
-      const emailTemplate = emailService.generatePrescriptionEmail(
-        patientName || 'Patient',
-        pharmacyName,
-        undefined, // prescriptionData - not needed for this basic email
-        clinicLogoUrl,
-        organizationName
-      );
-
       // Prepare attachments array including user uploaded files
       const attachments: any[] = [];
 
@@ -11456,6 +11447,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log(`Added attachment ${index + 1}: ${file.originalname} (${file.size} bytes)`);
         });
       }
+
+      // Generate professional HTML email template with clinic logo and branding
+      const hasAttachments = attachments.length > 0;
+      const emailTemplate = emailService.generatePrescriptionEmail(
+        patientName || 'Patient',
+        pharmacyName,
+        undefined, // prescriptionData - not needed for this basic email
+        clinicLogoUrl,
+        organizationName,
+        hasAttachments
+      );
 
       // TODO: In a real implementation, generate and add prescription PDF here
       // For now, we'll send the professional HTML email with user attachments
