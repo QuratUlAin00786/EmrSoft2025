@@ -16103,6 +16103,205 @@ Cura EMR Team
       res.status(500).json({ error: "Failed to fetch history" });
     }
   });
+
+  // ========================================
+  // Pricing Management API Routes
+  // ========================================
+
+  // Doctors Fee Routes
+  app.get("/api/pricing/doctors-fees", authMiddleware, requireRole('admin'), multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = requireOrgId(req);
+      const fees = await storage.getDoctorsFees(organizationId);
+      res.json(fees);
+    } catch (error) {
+      handleRouteError(error, "fetch doctors fees", res);
+    }
+  });
+
+  app.get("/api/pricing/doctors-fees/:id", authMiddleware, requireRole('admin'), multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = requireOrgId(req);
+      const fee = await storage.getDoctorsFee(parseInt(req.params.id), organizationId);
+      if (!fee) {
+        return res.status(404).json({ error: "Doctors fee not found" });
+      }
+      res.json(fee);
+    } catch (error) {
+      handleRouteError(error, "fetch doctors fee", res);
+    }
+  });
+
+  app.post("/api/pricing/doctors-fees", authMiddleware, requireRole('admin'), multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = requireOrgId(req);
+      const payload = enforceCreatedBy(req, {
+        ...req.body,
+        organizationId
+      }, 'createdBy');
+      
+      const fee = await storage.createDoctorsFee(payload);
+      res.status(201).json(fee);
+    } catch (error) {
+      handleRouteError(error, "create doctors fee", res);
+    }
+  });
+
+  app.patch("/api/pricing/doctors-fees/:id", authMiddleware, requireRole('admin'), multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = requireOrgId(req);
+      const updated = await storage.updateDoctorsFee(parseInt(req.params.id), organizationId, req.body);
+      if (!updated) {
+        return res.status(404).json({ error: "Doctors fee not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      handleRouteError(error, "update doctors fee", res);
+    }
+  });
+
+  app.delete("/api/pricing/doctors-fees/:id", authMiddleware, requireRole('admin'), multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = requireOrgId(req);
+      const success = await storage.deleteDoctorsFee(parseInt(req.params.id), organizationId);
+      if (!success) {
+        return res.status(404).json({ error: "Doctors fee not found" });
+      }
+      res.json({ message: "Doctors fee deleted successfully" });
+    } catch (error) {
+      handleRouteError(error, "delete doctors fee", res);
+    }
+  });
+
+  // Lab Test Pricing Routes
+  app.get("/api/pricing/lab-tests", authMiddleware, requireRole('admin'), multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = requireOrgId(req);
+      const pricing = await storage.getLabTestPricing(organizationId);
+      res.json(pricing);
+    } catch (error) {
+      handleRouteError(error, "fetch lab test pricing", res);
+    }
+  });
+
+  app.get("/api/pricing/lab-tests/:id", authMiddleware, requireRole('admin'), multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = requireOrgId(req);
+      const pricing = await storage.getLabTestPricingById(parseInt(req.params.id), organizationId);
+      if (!pricing) {
+        return res.status(404).json({ error: "Lab test pricing not found" });
+      }
+      res.json(pricing);
+    } catch (error) {
+      handleRouteError(error, "fetch lab test pricing", res);
+    }
+  });
+
+  app.post("/api/pricing/lab-tests", authMiddleware, requireRole('admin'), multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = requireOrgId(req);
+      const payload = enforceCreatedBy(req, {
+        ...req.body,
+        organizationId
+      }, 'createdBy');
+      
+      const pricing = await storage.createLabTestPricing(payload);
+      res.status(201).json(pricing);
+    } catch (error) {
+      handleRouteError(error, "create lab test pricing", res);
+    }
+  });
+
+  app.patch("/api/pricing/lab-tests/:id", authMiddleware, requireRole('admin'), multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = requireOrgId(req);
+      const updated = await storage.updateLabTestPricing(parseInt(req.params.id), organizationId, req.body);
+      if (!updated) {
+        return res.status(404).json({ error: "Lab test pricing not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      handleRouteError(error, "update lab test pricing", res);
+    }
+  });
+
+  app.delete("/api/pricing/lab-tests/:id", authMiddleware, requireRole('admin'), multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = requireOrgId(req);
+      const success = await storage.deleteLabTestPricing(parseInt(req.params.id), organizationId);
+      if (!success) {
+        return res.status(404).json({ error: "Lab test pricing not found" });
+      }
+      res.json({ message: "Lab test pricing deleted successfully" });
+    } catch (error) {
+      handleRouteError(error, "delete lab test pricing", res);
+    }
+  });
+
+  // Imaging Pricing Routes
+  app.get("/api/pricing/imaging", authMiddleware, requireRole('admin'), multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = requireOrgId(req);
+      const pricing = await storage.getImagingPricing(organizationId);
+      res.json(pricing);
+    } catch (error) {
+      handleRouteError(error, "fetch imaging pricing", res);
+    }
+  });
+
+  app.get("/api/pricing/imaging/:id", authMiddleware, requireRole('admin'), multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = requireOrgId(req);
+      const pricing = await storage.getImagingPricingById(parseInt(req.params.id), organizationId);
+      if (!pricing) {
+        return res.status(404).json({ error: "Imaging pricing not found" });
+      }
+      res.json(pricing);
+    } catch (error) {
+      handleRouteError(error, "fetch imaging pricing", res);
+    }
+  });
+
+  app.post("/api/pricing/imaging", authMiddleware, requireRole('admin'), multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = requireOrgId(req);
+      const payload = enforceCreatedBy(req, {
+        ...req.body,
+        organizationId
+      }, 'createdBy');
+      
+      const pricing = await storage.createImagingPricing(payload);
+      res.status(201).json(pricing);
+    } catch (error) {
+      handleRouteError(error, "create imaging pricing", res);
+    }
+  });
+
+  app.patch("/api/pricing/imaging/:id", authMiddleware, requireRole('admin'), multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = requireOrgId(req);
+      const updated = await storage.updateImagingPricing(parseInt(req.params.id), organizationId, req.body);
+      if (!updated) {
+        return res.status(404).json({ error: "Imaging pricing not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      handleRouteError(error, "update imaging pricing", res);
+    }
+  });
+
+  app.delete("/api/pricing/imaging/:id", authMiddleware, requireRole('admin'), multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = requireOrgId(req);
+      const success = await storage.deleteImagingPricing(parseInt(req.params.id), organizationId);
+      if (!success) {
+        return res.status(404).json({ error: "Imaging pricing not found" });
+      }
+      res.json({ message: "Imaging pricing deleted successfully" });
+    } catch (error) {
+      handleRouteError(error, "delete imaging pricing", res);
+    }
+  });
   
   // Add WebSocket support for real-time messaging
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
