@@ -1699,7 +1699,12 @@ export default function ImagingPage() {
                       This Month
                     </p>
                     <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                      142
+                      {medicalImages.filter((image: any) => {
+                        const createdDate = new Date(image.createdAt);
+                        const today = new Date();
+                        return createdDate.getMonth() === today.getMonth() && 
+                               createdDate.getFullYear() === today.getFullYear();
+                      }).length}
                     </p>
                   </div>
                   <FileImage className="h-8 w-8 text-green-600" />
