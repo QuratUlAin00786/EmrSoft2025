@@ -2836,7 +2836,6 @@ export const quickbooksSyncConfigs = pgTable("quickbooks_sync_configs", {
 export const doctorsFee = pgTable("doctors_fee", {
   id: serial("id").primaryKey(),
   organizationId: integer("organization_id").notNull().references(() => organizations.id),
-  doctorId: integer("doctor_id").references(() => users.id),
   serviceName: text("service_name").notNull(),
   serviceCode: varchar("service_code", { length: 50 }),
   category: varchar("category", { length: 100 }),
