@@ -249,7 +249,7 @@ interface User {
   role?: string;
 }
 
-// Test types for lab orders
+// Test types for lab orders - will be populated from lab_test_pricing table
 const TEST_TYPES = [
   "Complete Blood Count (CBC)",
   "Basic Metabolic Panel",
@@ -649,6 +649,22 @@ export default function LabResultsPage() {
       return res.json();
     },
   });
+
+  const { data: labTestPricing = [] } = useQuery({
+    queryKey: ["/api/pricing/lab-tests"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/pricing/lab-tests");
+      return res.json();
+    },
+  });
+
+  // Generate test types from lab_test_pricing table (filtered by organization_id)
+  const dynamicTestTypes = Array.from(
+    new Set(labTestPricing.map((item: any) => item.testName).filter(Boolean))
+  );
+  
+  // Use dynamic test types if available, otherwise fall back to default TEST_TYPES
+  const availableTestTypes = dynamicTestTypes.length > 0 ? dynamicTestTypes : TEST_TYPES;
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -2297,7 +2313,7 @@ Report generated from Cura EMR System`;
                     <CommandInput placeholder="Search test types..." />
                     <CommandEmpty>No test type found.</CommandEmpty>
                     <CommandGroup>
-                      {TEST_TYPES.map((testType) => (
+                      {availableTestTypes.map((testType) => (
                         <CommandItem
                           key={testType}
                           value={testType}
@@ -3045,7 +3061,7 @@ Report generated from Cura EMR System`;
                               <CommandInput placeholder="Search test types..." />
                               <CommandEmpty>No test type found.</CommandEmpty>
                               <CommandGroup className="max-h-64 overflow-auto">
-                                {TEST_TYPES.map((testType) => (
+                                {availableTestTypes.map((testType) => (
                                   <CommandItem
                                     key={testType}
                                     onSelect={() => {
@@ -4081,7 +4097,7 @@ Report generated from Cura EMR System`;
                     <CommandInput placeholder="Search test types..." />
                     <CommandEmpty>No test type found.</CommandEmpty>
                     <CommandGroup className="max-h-64 overflow-auto">
-                      {TEST_TYPES.map((testType) => (
+                      {availableTestTypes.map((testType) => (
                         <CommandItem
                           key={testType}
                           value={testType}
