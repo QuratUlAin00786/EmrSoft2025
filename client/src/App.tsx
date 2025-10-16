@@ -289,7 +289,6 @@ function ProtectedApp() {
           <Route path="/:subdomain/imaging" component={ImagingPage} />
           <Route path="/:subdomain/forms" component={FormsPage} />
           <Route path="/:subdomain/messaging" component={MessagingPage} />
-          <Route path="/:subdomain/integrations" component={IntegrationsPage} />
           <Route path="/:subdomain/billing" component={BillingPage} />
           <Route path="/:subdomain/analytics" component={AnalyticsPage} />
           <Route path="/:subdomain/automation" component={AutomationPage} />
