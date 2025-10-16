@@ -7605,6 +7605,7 @@ Registration No: [Number]`
                           headers: {
                             "Content-Type": "application/json",
                             Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+                            "X-Tenant-Subdomain": localStorage.getItem("user_subdomain") || "",
                           },
                           body: JSON.stringify({
                             to: shareFormData.recipient,
