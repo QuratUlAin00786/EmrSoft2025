@@ -14417,7 +14417,7 @@ Cura EMR Team
   }
 
   // PDF Report Generation Endpoint
-  app.post("/api/imaging/generate-report", authMiddleware, requireRole(["doctor", "nurse"]), async (req: TenantRequest, res) => {
+  app.post("/api/imaging/generate-report", authMiddleware, requireRole(["doctor", "nurse", "admin"]), async (req: TenantRequest, res) => {
     try {
       if (!req.user) {
         return res.status(401).json({ error: "User not authenticated" });
