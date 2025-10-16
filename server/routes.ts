@@ -13783,7 +13783,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       console.log('[CASH PAYMENT] Creating invoice...');
-      const invoice = await storage.createInvoice(invoiceData);
+      const invoice = await storage.createPatientInvoice(invoiceData);
       console.log('[CASH PAYMENT] Invoice created:', invoice.id, invoice.invoiceNumber);
 
       // Create payment record
