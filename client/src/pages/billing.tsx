@@ -363,7 +363,19 @@ function PricingManagementDashboard() {
         // Build payload based on pricing tab
         let payload: any = {};
         
-        if (pricingTab === "lab-tests") {
+        if (pricingTab === "doctors") {
+          payload = {
+            serviceName: formData.serviceName,
+            serviceCode: formData.serviceCode,
+            category: formData.category,
+            doctorId: formData.doctorId,
+            doctorName: formData.doctorName,
+            doctorRole: formData.doctorRole,
+            basePrice: parseFloat(formData.basePrice) || 0,
+            currency: formData.currency || "GBP",
+            isActive: formData.isActive !== undefined ? formData.isActive : true
+          };
+        } else if (pricingTab === "lab-tests") {
           payload = {
             testName: formData.testName,
             testCode: formData.testCode,
@@ -1180,6 +1192,39 @@ function PricingManagementDashboard() {
                     onChange={(e) => setFormData({ ...formData, serviceCode: e.target.value })}
                     placeholder="e.g., GC001"
                   />
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="category">Category</Label>
+                  <Input
+                    id="category"
+                    value={formData.category || ""}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    placeholder="e.g., Consultation"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="currency">Currency</Label>
+                    <Input
+                      id="currency"
+                      value={formData.currency || "GBP"}
+                      onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
+                      placeholder="GBP"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="basePrice">Price *</Label>
+                    <Input
+                      id="basePrice"
+                      type="number"
+                      step="0.01"
+                      value={formData.basePrice || ""}
+                      onChange={(e) => setFormData({ ...formData, basePrice: e.target.value })}
+                      placeholder="0.00"
+                    />
+                  </div>
                 </div>
               </>
             )}
