@@ -545,24 +545,37 @@ function PricingManagementDashboard() {
                   />
                   {showRoleSuggestions && (
                     <div className="role-suggestions absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg max-h-60 overflow-auto top-full">
-                      {ROLE_OPTIONS
-                        .filter(option => 
-                          !formData.doctorRole || 
-                          option.label.toLowerCase().includes(formData.doctorRole.toLowerCase()) ||
-                          option.value.toLowerCase().includes(formData.doctorRole.toLowerCase())
+                      {roles
+                        .filter((role: any) => 
+                          role.name !== 'patient' && 
+                          role.name !== 'admin' &&
+                          (!formData.doctorRole || 
+                          role.displayName.toLowerCase().includes(formData.doctorRole.toLowerCase()) ||
+                          role.name.toLowerCase().includes(formData.doctorRole.toLowerCase()))
                         )
-                        .map((option, index) => (
+                        .map((role: any, index: number) => (
                           <div
                             key={index}
                             className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
                             onClick={() => {
-                              setFormData({ ...formData, doctorRole: option.value, doctorName: "", doctorId: null });
+                              setFormData({ ...formData, doctorRole: role.name, doctorName: "", doctorId: null });
                               setShowRoleSuggestions(false);
                             }}
                           >
-                            <div className="font-medium text-sm">{option.label}</div>
+                            <div className="font-medium text-sm">{role.displayName}</div>
                           </div>
                         ))}
+                      {roles.filter((role: any) => 
+                        role.name !== 'patient' && 
+                        role.name !== 'admin' &&
+                        (!formData.doctorRole || 
+                        role.displayName.toLowerCase().includes(formData.doctorRole.toLowerCase()) ||
+                        role.name.toLowerCase().includes(formData.doctorRole.toLowerCase()))
+                      ).length === 0 && formData.doctorRole && (
+                        <div className="px-4 py-3 text-sm text-gray-500">
+                          No roles found. You can enter a custom role name.
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
