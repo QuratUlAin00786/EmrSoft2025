@@ -28,6 +28,7 @@ import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs';
 import * as fse from 'fs-extra';
+import { readFile } from 'fs/promises';
 
 // Initialize Stripe with secret key only if provided (conditional to avoid crashes)
 const stripe = process.env.STRIPE_SECRET_KEY 
@@ -14737,7 +14738,7 @@ Cura EMR Team
             console.log("📷 SERVER: Image file exists, reading from filesystem:", fileName);
             
             // Read the image file from the filesystem
-            const imageBuffer = await fse.readFile(imageFilePath);
+            const imageBuffer = await readFile(imageFilePath);
             
             // Convert to base64 for processing
             actualImageData = imageBuffer.toString('base64');
