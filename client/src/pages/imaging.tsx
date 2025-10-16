@@ -1177,20 +1177,25 @@ export default function ImagingPage() {
       // Close upload dialog and open invoice dialog
       setShowUploadDialog(false);
       
-      // Calculate invoice amounts (example pricing)
-      const subtotal = selectedFiles.length * 50; // £50 per image
+      // Fetch pricing from imaging_pricing table based on selected study type
+      const pricingData = imagingPricing.find((p: any) => 
+        p.imagingType === uploadFormData.studyType
+      );
+      
+      const unitPrice = pricingData ? parseFloat(pricingData.basePrice) : 50.00;
+      const subtotal = unitPrice; // Single study
       const tax = subtotal * 0.2; // 20% VAT
       const totalAmount = subtotal + tax;
       
       // Pre-populate invoice fields
       setInvoicePatient(selectedPatient.patientId || "");
       setInvoiceServiceDate(new Date().toISOString().split('T')[0]);
-      setInvoiceServiceCode("IMG-001");
+      setInvoiceServiceCode(pricingData?.imagingCode || "IMG-001");
       setInvoiceServiceDesc("Medical Imaging - " + uploadFormData.studyType);
-      setInvoiceServiceQty(selectedFiles.length.toString());
-      setInvoiceServiceAmount("50.00");
+      setInvoiceServiceQty("1");
+      setInvoiceServiceAmount(unitPrice.toFixed(2));
       setInvoiceTotalAmount(totalAmount.toFixed(2));
-      setInvoiceNotes(`Imaging study: ${uploadFormData.studyType}, Modality: ${uploadFormData.modality}`);
+      setInvoiceNotes(`Imaging study: ${uploadFormData.studyType}, Modality: ${uploadFormData.modality}, Body Part: ${uploadFormData.bodyPart}`);
       
       setInvoiceFormData({
         paymentMethod: "",
