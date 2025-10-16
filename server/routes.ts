@@ -10051,12 +10051,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Invalid image ID" });
       }
 
-      // Validate update data - allow updating scheduledAt, performedAt, status, and priority
+      // Validate update data - allow updating scheduledAt, performedAt, status, priority, and imageId
       const validatedData = z.object({
         scheduledAt: z.string().optional(),
         performedAt: z.string().optional(),
         status: z.string().optional(),
         priority: z.string().optional(),
+        imageId: z.string().optional(),
       }).parse(req.body);
 
       // Convert ISO string dates to Date objects for database storage and handle other fields
@@ -10072,6 +10073,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       if (validatedData.priority) {
         updateData.priority = validatedData.priority;
+      }
+      if (validatedData.imageId) {
+        updateData.imageId = validatedData.imageId;
       }
 
       const success = await storage.updateMedicalImage(imageId, req.tenant!.id, updateData);

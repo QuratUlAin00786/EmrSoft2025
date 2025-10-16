@@ -688,6 +688,7 @@ export const medicalImages = pgTable("medical_images", {
   organizationId: integer("organization_id").notNull().references(() => organizations.id),
   patientId: integer("patient_id").notNull().references(() => patients.id),
   uploadedBy: integer("uploaded_by").notNull().references(() => users.id),
+  imageId: text("image_id").notNull().unique(), // Unique image ID (e.g., IMG1760636902921I2ONC)
   studyType: text("study_type").notNull(),
   modality: varchar("modality", { length: 50 }).notNull(), // X-Ray, CT, MRI, Ultrasound, etc.
   bodyPart: text("body_part"),

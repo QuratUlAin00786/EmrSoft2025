@@ -5123,6 +5123,17 @@ export default function ImagingPage() {
                   onClick={async () => {
                     try {
                       if (summaryData.invoice.paymentMethod === 'cash') {
+                        // Generate and update unique image_id for uploaded images
+                        if (summaryData.uploadResult?.images) {
+                          const timestamp = Date.now();
+                          for (const image of summaryData.uploadResult.images) {
+                            const uniqueImageId = `IMG${timestamp}I${image.id}ONC`;
+                            await apiRequest("PATCH", `/api/medical-images/${image.id}`, {
+                              imageId: uniqueImageId
+                            });
+                          }
+                        }
+
                         // For Cash payment: Create invoice with payment record
                         const invoiceData = {
                           patientId: summaryData.invoice.patient,
