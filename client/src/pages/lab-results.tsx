@@ -683,13 +683,19 @@ export default function LabResultsPage() {
       
       // Prepare invoice items from test types
       const testTypes = orderFormData.testType;
-      const invoiceItems = testTypes.map((testType: string, index: number) => ({
-        code: `LAB-${(index + 1).toString().padStart(3, '0')}`,
-        description: testType,
-        quantity: 1,
-        unitPrice: 50.00, // Default price per test
-        total: 50.00
-      }));
+      const invoiceItems = testTypes.map((testType: string, index: number) => {
+        // Find matching price from lab_test_pricing table where test_name equals description
+        const pricingData = labTestPricing.find((item: any) => item.testName === testType);
+        const unitPrice = pricingData?.basePrice || 50.00; // Use base_price or default to 50.00
+        
+        return {
+          code: `LAB-${(index + 1).toString().padStart(3, '0')}`,
+          description: testType,
+          quantity: 1,
+          unitPrice: unitPrice,
+          total: unitPrice * 1
+        };
+      });
       
       const totalAmount = invoiceItems.reduce((sum, item) => sum + item.total, 0);
       
