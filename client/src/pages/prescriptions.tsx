@@ -774,17 +774,22 @@ export default function PrescriptionsPage() {
       pharmacyData,
       patientName,
       attachments,
+      prescriptionNumber,
+      prescriptionData,
     }: {
       prescriptionId: string;
       pharmacyData: any;
       patientName?: string;
       attachments?: File[];
+      prescriptionNumber?: string;
+      prescriptionData?: any;
     }) => {
       console.log('[PHARMACY EMAIL] Starting email send process...', {
         prescriptionId,
         pharmacyEmail: pharmacyData.email,
         patientName,
-        attachmentsCount: attachments?.length || 0
+        attachmentsCount: attachments?.length || 0,
+        prescriptionNumber
       });
 
       const token = localStorage.getItem("auth_token");
@@ -812,16 +817,67 @@ export default function PrescriptionsPage() {
         throw new Error("Failed to send prescription to pharmacy");
       }
 
-      console.log('[PHARMACY EMAIL] Step 2: Sending PDF email to pharmacy...');
+      console.log('[PHARMACY EMAIL] Step 2: Preparing attachments...');
+      // Collect all attachments
+      const allAttachments: File[] = [];
+
+      // Generate prescription PDF if prescription data is available
+      if (prescriptionData && prescriptionNumber) {
+        try {
+          console.log('[PHARMACY EMAIL] Generating prescription PDF...');
+          const { jsPDF } = await import('jspdf');
+          const pdf = new jsPDF();
+          
+          // Add prescription content
+          pdf.setFontSize(18);
+          pdf.text('Prescription', 105, 20, { align: 'center' });
+          
+          pdf.setFontSize(12);
+          pdf.text(`Prescription Number: ${prescriptionNumber}`, 20, 40);
+          pdf.text(`Patient: ${prescriptionData.patientName}`, 20, 50);
+          pdf.text(`Date: ${new Date(prescriptionData.date).toLocaleDateString()}`, 20, 60);
+          pdf.text(`Provider: ${prescriptionData.providerName}`, 20, 70);
+          
+          pdf.setFontSize(14);
+          pdf.text('Medication:', 20, 90);
+          pdf.setFontSize(12);
+          pdf.text(`${prescriptionData.medication}`, 20, 100);
+          pdf.text(`Dosage: ${prescriptionData.dosage}`, 20, 110);
+          pdf.text(`Frequency: ${prescriptionData.frequency}`, 20, 120);
+          pdf.text(`Duration: ${prescriptionData.duration}`, 20, 130);
+          
+          if (prescriptionData.instructions) {
+            pdf.text('Instructions:', 20, 150);
+            const splitInstructions = pdf.splitTextToSize(prescriptionData.instructions, 170);
+            pdf.text(splitInstructions, 20, 160);
+          }
+          
+          // Convert PDF to Blob and then to File
+          const pdfBlob = pdf.output('blob');
+          const pdfFile = new File([pdfBlob], `${prescriptionNumber}.pdf`, { type: 'application/pdf' });
+          allAttachments.push(pdfFile);
+          console.log('[PHARMACY EMAIL] Generated prescription PDF:', pdfFile.name);
+        } catch (error) {
+          console.error('[PHARMACY EMAIL] Failed to generate prescription PDF:', error);
+        }
+      }
+
+      // Add user-uploaded attachments if any
+      if (attachments && attachments.length > 0) {
+        allAttachments.push(...attachments);
+        console.log(`[PHARMACY EMAIL] Added ${attachments.length} user attachment(s)`);
+      }
+
+      console.log('[PHARMACY EMAIL] Step 3: Sending PDF email to pharmacy...');
       // Then send the PDF email to the pharmacy with attachments
       const formData = new FormData();
       formData.append("pharmacyEmail", pharmacyData.email);
       formData.append("pharmacyName", pharmacyData.name);
       formData.append("patientName", patientName || "Patient");
 
-      // Add file attachments if any
-      if (attachments && attachments.length > 0) {
-        attachments.forEach((file, index) => {
+      // Add all attachments
+      if (allAttachments.length > 0) {
+        allAttachments.forEach((file, index) => {
           formData.append(`attachments`, file);
           console.log(`[PHARMACY EMAIL] Added attachment ${index + 1}:`, file.name);
         });
@@ -3461,7 +3517,7 @@ export default function PrescriptionsPage() {
                     phone: "+44(0)121 827 5531",
                     email: pharmacyEmail,
                   };
-                  // Find the selected prescription to get patient name
+                  // Find the selected prescription to get patient name and prescription data
                   const prescription = prescriptions?.find(
                     (p) => p.id === selectedPrescriptionId,
                   );
@@ -3471,6 +3527,8 @@ export default function PrescriptionsPage() {
                     patientName: prescription?.patientName || "Patient",
                     attachments:
                       attachedFiles.length > 0 ? attachedFiles : undefined,
+                    prescriptionNumber: prescription?.prescriptionNumber,
+                    prescriptionData: prescription,
                   });
                 }}
                 disabled={
