@@ -90,6 +90,13 @@ const DOCTOR_SERVICE_OPTIONS = [
   { value: "Procedure Consultation", description: "Pre- or post-surgery consultation" }
 ];
 
+const ROLE_OPTIONS = [
+  { value: "admin", label: "Administrator" },
+  { value: "doctor", label: "Doctor" },
+  { value: "nurse", label: "Nurse" },
+  { value: "receptionist", label: "Receptionist" }
+];
+
 function PricingManagementDashboard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -99,6 +106,18 @@ function PricingManagementDashboard() {
   const [formData, setFormData] = useState<any>({});
   const [isSaving, setIsSaving] = useState(false);
   const [showServiceSuggestions, setShowServiceSuggestions] = useState(false);
+  const [showRoleSuggestions, setShowRoleSuggestions] = useState(false);
+  const [showDoctorSuggestions, setShowDoctorSuggestions] = useState(false);
+
+  const { data: users = [] } = useQuery({
+    queryKey: ["/api/users"],
+    select: (data: any) => data || []
+  });
+
+  const filteredUsers = users.filter((user: any) => {
+    if (!formData.doctorRole) return true;
+    return user.role === formData.doctorRole;
+  });
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -106,13 +125,19 @@ function PricingManagementDashboard() {
       if (!target.closest('#serviceName') && !target.closest('.service-suggestions')) {
         setShowServiceSuggestions(false);
       }
+      if (!target.closest('#doctorRole') && !target.closest('.role-suggestions')) {
+        setShowRoleSuggestions(false);
+      }
+      if (!target.closest('#doctorName') && !target.closest('.doctor-suggestions')) {
+        setShowDoctorSuggestions(false);
+      }
     };
     
-    if (showServiceSuggestions) {
+    if (showServiceSuggestions || showRoleSuggestions || showDoctorSuggestions) {
       document.addEventListener('mousedown', handleClickOutside);
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
-  }, [showServiceSuggestions]);
+  }, [showServiceSuggestions, showRoleSuggestions, showDoctorSuggestions]);
 
   const getApiPath = (tab: string) => {
     const pathMap: Record<string, string> = {
@@ -447,6 +472,97 @@ function PricingManagementDashboard() {
                     </div>
                   )}
                 </div>
+
+                <div className="grid gap-2 relative">
+                  <Label htmlFor="doctorRole">Role</Label>
+                  <Input
+                    id="doctorRole"
+                    value={formData.doctorRole || ""}
+                    onChange={(e) => {
+                      setFormData({ ...formData, doctorRole: e.target.value, doctorName: "", doctorId: null });
+                      setShowRoleSuggestions(true);
+                    }}
+                    onFocus={() => setShowRoleSuggestions(true)}
+                    placeholder="Select role (optional)"
+                    autoComplete="off"
+                  />
+                  {showRoleSuggestions && (
+                    <div className="role-suggestions absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg max-h-60 overflow-auto top-full">
+                      {ROLE_OPTIONS
+                        .filter(option => 
+                          !formData.doctorRole || 
+                          option.label.toLowerCase().includes(formData.doctorRole.toLowerCase()) ||
+                          option.value.toLowerCase().includes(formData.doctorRole.toLowerCase())
+                        )
+                        .map((option, index) => (
+                          <div
+                            key={index}
+                            className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+                            onClick={() => {
+                              setFormData({ ...formData, doctorRole: option.value, doctorName: "", doctorId: null });
+                              setShowRoleSuggestions(false);
+                            }}
+                          >
+                            <div className="font-medium text-sm">{option.label}</div>
+                          </div>
+                        ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="grid gap-2 relative">
+                  <Label htmlFor="doctorName">Select Name</Label>
+                  <Input
+                    id="doctorName"
+                    value={formData.doctorName || ""}
+                    onChange={(e) => {
+                      setFormData({ ...formData, doctorName: e.target.value });
+                      setShowDoctorSuggestions(true);
+                    }}
+                    onFocus={() => setShowDoctorSuggestions(true)}
+                    placeholder="Select or enter name (optional)"
+                    autoComplete="off"
+                  />
+                  {showDoctorSuggestions && (
+                    <div className="doctor-suggestions absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg max-h-60 overflow-auto top-full">
+                      {filteredUsers
+                        .filter((user: any) => {
+                          const fullName = `${user.firstName} ${user.lastName}`;
+                          return !formData.doctorName || 
+                            fullName.toLowerCase().includes(formData.doctorName.toLowerCase());
+                        })
+                        .map((user: any, index: number) => (
+                          <div
+                            key={index}
+                            className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+                            onClick={() => {
+                              const fullName = `${user.firstName} ${user.lastName}`;
+                              setFormData({ 
+                                ...formData, 
+                                doctorName: fullName,
+                                doctorId: user.id,
+                                doctorRole: formData.doctorRole || user.role
+                              });
+                              setShowDoctorSuggestions(false);
+                            }}
+                          >
+                            <div className="font-medium text-sm">{user.firstName} {user.lastName}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">{user.role}</div>
+                          </div>
+                        ))}
+                      {filteredUsers.filter((user: any) => {
+                        const fullName = `${user.firstName} ${user.lastName}`;
+                        return !formData.doctorName || 
+                          fullName.toLowerCase().includes(formData.doctorName.toLowerCase());
+                      }).length === 0 && (
+                        <div className="px-4 py-3 text-sm text-gray-500">
+                          No users found. {formData.doctorRole && `Try changing the role filter.`}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
                 <div className="grid gap-2">
                   <Label htmlFor="serviceCode">Service Code</Label>
                   <Input
