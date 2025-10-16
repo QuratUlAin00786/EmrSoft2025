@@ -265,6 +265,7 @@ const TEST_TYPES = [
 ];
 
 // Test field definitions for dynamic lab result generation
+// Keys must match exactly with LAB_TEST_OPTIONS in billing.tsx
 const TEST_FIELD_DEFINITIONS: Record<string, Array<{
   name: string;
   unit: string;
@@ -285,7 +286,7 @@ const TEST_FIELD_DEFINITIONS: Record<string, Array<{
     { name: "Eosinophils", unit: "%", referenceRange: "1 - 6" },
     { name: "Basophils", unit: "%", referenceRange: "<2" },
   ],
-  "Basic Metabolic Panel": [
+  "Basic Metabolic Panel (BMP) / Chem-7": [
     { name: "Glucose", unit: "mg/dL", referenceRange: "70 - 100" },
     { name: "Calcium", unit: "mg/dL", referenceRange: "8.5 - 10.5" },
     { name: "Sodium", unit: "mmol/L", referenceRange: "136 - 145" },
@@ -295,7 +296,7 @@ const TEST_FIELD_DEFINITIONS: Record<string, Array<{
     { name: "BUN", unit: "mg/dL", referenceRange: "7 - 20" },
     { name: "Creatinine", unit: "mg/dL", referenceRange: "0.6 - 1.2" },
   ],
-  "Liver Function Tests": [
+  "Liver Function Tests (AST, ALT, ALP, Bilirubin)": [
     { name: "ALT (SGPT)", unit: "U/L", referenceRange: "7 - 56" },
     { name: "AST (SGOT)", unit: "U/L", referenceRange: "10 - 40" },
     { name: "ALP", unit: "U/L", referenceRange: "44 - 147" },
@@ -305,25 +306,25 @@ const TEST_FIELD_DEFINITIONS: Record<string, Array<{
     { name: "Albumin", unit: "g/dL", referenceRange: "3.5 - 5.5" },
     { name: "Globulin", unit: "g/dL", referenceRange: "2.0 - 3.5" },
   ],
-  "Lipid Panel": [
+  "Lipid Profile (Cholesterol, LDL, HDL, Triglycerides)": [
     { name: "Total Cholesterol", unit: "mg/dL", referenceRange: "<200" },
     { name: "LDL Cholesterol", unit: "mg/dL", referenceRange: "<100" },
     { name: "HDL Cholesterol", unit: "mg/dL", referenceRange: ">40" },
     { name: "Triglycerides", unit: "mg/dL", referenceRange: "<150" },
     { name: "VLDL Cholesterol", unit: "mg/dL", referenceRange: "5 - 40" },
   ],
-  "Thyroid Function Tests": [
+  "Thyroid Function Tests (TSH, Free T4, Free T3)": [
     { name: "TSH", unit: "mIU/L", referenceRange: "0.4 - 4.0" },
     { name: "Free T4", unit: "ng/dL", referenceRange: "0.8 - 1.8" },
     { name: "Free T3", unit: "pg/mL", referenceRange: "2.3 - 4.2" },
     { name: "Total T4", unit: "μg/dL", referenceRange: "5.0 - 12.0" },
     { name: "Total T3", unit: "ng/dL", referenceRange: "80 - 200" },
   ],
-  "Hemoglobin A1C": [
+  "Hemoglobin A1C (HbA1c)": [
     { name: "Hemoglobin A1C (HbA1c)", unit: "%", referenceRange: "4.0 - 5.6" },
     { name: "Estimated Average Glucose (eAG)", unit: "mg/dL", referenceRange: "< 117" },
   ],
-  "Comprehensive Metabolic Panel": [
+  "Comprehensive Metabolic Panel (CMP)": [
     { name: "Glucose", unit: "mg/dL", referenceRange: "70 - 100" },
     { name: "Calcium", unit: "mg/dL", referenceRange: "8.5 - 10.5" },
     { name: "Sodium", unit: "mmol/L", referenceRange: "136 - 145" },
@@ -339,7 +340,7 @@ const TEST_FIELD_DEFINITIONS: Record<string, Array<{
     { name: "Total Protein", unit: "g/dL", referenceRange: "6.0 - 8.3" },
     { name: "Albumin", unit: "g/dL", referenceRange: "3.5 - 5.5" },
   ],
-  "Urinalysis": [
+  "Urinalysis (UA)": [
     { name: "Color", unit: "", referenceRange: "Yellow to Amber" },
     { name: "Appearance", unit: "", referenceRange: "Clear" },
     { name: "Specific Gravity", unit: "", referenceRange: "1.005 - 1.030" },
@@ -365,7 +366,7 @@ const TEST_FIELD_DEFINITIONS: Record<string, Array<{
     { name: "Vitamin D3 (Cholecalciferol)", unit: "ng/mL", referenceRange: "Variable" },
     { name: "Total Vitamin D", unit: "ng/mL", referenceRange: "30 - 100" },
   ],
-  "Iron Studies": [
+  "Iron Studies (Serum Iron, TIBC, Ferritin)": [
     { name: "Serum Iron", unit: "μg/dL", referenceRange: "60 - 170" },
     { name: "TIBC (Total Iron Binding Capacity)", unit: "μg/dL", referenceRange: "240 - 450" },
     { name: "UIBC (Unsaturated Iron Binding Capacity)", unit: "μg/dL", referenceRange: "111 - 343" },
@@ -373,21 +374,21 @@ const TEST_FIELD_DEFINITIONS: Record<string, Array<{
     { name: "Ferritin", unit: "ng/mL", referenceRange: "12 - 300" },
     { name: "Transferrin", unit: "mg/dL", referenceRange: "200 - 360" },
   ],
-  "Kidney Function Tests": [
+  "Kidney Function Tests (Creatinine, BUN, eGFR)": [
     { name: "Creatinine", unit: "mg/dL", referenceRange: "0.6 - 1.2" },
     { name: "BUN (Blood Urea Nitrogen)", unit: "mg/dL", referenceRange: "7 - 20" },
     { name: "eGFR (Estimated Glomerular Filtration Rate)", unit: "mL/min/1.73m²", referenceRange: ">60" },
     { name: "BUN/Creatinine Ratio", unit: "", referenceRange: "10 - 20" },
     { name: "Urea", unit: "mg/dL", referenceRange: "15 - 44" },
   ],
-  "Electrolytes": [
+  "Electrolytes (Sodium, Potassium, Chloride, Bicarbonate)": [
     { name: "Sodium (Na+)", unit: "mmol/L", referenceRange: "136 - 145" },
     { name: "Potassium (K+)", unit: "mmol/L", referenceRange: "3.5 - 5.0" },
     { name: "Chloride (Cl-)", unit: "mmol/L", referenceRange: "98 - 107" },
     { name: "Bicarbonate (HCO3-)", unit: "mmol/L", referenceRange: "23 - 29" },
     { name: "Anion Gap", unit: "mmol/L", referenceRange: "8 - 16" },
   ],
-  "Blood Glucose": [
+  "Blood Glucose (Fasting / Random / Postprandial)": [
     { name: "Fasting Blood Glucose", unit: "mg/dL", referenceRange: "70 - 100" },
     { name: "Random Blood Glucose", unit: "mg/dL", referenceRange: "70 - 140" },
     { name: "Postprandial Glucose (2 hours)", unit: "mg/dL", referenceRange: "<140" },
@@ -399,7 +400,7 @@ const TEST_FIELD_DEFINITIONS: Record<string, Array<{
   "Erythrocyte Sedimentation Rate (ESR)": [
     { name: "ESR (Westergren Method)", unit: "mm/hr", referenceRange: "0 - 20" },
   ],
-  "Coagulation Tests": [
+  "Coagulation Tests (PT, PTT, INR)": [
     { name: "Prothrombin Time (PT)", unit: "seconds", referenceRange: "11 - 13.5" },
     { name: "Partial Thromboplastin Time (PTT)", unit: "seconds", referenceRange: "25 - 35" },
     { name: "INR (International Normalized Ratio)", unit: "", referenceRange: "0.8 - 1.2" },
@@ -416,7 +417,7 @@ const TEST_FIELD_DEFINITIONS: Record<string, Array<{
     { name: "Folate (Folic Acid)", unit: "ng/mL", referenceRange: "2.7 - 17.0" },
     { name: "RBC Folate", unit: "ng/mL", referenceRange: "140 - 628" },
   ],
-  "Hormone Panels": [
+  "Hormone Panels (e.g., LH, FSH, Testosterone, Estrogen)": [
     { name: "LH (Luteinizing Hormone)", unit: "mIU/mL", referenceRange: "1.5 - 9.3" },
     { name: "FSH (Follicle-Stimulating Hormone)", unit: "mIU/mL", referenceRange: "1.4 - 18.1" },
     { name: "Testosterone (Total)", unit: "ng/dL", referenceRange: "300 - 1000" },
@@ -429,7 +430,7 @@ const TEST_FIELD_DEFINITIONS: Record<string, Array<{
     { name: "Free PSA", unit: "ng/mL", referenceRange: "Variable" },
     { name: "Free/Total PSA Ratio", unit: "%", referenceRange: ">25" },
   ],
-  "Thyroid Antibodies": [
+  "Thyroid Antibodies (e.g. Anti-TPO, Anti-TG)": [
     { name: "Anti-TPO (Thyroid Peroxidase Antibodies)", unit: "IU/mL", referenceRange: "<35" },
     { name: "Anti-TG (Thyroglobulin Antibodies)", unit: "IU/mL", referenceRange: "<40" },
     { name: "TSI (Thyroid-Stimulating Immunoglobulin)", unit: "%", referenceRange: "<140" },
@@ -439,7 +440,7 @@ const TEST_FIELD_DEFINITIONS: Record<string, Array<{
     { name: "CK-MM", unit: "U/L", referenceRange: "Variable" },
     { name: "CK-MB", unit: "U/L", referenceRange: "<25" },
   ],
-  "Cardiac Biomarkers": [
+  "Cardiac Biomarkers (Troponin, CK-MB, BNP)": [
     { name: "Troponin I", unit: "ng/mL", referenceRange: "<0.04" },
     { name: "Troponin T", unit: "ng/mL", referenceRange: "<0.01" },
     { name: "CK-MB", unit: "ng/mL", referenceRange: "<5" },
@@ -458,7 +459,7 @@ const TEST_FIELD_DEFINITIONS: Record<string, Array<{
   "Uric Acid": [
     { name: "Uric Acid", unit: "mg/dL", referenceRange: "3.5 - 7.2" },
   ],
-  "Lipase / Amylase": [
+  "Lipase / Amylase (Pancreatic enzymes)": [
     { name: "Lipase", unit: "U/L", referenceRange: "13 - 60" },
     { name: "Amylase", unit: "U/L", referenceRange: "30 - 110" },
     { name: "Pancreatic Amylase", unit: "U/L", referenceRange: "13 - 53" },
@@ -478,11 +479,11 @@ const TEST_FIELD_DEFINITIONS: Record<string, Array<{
     { name: "CD4 Count", unit: "cells/μL", referenceRange: "500 - 1500" },
     { name: "CD4/CD8 Ratio", unit: "", referenceRange: "0.9 - 3.0" },
   ],
-  "HCG (Pregnancy)": [
+  "HCG (Pregnancy / Quantitative)": [
     { name: "Quantitative hCG (Beta-hCG)", unit: "mIU/mL", referenceRange: "<5" },
     { name: "Qualitative hCG", unit: "", referenceRange: "Negative" },
   ],
-  "Autoimmune Panels": [
+  "Autoimmune Panels (ANA, ENA, Rheumatoid Factor)": [
     { name: "ANA (Antinuclear Antibody)", unit: "", referenceRange: "Negative" },
     { name: "Anti-dsDNA", unit: "IU/mL", referenceRange: "<30" },
     { name: "Anti-Sm (Smith)", unit: "", referenceRange: "Negative" },
@@ -492,7 +493,7 @@ const TEST_FIELD_DEFINITIONS: Record<string, Array<{
     { name: "Rheumatoid Factor (RF)", unit: "IU/mL", referenceRange: "<20" },
     { name: "Anti-CCP (Anti-Cyclic Citrullinated Peptide)", unit: "U/mL", referenceRange: "<20" },
   ],
-  "Tumor Markers": [
+  "Tumor Markers (e.g. CA-125, CEA, AFP)": [
     { name: "CA-125 (Ovarian)", unit: "U/mL", referenceRange: "<35" },
     { name: "CEA (Carcinoembryonic Antigen)", unit: "ng/mL", referenceRange: "<3.0" },
     { name: "AFP (Alpha-Fetoprotein)", unit: "ng/mL", referenceRange: "<10" },
@@ -517,14 +518,14 @@ const TEST_FIELD_DEFINITIONS: Record<string, Array<{
     { name: "AFB (Acid-Fast Bacilli)", unit: "", referenceRange: "Negative" },
     { name: "Fungal Culture", unit: "", referenceRange: "No Growth" },
   ],
-  "Viral Panels / PCR Tests": [
+  "Viral Panels / PCR Tests (e.g. COVID-19, Influenza)": [
     { name: "COVID-19 PCR", unit: "", referenceRange: "Negative" },
     { name: "Influenza A PCR", unit: "", referenceRange: "Negative" },
     { name: "Influenza B PCR", unit: "", referenceRange: "Negative" },
     { name: "RSV PCR", unit: "", referenceRange: "Negative" },
     { name: "Viral Load (Ct Value)", unit: "Ct", referenceRange: ">35" },
   ],
-  "Hormonal Tests": [
+  "Hormonal tests (Cortisol, ACTH)": [
     { name: "Cortisol (AM)", unit: "μg/dL", referenceRange: "6 - 23" },
     { name: "Cortisol (PM)", unit: "μg/dL", referenceRange: "3 - 16" },
     { name: "ACTH (Adrenocorticotropic Hormone)", unit: "pg/mL", referenceRange: "10 - 60" },
