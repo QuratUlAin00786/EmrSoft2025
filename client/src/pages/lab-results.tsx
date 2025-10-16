@@ -4396,7 +4396,46 @@ Report generated from Cura EMR System`;
               >
                 Cancel
               </Button>
-              <Button
+              <div className="flex gap-2">
+                {/* Auto-Fill Button */}
+                {generateFormData.selectedTests && generateFormData.selectedTests.length > 0 && (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      // Auto-fill all test values based on reference ranges
+                      const newTestValues: any = {};
+                      
+                      generateFormData.selectedTests.forEach((testType: string) => {
+                        const testFields = TEST_FIELD_DEFINITIONS[testType];
+                        if (testFields) {
+                          newTestValues[testType] = {};
+                          testFields.forEach((field) => {
+                            const generatedValue = generateValueFromRange(field.referenceRange);
+                            if (generatedValue !== null) {
+                              newTestValues[testType][field.name] = generatedValue;
+                            }
+                          });
+                        }
+                      });
+                      
+                      setGenerateFormData((prev: any) => ({
+                        ...prev,
+                        testValues: newTestValues,
+                      }));
+                      
+                      toast({
+                        title: "Success",
+                        description: "Test results auto-filled successfully",
+                      });
+                    }}
+                    className="bg-purple-50 hover:bg-purple-100 text-purple-700 border-purple-200"
+                    data-testid="button-auto-fill-generate"
+                  >
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Auto-Fill Results
+                  </Button>
+                )}
+                <Button
                 onClick={() => {
                   // Validate required fields
                   if (!generateFormData.patientId) {
@@ -4504,6 +4543,7 @@ Report generated from Cura EMR System`;
                 <FileText className="h-4 w-4 mr-2" />
                 Generate Lab Result
               </Button>
+              </div>
             </div>
           </div>
         </DialogContent>
