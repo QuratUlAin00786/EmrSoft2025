@@ -31,6 +31,13 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import {
   FileImage,
   Plus,
   Search,
@@ -51,9 +58,55 @@ import {
   X,
   Loader2,
   AlertCircle,
+  ChevronsUpDown,
+  Check as CheckIcon,
 } from "lucide-react";
 import { format } from "date-fns";
 import { isDoctorLike, formatRoleLabel } from "@/lib/role-utils";
+
+// Modality to Body Part mapping
+const MODALITY_BODY_PARTS: Record<string, string[]> = {
+  "X-Ray": [
+    "Chest X-Ray (PA / Lateral)",
+    "Abdomen X-Ray",
+    "Spine X-Ray (Cervical / Lumbar)",
+    "Skull X-Ray",
+    "Pelvis X-Ray",
+    "Hand / Foot / Arm / Leg X-Ray"
+  ],
+  "CT": [
+    "CT Brain",
+    "CT Chest",
+    "CT Abdomen & Pelvis",
+    "CT Spine",
+    "CT Angiogram (Coronary, Pulmonary, Cerebral)"
+  ],
+  "MRI": [
+    "MRI Brain",
+    "MRI Spine (Cervical / Lumbar)",
+    "MRI Knee",
+    "MRI Abdomen / Pelvis",
+    "MRI Shoulder",
+    "MRI Angiography"
+  ],
+  "Ultrasound": [
+    "Abdomen Ultrasound",
+    "Pelvic Ultrasound",
+    "Thyroid Ultrasound",
+    "Obstetric (OB) Ultrasound",
+    "Doppler Ultrasound (Carotid / Venous / Arterial)"
+  ],
+  "Mammography": [
+    "Screening Mammogram (Bilateral)",
+    "Diagnostic Mammogram"
+  ],
+  "Nuclear Medicine": [
+    "Bone Scan",
+    "Thyroid Scan",
+    "Renal Scan",
+    "Cardiac Perfusion Scan"
+  ]
+};
 
 interface ImagingStudy {
   id: string;
@@ -348,6 +401,11 @@ export default function ImagingPage() {
   const [invoiceNhsError, setInvoiceNhsError] = useState("");
   const [invoiceTotalError, setInvoiceTotalError] = useState("");
   
+  // Combobox open states
+  const [modalityOpen, setModalityOpen] = useState(false);
+  const [bodyPartOpen, setBodyPartOpen] = useState(false);
+  const [studyTypeOpen, setStudyTypeOpen] = useState(false);
+  
   const { toast } = useToast();
 
   // Fetch patients to find the current user's patient record
@@ -359,6 +417,18 @@ export default function ImagingPage() {
       const response = await apiRequest('GET', '/api/patients');
       const data = await response.json();
       return data;
+    },
+  });
+
+  // Fetch imaging pricing data for study types
+  const { data: imagingPricing = [], isLoading: pricingLoading } = useQuery({
+    queryKey: ["/api/pricing/imaging"],
+    staleTime: 60000,
+    retry: false,
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/pricing/imaging');
+      const data = await response.json();
+      return Array.isArray(data) ? data : [];
     },
   });
 
@@ -4029,26 +4099,48 @@ export default function ImagingPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="upload-modality">Modality *</Label>
-                <Select
-                  value={uploadFormData.modality}
-                  onValueChange={(value) =>
-                    setUploadFormData({ ...uploadFormData, modality: value })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="X-Ray">X-Ray</SelectItem>
-                    <SelectItem value="CT">CT Scan</SelectItem>
-                    <SelectItem value="MRI">MRI</SelectItem>
-                    <SelectItem value="Ultrasound">Ultrasound</SelectItem>
-                    <SelectItem value="Nuclear Medicine">
-                      Nuclear Medicine
-                    </SelectItem>
-                    <SelectItem value="Mammography">Mammography</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Popover open={modalityOpen} onOpenChange={setModalityOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={modalityOpen}
+                      className="w-full justify-between"
+                    >
+                      {uploadFormData.modality || "Select modality..."}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0">
+                    <Command>
+                      <CommandInput placeholder="Search modality..." />
+                      <CommandEmpty>No modality found.</CommandEmpty>
+                      <CommandGroup>
+                        {Object.keys(MODALITY_BODY_PARTS).map((modality) => (
+                          <CommandItem
+                            key={modality}
+                            value={modality}
+                            onSelect={(currentValue) => {
+                              setUploadFormData({ 
+                                ...uploadFormData, 
+                                modality: currentValue,
+                                bodyPart: "" // Reset body part when modality changes
+                              });
+                              setModalityOpen(false);
+                            }}
+                          >
+                            <CheckIcon
+                              className={`mr-2 h-4 w-4 ${
+                                uploadFormData.modality === modality ? "opacity-100" : "opacity-0"
+                              }`}
+                            />
+                            {modality}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
               <div>
                 <Label htmlFor="upload-priority">Priority</Label>
@@ -4071,57 +4163,94 @@ export default function ImagingPage() {
             </div>
 
             <div>
-              <Label htmlFor="upload-study-type">Study Type *</Label>
-              <Select
-                value={uploadFormData.studyType}
-                onValueChange={(value) => {
-                  if (value === "__custom__") {
-                    // Do nothing, will switch to input
-                  } else {
-                    setUploadFormData({
-                      ...uploadFormData,
-                      studyType: value,
-                    });
-                  }
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select or type study type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Chest X-ray">Chest X-ray</SelectItem>
-                  <SelectItem value="Abdominal Ultrasound">Abdominal Ultrasound</SelectItem>
-                  <SelectItem value="Brain MRI">Brain MRI</SelectItem>
-                  <SelectItem value="Lumbar Spine CT">Lumbar Spine CT</SelectItem>
-                  <SelectItem value="Knee X-ray">Knee X-ray</SelectItem>
-                </SelectContent>
-              </Select>
-              <Input
-                className="mt-2"
-                value={uploadFormData.studyType}
-                onChange={(e) =>
-                  setUploadFormData({
-                    ...uploadFormData,
-                    studyType: e.target.value,
-                  })
-                }
-                placeholder="Or type custom study type..."
-              />
+              <Label htmlFor="upload-body-part">Body Part *</Label>
+              <Popover open={bodyPartOpen} onOpenChange={setBodyPartOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={bodyPartOpen}
+                    className="w-full justify-between"
+                    disabled={!uploadFormData.modality}
+                  >
+                    {uploadFormData.bodyPart || "Select body part..."}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0">
+                  <Command>
+                    <CommandInput placeholder="Search body part..." />
+                    <CommandEmpty>No body part found.</CommandEmpty>
+                    <CommandGroup>
+                      {(MODALITY_BODY_PARTS[uploadFormData.modality] || []).map((bodyPart) => (
+                        <CommandItem
+                          key={bodyPart}
+                          value={bodyPart}
+                          onSelect={(currentValue) => {
+                            setUploadFormData({ ...uploadFormData, bodyPart: currentValue });
+                            setBodyPartOpen(false);
+                          }}
+                        >
+                          <CheckIcon
+                            className={`mr-2 h-4 w-4 ${
+                              uploadFormData.bodyPart === bodyPart ? "opacity-100" : "opacity-0"
+                            }`}
+                          />
+                          {bodyPart}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
 
             <div>
-              <Label htmlFor="upload-body-part">Body Part</Label>
-              <Input
-                id="upload-body-part"
-                value={uploadFormData.bodyPart}
-                onChange={(e) =>
-                  setUploadFormData({
-                    ...uploadFormData,
-                    bodyPart: e.target.value,
-                  })
-                }
-                placeholder="e.g., Chest, Abdomen, Left Hand"
-              />
+              <Label htmlFor="upload-study-type">Study Type *</Label>
+              <Popover open={studyTypeOpen} onOpenChange={setStudyTypeOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={studyTypeOpen}
+                    className="w-full justify-between"
+                  >
+                    {uploadFormData.studyType || "Select study type..."}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0">
+                  <Command>
+                    <CommandInput placeholder="Search study type..." />
+                    <CommandEmpty>No study type found.</CommandEmpty>
+                    <CommandGroup>
+                      {pricingLoading ? (
+                        <CommandItem disabled>Loading study types...</CommandItem>
+                      ) : imagingPricing.length === 0 ? (
+                        <CommandItem disabled>No study types available</CommandItem>
+                      ) : (
+                        imagingPricing.map((pricing: any) => (
+                          <CommandItem
+                            key={pricing.id}
+                            value={pricing.imagingType}
+                            onSelect={(currentValue) => {
+                              setUploadFormData({ ...uploadFormData, studyType: currentValue });
+                              setStudyTypeOpen(false);
+                            }}
+                          >
+                            <CheckIcon
+                              className={`mr-2 h-4 w-4 ${
+                                uploadFormData.studyType === pricing.imagingType ? "opacity-100" : "opacity-0"
+                              }`}
+                            />
+                            {pricing.imagingType}
+                          </CommandItem>
+                        ))
+                      )}
+                    </CommandGroup>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
 
             <div>
