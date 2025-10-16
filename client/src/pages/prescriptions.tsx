@@ -911,15 +911,55 @@ export default function PrescriptionsPage() {
           }
           
           // Instructions Section
+          let currentY = 238;
           if (prescriptionData.instructions) {
             pdf.setFontSize(11);
             pdf.setFont('helvetica', 'bold');
-            pdf.text('INSTRUCTIONS', 20, 238);
+            pdf.text('INSTRUCTIONS', 20, currentY);
             
             pdf.setFontSize(10);
             pdf.setFont('helvetica', 'normal');
             const splitInstructions = pdf.splitTextToSize(prescriptionData.instructions, 170);
-            pdf.text(splitInstructions, 20, 246);
+            pdf.text(splitInstructions, 20, currentY + 8);
+            currentY += 8 + (splitInstructions.length * 5);
+          }
+          
+          // E-Signature Section (if exists)
+          if (prescriptionData.signature) {
+            currentY += 10;
+            pdf.setFontSize(11);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setTextColor(0, 0, 0);
+            pdf.text('Resident Physician', 20, currentY);
+            pdf.setFontSize(9);
+            pdf.setFont('helvetica', 'normal');
+            pdf.text('(Signature)', 20, currentY + 6);
+            
+            // Add signature image if available
+            if (prescriptionData.signature.imageData) {
+              try {
+                pdf.addImage(prescriptionData.signature.imageData, 'PNG', 20, currentY + 10, 50, 20);
+              } catch (err) {
+                console.log('Could not add signature image to PDF');
+              }
+            }
+            
+            // Add e-signed by info
+            pdf.setFontSize(9);
+            pdf.setTextColor(34, 139, 34); // Green color for e-sign
+            pdf.text(`✓ E-Signed by`, 20, currentY + 35);
+            
+            const signedDate = prescriptionData.signature.signedAt 
+              ? new Date(prescriptionData.signature.signedAt).toLocaleDateString('en-GB', { 
+                  year: 'numeric', 
+                  month: 'short', 
+                  day: '2-digit',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })
+              : '';
+            pdf.setTextColor(80, 80, 80);
+            pdf.text(signedDate, 20, currentY + 41);
           }
           
           // Footer - Professional

@@ -11449,14 +11449,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Generate professional HTML email template with clinic logo and branding
-      const hasAttachments = attachments.length > 0;
+      // Always hide "PDF Attachment Included" section as per user requirement
       const emailTemplate = emailService.generatePrescriptionEmail(
         patientName || 'Patient',
         pharmacyName,
         undefined, // prescriptionData - not needed for this basic email
         clinicLogoUrl,
         organizationName,
-        hasAttachments
+        false // hasAttachments - always false to hide the attachment notice section
       );
 
       // TODO: In a real implementation, generate and add prescription PDF here
