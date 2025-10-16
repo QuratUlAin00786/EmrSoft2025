@@ -4500,6 +4500,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/roles", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const roles = await storage.getRolesByOrganization(req.tenant!.id);
+      res.json(roles);
+    } catch (error) {
+      console.error("Roles fetch error:", error);
+      res.status(500).json({ error: "Failed to fetch roles" });
+    }
+  });
+
   // Function to get default permissions based on role
   function getDefaultPermissionsByRole(role: string) {
     const basePermissions = {
