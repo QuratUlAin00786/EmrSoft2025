@@ -283,8 +283,8 @@ function PricingManagementDashboard() {
     try {
       const apiPath = getApiPath(pricingTab);
       
-      // Handle multiple services for doctors fees and lab tests when not editing
-      if ((pricingTab === "doctors" || pricingTab === "lab-tests") && !editingItem) {
+      // Handle multiple services for doctors fees, lab tests, and imaging when not editing
+      if ((pricingTab === "doctors" || pricingTab === "lab-tests" || pricingTab === "imaging") && !editingItem) {
         const validServices = multipleServices.filter(
           service => service.serviceName && service.basePrice
         );
@@ -294,32 +294,51 @@ function PricingManagementDashboard() {
             title: "Error",
             description: pricingTab === "doctors" 
               ? "Please add at least one service with name and price"
-              : "Please add at least one test with name and price",
+              : pricingTab === "lab-tests"
+              ? "Please add at least one test with name and price"
+              : "Please add at least one imaging service with name and price",
             variant: "destructive"
           });
           setIsSaving(false);
           return;
         }
         
-        // Create all services/tests
+        // Create all services/tests/imaging
         for (const service of validServices) {
-          const payload = pricingTab === "doctors" ? {
-            serviceName: service.serviceName,
-            serviceCode: service.serviceCode,
-            category: service.category,
-            basePrice: parseFloat(service.basePrice) || 0,
-            isActive: true,
-            currency: "GBP",
-            version: 1
-          } : {
-            testName: service.serviceName,
-            testCode: service.serviceCode,
-            category: service.category,
-            basePrice: parseFloat(service.basePrice) || 0,
-            isActive: true,
-            currency: "GBP",
-            version: 1
-          };
+          let payload: any = {};
+          
+          if (pricingTab === "doctors") {
+            payload = {
+              serviceName: service.serviceName,
+              serviceCode: service.serviceCode,
+              category: service.category,
+              basePrice: parseFloat(service.basePrice) || 0,
+              isActive: true,
+              currency: "GBP",
+              version: 1
+            };
+          } else if (pricingTab === "lab-tests") {
+            payload = {
+              testName: service.serviceName,
+              testCode: service.serviceCode,
+              category: service.category,
+              basePrice: parseFloat(service.basePrice) || 0,
+              isActive: true,
+              currency: "GBP",
+              version: 1
+            };
+          } else if (pricingTab === "imaging") {
+            payload = {
+              imagingType: service.serviceName,
+              imagingCode: service.serviceCode,
+              modality: service.category,
+              basePrice: parseFloat(service.basePrice) || 0,
+              isActive: true,
+              currency: "GBP",
+              version: 1
+            };
+          }
+          
           await apiRequest('POST', `/api/pricing/${apiPath}`, payload);
         }
         
@@ -328,7 +347,9 @@ function PricingManagementDashboard() {
           title: "Success",
           description: pricingTab === "doctors" 
             ? `${validServices.length} service(s) created successfully`
-            : `${validServices.length} test(s) created successfully`
+            : pricingTab === "lab-tests"
+            ? `${validServices.length} test(s) created successfully`
+            : `${validServices.length} imaging service(s) created successfully`
         });
         setShowAddDialog(false);
         setMultipleServices([{ serviceName: "", serviceCode: "", category: "", basePrice: "" }]);
@@ -409,6 +430,15 @@ function PricingManagementDashboard() {
         { serviceName: "Procedure Consultation", serviceCode: "PC001", category: "Pre- or post-surgery consultation", basePrice: "" }
       ];
       setMultipleServices(predefinedServices);
+    } else if (pricingTab === "imaging") {
+      // Pre-populate with all imaging types and auto-generated codes
+      const predefinedImagingServices = IMAGING_TYPE_OPTIONS.map((imagingType) => ({
+        serviceName: imagingType,
+        serviceCode: generateImagingCode(imagingType),
+        category: "",
+        basePrice: ""
+      }));
+      setMultipleServices(predefinedImagingServices);
     } else if (pricingTab === "lab-tests") {
       const predefinedLabTests = [
         { serviceName: "Complete Blood Count (CBC)", serviceCode: "CBC001", category: "Hematology", basePrice: "" },
@@ -1359,7 +1389,52 @@ function PricingManagementDashboard() {
               </>
             )}
 
-            {pricingTab === "imaging" && (
+            {pricingTab === "imaging" && !editingItem && (
+              <>
+                <div className="space-y-2">
+                  <Label>Imaging Services</Label>
+                  <div className="border rounded-md overflow-hidden max-h-96 overflow-y-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-50 dark:bg-gray-800 sticky top-0">
+                        <tr>
+                          <th className="text-left p-2 text-sm font-medium">Imaging Type</th>
+                          <th className="text-left p-2 text-sm font-medium">Code</th>
+                          <th className="text-left p-2 text-sm font-medium">Price (GBP)</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {multipleServices.map((service, index) => (
+                          <tr key={index} className="border-t">
+                            <td className="p-2">
+                              <div className="font-medium text-sm">{service.serviceName}</div>
+                            </td>
+                            <td className="p-2">
+                              <div className="text-sm text-gray-600 dark:text-gray-400">{service.serviceCode}</div>
+                            </td>
+                            <td className="p-2">
+                              <Input
+                                type="number"
+                                step="0.01"
+                                value={service.basePrice}
+                                onChange={(e) => {
+                                  const updated = [...multipleServices];
+                                  updated[index].basePrice = e.target.value;
+                                  setMultipleServices(updated);
+                                }}
+                                placeholder="0.00"
+                                className="w-full"
+                              />
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {pricingTab === "imaging" && editingItem && (
               <>
                 <div className="grid gap-2 relative">
                   <Label htmlFor="imagingType">Imaging Type *</Label>
