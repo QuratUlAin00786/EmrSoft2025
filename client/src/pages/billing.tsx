@@ -339,10 +339,34 @@ function PricingManagementDashboard() {
           : `/api/pricing/${apiPath}`;
         const method = editingItem ? 'PATCH' : 'POST';
         
-        const payload = {
-          ...formData,
-          basePrice: parseFloat(formData.basePrice) || 0
-        };
+        // Build payload based on pricing tab
+        let payload: any = {};
+        
+        if (pricingTab === "lab-tests") {
+          payload = {
+            testName: formData.testName,
+            testCode: formData.testCode,
+            category: formData.category,
+            basePrice: parseFloat(formData.basePrice) || 0,
+            currency: formData.currency || "USD",
+            isActive: formData.isActive !== undefined ? formData.isActive : true
+          };
+        } else if (pricingTab === "imaging") {
+          payload = {
+            imagingType: formData.imagingType,
+            imagingCode: formData.imagingCode,
+            modality: formData.modality,
+            bodyPart: formData.bodyPart,
+            basePrice: parseFloat(formData.basePrice) || 0,
+            currency: formData.currency || "USD",
+            isActive: formData.isActive !== undefined ? formData.isActive : true
+          };
+        } else {
+          payload = {
+            ...formData,
+            basePrice: parseFloat(formData.basePrice) || 0
+          };
+        }
         
         await apiRequest(method, endpoint, payload);
 
