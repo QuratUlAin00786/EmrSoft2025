@@ -144,6 +144,9 @@ function PricingManagementDashboard() {
   const [editingItem, setEditingItem] = useState<any>(null);
   const [formData, setFormData] = useState<any>({});
   const [isSaving, setIsSaving] = useState(false);
+  const [multipleServices, setMultipleServices] = useState<any[]>([
+    { serviceName: "", serviceCode: "", category: "", basePrice: "" }
+  ]);
   const [showServiceSuggestions, setShowServiceSuggestions] = useState(false);
   const [showRoleSuggestions, setShowRoleSuggestions] = useState(false);
   const [showDoctorSuggestions, setShowDoctorSuggestions] = useState(false);
@@ -235,26 +238,67 @@ function PricingManagementDashboard() {
     setIsSaving(true);
     try {
       const apiPath = getApiPath(pricingTab);
-      const endpoint = editingItem 
-        ? `/api/pricing/${apiPath}/${editingItem.id}`
-        : `/api/pricing/${apiPath}`;
-      const method = editingItem ? 'PATCH' : 'POST';
       
-      const payload = {
-        ...formData,
-        basePrice: parseFloat(formData.basePrice) || 0
-      };
-      
-      await apiRequest(method, endpoint, payload);
+      // Handle multiple services for doctors fees when not editing
+      if (pricingTab === "doctors" && !editingItem) {
+        const validServices = multipleServices.filter(
+          service => service.serviceName && service.basePrice
+        );
+        
+        if (validServices.length === 0) {
+          toast({
+            title: "Error",
+            description: "Please add at least one service with name and price",
+            variant: "destructive"
+          });
+          setIsSaving(false);
+          return;
+        }
+        
+        // Create all services
+        for (const service of validServices) {
+          const payload = {
+            serviceName: service.serviceName,
+            serviceCode: service.serviceCode,
+            category: service.category,
+            basePrice: parseFloat(service.basePrice) || 0,
+            isActive: true,
+            currency: "GBP",
+            version: 1
+          };
+          await apiRequest('POST', `/api/pricing/${apiPath}`, payload);
+        }
+        
+        queryClient.invalidateQueries({ queryKey: [`/api/pricing/${apiPath}`] });
+        toast({
+          title: "Success",
+          description: `${validServices.length} service(s) created successfully`
+        });
+        setShowAddDialog(false);
+        setMultipleServices([{ serviceName: "", serviceCode: "", category: "", basePrice: "" }]);
+      } else {
+        // Original single save logic for editing or other tabs
+        const endpoint = editingItem 
+          ? `/api/pricing/${apiPath}/${editingItem.id}`
+          : `/api/pricing/${apiPath}`;
+        const method = editingItem ? 'PATCH' : 'POST';
+        
+        const payload = {
+          ...formData,
+          basePrice: parseFloat(formData.basePrice) || 0
+        };
+        
+        await apiRequest(method, endpoint, payload);
 
-      queryClient.invalidateQueries({ queryKey: [`/api/pricing/${apiPath}`] });
-      toast({ 
-        title: "Success", 
-        description: editingItem ? "Pricing updated successfully" : "Pricing created successfully" 
-      });
-      setShowAddDialog(false);
-      setEditingItem(null);
-      setFormData({});
+        queryClient.invalidateQueries({ queryKey: [`/api/pricing/${apiPath}`] });
+        toast({ 
+          title: "Success", 
+          description: editingItem ? "Pricing updated successfully" : "Pricing created successfully" 
+        });
+        setShowAddDialog(false);
+        setEditingItem(null);
+        setFormData({});
+      }
     } catch (error: any) {
       toast({ 
         title: "Error", 
@@ -272,6 +316,7 @@ function PricingManagementDashboard() {
       currency: "GBP",
       version: 1
     });
+    setMultipleServices([{ serviceName: "", serviceCode: "", category: "", basePrice: "" }]);
     setEditingItem(null);
     setShowAddDialog(true);
   };
@@ -481,7 +526,114 @@ function PricingManagementDashboard() {
           </DialogHeader>
           
           <div className="grid gap-4 py-4">
-            {pricingTab === "doctors" && (
+            {pricingTab === "doctors" && !editingItem && (
+              <>
+                <div className="space-y-2">
+                  <Label>Services</Label>
+                  <div className="border rounded-md overflow-hidden">
+                    <table className="w-full">
+                      <thead className="bg-gray-50 dark:bg-gray-800">
+                        <tr>
+                          <th className="text-left p-2 text-sm font-medium">Service Name *</th>
+                          <th className="text-left p-2 text-sm font-medium">Service Code</th>
+                          <th className="text-left p-2 text-sm font-medium">Category</th>
+                          <th className="text-left p-2 text-sm font-medium">Base Price (£) *</th>
+                          <th className="w-10"></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {multipleServices.map((service, index) => (
+                          <tr key={index} className="border-t">
+                            <td className="p-2">
+                              <Input
+                                value={service.serviceName}
+                                onChange={(e) => {
+                                  const updated = [...multipleServices];
+                                  updated[index].serviceName = e.target.value;
+                                  setMultipleServices(updated);
+                                }}
+                                placeholder="e.g., General Consultation"
+                                data-testid={`input-service-name-${index}`}
+                              />
+                            </td>
+                            <td className="p-2">
+                              <Input
+                                value={service.serviceCode}
+                                onChange={(e) => {
+                                  const updated = [...multipleServices];
+                                  updated[index].serviceCode = e.target.value;
+                                  setMultipleServices(updated);
+                                }}
+                                placeholder="e.g., GC001"
+                                data-testid={`input-service-code-${index}`}
+                              />
+                            </td>
+                            <td className="p-2">
+                              <Input
+                                value={service.category}
+                                onChange={(e) => {
+                                  const updated = [...multipleServices];
+                                  updated[index].category = e.target.value;
+                                  setMultipleServices(updated);
+                                }}
+                                placeholder="e.g., Diagnostic"
+                                data-testid={`input-category-${index}`}
+                              />
+                            </td>
+                            <td className="p-2">
+                              <Input
+                                type="number"
+                                step="0.01"
+                                value={service.basePrice}
+                                onChange={(e) => {
+                                  const updated = [...multipleServices];
+                                  updated[index].basePrice = e.target.value;
+                                  setMultipleServices(updated);
+                                }}
+                                placeholder="0.00"
+                                data-testid={`input-base-price-${index}`}
+                              />
+                            </td>
+                            <td className="p-2">
+                              {multipleServices.length > 1 && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    const updated = multipleServices.filter((_, i) => i !== index);
+                                    setMultipleServices(updated);
+                                  }}
+                                  data-testid={`button-remove-service-${index}`}
+                                >
+                                  <Trash2 className="h-4 w-4 text-red-500" />
+                                </Button>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setMultipleServices([
+                        ...multipleServices,
+                        { serviceName: "", serviceCode: "", category: "", basePrice: "" }
+                      ]);
+                    }}
+                    className="w-full"
+                    data-testid="button-add-more-service"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add More Service
+                  </Button>
+                </div>
+              </>
+            )}
+
+            {pricingTab === "doctors" && editingItem && (
               <>
                 <div className="grid gap-2 relative">
                   <Label htmlFor="serviceName">Service Name *</Label>
