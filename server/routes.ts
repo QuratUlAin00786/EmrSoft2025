@@ -9943,6 +9943,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }).parse(req.body);
 
         // Create database record with unique filename (not original)
+        const timestamp = Date.now();
+        const tempImageId = `IMG${timestamp}ITEMPONC`; // Temporary placeholder
+        
         const dbImageData = {
           patientId: imageData.patientId,
           organizationId: req.tenant!.id,
@@ -9959,6 +9962,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           priority: imageData.priority || 'routine',
           indication: imageData.indication || imageData.notes || '',
           status: 'uploaded',
+          imageId: tempImageId, // Use temporary imageId for insert
           // Don't store imageData for file-based storage
           imageData: null
         };
@@ -9966,10 +9970,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('📷 Saving medical image to database with unique filename:', file.filename);
 
         const savedImage = await storage.createMedicalImage(dbImageData);
+        
+        // Now generate the final image_id and filename using the database ID
+        const finalImageId = `IMG${timestamp}I${savedImage.id}ONC`;
+        const ext = file.filename.split('.').pop();
+        const finalFileName = `${finalImageId}.${ext}`;
+        
+        // Rename the physical file
+        const oldPath = path.join('./uploads/Imaging_Images', file.filename);
+        const newPath = path.join('./uploads/Imaging_Images', finalFileName);
+        
+        try {
+          await fs.promises.rename(oldPath, newPath);
+          console.log(`📷 Renamed file from ${file.filename} to ${finalFileName}`);
+        } catch (renameError) {
+          console.error('Error renaming file:', renameError);
+          // If rename fails, keep the old filename
+        }
+        
+        // Update database with final image_id and filename
+        await storage.updateMedicalImage(savedImage.id, req.tenant!.id, {
+          imageId: finalImageId,
+          fileName: finalFileName
+        });
+        
+        // Fetch the updated record to return
+        const updatedImage = await storage.getMedicalImage(savedImage.id, req.tenant!.id);
+        
         uploadedImages.push({
-          ...savedImage,
+          ...updatedImage,
           originalName: file.originalname,
-          uniqueFilename: file.filename
+          uniqueFilename: finalFileName
         });
       }
 
