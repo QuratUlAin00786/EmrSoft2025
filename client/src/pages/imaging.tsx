@@ -1363,6 +1363,11 @@ export default function ImagingPage() {
         },
       );
 
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to generate PDF report");
+      }
+
       const data = await response.json();
 
       if (data.success && data.reportId) {
@@ -1374,7 +1379,7 @@ export default function ImagingPage() {
 
         toast({
           title: "PDF Report Generated Successfully",
-          description: `Report saved as: ${data.fileName || `${data.reportId}.pdf`}${imageData ? ' (with medical image)' : ''}`,
+          description: `Report saved as: ${data.fileName || `${data.reportId}.pdf`}`,
         });
 
         // Reset the button state after a brief delay to show "Generate Report" button again
@@ -1389,7 +1394,7 @@ export default function ImagingPage() {
       console.error("PDF generation error:", error);
       toast({
         title: "Report Generation Failed",
-        description: "Failed to generate PDF report. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to generate PDF report. Please try again.",
         variant: "destructive",
       });
     } finally {
