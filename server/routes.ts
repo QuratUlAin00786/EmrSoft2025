@@ -9964,6 +9964,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
 
         console.log('📷 Saving medical image to database with unique filename:', file.filename);
+        console.log('📷 dbImageData being inserted:', JSON.stringify(dbImageData, null, 2));
 
         const savedImage = await storage.createMedicalImage(dbImageData);
         
