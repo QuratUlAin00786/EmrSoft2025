@@ -2037,12 +2037,14 @@ export default function ImagingPage() {
                                   key={series.id}
                                   className="bg-gray-50 dark:bg-slate-600 p-3 rounded-lg border dark:border-slate-500 cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-500 transition-colors"
                                   onClick={() => {
-                                    const imageUrl = `/uploads/Imaging_Images/${series.fileName}`;
-                                    console.log("📷 IMAGE SERIES: Viewing image from file_name:", series.fileName);
+                                    // Use study.fileName since series.fileName might be null
+                                    const fileName = series.fileName || study.fileName;
+                                    const imageUrl = `/uploads/Imaging_Images/${fileName}`;
+                                    console.log("📷 IMAGE SERIES: Viewing image from file_name:", fileName, "study.fileName:", study.fileName);
                                     setSelectedImageSeries({
                                       ...series,
                                       imageUrl: imageUrl,
-                                      fileName: series.fileName
+                                      fileName: fileName
                                     });
                                     setShowImageViewer(true);
                                   }}
