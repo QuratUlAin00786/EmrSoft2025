@@ -1343,35 +1343,9 @@ export default function ImagingPage() {
       setIsGeneratingPDF(true);
       setGeneratedReportId(null);
 
-      // Always fetch image data for PDF generation using study.id
-      let imageData = null;
-      if (study.id) {
-        console.log("📷 IMAGING: Found study ID for PDF generation:", study.id);
-        
-        // Always fetch fresh image data from server using the study ID
-        try {
-          console.log("📷 IMAGING: Fetching image from server for study ID:", study.id);
-          const imageResponse = await apiRequest('GET', `/api/medical-images/${study.id}/image?t=${Date.now()}`);
-          if (imageResponse.ok) {
-            const imageBlob = await imageResponse.blob();
-            // Convert blob to base64
-            const reader = new FileReader();
-            imageData = await new Promise((resolve) => {
-              reader.onloadend = () => resolve(reader.result);
-              reader.readAsDataURL(imageBlob);
-            });
-            console.log("📷 IMAGING: Successfully fetched image data from server for PDF generation");
-          } else {
-            console.warn("📷 IMAGING: Failed to fetch image from server:", imageResponse.status);
-          }
-        } catch (imageError) {
-          console.error("📷 IMAGING: Error fetching image:", imageError);
-        }
-      } else {
-        console.log("📷 IMAGING: No study ID found, generating PDF without image");
-      }
+      console.log("📷 IMAGING: Generating PDF with fileName:", study.fileName);
 
-      // Call server-side PDF generation endpoint
+      // Call server-side PDF generation endpoint with fileName
       const response = await apiRequest(
         "POST",
         "/api/imaging/generate-report",
@@ -1382,7 +1356,6 @@ export default function ImagingPage() {
             impression: reportImpression,
             radiologist: reportRadiologist,
           },
-          imageData: imageData, // Include image data for PDF generation
         },
       );
 

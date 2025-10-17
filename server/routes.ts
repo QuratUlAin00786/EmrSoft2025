@@ -14834,12 +14834,31 @@ Cura EMR Team
         try {
           console.log("📷 SERVER: Processing image for PDF, mimeType:", actualMimeType);
           
-          // Embed image based on MIME type
+          // Embed image based on MIME type with error handling
           let image;
-          if (actualMimeType.includes('jpeg') || actualMimeType.includes('jpg')) {
-            image = await pdfDoc.embedJpg(imageBuffer);
-          } else if (actualMimeType.includes('png')) {
-            image = await pdfDoc.embedPng(imageBuffer);
+          try {
+            if (actualMimeType.includes('jpeg') || actualMimeType.includes('jpg')) {
+              image = await pdfDoc.embedJpg(imageBuffer);
+            } else if (actualMimeType.includes('png')) {
+              image = await pdfDoc.embedPng(imageBuffer);
+            }
+          } catch (embedError) {
+            // If PNG embedding fails, try JPEG as fallback
+            console.log("📷 SERVER: Primary embedding failed, trying alternate format:", embedError.message);
+            try {
+              if (actualMimeType.includes('png')) {
+                // Try embedding as JPEG if PNG fails
+                image = await pdfDoc.embedJpg(imageBuffer);
+                console.log("📷 SERVER: Successfully embedded PNG as JPEG fallback");
+              } else {
+                // Try embedding as PNG if JPEG fails
+                image = await pdfDoc.embedPng(imageBuffer);
+                console.log("📷 SERVER: Successfully embedded JPEG as PNG fallback");
+              }
+            } catch (fallbackError) {
+              console.error("📷 SERVER: Both embedding methods failed:", fallbackError.message);
+              throw embedError; // Throw original error
+            }
           }
           
           if (image) {
