@@ -1435,29 +1435,11 @@ export default function ImagingPage() {
         throw new Error(`Failed to check PDF: ${checkResponse.status}`);
       }
 
-      // File exists, now fetch and display it
-      const response = await fetch(`/api/imaging/reports/${reportId}`, {
-        method: "GET",
-        headers,
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to load PDF: ${response.status} ${response.statusText}`);
-      }
-
-      // Convert response to blob
-      const blob = await response.blob();
-      console.log("📄 PDF Blob details:", {
-        type: blob.type,
-        size: blob.size,
-        reportId
-      });
+      // File exists, construct direct URL with auth token in query
+      const directUrl = `/api/imaging/reports/${reportId}?token=${encodeURIComponent(token || '')}`;
       
-      // Create blob URL and open in popup dialog
-      const blobUrl = URL.createObjectURL(blob);
-      console.log("📄 PDF Blob URL created:", blobUrl);
-      setPdfViewerUrl(blobUrl);
+      console.log("📄 PDF Direct URL created:", directUrl);
+      setPdfViewerUrl(directUrl);
       setShowPDFViewerDialog(true);
     } catch (error) {
       console.error("Error viewing PDF:", error);

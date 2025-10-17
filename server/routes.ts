@@ -15133,9 +15133,32 @@ Cura EMR Team
     }
   });
 
-  // Serve PDF Reports
-  app.get("/api/imaging/reports/:reportId", authMiddleware, async (req: TenantRequest, res) => {
+  // Serve PDF Reports (supports both header and query param authentication for iframe compatibility)
+  app.get("/api/imaging/reports/:reportId", async (req: TenantRequest, res) => {
     try {
+      // Support both Authorization header and query parameter token for iframe compatibility
+      let token = req.headers.authorization?.replace('Bearer ', '');
+      if (!token && req.query.token) {
+        token = req.query.token as string;
+      }
+
+      if (!token) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      // Verify the token
+      try {
+        const decoded = jwt.verify(token, JWT_SECRET) as any;
+        req.user = { 
+          id: decoded.userId, 
+          email: decoded.email, 
+          role: decoded.role,
+          organizationId: decoded.organizationId 
+        };
+      } catch (err) {
+        return res.status(401).json({ error: "Invalid or expired token" });
+      }
+
       if (!req.user) {
         return res.status(401).json({ error: "User not authenticated" });
       }
