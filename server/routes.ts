@@ -14766,7 +14766,7 @@ Cura EMR Team
       let imageHeight = 0;
       
       // Check for image data from database fileName and filesystem
-      let actualImageData = null;
+      let imageBuffer: Buffer | null = null;
       let actualMimeType = 'image/jpeg';
       
       // Get fileName from the database study
@@ -14787,11 +14787,8 @@ Cura EMR Team
           if (await fse.pathExists(imageFilePath)) {
             console.log("📷 SERVER: Image file exists, reading from filesystem:", fileName);
             
-            // Read the image file from the filesystem
-            const imageBuffer = await readFile(imageFilePath);
-            
-            // Convert to base64 for processing
-            actualImageData = imageBuffer.toString('base64');
+            // Read the image file directly as Buffer (no base64 conversion needed)
+            imageBuffer = await readFile(imageFilePath);
             
             // Determine MIME type from file extension
             const fileExtension = path.extname(fileName).toLowerCase();
@@ -14814,11 +14811,12 @@ Cura EMR Team
       }
       
       // Fallback to existing methods if filesystem image not found
-      if (!actualImageData) {
+      if (!imageBuffer) {
         if (imageData) {
           // Use imageData from request body (includes data:image prefix)
           console.log("📷 SERVER: Fallback - Using imageData from request body");
-          actualImageData = imageData.split(',')[1]; // Remove data:image/jpeg;base64, prefix
+          const base64Data = imageData.split(',')[1]; // Remove data:image/jpeg;base64, prefix
+          imageBuffer = Buffer.from(base64Data, 'base64');
           if (imageData.includes('image/png')) {
             actualMimeType = 'image/png';
           } else if (imageData.includes('image/jpeg') || imageData.includes('image/jpg')) {
@@ -14827,17 +14825,14 @@ Cura EMR Team
         } else if (study.images && study.images[0] && study.images[0].imageData) {
           // Use imageData from study
           console.log("📷 SERVER: Fallback - Using imageData from study");
-          actualImageData = study.images[0].imageData;
+          imageBuffer = Buffer.from(study.images[0].imageData, 'base64');
           actualMimeType = study.images[0].mimeType || 'image/jpeg';
         }
       }
       
-      if (actualImageData) {
+      if (imageBuffer) {
         try {
           console.log("📷 SERVER: Processing image for PDF, mimeType:", actualMimeType);
-          
-          // Convert base64 to buffer
-          const imageBuffer = Buffer.from(actualImageData, 'base64');
           
           // Embed image based on MIME type
           let image;

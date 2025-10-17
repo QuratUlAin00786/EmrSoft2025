@@ -1343,38 +1343,32 @@ export default function ImagingPage() {
       setIsGeneratingPDF(true);
       setGeneratedReportId(null);
 
-      // Check if the medical image has an imageId and fetch image data
+      // Always fetch image data for PDF generation using study.id
       let imageData = null;
-      if (study.imageId && study.imageId.trim() !== '') {
-        console.log("📷 IMAGING: Found imageId for PDF generation:", study.imageId);
+      if (study.id) {
+        console.log("📷 IMAGING: Found study ID for PDF generation:", study.id);
         
-        // If imageData is already available in the study, use it
-        if (study.images && study.images.length > 0 && study.images[0].imageData) {
-          imageData = study.images[0].imageData;
-          console.log("📷 IMAGING: Using existing imageData from study");
-        } else {
-          // Fetch image data from server using the imageId
-          try {
-            console.log("📷 IMAGING: Fetching image from server for imageId:", study.imageId);
-            const imageResponse = await apiRequest('GET', `/api/medical-images/${study.id}/image?t=${Date.now()}`);
-            if (imageResponse.ok) {
-              const imageBlob = await imageResponse.blob();
-              // Convert blob to base64
-              const reader = new FileReader();
-              imageData = await new Promise((resolve) => {
-                reader.onloadend = () => resolve(reader.result);
-                reader.readAsDataURL(imageBlob);
-              });
-              console.log("📷 IMAGING: Successfully fetched image data from server using imageId:", study.imageId);
-            } else {
-              console.warn("📷 IMAGING: Failed to fetch image from server:", imageResponse.status);
-            }
-          } catch (imageError) {
-            console.error("📷 IMAGING: Error fetching image:", imageError);
+        // Always fetch fresh image data from server using the study ID
+        try {
+          console.log("📷 IMAGING: Fetching image from server for study ID:", study.id);
+          const imageResponse = await apiRequest('GET', `/api/medical-images/${study.id}/image?t=${Date.now()}`);
+          if (imageResponse.ok) {
+            const imageBlob = await imageResponse.blob();
+            // Convert blob to base64
+            const reader = new FileReader();
+            imageData = await new Promise((resolve) => {
+              reader.onloadend = () => resolve(reader.result);
+              reader.readAsDataURL(imageBlob);
+            });
+            console.log("📷 IMAGING: Successfully fetched image data from server for PDF generation");
+          } else {
+            console.warn("📷 IMAGING: Failed to fetch image from server:", imageResponse.status);
           }
+        } catch (imageError) {
+          console.error("📷 IMAGING: Error fetching image:", imageError);
         }
       } else {
-        console.log("📷 IMAGING: No imageId found for study, generating PDF without image");
+        console.log("📷 IMAGING: No study ID found, generating PDF without image");
       }
 
       // Call server-side PDF generation endpoint
