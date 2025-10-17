@@ -110,6 +110,7 @@ const MODALITY_BODY_PARTS: Record<string, string[]> = {
 
 interface ImagingStudy {
   id: string;
+  imageId?: string; // Unique image ID from medical_images table (e.g., IMG1760636902921I2ONC)
   patientId: string;
   patientName: string;
   studyType: string;
@@ -529,9 +530,10 @@ export default function ImagingPage() {
     );
     if (!study) return null;
 
-    console.log('📷 FRONTEND: Raw study data from API:', { id: study.id, fileName: study.fileName, file_name: study.file_name });
+    console.log('📷 FRONTEND: Raw study data from API:', { id: study.id, imageId: study.imageId, fileName: study.fileName, file_name: study.file_name });
     const mapped: ImagingStudy = {
       id: String(study.id),
+      imageId: study.imageId, // Include imageId from medical_images table for PDF naming
       patientId: String(study.patientId),
       patientName: study.patientName ?? "Unknown",
       studyType: study.studyType ?? study.imageType ?? "Unknown",
