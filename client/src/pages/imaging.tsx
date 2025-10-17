@@ -1448,9 +1448,15 @@ export default function ImagingPage() {
 
       // Convert response to blob
       const blob = await response.blob();
+      console.log("📄 PDF Blob details:", {
+        type: blob.type,
+        size: blob.size,
+        reportId
+      });
       
       // Create blob URL and open in popup dialog
       const blobUrl = URL.createObjectURL(blob);
+      console.log("📄 PDF Blob URL created:", blobUrl);
       setPdfViewerUrl(blobUrl);
       setShowPDFViewerDialog(true);
     } catch (error) {
