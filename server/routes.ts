@@ -14483,8 +14483,12 @@ Cura EMR Team
       // Generate report ID using the image_id from medical_images table
       const reportId = study.imageId || study.id || 'IMG'; // Use imageId column value (e.g., IMG1760647135I10NC)
       
-      // Save PDF in same location as images: /uploads/Imaging_Images/
-      const reportsDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Images');
+      // Extract patient ID from study
+      const patientId = study.patientId || 'unknown';
+      const organizationId = req.organizationId || req.tenant!.id;
+      
+      // Save PDF in organizational structure: uploads/Imaging_Reports/organization_id/patients/patient_id/
+      const reportsDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Reports', String(organizationId), 'patients', String(patientId));
       await fse.ensureDir(reportsDir);
       
       // Import pdf-lib dynamically
@@ -15115,9 +15119,27 @@ Cura EMR Team
 
       const { reportId } = req.params;
       
-      // PDF files are stored in /uploads/Imaging_Images/{reportId}.pdf
-      const reportsDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Images');
-      const filePath = path.join(reportsDir, `${reportId}.pdf`);
+      // Find the study by imageId to get organizationId and patientId
+      const studies = await storage.getMedicalImagesByOrganization(req.tenant!.id);
+      const study = studies.find(s => s.imageId === reportId);
+      
+      if (!study) {
+        return res.status(404).json({ error: "Study not found" });
+      }
+      
+      const organizationId = study.organizationId;
+      const patientId = study.patientId;
+      
+      // PDF files are stored in uploads/Imaging_Reports/{organizationId}/patients/{patientId}/{imageId}.pdf
+      const filePath = path.resolve(
+        process.cwd(), 
+        'uploads', 
+        'Imaging_Reports', 
+        String(organizationId), 
+        'patients', 
+        String(patientId), 
+        `${reportId}.pdf`
+      );
       
       // Check if file exists
       if (!(await fse.pathExists(filePath))) {
@@ -15150,9 +15172,29 @@ Cura EMR Team
 
       const { reportId } = req.params;
       
-      // PDF files are stored in /uploads/Imaging_Images/{reportId}.pdf
+      // Find the study by imageId to get organizationId and patientId
+      console.log(`📝 DELETE: Finding study by imageId: ${reportId}`);
+      const studies = await storage.getMedicalImagesByOrganization(req.tenant!.id);
+      const study = studies.find(s => s.imageId === reportId);
+      
+      if (!study) {
+        return res.status(404).json({ error: "Study not found" });
+      }
+      
+      const organizationId = study.organizationId;
+      const patientId = study.patientId;
+      
+      // PDF files are stored in uploads/Imaging_Reports/{organizationId}/patients/{patientId}/{imageId}.pdf
       const filename = `${reportId}.pdf`;
-      const filePath = path.join(process.cwd(), 'uploads', 'Imaging_Images', filename);
+      const filePath = path.resolve(
+        process.cwd(), 
+        'uploads', 
+        'Imaging_Reports', 
+        String(organizationId), 
+        'patients', 
+        String(patientId), 
+        filename
+      );
 
       // Check if file exists
       if (!(await fse.pathExists(filePath))) {
@@ -15163,14 +15205,7 @@ Cura EMR Team
       await fse.remove(filePath);
 
       // Clear the reportFileName and reportFilePath from the database
-      // reportId is the image_id from medical_images table (e.g., IMG1760647135I10NC)
-      console.log(`📝 DELETE: Finding study by imageId: ${reportId}`);
-      
       try {
-        // Find the study by imageId to get the actual database ID
-        const studies = await storage.getMedicalImages(req.tenant!.id);
-        const study = studies.find(s => s.imageId === reportId);
-        
         if (study && study.id) {
           // Update the database to clear both report fields (use null, not undefined, to actually set DB to NULL)
           console.log(`📝 DELETE: Updating database for studyId: ${study.id}, imageId: ${reportId}, organizationId: ${req.tenant!.id}`);
@@ -15183,8 +15218,6 @@ Cura EMR Team
             }
           );
           console.log(`📝 DELETE: Database updated - set reportFileName and reportFilePath to NULL for studyId: ${study.id}`);
-        } else {
-          console.log(`⚠️ DELETE: Could not find study with imageId: ${reportId}, database NOT updated`);
         }
       } catch (dbError) {
         console.error(`⚠️ DELETE: Database update error:`, dbError);
