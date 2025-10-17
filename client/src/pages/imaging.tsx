@@ -148,6 +148,7 @@ interface ImagingStudy {
     size: string;
     imageData?: string;
     mimeType?: string;
+    fileName?: string;
   }>;
   report?: {
     status: "preliminary" | "final";
@@ -559,6 +560,7 @@ export default function ImagingPage() {
           size: `${(study.fileSize / (1024 * 1024)).toFixed(2)} MB`,
           imageData: study.imageData,
           mimeType: study.mimeType,
+          fileName: study.fileName,
         },
       ],
       ...(study.report && { report: study.report }),
