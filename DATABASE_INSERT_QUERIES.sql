@@ -23,7 +23,16 @@ INSERT INTO organizations (
     subscription_status
 ) VALUES (
     'Averox Healthcare',
-    'demo',
+    'demo',export your entire PostgreSQL database, including:
+
+    all tables,
+
+    constraints (primary keys, foreign keys, check constraints, etc.),
+
+    schemas,
+
+    and data (rows),
+    into a single .sql dump file — perfect for backups or migration.
     'admin@averox-healthcare.com',
     'UK',
     'MediCore Demo',
