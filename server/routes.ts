@@ -14481,14 +14481,11 @@ Cura EMR Team
       }
 
       // Generate unique report ID using patient ID and imaging ID for better identification
-      const patientId = study.patientId || 'UNKNOWN';
       const imagingId = study.id || 'IMG';
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5); // Remove milliseconds and format
-      const reportId = `${patientId}_${imagingId}_${timestamp}`;
+      const reportId = String(imagingId); // Simple ID format: just the image ID
       
-      // Create organization-specific directory path: /uploads/Imaging_Reports/{org_id}/patients/{patient_id}
-      const organizationId = req.tenant?.id || req.organizationId || 'unknown';
-      const reportsDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Reports', String(organizationId), 'patients', String(patientId));
+      // Save PDF in same location as images: /uploads/Imaging_Images/
+      const reportsDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Images');
       await fse.ensureDir(reportsDir);
       
       // Import pdf-lib dynamically
@@ -15093,27 +15090,9 @@ Cura EMR Team
 
       const { reportId } = req.params;
       
-      // Validate reportId format (PatientID_ImagingID_Timestamp or legacy UUID)
-      const isLegacyUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(reportId);
-      const isNewFormat = /^.+_.+_\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}$/.test(reportId);
-      
-      if (!isLegacyUUID && !isNewFormat) {
-        return res.status(400).send();
-      }
-
-      // Extract patientId from reportId for organization-specific path
-      let filePath;
-      if (isNewFormat) {
-        const parts = reportId.split('_');
-        const patientId = parts[0];
-        const organizationId = req.tenant?.id || req.organizationId || 'unknown';
-        const reportsDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Reports', String(organizationId), 'patients', String(patientId));
-        filePath = path.join(reportsDir, `${reportId}.pdf`);
-      } else {
-        // Legacy path for old UUID format
-        const reportsDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Reports');
-        filePath = path.join(reportsDir, `${reportId}.pdf`);
-      }
+      // PDF files are stored in /uploads/Imaging_Images/{reportId}.pdf
+      const reportsDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Images');
+      const filePath = path.join(reportsDir, `${reportId}.pdf`);
       
       // Check if file exists
       if (!(await fse.pathExists(filePath))) {
@@ -15137,45 +15116,17 @@ Cura EMR Team
 
       const { reportId } = req.params;
       
-      // Validate reportId format (PatientID_ImagingID_Timestamp or legacy UUID)
-      const isLegacyUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(reportId);
-      const isNewFormat = /^.+_.+_\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}$/.test(reportId);
-      
-      if (!isLegacyUUID && !isNewFormat) {
-        return res.status(400).json({ error: "Invalid report ID format" });
-      }
-
-      // Extract patientId from reportId for organization-specific path
-      let filePath;
-      if (isNewFormat) {
-        const parts = reportId.split('_');
-        const patientId = parts[0];
-        const organizationId = req.tenant?.id || req.organizationId || 'unknown';
-        const reportsDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Reports', String(organizationId), 'patients', String(patientId));
-        filePath = path.join(reportsDir, `${reportId}.pdf`);
-      } else {
-        // Legacy path for old UUID format
-        const reportsDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Reports');
-        filePath = path.join(reportsDir, `${reportId}.pdf`);
-      }
+      // PDF files are stored in /uploads/Imaging_Images/{reportId}.pdf
+      const reportsDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Images');
+      const filePath = path.join(reportsDir, `${reportId}.pdf`);
       
       // Check if file exists
       if (!(await fse.pathExists(filePath))) {
         return res.status(404).json({ error: "Report not found" });
       }
       
-      // Generate a meaningful filename for download
-      let downloadFilename;
-      if (isNewFormat) {
-        // Extract patient ID from the new format
-        const parts = reportId.split('_');
-        const patientId = parts[0];
-        const timestamp = parts[2];
-        downloadFilename = `radiology-report-${patientId}-${timestamp}.pdf`;
-      } else {
-        // Legacy UUID format
-        downloadFilename = `radiology-report-${reportId}.pdf`;
-      }
+      // Generate a meaningful filename for download (reportId is the image/study ID)
+      const downloadFilename = `radiology-report-${reportId}.pdf`;
       
       // Check if this is a download request vs view request
       const isDownload = req.query.download === 'true';
@@ -15200,27 +15151,9 @@ Cura EMR Team
 
       const { reportId } = req.params;
       
-      // Validate reportId format (PatientID_ImagingID_Timestamp or legacy UUID)
-      const isLegacyUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(reportId);
-      const isNewFormat = /^.+_.+_\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}$/.test(reportId);
-      
-      if (!isLegacyUUID && !isNewFormat) {
-        return res.status(400).json({ error: "Invalid report ID format" });
-      }
-
+      // PDF files are stored in /uploads/Imaging_Images/{reportId}.pdf
       const filename = `${reportId}.pdf`;
-      
-      // Extract patientId from reportId for organization-specific path
-      let filePath;
-      if (isNewFormat) {
-        const parts = reportId.split('_');
-        const patientId = parts[0];
-        const organizationId = req.tenant?.id || req.organizationId || 'unknown';
-        filePath = path.join(process.cwd(), 'uploads', 'Imaging_Reports', String(organizationId), 'patients', String(patientId), filename);
-      } else {
-        // Legacy path for old UUID format
-        filePath = path.join(process.cwd(), 'uploads', 'Imaging_Reports', filename);
-      }
+      const filePath = path.join(process.cwd(), 'uploads', 'Imaging_Images', filename);
 
       // Check if file exists
       if (!(await fse.pathExists(filePath))) {
@@ -15231,13 +15164,9 @@ Cura EMR Team
       await fse.remove(filePath);
 
       // Clear the reportFileName and reportFilePath from the database
-      // Extract study ID from reportId (format: PatientID_StudyID_Timestamp)
-      let studyId: number | null = null;
-      if (isNewFormat) {
-        const parts = reportId.split('_');
-        studyId = parseInt(parts[1]); // StudyID is the second part
-        console.log(`📝 DELETE: Extracted studyId: ${studyId} from reportId: ${reportId}`);
-      }
+      // reportId is the study ID (simple number format)
+      const studyId = parseInt(reportId);
+      console.log(`📝 DELETE: Extracted studyId: ${studyId} from reportId: ${reportId}`);
       
       if (studyId && !isNaN(studyId)) {
         // Update the database to clear both report fields (use null, not undefined, to actually set DB to NULL)
