@@ -9715,7 +9715,7 @@ Registration No: [Number]`
               <Button
                 variant="ghost"
                 size="sm"
-                className="absolute top-2 right-2 border transition-all duration-200"
+                className="absolute top-2 right-2 border transition-all duration-200 hidden"
                 style={{
                   backgroundColor: "white",
                   borderColor: "#e5e7eb",
