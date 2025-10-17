@@ -529,6 +529,7 @@ export default function ImagingPage() {
     );
     if (!study) return null;
 
+    console.log('📷 FRONTEND: Raw study data from API:', { id: study.id, fileName: study.fileName, file_name: study.file_name });
     const mapped: ImagingStudy = {
       id: String(study.id),
       patientId: String(study.patientId),
@@ -543,12 +544,12 @@ export default function ImagingPage() {
       status: study.status === "uploaded" ? "completed" : (study.status as ImagingStudy["status"]),
       priority: (study.priority ?? "routine") as ImagingStudy["priority"],
       indication: study.indication ?? "No indication provided",
-      findings: study.findings ?? `Medical image uploaded: ${study.fileName}`,
+      findings: study.findings ?? `Medical image uploaded: ${study.fileName || study.file_name}`,
       impression:
         study.impression ??
-        `File: ${study.fileName} (${(study.fileSize / (1024 * 1024)).toFixed(2)} MB)`,
+        `File: ${study.fileName || study.file_name} (${(study.fileSize / (1024 * 1024)).toFixed(2)} MB)`,
       radiologist: study.radiologist ?? study.uploadedByName ?? "Unknown",
-      fileName: study.fileName, // Add fileName from medical_images table for PDF generation
+      fileName: study.fileName || study.file_name, // Add fileName from medical_images table for PDF generation
       reportFileName: study.reportFileName,
       reportFilePath: study.reportFilePath,
       images: [
@@ -560,7 +561,7 @@ export default function ImagingPage() {
           size: `${(study.fileSize / (1024 * 1024)).toFixed(2)} MB`,
           imageData: study.imageData,
           mimeType: study.mimeType,
-          fileName: study.fileName,
+          fileName: study.fileName || study.file_name,
         },
       ],
       ...(study.report && { report: study.report }),

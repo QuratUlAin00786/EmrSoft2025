@@ -9846,12 +9846,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const patient = await storage.getPatient(image.patientId, req.tenant!.id);
           const uploader = await storage.getUser(Number(image.uploadedBy), req.tenant!.id);
           
-          return {
+          const result = {
             ...image,
             patientName: patient ? `${patient.firstName} ${patient.lastName}` : "Unknown Patient",
             patientId: patient?.patientId || "Unknown",
             uploadedByName: uploader ? `${uploader.firstName} ${uploader.lastName}` : "Unknown User"
           };
+          
+          console.log('📷 API: Returning image with fileName:', result.fileName);
+          return result;
         })
       );
       
