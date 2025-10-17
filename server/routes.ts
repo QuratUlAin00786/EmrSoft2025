@@ -14483,8 +14483,14 @@ Cura EMR Team
       // Generate report ID using the image_id from medical_images table
       const reportId = study.imageId || study.id || 'IMG'; // Use imageId column value (e.g., IMG1760647135I10NC)
       
-      // Extract patient ID from study
-      const patientId = study.patientId || 'unknown';
+      // Get the actual medical image from database to get the numeric patient ID
+      const imageId = parseInt(study.id);
+      const medicalImage = await storage.getMedicalImage(imageId, req.tenant!.id);
+      if (!medicalImage) {
+        return res.status(404).json({ error: "Medical image not found" });
+      }
+      
+      const patientId = medicalImage.patientId; // Use numeric database patient ID
       const organizationId = req.organizationId || req.tenant!.id;
       
       // Save PDF in organizational structure: uploads/Imaging_Reports/organization_id/patients/patient_id/
