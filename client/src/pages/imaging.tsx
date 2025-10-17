@@ -337,6 +337,8 @@ export default function ImagingPage() {
   >(null);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [showPaymentSuccessDialog, setShowPaymentSuccessDialog] = useState(false);
+  const [showPDFViewerDialog, setShowPDFViewerDialog] = useState(false);
+  const [pdfViewerUrl, setPdfViewerUrl] = useState<string | null>(null);
   const [paymentSuccessData, setPaymentSuccessData] = useState<{
     invoiceId: string;
     patientName: string;
@@ -1422,23 +1424,10 @@ export default function ImagingPage() {
       // Convert response to blob
       const blob = await response.blob();
       
-      // Create blob URL and open in new window
+      // Create blob URL and open in popup dialog
       const blobUrl = URL.createObjectURL(blob);
-      const newWindow = window.open(
-        blobUrl,
-        "_blank",
-        "width=800,height=600,scrollbars=yes,resizable=yes",
-      );
-
-      // Clean up blob URL after window is loaded
-      if (newWindow) {
-        newWindow.addEventListener('load', () => {
-          URL.revokeObjectURL(blobUrl);
-        });
-      } else {
-        // Fallback cleanup if window didn't open
-        setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
-      }
+      setPdfViewerUrl(blobUrl);
+      setShowPDFViewerDialog(true);
     } catch (error) {
       console.error("Error viewing PDF:", error);
       toast({
@@ -5322,6 +5311,30 @@ export default function ImagingPage() {
                 Close
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* PDF Viewer Dialog */}
+      <Dialog open={showPDFViewerDialog} onOpenChange={(open) => {
+        setShowPDFViewerDialog(open);
+        if (!open && pdfViewerUrl) {
+          URL.revokeObjectURL(pdfViewerUrl);
+          setPdfViewerUrl(null);
+        }
+      }}>
+        <DialogContent className="max-w-6xl h-[90vh]">
+          <DialogHeader>
+            <DialogTitle>Radiology Report</DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 w-full h-full">
+            {pdfViewerUrl && (
+              <iframe
+                src={pdfViewerUrl}
+                className="w-full h-full border-0"
+                title="PDF Report Viewer"
+              />
+            )}
           </div>
         </DialogContent>
       </Dialog>
