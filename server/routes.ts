@@ -14933,7 +14933,7 @@ Cura EMR Team
             yPosition -= imageHeight;
           }
         } catch (imageError) {
-          console.log('Could not embed image, continuing without it:', imageError);
+          console.error('📷 SERVER: ❌ Failed to add image to PDF after all attempts:', imageError.message);
           // Continue without image if there's an error
         }
       }
