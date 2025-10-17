@@ -14834,30 +14834,45 @@ Cura EMR Team
         try {
           console.log("📷 SERVER: Processing image for PDF, mimeType:", actualMimeType);
           
-          // Embed image based on MIME type with error handling
+          // Embed image based on MIME type with robust error handling
           let image;
+          let embedSuccess = false;
+          let primaryError: any = null;
+          
+          // Try primary format first
           try {
             if (actualMimeType.includes('jpeg') || actualMimeType.includes('jpg')) {
               image = await pdfDoc.embedJpg(imageBuffer);
+              embedSuccess = true;
+              console.log("📷 SERVER: Successfully embedded as JPEG");
             } else if (actualMimeType.includes('png')) {
               image = await pdfDoc.embedPng(imageBuffer);
+              embedSuccess = true;
+              console.log("📷 SERVER: Successfully embedded as PNG");
             }
-          } catch (embedError) {
-            // If PNG embedding fails, try JPEG as fallback
-            console.log("📷 SERVER: Primary embedding failed, trying alternate format:", embedError.message);
+          } catch (error) {
+            primaryError = error;
+            console.log("📷 SERVER: Primary embedding failed, trying fallback:", error.message);
+          }
+          
+          // If primary failed, try fallback format
+          if (!embedSuccess) {
             try {
               if (actualMimeType.includes('png')) {
-                // Try embedding as JPEG if PNG fails
+                // Try JPEG if PNG failed
                 image = await pdfDoc.embedJpg(imageBuffer);
-                console.log("📷 SERVER: Successfully embedded PNG as JPEG fallback");
+                embedSuccess = true;
+                console.log("📷 SERVER: ✅ Successfully embedded PNG file as JPEG (fallback)");
               } else {
-                // Try embedding as PNG if JPEG fails
+                // Try PNG if JPEG failed  
                 image = await pdfDoc.embedPng(imageBuffer);
-                console.log("📷 SERVER: Successfully embedded JPEG as PNG fallback");
+                embedSuccess = true;
+                console.log("📷 SERVER: ✅ Successfully embedded JPEG file as PNG (fallback)");
               }
             } catch (fallbackError) {
-              console.error("📷 SERVER: Both embedding methods failed:", fallbackError.message);
-              throw embedError; // Throw original error
+              console.error("📷 SERVER: ❌ Both embedding methods failed - PNG and JPEG");
+              console.error("📷 SERVER: Primary error:", primaryError?.message);
+              console.error("📷 SERVER: Fallback error:", fallbackError.message);
             }
           }
           
