@@ -15153,20 +15153,21 @@ Cura EMR Team
         return res.status(401).json({ error: "Authentication required" });
       }
 
-      // Verify the token
-      try {
-        const decoded = jwt.verify(token, JWT_SECRET) as any;
-        req.user = { 
-          id: decoded.userId, 
-          email: decoded.email, 
-          role: decoded.role,
-          organizationId: decoded.organizationId 
-        };
-        console.log('📄 PDF ROUTE: Token verified successfully for user:', req.user.email);
-      } catch (err) {
-        console.log('📄 PDF ROUTE: Token verification failed:', err);
+      // Verify the token using authService
+      const payload = authService.verifyToken(token);
+      
+      if (!payload) {
+        console.log('📄 PDF ROUTE: Token verification failed - invalid token');
         return res.status(401).json({ error: "Invalid or expired token" });
       }
+      
+      req.user = { 
+        id: payload.userId, 
+        email: payload.email, 
+        role: payload.role,
+        organizationId: payload.organizationId 
+      };
+      console.log('📄 PDF ROUTE: Token verified successfully for user:', req.user.email);
 
       if (!req.user) {
         return res.status(401).json({ error: "User not authenticated" });
