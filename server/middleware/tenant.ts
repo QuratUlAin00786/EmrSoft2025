@@ -120,7 +120,13 @@ export async function tenantMiddleware(req: TenantRequest, res: Response, next: 
 
 export async function authMiddleware(req: TenantRequest, res: Response, next: NextFunction) {
   try {
-    const token = authService.extractTokenFromHeader(req.get("Authorization"));
+    // Support both Authorization header and query parameter token (for iframe PDF viewing)
+    let token = authService.extractTokenFromHeader(req.get("Authorization"));
+    
+    // If no header token, check query parameter (for iframe compatibility)
+    if (!token && req.query.token) {
+      token = req.query.token as string;
+    }
     
     if (!token) {
       return res.status(401).json({ error: "Authentication required" });
