@@ -1415,7 +1415,27 @@ export default function ImagingPage() {
         headers["Authorization"] = `Bearer ${token}`;
       }
 
-      // Fetch PDF with authentication
+      // First check if file exists using HEAD request
+      const checkResponse = await fetch(`/api/imaging/reports/${reportId}`, {
+        method: "HEAD",
+        headers,
+        credentials: "include",
+      });
+
+      if (checkResponse.status === 404) {
+        // File not found - show error with file path and timestamp
+        const timestamp = new Date().toLocaleString();
+        toast({
+          title: "Report Not Found",
+          description: `PDF file does not exist at: uploads/Imaging_Reports/{org_id}/patients/{patient_id}/${reportId}.pdf (checked at ${timestamp})`,
+          variant: "destructive",
+        });
+        return;
+      } else if (!checkResponse.ok) {
+        throw new Error(`Failed to check PDF: ${checkResponse.status}`);
+      }
+
+      // File exists, now fetch and display it
       const response = await fetch(`/api/imaging/reports/${reportId}`, {
         method: "GET",
         headers,
@@ -1437,7 +1457,7 @@ export default function ImagingPage() {
       console.error("Error viewing PDF:", error);
       toast({
         title: "Error",
-        description: "Failed to open PDF report. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to open PDF report. Please try again.",
         variant: "destructive",
       });
     }

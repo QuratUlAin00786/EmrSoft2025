@@ -15098,9 +15098,27 @@ Cura EMR Team
 
       const { reportId } = req.params;
       
-      // PDF files are stored in /uploads/Imaging_Images/{reportId}.pdf
-      const reportsDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Images');
-      const filePath = path.join(reportsDir, `${reportId}.pdf`);
+      // Find the study by imageId to get organizationId and patientId
+      const studies = await storage.getMedicalImagesByOrganization(req.tenant!.id);
+      const study = studies.find(s => s.imageId === reportId);
+      
+      if (!study) {
+        return res.status(404).send();
+      }
+      
+      const organizationId = study.organizationId;
+      const patientId = study.patientId;
+      
+      // PDF files are stored in uploads/Imaging_Reports/{organizationId}/patients/{patientId}/{imageId}.pdf
+      const filePath = path.resolve(
+        process.cwd(), 
+        'uploads', 
+        'Imaging_Reports', 
+        String(organizationId), 
+        'patients', 
+        String(patientId), 
+        `${reportId}.pdf`
+      );
       
       // Check if file exists
       if (!(await fse.pathExists(filePath))) {
