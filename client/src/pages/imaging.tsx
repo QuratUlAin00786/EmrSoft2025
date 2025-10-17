@@ -2541,8 +2541,8 @@ export default function ImagingPage() {
                             size="sm"
                             onClick={async () => {
                               try {
-                                const token =
-                                  localStorage.getItem("auth_token");
+                                const token = localStorage.getItem("auth_token");
+                                const reportId = study.reportFileName.replace(/\.pdf$/i, "");
                                 const headers: Record<string, string> = {
                                   "X-Tenant-Subdomain": getActiveSubdomain(),
                                 };
@@ -2552,7 +2552,7 @@ export default function ImagingPage() {
                                 }
 
                                 const response = await fetch(
-                                  `/api/imaging/reports/${study.reportFileName.replace(".pdf", "")}?download=true`,
+                                  `/api/imaging/reports/${reportId}?download=true&token=${encodeURIComponent(token || '')}`,
                                   {
                                     headers,
                                     credentials: "include",
