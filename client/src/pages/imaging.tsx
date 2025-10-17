@@ -5354,11 +5354,11 @@ export default function ImagingPage() {
           setPdfViewerUrl(null);
         }
       }}>
-        <DialogContent className="max-w-6xl h-[90vh]">
+        <DialogContent className="max-w-6xl h-[90vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>Radiology Report</DialogTitle>
           </DialogHeader>
-          <div className="flex-1 w-full h-full">
+          <div className="flex-1 w-full overflow-hidden">
             {pdfViewerUrl && (
               <iframe
                 src={pdfViewerUrl}
