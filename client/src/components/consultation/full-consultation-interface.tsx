@@ -42,9 +42,11 @@ import { useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 
 import updatedFacialMuscleImage from "@assets/generated_images/Updated_facial_muscle_diagram.png";
+import cleanFacialOutlineV2Image from "@assets/generated_images/Clean_facial_outline_v2.png";
 
 const facialMuscleImage = updatedFacialMuscleImage;
 const facialOutlineImage = updatedFacialMuscleImage;
+const cleanFacialOutlineV2 = cleanFacialOutlineV2Image;
 
 // Helper function to get the correct tenant subdomain
 function getTenantSubdomain(): string {
@@ -1730,7 +1732,7 @@ Healthcare Management System - Averox Healthcare
   const recognitionRef = useRef<any>(null);
 
   // Anatomical images array
-  const anatomicalImages = [facialMuscleImage, facialOutlineImage];
+  const anatomicalImages = [facialMuscleImage, facialOutlineImage, cleanFacialOutlineV2];
 
 
   const navigateImage = (direction: 'prev' | 'next') => {
