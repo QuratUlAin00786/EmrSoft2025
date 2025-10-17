@@ -14480,9 +14480,8 @@ Cura EMR Team
         return res.status(400).json({ error: "Study data is required" });
       }
 
-      // Generate unique report ID using patient ID and imaging ID for better identification
-      const imagingId = study.id || 'IMG';
-      const reportId = String(imagingId); // Simple ID format: just the image ID
+      // Generate report ID using the image_id from medical_images table
+      const reportId = study.imageId || study.id || 'IMG'; // Use imageId column value (e.g., IMG1760647135I10NC)
       
       // Save PDF in same location as images: /uploads/Imaging_Images/
       const reportsDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Images');
@@ -15164,24 +15163,31 @@ Cura EMR Team
       await fse.remove(filePath);
 
       // Clear the reportFileName and reportFilePath from the database
-      // reportId is the study ID (simple number format)
-      const studyId = parseInt(reportId);
-      console.log(`📝 DELETE: Extracted studyId: ${studyId} from reportId: ${reportId}`);
+      // reportId is the image_id from medical_images table (e.g., IMG1760647135I10NC)
+      console.log(`📝 DELETE: Finding study by imageId: ${reportId}`);
       
-      if (studyId && !isNaN(studyId)) {
-        // Update the database to clear both report fields (use null, not undefined, to actually set DB to NULL)
-        console.log(`📝 DELETE: Updating database for studyId: ${studyId}, organizationId: ${req.tenant!.id}`);
-        await storage.updateMedicalImageReport(
-          studyId,
-          req.tenant!.id,
-          { 
-            reportFileName: null as any, 
-            reportFilePath: null as any 
-          }
-        );
-        console.log(`📝 DELETE: Database updated - set reportFileName and reportFilePath to NULL for studyId: ${studyId}`);
-      } else {
-        console.log(`⚠️ DELETE: Could not extract valid studyId from reportId: ${reportId}, database NOT updated`);
+      try {
+        // Find the study by imageId to get the actual database ID
+        const studies = await storage.getMedicalImages(req.tenant!.id);
+        const study = studies.find(s => s.imageId === reportId);
+        
+        if (study && study.id) {
+          // Update the database to clear both report fields (use null, not undefined, to actually set DB to NULL)
+          console.log(`📝 DELETE: Updating database for studyId: ${study.id}, imageId: ${reportId}, organizationId: ${req.tenant!.id}`);
+          await storage.updateMedicalImageReport(
+            study.id,
+            req.tenant!.id,
+            { 
+              reportFileName: null as any, 
+              reportFilePath: null as any 
+            }
+          );
+          console.log(`📝 DELETE: Database updated - set reportFileName and reportFilePath to NULL for studyId: ${study.id}`);
+        } else {
+          console.log(`⚠️ DELETE: Could not find study with imageId: ${reportId}, database NOT updated`);
+        }
+      } catch (dbError) {
+        console.error(`⚠️ DELETE: Database update error:`, dbError);
       }
 
       console.log(`✅ PDF report deleted successfully: ${filename}`);
