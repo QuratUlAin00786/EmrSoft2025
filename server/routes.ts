@@ -15142,7 +15142,14 @@ Cura EMR Team
         token = req.query.token as string;
       }
 
+      console.log('📄 PDF ROUTE: Token check:', { 
+        hasAuthHeader: !!req.headers.authorization, 
+        hasQueryToken: !!req.query.token,
+        tokenLength: token?.length 
+      });
+
       if (!token) {
+        console.log('📄 PDF ROUTE: No token found');
         return res.status(401).json({ error: "Authentication required" });
       }
 
@@ -15155,7 +15162,9 @@ Cura EMR Team
           role: decoded.role,
           organizationId: decoded.organizationId 
         };
+        console.log('📄 PDF ROUTE: Token verified successfully for user:', req.user.email);
       } catch (err) {
+        console.log('📄 PDF ROUTE: Token verification failed:', err);
         return res.status(401).json({ error: "Invalid or expired token" });
       }
 
@@ -15165,8 +15174,12 @@ Cura EMR Team
 
       const { reportId } = req.params;
       
+      // Use organizationId from the decoded token if tenant is not set
+      const orgId = req.tenant?.id || req.user.organizationId;
+      console.log('📄 PDF ROUTE: Using organizationId:', orgId);
+      
       // Find the study by imageId to get organizationId and patientId
-      const studies = await storage.getMedicalImagesByOrganization(req.tenant!.id);
+      const studies = await storage.getMedicalImagesByOrganization(orgId);
       const study = studies.find(s => s.imageId === reportId);
       
       if (!study) {
@@ -15186,6 +15199,8 @@ Cura EMR Team
         String(patientId), 
         `${reportId}.pdf`
       );
+      
+      console.log('📄 PDF ROUTE: Serving file from:', filePath);
       
       // Check if file exists
       if (!(await fse.pathExists(filePath))) {
