@@ -1435,12 +1435,18 @@ export default function ImagingPage() {
         throw new Error(`Failed to check PDF: ${checkResponse.status}`);
       }
 
-      // File exists, construct direct URL with auth token in query
+      // File exists, construct direct URL with auth token in query and open in new tab
       const directUrl = `/api/imaging/reports/${reportId}?token=${encodeURIComponent(token || '')}`;
       
       console.log("📄 PDF Direct URL created:", directUrl);
-      setPdfViewerUrl(directUrl);
-      setShowPDFViewerDialog(true);
+      
+      // Open PDF in new tab
+      window.open(directUrl, '_blank');
+      
+      toast({
+        title: "Opening Report",
+        description: "PDF report is opening in a new tab",
+      });
     } catch (error) {
       console.error("Error viewing PDF:", error);
       toast({
