@@ -10161,13 +10161,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         patientStringId: patient.patientId
       });
 
-      // Generate the correct filename based on patient info
-      const ext = req.file.originalname.split('.').pop();
-      const correctFilename = `${patient.patientId}_Images.${ext}`;
+      // Keep the same filename as the existing image
+      const keepFilename = existingImage.fileName;
       
       const imagingImagesDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Images');
       const tempFilePath = path.join(imagingImagesDir, req.file.filename);
-      const correctFilePath = path.join(imagingImagesDir, correctFilename);
+      const finalFilePath = path.join(imagingImagesDir, keepFilename);
 
       // Delete old file from filesystem if it exists
       if (existingImage.fileName) {
@@ -10183,22 +10182,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Rename temp file to correct filename
+      // Rename temp file to keep the same filename
       try {
-        await fse.move(tempFilePath, correctFilePath);
-        console.log('🔄 SERVER: Renamed temp file to correct filename:', {
-          from: req.file.filename,
-          to: correctFilename
+        await fse.move(tempFilePath, finalFilePath);
+        console.log('🔄 SERVER: Replaced image file keeping same filename:', {
+          tempFile: req.file.filename,
+          keptFilename: keepFilename
         });
       } catch (renameError) {
         console.error('🔄 SERVER: Error renaming temp file:', renameError);
         return res.status(500).json({ error: "Failed to rename uploaded file" });
       }
 
-      // Update database record with new file information
+      // Update database record with new file information (keeping the same fileName)
       const updateData = {
-        fileName: correctFilename, // Use the correct filename
-        fileUrl: `/uploads/Imaging_Images/${correctFilename}`,
+        fileName: keepFilename, // Keep the same filename
+        fileUrl: `/uploads/Imaging_Images/${keepFilename}`,
         fileSize: req.file.size,
         mimeType: req.file.mimetype,
         uploadedBy: req.user.id,
@@ -10212,7 +10211,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ error: "Failed to update medical image record" });
       }
 
-      console.log('📷 SERVER: Successfully replaced image file:', correctFilename);
+      console.log('📷 SERVER: Successfully replaced image file:', keepFilename);
 
       // Return the updated image information
       const updatedImage = await storage.getMedicalImage(imageId, req.tenant!.id);
@@ -10220,7 +10219,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success: true, 
         image: updatedImage,
         originalName: req.file.originalname,
-        uniqueFilename: correctFilename
+        keptFilename: keepFilename
       });
 
     } catch (error) {
