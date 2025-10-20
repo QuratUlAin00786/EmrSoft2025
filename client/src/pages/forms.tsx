@@ -6052,7 +6052,7 @@ Registration No: [Number]`
                   e.currentTarget.style.backgroundColor = "white";
                   e.currentTarget.style.borderColor = "#e5e7eb";
                 }}
-                onClick={saveClinicInfo}
+                onClick={handleSaveClinicInfo}
               >
                 Save Changes
               </Button>
