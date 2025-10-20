@@ -2419,6 +2419,72 @@ Coverage Details: [Insurance Coverage]`;
     }
   };
 
+  const handleInsertClinicHeader = () => {
+    // Generate HTML based on header type and position
+    let headerHTML = "";
+    const textAlign = clinicHeaderPosition;
+    
+    if (tempClinicHeaderType === "full-header") {
+      headerHTML = `
+        <div style="text-align: ${textAlign}; margin: 20px 0; padding: 15px; border-bottom: 2px solid #4A7DFF;">
+          <div style="display: inline-block; text-align: left;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+              <div style="width: 32px; height: 32px; background: #E9D5FF; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
+                <span style="font-size: 16px;">📋</span>
+              </div>
+              <h3 style="color: #4A7DFF; margin: 0; font-size: 20px; font-weight: bold;">${clinicInfo.name || "Demo Healthcare Clinic"}</h3>
+            </div>
+            <div style="font-size: 14px; color: #666;">
+              <div>${clinicInfo.address || "123 Healthcare Street, Medical City, MC 12345"}</div>
+              <div>${clinicInfo.phone || "+44 20 1234 5678"} • ${clinicInfo.email || "info@yourclinic.com"}</div>
+              <div>${clinicInfo.website || "www.yourclinic.com"}</div>
+            </div>
+          </div>
+        </div>
+      `;
+    } else if (tempClinicHeaderType === "letterhead") {
+      headerHTML = `
+        <div style="text-align: ${textAlign}; margin: 20px 0; padding: 15px;">
+          <h3 style="color: #4A7DFF; margin: 0 0 4px 0; font-size: 24px; font-weight: bold;">${clinicInfo.name || "Demo Healthcare Clinic"}</h3>
+          <div style="font-size: 14px; color: #666; border-bottom: 1px solid #ccc; padding-bottom: 8px;">
+            Professional Medical Services
+          </div>
+        </div>
+      `;
+    } else if (tempClinicHeaderType === "name-only") {
+      headerHTML = `
+        <div style="text-align: ${textAlign}; margin: 20px 0;">
+          <h3 style="color: #4A7DFF; margin: 0; font-size: 20px; font-weight: bold;">${clinicInfo.name || "Demo Healthcare Clinic"}</h3>
+        </div>
+      `;
+    } else if (tempClinicHeaderType === "contact-info") {
+      headerHTML = `
+        <div style="text-align: ${textAlign}; margin: 20px 0; font-size: 14px; color: #666;">
+          <div>📍 ${clinicInfo.address || "123 Healthcare Street, Medical City, MC 12345"}</div>
+          <div>📞 ${clinicInfo.phone || "+44 20 1234 5678"}</div>
+          <div>✉️ ${clinicInfo.email || "info@yourclinic.com"}</div>
+          <div>🌐 ${clinicInfo.website || "www.yourclinic.com"}</div>
+        </div>
+      `;
+    }
+    
+    // Insert into editor
+    if (textareaRef) {
+      const currentContent = textareaRef.innerHTML;
+      textareaRef.innerHTML = headerHTML + currentContent;
+      setDocumentContent(textareaRef.innerHTML);
+    }
+    
+    // Close dialog
+    setShowClinicPositionDialog(false);
+    
+    toast({
+      title: "✓ Header Inserted",
+      description: "Clinic header has been added to your document",
+      duration: 2000,
+    });
+  };
+
   const handleLoadClinicalHeader = () => {
     // Insert the clinic info into the editor
     const clinicHTML = `
@@ -9362,11 +9428,7 @@ Registration No: [Number]`
                 Back
               </Button>
               <Button 
-                onClick={() => {
-                  setAddClinicHeader(true);
-                  setSelectedClinicHeaderType(tempClinicHeaderType);
-                  setShowClinicPositionDialog(false);
-                }}
+                onClick={handleInsertClinicHeader}
               >
                 OK
               </Button>
