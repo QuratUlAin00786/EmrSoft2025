@@ -3364,7 +3364,13 @@ export default function PrescriptionsPage() {
                 </CardContent>
               </Card>
             ) : (
-              filteredPrescriptions.map((prescription) => (
+              filteredPrescriptions.map((prescription) => {
+                console.log("📋 Prescription data:", prescription);
+                console.log("📋 prescriptionCreatedBy:", prescription.prescriptionCreatedBy);
+                console.log("📋 doctorId:", prescription.doctorId);
+                console.log("📋 Providers array:", providers);
+                
+                return (
                 <Card
                   key={prescription.id}
                   className="hover:shadow-md transition-shadow bg-gradient-to-br from-blue-50 to-purple-100 dark:from-slate-800 dark:to-slate-700 border-2 border-blue-200 dark:border-slate-600"
@@ -3380,6 +3386,8 @@ export default function PrescriptionsPage() {
                           {(() => {
                             const doctorId = prescription.prescriptionCreatedBy || prescription.doctorId;
                             const doctorInfo = providers?.find((p: any) => p.id === doctorId);
+                            console.log("🔍 Looking for doctorId:", doctorId);
+                            console.log("🔍 Found doctorInfo:", doctorInfo);
                             return doctorInfo ? (
                               <p className="text-xs text-gray-600 dark:text-gray-300">
                                 Doctor: {doctorInfo.firstName} {doctorInfo.lastName} ({doctorInfo.role})
@@ -3905,7 +3913,8 @@ export default function PrescriptionsPage() {
                     </div>
                   </div>
                 </Card>
-              ))
+                );
+              })
             )}
           </div>
         </div>
