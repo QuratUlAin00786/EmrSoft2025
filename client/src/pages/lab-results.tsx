@@ -4608,10 +4608,7 @@ Report generated from Cura EMR System`;
                       };
 
                       // Create lab result
-                      const createdResult = await apiRequest("/api/lab-results", {
-                        method: "POST",
-                        body: JSON.stringify(labResultData),
-                      });
+                      const createdResult = await apiRequest("POST", "/api/lab-results", labResultData);
 
                       // Generate PDF for the created lab result
                       if (createdResult?.id) {
@@ -5182,14 +5179,11 @@ Report generated from Cura EMR System`;
                     }
 
                     // Update the existing lab order with results
-                    await apiRequest(`/api/lab-results/${selectedLabOrder.id}`, {
-                      method: "PUT",
-                      body: JSON.stringify({
-                        status: "completed",
-                        results: results,
-                        notes: fillResultFormData.notes || selectedLabOrder.notes || "",
-                        criticalValues: false,
-                      }),
+                    await apiRequest("PUT", `/api/lab-results/${selectedLabOrder.id}`, {
+                      status: "completed",
+                      results: results,
+                      notes: fillResultFormData.notes || selectedLabOrder.notes || "",
+                      criticalValues: false,
                     });
 
                     // Generate PDF for the updated lab result
