@@ -2285,15 +2285,15 @@ Report generated from Cura EMR System`;
                               setShowPdfViewerDialog(true);
                             } else {
                               toast({
-                                title: "Error",
-                                description: "PDF file not found. Please generate the lab result first.",
+                                title: "Report Not Found",
+                                description: "Please generate report first",
                                 variant: "destructive",
                               });
                             }
                           } catch (error) {
                             toast({
                               title: "Error",
-                              description: "Failed to load PDF. Please try again.",
+                              description: "Please generate report first",
                               variant: "destructive",
                             });
                           }
