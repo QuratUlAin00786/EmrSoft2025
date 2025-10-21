@@ -4809,8 +4809,8 @@ export default function BillingPage() {
                           <td className="p-3 font-mono text-gray-900 dark:text-gray-100">{item.code}</td>
                           <td className="p-3 text-gray-900 dark:text-gray-100">{item.description}</td>
                           <td className="p-3 text-right text-gray-900 dark:text-gray-100">{item.quantity}</td>
-                          <td className="p-3 text-right text-gray-900 dark:text-gray-100">£{item.unitPrice.toFixed(2)}</td>
-                          <td className="p-3 text-right font-semibold text-gray-900 dark:text-gray-100">£{item.total.toFixed(2)}</td>
+                          <td className="p-3 text-right text-gray-900 dark:text-gray-100">£{Number(item.unitPrice).toFixed(2)}</td>
+                          <td className="p-3 text-right font-semibold text-gray-900 dark:text-gray-100">£{Number(item.total).toFixed(2)}</td>
                         </tr>
                       ))}
                     </tbody>
