@@ -2271,6 +2271,12 @@ export default function PrescriptionsPage() {
               <div class="footer">
                 <div class="signature-section">
                   <div class="signature-label">Resident Physician<br>(Signature)</div>
+                  ${
+                    prescription.signature && prescription.signature.doctorSignature
+                      ? `<img src="${prescription.signature.doctorSignature}" alt="Doctor Signature" style="height: 48px; width: 128px; border: 1px solid #dee2e6; background: white; border-radius: 4px; margin-top: 8px;" />
+                         <p style="font-size: 8px; color: #28a745; margin-top: 4px;">✓ E-Signed by ${prescription.signature.signedBy || "Provider"}</p>`
+                      : ""
+                  }
                 </div>
                 <div class="substitute-section">
                   <div class="substitute-label">May Substitute</div>
