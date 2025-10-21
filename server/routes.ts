@@ -14137,7 +14137,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { patient_id, patientName, items, totalAmount, insuranceProvider, serviceDate, invoiceDate, dueDate } = req.body;
 
       // Fetch patient record to get formatted patientId (e.g., P000001)
-      const patientRecord = await storage.getPatientById(patient_id);
+      const patientRecord = await storage.getPatient(patient_id, organizationId);
       if (!patientRecord) {
         return res.status(404).json({ error: "Patient not found" });
       }
@@ -14236,7 +14236,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { patient_id, patientName, amount, items, insuranceProvider, serviceDate, invoiceDate, dueDate } = req.body;
 
       // Fetch patient record to get formatted patientId (e.g., P000001)
-      const patientRecord = await storage.getPatientById(patient_id);
+      const patientRecord = await storage.getPatient(patient_id, organizationId);
       if (!patientRecord) {
         return res.status(404).json({ error: "Patient not found" });
       }
