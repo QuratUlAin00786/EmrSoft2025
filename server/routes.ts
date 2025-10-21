@@ -6467,84 +6467,132 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       yPos += 10;
+
+      // Lab Order Information Section
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(14);
-      doc.text('Laboratory Test Prescription', 105, yPos, { align: 'center' });
-      yPos += 15;
+      doc.text('Lab Order Information', 20, yPos);
+      yPos += 10;
 
-      // Patient Information
-      doc.setFontSize(12);
-      doc.text('Patient Information:', 20, yPos);
-      yPos += 8;
+      // Create two-column layout for lab order info
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(10);
-      doc.text(`Name: ${patient.firstName} ${patient.lastName}`, 20, yPos);
-      yPos += 6;
-      doc.text(`Patient ID: ${patient.id}`, 20, yPos);
-      yPos += 6;
-      if (patient.dateOfBirth) {
-        doc.text(`Date of Birth: ${new Date(patient.dateOfBirth).toLocaleDateString()}`, 20, yPos);
-        yPos += 6;
-      }
-      if (patient.gender) {
-        doc.text(`Gender: ${patient.gender}`, 20, yPos);
-        yPos += 6;
-      }
+      
+      const leftX = 20;
+      const rightX = 120;
+      let leftY = yPos;
+      let rightY = yPos;
 
-      yPos += 8;
-
-      // Lab Result Information
+      // Left column
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(12);
-      doc.text('Test Information:', 20, yPos);
-      yPos += 8;
+      doc.text('Patient Name:', leftX, leftY);
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(10);
-      doc.text(`Test ID: ${labResult.testId}`, 20, yPos);
-      yPos += 6;
-      doc.text(`Test Type: ${labResult.testType}`, 20, yPos);
-      yPos += 6;
-      doc.text(`Status: ${labResult.status}`, 20, yPos);
-      yPos += 6;
-      if (labResult.priority) {
-        doc.text(`Priority: ${labResult.priority}`, 20, yPos);
-        yPos += 6;
-      }
-      if (labResult.orderedAt) {
-        doc.text(`Ordered At: ${new Date(labResult.orderedAt).toLocaleString()}`, 20, yPos);
-        yPos += 6;
-      }
+      doc.text(`${patient.firstName} ${patient.lastName}`, leftX + 35, leftY);
+      leftY += 7;
 
-      // Results
+      doc.setFont('helvetica', 'bold');
+      doc.text('Test ID:', leftX, leftY);
+      doc.setFont('helvetica', 'normal');
+      doc.text(labResult.testId, leftX + 35, leftY);
+      leftY += 7;
+
+      doc.setFont('helvetica', 'bold');
+      doc.text('Ordered Date:', leftX, leftY);
+      doc.setFont('helvetica', 'normal');
+      doc.text(labResult.orderedAt ? new Date(labResult.orderedAt).toLocaleDateString() : 'N/A', leftX + 35, leftY);
+      leftY += 7;
+
+      // Right column
+      doc.setFont('helvetica', 'bold');
+      doc.text('Ordered By:', rightX, rightY);
+      doc.setFont('helvetica', 'normal');
+      doc.text(req.user?.firstName ? `${req.user.firstName} ${req.user.lastName}` : 'N/A', rightX + 30, rightY);
+      rightY += 7;
+
+      doc.setFont('helvetica', 'bold');
+      doc.text('Priority:', rightX, rightY);
+      doc.setFont('helvetica', 'normal');
+      doc.text(labResult.priority || 'normal', rightX + 30, rightY);
+
+      yPos = Math.max(leftY, rightY) + 10;
+
+      // Results Table
       if (labResult.results) {
-        yPos += 8;
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(12);
-        doc.text('Test Results:', 20, yPos);
-        yPos += 8;
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(10);
-
         try {
           const results = typeof labResult.results === 'string' 
             ? JSON.parse(labResult.results) 
             : labResult.results;
 
-          if (Array.isArray(results)) {
-            results.forEach((result: any) => {
+          if (Array.isArray(results) && results.length > 0) {
+            // Test Type Header (in blue)
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(12);
+            doc.setTextColor(66, 133, 244); // Blue color
+            doc.text(labResult.testType, 20, yPos);
+            doc.setTextColor(0, 0, 0); // Reset to black
+            yPos += 10;
+
+            // Table Header
+            const tableStartY = yPos;
+            const rowHeight = 8;
+            const colWidths = [60, 30, 30, 50]; // Parameter, Value, Unit, Reference Range
+            const tableX = 20;
+            
+            // Draw header background (light gray)
+            doc.setFillColor(240, 240, 240);
+            doc.rect(tableX, tableStartY, colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], rowHeight, 'F');
+            
+            // Draw header borders
+            doc.setDrawColor(200, 200, 200);
+            doc.rect(tableX, tableStartY, colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], rowHeight);
+            
+            // Header text
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(10);
+            doc.text('Parameter', tableX + 2, tableStartY + 5);
+            doc.text('Value', tableX + colWidths[0] + 2, tableStartY + 5);
+            doc.text('Unit', tableX + colWidths[0] + colWidths[1] + 2, tableStartY + 5);
+            doc.text('Reference Range', tableX + colWidths[0] + colWidths[1] + colWidths[2] + 2, tableStartY + 5);
+            
+            yPos = tableStartY + rowHeight;
+
+            // Table rows
+            doc.setFont('helvetica', 'normal');
+            results.forEach((result: any, index: number) => {
               if (yPos > 270) {
                 doc.addPage();
                 yPos = 20;
               }
-              doc.text(`${result.testName}: ${result.value} ${result.unit || ''}`, 25, yPos);
-              yPos += 6;
-              if (result.referenceRange) {
-                doc.text(`  Reference Range: ${result.referenceRange}`, 25, yPos);
-                yPos += 6;
+
+              // Alternate row background (very light gray)
+              if (index % 2 === 0) {
+                doc.setFillColor(250, 250, 250);
+                doc.rect(tableX, yPos, colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], rowHeight, 'F');
               }
+              
+              // Draw row borders
+              doc.setDrawColor(200, 200, 200);
+              doc.rect(tableX, yPos, colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], rowHeight);
+              
+              // Draw vertical lines between columns
+              doc.line(tableX + colWidths[0], yPos, tableX + colWidths[0], yPos + rowHeight);
+              doc.line(tableX + colWidths[0] + colWidths[1], yPos, tableX + colWidths[0] + colWidths[1], yPos + rowHeight);
+              doc.line(tableX + colWidths[0] + colWidths[1] + colWidths[2], yPos, tableX + colWidths[0] + colWidths[1] + colWidths[2], yPos + rowHeight);
+              
+              // Row data
+              doc.text(result.testName || '', tableX + 2, yPos + 5);
+              doc.text(String(result.value || ''), tableX + colWidths[0] + 2, yPos + 5);
+              doc.text(result.unit || '', tableX + colWidths[0] + colWidths[1] + 2, yPos + 5);
+              doc.text(result.referenceRange || '', tableX + colWidths[0] + colWidths[1] + colWidths[2] + 2, yPos + 5);
+              
+              yPos += rowHeight;
             });
+
+            yPos += 5;
           }
         } catch (e) {
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(10);
           doc.text(labResult.results.toString(), 25, yPos);
           yPos += 6;
         }
