@@ -248,6 +248,12 @@ export default function PrescriptionsPage() {
     },
   });
 
+  // Fetch clinic headers
+  const { data: clinicHeader } = useQuery({
+    queryKey: ["/api/clinic-headers"],
+    enabled: !!user,
+  });
+
   // Status editing state
   const [editingStatusId, setEditingStatusId] = useState<string | null>(null);
   const [tempStatus, setTempStatus] = useState<string>("");
@@ -847,11 +853,12 @@ export default function PrescriptionsPage() {
           // Pharmacy/Clinic Information
           pdf.setFontSize(10);
           pdf.setFont('helvetica', 'normal');
-          const pharmacyName = pharmacyData?.name || 'Halo Health Clinic';
-          pdf.text(pharmacyName, 105, 58, { align: 'center' });
-          pdf.text('Unit 2 Drayton Court, Solihull', 105, 64, { align: 'center' });
-          pdf.text('B90 4NG, UK', 105, 70, { align: 'center' });
-          pdf.text('+44(0)121 827 5531', 105, 76, { align: 'center' });
+          const clinicName = clinicHeader?.clinicName || pharmacyData?.name || 'Halo Health Clinic';
+          const clinicAddress = clinicHeader?.address || 'Unit 2 Drayton Court, Solihull';
+          const clinicPhone = clinicHeader?.phone || '+44(0)121 827 5531';
+          pdf.text(clinicName, 105, 58, { align: 'center' });
+          pdf.text(clinicAddress, 105, 64, { align: 'center' });
+          pdf.text(clinicPhone, 105, 70, { align: 'center' });
           
           // Horizontal line separator
           pdf.setDrawColor(200, 200, 200);
@@ -1816,10 +1823,9 @@ export default function PrescriptionsPage() {
                 <div class="provider-title">RESIDENT PHYSICIAN M.D</div>
                 <div class="provider-details">
                   ${prescription.providerName}<br>
-                  Halo Health Clinic<br>
-                  Unit 2 Drayton Court, Solihull<br>
-                  B90 4NG, UK<br>
-                  +44(0)121 827 5531
+                  ${clinicHeader?.clinicName || 'Halo Health Clinic'}<br>
+                  ${clinicHeader?.address || 'Unit 2 Drayton Court, Solihull'}<br>
+                  ${clinicHeader?.phone || '+44(0)121 827 5531'}
                 </div>
               </div>
               
@@ -2852,16 +2858,13 @@ export default function PrescriptionsPage() {
                         </h3>
                       
                         <p className="text-sm text-gray-600 dark:text-gray-300">
-                          Halo Health Clinic
+                          {clinicHeader?.clinicName || 'Halo Health Clinic'}
                         </p>
                         <p className="text-sm text-gray-600 dark:text-gray-300">
-                          Unit 2 Drayton Court, Solihull
+                          {clinicHeader?.address || 'Unit 2 Drayton Court, Solihull'}
                         </p>
                         <p className="text-sm text-gray-600 dark:text-gray-300">
-                          B90 4NG, UK
-                        </p>
-                        <p className="text-sm text-gray-600 dark:text-gray-300">
-                          +44(0)121 827 5531
+                          {clinicHeader?.phone || '+44(0)121 827 5531'}
                         </p>
                       </div>
                     </div>
