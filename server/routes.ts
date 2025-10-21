@@ -14135,7 +14135,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('[CASH PAYMENT] Request received, body:', JSON.stringify(req.body, null, 2));
       const organizationId = requireOrgId(req);
       const { patient_id, patientName, items, totalAmount, insuranceProvider, serviceDate, invoiceDate, dueDate } = req.body;
-      const patientId = patient_id;
+
+      // Fetch patient record to get formatted patientId (e.g., P000001)
+      const patientRecord = await storage.getPatientById(patient_id);
+      if (!patientRecord) {
+        return res.status(404).json({ error: "Patient not found" });
+      }
+      const formattedPatientId = patientRecord.patientId;
 
       // Generate unique invoice number
       const invoiceNumber = `INV-${Date.now()}-${Math.random().toString(36).substring(7).toUpperCase()}`;
@@ -14145,7 +14151,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const invoiceData = {
         organizationId,
         invoiceNumber,
-        patientId: patientId.toString(),
+        patientId: formattedPatientId,
         patientName,
         dateOfService: new Date(serviceDate),
         invoiceDate: new Date(invoiceDate),
@@ -14183,7 +14189,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const paymentData = {
         organizationId,
         invoiceId: invoice.id,
-        patientId: patientId.toString(),
+        patientId: formattedPatientId,
         transactionId: `CASH-${Date.now()}-${Math.random().toString(36).substring(7).toUpperCase()}`,
         amount: totalAmount,
         currency: 'GBP',
@@ -14228,7 +14234,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const organizationId = requireOrgId(req);
       const { patient_id, patientName, amount, items, insuranceProvider, serviceDate, invoiceDate, dueDate } = req.body;
-      const patientId = patient_id;
+
+      // Fetch patient record to get formatted patientId (e.g., P000001)
+      const patientRecord = await storage.getPatientById(patient_id);
+      if (!patientRecord) {
+        return res.status(404).json({ error: "Patient not found" });
+      }
+      const formattedPatientId = patientRecord.patientId;
 
       if (!stripe) {
         return res.status(503).json({ error: "Stripe is not configured" });
@@ -14240,7 +14252,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         currency: 'gbp',
         metadata: {
           organizationId: organizationId.toString(),
-          patientId: patientId.toString(),
+          patientId: formattedPatientId,
           patientName,
           serviceDate,
           invoiceDate,
