@@ -145,38 +145,26 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
           userId: user.id 
         });
         console.log("📋 APPOINTMENT-MODAL: Available patients:", uniquePatients.map(p => ({ 
-          id: p.id, 
+          id: p.id,
+          userId: p.userId,
           email: p.email, 
           name: `${p.firstName} ${p.lastName}` 
         })));
 
-        // Try multiple matching strategies - userId is most reliable
-        const currentPatient = 
-          // 1. PRIORITY: Match by userId field (most reliable)
-          uniquePatients.find((patient: any) => patient.userId === user.id) ||
-          // 2. Match by exact email
-          uniquePatients.find((patient: any) => 
-            patient.email && user.email && patient.email.toLowerCase() === user.email.toLowerCase()
-          ) ||
-          // 3. Match by exact full name
-          uniquePatients.find((patient: any) => 
-            patient.firstName && user.firstName && patient.lastName && user.lastName &&
-            patient.firstName.toLowerCase() === user.firstName.toLowerCase() && 
-            patient.lastName.toLowerCase() === user.lastName.toLowerCase()
-          ) ||
-          // 4. Match by partial name (first name only)
-          uniquePatients.find((patient: any) => 
-            patient.firstName && user.firstName &&
-            patient.firstName.toLowerCase() === user.firstName.toLowerCase()
-          ) ||
-          // 5. If user role is patient, take the first patient (fallback for demo)
-          (user.role === 'patient' && uniquePatients.length > 0 ? uniquePatients[0] : null);
+        // CRITICAL FIX: Match by userId field in patient record
+        // The patient record has: id=3 (patient record ID), userId=13 (user ID)
+        // We want to match userId=13 to get patient record ID=3
+        const currentPatient = uniquePatients.find((patient: any) => {
+          console.log(`🔍 APPOINTMENT-MODAL: Checking patient ID ${patient.id}, userId: ${patient.userId}, user.id: ${user.id}, match: ${patient.userId === user.id}`);
+          return patient.userId === user.id;
+        });
         
         if (currentPatient) {
           console.log("✅ APPOINTMENT-MODAL: Found matching patient:", currentPatient);
-          console.log("✅ APPOINTMENT-MODAL: Setting patientId to:", currentPatient.id);
+          console.log("✅ APPOINTMENT-MODAL: Patient record ID (correct):", currentPatient.id);
+          console.log("✅ APPOINTMENT-MODAL: Patient userId (matches user.id):", currentPatient.userId);
           setCurrentPatientDetails(currentPatient);
-          // Auto-populate the form with patient ID (database record ID, not user ID)
+          // Auto-populate the form with patient RECORD ID (not user ID)
           form.setValue("patientId", currentPatient.id.toString());
           console.log("✅ APPOINTMENT-MODAL: Form patientId value set to:", currentPatient.id.toString());
         } else {
