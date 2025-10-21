@@ -74,7 +74,7 @@ import {
 } from "lucide-react";
 
 // View Clinic Info Component
-function ViewClinicInfo({ user }: { user: any }) {
+function ViewClinicInfo({ user, onLoadHeader }: { user: any; onLoadHeader: (header: any, footer: any) => void }) {
   const { data: savedHeader, isLoading: headerLoading } = useQuery({
     queryKey: ['/api/clinic-headers'],
     enabled: !!user,
@@ -102,10 +102,19 @@ function ViewClinicInfo({ user }: { user: any }) {
       {/* Display Saved Header with Logo - Saved Position */}
       {savedHeader && (
         <div className="border rounded-lg p-6 bg-white dark:bg-[hsl(var(--cura-midnight))]">
-          <h3 className="text-lg font-semibold mb-4 text-[hsl(var(--cura-bluewave))] flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Saved Clinic Header ({savedHeader.logoPosition})
-          </h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-[hsl(var(--cura-bluewave))] flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Saved Clinic Header ({savedHeader.logoPosition})
+            </h3>
+            <Button
+              onClick={() => onLoadHeader(savedHeader, savedFooter)}
+              className="bg-[hsl(var(--cura-bluewave))] hover:bg-[hsl(var(--cura-electric-lilac))] text-white"
+              data-testid="button-load-header"
+            >
+              Load
+            </Button>
+          </div>
           <div className="space-y-4">
             {/* Left Position */}
             {savedHeader.logoPosition === 'left' && (
@@ -4456,6 +4465,85 @@ Coverage Details: [Insurance Coverage]`;
   const handleH6 = () => {
     console.log("handleH6 called");
     applyTextFormatting("heading6");
+  };
+
+  const loadHeaderToDocument = (header: any, footer: any) => {
+    if (!textareaRef) {
+      toast({
+        title: "Editor Not Ready",
+        description: "Please wait for the editor to load",
+        duration: 2000,
+      });
+      return;
+    }
+
+    try {
+      let headerHTML = '';
+      const borderColor = footer?.backgroundColor || '#4A7DFF';
+      const titleColor = footer?.backgroundColor || '#4A7DFF';
+      
+      if (header.logoPosition === 'left') {
+        headerHTML = `
+          <div style="border-bottom: 3px solid ${borderColor}; padding-bottom: 20px; margin-bottom: 20px;">
+            <div style="display: flex; align-items: flex-start; gap: 20px;">
+              ${header.logoBase64 ? `<img src="${header.logoBase64}" alt="Clinic Logo" style="max-height: 80px; object-fit: contain;">` : ''}
+              <div style="flex: 1;">
+                <h1 style="margin: 0; font-size: 24px; font-weight: bold; color: ${titleColor};">${header.clinicName}</h1>
+                ${header.address ? `<p style="margin: 5px 0; color: #666;">${header.address}</p>` : ''}
+                ${header.phone || header.email ? `<p style="margin: 5px 0; color: #666;">${header.phone}${header.phone && header.email ? ' • ' : ''}${header.email}</p>` : ''}
+                ${header.website ? `<p style="margin: 5px 0; color: #666;">${header.website}</p>` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      } else if (header.logoPosition === 'center') {
+        headerHTML = `
+          <div style="border-bottom: 3px solid ${borderColor}; padding-bottom: 20px; margin-bottom: 20px;">
+            <div style="display: flex; align-items: flex-start; justify-content: center; gap: 20px;">
+              ${header.logoBase64 ? `<img src="${header.logoBase64}" alt="Clinic Logo" style="max-height: 80px; object-fit: contain;">` : ''}
+              <div style="text-align: center;">
+                <h1 style="margin: 0; font-size: 24px; font-weight: bold; color: ${titleColor};">${header.clinicName}</h1>
+                ${header.address ? `<p style="margin: 5px 0; color: #666;">${header.address}</p>` : ''}
+                ${header.phone || header.email ? `<p style="margin: 5px 0; color: #666;">${header.phone}${header.phone && header.email ? ' • ' : ''}${header.email}</p>` : ''}
+                ${header.website ? `<p style="margin: 5px 0; color: #666;">${header.website}</p>` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      } else if (header.logoPosition === 'right') {
+        headerHTML = `
+          <div style="border-bottom: 3px solid ${borderColor}; padding-bottom: 20px; margin-bottom: 20px;">
+            <div style="display: flex; align-items: flex-start; gap: 20px; flex-direction: row-reverse;">
+              ${header.logoBase64 ? `<img src="${header.logoBase64}" alt="Clinic Logo" style="max-height: 80px; object-fit: contain;">` : ''}
+              <div style="flex: 1; text-align: right;">
+                <h1 style="margin: 0; font-size: 24px; font-weight: bold; color: ${titleColor};">${header.clinicName}</h1>
+                ${header.address ? `<p style="margin: 5px 0; color: #666;">${header.address}</p>` : ''}
+                ${header.phone || header.email ? `<p style="margin: 5px 0; color: #666;">${header.phone}${header.phone && header.email ? ' • ' : ''}${header.email}</p>` : ''}
+                ${header.website ? `<p style="margin: 5px 0; color: #666;">${header.website}</p>` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      textareaRef.innerHTML = headerHTML + textareaRef.innerHTML;
+      setDocumentContent(textareaRef.innerHTML);
+      setShowViewClinicInfoDialog(false);
+
+      toast({
+        title: "✓ Header Loaded",
+        description: `Clinic header (${header.logoPosition} position) loaded into document`,
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error("Error loading header:", error);
+      toast({
+        title: "Load Error",
+        description: "Failed to load header into document",
+        variant: "destructive",
+        duration: 3000,
+      });
+    }
   };
 
   const getFontFamilyCSS = (fontFamilyValue: string) => {
@@ -10959,7 +11047,7 @@ Registration No: [Number]`
             <DialogTitle className="text-2xl font-bold text-[hsl(var(--cura-bluewave))]">Saved Clinic Information</DialogTitle>
           </DialogHeader>
 
-          <ViewClinicInfo user={user} />
+          <ViewClinicInfo user={user} onLoadHeader={loadHeaderToDocument} />
         </DialogContent>
       </Dialog>
 
