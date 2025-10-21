@@ -2278,6 +2278,7 @@ Report generated from Cura EMR System`;
                         size="sm"
                         onClick={async () => {
                           try {
+                            console.log('[VIEW PDF] Fetching PDF path for lab result:', result.id);
                             const response = await fetch(`/api/lab-results/${result.id}/pdf-path`, {
                               headers: {
                                 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
@@ -2285,10 +2286,15 @@ Report generated from Cura EMR System`;
                               }
                             });
                             const data = await response.json();
+                            console.log('[VIEW PDF] Response data:', data);
+                            console.log('[VIEW PDF] pdfPath value:', data.pdfPath);
+                            console.log('[VIEW PDF] pdfPath type:', typeof data.pdfPath);
                             if (data.pdfPath) {
+                              console.log('[VIEW PDF] Opening PDF:', data.pdfPath);
                               setPdfViewerUrl(`/${data.pdfPath}`);
                               setShowPdfViewerDialog(true);
                             } else {
+                              console.log('[VIEW PDF] No PDF path found');
                               toast({
                                 title: "Report Not Found",
                                 description: "Please generate report first",
@@ -2296,6 +2302,7 @@ Report generated from Cura EMR System`;
                               });
                             }
                           } catch (error) {
+                            console.error('[VIEW PDF] Error:', error);
                             toast({
                               title: "Error",
                               description: "Please generate report first",

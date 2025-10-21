@@ -6700,10 +6700,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Check if file exists
       const fileExists = await fse.pathExists(fullPath);
+      console.log(`[PDF-PATH] Checking file: ${fullPath}, exists: ${fileExists}`);
       if (!fileExists) {
+        console.log(`[PDF-PATH] File not found, returning null`);
         return res.json({ pdfPath: null, error: "PDF file not found" });
       }
 
+      console.log(`[PDF-PATH] File found, returning path: ${relativePath}`);
       res.json({ pdfPath: relativePath });
 
     } catch (error) {
