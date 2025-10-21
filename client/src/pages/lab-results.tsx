@@ -2285,7 +2285,19 @@ Report generated from Cura EMR System`;
                                 'X-Tenant-Subdomain': localStorage.getItem('user_subdomain') || ''
                               }
                             });
-                            const data = await response.json();
+                            
+                            console.log('[VIEW PDF] Response status:', response.status);
+                            console.log('[VIEW PDF] Response headers:', response.headers.get('content-type'));
+                            
+                            if (!response.ok) {
+                              console.error('[VIEW PDF] Response not OK:', response.status, response.statusText);
+                              throw new Error(`HTTP error! status: ${response.status}`);
+                            }
+                            
+                            const text = await response.text();
+                            console.log('[VIEW PDF] Response text:', text);
+                            
+                            const data = JSON.parse(text);
                             console.log('[VIEW PDF] Response data:', data);
                             console.log('[VIEW PDF] pdfPath value:', data.pdfPath);
                             console.log('[VIEW PDF] pdfPath type:', typeof data.pdfPath);
