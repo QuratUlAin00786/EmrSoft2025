@@ -6580,7 +6580,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
               doc.line(tableX + colWidths[0] + colWidths[1] + colWidths[2], yPos, tableX + colWidths[0] + colWidths[1] + colWidths[2], yPos + rowHeight);
               
               // Row data
-              doc.text(result.testName || '', tableX + 2, yPos + 5);
+              const paramName = result.testName || result.name || '';
+              doc.text(paramName, tableX + 2, yPos + 5);
               doc.text(String(result.value || ''), tableX + colWidths[0] + 2, yPos + 5);
               doc.text(result.unit || '', tableX + colWidths[0] + colWidths[1] + 2, yPos + 5);
               doc.text(result.referenceRange || '', tableX + colWidths[0] + colWidths[1] + colWidths[2] + 2, yPos + 5);
