@@ -4739,10 +4739,10 @@ export default function BillingPage() {
           {selectedInvoice && (
             <div className="space-y-6">
               {/* Invoice Header */}
-              <div className="grid grid-cols-2 gap-6 p-4 bg-gray-50 rounded-lg">
+              <div className="grid grid-cols-2 gap-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <div>
-                  <h3 className="font-semibold text-lg mb-3">Patient Information</h3>
-                  <div className="space-y-1 text-sm">
+                  <h3 className="font-semibold text-lg mb-3 text-gray-900 dark:text-gray-100">Patient Information</h3>
+                  <div className="space-y-1 text-sm text-gray-900 dark:text-gray-100">
                     <div><strong>Name:</strong> {selectedInvoice.patientName}</div>
                     <div><strong>Patient ID:</strong> {selectedInvoice.patientId}</div>
                     <div><strong>Service Date:</strong> {format(new Date(selectedInvoice.dateOfService), 'MMM d, yyyy')}</div>
@@ -4752,8 +4752,8 @@ export default function BillingPage() {
                 </div>
                 
                 <div>
-                  <h3 className="font-semibold text-lg mb-3">Billing Summary</h3>
-                  <div className="space-y-1 text-sm">
+                  <h3 className="font-semibold text-lg mb-3 text-gray-900 dark:text-gray-100">Billing Summary</h3>
+                  <div className="space-y-1 text-sm text-gray-900 dark:text-gray-100">
                     <div><strong>Invoice ID:</strong> {selectedInvoice.invoiceNumber || selectedInvoice.id}</div>
                     <div className="flex items-center gap-2">
                       <strong>Status:</strong> 
@@ -4791,26 +4791,26 @@ export default function BillingPage() {
 
               {/* Services & Procedures */}
               <div>
-                <h3 className="font-semibold text-lg mb-3">Services & Procedures</h3>
-                <div className="border rounded-lg overflow-hidden">
+                <h3 className="font-semibold text-lg mb-3 text-gray-900 dark:text-gray-100">Services & Procedures</h3>
+                <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
                   <table className="w-full">
-                    <thead className="bg-gray-50">
-                      <tr className="border-b">
-                        <th className="text-left p-3">Code</th>
-                        <th className="text-left p-3">Description</th>
-                        <th className="text-right p-3">Qty</th>
-                        <th className="text-right p-3">Unit Price</th>
-                        <th className="text-right p-3">Total</th>
+                    <thead className="bg-gray-50 dark:bg-gray-800">
+                      <tr className="border-b border-gray-200 dark:border-gray-700">
+                        <th className="text-left p-3 text-gray-900 dark:text-gray-100">Code</th>
+                        <th className="text-left p-3 text-gray-900 dark:text-gray-100">Description</th>
+                        <th className="text-right p-3 text-gray-900 dark:text-gray-100">Qty</th>
+                        <th className="text-right p-3 text-gray-900 dark:text-gray-100">Unit Price</th>
+                        <th className="text-right p-3 text-gray-900 dark:text-gray-100">Total</th>
                       </tr>
                     </thead>
                     <tbody>
                       {selectedInvoice.items.map((item, index) => (
-                        <tr key={index} className="border-b last:border-b-0">
-                          <td className="p-3 font-mono">{item.code}</td>
-                          <td className="p-3">{item.description}</td>
-                          <td className="p-3 text-right">{item.quantity}</td>
-                          <td className="p-3 text-right">£{item.unitPrice.toFixed(2)}</td>
-                          <td className="p-3 text-right font-semibold">£{item.total.toFixed(2)}</td>
+                        <tr key={index} className="border-b border-gray-200 dark:border-gray-700 last:border-b-0">
+                          <td className="p-3 font-mono text-gray-900 dark:text-gray-100">{item.code}</td>
+                          <td className="p-3 text-gray-900 dark:text-gray-100">{item.description}</td>
+                          <td className="p-3 text-right text-gray-900 dark:text-gray-100">{item.quantity}</td>
+                          <td className="p-3 text-right text-gray-900 dark:text-gray-100">£{item.unitPrice.toFixed(2)}</td>
+                          <td className="p-3 text-right font-semibold text-gray-900 dark:text-gray-100">£{item.total.toFixed(2)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -4821,18 +4821,18 @@ export default function BillingPage() {
               {/* Insurance Information */}
               {selectedInvoice.insurance && (
                 <div>
-                  <h3 className="font-semibold text-lg mb-3">Insurance Information</h3>
-                  <div className="p-4 bg-blue-50 rounded-lg">
-                    <div className="grid grid-cols-2 gap-4 text-sm">
+                  <h3 className="font-semibold text-lg mb-3 text-gray-900 dark:text-gray-100">Insurance Information</h3>
+                  <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <div className="grid grid-cols-2 gap-4 text-sm text-gray-900 dark:text-gray-100">
                       <div>
                         <div><strong>Provider:</strong> {selectedInvoice.insurance.provider}</div>
                         <div><strong>Claim Number:</strong> {selectedInvoice.insurance.claimNumber}</div>
                       </div>
                       <div>
                         <div><strong>Status:</strong> 
-                          <Badge className={`ml-2 ${selectedInvoice.insurance.status === 'approved' ? 'bg-green-100 text-green-800' : 
-                            selectedInvoice.insurance.status === 'denied' ? 'bg-red-100 text-red-800' : 
-                            'bg-yellow-100 text-yellow-800'}`}>
+                          <Badge className={`ml-2 ${selectedInvoice.insurance.status === 'approved' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' : 
+                            selectedInvoice.insurance.status === 'denied' ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400' : 
+                            'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'}`}>
                             {selectedInvoice.insurance.status}
                           </Badge>
                         </div>
@@ -4845,14 +4845,14 @@ export default function BillingPage() {
 
               {/* Payment History */}
               <div>
-                <h3 className="font-semibold text-lg mb-3">Payment History</h3>
+                <h3 className="font-semibold text-lg mb-3 text-gray-900 dark:text-gray-100">Payment History</h3>
                 <div className="text-sm text-gray-600 dark:text-gray-300">
                   {(typeof selectedInvoice.paidAmount === 'string' ? parseFloat(selectedInvoice.paidAmount) : selectedInvoice.paidAmount) > 0 ? (
-                    <div className="p-3 bg-green-50 rounded-lg">
+                    <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg text-gray-900 dark:text-gray-100">
                       Payment of £{(typeof selectedInvoice.paidAmount === 'string' ? parseFloat(selectedInvoice.paidAmount) : selectedInvoice.paidAmount).toFixed(2)} received on {format(new Date(selectedInvoice.invoiceDate), 'MMM d, yyyy')}
                     </div>
                   ) : (
-                    <div className="p-3 bg-gray-50 rounded-lg">
+                    <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg text-gray-900 dark:text-gray-100">
                       No payments received yet
                     </div>
                   )}
