@@ -10873,7 +10873,8 @@ Registration No: [Number]`
                     });
                   }
                 }}
-                className="bg-[hsl(var(--cura-bluewave))] hover:bg-[hsl(var(--cura-bluewave))/90]"
+                className="bg-[hsl(var(--cura-bluewave))] hover:bg-[hsl(var(--cura-bluewave))/90] text-grey hover:text-lightgrey"
+
                 data-testid="button-save-footer"
               >
                 Save Footer
