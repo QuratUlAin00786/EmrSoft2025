@@ -1634,6 +1634,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Serve static files from uploads folder (public read-only access)
+  app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+
   // Protected routes (auth required)
   app.use("/api", authMiddleware);
 
@@ -6668,8 +6671,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // View Lab Result PDF
-  app.get("/api/lab-results/:id/view-pdf", authMiddleware, async (req: TenantRequest, res) => {
+  // Get Lab Result PDF Path
+  app.get("/api/lab-results/:id/pdf-path", authMiddleware, async (req: TenantRequest, res) => {
     try {
       if (!req.user) {
         return res.status(401).json({ error: "User not authenticated" });
@@ -6692,32 +6695,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Construct file path: uploads/Lab_TestResults/{organization_id}/{patient_id}/{TestID}.pdf
       const fileName = `${labResult.testId}.pdf`;
-      const filePath = path.join(
-        process.cwd(), 
-        'uploads', 
-        'Lab_TestResults', 
-        organizationId.toString(), 
-        labResult.patientId.toString(), 
-        fileName
-      );
+      const relativePath = `uploads/Lab_TestResults/${organizationId}/${labResult.patientId}/${fileName}`;
+      const fullPath = path.join(process.cwd(), relativePath);
 
       // Check if file exists
-      const fileExists = await fse.pathExists(filePath);
+      const fileExists = await fse.pathExists(fullPath);
       if (!fileExists) {
-        return res.status(404).json({ error: "PDF file not found. Please generate the lab result first." });
+        return res.json({ pdfPath: null, error: "PDF file not found" });
       }
 
-      // Set headers for PDF viewing
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
-
-      // Stream the file to the response
-      const fileStream = fse.createReadStream(filePath);
-      fileStream.pipe(res);
+      res.json({ pdfPath: relativePath });
 
     } catch (error) {
-      console.error("Error viewing PDF:", error);
-      res.status(500).json({ error: "Failed to view PDF" });
+      console.error("Error getting PDF path:", error);
+      res.status(500).json({ error: "Failed to get PDF path" });
     }
   });
 

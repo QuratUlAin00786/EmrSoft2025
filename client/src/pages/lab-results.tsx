@@ -616,6 +616,8 @@ export default function LabResultsPage() {
   const [showPrescriptionDialog, setShowPrescriptionDialog] = useState(false);
   const [showGenerateDialog, setShowGenerateDialog] = useState(false);
   const [showFillResultDialog, setShowFillResultDialog] = useState(false);
+  const [showPdfViewerDialog, setShowPdfViewerDialog] = useState(false);
+  const [pdfViewerUrl, setPdfViewerUrl] = useState<string>("");
   const [selectedLabOrder, setSelectedLabOrder] = useState<any>(null);
   const [selectedResult, setSelectedResult] =
     useState<DatabaseLabResult | null>(null);
@@ -2274,9 +2276,27 @@ Report generated from Cura EMR System`;
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => {
-                          const pdfUrl = `/api/lab-results/${result.id}/view-pdf`;
-                          window.open(pdfUrl, '_blank');
+                        onClick={async () => {
+                          try {
+                            const response = await fetch(`/api/lab-results/${result.id}/pdf-path`);
+                            const data = await response.json();
+                            if (data.pdfPath) {
+                              setPdfViewerUrl(`/${data.pdfPath}`);
+                              setShowPdfViewerDialog(true);
+                            } else {
+                              toast({
+                                title: "Error",
+                                description: "PDF file not found. Please generate the lab result first.",
+                                variant: "destructive",
+                              });
+                            }
+                          } catch (error) {
+                            toast({
+                              title: "Error",
+                              description: "Failed to load PDF. Please try again.",
+                              variant: "destructive",
+                            });
+                          }
                         }}
                         className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200"
                         data-testid="button-view-lab-report"
@@ -5504,6 +5524,24 @@ Report generated from Cura EMR System`;
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* PDF Viewer Dialog */}
+      <Dialog open={showPdfViewerDialog} onOpenChange={setShowPdfViewerDialog}>
+        <DialogContent className="max-w-6xl max-h-[90vh] p-0">
+          <DialogHeader className="p-6 pb-4">
+            <DialogTitle>Lab Test Result</DialogTitle>
+          </DialogHeader>
+          <div className="w-full h-[75vh] px-6 pb-6">
+            {pdfViewerUrl && (
+              <iframe
+                src={pdfViewerUrl}
+                className="w-full h-full border rounded"
+                title="Lab Test Result PDF"
+              />
+            )}
+          </div>
         </DialogContent>
       </Dialog>
 
