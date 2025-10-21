@@ -224,29 +224,23 @@ export default function CalendarPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch patients for the dropdown - get users with patient role from same organization
+  // Fetch patient records from patients table (not users table)
   const { data: patients = [], isLoading: patientsLoading } = useQuery<any[]>({
-    queryKey: ["/api/users", "patients"],
+    queryKey: ["/api/patients"],
     retry: false,
     staleTime: 0, // Always fetch fresh data
     refetchOnMount: true, // Refetch when component mounts
     queryFn: async () => {
-      console.log("📋 CALENDAR: Fetching patient users...");
-      const response = await apiRequest('GET', '/api/users');
+      console.log("📋 CALENDAR: Fetching patient records from patients table...");
+      const response = await apiRequest('GET', '/api/patients');
       const data = await response.json();
-      console.log("📋 CALENDAR: All users fetched. Count:", Array.isArray(data) ? data.length : 'Not an array!');
-      
-      // Filter for patient role and active users only
-      const patientUsers = Array.isArray(data) 
-        ? data.filter((user: any) => user.role === 'patient' && user.isActive) 
-        : [];
-      
-      console.log("📋 CALENDAR: Patient users filtered. Count:", patientUsers.length, "Data:", patientUsers);
-      return patientUsers;
+      console.log("📋 CALENDAR: Patient records fetched. Count:", Array.isArray(data) ? data.length : 'Not an array!');
+      console.log("📋 CALENDAR: Patient records data:", data);
+      return Array.isArray(data) ? data : [];
     },
   });
 
-  // Auto-populate patient when user is a patient (enhanced logic)
+  // Auto-populate patient when user is a patient - FIXED to use userId field
   useEffect(() => {
     if (user?.role === 'patient' && patients.length > 0 && !bookingForm.patientId && showNewAppointmentModal) {
       console.log("🔍 CALENDAR: Looking for patient matching user:", { 
@@ -254,38 +248,30 @@ export default function CalendarPage() {
         userName: `${user.firstName} ${user.lastName}`,
         userId: user.id 
       });
-      console.log("📋 CALENDAR: Available patients:", patients.map(p => ({ 
-        id: p.id, 
+      console.log("📋 CALENDAR: Available patients:", patients.map((p: any) => ({ 
+        id: p.id,
+        userId: p.userId,
         email: p.email, 
         name: `${p.firstName} ${p.lastName}` 
       })));
       
-      // Match patient by email (primary), name (secondary), or use first patient as fallback
-      const emailMatch = patients.find((patient: any) => 
-        patient.email && user.email && patient.email.toLowerCase() === user.email.toLowerCase()
-      );
-      
-      const nameMatch = patients.find((patient: any) => 
-        patient.firstName && user.firstName && patient.lastName && user.lastName &&
-        patient.firstName.toLowerCase() === user.firstName.toLowerCase() && 
-        patient.lastName.toLowerCase() === user.lastName.toLowerCase()
-      );
-      
-      const currentPatient = emailMatch || nameMatch || (patients.length > 0 ? patients[0] : null);
-      
-      console.log("🔍 CALENDAR: Match results:", {
-        emailMatch: !!emailMatch,
-        nameMatch: !!nameMatch,
-        usingFallback: !emailMatch && !nameMatch && patients.length > 0,
-        selectedPatient: currentPatient ? { id: currentPatient.id, name: `${currentPatient.firstName} ${currentPatient.lastName}` } : null
+      // CRITICAL FIX: Match by userId field in patient record
+      // Patient record structure: { id: 3, userId: 13, ... }
+      // We need to match userId=13 to get patient record id=3
+      const currentPatient = patients.find((patient: any) => {
+        console.log(`🔍 CALENDAR: Checking patient record ID ${patient.id}, userId: ${patient.userId}, user.id: ${user.id}, match: ${patient.userId === user.id}`);
+        return patient.userId === user.id;
       });
       
       if (currentPatient) {
-        console.log("✅ CALENDAR: Found matching patient:", currentPatient);
-        const patientId = currentPatient.patientId || currentPatient.id.toString();
-        setBookingForm(prev => ({ ...prev, patientId }));
+        console.log("✅ CALENDAR: Found matching patient record:", currentPatient);
+        console.log("✅ CALENDAR: Patient record ID (correct):", currentPatient.id);
+        console.log("✅ CALENDAR: Patient userId (matches user.id):", currentPatient.userId);
+        // Use the patient RECORD ID (not user ID)
+        setBookingForm(prev => ({ ...prev, patientId: currentPatient.id.toString() }));
+        console.log("✅ CALENDAR: Set patientId to:", currentPatient.id.toString());
       } else {
-        console.log("❌ CALENDAR: No matching patient found");
+        console.log("❌ CALENDAR: No matching patient found for user ID:", user.id);
       }
     }
   }, [user, patients, showNewAppointmentModal, bookingForm.patientId]);
