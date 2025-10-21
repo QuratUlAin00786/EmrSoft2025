@@ -10502,35 +10502,107 @@ Registration No: [Number]`
             {/* Header Preview */}
             {clinicHeaderInfo.clinicName && (
               <div className="mt-4">
-                <Label className="text-sm font-medium mb-2 block">Header Preview:</Label>
-                <div className="border rounded-lg p-6 bg-white dark:bg-[hsl(var(--cura-midnight))]">
-                  <div style={{ borderBottom: '3px solid ' + clinicFooterInfo.backgroundColor, paddingBottom: '20px' }}>
-                    {clinicLogoPreview && (
-                      <div style={{ display: "flex", justifyContent: selectedLogoPosition, marginBottom: "15px" }}>
-                        <img 
-                          src={clinicLogoPreview} 
-                          alt="Clinic Logo" 
-                          style={{ maxHeight: "80px", objectFit: "contain" }}
-                        />
+                <Label className="text-sm font-medium mb-2 block">Header Preview (All Positions):</Label>
+                <div className="grid grid-cols-1 gap-4">
+                  {/* Left Position Preview */}
+                  <div className="border rounded-lg p-6 bg-white dark:bg-[hsl(var(--cura-midnight))]">
+                    <p className="text-xs font-semibold mb-2 text-gray-500">Left Position</p>
+                    <div style={{ borderBottom: '3px solid ' + clinicFooterInfo.backgroundColor, paddingBottom: '20px' }}>
+                      <div style={{ display: "flex", alignItems: "flex-start", gap: "20px" }}>
+                        {clinicLogoPreview && (
+                          <img 
+                            src={clinicLogoPreview} 
+                            alt="Clinic Logo - Left" 
+                            style={{ maxHeight: "80px", objectFit: "contain" }}
+                          />
+                        )}
+                        <div style={{ flex: 1 }}>
+                          <h1 style={{ margin: 0, fontSize: "24px", fontWeight: "bold", color: clinicFooterInfo.backgroundColor }}>
+                            {clinicHeaderInfo.clinicName}
+                          </h1>
+                          {clinicHeaderInfo.address && (
+                            <p style={{ margin: "5px 0", color: "#666" }}>{clinicHeaderInfo.address}</p>
+                          )}
+                          {(clinicHeaderInfo.phone || clinicHeaderInfo.email) && (
+                            <p style={{ margin: "5px 0", color: "#666" }}>
+                              {clinicHeaderInfo.phone}
+                              {clinicHeaderInfo.phone && clinicHeaderInfo.email && " • "}
+                              {clinicHeaderInfo.email}
+                            </p>
+                          )}
+                          {clinicHeaderInfo.website && (
+                            <p style={{ margin: "5px 0", color: "#666" }}>{clinicHeaderInfo.website}</p>
+                          )}
+                        </div>
                       </div>
-                    )}
-                    <div style={{ textAlign: "center" }}>
-                      <h1 style={{ margin: 0, fontSize: "24px", fontWeight: "bold", color: clinicFooterInfo.backgroundColor }}>
-                        {clinicHeaderInfo.clinicName}
-                      </h1>
-                      {clinicHeaderInfo.address && (
-                        <p style={{ margin: "5px 0", color: "#666" }}>{clinicHeaderInfo.address}</p>
+                    </div>
+                  </div>
+
+                  {/* Center Position Preview */}
+                  <div className="border rounded-lg p-6 bg-white dark:bg-[hsl(var(--cura-midnight))]">
+                    <p className="text-xs font-semibold mb-2 text-gray-500">Center Position</p>
+                    <div style={{ borderBottom: '3px solid ' + clinicFooterInfo.backgroundColor, paddingBottom: '20px' }}>
+                      {clinicLogoPreview && (
+                        <div style={{ display: "flex", justifyContent: "center", marginBottom: "15px" }}>
+                          <img 
+                            src={clinicLogoPreview} 
+                            alt="Clinic Logo - Center" 
+                            style={{ maxHeight: "80px", objectFit: "contain" }}
+                          />
+                        </div>
                       )}
-                      {(clinicHeaderInfo.phone || clinicHeaderInfo.email) && (
-                        <p style={{ margin: "5px 0", color: "#666" }}>
-                          {clinicHeaderInfo.phone}
-                          {clinicHeaderInfo.phone && clinicHeaderInfo.email && " • "}
-                          {clinicHeaderInfo.email}
-                        </p>
-                      )}
-                      {clinicHeaderInfo.website && (
-                        <p style={{ margin: "5px 0", color: "#666" }}>{clinicHeaderInfo.website}</p>
-                      )}
+                      <div style={{ textAlign: "center" }}>
+                        <h1 style={{ margin: 0, fontSize: "24px", fontWeight: "bold", color: clinicFooterInfo.backgroundColor }}>
+                          {clinicHeaderInfo.clinicName}
+                        </h1>
+                        {clinicHeaderInfo.address && (
+                          <p style={{ margin: "5px 0", color: "#666" }}>{clinicHeaderInfo.address}</p>
+                        )}
+                        {(clinicHeaderInfo.phone || clinicHeaderInfo.email) && (
+                          <p style={{ margin: "5px 0", color: "#666" }}>
+                            {clinicHeaderInfo.phone}
+                            {clinicHeaderInfo.phone && clinicHeaderInfo.email && " • "}
+                            {clinicHeaderInfo.email}
+                          </p>
+                        )}
+                        {clinicHeaderInfo.website && (
+                          <p style={{ margin: "5px 0", color: "#666" }}>{clinicHeaderInfo.website}</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right Position Preview */}
+                  <div className="border rounded-lg p-6 bg-white dark:bg-[hsl(var(--cura-midnight))]">
+                    <p className="text-xs font-semibold mb-2 text-gray-500">Right Position</p>
+                    <div style={{ borderBottom: '3px solid ' + clinicFooterInfo.backgroundColor, paddingBottom: '20px' }}>
+                      <div style={{ display: "flex", alignItems: "flex-start", gap: "20px", flexDirection: "row-reverse" }}>
+                        {clinicLogoPreview && (
+                          <img 
+                            src={clinicLogoPreview} 
+                            alt="Clinic Logo - Right" 
+                            style={{ maxHeight: "80px", objectFit: "contain" }}
+                          />
+                        )}
+                        <div style={{ flex: 1, textAlign: "right" }}>
+                          <h1 style={{ margin: 0, fontSize: "24px", fontWeight: "bold", color: clinicFooterInfo.backgroundColor }}>
+                            {clinicHeaderInfo.clinicName}
+                          </h1>
+                          {clinicHeaderInfo.address && (
+                            <p style={{ margin: "5px 0", color: "#666" }}>{clinicHeaderInfo.address}</p>
+                          )}
+                          {(clinicHeaderInfo.phone || clinicHeaderInfo.email) && (
+                            <p style={{ margin: "5px 0", color: "#666" }}>
+                              {clinicHeaderInfo.phone}
+                              {clinicHeaderInfo.phone && clinicHeaderInfo.email && " • "}
+                              {clinicHeaderInfo.email}
+                            </p>
+                          )}
+                          {clinicHeaderInfo.website && (
+                            <p style={{ margin: "5px 0", color: "#666" }}>{clinicHeaderInfo.website}</p>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
