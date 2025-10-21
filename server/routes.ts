@@ -6580,7 +6580,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
               doc.line(tableX + colWidths[0] + colWidths[1] + colWidths[2], yPos, tableX + colWidths[0] + colWidths[1] + colWidths[2], yPos + rowHeight);
               
               // Row data
-              const paramName = result.testName || result.name || '';
+              let paramName = result.testName || result.name || '';
+              
+              // Strip test type prefix (e.g., "Complete Blood Count (CBC) - " becomes "")
+              const testTypePrefixes = [
+                'Complete Blood Count (CBC) - ',
+                'Urinalysis - ',
+                'Basic Metabolic Panel - ',
+                'Comprehensive Metabolic Panel - ',
+                'Lipid Panel - '
+              ];
+              
+              for (const prefix of testTypePrefixes) {
+                if (paramName.startsWith(prefix)) {
+                  paramName = paramName.substring(prefix.length);
+                  break;
+                }
+              }
+              
               doc.text(paramName, tableX + 2, yPos + 5);
               doc.text(String(result.value || ''), tableX + colWidths[0] + 2, yPos + 5);
               doc.text(result.unit || '', tableX + colWidths[0] + colWidths[1] + 2, yPos + 5);
