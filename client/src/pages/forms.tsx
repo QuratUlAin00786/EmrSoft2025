@@ -2781,6 +2781,9 @@ Coverage Details: [Insurance Coverage]`;
       setDocumentContent(textareaRef.innerHTML);
     }
     
+    // Update preview with selected clinic header type
+    setSelectedClinicHeaderType(tempClinicHeaderType);
+    
     // Close dialog
     setShowClinicPositionDialog(false);
     
