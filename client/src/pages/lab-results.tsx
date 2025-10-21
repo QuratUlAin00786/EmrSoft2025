@@ -184,6 +184,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -5512,22 +5513,52 @@ Report generated from Cura EMR System`;
 
       {/* PDF Viewer Dialog */}
       <Dialog open={showPdfViewerDialog} onOpenChange={setShowPdfViewerDialog}>
-        <DialogContent className="max-w-6xl max-h-[90vh] p-0" aria-describedby="pdf-viewer-description">
-          <DialogHeader className="p-6 pb-4">
+        <DialogContent className="max-w-6xl max-h-[90vh]" aria-describedby="pdf-viewer-description">
+          <DialogHeader>
             <DialogTitle>Lab Test Result</DialogTitle>
-            <p id="pdf-viewer-description" className="sr-only">
-              PDF viewer displaying the lab test result document
-            </p>
+            <DialogDescription id="pdf-viewer-description">
+              View the PDF lab test result below. If the PDF doesn't display, use the download button.
+            </DialogDescription>
           </DialogHeader>
-          <div className="w-full h-[75vh] px-6 pb-6">
-            {pdfViewerUrl && (
-              <embed
-                src={pdfViewerUrl}
-                type="application/pdf"
-                className="w-full h-full border rounded"
-                title="Lab Test Result PDF"
-              />
-            )}
+          <div className="flex flex-col gap-4">
+            <div className="flex justify-end px-6">
+              <Button
+                onClick={() => {
+                  if (pdfViewerUrl) {
+                    window.open(pdfViewerUrl, '_blank');
+                  }
+                }}
+                className="flex items-center gap-2"
+              >
+                <Download className="h-4 w-4" />
+                Open in New Tab
+              </Button>
+            </div>
+            <div className="w-full h-[70vh] px-6 pb-6">
+              {pdfViewerUrl && (
+                <object
+                  data={pdfViewerUrl}
+                  type="application/pdf"
+                  className="w-full h-full border rounded"
+                  title="Lab Test Result PDF"
+                >
+                  <div className="flex flex-col items-center justify-center h-full gap-4 text-center p-8">
+                    <FileText className="h-16 w-16 text-muted-foreground" />
+                    <p className="text-lg font-medium">PDF Preview Not Available</p>
+                    <p className="text-sm text-muted-foreground">
+                      Your browser doesn't support inline PDF viewing.
+                    </p>
+                    <Button
+                      onClick={() => window.open(pdfViewerUrl, '_blank')}
+                      className="mt-4"
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Open PDF in New Tab
+                    </Button>
+                  </div>
+                </object>
+              )}
+            </div>
           </div>
         </DialogContent>
       </Dialog>
