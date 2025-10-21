@@ -5266,19 +5266,185 @@ Report generated from Cura EMR System`;
                       criticalValues: false,
                     });
 
-                    // Generate PDF for the updated lab result
-                    const pdfResponse = await apiRequest("POST", `/api/lab-results/${selectedLabOrder.id}/generate-pdf`);
+                    // Generate PDF matching the image format
+                    const pdf = new jsPDF();
+                    const pageWidth = pdf.internal.pageSize.getWidth();
+                    let yPos = 20;
 
-                    // Download the generated PDF
-                    if (pdfResponse && pdfResponse.pdfPath) {
-                      // Trigger download
-                      const downloadLink = document.createElement('a');
-                      downloadLink.href = `/api/lab-results/${selectedLabOrder.id}/download-pdf`;
-                      downloadLink.download = `${selectedLabOrder.testId || selectedLabOrder.id}_lab_result.pdf`;
-                      document.body.appendChild(downloadLink);
-                      downloadLink.click();
-                      document.body.removeChild(downloadLink);
+                    // Title - "Lab Test Result Report"
+                    pdf.setFontSize(20);
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.text('Lab Test Result Report', pageWidth / 2, yPos, { align: 'center' });
+                    yPos += 20;
+
+                    // Lab Order Information Section
+                    pdf.setFontSize(14);
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.text('Lab Order Information', 20, yPos);
+                    yPos += 10;
+
+                    // Simple list format (no table)
+                    pdf.setFontSize(11);
+                    pdf.setFont('helvetica', 'normal');
+                    
+                    // Patient Name
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.text('Patient Name:', 20, yPos);
+                    pdf.setFont('helvetica', 'normal');
+                    pdf.text(getPatientName(selectedLabOrder.patientId), 80, yPos);
+                    yPos += 7;
+
+                    // Test ID
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.text('Test ID:', 20, yPos);
+                    pdf.setFont('helvetica', 'normal');
+                    pdf.text(selectedLabOrder.testId || 'N/A', 80, yPos);
+                    yPos += 7;
+
+                    // Ordered Date
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.text('Ordered Date:', 20, yPos);
+                    pdf.setFont('helvetica', 'normal');
+                    pdf.text(
+                      selectedLabOrder.orderedDate ? new Date(selectedLabOrder.orderedDate).toLocaleDateString() : 'N/A',
+                      80,
+                      yPos
+                    );
+                    yPos += 7;
+
+                    // Ordered By
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.text('Ordered By:', 20, yPos);
+                    pdf.setFont('helvetica', 'normal');
+                    pdf.text(getUserName(selectedLabOrder.orderedBy), 80, yPos);
+                    yPos += 7;
+
+                    // Priority
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.text('Priority:', 20, yPos);
+                    pdf.setFont('helvetica', 'normal');
+                    pdf.text(selectedLabOrder.priority || 'routine', 80, yPos);
+                    yPos += 15;
+
+                    // Group results by test type
+                    const resultsByTestType: Record<string, any[]> = {};
+                    testTypes.forEach((testType: string) => {
+                      const testFields = TEST_FIELD_DEFINITIONS[testType];
+                      if (testFields) {
+                        const testResults: any[] = [];
+                        testFields.forEach((field) => {
+                          const fieldKey = `${testType}::${field.name}`;
+                          const value = fillResultFormData[fieldKey];
+                          if (value && value.trim() !== "") {
+                            testResults.push({
+                              name: field.name,
+                              value: value,
+                              unit: field.unit,
+                              referenceRange: field.referenceRange,
+                            });
+                          }
+                        });
+                        if (testResults.length > 0) {
+                          resultsByTestType[testType] = testResults;
+                        }
+                      }
+                    });
+
+                    // Test Results - Each test type gets its own section
+                    Object.entries(resultsByTestType).forEach(([testType, testResults]) => {
+                      if (yPos > 240) {
+                        pdf.addPage();
+                        yPos = 20;
+                      }
+
+                      // Test Type Header (Blue)
+                      pdf.setFontSize(14);
+                      pdf.setFont('helvetica', 'bold');
+                      pdf.setTextColor(66, 133, 244);
+                      pdf.text(testType, 20, yPos);
+                      pdf.setTextColor(0, 0, 0);
+                      yPos += 10;
+
+                      // Table Header
+                      const tableStartY = yPos;
+                      const rowHeight = 8;
+                      const colWidths = [60, 30, 30, 50]; // Parameter, Value, Unit, Reference Range
+                      const tableX = 20;
+                      const tableWidth = colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3];
+                      
+                      // Header background (light gray)
+                      pdf.setFillColor(240, 240, 240);
+                      pdf.rect(tableX, tableStartY, tableWidth, rowHeight, 'F');
+                      
+                      // Header border
+                      pdf.setDrawColor(200, 200, 200);
+                      pdf.rect(tableX, tableStartY, tableWidth, rowHeight);
+                      
+                      // Header text
+                      pdf.setFont('helvetica', 'bold');
+                      pdf.setFontSize(10);
+                      pdf.text('Parameter', tableX + 2, tableStartY + 5);
+                      pdf.text('Value', tableX + colWidths[0] + 2, tableStartY + 5);
+                      pdf.text('Unit', tableX + colWidths[0] + colWidths[1] + 2, tableStartY + 5);
+                      pdf.text('Reference Range', tableX + colWidths[0] + colWidths[1] + colWidths[2] + 2, tableStartY + 5);
+                      
+                      yPos = tableStartY + rowHeight;
+
+                      // Table rows
+                      pdf.setFont('helvetica', 'normal');
+                      testResults.forEach((result: any, index: number) => {
+                        if (yPos > 270) {
+                          pdf.addPage();
+                          yPos = 20;
+                        }
+
+                        // Alternate row background
+                        if (index % 2 === 0) {
+                          pdf.setFillColor(250, 250, 250);
+                          pdf.rect(tableX, yPos, tableWidth, rowHeight, 'F');
+                        }
+                        
+                        // Row border
+                        pdf.setDrawColor(200, 200, 200);
+                        pdf.rect(tableX, yPos, tableWidth, rowHeight);
+                        
+                        // Vertical lines
+                        pdf.line(tableX + colWidths[0], yPos, tableX + colWidths[0], yPos + rowHeight);
+                        pdf.line(tableX + colWidths[0] + colWidths[1], yPos, tableX + colWidths[0] + colWidths[1], yPos + rowHeight);
+                        pdf.line(tableX + colWidths[0] + colWidths[1] + colWidths[2], yPos, tableX + colWidths[0] + colWidths[1] + colWidths[2], yPos + rowHeight);
+                        
+                        // Row data
+                        pdf.text(result.name, tableX + 2, yPos + 5);
+                        pdf.text(String(result.value || ''), tableX + colWidths[0] + 2, yPos + 5);
+                        pdf.text(result.unit || '', tableX + colWidths[0] + colWidths[1] + 2, yPos + 5);
+                        pdf.text(result.referenceRange || '', tableX + colWidths[0] + colWidths[1] + colWidths[2] + 2, yPos + 5);
+                        
+                        yPos += rowHeight;
+                      });
+
+                      yPos += 10;
+                    });
+
+                    // Clinical Notes Section
+                    if (yPos > 250) {
+                      pdf.addPage();
+                      yPos = 20;
                     }
+                    
+                    pdf.setFontSize(14);
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.text('Clinical Notes', 20, yPos);
+                    yPos += 10;
+
+                    pdf.setFontSize(11);
+                    pdf.setFont('helvetica', 'normal');
+                    const notes = fillResultFormData.notes || selectedLabOrder.notes || "none";
+                    const splitNotes = pdf.splitTextToSize(notes, 170);
+                    pdf.text(splitNotes, 20, yPos);
+
+                    // Download the PDF
+                    const fileName = `${selectedLabOrder.testId || Date.now()}.pdf`;
+                    pdf.save(fileName);
 
                     // Invalidate cache
                     queryClient.invalidateQueries({ queryKey: ["/api/lab-results"] });
