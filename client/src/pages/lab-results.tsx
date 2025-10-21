@@ -1511,7 +1511,7 @@ Report generated from Cura EMR System`;
       <div style="display: grid; grid-template-columns: auto 1fr auto; align-items: center; border-bottom: 1px solid #ccc; padding: 1rem 0; position: relative;">
   
   <!-- Left Icon -->
-  ${clinicHeader?.logoBase64 && clinicHeader?.logoPosition === 'left' ? `
+  ${clinicHeader?.logoBase64 && (clinicHeader?.logoPosition === 'left' || clinicHeader?.logoPosition === 'center') ? `
     <div style="grid-column: 1 / 2;">
       <img src="${clinicHeader.logoBase64}" alt="Clinic Logo" style="max-width: 80px; max-height: 80px;" />
     </div>
