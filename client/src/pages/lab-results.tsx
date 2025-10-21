@@ -4615,9 +4615,7 @@ Report generated from Cura EMR System`;
 
                       // Generate PDF for the created lab result
                       if (createdResult?.id) {
-                        await apiRequest(`/api/lab-results/${createdResult.id}/generate-pdf`, {
-                          method: "POST",
-                        });
+                        await apiRequest("POST", `/api/lab-results/${createdResult.id}/generate-pdf`);
                       }
                     }
                   }
@@ -5195,9 +5193,7 @@ Report generated from Cura EMR System`;
                     });
 
                     // Generate PDF for the updated lab result
-                    await apiRequest(`/api/lab-results/${selectedLabOrder.id}/generate-pdf`, {
-                      method: "POST",
-                    });
+                    await apiRequest("POST", `/api/lab-results/${selectedLabOrder.id}/generate-pdf`);
 
                     // Invalidate cache
                     queryClient.invalidateQueries({ queryKey: ["/api/lab-results"] });
