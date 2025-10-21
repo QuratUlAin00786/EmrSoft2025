@@ -5212,13 +5212,8 @@ Report generated from Cura EMR System`;
                 </Button>
                 <Button
                   onClick={async () => {
-                    // Check for validation errors
+                    // Check for validation errors - inline messages will show under fields
                     if (Object.keys(validationErrors).length > 0) {
-                      toast({
-                        title: "Validation Error",
-                        description: "Please fix all validation errors before generating results",
-                        variant: "destructive",
-                      });
                       return;
                     }
 
@@ -5250,11 +5245,18 @@ Report generated from Cura EMR System`;
                     });
 
                     if (results.length === 0) {
-                      toast({
-                        title: "Validation Error",
-                        description: "Please enter at least one test result value",
-                        variant: "destructive",
-                      });
+                      // Set a general validation error for at least one field
+                      const firstTestType = testTypes[0];
+                      if (firstTestType) {
+                        const firstField = TEST_FIELD_DEFINITIONS[firstTestType]?.[0];
+                        if (firstField) {
+                          const fieldKey = `${firstTestType}::${firstField.name}`;
+                          setValidationErrors({
+                            ...validationErrors,
+                            [fieldKey]: "Please enter at least one test result value"
+                          });
+                        }
+                      }
                       return;
                     }
 
