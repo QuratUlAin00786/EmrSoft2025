@@ -333,8 +333,6 @@ export default function Forms() {
   const [tempClinicHeaderType, setTempClinicHeaderType] = useState("");
   const [isComingFromClinicButton, setIsComingFromClinicButton] = useState(false);
   const [showClinicalHeaderDialog, setShowClinicalHeaderDialog] = useState(false);
-  const [selectedSavedClinicHeader, setSelectedSavedClinicHeader] = useState<any>(null);
-  const [savedClinicHeaders, setSavedClinicHeaders] = useState<any[]>([]);
   const [showAddClinicInfoDialog, setShowAddClinicInfoDialog] = useState(false);
   const [showClinicDisplayDialog, setShowClinicDisplayDialog] = useState(false);
   const [selectedClinicalHeader, setSelectedClinicalHeader] = useState("");
@@ -1707,30 +1705,6 @@ Coverage Details: [Insurance Coverage]`;
     return () => clearTimeout(timer);
   }, []);
 
-  // Fetch saved clinic headers when the dialog opens
-  useEffect(() => {
-    if (showClinicHeaderDialog) {
-      const fetchSavedHeaders = async () => {
-        try {
-          const response = await fetch("/api/clinic-headers", {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-              "X-Tenant-Subdomain": localStorage.getItem("user_subdomain") || "",
-            },
-          });
-          if (response.ok) {
-            const headers = await response.json();
-            setSavedClinicHeaders(headers);
-          }
-        } catch (error) {
-          console.error("Error fetching clinic headers:", error);
-        }
-      };
-      fetchSavedHeaders();
-    }
-  }, [showClinicHeaderDialog]);
-
   const handleSaveClinicInfo = async () => {
     try {
       const response = await fetch("/api/me/preferences", {
@@ -2656,62 +2630,50 @@ Coverage Details: [Insurance Coverage]`;
   };
 
   const handleInsertClinicHeader = () => {
-    if (!selectedSavedClinicHeader) {
-      toast({
-        title: "Error",
-        description: "No header selected",
-        variant: "destructive",
-        duration: 2000,
-      });
-      return;
-    }
-
-    // Generate HTML based on saved header data
+    // Generate HTML based on header type and position
     let headerHTML = "";
-    const position = selectedSavedClinicHeader.logoPosition || "center";
-    const clinicNameFontSize = selectedSavedClinicHeader.clinicNameFontSize || "24pt";
-    const fontSize = selectedSavedClinicHeader.fontSize || "12pt";
-    const fontFamily = selectedSavedClinicHeader.fontFamily || "verdana";
-    const fontWeight = selectedSavedClinicHeader.fontWeight || "normal";
-    const fontStyle = selectedSavedClinicHeader.fontStyle || "normal";
-    const textDecoration = selectedSavedClinicHeader.textDecoration || "none";
+    const textAlign = clinicHeaderPosition;
     
-    if (position === "left") {
+    if (tempClinicHeaderType === "full-header") {
       headerHTML = `
-        <div style="margin: 20px 0; padding: 15px; border-bottom: 2px solid #4A7DFF;">
-          <div style="display: flex; align-items: flex-start; gap: 16px;">
-            ${selectedSavedClinicHeader.logoBase64 ? `<img src="${selectedSavedClinicHeader.logoBase64}" alt="Clinic Logo" style="max-height: 80px; object-fit: contain;" />` : ''}
-            <div style="flex: 1; text-align: left;">
-              <h1 style="margin: 0; font-size: ${clinicNameFontSize}; font-weight: bold; color: #000;">${selectedSavedClinicHeader.clinicName}</h1>
-              ${selectedSavedClinicHeader.address ? `<p style="margin: 5px 0; color: #666; font-family: ${fontFamily}; font-size: ${fontSize}; font-weight: ${fontWeight}; font-style: ${fontStyle}; text-decoration: ${textDecoration};">${selectedSavedClinicHeader.address}</p>` : ''}
-              ${(selectedSavedClinicHeader.phone || selectedSavedClinicHeader.email) ? `<p style="margin: 5px 0; color: #666; font-family: ${fontFamily}; font-size: ${fontSize}; font-weight: ${fontWeight}; font-style: ${fontStyle}; text-decoration: ${textDecoration};">${selectedSavedClinicHeader.phone || ''}${selectedSavedClinicHeader.phone && selectedSavedClinicHeader.email ? ' • ' : ''}${selectedSavedClinicHeader.email || ''}</p>` : ''}
-              ${selectedSavedClinicHeader.website ? `<p style="margin: 5px 0; color: #666; font-family: ${fontFamily}; font-size: ${fontSize}; font-weight: ${fontWeight}; font-style: ${fontStyle}; text-decoration: ${textDecoration};">${selectedSavedClinicHeader.website}</p>` : ''}
+        <div style="text-align: ${textAlign}; margin: 20px 0; padding: 15px; border-bottom: 2px solid #4A7DFF;">
+          <div style="display: inline-block; text-align: left;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+              <div style="width: 32px; height: 32px; background: #E9D5FF; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
+                <span style="font-size: 16px;">📋</span>
+              </div>
+              <h3 style="color: #4A7DFF; margin: 0; font-size: 20px; font-weight: bold;">${clinicInfo.name || "Demo Healthcare Clinic"}</h3>
+            </div>
+            <div style="font-size: 14px; color: #666;">
+              <div>${clinicInfo.address || "123 Healthcare Street, Medical City, MC 12345"}</div>
+              <div>${clinicInfo.phone || "+44 20 1234 5678"} • ${clinicInfo.email || "info@yourclinic.com"}</div>
+              <div>${clinicInfo.website || "www.yourclinic.com"}</div>
             </div>
           </div>
         </div>
       `;
-    } else if (position === "center") {
+    } else if (tempClinicHeaderType === "letterhead") {
       headerHTML = `
-        <div style="margin: 20px 0; padding: 15px; border-bottom: 2px solid #4A7DFF; text-align: center;">
-          ${selectedSavedClinicHeader.logoBase64 ? `<img src="${selectedSavedClinicHeader.logoBase64}" alt="Clinic Logo" style="max-height: 80px; object-fit: contain; margin: 0 auto 10px; display: block;" />` : ''}
-          <h1 style="margin: 0; font-size: ${clinicNameFontSize}; font-weight: bold; color: #000;">${selectedSavedClinicHeader.clinicName}</h1>
-          ${selectedSavedClinicHeader.address ? `<p style="margin: 5px 0; color: #666; font-family: ${fontFamily}; font-size: ${fontSize}; font-weight: ${fontWeight}; font-style: ${fontStyle}; text-decoration: ${textDecoration};">${selectedSavedClinicHeader.address}</p>` : ''}
-          ${(selectedSavedClinicHeader.phone || selectedSavedClinicHeader.email) ? `<p style="margin: 5px 0; color: #666; font-family: ${fontFamily}; font-size: ${fontSize}; font-weight: ${fontWeight}; font-style: ${fontStyle}; text-decoration: ${textDecoration};">${selectedSavedClinicHeader.phone || ''}${selectedSavedClinicHeader.phone && selectedSavedClinicHeader.email ? ' • ' : ''}${selectedSavedClinicHeader.email || ''}</p>` : ''}
-          ${selectedSavedClinicHeader.website ? `<p style="margin: 5px 0; color: #666; font-family: ${fontFamily}; font-size: ${fontSize}; font-weight: ${fontWeight}; font-style: ${fontStyle}; text-decoration: ${textDecoration};">${selectedSavedClinicHeader.website}</p>` : ''}
+        <div style="text-align: ${textAlign}; margin: 20px 0; padding: 15px;">
+          <h3 style="color: #4A7DFF; margin: 0 0 4px 0; font-size: 24px; font-weight: bold;">${clinicInfo.name || "Demo Healthcare Clinic"}</h3>
+          <div style="font-size: 14px; color: #666; border-bottom: 1px solid #ccc; padding-bottom: 8px;">
+            Professional Medical Services
+          </div>
         </div>
       `;
-    } else if (position === "right") {
+    } else if (tempClinicHeaderType === "name-only") {
       headerHTML = `
-        <div style="margin: 20px 0; padding: 15px; border-bottom: 2px solid #4A7DFF;">
-          <div style="display: flex; align-items: flex-start; gap: 16px; justify-content: space-between;">
-            <div style="flex: 1; text-align: right;">
-              <h1 style="margin: 0; font-size: ${clinicNameFontSize}; font-weight: bold; color: #000;">${selectedSavedClinicHeader.clinicName}</h1>
-              ${selectedSavedClinicHeader.address ? `<p style="margin: 5px 0; color: #666; font-family: ${fontFamily}; font-size: ${fontSize}; font-weight: ${fontWeight}; font-style: ${fontStyle}; text-decoration: ${textDecoration};">${selectedSavedClinicHeader.address}</p>` : ''}
-              ${(selectedSavedClinicHeader.phone || selectedSavedClinicHeader.email) ? `<p style="margin: 5px 0; color: #666; font-family: ${fontFamily}; font-size: ${fontSize}; font-weight: ${fontWeight}; font-style: ${fontStyle}; text-decoration: ${textDecoration};">${selectedSavedClinicHeader.phone || ''}${selectedSavedClinicHeader.phone && selectedSavedClinicHeader.email ? ' • ' : ''}${selectedSavedClinicHeader.email || ''}</p>` : ''}
-              ${selectedSavedClinicHeader.website ? `<p style="margin: 5px 0; color: #666; font-family: ${fontFamily}; font-size: ${fontSize}; font-weight: ${fontWeight}; font-style: ${fontStyle}; text-decoration: ${textDecoration};">${selectedSavedClinicHeader.website}</p>` : ''}
-            </div>
-            ${selectedSavedClinicHeader.logoBase64 ? `<img src="${selectedSavedClinicHeader.logoBase64}" alt="Clinic Logo" style="max-height: 80px; object-fit: contain;" />` : ''}
-          </div>
+        <div style="text-align: ${textAlign}; margin: 20px 0;">
+          <h3 style="color: #4A7DFF; margin: 0; font-size: 20px; font-weight: bold;">${clinicInfo.name || "Demo Healthcare Clinic"}</h3>
+        </div>
+      `;
+    } else if (tempClinicHeaderType === "contact-info") {
+      headerHTML = `
+        <div style="text-align: ${textAlign}; margin: 20px 0; font-size: 14px; color: #666;">
+          <div>📍 ${clinicInfo.address || "123 Healthcare Street, Medical City, MC 12345"}</div>
+          <div>📞 ${clinicInfo.phone || "+44 20 1234 5678"}</div>
+          <div>✉️ ${clinicInfo.email || "info@yourclinic.com"}</div>
+          <div>🌐 ${clinicInfo.website || "www.yourclinic.com"}</div>
         </div>
       `;
     }
@@ -2727,8 +2689,8 @@ Coverage Details: [Insurance Coverage]`;
     setShowClinicPositionDialog(false);
     
     toast({
-      title: "✓ Header Loaded",
-      description: "Clinic header has been loaded into your document",
+      title: "✓ Header Inserted",
+      description: "Clinic header has been added to your document",
       duration: 2000,
     });
   };
@@ -9627,36 +9589,56 @@ Registration No: [Number]`
         <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Clinic Information Templates</DialogTitle>
+          
           </DialogHeader>
           <div className="space-y-4 mt-4">
-            {savedClinicHeaders.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-gray-500">No saved clinic headers found.</p>
-                <p className="text-sm text-gray-400 mt-2">Create a new header using the "Create New Clinic Info" button.</p>
-              </div>
-            ) : (
-              savedClinicHeaders.map((header) => (
-                <div 
-                  key={header.id}
-                  className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer" 
-                  onClick={() => {
-                    setSelectedSavedClinicHeader(header);
-                    setShowClinicPositionDialog(true);
-                    setShowClinicHeaderDialog(false);
-                  }}
-                >
-                  <h6 className="font-semibold text-gray-800">{header.clinicName}</h6>
-                  <p className="text-sm text-gray-600">
-                    {header.address && <span>{header.address}</span>}
-                    {header.phone && <span> • {header.phone}</span>}
-                    {header.email && <span> • {header.email}</span>}
-                  </p>
-                  <div className="text-xs text-gray-400 mt-2">
-                    Position: {header.logoPosition} | Font: {header.fontFamily} ({header.fontSize})
-                  </div>
-                </div>
-              ))
-            )}
+            <div 
+              className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer" 
+              onClick={() => {
+                setTempClinicHeaderType("full-header");
+                setShowClinicPositionDialog(true);
+                setShowClinicHeaderDialog(false);
+              }}
+            >
+              <h6 className="font-semibold text-gray-800">Full Header</h6>
+              <p className="text-sm text-gray-600">Complete clinic header with name, address, phone, email, and website</p>
+            </div>
+            
+            <div 
+              className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer"
+              onClick={() => {
+                setTempClinicHeaderType("letterhead");
+                setShowClinicPositionDialog(true);
+                setShowClinicHeaderDialog(false);
+              }}
+            >
+              <h6 className="font-semibold text-gray-800">Professional Letterhead</h6>
+              <p className="text-sm text-gray-600">Formal letterhead design with clinic branding</p>
+            </div>
+            
+            <div 
+              className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer"
+              onClick={() => {
+                setTempClinicHeaderType("name-only");
+                setShowClinicPositionDialog(true);
+                setShowClinicHeaderDialog(false);
+              }}
+            >
+              <h6 className="font-semibold text-gray-800">Clinic Name Only</h6>
+              <p className="text-sm text-gray-600">Just the clinic name in bold text</p>
+            </div>
+            
+            <div 
+              className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer"
+              onClick={() => {
+                setTempClinicHeaderType("contact-info");
+                setShowClinicPositionDialog(true);
+                setShowClinicHeaderDialog(false);
+              }}
+            >
+              <h6 className="font-semibold text-gray-800">Contact Information Block</h6>
+              <p className="text-sm text-gray-600">Formatted contact details section</p>
+            </div>
           </div>
           <div className="flex justify-end gap-2 pt-4 border-t mt-6">
             <Button variant="outline" onClick={() => setShowClinicHeaderDialog(false)}>
@@ -9668,200 +9650,93 @@ Registration No: [Number]`
 
       {/* Clinic Header Position Selection Dialog */}
       <Dialog open={showClinicPositionDialog} onOpenChange={setShowClinicPositionDialog}>
-        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Header Preview</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             {/* Header Preview */}
-            {selectedSavedClinicHeader && (
-              <div className="border rounded-lg p-6 bg-white dark:bg-gray-900">
-                <h4 className="font-medium mb-4 text-gray-700 dark:text-gray-300">Preview:</h4>
-                <div className="border rounded-lg p-6 bg-gray-50 dark:bg-gray-800">
-                  {selectedSavedClinicHeader.logoPosition === "left" && (
-                    <div className="flex items-start gap-4">
-                      {selectedSavedClinicHeader.logoBase64 && (
-                        <img 
-                          src={selectedSavedClinicHeader.logoBase64} 
-                          alt="Clinic Logo - Left" 
-                          style={{ maxHeight: "80px", objectFit: "contain" }}
-                        />
-                      )}
-                      <div style={{ flex: 1, textAlign: "left" }}>
-                        <h1 style={{ 
-                          margin: 0, 
-                          fontSize: selectedSavedClinicHeader.clinicNameFontSize || "24pt", 
-                          fontWeight: "bold" 
-                        }}>
-                          {selectedSavedClinicHeader.clinicName}
-                        </h1>
-                        {selectedSavedClinicHeader.address && (
-                          <p style={{ 
-                            margin: "5px 0", 
-                            color: "#666",
-                            fontFamily: selectedSavedClinicHeader.fontFamily || "verdana",
-                            fontSize: selectedSavedClinicHeader.fontSize || "12pt",
-                            fontWeight: selectedSavedClinicHeader.fontWeight || "normal",
-                            fontStyle: selectedSavedClinicHeader.fontStyle || "normal",
-                            textDecoration: selectedSavedClinicHeader.textDecoration || "none"
-                          }}>
-                            {selectedSavedClinicHeader.address}
-                          </p>
-                        )}
-                        {(selectedSavedClinicHeader.phone || selectedSavedClinicHeader.email) && (
-                          <p style={{ 
-                            margin: "5px 0", 
-                            color: "#666",
-                            fontFamily: selectedSavedClinicHeader.fontFamily || "verdana",
-                            fontSize: selectedSavedClinicHeader.fontSize || "12pt",
-                            fontWeight: selectedSavedClinicHeader.fontWeight || "normal",
-                            fontStyle: selectedSavedClinicHeader.fontStyle || "normal",
-                            textDecoration: selectedSavedClinicHeader.textDecoration || "none"
-                          }}>
-                            {selectedSavedClinicHeader.phone}
-                            {selectedSavedClinicHeader.phone && selectedSavedClinicHeader.email && " • "}
-                            {selectedSavedClinicHeader.email}
-                          </p>
-                        )}
-                        {selectedSavedClinicHeader.website && (
-                          <p style={{ 
-                            margin: "5px 0", 
-                            color: "#666",
-                            fontFamily: selectedSavedClinicHeader.fontFamily || "verdana",
-                            fontSize: selectedSavedClinicHeader.fontSize || "12pt",
-                            fontWeight: selectedSavedClinicHeader.fontWeight || "normal",
-                            fontStyle: selectedSavedClinicHeader.fontStyle || "normal",
-                            textDecoration: selectedSavedClinicHeader.textDecoration || "none"
-                          }}>
-                            {selectedSavedClinicHeader.website}
-                          </p>
-                        )}
+            <div className="border rounded-lg p-4 bg-white">
+              <h4 className="font-medium mb-3">Preview:</h4>
+              <div className={`text-${clinicHeaderPosition} border rounded p-3 bg-blue-50`}>
+                {tempClinicHeaderType === "full-header" && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-8 h-8 bg-purple-200 rounded flex items-center justify-center">
+                        <span className="text-purple-800 text-xs font-bold">📋</span>
                       </div>
+                      <h3 className="text-lg font-bold text-blue-700">Demo Healthcare Clinic</h3>
                     </div>
-                  )}
-                  {selectedSavedClinicHeader.logoPosition === "center" && (
-                    <div style={{ textAlign: "center" }}>
-                      {selectedSavedClinicHeader.logoBase64 && (
-                        <img 
-                          src={selectedSavedClinicHeader.logoBase64} 
-                          alt="Clinic Logo - Center" 
-                          style={{ maxHeight: "80px", objectFit: "contain", margin: "0 auto 10px" }}
-                        />
-                      )}
-                      <h1 style={{ 
-                        margin: 0, 
-                        fontSize: selectedSavedClinicHeader.clinicNameFontSize || "24pt", 
-                        fontWeight: "bold" 
-                      }}>
-                        {selectedSavedClinicHeader.clinicName}
-                      </h1>
-                      {selectedSavedClinicHeader.address && (
-                        <p style={{ 
-                          margin: "5px 0", 
-                          color: "#666",
-                          fontFamily: selectedSavedClinicHeader.fontFamily || "verdana",
-                          fontSize: selectedSavedClinicHeader.fontSize || "12pt",
-                          fontWeight: selectedSavedClinicHeader.fontWeight || "normal",
-                          fontStyle: selectedSavedClinicHeader.fontStyle || "normal",
-                          textDecoration: selectedSavedClinicHeader.textDecoration || "none"
-                        }}>
-                          {selectedSavedClinicHeader.address}
-                        </p>
-                      )}
-                      {(selectedSavedClinicHeader.phone || selectedSavedClinicHeader.email) && (
-                        <p style={{ 
-                          margin: "5px 0", 
-                          color: "#666",
-                          fontFamily: selectedSavedClinicHeader.fontFamily || "verdana",
-                          fontSize: selectedSavedClinicHeader.fontSize || "12pt",
-                          fontWeight: selectedSavedClinicHeader.fontWeight || "normal",
-                          fontStyle: selectedSavedClinicHeader.fontStyle || "normal",
-                          textDecoration: selectedSavedClinicHeader.textDecoration || "none"
-                        }}>
-                          {selectedSavedClinicHeader.phone}
-                          {selectedSavedClinicHeader.phone && selectedSavedClinicHeader.email && " • "}
-                          {selectedSavedClinicHeader.email}
-                        </p>
-                      )}
-                      {selectedSavedClinicHeader.website && (
-                        <p style={{ 
-                          margin: "5px 0", 
-                          color: "#666",
-                          fontFamily: selectedSavedClinicHeader.fontFamily || "verdana",
-                          fontSize: selectedSavedClinicHeader.fontSize || "12pt",
-                          fontWeight: selectedSavedClinicHeader.fontWeight || "normal",
-                          fontStyle: selectedSavedClinicHeader.fontStyle || "normal",
-                          textDecoration: selectedSavedClinicHeader.textDecoration || "none"
-                        }}>
-                          {selectedSavedClinicHeader.website}
-                        </p>
-                      )}
+                    <div className="text-sm text-gray-700">
+                      <div>123 Healthcare Street, Medical City, MC 12345</div>
+                      <div>+44 20 1234 5678 • info@yourclinic.com</div>
+                      <div>www.yourclinic.com</div>
                     </div>
-                  )}
-                  {selectedSavedClinicHeader.logoPosition === "right" && (
-                    <div className="flex items-start gap-4 justify-between">
-                      <div style={{ flex: 1, textAlign: "right" }}>
-                        <h1 style={{ 
-                          margin: 0, 
-                          fontSize: selectedSavedClinicHeader.clinicNameFontSize || "24pt", 
-                          fontWeight: "bold" 
-                        }}>
-                          {selectedSavedClinicHeader.clinicName}
-                        </h1>
-                        {selectedSavedClinicHeader.address && (
-                          <p style={{ 
-                            margin: "5px 0", 
-                            color: "#666",
-                            fontFamily: selectedSavedClinicHeader.fontFamily || "verdana",
-                            fontSize: selectedSavedClinicHeader.fontSize || "12pt",
-                            fontWeight: selectedSavedClinicHeader.fontWeight || "normal",
-                            fontStyle: selectedSavedClinicHeader.fontStyle || "normal",
-                            textDecoration: selectedSavedClinicHeader.textDecoration || "none"
-                          }}>
-                            {selectedSavedClinicHeader.address}
-                          </p>
-                        )}
-                        {(selectedSavedClinicHeader.phone || selectedSavedClinicHeader.email) && (
-                          <p style={{ 
-                            margin: "5px 0", 
-                            color: "#666",
-                            fontFamily: selectedSavedClinicHeader.fontFamily || "verdana",
-                            fontSize: selectedSavedClinicHeader.fontSize || "12pt",
-                            fontWeight: selectedSavedClinicHeader.fontWeight || "normal",
-                            fontStyle: selectedSavedClinicHeader.fontStyle || "normal",
-                            textDecoration: selectedSavedClinicHeader.textDecoration || "none"
-                          }}>
-                            {selectedSavedClinicHeader.phone}
-                            {selectedSavedClinicHeader.phone && selectedSavedClinicHeader.email && " • "}
-                            {selectedSavedClinicHeader.email}
-                          </p>
-                        )}
-                        {selectedSavedClinicHeader.website && (
-                          <p style={{ 
-                            margin: "5px 0", 
-                            color: "#666",
-                            fontFamily: selectedSavedClinicHeader.fontFamily || "verdana",
-                            fontSize: selectedSavedClinicHeader.fontSize || "12pt",
-                            fontWeight: selectedSavedClinicHeader.fontWeight || "normal",
-                            fontStyle: selectedSavedClinicHeader.fontStyle || "normal",
-                            textDecoration: selectedSavedClinicHeader.textDecoration || "none"
-                          }}>
-                            {selectedSavedClinicHeader.website}
-                          </p>
-                        )}
-                      </div>
-                      {selectedSavedClinicHeader.logoBase64 && (
-                        <img 
-                          src={selectedSavedClinicHeader.logoBase64} 
-                          alt="Clinic Logo - Right" 
-                          style={{ maxHeight: "80px", objectFit: "contain" }}
-                        />
-                      )}
+                  </div>
+                )}
+                {tempClinicHeaderType === "letterhead" && (
+                  <div>
+                    <h3 className="text-xl font-bold text-blue-700 mb-1">Demo Healthcare Clinic</h3>
+                    <div className="text-sm text-gray-600 border-b pb-2">
+                      Professional Medical Services
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
+                {tempClinicHeaderType === "name-only" && (
+                  <div>
+                    <h3 className="text-lg font-bold text-blue-700">Demo Healthcare Clinic</h3>
+                  </div>
+                )}
+                {tempClinicHeaderType === "contact-info" && (
+                  <div className="text-sm text-gray-700">
+                    <div>📍 123 Healthcare Street, Medical City, MC 12345</div>
+                    <div>📞 +44 20 1234 5678</div>
+                    <div>✉️ info@yourclinic.com</div>
+                    <div>🌐 www.yourclinic.com</div>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
+
+            {/* Position Selection */}
+            <div>
+              <h4 className="font-medium mb-3">Header Position:</h4>
+              <div className="flex gap-3">
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="tempClinicPosition"
+                    value="left"
+                    checked={clinicHeaderPosition === "left"}
+                    onChange={(e) => setClinicHeaderPosition(e.target.value)}
+                    className="text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">Left (Top)</span>
+                </label>
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="tempClinicPosition"
+                    value="center"
+                    checked={clinicHeaderPosition === "center"}
+                    onChange={(e) => setClinicHeaderPosition(e.target.value)}
+                    className="text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">Center (Top)</span>
+                </label>
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="tempClinicPosition"
+                    value="right"
+                    checked={clinicHeaderPosition === "right"}
+                    onChange={(e) => setClinicHeaderPosition(e.target.value)}
+                    className="text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">Right (Top)</span>
+                </label>
+              </div>
+            </div>
 
             {/* Action Buttons */}
             <div className="flex justify-end gap-2 pt-4 border-t">
@@ -9869,14 +9744,13 @@ Registration No: [Number]`
                 variant="outline" 
                 onClick={() => {
                   setShowClinicPositionDialog(false);
-                  setShowClinicHeaderDialog(true);
+                  setShowClinicDialog(true);
                 }}
               >
                 Back
               </Button>
               <Button 
                 onClick={handleInsertClinicHeader}
-                className="bg-[hsl(var(--cura-bluewave))] hover:bg-[hsl(var(--cura-bluewave))]/90 text-white"
               >
                 OK
               </Button>
