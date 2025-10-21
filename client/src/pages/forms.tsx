@@ -73,6 +73,102 @@ import {
   AlertCircle,
 } from "lucide-react";
 
+// View Clinic Info Component
+function ViewClinicInfo({ user }: { user: any }) {
+  const { data: savedHeader, isLoading: headerLoading } = useQuery({
+    queryKey: ['/api/clinic-headers'],
+    enabled: !!user,
+  });
+
+  const { data: savedFooter, isLoading: footerLoading } = useQuery({
+    queryKey: ['/api/clinic-footers'],
+    enabled: !!user,
+  });
+
+  if (headerLoading || footerLoading) {
+    return <div className="flex items-center justify-center p-8">
+      <p className="text-gray-500">Loading saved clinic information...</p>
+    </div>;
+  }
+
+  if (!savedHeader && !savedFooter) {
+    return <div className="flex items-center justify-center p-8">
+      <p className="text-gray-500">No saved clinic information found. Please create one first.</p>
+    </div>;
+  }
+
+  return (
+    <div className="space-y-6 py-4">
+      {/* Display Saved Header with Logo */}
+      {savedHeader && (
+        <div className="border rounded-lg p-6 bg-white dark:bg-[hsl(var(--cura-midnight))]">
+          <h3 className="text-lg font-semibold mb-4 text-[hsl(var(--cura-bluewave))] flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            Saved Clinic Header
+          </h3>
+          <div className="border rounded-lg p-6 bg-gray-50 dark:bg-gray-800">
+            <div style={{ borderBottom: '3px solid ' + (savedFooter?.backgroundColor || '#4A7DFF'), paddingBottom: '20px' }}>
+              {savedHeader.logoBase64 && (
+                <div style={{ display: "flex", justifyContent: savedHeader.logoPosition || 'center', marginBottom: "15px" }}>
+                  <img 
+                    src={savedHeader.logoBase64} 
+                    alt="Clinic Logo" 
+                    style={{ maxHeight: "80px", objectFit: "contain" }}
+                  />
+                </div>
+              )}
+              <div style={{ textAlign: "center" }}>
+                <h1 style={{ margin: 0, fontSize: "24px", fontWeight: "bold", color: savedFooter?.backgroundColor || '#4A7DFF' }}>
+                  {savedHeader.clinicName}
+                </h1>
+                {savedHeader.address && (
+                  <p style={{ margin: "5px 0", color: "#666" }}>{savedHeader.address}</p>
+                )}
+                {(savedHeader.phone || savedHeader.email) && (
+                  <p style={{ margin: "5px 0", color: "#666" }}>
+                    {savedHeader.phone}
+                    {savedHeader.phone && savedHeader.email && " • "}
+                    {savedHeader.email}
+                  </p>
+                )}
+                {savedHeader.website && (
+                  <p style={{ margin: "5px 0", color: "#666" }}>{savedHeader.website}</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Display Saved Footer */}
+      {savedFooter && (
+        <div className="border rounded-lg p-6 bg-white dark:bg-[hsl(var(--cura-midnight))]">
+          <h3 className="text-lg font-semibold mb-4 text-[hsl(var(--cura-bluewave))] flex items-center gap-2">
+            <Palette className="h-5 w-5" />
+            Saved Clinic Footer
+          </h3>
+          <div 
+            className="rounded-lg p-6 text-center"
+            style={{ 
+              backgroundColor: savedFooter.backgroundColor,
+              color: savedFooter.textColor 
+            }}
+          >
+            <p className="text-sm font-medium">{savedFooter.footerText}</p>
+            {savedFooter.showSocial && (savedFooter.facebook || savedFooter.twitter || savedFooter.linkedin) && (
+              <div className="flex justify-center gap-4 mt-3">
+                {savedFooter.facebook && <span className="text-xs">📘 Facebook</span>}
+                {savedFooter.twitter && <span className="text-xs">🐦 Twitter</span>}
+                {savedFooter.linkedin && <span className="text-xs">💼 LinkedIn</span>}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Forms() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
@@ -173,6 +269,7 @@ export default function Forms() {
 
   // Create Clinic Information states
   const [showCreateClinicInfoDialog, setShowCreateClinicInfoDialog] = useState(false);
+  const [showViewClinicInfoDialog, setShowViewClinicInfoDialog] = useState(false);
   const [clinicLogoFile, setClinicLogoFile] = useState<File | null>(null);
   const [clinicLogoPreview, setClinicLogoPreview] = useState<string>("");
   const [selectedLogoPosition, setSelectedLogoPosition] = useState<"left" | "right" | "center">("center");
@@ -4751,6 +4848,14 @@ Coverage Details: [Insurance Coverage]`;
               data-testid="button-create-clinic-info"
             >
               Create Clinic Information
+            </Button>
+            <Button
+              size="sm"
+              className="text-xs h-7 px-4 py-2 mt-5 bg-white text-black  border border-lightgray-400"
+              onClick={() => setShowViewClinicInfoDialog(true)}
+              data-testid="button-view-clinic-info"
+            >
+              View Custom Clinic Information
             </Button>
             <Button
               size="sm"
@@ -10242,195 +10347,198 @@ Registration No: [Number]`
 
       {/* Create Clinic Information Dialog */}
       <Dialog open={showCreateClinicInfoDialog} onOpenChange={setShowCreateClinicInfoDialog}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold text-[hsl(var(--cura-bluewave))]">Create Clinic Information</DialogTitle>
           </DialogHeader>
           
           <div className="space-y-6 py-4">
-            {/* Logo Upload Section */}
-            <div className="border rounded-lg p-6 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-[hsl(var(--cura-midnight))] dark:to-[hsl(var(--cura-midnight))]">
-              <h3 className="text-lg font-semibold mb-4 text-[hsl(var(--cura-bluewave))] flex items-center gap-2">
-                <Image className="h-5 w-5" />
-                Clinic Logo
-              </h3>
-              <div className="space-y-4">
-                <div className="flex items-center gap-4">
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        setClinicLogoFile(file);
-                        const reader = new FileReader();
-                        reader.onloadend = () => {
-                          setClinicLogoPreview(reader.result as string);
-                        };
-                        reader.readAsDataURL(file);
-                      }
-                    }}
-                    className="flex-1"
-                    data-testid="input-clinic-logo"
-                  />
-                </div>
-                {clinicLogoPreview && (
-                  <div className="mt-4 space-y-4">
-                    <div>
-                      <Label className="text-sm font-medium mb-2 block">Logo Position:</Label>
-                      <div className="flex gap-3">
-                        <Button
-                          type="button"
-                          variant={selectedLogoPosition === "left" ? "default" : "outline"}
-                          onClick={() => setSelectedLogoPosition("left")}
-                          className="flex-1"
-                          data-testid="button-logo-position-left"
-                        >
-                          Left
-                        </Button>
-                        <Button
-                          type="button"
-                          variant={selectedLogoPosition === "center" ? "default" : "outline"}
-                          onClick={() => setSelectedLogoPosition("center")}
-                          className="flex-1"
-                          data-testid="button-logo-position-center"
-                        >
-                          Center
-                        </Button>
-                        <Button
-                          type="button"
-                          variant={selectedLogoPosition === "right" ? "default" : "outline"}
-                          onClick={() => setSelectedLogoPosition("right")}
-                          className="flex-1"
-                          data-testid="button-logo-position-right"
-                        >
-                          Right
-                        </Button>
+            {/* Logo and Header Information Section in One Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Logo Upload Section */}
+              <div className="border rounded-lg p-6 bg-white dark:bg-[hsl(var(--cura-midnight))]">
+                <h3 className="text-lg font-semibold mb-4 text-[hsl(var(--cura-bluewave))] flex items-center gap-2">
+                  <Image className="h-5 w-5" />
+                  Clinic Logo
+                </h3>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setClinicLogoFile(file);
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            setClinicLogoPreview(reader.result as string);
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                      className="flex-1"
+                      data-testid="input-clinic-logo"
+                    />
+                  </div>
+                  {clinicLogoPreview && (
+                    <div className="mt-4 space-y-4">
+                      <div>
+                        <Label className="text-sm font-medium mb-2 block">Logo Position:</Label>
+                        <div className="flex gap-3">
+                          <Button
+                            type="button"
+                            variant={selectedLogoPosition === "left" ? "default" : "outline"}
+                            onClick={() => setSelectedLogoPosition("left")}
+                            className="flex-1"
+                            data-testid="button-logo-position-left"
+                          >
+                            Left
+                          </Button>
+                          <Button
+                            type="button"
+                            variant={selectedLogoPosition === "center" ? "default" : "outline"}
+                            onClick={() => setSelectedLogoPosition("center")}
+                            className="flex-1"
+                            data-testid="button-logo-position-center"
+                          >
+                            Center
+                          </Button>
+                          <Button
+                            type="button"
+                            variant={selectedLogoPosition === "right" ? "default" : "outline"}
+                            onClick={() => setSelectedLogoPosition("right")}
+                            className="flex-1"
+                            data-testid="button-logo-position-right"
+                          >
+                            Right
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                    <div>
-                      <Label className="text-sm font-medium mb-2 block">Logo Preview:</Label>
-                      <div className="border rounded-lg p-4 bg-white dark:bg-[hsl(var(--cura-midnight))]">
-                        <div style={{ display: "flex", justifyContent: selectedLogoPosition }}>
-                          <img 
-                            src={clinicLogoPreview} 
-                            alt="Clinic Logo Preview" 
-                            className="max-h-32 object-contain"
-                          />
+                      <div>
+                        <Label className="text-sm font-medium mb-2 block">Logo Preview:</Label>
+                        <div className="border rounded-lg p-4 bg-white dark:bg-[hsl(var(--cura-midnight))]">
+                          <div style={{ display: "flex", justifyContent: selectedLogoPosition }}>
+                            <img 
+                              src={clinicLogoPreview} 
+                              alt="Clinic Logo Preview" 
+                              className="max-h-32 object-contain"
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
-            </div>
 
-            {/* Header Information Section */}
-            <div className="border rounded-lg p-6 bg-gradient-to-r from-green-50 to-blue-50 dark:from-[hsl(var(--cura-midnight))] dark:to-[hsl(var(--cura-midnight))]">
-              <h3 className="text-lg font-semibold mb-4 text-[hsl(var(--cura-bluewave))] flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                Header Information
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="clinic-name" className="text-sm font-medium">Clinic Name</Label>
-                  <Input
-                    id="clinic-name"
-                    value={clinicHeaderInfo.clinicName}
-                    onChange={(e) => setClinicHeaderInfo(prev => ({ ...prev, clinicName: e.target.value }))}
-                    placeholder="Enter clinic name"
-                    className="mt-1"
-                    data-testid="input-clinic-name"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="clinic-address" className="text-sm font-medium">Address</Label>
-                  <Input
-                    id="clinic-address"
-                    value={clinicHeaderInfo.address}
-                    onChange={(e) => setClinicHeaderInfo(prev => ({ ...prev, address: e.target.value }))}
-                    placeholder="Enter clinic address"
-                    className="mt-1"
-                    data-testid="input-clinic-address"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="clinic-phone" className="text-sm font-medium">Phone</Label>
-                  <Input
-                    id="clinic-phone"
-                    value={clinicHeaderInfo.phone}
-                    onChange={(e) => setClinicHeaderInfo(prev => ({ ...prev, phone: e.target.value }))}
-                    placeholder="+44 20 1234 5678"
-                    className="mt-1"
-                    data-testid="input-clinic-phone"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="clinic-email" className="text-sm font-medium">Email</Label>
-                  <Input
-                    id="clinic-email"
-                    type="email"
-                    value={clinicHeaderInfo.email}
-                    onChange={(e) => setClinicHeaderInfo(prev => ({ ...prev, email: e.target.value }))}
-                    placeholder="info@clinic.com"
-                    className="mt-1"
-                    data-testid="input-clinic-email"
-                  />
-                </div>
-                <div className="md:col-span-2">
-                  <Label htmlFor="clinic-website" className="text-sm font-medium">Website</Label>
-                  <Input
-                    id="clinic-website"
-                    value={clinicHeaderInfo.website}
-                    onChange={(e) => setClinicHeaderInfo(prev => ({ ...prev, website: e.target.value }))}
-                    placeholder="www.clinic.com"
-                    className="mt-1"
-                    data-testid="input-clinic-website"
-                  />
+              {/* Header Information Section */}
+              <div className="border rounded-lg p-6 bg-white dark:bg-[hsl(var(--cura-midnight))]">
+                <h3 className="text-lg font-semibold mb-4 text-[hsl(var(--cura-bluewave))] flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  Header Information
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="clinic-name" className="text-sm font-medium">Clinic Name</Label>
+                    <Input
+                      id="clinic-name"
+                      value={clinicHeaderInfo.clinicName}
+                      onChange={(e) => setClinicHeaderInfo(prev => ({ ...prev, clinicName: e.target.value }))}
+                      placeholder="Enter clinic name"
+                      className="mt-1"
+                      data-testid="input-clinic-name"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="clinic-address" className="text-sm font-medium">Address</Label>
+                    <Input
+                      id="clinic-address"
+                      value={clinicHeaderInfo.address}
+                      onChange={(e) => setClinicHeaderInfo(prev => ({ ...prev, address: e.target.value }))}
+                      placeholder="Enter clinic address"
+                      className="mt-1"
+                      data-testid="input-clinic-address"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="clinic-phone" className="text-sm font-medium">Phone</Label>
+                    <Input
+                      id="clinic-phone"
+                      value={clinicHeaderInfo.phone}
+                      onChange={(e) => setClinicHeaderInfo(prev => ({ ...prev, phone: e.target.value }))}
+                      placeholder="+44 20 1234 5678"
+                      className="mt-1"
+                      data-testid="input-clinic-phone"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="clinic-email" className="text-sm font-medium">Email</Label>
+                    <Input
+                      id="clinic-email"
+                      type="email"
+                      value={clinicHeaderInfo.email}
+                      onChange={(e) => setClinicHeaderInfo(prev => ({ ...prev, email: e.target.value }))}
+                      placeholder="info@clinic.com"
+                      className="mt-1"
+                      data-testid="input-clinic-email"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <Label htmlFor="clinic-website" className="text-sm font-medium">Website</Label>
+                    <Input
+                      id="clinic-website"
+                      value={clinicHeaderInfo.website}
+                      onChange={(e) => setClinicHeaderInfo(prev => ({ ...prev, website: e.target.value }))}
+                      placeholder="www.clinic.com"
+                      className="mt-1"
+                      data-testid="input-clinic-website"
+                    />
+                  </div>
                 </div>
               </div>
+            </div>
               
-              {/* Header Preview */}
-              {clinicHeaderInfo.clinicName && (
-                <div className="mt-4">
-                  <Label className="text-sm font-medium mb-2 block">Header Preview:</Label>
-                  <div className="border rounded-lg p-6 bg-white dark:bg-[hsl(var(--cura-midnight))]">
-                    <div style={{ borderBottom: '3px solid ' + clinicFooterInfo.backgroundColor, paddingBottom: '20px' }}>
-                      {clinicLogoPreview && (
-                        <div style={{ display: "flex", justifyContent: selectedLogoPosition, marginBottom: "15px" }}>
-                          <img 
-                            src={clinicLogoPreview} 
-                            alt="Clinic Logo" 
-                            style={{ maxHeight: "80px", objectFit: "contain" }}
-                          />
-                        </div>
-                      )}
-                      <div style={{ textAlign: "center" }}>
-                        <h1 style={{ margin: 0, fontSize: "24px", fontWeight: "bold", color: clinicFooterInfo.backgroundColor }}>
-                          {clinicHeaderInfo.clinicName}
-                        </h1>
-                        {clinicHeaderInfo.address && (
-                          <p style={{ margin: "5px 0", color: "#666" }}>{clinicHeaderInfo.address}</p>
-                        )}
-                        {(clinicHeaderInfo.phone || clinicHeaderInfo.email) && (
-                          <p style={{ margin: "5px 0", color: "#666" }}>
-                            {clinicHeaderInfo.phone}
-                            {clinicHeaderInfo.phone && clinicHeaderInfo.email && " • "}
-                            {clinicHeaderInfo.email}
-                          </p>
-                        )}
-                        {clinicHeaderInfo.website && (
-                          <p style={{ margin: "5px 0", color: "#666" }}>{clinicHeaderInfo.website}</p>
-                        )}
+            {/* Header Preview */}
+            {clinicHeaderInfo.clinicName && (
+              <div className="mt-4">
+                <Label className="text-sm font-medium mb-2 block">Header Preview:</Label>
+                <div className="border rounded-lg p-6 bg-white dark:bg-[hsl(var(--cura-midnight))]">
+                  <div style={{ borderBottom: '3px solid ' + clinicFooterInfo.backgroundColor, paddingBottom: '20px' }}>
+                    {clinicLogoPreview && (
+                      <div style={{ display: "flex", justifyContent: selectedLogoPosition, marginBottom: "15px" }}>
+                        <img 
+                          src={clinicLogoPreview} 
+                          alt="Clinic Logo" 
+                          style={{ maxHeight: "80px", objectFit: "contain" }}
+                        />
                       </div>
+                    )}
+                    <div style={{ textAlign: "center" }}>
+                      <h1 style={{ margin: 0, fontSize: "24px", fontWeight: "bold", color: clinicFooterInfo.backgroundColor }}>
+                        {clinicHeaderInfo.clinicName}
+                      </h1>
+                      {clinicHeaderInfo.address && (
+                        <p style={{ margin: "5px 0", color: "#666" }}>{clinicHeaderInfo.address}</p>
+                      )}
+                      {(clinicHeaderInfo.phone || clinicHeaderInfo.email) && (
+                        <p style={{ margin: "5px 0", color: "#666" }}>
+                          {clinicHeaderInfo.phone}
+                          {clinicHeaderInfo.phone && clinicHeaderInfo.email && " • "}
+                          {clinicHeaderInfo.email}
+                        </p>
+                      )}
+                      {clinicHeaderInfo.website && (
+                        <p style={{ margin: "5px 0", color: "#666" }}>{clinicHeaderInfo.website}</p>
+                      )}
                     </div>
                   </div>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
 
             {/* Footer Information Section */}
-            <div className="border rounded-lg p-6 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-[hsl(var(--cura-midnight))] dark:to-[hsl(var(--cura-midnight))]">
+            <div className="border rounded-lg p-6 bg-white dark:bg-[hsl(var(--cura-midnight))]">
               <h3 className="text-lg font-semibold mb-4 text-[hsl(var(--cura-bluewave))] flex items-center gap-2">
                 <Palette className="h-5 w-5" />
                 Footer Design & Information
@@ -10698,6 +10806,17 @@ Registration No: [Number]`
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Custom Clinic Information Dialog */}
+      <Dialog open={showViewClinicInfoDialog} onOpenChange={setShowViewClinicInfoDialog}>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-[hsl(var(--cura-bluewave))]">Saved Clinic Information</DialogTitle>
+          </DialogHeader>
+
+          <ViewClinicInfo user={user} />
         </DialogContent>
       </Dialog>
 
