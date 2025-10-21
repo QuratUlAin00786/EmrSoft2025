@@ -4924,7 +4924,7 @@ Report generated from Cura EMR System`;
                 </Button>
                 <Button
                   variant="outline"
-                  onClick={() => {
+                  onClick={async () => {
                     // Check for validation errors
                     if (Object.keys(validationErrors).length > 0) {
                       toast({
@@ -4975,87 +4975,165 @@ Report generated from Cura EMR System`;
                       return;
                     }
 
-                    // Generate PDF with lab test results
+                    // Fetch clinic header and footer
+                    let clinicHeader = null;
+                    let clinicFooter = null;
+                    try {
+                      const headerResponse = await fetch("/api/clinic-headers", {
+                        headers: { Authorization: `Bearer ${localStorage.getItem("auth_token")}` }
+                      });
+                      if (headerResponse.ok) {
+                        clinicHeader = await headerResponse.json();
+                      }
+                      const footerResponse = await fetch("/api/clinic-footers", {
+                        headers: { Authorization: `Bearer ${localStorage.getItem("auth_token")}` }
+                      });
+                      if (footerResponse.ok) {
+                        clinicFooter = await footerResponse.json();
+                      }
+                    } catch (error) {
+                      console.error("Error fetching clinic info:", error);
+                    }
+
+                    // Generate PDF with lab test results (matching server-side format)
                     const pdf = new jsPDF();
                     const pageWidth = pdf.internal.pageSize.getWidth();
                     let yPos = 20;
 
-                    // Header
-                    pdf.setFontSize(20);
-                    pdf.setFont("helvetica", "bold");
-                    pdf.text("Lab Test Result Report", pageWidth / 2, yPos, { align: "center" });
-                    yPos += 15;
+                    // Add logo if available
+                    if (clinicHeader?.logoBase64) {
+                      try {
+                        const logoX = clinicHeader.logoPosition === 'left' ? 20 : 
+                                      clinicHeader.logoPosition === 'right' ? 160 : 90;
+                        pdf.addImage(clinicHeader.logoBase64, 'PNG', logoX, yPos, 30, 30);
+                        yPos += 35;
+                      } catch (error) {
+                        console.error('Error adding logo:', error);
+                      }
+                    }
 
-                    // Lab Order Details Section
-                    pdf.setFontSize(14);
-                    pdf.setFont("helvetica", "bold");
-                    pdf.text("Lab Order Information", 20, yPos);
+                    // Clinic Name Header
+                    if (clinicHeader?.clinicName) {
+                      pdf.setFontSize(parseInt(clinicHeader.clinicNameFontSize || '24'));
+                      pdf.setFont(clinicHeader.fontFamily || 'helvetica', clinicHeader.fontWeight || 'bold');
+                      pdf.text(clinicHeader.clinicName, 105, yPos, { align: 'center' });
+                      yPos += 10;
+                    }
+
+                    // Clinic Details
+                    if (clinicHeader) {
+                      pdf.setFontSize(parseInt(clinicHeader.fontSize || '12'));
+                      pdf.setFont(clinicHeader.fontFamily || 'helvetica', 'normal');
+                      if (clinicHeader.address) {
+                        pdf.text(clinicHeader.address, 105, yPos, { align: 'center' });
+                        yPos += 6;
+                      }
+                      if (clinicHeader.phone) {
+                        pdf.text(clinicHeader.phone, 105, yPos, { align: 'center' });
+                        yPos += 6;
+                      }
+                      if (clinicHeader.email) {
+                        pdf.text(clinicHeader.email, 105, yPos, { align: 'center' });
+                        yPos += 6;
+                      }
+                    }
+
                     yPos += 10;
 
-                    pdf.setFontSize(11);
-                    pdf.setFont("helvetica", "normal");
+                    // Lab Order Information Section
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.setFontSize(14);
+                    pdf.text('Lab Order Information', 20, yPos);
+                    yPos += 10;
+
+                    // Two-column layout
+                    pdf.setFont('helvetica', 'normal');
+                    pdf.setFontSize(10);
                     
-                    // Patient Name
-                    pdf.text("Patient Name:", 20, yPos);
-                    pdf.text(getPatientName(selectedLabOrder.patientId), 70, yPos);
-                    yPos += 7;
+                    const leftX = 20;
+                    const rightX = 120;
+                    let leftY = yPos;
+                    let rightY = yPos;
 
-                    // Test ID
-                    pdf.text("Test ID:", 20, yPos);
-                    pdf.text(selectedLabOrder.testId || 'N/A', 70, yPos);
-                    yPos += 7;
+                    // Left column
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.text('Patient Name:', leftX, leftY);
+                    pdf.setFont('helvetica', 'normal');
+                    pdf.text(getPatientName(selectedLabOrder.patientId), leftX + 35, leftY);
+                    leftY += 7;
 
-                    // Ordered Date
-                    pdf.text("Ordered Date:", 20, yPos);
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.text('Test ID:', leftX, leftY);
+                    pdf.setFont('helvetica', 'normal');
+                    pdf.text(selectedLabOrder.testId || 'N/A', leftX + 35, leftY);
+                    leftY += 7;
+
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.text('Ordered Date:', leftX, leftY);
+                    pdf.setFont('helvetica', 'normal');
                     pdf.text(
-                      selectedLabOrder.orderedDate
-                        ? format(new Date(selectedLabOrder.orderedDate), "PPp")
-                        : "N/A",
-                      70,
-                      yPos
+                      selectedLabOrder.orderedDate ? new Date(selectedLabOrder.orderedDate).toLocaleDateString() : 'N/A',
+                      leftX + 35,
+                      leftY
                     );
-                    yPos += 7;
+                    leftY += 7;
 
-                    // Ordered By
-                    pdf.text("Ordered By:", 20, yPos);
-                    pdf.text(getUserName(selectedLabOrder.orderedBy), 70, yPos);
-                    yPos += 7;
+                    // Right column
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.text('Ordered By:', rightX, rightY);
+                    pdf.setFont('helvetica', 'normal');
+                    pdf.text(getUserName(selectedLabOrder.orderedBy), rightX + 30, rightY);
+                    rightY += 7;
 
-                    // Priority
-                    pdf.text("Priority:", 20, yPos);
-                    pdf.text(selectedLabOrder.priority || 'routine', 70, yPos);
-                    yPos += 15;
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.text('Priority:', rightX, rightY);
+                    pdf.setFont('helvetica', 'normal');
+                    pdf.text(selectedLabOrder.priority || 'routine', rightX + 30, rightY);
+
+                    yPos = Math.max(leftY, rightY) + 10;
 
                     // Test Results Section - Separate section for each test type
-                    Object.entries(resultsByTestType).forEach(([testType, results], testIndex) => {
-                      // Check if we need a new page
+                    Object.entries(resultsByTestType).forEach(([testType, results]) => {
                       if (yPos > 240) {
                         pdf.addPage();
                         yPos = 20;
                       }
 
-                      // Test Type Header
-                      pdf.setFontSize(14);
-                      pdf.setFont("helvetica", "bold");
-                      pdf.setTextColor(74, 125, 255); // Blue color for test name
+                      // Test Type Header (Blue)
+                      pdf.setFont('helvetica', 'bold');
+                      pdf.setFontSize(12);
+                      pdf.setTextColor(66, 133, 244);
                       pdf.text(testType, 20, yPos);
-                      pdf.setTextColor(0, 0, 0); // Reset to black
+                      pdf.setTextColor(0, 0, 0);
                       yPos += 10;
 
-                      // Results Table Header
+                      // Table with proper borders
+                      const tableStartY = yPos;
+                      const rowHeight = 8;
+                      const colWidths = [60, 30, 30, 50];
+                      const tableX = 20;
+                      
+                      // Header background
                       pdf.setFillColor(240, 240, 240);
-                      pdf.rect(20, yPos - 5, pageWidth - 40, 8, "F");
+                      pdf.rect(tableX, tableStartY, colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], rowHeight, 'F');
+                      
+                      // Header borders
+                      pdf.setDrawColor(200, 200, 200);
+                      pdf.rect(tableX, tableStartY, colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], rowHeight);
+                      
+                      // Header text
+                      pdf.setFont('helvetica', 'bold');
                       pdf.setFontSize(10);
-                      pdf.setFont("helvetica", "bold");
-                      pdf.text("Parameter", 25, yPos);
-                      pdf.text("Value", 80, yPos);
-                      pdf.text("Unit", 120, yPos);
-                      pdf.text("Reference Range", 150, yPos);
-                      yPos += 10;
+                      pdf.text('Parameter', tableX + 2, tableStartY + 5);
+                      pdf.text('Value', tableX + colWidths[0] + 2, tableStartY + 5);
+                      pdf.text('Unit', tableX + colWidths[0] + colWidths[1] + 2, tableStartY + 5);
+                      pdf.text('Reference Range', tableX + colWidths[0] + colWidths[1] + colWidths[2] + 2, tableStartY + 5);
+                      
+                      yPos = tableStartY + rowHeight;
 
-                      // Results Data
-                      pdf.setFont("helvetica", "normal");
-                      results.forEach((result, index) => {
+                      // Table rows
+                      pdf.setFont('helvetica', 'normal');
+                      results.forEach((result: any, index: number) => {
                         if (yPos > 270) {
                           pdf.addPage();
                           yPos = 20;
@@ -5064,58 +5142,60 @@ Report generated from Cura EMR System`;
                         // Alternate row background
                         if (index % 2 === 0) {
                           pdf.setFillColor(250, 250, 250);
-                          pdf.rect(20, yPos - 5, pageWidth - 40, 8, "F");
+                          pdf.rect(tableX, yPos, colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], rowHeight, 'F');
                         }
-
-                        pdf.text(result.name, 25, yPos);
-                        pdf.text(result.value, 80, yPos);
-                        pdf.text(result.unit, 120, yPos);
-                        pdf.text(result.referenceRange, 150, yPos);
-                        yPos += 8;
+                        
+                        // Row borders
+                        pdf.setDrawColor(200, 200, 200);
+                        pdf.rect(tableX, yPos, colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], rowHeight);
+                        
+                        // Vertical lines
+                        pdf.line(tableX + colWidths[0], yPos, tableX + colWidths[0], yPos + rowHeight);
+                        pdf.line(tableX + colWidths[0] + colWidths[1], yPos, tableX + colWidths[0] + colWidths[1], yPos + rowHeight);
+                        pdf.line(tableX + colWidths[0] + colWidths[1] + colWidths[2], yPos, tableX + colWidths[0] + colWidths[1] + colWidths[2], yPos + rowHeight);
+                        
+                        // Row data
+                        pdf.text(result.name, tableX + 2, yPos + 5);
+                        pdf.text(String(result.value || ''), tableX + colWidths[0] + 2, yPos + 5);
+                        pdf.text(result.unit || '', tableX + colWidths[0] + colWidths[1] + 2, yPos + 5);
+                        pdf.text(result.referenceRange || '', tableX + colWidths[0] + colWidths[1] + colWidths[2] + 2, yPos + 5);
+                        
+                        yPos += rowHeight;
                       });
 
-                      yPos += 10; // Space between test sections
+                      yPos += 5;
                     });
 
                     // Clinical Notes Section
                     if (fillResultFormData.notes || selectedLabOrder.notes) {
-                      yPos += 5;
-                      if (yPos > 250) {
+                      yPos += 8;
+                      if (yPos > 270) {
                         pdf.addPage();
                         yPos = 20;
                       }
-
-                      pdf.setFontSize(14);
-                      pdf.setFont("helvetica", "bold");
-                      pdf.text("Clinical Notes", 20, yPos);
-                      yPos += 10;
-
-                      pdf.setFontSize(11);
-                      pdf.setFont("helvetica", "normal");
+                      pdf.setFont('helvetica', 'bold');
+                      pdf.setFontSize(12);
+                      pdf.text('Notes:', 20, yPos);
+                      yPos += 8;
+                      pdf.setFont('helvetica', 'normal');
+                      pdf.setFontSize(10);
                       const notes = fillResultFormData.notes || selectedLabOrder.notes || "";
-                      const splitNotes = pdf.splitTextToSize(notes, pageWidth - 40);
+                      const splitNotes = pdf.splitTextToSize(notes, 170);
                       pdf.text(splitNotes, 20, yPos);
                     }
 
-                    // Footer
-                    const pageCount = pdf.getNumberOfPages();
-                    for (let i = 1; i <= pageCount; i++) {
-                      pdf.setPage(i);
-                      pdf.setFontSize(9);
-                      pdf.setFont("helvetica", "italic");
-                      pdf.text(
-                        `Generated on ${format(new Date(), "PPp")}`,
-                        20,
-                        pdf.internal.pageSize.getHeight() - 10
-                      );
-                      pdf.text(
-                        `Page ${i} of ${pageCount}`,
-                        pageWidth - 40,
-                        pdf.internal.pageSize.getHeight() - 10
-                      );
+                    // Add footer at bottom of all pages
+                    if (clinicFooter) {
+                      const pageCount = pdf.getNumberOfPages();
+                      for (let i = 1; i <= pageCount; i++) {
+                        pdf.setPage(i);
+                        pdf.setFontSize(10);
+                        pdf.setFont('helvetica', 'normal');
+                        pdf.text(clinicFooter.footerText, 105, 285, { align: 'center' });
+                      }
                     }
 
-                    // Download PDF with test ID as filename
+                    // Download PDF
                     const fileName = `${selectedLabOrder.testId || Date.now()}.pdf`;
                     pdf.save(fileName);
 
