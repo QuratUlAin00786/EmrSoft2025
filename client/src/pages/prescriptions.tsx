@@ -892,56 +892,58 @@ export default function PrescriptionsPage() {
                 const textX = 105;
                 pdf.addImage(clinicHeader.logoBase64, 'PNG', logoX, yPosition, 25, 25);
                 
-                // Clinic text beside logo
+                // Clinic text beside logo - center aligned
                 pdf.setFontSize(clinicNameSize);
                 pdf.setFont('helvetica', fontWeight);
-                pdf.text(clinicName, textX, yPosition + 8, { align: 'left' });
+                pdf.text(clinicName, 105, yPosition + 8, { align: 'center' });
                 
                 yPosition += 10;
                 pdf.setFontSize(contentSize);
                 pdf.setFont('helvetica', fontStyle);
-                pdf.text(clinicAddress, textX, yPosition + 8, { align: 'left' });
+                pdf.text(clinicAddress, 105, yPosition + 8, { align: 'center' });
                 
                 yPosition += 6;
-                pdf.text(clinicPhone, textX, yPosition + 8, { align: 'left' });
+                pdf.text(clinicPhone, 105, yPosition + 8, { align: 'center' });
                 
                 if (clinicEmail) {
                   yPosition += 6;
-                  pdf.text(clinicEmail, textX, yPosition + 8, { align: 'left' });
+                  pdf.text(clinicEmail, 105, yPosition + 8, { align: 'center' });
                 }
                 
                 if (clinicWebsite) {
                   yPosition += 6;
-                  pdf.text(clinicWebsite, textX, yPosition + 8, { align: 'left' });
+                  pdf.text(clinicWebsite, 105, yPosition + 8, { align: 'center' });
                 }
                 
                 yPosition += 10;
               } else {
                 // Left or right positioning - logo above text
+                const textAlign = logoPosition === 'left' ? 'left' : 'right';
                 const xPosition = logoPosition === 'left' ? 20 : 170;
+                const textXPosition = logoPosition === 'left' ? 20 : 190;
                 pdf.addImage(clinicHeader.logoBase64, 'PNG', xPosition, yPosition, 30, 30);
                 yPosition += 35;
                 
-                // Clinic info centered
+                // Clinic info aligned based on logo position
                 pdf.setFontSize(clinicNameSize);
                 pdf.setFont('helvetica', fontWeight);
-                pdf.text(clinicName, 105, yPosition, { align: 'center' });
+                pdf.text(clinicName, textXPosition, yPosition, { align: textAlign });
                 
                 yPosition += 6;
                 pdf.setFontSize(contentSize);
                 pdf.setFont('helvetica', fontStyle);
-                pdf.text(clinicAddress, 105, yPosition, { align: 'center' });
+                pdf.text(clinicAddress, textXPosition, yPosition, { align: textAlign });
                 yPosition += 6;
-                pdf.text(clinicPhone, 105, yPosition, { align: 'center' });
+                pdf.text(clinicPhone, textXPosition, yPosition, { align: textAlign });
                 
                 if (clinicEmail) {
                   yPosition += 6;
-                  pdf.text(clinicEmail, 105, yPosition, { align: 'center' });
+                  pdf.text(clinicEmail, textXPosition, yPosition, { align: textAlign });
                 }
                 
                 if (clinicWebsite) {
                   yPosition += 6;
-                  pdf.text(clinicWebsite, 105, yPosition, { align: 'center' });
+                  pdf.text(clinicWebsite, textXPosition, yPosition, { align: textAlign });
                 }
               }
             } catch (err) {
@@ -1956,7 +1958,7 @@ export default function PrescriptionsPage() {
                     font-weight: ${clinicHeader?.fontWeight || 'normal'};
                     font-style: ${clinicHeader?.fontStyle || 'normal'};
                     text-decoration: ${clinicHeader?.textDecoration || 'none'};
-                    text-align: left;
+                    text-align: center;
                   ">
                     ${prescription.providerName}<br>
                     <span style="font-size: ${clinicHeader?.clinicNameFontSize || '16pt'}; font-weight: bold;">
@@ -1977,6 +1979,7 @@ export default function PrescriptionsPage() {
                   font-weight: ${clinicHeader?.fontWeight || 'normal'};
                   font-style: ${clinicHeader?.fontStyle || 'normal'};
                   text-decoration: ${clinicHeader?.textDecoration || 'none'};
+                  text-align: ${clinicHeader.logoPosition || 'center'};
                 ">
                   ${prescription.providerName}<br>
                   <span style="font-size: ${clinicHeader?.clinicNameFontSize || '16pt'}; font-weight: bold;">
@@ -3038,7 +3041,7 @@ export default function PrescriptionsPage() {
                               style={{ maxWidth: '70px', maxHeight: '70px' }}
                             />
                             <div
-                              className="text-left"
+                              className="text-center"
                               style={{
                                 fontFamily: clinicHeader?.fontFamily || 'inherit',
                                 fontSize: clinicHeader?.fontSize || '14px',
@@ -3097,7 +3100,8 @@ export default function PrescriptionsPage() {
                                 fontSize: clinicHeader?.fontSize || '14px',
                                 fontWeight: clinicHeader?.fontWeight || 'normal',
                                 fontStyle: clinicHeader?.fontStyle || 'normal',
-                                textDecoration: clinicHeader?.textDecoration || 'none'
+                                textDecoration: clinicHeader?.textDecoration || 'none',
+                                textAlign: clinicHeader?.logoPosition || 'center'
                               }}
                             >
                               <p 
