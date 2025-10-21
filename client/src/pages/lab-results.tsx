@@ -2271,6 +2271,19 @@ Report generated from Cura EMR System`;
                           Generate Test Result
                         </Button>
                       )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const pdfUrl = `/api/lab-results/${result.id}/view-pdf`;
+                          window.open(pdfUrl, '_blank');
+                        }}
+                        className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200"
+                        data-testid="button-view-lab-report"
+                      >
+                        <FileText className="h-4 w-4 mr-2" />
+                        View Lab Report
+                      </Button>
                       {user?.role !== 'patient' && (
                         <Button
                           variant="outline"

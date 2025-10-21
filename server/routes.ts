@@ -6668,6 +6668,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // View Lab Result PDF
+  app.get("/api/lab-results/:id/view-pdf", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const labResultId = parseInt(req.params.id);
+      if (isNaN(labResultId)) {
+        return res.status(400).json({ error: "Invalid lab result ID" });
+      }
+
+      const organizationId = req.tenant!.id;
+
+      // Fetch lab result
+      const labResults = await storage.getLabResults(organizationId);
+      const labResult = labResults.find(result => result.id === labResultId);
+      
+      if (!labResult) {
+        return res.status(404).json({ error: "Lab result not found" });
+      }
+
+      // Construct file path: uploads/Lab_TestResults/{organization_id}/{patient_id}/{TestID}.pdf
+      const fileName = `${labResult.testId}.pdf`;
+      const filePath = path.join(
+        process.cwd(), 
+        'uploads', 
+        'Lab_TestResults', 
+        organizationId.toString(), 
+        labResult.patientId.toString(), 
+        fileName
+      );
+
+      // Check if file exists
+      const fileExists = await fse.pathExists(filePath);
+      if (!fileExists) {
+        return res.status(404).json({ error: "PDF file not found. Please generate the lab result first." });
+      }
+
+      // Set headers for PDF viewing
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
+
+      // Stream the file to the response
+      const fileStream = fse.createReadStream(filePath);
+      fileStream.pipe(res);
+
+    } catch (error) {
+      console.error("Error viewing PDF:", error);
+      res.status(500).json({ error: "Failed to view PDF" });
+    }
+  });
+
   // Imaging Routes
   app.get("/api/imaging", authMiddleware, async (req: TenantRequest, res) => {
     try {
