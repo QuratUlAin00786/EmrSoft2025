@@ -47,7 +47,7 @@ import {
 } from "lucide-react";
 
 interface Invoice {
-  id: string;
+  id: number;
   organizationId: number;
   invoiceNumber?: string;
   patientId: string;
@@ -1998,7 +1998,7 @@ export default function BillingPage() {
       
       // Set the success modal info
       setSentInvoiceInfo({
-        invoiceNumber: invoiceToSend.invoiceNumber || invoiceToSend.id,
+        invoiceNumber: invoiceToSend.invoiceNumber || invoiceToSend.id.toString(),
         recipient: sendMethod === 'email' ? recipientEmail : sendMethod === 'sms' ? recipientPhone : recipientName
       });
       
@@ -2038,7 +2038,7 @@ export default function BillingPage() {
       await apiRequest('DELETE', `/api/billing/invoices/${invoiceToDelete.id}`, {});
       
       // Set deleted invoice info for success modal
-      setDeletedInvoiceNumber(invoiceToDelete.invoiceNumber || invoiceToDelete.id);
+      setDeletedInvoiceNumber(invoiceToDelete.invoiceNumber || invoiceToDelete.id.toString());
       
       // Close delete confirmation modal
       setShowDeleteModal(false);
@@ -2404,7 +2404,7 @@ export default function BillingPage() {
                                     <Button variant="ghost" size="sm" onClick={() => handleViewInvoice(invoice)} data-testid="button-view-invoice" title="View">
                                       <Eye className="h-4 w-4" />
                                     </Button>
-                                    <Button variant="ghost" size="sm" onClick={() => handleDownloadInvoice(invoice.id)} data-testid="button-download-invoice" title="Download">
+                                    <Button variant="ghost" size="sm" onClick={() => handleDownloadInvoice(invoice.id.toString())} data-testid="button-download-invoice" title="Download">
                                       <Download className="h-4 w-4" />
                                     </Button>
                                     {!isAdmin && invoice.status !== 'draft' && invoice.status !== 'paid' && invoice.status !== 'cancelled' && (
@@ -2531,7 +2531,7 @@ export default function BillingPage() {
                               <Button variant="outline" size="sm" onClick={() => handleViewInvoice(invoice)} data-testid="button-view-invoice">
                                 <Eye className="h-4 w-4" />
                               </Button>
-                              <Button variant="outline" size="sm" onClick={() => handleDownloadInvoice(invoice.id)} data-testid="button-download-invoice">
+                              <Button variant="outline" size="sm" onClick={() => handleDownloadInvoice(invoice.id.toString())} data-testid="button-download-invoice">
                                 <Download className="h-4 w-4" />
                               </Button>
                               {!isAdmin && invoice.status !== 'draft' && invoice.status !== 'paid' && invoice.status !== 'cancelled' && (
@@ -2716,7 +2716,7 @@ export default function BillingPage() {
                                       <Button variant="ghost" size="sm" onClick={() => handleViewInvoice(invoice)} title="View">
                                         <Eye className="h-4 w-4" />
                                       </Button>
-                                      <Button variant="ghost" size="sm" onClick={() => handleDownloadInvoice(invoice.id)} title="Download">
+                                      <Button variant="ghost" size="sm" onClick={() => handleDownloadInvoice(invoice.id.toString())} title="Download">
                                         <Download className="h-4 w-4" />
                                       </Button>
                                       {isAdmin && (
@@ -2843,7 +2843,7 @@ export default function BillingPage() {
                                 <Button variant="outline" size="sm" onClick={() => handleViewInvoice(invoice)}>
                                   <Eye className="h-4 w-4" />
                                 </Button>
-                                <Button variant="outline" size="sm" onClick={() => handleDownloadInvoice(invoice.id)}>
+                                <Button variant="outline" size="sm" onClick={() => handleDownloadInvoice(invoice.id.toString())}>
                                   <Download className="h-4 w-4" />
                                 </Button>
                                 {isAdmin && (
