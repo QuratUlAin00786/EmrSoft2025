@@ -3917,36 +3917,73 @@ Report generated from Cura EMR System`;
               <div className="border-b pb-4 pt-6">
                 <div className="flex items-center">
                   {/* Left Side: Image */}
-                  <img
-                    src={curaIcon}
-                    alt="icon"
-                    style={{
-                      height: "100px",
-                      width: "100px",
-                      marginRight: "1.5rem",
-                      marginLeft: "1rem",
-                    }}
-                  />
+                  {clinicHeader?.logoBase64 && clinicHeader?.logoPosition === 'left' && (
+                    <img
+                      src={clinicHeader.logoBase64}
+                      alt="Clinic Logo"
+                      style={{
+                        height: "100px",
+                        width: "100px",
+                        marginRight: "1.5rem",
+                        marginLeft: "1rem",
+                      }}
+                    />
+                  )}
 
                   {/* Right Side: Text Content */}
                   <div
                     className="flex-1 text-center"
-                    style={{ marginLeft: "-120px" }}
+                    style={{ marginLeft: clinicHeader?.logoPosition === 'left' ? "-120px" : "0" }}
                   >
-                    <h1 className="text-3xl font-bold text-medical-blue mb-2">
-                      CURA EMR SYSTEM
+                    <h1 
+                      className="font-bold text-medical-blue mb-2"
+                      style={{
+                        fontSize: clinicHeader?.clinicNameFontSize || '24pt',
+                        fontFamily: clinicHeader?.fontFamily || 'verdana',
+                        fontWeight: clinicHeader?.fontWeight || 'bold',
+                        fontStyle: clinicHeader?.fontStyle || 'normal',
+                        textDecoration: clinicHeader?.textDecoration || 'none'
+                      }}
+                    >
+                      {clinicHeader?.clinicName || 'CURA EMR SYSTEM'}
                     </h1>
-                    <p className="text-sm text-gray-600 font-medium">
-                      Laboratory Test Prescription (RESIDENT PHYSICIAN M.D)
+                    <p 
+                      className="text-gray-600 font-medium"
+                      style={{
+                        fontSize: clinicHeader?.fontSize || '12pt',
+                        fontFamily: clinicHeader?.fontFamily || 'verdana'
+                      }}
+                    >
+                      Laboratory Test Prescription
                     </p>
 
-                    <div className="text-sm text-gray-700 mt-2 leading-5">
-                      <p>Halo Health Clinic</p>
-                      <p>Unit 2 Drayton Court, Solihull</p>
-                      <p>B90 4NG, UK</p>
-                      <p>+44(0)121 827 5531</p>
+                    <div 
+                      className="text-gray-700 mt-2 leading-5"
+                      style={{
+                        fontSize: clinicHeader?.fontSize || '12pt',
+                        fontFamily: clinicHeader?.fontFamily || 'verdana'
+                      }}
+                    >
+                      {clinicHeader?.address && <p>{clinicHeader.address}</p>}
+                      {clinicHeader?.phone && <p>{clinicHeader.phone}</p>}
+                      {clinicHeader?.email && <p>{clinicHeader.email}</p>}
+                      {clinicHeader?.website && <p>{clinicHeader.website}</p>}
                     </div>
                   </div>
+
+                  {/* Right Side: Image */}
+                  {clinicHeader?.logoBase64 && clinicHeader?.logoPosition === 'right' && (
+                    <img
+                      src={clinicHeader.logoBase64}
+                      alt="Clinic Logo"
+                      style={{
+                        height: "100px",
+                        width: "100px",
+                        marginLeft: "1.5rem",
+                        marginRight: "1rem",
+                      }}
+                    />
+                  )}
                 </div>
               </div>
 
