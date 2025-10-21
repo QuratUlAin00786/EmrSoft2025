@@ -1,0 +1,16 @@
+{
+  "name": "Document_2025-10-21_12-41",
+  "type": "medical_form",
+  "content": "\n        <div style=\"text-align: center; margin: 20px 0; padding: 15px;\">\n          <h3 style=\"color: #4A7DFF; margin: 0 0 4px 0; font-size: 24px; font-weight: bold;\">Averox Healthcare</h3>\n          <div style=\"font-size: 14px; color: #666; border-bottom: 1px solid #ccc; padding-bottom: 8px;\">\n            Professional Medical Services\n          </div>\n        </div>\n      \n        <div style=\"text-align: center; margin: 20px 0; padding: 15px;\">\n          <h3 style=\"color: #4A7DFF; margin: 0 0 4px 0; font-size: 24px; font-weight: bold;\">Averox Healthcare</h3>\n          <div style=\"font-size: 14px; color: #666; border-bottom: 1px solid #ccc; padding-bottom: 8px;\">\n            Professional Medical Services\n          </div>\n        </div>\n      ",
+  "metadata": {
+    "subject": "Medical Form Template",
+    "recipient": "Patient",
+    "location": "Averox Healthcare",
+    "practitioner": "Dr. Provider",
+    "header": "your-clinic",
+    "templateUsed": "Custom Form"
+  },
+  "createdAt": "2025-10-21T07:41:03.960Z",
+  "organizationId": 2,
+  "userId": 12
+}
