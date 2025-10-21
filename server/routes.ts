@@ -717,6 +717,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Serve uploaded files (clinical photos, imaging reports, etc.)
+  // Add headers to allow PDFs to be displayed in iframes (fixes Microsoft Edge blocking)
+  app.use('/uploads', (req, res, next) => {
+    res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+    res.setHeader('Content-Security-Policy', "frame-ancestors 'self'");
+    next();
+  });
   app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
   
   // EMERGENCY PRODUCTION FIX - Absolute priority route BEFORE everything else
@@ -1635,6 +1641,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Serve static files from uploads folder (public read-only access)
+  // Headers already set by earlier middleware at line 724
   app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
   // Protected routes (auth required)
