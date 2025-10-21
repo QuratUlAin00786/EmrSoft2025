@@ -10487,18 +10487,6 @@ Registration No: [Number]`
                           </Button>
                         </div>
                       </div>
-                      <div>
-                        <Label className="text-sm font-medium mb-2 block">Logo Preview:</Label>
-                        <div className="border rounded-lg p-4 bg-white dark:bg-[hsl(var(--cura-midnight))]">
-                          <div style={{ display: "flex", justifyContent: selectedLogoPosition }}>
-                            <img 
-                              src={clinicLogoPreview} 
-                              alt="Clinic Logo Preview" 
-                              className="max-h-32 object-contain"
-                            />
-                          </div>
-                        </div>
-                      </div>
                     </div>
                   )}
                 </div>
@@ -10574,9 +10562,10 @@ Registration No: [Number]`
             {/* Header Preview */}
             {clinicHeaderInfo.clinicName && (
               <div className="mt-4">
-                <Label className="text-sm font-medium mb-2 block">Header Preview (All Positions):</Label>
-                <div className="grid grid-cols-1 gap-4">
-                  {/* Left Position Preview */}
+                <Label className="text-sm font-medium mb-2 block">Header Preview:</Label>
+                
+                {/* Left Position Preview */}
+                {selectedLogoPosition === "left" && (
                   <div className="border rounded-lg p-6 bg-white dark:bg-[hsl(var(--cura-midnight))]">
                     <p className="text-xs font-semibold mb-2 text-gray-500">Left Position</p>
                     <div style={{ borderBottom: '3px solid ' + clinicFooterInfo.backgroundColor, paddingBottom: '20px' }}>
@@ -10609,8 +10598,10 @@ Registration No: [Number]`
                       </div>
                     </div>
                   </div>
+                )}
 
-                  {/* Center Position Preview */}
+                {/* Center Position Preview */}
+                {selectedLogoPosition === "center" && (
                   <div className="border rounded-lg p-6 bg-white dark:bg-[hsl(var(--cura-midnight))]">
                     <p className="text-xs font-semibold mb-2 text-gray-500">Center Position</p>
                     <div style={{ borderBottom: '3px solid ' + clinicFooterInfo.backgroundColor, paddingBottom: '20px' }}>
@@ -10643,8 +10634,10 @@ Registration No: [Number]`
                       </div>
                     </div>
                   </div>
+                )}
 
-                  {/* Right Position Preview */}
+                {/* Right Position Preview */}
+                {selectedLogoPosition === "right" && (
                   <div className="border rounded-lg p-6 bg-white dark:bg-[hsl(var(--cura-midnight))]">
                     <p className="text-xs font-semibold mb-2 text-gray-500">Right Position</p>
                     <div style={{ borderBottom: '3px solid ' + clinicFooterInfo.backgroundColor, paddingBottom: '20px' }}>
@@ -10677,7 +10670,7 @@ Registration No: [Number]`
                       </div>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
             )}
 
