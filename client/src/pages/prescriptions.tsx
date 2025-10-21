@@ -864,8 +864,7 @@ export default function PrescriptionsPage() {
           // Center Title
           pdf.setFontSize(18);
           pdf.setFont('helvetica', 'bold');
-          pdf.text('RESIDENT PHYSICIAN M.D', 105, 50, { align: 'center' });
-          
+       
           // Clinic Information with styling
           const clinicName = clinicHeader?.clinicName || pharmacyData?.name || 'Halo Health Clinic';
           const clinicAddress = clinicHeader?.address || 'Unit 2 Drayton Court, Solihull';
@@ -1947,7 +1946,7 @@ export default function PrescriptionsPage() {
               
               <!-- Provider Section -->
               <div class="provider-section">
-                <div class="provider-title">RESIDENT PHYSICIAN M.D</div>
+               
                 ${clinicHeader?.logoBase64 && (clinicHeader.logoPosition === 'center') ? `
                 <!-- Logo beside clinic info for center position -->
                 <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin: 10px 0;">
@@ -3028,9 +3027,7 @@ export default function PrescriptionsPage() {
                       </div>
 
                       <div className="text-center mt-2">
-                        <h3 className="text-md font-semibold text-gray-800 dark:text-gray-100">
-                          RESIDENT PHYSICIAN M.D
-                        </h3>
+                    
                       
                         {clinicHeader?.logoBase64 && clinicHeader.logoPosition === 'center' ? (
                           <div className="flex items-center justify-center gap-4 my-2">
