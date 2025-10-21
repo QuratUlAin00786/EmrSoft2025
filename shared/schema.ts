@@ -168,6 +168,11 @@ export const clinicHeaders = pgTable("clinic_headers", {
   phone: varchar("phone", { length: 50 }),
   email: text("email"),
   website: text("website"),
+  fontSize: varchar("font_size", { length: 20 }).notNull().default("12pt"),
+  fontFamily: varchar("font_family", { length: 50 }).notNull().default("verdana"),
+  fontWeight: varchar("font_weight", { length: 20 }).notNull().default("normal"), // normal, bold
+  fontStyle: varchar("font_style", { length: 20 }).notNull().default("normal"), // normal, italic
+  textDecoration: varchar("text_decoration", { length: 20 }).notNull().default("none"), // none, underline
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow(),

@@ -363,6 +363,11 @@ export default function Forms() {
     phone: "",
     email: "",
     website: "",
+    fontSize: "12pt",
+    fontFamily: "verdana",
+    fontWeight: "normal",
+    fontStyle: "normal",
+    textDecoration: "none",
   });
   const [clinicFooterInfo, setClinicFooterInfo] = useState({
     footerText: "",
@@ -4467,6 +4472,18 @@ Coverage Details: [Insurance Coverage]`;
     applyTextFormatting("heading6");
   };
 
+  const getFontFamilyFromValue = (fontValue: string) => {
+    const fontMap: Record<string, string> = {
+      "arial": 'Arial, "Helvetica Neue", Helvetica, sans-serif',
+      "calibri": 'Calibri, "Trebuchet MS", "Lucida Grande", sans-serif',
+      "times": '"Times New Roman", Times, Georgia, serif',
+      "georgia": 'Georgia, "Times New Roman", serif',
+      "verdana": 'Verdana, Geneva, "DejaVu Sans", sans-serif',
+      "courier": '"Courier New", Courier, "Lucida Console", monospace',
+    };
+    return fontMap[fontValue] || 'Verdana, Geneva, "DejaVu Sans", sans-serif';
+  };
+
   const loadHeaderToDocument = (header: any, footer: any) => {
     if (!textareaRef) {
       toast({
@@ -4481,6 +4498,11 @@ Coverage Details: [Insurance Coverage]`;
       let headerHTML = '';
       const borderColor = footer?.backgroundColor || '#4A7DFF';
       const titleColor = footer?.backgroundColor || '#4A7DFF';
+      const fontFamily = getFontFamilyFromValue(header.fontFamily || 'verdana');
+      const fontSize = header.fontSize || '12pt';
+      const fontWeight = header.fontWeight || 'normal';
+      const fontStyle = header.fontStyle || 'normal';
+      const textDecoration = header.textDecoration || 'none';
       
       if (header.logoPosition === 'left') {
         headerHTML = `
@@ -4489,9 +4511,9 @@ Coverage Details: [Insurance Coverage]`;
               ${header.logoBase64 ? `<img src="${header.logoBase64}" alt="Clinic Logo" style="max-height: 80px; object-fit: contain;">` : ''}
               <div style="flex: 1;">
                 <h1 style="margin: 0; font-size: 24px; font-weight: bold; color: ${titleColor};">${header.clinicName}</h1>
-                ${header.address ? `<p style="margin: 5px 0; color: #666;">${header.address}</p>` : ''}
-                ${header.phone || header.email ? `<p style="margin: 5px 0; color: #666;">${header.phone}${header.phone && header.email ? ' • ' : ''}${header.email}</p>` : ''}
-                ${header.website ? `<p style="margin: 5px 0; color: #666;">${header.website}</p>` : ''}
+                ${header.address ? `<p style="margin: 5px 0; color: #666; font-family: ${fontFamily}; font-size: ${fontSize}; font-weight: ${fontWeight}; font-style: ${fontStyle}; text-decoration: ${textDecoration};">${header.address}</p>` : ''}
+                ${header.phone || header.email ? `<p style="margin: 5px 0; color: #666; font-family: ${fontFamily}; font-size: ${fontSize}; font-weight: ${fontWeight}; font-style: ${fontStyle}; text-decoration: ${textDecoration};">${header.phone}${header.phone && header.email ? ' • ' : ''}${header.email}</p>` : ''}
+                ${header.website ? `<p style="margin: 5px 0; color: #666; font-family: ${fontFamily}; font-size: ${fontSize}; font-weight: ${fontWeight}; font-style: ${fontStyle}; text-decoration: ${textDecoration};">${header.website}</p>` : ''}
               </div>
             </div>
           </div>
@@ -4503,9 +4525,9 @@ Coverage Details: [Insurance Coverage]`;
               ${header.logoBase64 ? `<img src="${header.logoBase64}" alt="Clinic Logo" style="max-height: 80px; object-fit: contain;">` : ''}
               <div style="text-align: center;">
                 <h1 style="margin: 0; font-size: 24px; font-weight: bold; color: ${titleColor};">${header.clinicName}</h1>
-                ${header.address ? `<p style="margin: 5px 0; color: #666;">${header.address}</p>` : ''}
-                ${header.phone || header.email ? `<p style="margin: 5px 0; color: #666;">${header.phone}${header.phone && header.email ? ' • ' : ''}${header.email}</p>` : ''}
-                ${header.website ? `<p style="margin: 5px 0; color: #666;">${header.website}</p>` : ''}
+                ${header.address ? `<p style="margin: 5px 0; color: #666; font-family: ${fontFamily}; font-size: ${fontSize}; font-weight: ${fontWeight}; font-style: ${fontStyle}; text-decoration: ${textDecoration};">${header.address}</p>` : ''}
+                ${header.phone || header.email ? `<p style="margin: 5px 0; color: #666; font-family: ${fontFamily}; font-size: ${fontSize}; font-weight: ${fontWeight}; font-style: ${fontStyle}; text-decoration: ${textDecoration};">${header.phone}${header.phone && header.email ? ' • ' : ''}${header.email}</p>` : ''}
+                ${header.website ? `<p style="margin: 5px 0; color: #666; font-family: ${fontFamily}; font-size: ${fontSize}; font-weight: ${fontWeight}; font-style: ${fontStyle}; text-decoration: ${textDecoration};">${header.website}</p>` : ''}
               </div>
             </div>
           </div>
@@ -4517,9 +4539,9 @@ Coverage Details: [Insurance Coverage]`;
               ${header.logoBase64 ? `<img src="${header.logoBase64}" alt="Clinic Logo" style="max-height: 80px; object-fit: contain;">` : ''}
               <div style="flex: 1; text-align: right;">
                 <h1 style="margin: 0; font-size: 24px; font-weight: bold; color: ${titleColor};">${header.clinicName}</h1>
-                ${header.address ? `<p style="margin: 5px 0; color: #666;">${header.address}</p>` : ''}
-                ${header.phone || header.email ? `<p style="margin: 5px 0; color: #666;">${header.phone}${header.phone && header.email ? ' • ' : ''}${header.email}</p>` : ''}
-                ${header.website ? `<p style="margin: 5px 0; color: #666;">${header.website}</p>` : ''}
+                ${header.address ? `<p style="margin: 5px 0; color: #666; font-family: ${fontFamily}; font-size: ${fontSize}; font-weight: ${fontWeight}; font-style: ${fontStyle}; text-decoration: ${textDecoration};">${header.address}</p>` : ''}
+                ${header.phone || header.email ? `<p style="margin: 5px 0; color: #666; font-family: ${fontFamily}; font-size: ${fontSize}; font-weight: ${fontWeight}; font-style: ${fontStyle}; text-decoration: ${textDecoration};">${header.phone}${header.phone && header.email ? ' • ' : ''}${header.email}</p>` : ''}
+                ${header.website ? `<p style="margin: 5px 0; color: #666; font-family: ${fontFamily}; font-size: ${fontSize}; font-weight: ${fontWeight}; font-style: ${fontStyle}; text-decoration: ${textDecoration};">${header.website}</p>` : ''}
               </div>
             </div>
           </div>
@@ -10646,6 +10668,80 @@ Registration No: [Number]`
                       data-testid="input-clinic-website"
                     />
                   </div>
+                  <div>
+                    <Label className="text-sm font-medium">Font Family</Label>
+                    <Select
+                      value={clinicHeaderInfo.fontFamily}
+                      onValueChange={(value) => setClinicHeaderInfo(prev => ({ ...prev, fontFamily: value }))}
+                    >
+                      <SelectTrigger className="mt-1" data-testid="select-font-family">
+                        <SelectValue placeholder="Select font" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="verdana">Verdana</SelectItem>
+                        <SelectItem value="arial">Arial</SelectItem>
+                        <SelectItem value="calibri">Calibri</SelectItem>
+                        <SelectItem value="times">Times New Roman</SelectItem>
+                        <SelectItem value="georgia">Georgia</SelectItem>
+                        <SelectItem value="courier">Courier</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">Font Size</Label>
+                    <Select
+                      value={clinicHeaderInfo.fontSize}
+                      onValueChange={(value) => setClinicHeaderInfo(prev => ({ ...prev, fontSize: value }))}
+                    >
+                      <SelectTrigger className="mt-1" data-testid="select-font-size">
+                        <SelectValue placeholder="Select size" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="10pt">10pt</SelectItem>
+                        <SelectItem value="12pt">12pt</SelectItem>
+                        <SelectItem value="14pt">14pt</SelectItem>
+                        <SelectItem value="16pt">16pt</SelectItem>
+                        <SelectItem value="18pt">18pt</SelectItem>
+                        <SelectItem value="20pt">20pt</SelectItem>
+                        <SelectItem value="24pt">24pt</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="md:col-span-2">
+                    <Label className="text-sm font-medium mb-2 block">Text Styling</Label>
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant={clinicHeaderInfo.fontWeight === "bold" ? "default" : "outline"}
+                        onClick={() => setClinicHeaderInfo(prev => ({ ...prev, fontWeight: prev.fontWeight === "bold" ? "normal" : "bold" }))}
+                        className="flex items-center gap-1"
+                        data-testid="button-font-bold"
+                      >
+                        <Bold className="h-4 w-4" />
+                        Bold
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={clinicHeaderInfo.fontStyle === "italic" ? "default" : "outline"}
+                        onClick={() => setClinicHeaderInfo(prev => ({ ...prev, fontStyle: prev.fontStyle === "italic" ? "normal" : "italic" }))}
+                        className="flex items-center gap-1"
+                        data-testid="button-font-italic"
+                      >
+                        <Italic className="h-4 w-4" />
+                        Italic
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={clinicHeaderInfo.textDecoration === "underline" ? "default" : "outline"}
+                        onClick={() => setClinicHeaderInfo(prev => ({ ...prev, textDecoration: prev.textDecoration === "underline" ? "none" : "underline" }))}
+                        className="flex items-center gap-1"
+                        data-testid="button-font-underline"
+                      >
+                        <Underline className="h-4 w-4" />
+                        Underline
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -10673,17 +10769,17 @@ Registration No: [Number]`
                             {clinicHeaderInfo.clinicName}
                           </h1>
                           {clinicHeaderInfo.address && (
-                            <p style={{ margin: "5px 0", color: "#666" }}>{clinicHeaderInfo.address}</p>
+                            <p style={{ margin: "5px 0", color: "#666", fontFamily: getFontFamilyFromValue(clinicHeaderInfo.fontFamily), fontSize: clinicHeaderInfo.fontSize, fontWeight: clinicHeaderInfo.fontWeight, fontStyle: clinicHeaderInfo.fontStyle, textDecoration: clinicHeaderInfo.textDecoration }}>{clinicHeaderInfo.address}</p>
                           )}
                           {(clinicHeaderInfo.phone || clinicHeaderInfo.email) && (
-                            <p style={{ margin: "5px 0", color: "#666" }}>
+                            <p style={{ margin: "5px 0", color: "#666", fontFamily: getFontFamilyFromValue(clinicHeaderInfo.fontFamily), fontSize: clinicHeaderInfo.fontSize, fontWeight: clinicHeaderInfo.fontWeight, fontStyle: clinicHeaderInfo.fontStyle, textDecoration: clinicHeaderInfo.textDecoration }}>
                               {clinicHeaderInfo.phone}
                               {clinicHeaderInfo.phone && clinicHeaderInfo.email && " • "}
                               {clinicHeaderInfo.email}
                             </p>
                           )}
                           {clinicHeaderInfo.website && (
-                            <p style={{ margin: "5px 0", color: "#666" }}>{clinicHeaderInfo.website}</p>
+                            <p style={{ margin: "5px 0", color: "#666", fontFamily: getFontFamilyFromValue(clinicHeaderInfo.fontFamily), fontSize: clinicHeaderInfo.fontSize, fontWeight: clinicHeaderInfo.fontWeight, fontStyle: clinicHeaderInfo.fontStyle, textDecoration: clinicHeaderInfo.textDecoration }}>{clinicHeaderInfo.website}</p>
                           )}
                         </div>
                       </div>
@@ -10709,17 +10805,17 @@ Registration No: [Number]`
                             {clinicHeaderInfo.clinicName}
                           </h1>
                           {clinicHeaderInfo.address && (
-                            <p style={{ margin: "5px 0", color: "#666" }}>{clinicHeaderInfo.address}</p>
+                            <p style={{ margin: "5px 0", color: "#666", fontFamily: getFontFamilyFromValue(clinicHeaderInfo.fontFamily), fontSize: clinicHeaderInfo.fontSize, fontWeight: clinicHeaderInfo.fontWeight, fontStyle: clinicHeaderInfo.fontStyle, textDecoration: clinicHeaderInfo.textDecoration }}>{clinicHeaderInfo.address}</p>
                           )}
                           {(clinicHeaderInfo.phone || clinicHeaderInfo.email) && (
-                            <p style={{ margin: "5px 0", color: "#666" }}>
+                            <p style={{ margin: "5px 0", color: "#666", fontFamily: getFontFamilyFromValue(clinicHeaderInfo.fontFamily), fontSize: clinicHeaderInfo.fontSize, fontWeight: clinicHeaderInfo.fontWeight, fontStyle: clinicHeaderInfo.fontStyle, textDecoration: clinicHeaderInfo.textDecoration }}>
                               {clinicHeaderInfo.phone}
                               {clinicHeaderInfo.phone && clinicHeaderInfo.email && " • "}
                               {clinicHeaderInfo.email}
                             </p>
                           )}
                           {clinicHeaderInfo.website && (
-                            <p style={{ margin: "5px 0", color: "#666" }}>{clinicHeaderInfo.website}</p>
+                            <p style={{ margin: "5px 0", color: "#666", fontFamily: getFontFamilyFromValue(clinicHeaderInfo.fontFamily), fontSize: clinicHeaderInfo.fontSize, fontWeight: clinicHeaderInfo.fontWeight, fontStyle: clinicHeaderInfo.fontStyle, textDecoration: clinicHeaderInfo.textDecoration }}>{clinicHeaderInfo.website}</p>
                           )}
                         </div>
                       </div>
@@ -10745,17 +10841,17 @@ Registration No: [Number]`
                             {clinicHeaderInfo.clinicName}
                           </h1>
                           {clinicHeaderInfo.address && (
-                            <p style={{ margin: "5px 0", color: "#666" }}>{clinicHeaderInfo.address}</p>
+                            <p style={{ margin: "5px 0", color: "#666", fontFamily: getFontFamilyFromValue(clinicHeaderInfo.fontFamily), fontSize: clinicHeaderInfo.fontSize, fontWeight: clinicHeaderInfo.fontWeight, fontStyle: clinicHeaderInfo.fontStyle, textDecoration: clinicHeaderInfo.textDecoration }}>{clinicHeaderInfo.address}</p>
                           )}
                           {(clinicHeaderInfo.phone || clinicHeaderInfo.email) && (
-                            <p style={{ margin: "5px 0", color: "#666" }}>
+                            <p style={{ margin: "5px 0", color: "#666", fontFamily: getFontFamilyFromValue(clinicHeaderInfo.fontFamily), fontSize: clinicHeaderInfo.fontSize, fontWeight: clinicHeaderInfo.fontWeight, fontStyle: clinicHeaderInfo.fontStyle, textDecoration: clinicHeaderInfo.textDecoration }}>
                               {clinicHeaderInfo.phone}
                               {clinicHeaderInfo.phone && clinicHeaderInfo.email && " • "}
                               {clinicHeaderInfo.email}
                             </p>
                           )}
                           {clinicHeaderInfo.website && (
-                            <p style={{ margin: "5px 0", color: "#666" }}>{clinicHeaderInfo.website}</p>
+                            <p style={{ margin: "5px 0", color: "#666", fontFamily: getFontFamilyFromValue(clinicHeaderInfo.fontFamily), fontSize: clinicHeaderInfo.fontSize, fontWeight: clinicHeaderInfo.fontWeight, fontStyle: clinicHeaderInfo.fontStyle, textDecoration: clinicHeaderInfo.textDecoration }}>{clinicHeaderInfo.website}</p>
                           )}
                         </div>
                       </div>
@@ -10940,6 +11036,11 @@ Registration No: [Number]`
                       phone: clinicHeaderInfo.phone || null,
                       email: clinicHeaderInfo.email || null,
                       website: clinicHeaderInfo.website || null,
+                      fontSize: clinicHeaderInfo.fontSize,
+                      fontFamily: clinicHeaderInfo.fontFamily,
+                      fontWeight: clinicHeaderInfo.fontWeight,
+                      fontStyle: clinicHeaderInfo.fontStyle,
+                      textDecoration: clinicHeaderInfo.textDecoration,
                       isActive: true,
                     };
 
