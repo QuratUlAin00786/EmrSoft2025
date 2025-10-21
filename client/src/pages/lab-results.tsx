@@ -5187,14 +5187,25 @@ Report generated from Cura EMR System`;
                     });
 
                     // Generate PDF for the updated lab result
-                    await apiRequest("POST", `/api/lab-results/${selectedLabOrder.id}/generate-pdf`);
+                    const pdfResponse = await apiRequest("POST", `/api/lab-results/${selectedLabOrder.id}/generate-pdf`);
+
+                    // Download the generated PDF
+                    if (pdfResponse && pdfResponse.pdfPath) {
+                      // Trigger download
+                      const downloadLink = document.createElement('a');
+                      downloadLink.href = `/api/lab-results/${selectedLabOrder.id}/download-pdf`;
+                      downloadLink.download = `${selectedLabOrder.testId || selectedLabOrder.id}_lab_result.pdf`;
+                      document.body.appendChild(downloadLink);
+                      downloadLink.click();
+                      document.body.removeChild(downloadLink);
+                    }
 
                     // Invalidate cache
                     queryClient.invalidateQueries({ queryKey: ["/api/lab-results"] });
 
                     toast({
                       title: "Success",
-                      description: "Lab test results generated successfully and PDF saved",
+                      description: "Lab test result PDF generated and downloaded successfully",
                     });
                     
                     setShowFillResultDialog(false);
