@@ -637,6 +637,11 @@ export default function PrescriptionsPage() {
         throw new Error("User not authenticated");
       }
 
+      // Admin role gets all prescriptions from database
+      if (user.role === "admin") {
+        return await fetchAllPrescriptions();
+      }
+      
       // Check if the current user role is Patient
       if (user.role === "patient") {
         // Get the patient ID from session/auth - match by email first for accuracy
@@ -696,7 +701,7 @@ export default function PrescriptionsPage() {
         // Get prescriptions created by this doctor-like role
         return await fetchPrescriptionsByDoctorId(user.id);
       } else {
-        // For other roles (admin, nurse, etc.), show all prescriptions
+        // For other roles (nurse, etc.), show all prescriptions
         return await fetchAllPrescriptions();
       }
     },
