@@ -205,34 +205,24 @@ export default function PatientAppointments({
     return foundPatient;
   }, [user, patientsData]);
 
-  // Filter appointments to show only the logged-in patient's own appointments
-  // AND only show appointments created by doctor, patient, or admin roles
+  // Filter appointments to show all appointments created by any role
+  // filtered by patient_id and organization_id (matching subdomain)
   const appointments = React.useMemo(() => {
     // If we're loading or no data, return empty array
     if (!appointmentsData) return [];
     
-    // Filter appointments created by doctor, patient, or admin roles only
+    // Show all appointments from all roles (no role-based filtering)
     let filtered = appointmentsData;
     
-    // Filter by creator role (must be doctor, patient, or admin)
-    if (usersData && Array.isArray(usersData)) {
-      filtered = filtered.filter((apt: any) => {
-        if (!apt.createdBy) return true; // Keep appointments without createdBy (legacy data)
-        const creator = usersData.find((u: any) => u.id === apt.createdBy);
-        if (!creator) return false; // Exclude if creator not found
-        const creatorRole = creator.role?.toLowerCase();
-        return creatorRole === 'doctor' || creatorRole === 'patient' || creatorRole === 'admin';
-      });
-    }
-    
-    // For patient role users, additionally filter by matching patientId with currentPatient.id
+    // For patient role users, filter by matching patientId with currentPatient.id
     if (user?.role === 'patient' && currentPatient) {
       filtered = filtered.filter((apt: any) => apt.patientId === currentPatient.id);
     }
     
     // Appointments are already filtered by organizationId at the backend level via tenant middleware
+    // This ensures only appointments from the active user's organization (matching subdomain) are shown
     return filtered;
-  }, [appointmentsData, user?.role, currentPatient, usersData]);
+  }, [appointmentsData, user?.role, currentPatient]);
 
   const getDoctorSpecialtyData = (providerId: number) => {
     const doctorsResponse = doctorsData as any;
