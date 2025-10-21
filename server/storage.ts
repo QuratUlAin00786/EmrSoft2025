@@ -3287,90 +3287,46 @@ export class DatabaseStorage implements IStorage {
       })
       .from(prescriptions)
       .leftJoin(patients, eq(prescriptions.patientId, patients.id))
-      .leftJoin(users, eq(prescriptions.doctorId, users.id))
+      .leftJoin(users, eq(prescriptions.prescriptionCreatedBy, users.id))
       .where(eq(prescriptions.organizationId, organizationId))
       .orderBy(desc(prescriptions.createdAt));
 
-    // Remove duplicates based on patient + medication name + dosage
-    const uniquePrescriptions = [];
-    const seenCombinations = new Set();
-    
-    for (const item of allPrescriptions) {
+    // Return ALL prescriptions without deduplication for admin users
+    const formatDateWithSuffix = (dateString: string) => {
+      const date = new Date(dateString);
+      const day = date.getDate();
+      const month = date.toLocaleDateString('en-GB', { month: 'short' });
+      const year = date.getFullYear();
+      const suffix = day > 3 && day < 21 ? 'th' : ['th', 'st', 'nd', 'rd'][day % 10] || 'th';
+      return `${day}${suffix} ${month} ${year}`;
+    };
+
+    const formattedPrescriptions = allPrescriptions.map(item => {
       const prescription = item.prescription;
       const patient = item.patient;
       const provider = item.provider;
       
-      if (prescription.medications && prescription.medications.length > 0) {
-        const firstMed = prescription.medications[0];
-        const key = `${prescription.patientId}-${firstMed.name || 'unknown'}-${firstMed.dosage || 'unknown'}`;
-        
-        if (!seenCombinations.has(key)) {
-          seenCombinations.add(key);
-          const formatDateWithSuffix = (dateString: string) => {
-            const date = new Date(dateString);
-            const day = date.getDate();
-            const month = date.toLocaleDateString('en-GB', { month: 'short' });
-            const year = date.getFullYear();
-            const suffix = day > 3 && day < 21 ? 'th' : ['th', 'st', 'nd', 'rd'][day % 10] || 'th';
-            return `${day}${suffix} ${month} ${year}`;
-          };
-          
-          const patientAddress = patient?.address 
-            ? `${patient.address.street || ''}, ${patient.address.city || ''}, ${patient.address.postcode || ''}, ${patient.address.country || ''}`.replace(/, ,/g, ',').replace(/^,\s*|,\s*$/g, '')
-            : '-';
-          
-          const patientAllergies = patient?.medicalHistory?.allergies && patient.medicalHistory.allergies.length > 0 
-            ? patient.medicalHistory.allergies.join(', ') 
-            : '-';
-          
-          uniquePrescriptions.push({
-            ...prescription,
-            patientName: patient ? `${patient.firstName} ${patient.lastName}` : 'Unknown Patient',
-            patientDob: patient?.dateOfBirth ? formatDateWithSuffix(patient.dateOfBirth) : null,
-            patientAge: patient?.dateOfBirth ? Math.floor((new Date().getTime() - new Date(patient.dateOfBirth).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : null,
-            patientAddress,
-            patientAllergies,
-            patientWeight: null,
-            providerName: provider ? `Dr. ${provider.firstName} ${provider.lastName}` : 'Unknown Provider',
-          });
-        }
-      } else {
-        // For prescriptions without medications, use patient + id
-        const key = `${prescription.patientId}-no-meds-${prescription.id}`;
-        if (!seenCombinations.has(key)) {
-          seenCombinations.add(key);
-          const formatDateWithSuffix = (dateString: string) => {
-            const date = new Date(dateString);
-            const day = date.getDate();
-            const month = date.toLocaleDateString('en-GB', { month: 'short' });
-            const year = date.getFullYear();
-            const suffix = day > 3 && day < 21 ? 'th' : ['th', 'st', 'nd', 'rd'][day % 10] || 'th';
-            return `${day}${suffix} ${month} ${year}`;
-          };
-          
-          const patientAddress = patient?.address 
-            ? `${patient.address.street || ''}, ${patient.address.city || ''}, ${patient.address.postcode || ''}, ${patient.address.country || ''}`.replace(/, ,/g, ',').replace(/^,\s*|,\s*$/g, '')
-            : '-';
-          
-          const patientAllergies = patient?.medicalHistory?.allergies && patient.medicalHistory.allergies.length > 0 
-            ? patient.medicalHistory.allergies.join(', ') 
-            : '-';
-          
-          uniquePrescriptions.push({
-            ...prescription,
-            patientName: patient ? `${patient.firstName} ${patient.lastName}` : 'Unknown Patient',
-            patientDob: patient?.dateOfBirth ? formatDateWithSuffix(patient.dateOfBirth) : null,
-            patientAge: patient?.dateOfBirth ? Math.floor((new Date().getTime() - new Date(patient.dateOfBirth).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : null,
-            patientAddress,
-            patientAllergies,
-            patientWeight: null,
-            providerName: provider ? `Dr. ${provider.firstName} ${provider.lastName}` : 'Unknown Provider',
-          });
-        }
-      }
-    }
+      const patientAddress = patient?.address 
+        ? `${patient.address.street || ''}, ${patient.address.city || ''}, ${patient.address.postcode || ''}, ${patient.address.country || ''}`.replace(/, ,/g, ',').replace(/^,\s*|,\s*$/g, '')
+        : '-';
+      
+      const patientAllergies = patient?.medicalHistory?.allergies && patient.medicalHistory.allergies.length > 0 
+        ? patient.medicalHistory.allergies.join(', ') 
+        : '-';
+      
+      return {
+        ...prescription,
+        patientName: patient ? `${patient.firstName} ${patient.lastName}` : 'Unknown Patient',
+        patientDob: patient?.dateOfBirth ? formatDateWithSuffix(patient.dateOfBirth) : null,
+        patientAge: patient?.dateOfBirth ? Math.floor((new Date().getTime() - new Date(patient.dateOfBirth).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : null,
+        patientAddress,
+        patientAllergies,
+        patientWeight: null,
+        providerName: provider ? `Dr. ${provider.firstName} ${provider.lastName}` : 'Unknown Provider',
+      };
+    });
     
-    return uniquePrescriptions.slice(0, limit);
+    return formattedPrescriptions;
   }
 
   async getPrescriptionsByPatient(patientId: number, organizationId: number): Promise<Prescription[]> {

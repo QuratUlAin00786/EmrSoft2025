@@ -2273,7 +2273,7 @@ export default function PrescriptionsPage() {
               </div>
               
               <!-- Footer -->
-              <div class="footer">
+              <div class="">
                 <div class="signature-section">
                   <div class="signature-label">Resident Physician<br>(Signature)</div>
                   ${
@@ -2314,6 +2314,10 @@ export default function PrescriptionsPage() {
                   🗑️ Delete
                 </button>
               </div>
+            </div>
+
+            <div class="footer">
+
             </div>
           </body>
         </html>
