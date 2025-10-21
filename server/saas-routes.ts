@@ -1313,6 +1313,15 @@ The Cura EMR Team`,
           return res.status(404).json({ message: "User not found" });
         }
 
+        // If user role is patient, also delete the patient record
+        if (user.role === 'patient') {
+          const patient = await storage.getPatientByUserId(userId, user.organizationId);
+          if (patient) {
+            await storage.deletePatient(patient.id, user.organizationId);
+            console.log(`Deleted patient record ${patient.id} for user ${userId}`);
+          }
+        }
+
         // Delete the user
         await storage.deleteUser(userId, user.organizationId);
 
