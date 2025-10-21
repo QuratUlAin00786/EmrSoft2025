@@ -5512,14 +5512,18 @@ Report generated from Cura EMR System`;
 
       {/* PDF Viewer Dialog */}
       <Dialog open={showPdfViewerDialog} onOpenChange={setShowPdfViewerDialog}>
-        <DialogContent className="max-w-6xl max-h-[90vh] p-0">
+        <DialogContent className="max-w-6xl max-h-[90vh] p-0" aria-describedby="pdf-viewer-description">
           <DialogHeader className="p-6 pb-4">
             <DialogTitle>Lab Test Result</DialogTitle>
+            <p id="pdf-viewer-description" className="sr-only">
+              PDF viewer displaying the lab test result document
+            </p>
           </DialogHeader>
           <div className="w-full h-[75vh] px-6 pb-6">
             {pdfViewerUrl && (
-              <iframe
+              <embed
                 src={pdfViewerUrl}
+                type="application/pdf"
                 className="w-full h-full border rounded"
                 title="Lab Test Result PDF"
               />
