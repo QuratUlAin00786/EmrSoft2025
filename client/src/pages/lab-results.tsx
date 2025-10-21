@@ -5013,13 +5013,19 @@ Report generated from Cura EMR System`;
                     const pageWidth = pdf.internal.pageSize.getWidth();
                     let yPos = 20;
 
-                    // Add logo if available
+                    // Add logo if available - center position places logo beside header
+                    const headerStartY = yPos;
                     if (clinicHeader?.logoBase64) {
                       try {
-                        const logoX = clinicHeader.logoPosition === 'left' ? 20 : 
-                                      clinicHeader.logoPosition === 'right' ? 160 : 90;
-                        pdf.addImage(clinicHeader.logoBase64, 'PNG', logoX, yPos, 30, 30);
-                        yPos += 35;
+                        if (clinicHeader.logoPosition === 'center') {
+                          // Place logo beside (to the left of) header details
+                          pdf.addImage(clinicHeader.logoBase64, 'PNG', 20, yPos, 30, 30);
+                        } else {
+                          // Left or right positions - logo on top as before
+                          const logoX = clinicHeader.logoPosition === 'left' ? 20 : 160;
+                          pdf.addImage(clinicHeader.logoBase64, 'PNG', logoX, yPos, 30, 30);
+                          yPos += 35;
+                        }
                       } catch (error) {
                         console.error('Error adding logo:', error);
                       }
@@ -5048,6 +5054,15 @@ Report generated from Cura EMR System`;
                       if (clinicHeader.email) {
                         pdf.text(clinicHeader.email, 105, yPos, { align: 'center' });
                         yPos += 6;
+                      }
+                    }
+                    
+                    // Ensure proper spacing after header section if logo was beside it
+                    if (clinicHeader?.logoBase64 && clinicHeader.logoPosition === 'center') {
+                      const headerEndY = yPos;
+                      const logoEndY = headerStartY + 30;
+                      if (logoEndY > headerEndY) {
+                        yPos = logoEndY + 5;
                       }
                     }
 
