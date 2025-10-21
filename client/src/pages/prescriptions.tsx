@@ -260,7 +260,13 @@ export default function PrescriptionsPage() {
 
   // Status update mutation
   const statusUpdateMutation = useMutation({
-    mutationFn: async ({ prescriptionId, status }: { prescriptionId: string; status: string }) => {
+    mutationFn: async ({
+      prescriptionId,
+      status,
+    }: {
+      prescriptionId: string;
+      status: string;
+    }) => {
       const token = localStorage.getItem("auth_token");
       const headers: Record<string, string> = {
         "X-Tenant-Subdomain": getActiveSubdomain(),
@@ -304,7 +310,10 @@ export default function PrescriptionsPage() {
   });
 
   // Helper functions for status editing
-  const handleStartEditingStatus = (prescriptionId: string, currentStatus: string) => {
+  const handleStartEditingStatus = (
+    prescriptionId: string,
+    currentStatus: string,
+  ) => {
     setEditingStatusId(prescriptionId);
     setTempStatus(currentStatus);
   };
@@ -328,7 +337,10 @@ export default function PrescriptionsPage() {
   const [isDrawing, setIsDrawing] = useState(false);
   const [signature, setSignature] = useState<string>("");
   const [signatureSaved, setSignatureSaved] = useState(false);
-  const [lastPosition, setLastPosition] = useState<{ x: number; y: number } | null>(null);
+  const [lastPosition, setLastPosition] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
 
   // Form state for prescription editing
@@ -337,16 +349,18 @@ export default function PrescriptionsPage() {
     patientName: "",
     providerId: "",
     diagnosis: "",
-    medications: [{
-      name: "",
-      dosage: "",
-      frequency: "",
-      duration: "",
-      quantity: "",
-      refills: "",
-      instructions: "",
-      genericAllowed: true,
-    }],
+    medications: [
+      {
+        name: "",
+        dosage: "",
+        frequency: "",
+        duration: "",
+        quantity: "",
+        refills: "",
+        instructions: "",
+        genericAllowed: true,
+      },
+    ],
     pharmacyName: "Halo Health",
     pharmacyAddress: "Unit 2 Drayton Court, Solihull, B90 4NG",
     pharmacyPhone: "+44(0)121 827 5531",
@@ -370,22 +384,35 @@ export default function PrescriptionsPage() {
   // Update form data when selectedPrescription changes
   useEffect(() => {
     if (selectedPrescription) {
-      const medications = selectedPrescription.medications.length > 0 
-        ? selectedPrescription.medications.map(med => ({
-            name: med.name || "",
-            dosage: med.dosage || "",
-            frequency: med.frequency || "",
-            duration: med.duration || "",
-            quantity: med.quantity?.toString() || "",
-            refills: med.refills?.toString() || "",
-            instructions: med.instructions || "",
-            genericAllowed: med.genericAllowed !== undefined ? med.genericAllowed : true,
-          })) 
-        : [{ name: "", dosage: "", frequency: "", duration: "", quantity: "", refills: "", instructions: "", genericAllowed: true }];
-      
+      const medications =
+        selectedPrescription.medications.length > 0
+          ? selectedPrescription.medications.map((med) => ({
+              name: med.name || "",
+              dosage: med.dosage || "",
+              frequency: med.frequency || "",
+              duration: med.duration || "",
+              quantity: med.quantity?.toString() || "",
+              refills: med.refills?.toString() || "",
+              instructions: med.instructions || "",
+              genericAllowed:
+                med.genericAllowed !== undefined ? med.genericAllowed : true,
+            }))
+          : [
+              {
+                name: "",
+                dosage: "",
+                frequency: "",
+                duration: "",
+                quantity: "",
+                refills: "",
+                instructions: "",
+                genericAllowed: true,
+              },
+            ];
+
       // Clear form errors when editing
       setFormErrors({ medications: [] });
-      
+
       setFormData({
         patientId: selectedPrescription.patientId?.toString() || "",
         patientName: selectedPrescription.patientName || "",
@@ -403,22 +430,25 @@ export default function PrescriptionsPage() {
       });
     } else {
       // For new prescriptions: Auto-populate providerId for doctors
-      const autoProviderId = (user && isDoctorLike(user.role)) ? user.id.toString() : "";
+      const autoProviderId =
+        user && isDoctorLike(user.role) ? user.id.toString() : "";
       setFormData({
         patientId: "",
         patientName: "",
         providerId: autoProviderId,
         diagnosis: "",
-        medications: [{
-          name: "",
-          dosage: "",
-          frequency: "",
-          duration: "",
-          quantity: "",
-          refills: "",
-          instructions: "",
-          genericAllowed: true,
-        }],
+        medications: [
+          {
+            name: "",
+            dosage: "",
+            frequency: "",
+            duration: "",
+            quantity: "",
+            refills: "",
+            instructions: "",
+            genericAllowed: true,
+          },
+        ],
         pharmacyName: "Halo Health",
         pharmacyAddress: "Unit 2 Drayton Court, Solihull, B90 4NG",
         pharmacyPhone: "+44(0)121 827 5531",
@@ -489,8 +519,9 @@ export default function PrescriptionsPage() {
       // Store all users for role-based filtering
       setAllUsers(Array.isArray(data) ? data : []);
       // Filter to show only doctor-like roles and nurses
-      const filteredProviders = (Array.isArray(data) ? data : []).filter((provider: any) => 
-        isDoctorLike(provider.role) || provider.role === 'nurse'
+      const filteredProviders = (Array.isArray(data) ? data : []).filter(
+        (provider: any) =>
+          isDoctorLike(provider.role) || provider.role === "nurse",
       );
       setProviders(filteredProviders);
     } catch (err) {
@@ -516,7 +547,9 @@ export default function PrescriptionsPage() {
       credentials: "include",
     });
     if (!response.ok) {
-      throw new Error(`Failed to fetch patient prescriptions: ${response.status}`);
+      throw new Error(
+        `Failed to fetch patient prescriptions: ${response.status}`,
+      );
     }
     const data = await response.json();
     return data;
@@ -538,7 +571,9 @@ export default function PrescriptionsPage() {
       credentials: "include",
     });
     if (!response.ok) {
-      throw new Error(`Failed to fetch doctor prescriptions: ${response.status}`);
+      throw new Error(
+        `Failed to fetch doctor prescriptions: ${response.status}`,
+      );
     }
     const data = await response.json();
     return data;
@@ -573,11 +608,19 @@ export default function PrescriptionsPage() {
 
   // Ensure providerId is always set for doctors when dialog is open
   useEffect(() => {
-    if (showNewPrescription && user && isDoctorLike(user.role) && !formData.providerId) {
-      console.log("🔧 FIXING MISSING PROVIDER ID - Setting to:", user.id.toString());
-      setFormData(prev => ({
+    if (
+      showNewPrescription &&
+      user &&
+      isDoctorLike(user.role) &&
+      !formData.providerId
+    ) {
+      console.log(
+        "🔧 FIXING MISSING PROVIDER ID - Setting to:",
+        user.id.toString(),
+      );
+      setFormData((prev) => ({
         ...prev,
-        providerId: user.id.toString()
+        providerId: user.id.toString(),
       }));
     }
   }, [showNewPrescription, user, formData.providerId]);
@@ -597,39 +640,56 @@ export default function PrescriptionsPage() {
       // Check if the current user role is Patient
       if (user.role === "patient") {
         // Get the patient ID from session/auth - match by email first for accuracy
-        console.log("🔍 PRESCRIPTIONS: Looking for patient matching user:", { 
-          userEmail: user.email, 
+        console.log("🔍 PRESCRIPTIONS: Looking for patient matching user:", {
+          userEmail: user.email,
           userName: `${user.firstName} ${user.lastName}`,
-          userId: user.id 
+          userId: user.id,
         });
-        console.log("📋 PRESCRIPTIONS: Available patients:", patients.map(p => ({ 
-          id: p.id, 
-          email: p.email, 
-          name: `${p.firstName} ${p.lastName}` 
-        })));
-        
-        // Try email match first (most reliable)
-        let currentPatient = patients.find((patient: any) => 
-          patient.email && user.email && patient.email.toLowerCase() === user.email.toLowerCase()
+        console.log(
+          "📋 PRESCRIPTIONS: Available patients:",
+          patients.map((p) => ({
+            id: p.id,
+            email: p.email,
+            name: `${p.firstName} ${p.lastName}`,
+          })),
         );
-        
+
+        // Try email match first (most reliable)
+        let currentPatient = patients.find(
+          (patient: any) =>
+            patient.email &&
+            user.email &&
+            patient.email.toLowerCase() === user.email.toLowerCase(),
+        );
+
         // If no email match, try exact name match
         if (!currentPatient) {
-          currentPatient = patients.find((patient: any) => 
-            patient.firstName && user.firstName && patient.lastName && user.lastName &&
-            patient.firstName.toLowerCase() === user.firstName.toLowerCase() && 
-            patient.lastName.toLowerCase() === user.lastName.toLowerCase()
+          currentPatient = patients.find(
+            (patient: any) =>
+              patient.firstName &&
+              user.firstName &&
+              patient.lastName &&
+              user.lastName &&
+              patient.firstName.toLowerCase() ===
+                user.firstName.toLowerCase() &&
+              patient.lastName.toLowerCase() === user.lastName.toLowerCase(),
           );
         }
-        
+
         if (currentPatient) {
-          console.log("✅ PRESCRIPTIONS: Found matching patient:", currentPatient);
+          console.log(
+            "✅ PRESCRIPTIONS: Found matching patient:",
+            currentPatient,
+          );
           // Fetch data from the database using that patient ID
           // Returns only the specific patient data (not all data)
           return await fetchPrescriptionsByPatientId(currentPatient.id);
         } else {
           // If patient doesn't exist, return empty array
-          console.log("❌ PRESCRIPTIONS: Patient not found for user:", user.email);
+          console.log(
+            "❌ PRESCRIPTIONS: Patient not found for user:",
+            user.email,
+          );
           return [];
         }
       } else if (isDoctorLike(user.role)) {
@@ -660,11 +720,13 @@ export default function PrescriptionsPage() {
         headers,
         credentials: "include",
       });
-      
+
       if (!response.ok) {
-        throw new Error(`Failed to fetch drug interactions: ${response.status}`);
+        throw new Error(
+          `Failed to fetch drug interactions: ${response.status}`,
+        );
       }
-      
+
       return response.json();
     },
     enabled: !!user,
@@ -687,7 +749,7 @@ export default function PrescriptionsPage() {
 
   const prescriptions = Array.isArray(rawPrescriptions)
     ? rawPrescriptions.map((prescription: any) => {
-        const patient = patients.find(p => p.id === prescription.patientId);
+        const patient = patients.find((p) => p.id === prescription.patientId);
         return {
           ...prescription,
           patientName:
@@ -735,7 +797,7 @@ export default function PrescriptionsPage() {
       if (!response.ok) {
         const errorText = await response.text();
         console.error("❌ API Error:", errorText);
-        
+
         // Try to parse error message from JSON response
         let errorMessage = `Failed to ${isUpdate ? "update" : "create"} prescription`;
         try {
@@ -745,7 +807,7 @@ export default function PrescriptionsPage() {
           // If not JSON, use the text as-is
           errorMessage = errorText || errorMessage;
         }
-        
+
         throw new Error(errorMessage);
       }
 
@@ -790,12 +852,12 @@ export default function PrescriptionsPage() {
       prescriptionNumber?: string;
       prescriptionData?: any;
     }) => {
-      console.log('[PHARMACY EMAIL] Starting email send process...', {
+      console.log("[PHARMACY EMAIL] Starting email send process...", {
         prescriptionId,
         pharmacyEmail: pharmacyData.email,
         patientName,
         attachmentsCount: attachments?.length || 0,
-        prescriptionNumber
+        prescriptionNumber,
       });
 
       const token = localStorage.getItem("auth_token");
@@ -809,316 +871,413 @@ export default function PrescriptionsPage() {
       }
 
       // First update the prescription with pharmacy data
-      console.log('[PHARMACY EMAIL] Step 1: Updating prescription with pharmacy data...');
+      console.log(
+        "[PHARMACY EMAIL] Step 1: Updating prescription with pharmacy data...",
+      );
       const response = await fetch(`/api/prescriptions/${prescriptionId}`, {
         method: "PATCH",
         headers,
         body: JSON.stringify({ pharmacy: pharmacyData }),
         credentials: "include",
       });
-      
+
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('[PHARMACY EMAIL] Failed to update prescription:', errorText);
+        console.error(
+          "[PHARMACY EMAIL] Failed to update prescription:",
+          errorText,
+        );
         throw new Error("Failed to send prescription to pharmacy");
       }
 
-      console.log('[PHARMACY EMAIL] Step 2: Preparing attachments...');
+      console.log("[PHARMACY EMAIL] Step 2: Preparing attachments...");
       // Collect all attachments
       const allAttachments: File[] = [];
 
       // Generate prescription PDF if prescription data is available
       if (prescriptionData && prescriptionNumber) {
         try {
-          console.log('[PHARMACY EMAIL] Generating prescription PDF...');
-          const { jsPDF } = await import('jspdf');
+          console.log("[PHARMACY EMAIL] Generating prescription PDF...");
+          const { jsPDF } = await import("jspdf");
           const pdf = new jsPDF();
-          
-          // Fetch doctor information
-          const doctorId = prescriptionData.prescriptionCreatedBy || prescriptionData.doctorId;
-          let doctorInfo = null;
-          if (doctorId) {
-            try {
-              const doctorResponse = await apiRequest("GET", `/api/users/${doctorId}`);
-              if (doctorResponse.ok) {
-                doctorInfo = await doctorResponse.json();
-              }
-            } catch (err) {
-              console.error('Failed to fetch doctor info:', err);
-            }
-          }
-          
+
+          // Get doctor information from loaded users data
+          const doctorId =
+            prescriptionData.prescriptionCreatedBy || prescriptionData.doctorId;
+          const doctorInfo = providers?.find((p: any) => p.id === doctorId);
+
           // Professional Header - Similar to medical prescription format
           pdf.setFontSize(16);
-          pdf.setFont('helvetica', 'bold');
+          pdf.setFont("helvetica", "bold");
           pdf.setTextColor(0, 0, 0);
-          pdf.text('CURA HEALTH EMR', 20, 20);
-          
+          pdf.text("CURA HEALTH EMR", 20, 20);
+
+          // Doctor information after header
           pdf.setFontSize(9);
-          pdf.setFont('helvetica', 'normal');
-          const doctorName = doctorInfo ? `${doctorInfo.firstName} ${doctorInfo.lastName}` : 'N/A';
-          const doctorRole = doctorInfo ? (doctorInfo.role || 'N/A') : 'N/A';
-          pdf.text(`Doctor: ${doctorName} (${doctorRole})`, 20, 26);
-          pdf.text(`Prescription #: ${prescriptionNumber}`, 20, 31);
-          
+          pdf.setFont("helvetica", "normal");
+          if (doctorInfo) {
+            const doctorName = `${doctorInfo.firstName} ${doctorInfo.lastName}`;
+            const doctorRole = doctorInfo.role || "N/A";
+            pdf.text(`Doctor: ${doctorName} (${doctorRole})`, 20, 26);
+          }
+
+          pdf.text(`Prescription #: ${prescriptionNumber}`, 20, doctorInfo ? 31 : 26);
+
           // Center Title
           pdf.setFontSize(18);
-          pdf.setFont('helvetica', 'bold');
-       
+          pdf.setFont("helvetica", "bold");
+
           // Clinic Information with styling
-          const clinicName = clinicHeader?.clinicName || pharmacyData?.name || 'Halo Health Clinic';
-          const clinicAddress = clinicHeader?.address || 'Unit 2 Drayton Court, Solihull';
-          const clinicPhone = clinicHeader?.phone || '+44(0)121 827 5531';
-          const clinicEmail = clinicHeader?.email || '';
-          const clinicWebsite = clinicHeader?.website || '';
-          
+          const clinicName =
+            clinicHeader?.clinicName ||
+            pharmacyData?.name ||
+            "Halo Health Clinic";
+          const clinicAddress =
+            clinicHeader?.address || "Unit 2 Drayton Court, Solihull";
+          const clinicPhone = clinicHeader?.phone || "+44(0)121 827 5531";
+          const clinicEmail = clinicHeader?.email || "";
+          const clinicWebsite = clinicHeader?.website || "";
+
           // Apply clinic name font size
-          const clinicNameSize = parseInt(clinicHeader?.clinicNameFontSize || '24pt') || 24;
-          const contentSize = parseInt(clinicHeader?.fontSize || '10pt') || 10;
-          const fontWeight = clinicHeader?.fontWeight === 'bold' ? 'bold' : 'normal';
-          const fontStyle = clinicHeader?.fontStyle === 'italic' ? 'italic' : 'normal';
-          
+          const clinicNameSize =
+            parseInt(clinicHeader?.clinicNameFontSize || "24pt") || 24;
+          const contentSize = parseInt(clinicHeader?.fontSize || "10pt") || 10;
+          const fontWeight =
+            clinicHeader?.fontWeight === "bold" ? "bold" : "normal";
+          const fontStyle =
+            clinicHeader?.fontStyle === "italic" ? "italic" : "normal";
+
           let yPosition = 58;
-          
+
           // Logo handling - if center, place beside text; if left/right, place above
           if (clinicHeader?.logoBase64) {
             try {
-              const logoPosition = clinicHeader.logoPosition || 'center';
-              
-              if (logoPosition === 'center') {
+              const logoPosition = clinicHeader.logoPosition || "center";
+
+              if (logoPosition === "center") {
                 // Place logo beside clinic info (side by side layout)
                 const logoX = 70;
                 const textX = 105;
-                pdf.addImage(clinicHeader.logoBase64, 'PNG', logoX, yPosition, 25, 25);
-                
+                pdf.addImage(
+                  clinicHeader.logoBase64,
+                  "PNG",
+                  logoX,
+                  yPosition,
+                  25,
+                  25,
+                );
+
                 // Clinic text beside logo - center aligned
                 pdf.setFontSize(clinicNameSize);
-                pdf.setFont('helvetica', fontWeight);
-                pdf.text(clinicName, 105, yPosition + 8, { align: 'center' });
-                
+                pdf.setFont("helvetica", fontWeight);
+                pdf.text(clinicName, 105, yPosition + 8, { align: "center" });
+
                 yPosition += 10;
                 pdf.setFontSize(contentSize);
-                pdf.setFont('helvetica', fontStyle);
-                pdf.text(clinicAddress, 105, yPosition + 8, { align: 'center' });
-                
+                pdf.setFont("helvetica", fontStyle);
+                pdf.text(clinicAddress, 105, yPosition + 8, {
+                  align: "center",
+                });
+
                 yPosition += 6;
-                pdf.text(clinicPhone, 105, yPosition + 8, { align: 'center' });
-                
+                pdf.text(clinicPhone, 105, yPosition + 8, { align: "center" });
+
                 if (clinicEmail) {
                   yPosition += 6;
-                  pdf.text(clinicEmail, 105, yPosition + 8, { align: 'center' });
+                  pdf.text(clinicEmail, 105, yPosition + 8, {
+                    align: "center",
+                  });
                 }
-                
+
                 if (clinicWebsite) {
                   yPosition += 6;
-                  pdf.text(clinicWebsite, 105, yPosition + 8, { align: 'center' });
+                  pdf.text(clinicWebsite, 105, yPosition + 8, {
+                    align: "center",
+                  });
                 }
-                
+
                 yPosition += 10;
               } else {
                 // Left or right positioning - logo above text
-                const textAlign = logoPosition === 'left' ? 'left' : 'right';
-                const xPosition = logoPosition === 'left' ? 20 : 170;
-                const textXPosition = logoPosition === 'left' ? 20 : 190;
-                pdf.addImage(clinicHeader.logoBase64, 'PNG', xPosition, yPosition, 30, 30);
+                const textAlign = logoPosition === "left" ? "left" : "right";
+                const xPosition = logoPosition === "left" ? 20 : 170;
+                const textXPosition = logoPosition === "left" ? 20 : 190;
+                pdf.addImage(
+                  clinicHeader.logoBase64,
+                  "PNG",
+                  xPosition,
+                  yPosition,
+                  30,
+                  30,
+                );
                 yPosition += 35;
-                
+
                 // Clinic info aligned based on logo position
                 pdf.setFontSize(clinicNameSize);
-                pdf.setFont('helvetica', fontWeight);
-                pdf.text(clinicName, textXPosition, yPosition, { align: textAlign });
-                
+                pdf.setFont("helvetica", fontWeight);
+                pdf.text(clinicName, textXPosition, yPosition, {
+                  align: textAlign,
+                });
+
                 yPosition += 6;
                 pdf.setFontSize(contentSize);
-                pdf.setFont('helvetica', fontStyle);
-                pdf.text(clinicAddress, textXPosition, yPosition, { align: textAlign });
+                pdf.setFont("helvetica", fontStyle);
+                pdf.text(clinicAddress, textXPosition, yPosition, {
+                  align: textAlign,
+                });
                 yPosition += 6;
-                pdf.text(clinicPhone, textXPosition, yPosition, { align: textAlign });
-                
+                pdf.text(clinicPhone, textXPosition, yPosition, {
+                  align: textAlign,
+                });
+
                 if (clinicEmail) {
                   yPosition += 6;
-                  pdf.text(clinicEmail, textXPosition, yPosition, { align: textAlign });
+                  pdf.text(clinicEmail, textXPosition, yPosition, {
+                    align: textAlign,
+                  });
                 }
-                
+
                 if (clinicWebsite) {
                   yPosition += 6;
-                  pdf.text(clinicWebsite, textXPosition, yPosition, { align: textAlign });
+                  pdf.text(clinicWebsite, textXPosition, yPosition, {
+                    align: textAlign,
+                  });
                 }
               }
             } catch (err) {
-              console.error('Failed to add logo to PDF:', err);
+              console.error("Failed to add logo to PDF:", err);
             }
           } else {
             // No logo - just centered text
             pdf.setFontSize(clinicNameSize);
-            pdf.setFont('helvetica', fontWeight);
-            pdf.text(clinicName, 105, yPosition, { align: 'center' });
-            
+            pdf.setFont("helvetica", fontWeight);
+            pdf.text(clinicName, 105, yPosition, { align: "center" });
+
             yPosition += 6;
             pdf.setFontSize(contentSize);
-            pdf.setFont('helvetica', fontStyle);
-            pdf.text(clinicAddress, 105, yPosition, { align: 'center' });
+            pdf.setFont("helvetica", fontStyle);
+            pdf.text(clinicAddress, 105, yPosition, { align: "center" });
             yPosition += 6;
-            pdf.text(clinicPhone, 105, yPosition, { align: 'center' });
-            
+            pdf.text(clinicPhone, 105, yPosition, { align: "center" });
+
             if (clinicEmail) {
               yPosition += 6;
-              pdf.text(clinicEmail, 105, yPosition, { align: 'center' });
+              pdf.text(clinicEmail, 105, yPosition, { align: "center" });
             }
-            
+
             if (clinicWebsite) {
               yPosition += 6;
-              pdf.text(clinicWebsite, 105, yPosition, { align: 'center' });
+              pdf.text(clinicWebsite, 105, yPosition, { align: "center" });
             }
           }
-          
+
           // Horizontal line separator
           pdf.setDrawColor(200, 200, 200);
           pdf.line(20, 85, 190, 85);
-          
+
           // Prescription Number - Prominent Display
           pdf.setFontSize(11);
-          pdf.setFont('helvetica', 'bold');
+          pdf.setFont("helvetica", "bold");
           pdf.text(`Prescription No: ${prescriptionNumber}`, 20, 95);
-          
+
           // Date
-          const prescriptionDate = prescriptionData.issuedDate || prescriptionData.date || new Date();
-          pdf.setFont('helvetica', 'normal');
-          pdf.text(`Date: ${new Date(prescriptionDate).toLocaleDateString('en-GB')}`, 20, 102);
-          
+          const prescriptionDate =
+            prescriptionData.issuedDate || prescriptionData.date || new Date();
+          pdf.setFont("helvetica", "normal");
+          pdf.text(
+            `Date: ${new Date(prescriptionDate).toLocaleDateString("en-GB")}`,
+            20,
+            102,
+          );
+
           // Patient Information
           pdf.setFontSize(11);
-          pdf.setFont('helvetica', 'bold');
-          pdf.text('PATIENT INFORMATION', 20, 115);
-          
+          pdf.setFont("helvetica", "bold");
+          pdf.text("PATIENT INFORMATION", 20, 115);
+
           pdf.setFontSize(10);
-          pdf.setFont('helvetica', 'normal');
-          pdf.text(`Name: ${prescriptionData.patientName || 'N/A'}`, 20, 123);
-          pdf.text(`Sex: ${prescriptionData.patientSex || 'Not specified'}`, 20, 130);
-          
+          pdf.setFont("helvetica", "normal");
+          pdf.text(`Name: ${prescriptionData.patientName || "N/A"}`, 20, 123);
+          pdf.text(
+            `Sex: ${prescriptionData.patientSex || "Not specified"}`,
+            20,
+            130,
+          );
+
           // Provider Information
           pdf.setFontSize(11);
-          pdf.setFont('helvetica', 'bold');
-          pdf.text('PRESCRIBING PROVIDER', 20, 145);
-          
+          pdf.setFont("helvetica", "bold");
+          pdf.text("PRESCRIBING PROVIDER", 20, 145);
+
           pdf.setFontSize(10);
-          pdf.setFont('helvetica', 'normal');
-          pdf.text(`Provider: ${prescriptionData.providerName || 'N/A'}`, 20, 153);
-          
+          pdf.setFont("helvetica", "normal");
+          pdf.text(
+            `Provider: ${prescriptionData.providerName || "N/A"}`,
+            20,
+            153,
+          );
+
           // Medication Details - Highlighted Box
           pdf.setFillColor(240, 245, 255);
-          pdf.rect(15, 165, 180, 60, 'F');
-          
+          pdf.rect(15, 165, 180, 60, "F");
+
           pdf.setFontSize(12);
-          pdf.setFont('helvetica', 'bold');
-          pdf.text('MEDICATION PRESCRIBED', 20, 175);
-          
+          pdf.setFont("helvetica", "bold");
+          pdf.text("MEDICATION PRESCRIBED", 20, 175);
+
           pdf.setFontSize(11);
-          pdf.setFont('helvetica', 'bold');
-          const medicationName = prescriptionData.medicationName || prescriptionData.medication || 'N/A';
+          pdf.setFont("helvetica", "bold");
+          const medicationName =
+            prescriptionData.medicationName ||
+            prescriptionData.medication ||
+            "N/A";
           pdf.text(`Rx: ${medicationName}`, 20, 186);
-          
+
           pdf.setFontSize(10);
-          pdf.setFont('helvetica', 'normal');
-          pdf.text(`Dosage: ${prescriptionData.dosage || 'N/A'}`, 20, 195);
-          pdf.text(`Frequency: ${prescriptionData.frequency || 'N/A'}`, 20, 202);
-          pdf.text(`Duration: ${prescriptionData.duration || 'N/A'}`, 20, 209);
-          
+          pdf.setFont("helvetica", "normal");
+          pdf.text(`Dosage: ${prescriptionData.dosage || "N/A"}`, 20, 195);
+          pdf.text(
+            `Frequency: ${prescriptionData.frequency || "N/A"}`,
+            20,
+            202,
+          );
+          pdf.text(`Duration: ${prescriptionData.duration || "N/A"}`, 20, 209);
+
           // Refills if available
-          if (prescriptionData.refills !== undefined && prescriptionData.refills !== null) {
+          if (
+            prescriptionData.refills !== undefined &&
+            prescriptionData.refills !== null
+          ) {
             pdf.text(`Refills: ${prescriptionData.refills}`, 20, 216);
           }
-          
+
           // Instructions Section
           let currentY = 238;
           if (prescriptionData.instructions) {
             pdf.setFontSize(11);
-            pdf.setFont('helvetica', 'bold');
-            pdf.text('INSTRUCTIONS', 20, currentY);
-            
+            pdf.setFont("helvetica", "bold");
+            pdf.text("INSTRUCTIONS", 20, currentY);
+
             pdf.setFontSize(10);
-            pdf.setFont('helvetica', 'normal');
-            const splitInstructions = pdf.splitTextToSize(prescriptionData.instructions, 170);
+            pdf.setFont("helvetica", "normal");
+            const splitInstructions = pdf.splitTextToSize(
+              prescriptionData.instructions,
+              170,
+            );
             pdf.text(splitInstructions, 20, currentY + 8);
-            currentY += 8 + (splitInstructions.length * 5);
+            currentY += 8 + splitInstructions.length * 5;
           }
-          
+
           // E-Signature Section (if exists)
-          console.log('[PDF GENERATION] Checking for signature:', {
+          console.log("[PDF GENERATION] Checking for signature:", {
             hasSignature: !!prescriptionData.signature,
-            signatureData: prescriptionData.signature
+            signatureData: prescriptionData.signature,
           });
-          
+
           if (prescriptionData.signature) {
             currentY += 10;
             pdf.setFontSize(11);
-            pdf.setFont('helvetica', 'bold');
+            pdf.setFont("helvetica", "bold");
             pdf.setTextColor(0, 0, 0);
-            pdf.text('Resident Physician', 20, currentY);
+            pdf.text("Resident Physician", 20, currentY);
             pdf.setFontSize(9);
-            pdf.setFont('helvetica', 'normal');
-            pdf.text('(Signature)', 20, currentY + 6);
-            
+            pdf.setFont("helvetica", "normal");
+            pdf.text("(Signature)", 20, currentY + 6);
+
             // Add signature image if available
             if (prescriptionData.signature.imageData) {
               try {
-                console.log('[PDF GENERATION] Adding signature image to PDF');
-                pdf.addImage(prescriptionData.signature.imageData, 'PNG', 20, currentY + 10, 50, 20);
+                console.log("[PDF GENERATION] Adding signature image to PDF");
+                pdf.addImage(
+                  prescriptionData.signature.imageData,
+                  "PNG",
+                  20,
+                  currentY + 10,
+                  50,
+                  20,
+                );
               } catch (err) {
-                console.log('[PDF GENERATION] Could not add signature image to PDF:', err);
+                console.log(
+                  "[PDF GENERATION] Could not add signature image to PDF:",
+                  err,
+                );
               }
             } else {
-              console.log('[PDF GENERATION] No signature image data available');
+              console.log("[PDF GENERATION] No signature image data available");
             }
-            
+
             // Add e-signed by info
             pdf.setFontSize(9);
             pdf.setTextColor(34, 139, 34); // Green color for e-sign
             pdf.text(`✓ E-Signed by`, 20, currentY + 35);
-            
-            const signedDate = prescriptionData.signature.signedAt 
-              ? new Date(prescriptionData.signature.signedAt).toLocaleDateString('en-GB', { 
-                  year: 'numeric', 
-                  month: 'short', 
-                  day: '2-digit',
-                  hour: '2-digit',
-                  minute: '2-digit'
+
+            const signedDate = prescriptionData.signature.signedAt
+              ? new Date(
+                  prescriptionData.signature.signedAt,
+                ).toLocaleDateString("en-GB", {
+                  year: "numeric",
+                  month: "short",
+                  day: "2-digit",
+                  hour: "2-digit",
+                  minute: "2-digit",
                 })
-              : '';
+              : "";
             pdf.setTextColor(80, 80, 80);
             pdf.text(signedDate, 20, currentY + 41);
-            console.log('[PDF GENERATION] E-signature section added to PDF');
+            console.log("[PDF GENERATION] E-signature section added to PDF");
           } else {
-            console.log('[PDF GENERATION] No signature found in prescription data');
+            console.log(
+              "[PDF GENERATION] No signature found in prescription data",
+            );
           }
-          
+
           // Footer - Professional
           const footerY = 275;
           pdf.setDrawColor(200, 200, 200);
           pdf.line(20, footerY, 190, footerY);
-          
+
           pdf.setFontSize(8);
           pdf.setTextColor(80, 80, 80);
-          pdf.text('This prescription has been electronically generated and verified', 105, footerY + 6, { align: 'center' });
-          pdf.text('Cura EMR Platform - Electronic Prescription System', 105, footerY + 11, { align: 'center' });
-          
+          pdf.text(
+            "This prescription has been electronically generated and verified",
+            105,
+            footerY + 6,
+            { align: "center" },
+          );
+          pdf.text(
+            "Cura EMR Platform - Electronic Prescription System",
+            105,
+            footerY + 11,
+            { align: "center" },
+          );
+
           // Convert PDF to Blob and then to File
-          const pdfBlob = pdf.output('blob');
-          const pdfFile = new File([pdfBlob], `${prescriptionNumber}.pdf`, { type: 'application/pdf' });
+          const pdfBlob = pdf.output("blob");
+          const pdfFile = new File([pdfBlob], `${prescriptionNumber}.pdf`, {
+            type: "application/pdf",
+          });
           allAttachments.push(pdfFile);
-          console.log('[PHARMACY EMAIL] Generated prescription PDF:', pdfFile.name);
+          console.log(
+            "[PHARMACY EMAIL] Generated prescription PDF:",
+            pdfFile.name,
+          );
         } catch (error) {
-          console.error('[PHARMACY EMAIL] Failed to generate prescription PDF:', error);
+          console.error(
+            "[PHARMACY EMAIL] Failed to generate prescription PDF:",
+            error,
+          );
         }
       }
 
       // Add user-uploaded attachments if any
       if (attachments && attachments.length > 0) {
         allAttachments.push(...attachments);
-        console.log(`[PHARMACY EMAIL] Added ${attachments.length} user attachment(s)`);
+        console.log(
+          `[PHARMACY EMAIL] Added ${attachments.length} user attachment(s)`,
+        );
       }
 
-      console.log('[PHARMACY EMAIL] Step 3: Sending PDF email to pharmacy...');
+      console.log("[PHARMACY EMAIL] Step 3: Sending PDF email to pharmacy...");
       // Then send the PDF email to the pharmacy with attachments
       const formData = new FormData();
       formData.append("pharmacyEmail", pharmacyData.email);
@@ -1129,7 +1288,10 @@ export default function PrescriptionsPage() {
       if (allAttachments.length > 0) {
         allAttachments.forEach((file, index) => {
           formData.append(`attachments`, file);
-          console.log(`[PHARMACY EMAIL] Added attachment ${index + 1}:`, file.name);
+          console.log(
+            `[PHARMACY EMAIL] Added attachment ${index + 1}:`,
+            file.name,
+          );
         });
       }
 
@@ -1152,18 +1314,20 @@ export default function PrescriptionsPage() {
       );
 
       const emailResult = await emailResponse.json();
-      console.log('[PHARMACY EMAIL] Email API response:', emailResult);
+      console.log("[PHARMACY EMAIL] Email API response:", emailResult);
 
       if (!emailResponse.ok) {
-        console.error('[PHARMACY EMAIL] Email API failed:', emailResult);
-        throw new Error(emailResult.error || "Failed to send PDF email to pharmacy");
+        console.error("[PHARMACY EMAIL] Email API failed:", emailResult);
+        throw new Error(
+          emailResult.error || "Failed to send PDF email to pharmacy",
+        );
       }
 
-      console.log('[PHARMACY EMAIL] ✅ Email sent successfully!');
+      console.log("[PHARMACY EMAIL] ✅ Email sent successfully!");
       return response.json();
     },
     onSuccess: () => {
-      console.log('[PHARMACY EMAIL] Mutation onSuccess triggered');
+      console.log("[PHARMACY EMAIL] Mutation onSuccess triggered");
       toast({
         title: "Success",
         description:
@@ -1173,7 +1337,7 @@ export default function PrescriptionsPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/prescriptions"] });
     },
     onError: (error: any) => {
-      console.error('[PHARMACY EMAIL] Mutation onError triggered:', error);
+      console.error("[PHARMACY EMAIL] Mutation onError triggered:", error);
       toast({
         title: "Error",
         description: error.message || "Failed to send prescription to pharmacy",
@@ -1208,34 +1372,40 @@ export default function PrescriptionsPage() {
 
   const handleCreatePrescription = () => {
     console.log("🆕 CREATE PRESCRIPTION - user:", user);
-    console.log("🆕 CREATE PRESCRIPTION - isDoctorLike:", user?.role && isDoctorLike(user.role));
-    
+    console.log(
+      "🆕 CREATE PRESCRIPTION - isDoctorLike:",
+      user?.role && isDoctorLike(user.role),
+    );
+
     setSelectedPrescription(null); // Clear any selected prescription for new creation
     // Reset form data for new prescription
-    const autoProviderId = (user && isDoctorLike(user.role)) ? user.id.toString() : "";
+    const autoProviderId =
+      user && isDoctorLike(user.role) ? user.id.toString() : "";
     console.log("🆕 CREATE PRESCRIPTION - autoProviderId:", autoProviderId);
-    
+
     const newFormData = {
       patientId: "",
       patientName: "",
       providerId: autoProviderId,
       diagnosis: "",
-      medications: [{
-        name: "",
-        dosage: "",
-        frequency: "",
-        duration: "",
-        quantity: "",
-        refills: "",
-        instructions: "",
-        genericAllowed: true,
-      }],
+      medications: [
+        {
+          name: "",
+          dosage: "",
+          frequency: "",
+          duration: "",
+          quantity: "",
+          refills: "",
+          instructions: "",
+          genericAllowed: true,
+        },
+      ],
       pharmacyName: "Halo Health",
       pharmacyAddress: "Unit 2 Drayton Court, Solihull, B90 4NG",
       pharmacyPhone: "+44(0)121 827 5531",
       pharmacyEmail: "pharmacy@halohealth.co.uk",
     };
-    
+
     console.log("🆕 CREATE PRESCRIPTION - newFormData:", newFormData);
     setFormData(newFormData);
     setFormErrors({ medications: [] });
@@ -1254,85 +1424,100 @@ export default function PrescriptionsPage() {
   // Form validation helper functions
   const validateMedication = (medication: any, index: number) => {
     const errors: any = {};
-    
+
     if (!medication.name.trim()) {
       errors.name = "Medication name is required";
     }
-    
+
     if (!medication.dosage.trim()) {
       errors.dosage = "Dosage is required";
     }
-    
+
     if (!medication.frequency.trim()) {
       errors.frequency = "Frequency is required";
     }
-    
+
     if (!medication.duration.trim()) {
       errors.duration = "Duration is required";
     }
-    
-    if (!medication.quantity || isNaN(parseInt(medication.quantity)) || parseInt(medication.quantity) <= 0) {
+
+    if (
+      !medication.quantity ||
+      isNaN(parseInt(medication.quantity)) ||
+      parseInt(medication.quantity) <= 0
+    ) {
       errors.quantity = "Quantity must be a positive number";
     }
-    
-    if (medication.refills && (isNaN(parseInt(medication.refills)) || parseInt(medication.refills) < 0)) {
+
+    if (
+      medication.refills &&
+      (isNaN(parseInt(medication.refills)) || parseInt(medication.refills) < 0)
+    ) {
       errors.refills = "Refills must be a non-negative number";
     }
-    
+
     return errors;
   };
 
   const validateForm = () => {
     const errors: any = { medications: [] };
-    
+
     console.log("🔍 VALIDATE FORM - formData:", formData);
     console.log("🔍 VALIDATE FORM - user:", user);
-    console.log("🔍 VALIDATE FORM - isDoctorLike:", user?.role && isDoctorLike(user.role));
-    
+    console.log(
+      "🔍 VALIDATE FORM - isDoctorLike:",
+      user?.role && isDoctorLike(user.role),
+    );
+
     // Validate medications
     formData.medications.forEach((med, index) => {
       const medErrors = validateMedication(med, index);
       errors.medications[index] = medErrors;
     });
-    
+
     // Check if at least one medication has a name
-    const hasValidMedication = formData.medications.some(med => med.name.trim());
+    const hasValidMedication = formData.medications.some((med) =>
+      med.name.trim(),
+    );
     if (!hasValidMedication) {
       errors.general = "At least one medication with a name is required";
     }
-    
+
     // Check required fields
     if (!formData.patientId) {
       errors.general = errors.general || "Patient is required";
       console.log("❌ VALIDATE: Missing patientId");
     }
-    
+
     if (!formData.providerId) {
       errors.general = errors.general || "Provider is required";
       console.log("❌ VALIDATE: Missing providerId");
     }
-    
+
     if (!formData.diagnosis.trim()) {
       errors.general = errors.general || "Diagnosis is required";
       console.log("❌ VALIDATE: Missing diagnosis");
     }
-    
+
     console.log("🔍 VALIDATE FORM - errors:", errors);
-    
+
     setFormErrors(errors);
-    
+
     // Return true if no errors
-    const hasErrors = errors.general || 
-      errors.medications.some((medError: any) => Object.keys(medError).length > 0);
-    
+    const hasErrors =
+      errors.general ||
+      errors.medications.some(
+        (medError: any) => Object.keys(medError).length > 0,
+      );
+
     console.log("🔍 VALIDATE FORM - hasErrors:", hasErrors);
-    
+
     return !hasErrors;
   };
 
   // Medication management helper functions
   const addMedication = () => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       medications: [
         ...prev.medications,
@@ -1345,47 +1530,58 @@ export default function PrescriptionsPage() {
           refills: "",
           instructions: "",
           genericAllowed: true,
-        }
-      ]
+        },
+      ],
     }));
-    
+
     // Add empty error state for new medication
-    setFormErrors(prev => ({
+    setFormErrors((prev) => ({
       ...prev,
-      medications: [...prev.medications, {}]
+      medications: [...prev.medications, {}],
     }));
   };
 
   const removeMedication = (index: number) => {
     if (formData.medications.length > 1) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        medications: prev.medications.filter((_, i) => i !== index)
+        medications: prev.medications.filter((_, i) => i !== index),
       }));
-      
+
       // Remove corresponding error state
-      setFormErrors(prev => ({
+      setFormErrors((prev) => ({
         ...prev,
-        medications: prev.medications.filter((_, i) => i !== index)
+        medications: prev.medications.filter((_, i) => i !== index),
       }));
     }
   };
 
-  const updateMedication = (index: number, field: string, value: string | boolean) => {
-    setFormData(prev => ({
+  const updateMedication = (
+    index: number,
+    field: string,
+    value: string | boolean,
+  ) => {
+    setFormData((prev) => ({
       ...prev,
-      medications: prev.medications.map((med, i) => 
-        i === index ? { ...med, [field]: value } : med
-      )
+      medications: prev.medications.map((med, i) =>
+        i === index ? { ...med, [field]: value } : med,
+      ),
     }));
-    
+
     // Clear error for this field when user starts typing
-    if (formErrors.medications[index] && formErrors.medications[index][field as keyof typeof formErrors.medications[0]]) {
-      setFormErrors(prev => ({
+    if (
+      formErrors.medications[index] &&
+      formErrors.medications[index][
+        field as keyof (typeof formErrors.medications)[0]
+      ]
+    ) {
+      setFormErrors((prev) => ({
         ...prev,
-        medications: prev.medications.map((medError, i) => 
-          i === index ? { ...medError, [field as keyof typeof medError]: undefined } : medError
-        )
+        medications: prev.medications.map((medError, i) =>
+          i === index
+            ? { ...medError, [field as keyof typeof medError]: undefined }
+            : medError,
+        ),
       }));
     }
   };
@@ -1422,10 +1618,10 @@ export default function PrescriptionsPage() {
     const currentY = e.clientY - rect.top;
 
     // Check if mouse moved (tolerance of 2 pixels for click detection)
-    const moved = lastPosition && (
-      Math.abs(currentX - lastPosition.x) > 2 || 
-      Math.abs(currentY - lastPosition.y) > 2
-    );
+    const moved =
+      lastPosition &&
+      (Math.abs(currentX - lastPosition.x) > 2 ||
+        Math.abs(currentY - lastPosition.y) > 2);
 
     // If no movement detected, draw a dot
     if (!moved && lastPosition) {
@@ -1499,10 +1695,10 @@ export default function PrescriptionsPage() {
     const currentY = touch.clientY - rect.top;
 
     // Check if touch moved (tolerance of 2 pixels for tap detection)
-    const moved = lastPosition && (
-      Math.abs(currentX - lastPosition.x) > 2 || 
-      Math.abs(currentY - lastPosition.y) > 2
-    );
+    const moved =
+      lastPosition &&
+      (Math.abs(currentX - lastPosition.x) > 2 ||
+        Math.abs(currentY - lastPosition.y) > 2);
 
     // If no movement detected, draw a dot
     if (!moved && lastPosition) {
@@ -1560,7 +1756,7 @@ export default function PrescriptionsPage() {
     const signatureData = canvas.toDataURL();
 
     // Check if canvas is blank
-    const blankCanvas = document.createElement('canvas');
+    const blankCanvas = document.createElement("canvas");
     blankCanvas.width = canvas.width;
     blankCanvas.height = canvas.height;
     if (signatureData === blankCanvas.toDataURL()) {
@@ -1597,12 +1793,17 @@ export default function PrescriptionsPage() {
           setSignatureSaved(false);
         }, 2000);
       } else {
-        const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
+        const errorData = await response
+          .json()
+          .catch(() => ({ error: "Unknown error" }));
         throw new Error(errorData.error || "Failed to save signature");
       }
     } catch (error) {
       console.error("Error saving e-signature:", error);
-      const errorMessage = error instanceof Error ? error.message : "Failed to save electronic signature. Please try again.";
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to save electronic signature. Please try again.";
       toast({
         title: "Error",
         description: errorMessage,
@@ -1621,18 +1822,22 @@ export default function PrescriptionsPage() {
     // Get patient details
     const patient = patients.find((p) => p.id === prescription.patientId);
     const provider = providers.find((p) => p.id === prescription.providerId);
-    
+
     // Fetch doctor information
-    const doctorId = prescription.prescriptionCreatedBy || prescription.doctorId;
+    const doctorId =
+      prescription.prescriptionCreatedBy || prescription.doctorId;
     let doctorInfo = null;
     if (doctorId) {
       try {
-        const doctorResponse = await apiRequest("GET", `/api/users/${doctorId}`);
+        const doctorResponse = await apiRequest(
+          "GET",
+          `/api/users/${doctorId}`,
+        );
         if (doctorResponse.ok) {
           doctorInfo = await doctorResponse.json();
         }
       } catch (err) {
-        console.error('Failed to fetch doctor info:', err);
+        console.error("Failed to fetch doctor info:", err);
       }
     }
 
@@ -1657,17 +1862,21 @@ export default function PrescriptionsPage() {
       const day = date.getDate();
       const month = date.toLocaleDateString("en-GB", { month: "short" });
       const year = date.getFullYear();
-      
+
       const suffix = (day: number) => {
-        if (day > 3 && day < 21) return 'th';
+        if (day > 3 && day < 21) return "th";
         switch (day % 10) {
-          case 1: return 'st';
-          case 2: return 'nd';
-          case 3: return 'rd';
-          default: return 'th';
+          case 1:
+            return "st";
+          case 2:
+            return "nd";
+          case 3:
+            return "rd";
+          default:
+            return "th";
         }
       };
-      
+
       return `${day}${suffix(day)} ${month} ${year}`;
     };
 
@@ -1937,8 +2146,8 @@ export default function PrescriptionsPage() {
                 <div class="header-left">
                   <h1>CURA HEALTH EMR</h1>
                   <div class="license-info">
-                    Doctor: ${doctorInfo ? `${doctorInfo.firstName} ${doctorInfo.lastName}` : 'N/A'} (${doctorInfo?.role || 'N/A'})<br>
-                    Prescription #: ${prescription.prescriptionNumber || 'N/A'}
+                    Doctor: ${doctorInfo ? `${doctorInfo.firstName} ${doctorInfo.lastName}` : "N/A"} (${doctorInfo?.role || "N/A"})<br>
+                    Prescription #: ${prescription.prescriptionNumber || "N/A"}
                   </div>
                 </div>
                 <div class="status-badge">active</div>
@@ -1947,63 +2156,70 @@ export default function PrescriptionsPage() {
               <!-- Provider Section -->
               <div class="provider-section">
                
-                ${clinicHeader?.logoBase64 && (clinicHeader.logoPosition === 'center') ? `
+                ${
+                  clinicHeader?.logoBase64 &&
+                  clinicHeader.logoPosition === "center"
+                    ? `
                 <!-- Logo beside clinic info for center position -->
                 <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin: 10px 0;">
                   <img src="${clinicHeader.logoBase64}" alt="Clinic Logo" style="max-width: 80px; max-height: 80px; flex-shrink: 0;" />
                   <div style="
-                    font-family: ${clinicHeader?.fontFamily || 'Arial'}, sans-serif;
-                    font-size: ${clinicHeader?.fontSize || '12pt'};
-                    font-weight: ${clinicHeader?.fontWeight || 'normal'};
-                    font-style: ${clinicHeader?.fontStyle || 'normal'};
-                    text-decoration: ${clinicHeader?.textDecoration || 'none'};
+                    font-family: ${clinicHeader?.fontFamily || "Arial"}, sans-serif;
+                    font-size: ${clinicHeader?.fontSize || "12pt"};
+                    font-weight: ${clinicHeader?.fontWeight || "normal"};
+                    font-style: ${clinicHeader?.fontStyle || "normal"};
+                    text-decoration: ${clinicHeader?.textDecoration || "none"};
                     text-align: center;
                   ">
                     ${prescription.providerName}<br>
-                    <span style="font-size: ${clinicHeader?.clinicNameFontSize || '16pt'}; font-weight: bold;">
-                      ${clinicHeader?.clinicName || 'Halo Health Clinic'}
+                    <span style="font-size: ${clinicHeader?.clinicNameFontSize || "16pt"}; font-weight: bold;">
+                      ${clinicHeader?.clinicName || "Halo Health Clinic"}
                     </span><br>
-                    ${clinicHeader?.address || 'Unit 2 Drayton Court, Solihull'}<br>
-                    ${clinicHeader?.phone || '+44(0)121 827 5531'}${clinicHeader?.email ? `<br>${clinicHeader.email}` : ''}${clinicHeader?.website ? `<br>${clinicHeader.website}` : ''}
+                    ${clinicHeader?.address || "Unit 2 Drayton Court, Solihull"}<br>
+                    ${clinicHeader?.phone || "+44(0)121 827 5531"}${clinicHeader?.email ? `<br>${clinicHeader.email}` : ""}${clinicHeader?.website ? `<br>${clinicHeader.website}` : ""}
                   </div>
                 </div>
-                ` : clinicHeader?.logoBase64 ? `
+                `
+                    : clinicHeader?.logoBase64
+                      ? `
                 <!-- Logo above clinic info for left/right position -->
-                <div style="text-align: ${clinicHeader.logoPosition || 'center'}; margin: 10px 0;">
+                <div style="text-align: ${clinicHeader.logoPosition || "center"}; margin: 10px 0;">
                   <img src="${clinicHeader.logoBase64}" alt="Clinic Logo" style="max-width: 100px; max-height: 100px;" />
                 </div>
                 <div class="provider-details" style="
-                  font-family: ${clinicHeader?.fontFamily || 'Arial'}, sans-serif;
-                  font-size: ${clinicHeader?.fontSize || '12pt'};
-                  font-weight: ${clinicHeader?.fontWeight || 'normal'};
-                  font-style: ${clinicHeader?.fontStyle || 'normal'};
-                  text-decoration: ${clinicHeader?.textDecoration || 'none'};
-                  text-align: ${clinicHeader.logoPosition || 'center'};
+                  font-family: ${clinicHeader?.fontFamily || "Arial"}, sans-serif;
+                  font-size: ${clinicHeader?.fontSize || "12pt"};
+                  font-weight: ${clinicHeader?.fontWeight || "normal"};
+                  font-style: ${clinicHeader?.fontStyle || "normal"};
+                  text-decoration: ${clinicHeader?.textDecoration || "none"};
+                  text-align: ${clinicHeader.logoPosition || "center"};
                 ">
                   ${prescription.providerName}<br>
-                  <span style="font-size: ${clinicHeader?.clinicNameFontSize || '16pt'}; font-weight: bold;">
-                    ${clinicHeader?.clinicName || 'Halo Health Clinic'}
+                  <span style="font-size: ${clinicHeader?.clinicNameFontSize || "16pt"}; font-weight: bold;">
+                    ${clinicHeader?.clinicName || "Halo Health Clinic"}
                   </span><br>
-                  ${clinicHeader?.address || 'Unit 2 Drayton Court, Solihull'}<br>
-                  ${clinicHeader?.phone || '+44(0)121 827 5531'}${clinicHeader?.email ? `<br>${clinicHeader.email}` : ''}${clinicHeader?.website ? `<br>${clinicHeader.website}` : ''}
+                  ${clinicHeader?.address || "Unit 2 Drayton Court, Solihull"}<br>
+                  ${clinicHeader?.phone || "+44(0)121 827 5531"}${clinicHeader?.email ? `<br>${clinicHeader.email}` : ""}${clinicHeader?.website ? `<br>${clinicHeader.website}` : ""}
                 </div>
-                ` : `
+                `
+                      : `
                 <!-- No logo -->
                 <div class="provider-details" style="
-                  font-family: ${clinicHeader?.fontFamily || 'Arial'}, sans-serif;
-                  font-size: ${clinicHeader?.fontSize || '12pt'};
-                  font-weight: ${clinicHeader?.fontWeight || 'normal'};
-                  font-style: ${clinicHeader?.fontStyle || 'normal'};
-                  text-decoration: ${clinicHeader?.textDecoration || 'none'};
+                  font-family: ${clinicHeader?.fontFamily || "Arial"}, sans-serif;
+                  font-size: ${clinicHeader?.fontSize || "12pt"};
+                  font-weight: ${clinicHeader?.fontWeight || "normal"};
+                  font-style: ${clinicHeader?.fontStyle || "normal"};
+                  text-decoration: ${clinicHeader?.textDecoration || "none"};
                 ">
                   ${prescription.providerName}<br>
-                  <span style="font-size: ${clinicHeader?.clinicNameFontSize || '16pt'}; font-weight: bold;">
-                    ${clinicHeader?.clinicName || 'Halo Health Clinic'}
+                  <span style="font-size: ${clinicHeader?.clinicNameFontSize || "16pt"}; font-weight: bold;">
+                    ${clinicHeader?.clinicName || "Halo Health Clinic"}
                   </span><br>
-                  ${clinicHeader?.address || 'Unit 2 Drayton Court, Solihull'}<br>
-                  ${clinicHeader?.phone || '+44(0)121 827 5531'}${clinicHeader?.email ? `<br>${clinicHeader.email}` : ''}${clinicHeader?.website ? `<br>${clinicHeader.website}` : ''}
+                  ${clinicHeader?.address || "Unit 2 Drayton Court, Solihull"}<br>
+                  ${clinicHeader?.phone || "+44(0)121 827 5531"}${clinicHeader?.email ? `<br>${clinicHeader.email}` : ""}${clinicHeader?.website ? `<br>${clinicHeader.website}` : ""}
                 </div>
-                `}
+                `
+                }
               </div>
               
               <!-- Patient Information -->
@@ -2013,13 +2229,13 @@ export default function PrescriptionsPage() {
                     <span class="info-label">Name:</span> ${prescription.patientName}
                   </div>
                   <div class="info-line">
-                    <span class="info-label">Address:</span> ${patient?.address ? `${patient.address.street || ''}, ${patient.address.city || ''}, ${patient.address.postcode || ''}, ${patient.address.country || ''}`.replace(/, ,/g, ',').replace(/^,\s*|,\s*$/g, '') : '-'}
+                    <span class="info-label">Address:</span> ${patient?.address ? `${patient.address.street || ""}, ${patient.address.city || ""}, ${patient.address.postcode || ""}, ${patient.address.country || ""}`.replace(/, ,/g, ",").replace(/^,\s*|,\s*$/g, "") : "-"}
                   </div>
                   <div class="info-line">
                     <span class="info-label">Allergies:</span> ${patient?.medicalHistory?.allergies?.length > 0 ? patient.medicalHistory.allergies.join(", ") : "-"}
                   </div>
                   <div class="info-line">
-                    <span class="info-label">Weight:</span> ${prescription.patientWeight || '-'}
+                    <span class="info-label">Weight:</span> ${prescription.patientWeight || "-"}
                   </div>
                 </div>
                 <div class="patient-right">
@@ -2288,12 +2504,16 @@ export default function PrescriptionsPage() {
               </CardContent>
             </Card>
 
-            <Card 
+            <Card
               className="cursor-pointer hover:bg-gray-50 transition-colors"
               onClick={() => {
                 const subdomain = getActiveSubdomain();
-                console.log('[PRESCRIPTIONS] Navigating to CDS with drug-interactions tab');
-                setLocation(`/${subdomain}/clinical-decision-support?tab=drug-interactions`);
+                console.log(
+                  "[PRESCRIPTIONS] Navigating to CDS with drug-interactions tab",
+                );
+                setLocation(
+                  `/${subdomain}/clinical-decision-support?tab=drug-interactions`,
+                );
               }}
               data-testid="card-drug-interactions"
             >
@@ -2366,42 +2586,56 @@ export default function PrescriptionsPage() {
                         className="bg-medical-blue hover:bg-blue-700 flex justify-end ml-auto"
                         onClick={() => {
                           setSelectedPrescription(null);
-                          
+
                           // For patient role users, automatically set their patient ID
                           let patientId = "";
                           let patientName = "";
-                          
+
                           if (user?.role === "patient") {
                             // Find the current patient based on user authentication data
-                            const currentPatient = patients.find((patient: any) => 
-                              patient.email && user.email && patient.email.toLowerCase() === user.email.toLowerCase()
-                            ) || patients.find((patient: any) => 
-                              patient.firstName && user.firstName && patient.lastName && user.lastName &&
-                              patient.firstName.toLowerCase() === user.firstName.toLowerCase() && 
-                              patient.lastName.toLowerCase() === user.lastName.toLowerCase()
-                            );
-                            
+                            const currentPatient =
+                              patients.find(
+                                (patient: any) =>
+                                  patient.email &&
+                                  user.email &&
+                                  patient.email.toLowerCase() ===
+                                    user.email.toLowerCase(),
+                              ) ||
+                              patients.find(
+                                (patient: any) =>
+                                  patient.firstName &&
+                                  user.firstName &&
+                                  patient.lastName &&
+                                  user.lastName &&
+                                  patient.firstName.toLowerCase() ===
+                                    user.firstName.toLowerCase() &&
+                                  patient.lastName.toLowerCase() ===
+                                    user.lastName.toLowerCase(),
+                              );
+
                             if (currentPatient) {
                               patientId = currentPatient.id.toString();
                               patientName = `${currentPatient.firstName} ${currentPatient.lastName}`;
                             }
                           }
-                          
+
                           setFormData({
                             patientId: patientId,
                             patientName: patientName,
                             providerId: "",
                             diagnosis: "",
-                            medications: [{
-                              name: "",
-                              dosage: "",
-                              frequency: "",
-                              duration: "",
-                              quantity: "",
-                              refills: "",
-                              instructions: "",
-                              genericAllowed: true,
-                            }],
+                            medications: [
+                              {
+                                name: "",
+                                dosage: "",
+                                frequency: "",
+                                duration: "",
+                                quantity: "",
+                                refills: "",
+                                instructions: "",
+                                genericAllowed: true,
+                              },
+                            ],
                             pharmacyName: "Halo Health",
                             pharmacyAddress:
                               "Unit 2 Drayton Court, Solihull, B90 4NG",
@@ -2477,7 +2711,10 @@ export default function PrescriptionsPage() {
                             </div>
 
                             <div>
-                              <Label htmlFor="provider"> Name (doctor/nurse etc)</Label>
+                              <Label htmlFor="provider">
+                                {" "}
+                                Name (doctor/nurse etc)
+                              </Label>
                               <div className="flex items-center h-10 px-3 py-2 border border-input bg-background rounded-md text-sm ring-offset-background">
                                 <User className="h-4 w-4 mr-2 text-muted-foreground" />
                                 <span data-testid="provider-name-display">
@@ -2495,7 +2732,10 @@ export default function PrescriptionsPage() {
                                 value={selectedRole}
                                 onValueChange={(value) => {
                                   setSelectedRole(value);
-                                  setFormData((prev) => ({ ...prev, providerId: "" }));
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    providerId: "",
+                                  }));
                                 }}
                               >
                                 <SelectTrigger data-testid="select-role">
@@ -2504,11 +2744,20 @@ export default function PrescriptionsPage() {
                                 <SelectContent>
                                   {rolesData
                                     .filter((role: any) => {
-                                      const roleName = (role.name || '').toLowerCase();
-                                      return !['patient', 'admin', 'administrator'].includes(roleName);
+                                      const roleName = (
+                                        role.name || ""
+                                      ).toLowerCase();
+                                      return ![
+                                        "patient",
+                                        "admin",
+                                        "administrator",
+                                      ].includes(roleName);
                                     })
                                     .map((role: any) => (
-                                      <SelectItem key={role.id} value={role.name}>
+                                      <SelectItem
+                                        key={role.id}
+                                        value={role.name}
+                                      >
                                         {role.displayName || role.name}
                                       </SelectItem>
                                     ))}
@@ -2529,11 +2778,19 @@ export default function PrescriptionsPage() {
                                 disabled={!selectedRole}
                               >
                                 <SelectTrigger data-testid="select-provider">
-                                  <SelectValue placeholder={selectedRole ? "Select name..." : "Select a role first"} />
+                                  <SelectValue
+                                    placeholder={
+                                      selectedRole
+                                        ? "Select name..."
+                                        : "Select a role first"
+                                    }
+                                  />
                                 </SelectTrigger>
                                 <SelectContent>
                                   {allUsers
-                                    .filter((usr: any) => usr.role === selectedRole)
+                                    .filter(
+                                      (usr: any) => usr.role === selectedRole,
+                                    )
                                     .map((usr: any) => (
                                       <SelectItem
                                         key={usr.id}
@@ -2549,8 +2806,7 @@ export default function PrescriptionsPage() {
                         )}
                       </div>
 
-                      <div className="grid grid-cols-1 gap-4">
-                      </div>
+                      <div className="grid grid-cols-1 gap-4"></div>
 
                       <div>
                         <Label htmlFor="diagnosis">Diagnosis *</Label>
@@ -2565,10 +2821,17 @@ export default function PrescriptionsPage() {
                             }))
                           }
                           data-testid="input-diagnosis"
-                          className={formErrors.general && !formData.diagnosis.trim() ? "border-red-500" : ""}
+                          className={
+                            formErrors.general && !formData.diagnosis.trim()
+                              ? "border-red-500"
+                              : ""
+                          }
                         />
                         {formErrors.general && !formData.diagnosis.trim() && (
-                          <p className="text-red-500 text-sm mt-1" data-testid="error-diagnosis">
+                          <p
+                            className="text-red-500 text-sm mt-1"
+                            data-testid="error-diagnosis"
+                          >
                             Diagnosis is required
                           </p>
                         )}
@@ -2576,7 +2839,9 @@ export default function PrescriptionsPage() {
 
                       <div className="space-y-4">
                         <div className="flex justify-between items-center">
-                          <Label className="text-lg font-medium">Medications</Label>
+                          <Label className="text-lg font-medium">
+                            Medications
+                          </Label>
                           <Button
                             type="button"
                             variant="outline"
@@ -2589,11 +2854,16 @@ export default function PrescriptionsPage() {
                             Add Medication
                           </Button>
                         </div>
-                        
+
                         {formData.medications.map((medication, index) => (
-                          <div key={index} className="border rounded-lg p-4 space-y-4 relative">
+                          <div
+                            key={index}
+                            className="border rounded-lg p-4 space-y-4 relative"
+                          >
                             <div className="flex justify-between items-start">
-                              <h4 className="font-medium text-md">Medication {index + 1}</h4>
+                              <h4 className="font-medium text-md">
+                                Medication {index + 1}
+                              </h4>
                               {formData.medications.length > 1 && (
                                 <Button
                                   type="button"
@@ -2607,128 +2877,246 @@ export default function PrescriptionsPage() {
                                 </Button>
                               )}
                             </div>
-                            
+
                             <div className="grid grid-cols-2 gap-4">
                               <div>
-                                <Label htmlFor={`medication-name-${index}`}>Medication Name *</Label>
+                                <Label htmlFor={`medication-name-${index}`}>
+                                  Medication Name *
+                                </Label>
                                 <Input
                                   id={`medication-name-${index}`}
                                   placeholder="Enter medication"
                                   value={medication.name}
-                                  onChange={(e) => updateMedication(index, 'name', e.target.value)}
+                                  onChange={(e) =>
+                                    updateMedication(
+                                      index,
+                                      "name",
+                                      e.target.value,
+                                    )
+                                  }
                                   data-testid={`input-medication-name-${index}`}
-                                  className={formErrors.medications[index]?.name ? "border-red-500" : ""}
+                                  className={
+                                    formErrors.medications[index]?.name
+                                      ? "border-red-500"
+                                      : ""
+                                  }
                                 />
                                 {formErrors.medications[index]?.name && (
-                                  <p className="text-red-500 text-sm mt-1" data-testid={`error-medication-name-${index}`}>
+                                  <p
+                                    className="text-red-500 text-sm mt-1"
+                                    data-testid={`error-medication-name-${index}`}
+                                  >
                                     {formErrors.medications[index].name}
                                   </p>
                                 )}
                               </div>
                               <div>
-                                <Label htmlFor={`medication-dosage-${index}`}>Dosage *</Label>
+                                <Label htmlFor={`medication-dosage-${index}`}>
+                                  Dosage *
+                                </Label>
                                 <Input
                                   id={`medication-dosage-${index}`}
                                   placeholder="e.g., 10mg"
                                   value={medication.dosage}
-                                  onChange={(e) => updateMedication(index, 'dosage', e.target.value)}
+                                  onChange={(e) =>
+                                    updateMedication(
+                                      index,
+                                      "dosage",
+                                      e.target.value,
+                                    )
+                                  }
                                   data-testid={`input-dosage-${index}`}
-                                  className={formErrors.medications[index]?.dosage ? "border-red-500" : ""}
+                                  className={
+                                    formErrors.medications[index]?.dosage
+                                      ? "border-red-500"
+                                      : ""
+                                  }
                                 />
                                 {formErrors.medications[index]?.dosage && (
-                                  <p className="text-red-500 text-sm mt-1" data-testid={`error-medication-dosage-${index}`}>
+                                  <p
+                                    className="text-red-500 text-sm mt-1"
+                                    data-testid={`error-medication-dosage-${index}`}
+                                  >
                                     {formErrors.medications[index].dosage}
                                   </p>
                                 )}
                               </div>
                             </div>
-                            
+
                             <div className="grid grid-cols-2 gap-4">
                               <div>
-                                <Label htmlFor={`medication-frequency-${index}`}>Frequency *</Label>
+                                <Label
+                                  htmlFor={`medication-frequency-${index}`}
+                                >
+                                  Frequency *
+                                </Label>
                                 <Select
                                   value={medication.frequency}
-                                  onValueChange={(value) => updateMedication(index, 'frequency', value)}
+                                  onValueChange={(value) =>
+                                    updateMedication(index, "frequency", value)
+                                  }
                                 >
-                                  <SelectTrigger data-testid={`select-frequency-${index}`} className={formErrors.medications[index]?.frequency ? "border-red-500" : ""}>
+                                  <SelectTrigger
+                                    data-testid={`select-frequency-${index}`}
+                                    className={
+                                      formErrors.medications[index]?.frequency
+                                        ? "border-red-500"
+                                        : ""
+                                    }
+                                  >
                                     <SelectValue placeholder="Select frequency" />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    <SelectItem value="Once daily">Once daily</SelectItem>
-                                    <SelectItem value="Twice daily">Twice daily</SelectItem>
-                                    <SelectItem value="Three times daily">Three times daily</SelectItem>
-                                    <SelectItem value="Four times daily">Four times daily</SelectItem>
-                                    <SelectItem value="Every other day">Every other day</SelectItem>
-                                    <SelectItem value="As needed">As needed</SelectItem>
+                                    <SelectItem value="Once daily">
+                                      Once daily
+                                    </SelectItem>
+                                    <SelectItem value="Twice daily">
+                                      Twice daily
+                                    </SelectItem>
+                                    <SelectItem value="Three times daily">
+                                      Three times daily
+                                    </SelectItem>
+                                    <SelectItem value="Four times daily">
+                                      Four times daily
+                                    </SelectItem>
+                                    <SelectItem value="Every other day">
+                                      Every other day
+                                    </SelectItem>
+                                    <SelectItem value="As needed">
+                                      As needed
+                                    </SelectItem>
                                   </SelectContent>
                                 </Select>
                                 {formErrors.medications[index]?.frequency && (
-                                  <p className="text-red-500 text-sm mt-1" data-testid={`error-medication-frequency-${index}`}>
+                                  <p
+                                    className="text-red-500 text-sm mt-1"
+                                    data-testid={`error-medication-frequency-${index}`}
+                                  >
                                     {formErrors.medications[index].frequency}
                                   </p>
                                 )}
                               </div>
                               <div>
-                                <Label htmlFor={`medication-duration-${index}`}>Duration *</Label>
+                                <Label htmlFor={`medication-duration-${index}`}>
+                                  Duration *
+                                </Label>
                                 <Select
                                   value={medication.duration}
-                                  onValueChange={(value) => updateMedication(index, 'duration', value)}
+                                  onValueChange={(value) =>
+                                    updateMedication(index, "duration", value)
+                                  }
                                 >
-                                  <SelectTrigger data-testid={`select-duration-${index}`} className={formErrors.medications[index]?.duration ? "border-red-500" : ""}>
+                                  <SelectTrigger
+                                    data-testid={`select-duration-${index}`}
+                                    className={
+                                      formErrors.medications[index]?.duration
+                                        ? "border-red-500"
+                                        : ""
+                                    }
+                                  >
                                     <SelectValue placeholder="Select duration" />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    <SelectItem value="7 days">7 days</SelectItem>
-                                    <SelectItem value="14 days">14 days</SelectItem>
-                                    <SelectItem value="30 days">30 days</SelectItem>
-                                    <SelectItem value="60 days">60 days</SelectItem>
-                                    <SelectItem value="90 days">90 days</SelectItem>
-                                    <SelectItem value="6 months">6 months</SelectItem>
-                                    <SelectItem value="1 year">1 year</SelectItem>
-                                    <SelectItem value="Ongoing">Ongoing</SelectItem>
+                                    <SelectItem value="7 days">
+                                      7 days
+                                    </SelectItem>
+                                    <SelectItem value="14 days">
+                                      14 days
+                                    </SelectItem>
+                                    <SelectItem value="30 days">
+                                      30 days
+                                    </SelectItem>
+                                    <SelectItem value="60 days">
+                                      60 days
+                                    </SelectItem>
+                                    <SelectItem value="90 days">
+                                      90 days
+                                    </SelectItem>
+                                    <SelectItem value="6 months">
+                                      6 months
+                                    </SelectItem>
+                                    <SelectItem value="1 year">
+                                      1 year
+                                    </SelectItem>
+                                    <SelectItem value="Ongoing">
+                                      Ongoing
+                                    </SelectItem>
                                   </SelectContent>
                                 </Select>
                                 {formErrors.medications[index]?.duration && (
-                                  <p className="text-red-500 text-sm mt-1" data-testid={`error-medication-duration-${index}`}>
+                                  <p
+                                    className="text-red-500 text-sm mt-1"
+                                    data-testid={`error-medication-duration-${index}`}
+                                  >
                                     {formErrors.medications[index].duration}
                                   </p>
                                 )}
                               </div>
                             </div>
-                            
+
                             <div className="grid grid-cols-3 gap-4">
                               <div>
-                                <Label htmlFor={`medication-quantity-${index}`}>Quantity *</Label>
+                                <Label htmlFor={`medication-quantity-${index}`}>
+                                  Quantity *
+                                </Label>
                                 <Input
                                   id={`medication-quantity-${index}`}
                                   type="number"
                                   min="1"
                                   placeholder="30"
                                   value={medication.quantity}
-                                  onChange={(e) => updateMedication(index, 'quantity', e.target.value)}
+                                  onChange={(e) =>
+                                    updateMedication(
+                                      index,
+                                      "quantity",
+                                      e.target.value,
+                                    )
+                                  }
                                   data-testid={`input-quantity-${index}`}
-                                  className={formErrors.medications[index]?.quantity ? "border-red-500" : ""}
+                                  className={
+                                    formErrors.medications[index]?.quantity
+                                      ? "border-red-500"
+                                      : ""
+                                  }
                                 />
                                 {formErrors.medications[index]?.quantity && (
-                                  <p className="text-red-500 text-sm mt-1" data-testid={`error-medication-quantity-${index}`}>
+                                  <p
+                                    className="text-red-500 text-sm mt-1"
+                                    data-testid={`error-medication-quantity-${index}`}
+                                  >
                                     {formErrors.medications[index].quantity}
                                   </p>
                                 )}
                               </div>
                               <div>
-                                <Label htmlFor={`medication-refills-${index}`}>Refills</Label>
+                                <Label htmlFor={`medication-refills-${index}`}>
+                                  Refills
+                                </Label>
                                 <Input
                                   id={`medication-refills-${index}`}
                                   type="number"
                                   min="0"
                                   placeholder="3"
                                   value={medication.refills}
-                                  onChange={(e) => updateMedication(index, 'refills', e.target.value)}
+                                  onChange={(e) =>
+                                    updateMedication(
+                                      index,
+                                      "refills",
+                                      e.target.value,
+                                    )
+                                  }
                                   data-testid={`input-refills-${index}`}
-                                  className={formErrors.medications[index]?.refills ? "border-red-500" : ""}
+                                  className={
+                                    formErrors.medications[index]?.refills
+                                      ? "border-red-500"
+                                      : ""
+                                  }
                                 />
                                 {formErrors.medications[index]?.refills && (
-                                  <p className="text-red-500 text-sm mt-1" data-testid={`error-medication-refills-${index}`}>
+                                  <p
+                                    className="text-red-500 text-sm mt-1"
+                                    data-testid={`error-medication-refills-${index}`}
+                                  >
                                     {formErrors.medications[index].refills}
                                   </p>
                                 )}
@@ -2738,23 +3126,42 @@ export default function PrescriptionsPage() {
                                   type="checkbox"
                                   id={`medication-generic-${index}`}
                                   checked={medication.genericAllowed}
-                                  onChange={(e) => updateMedication(index, 'genericAllowed', e.target.checked)}
+                                  onChange={(e) =>
+                                    updateMedication(
+                                      index,
+                                      "genericAllowed",
+                                      e.target.checked,
+                                    )
+                                  }
                                   data-testid={`checkbox-generic-allowed-${index}`}
                                   className="h-4 w-4"
                                 />
-                                <Label htmlFor={`medication-generic-${index}`} className="text-sm font-medium">
+                                <Label
+                                  htmlFor={`medication-generic-${index}`}
+                                  className="text-sm font-medium"
+                                >
                                   Generic allowed
                                 </Label>
                               </div>
                             </div>
-                            
+
                             <div>
-                              <Label htmlFor={`medication-instructions-${index}`}>Instructions</Label>
+                              <Label
+                                htmlFor={`medication-instructions-${index}`}
+                              >
+                                Instructions
+                              </Label>
                               <Textarea
                                 id={`medication-instructions-${index}`}
                                 placeholder="Special instructions for patient (e.g., take with food, before bedtime)"
                                 value={medication.instructions}
-                                onChange={(e) => updateMedication(index, 'instructions', e.target.value)}
+                                onChange={(e) =>
+                                  updateMedication(
+                                    index,
+                                    "instructions",
+                                    e.target.value,
+                                  )
+                                }
                                 data-testid={`input-instructions-${index}`}
                                 rows={2}
                               />
@@ -2853,10 +3260,11 @@ export default function PrescriptionsPage() {
 
                             // Run comprehensive validation
                             if (!validateForm()) {
-                              const errorMessage = user?.role === 'doctor' 
-                                ? "Please fill in all required fields: Select a Patient, enter the Diagnosis, and add at least one complete Medication with Name, Dosage, Frequency, Duration, and Quantity."
-                                : "Please fix the errors in the form before submitting";
-                              
+                              const errorMessage =
+                                user?.role === "doctor"
+                                  ? "Please fill in all required fields: Select a Patient, enter the Diagnosis, and add at least one complete Medication with Name, Dosage, Frequency, Duration, and Quantity."
+                                  : "Please fix the errors in the form before submitting";
+
                               toast({
                                 title: "Required Information Missing",
                                 description: errorMessage,
@@ -2867,8 +3275,8 @@ export default function PrescriptionsPage() {
 
                             // Filter out empty medications and prepare data with proper type conversion
                             const validMedications = formData.medications
-                              .filter(med => med.name.trim())
-                              .map(med => ({
+                              .filter((med) => med.name.trim())
+                              .map((med) => ({
                                 name: med.name.trim(),
                                 dosage: med.dosage.trim(),
                                 frequency: med.frequency.trim(),
@@ -2878,11 +3286,13 @@ export default function PrescriptionsPage() {
                                 instructions: med.instructions.trim(),
                                 genericAllowed: med.genericAllowed,
                               }));
-                            
+
                             // Get the selected provider ID and the logged-in user ID
-                            const selectedProviderId = parseInt(formData.providerId);
+                            const selectedProviderId = parseInt(
+                              formData.providerId,
+                            );
                             const loggedInUserId = user?.id;
-                            
+
                             const prescriptionData = {
                               patientId: parseInt(formData.patientId),
                               providerId: selectedProviderId,
@@ -2899,9 +3309,15 @@ export default function PrescriptionsPage() {
 
                             console.log("=== FRONTEND PRESCRIPTION DEBUG ===");
                             console.log("Form data before parsing:", formData);
-                            console.log("Final prescription data:", prescriptionData);
-                            console.log("Valid medications count:", validMedications.length);
-                            
+                            console.log(
+                              "Final prescription data:",
+                              prescriptionData,
+                            );
+                            console.log(
+                              "Valid medications count:",
+                              validMedications.length,
+                            );
+
                             createPrescriptionMutation.mutate(prescriptionData);
                           }}
                           disabled={createPrescriptionMutation.isPending}
@@ -2951,8 +3367,18 @@ export default function PrescriptionsPage() {
                           <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100">
                             CURA HEALTH EMR
                           </h2>
+                          {(() => {
+                            const doctorId = prescription.prescriptionCreatedBy || prescription.doctorId;
+                            const doctorInfo = providers?.find((p: any) => p.id === doctorId);
+                            return doctorInfo ? (
+                              <p className="text-xs text-gray-600 dark:text-gray-300">
+                                Doctor: {doctorInfo.firstName} {doctorInfo.lastName} ({doctorInfo.role})
+                              </p>
+                            ) : null;
+                          })()}
                           <p className="text-sm text-gray-600 dark:text-gray-300">
-                            Prescription #: {prescription.prescriptionNumber || 'N/A'}
+                            Prescription #:{" "}
+                            {prescription.prescriptionNumber || "N/A"}
                           </p>
                         </div>
                         <div>
@@ -2967,11 +3393,21 @@ export default function PrescriptionsPage() {
                                     <SelectValue />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    <SelectItem value="pending">pending</SelectItem>
-                                    <SelectItem value="active">active</SelectItem>
-                                    <SelectItem value="completed">completed</SelectItem>
-                                    <SelectItem value="cancelled">cancelled</SelectItem>
-                                    <SelectItem value="signed">signed</SelectItem>
+                                    <SelectItem value="pending">
+                                      pending
+                                    </SelectItem>
+                                    <SelectItem value="active">
+                                      active
+                                    </SelectItem>
+                                    <SelectItem value="completed">
+                                      completed
+                                    </SelectItem>
+                                    <SelectItem value="cancelled">
+                                      cancelled
+                                    </SelectItem>
+                                    <SelectItem value="signed">
+                                      signed
+                                    </SelectItem>
                                   </SelectContent>
                                 </Select>
                                 <Button
@@ -2995,15 +3431,22 @@ export default function PrescriptionsPage() {
                             ) : (
                               <div className="flex items-center gap-2">
                                 <Badge
-                                  className={getStatusColor(prescription.status)}
+                                  className={getStatusColor(
+                                    prescription.status,
+                                  )}
                                 >
                                   {prescription.status}
                                 </Badge>
-                                {user?.role && user?.role !== 'patient' && (
+                                {user?.role && user?.role !== "patient" && (
                                   <Button
                                     size="sm"
                                     variant="ghost"
-                                    onClick={() => handleStartEditingStatus(prescription.id, prescription.status)}
+                                    onClick={() =>
+                                      handleStartEditingStatus(
+                                        prescription.id,
+                                        prescription.status,
+                                      )
+                                    }
                                     className="h-6 w-6 p-0 hover:bg-gray-100"
                                     data-testid="button-edit-status"
                                   >
@@ -3027,39 +3470,44 @@ export default function PrescriptionsPage() {
                       </div>
 
                       <div className="text-center mt-2">
-                    
-                      
-                        {clinicHeader?.logoBase64 && clinicHeader.logoPosition === 'center' ? (
+                        {clinicHeader?.logoBase64 &&
+                        clinicHeader.logoPosition === "center" ? (
                           <div className="flex items-center justify-center gap-4 my-2">
-                            <img 
-                              src={clinicHeader.logoBase64} 
-                              alt="Clinic Logo" 
+                            <img
+                              src={clinicHeader.logoBase64}
+                              alt="Clinic Logo"
                               className="flex-shrink-0"
-                              style={{ maxWidth: '70px', maxHeight: '70px' }}
+                              style={{ maxWidth: "70px", maxHeight: "70px" }}
                             />
                             <div
                               className="text-center"
                               style={{
-                                fontFamily: clinicHeader?.fontFamily || 'inherit',
-                                fontSize: clinicHeader?.fontSize || '14px',
-                                fontWeight: clinicHeader?.fontWeight || 'normal',
-                                fontStyle: clinicHeader?.fontStyle || 'normal',
-                                textDecoration: clinicHeader?.textDecoration || 'none'
+                                fontFamily:
+                                  clinicHeader?.fontFamily || "inherit",
+                                fontSize: clinicHeader?.fontSize || "14px",
+                                fontWeight:
+                                  clinicHeader?.fontWeight || "normal",
+                                fontStyle: clinicHeader?.fontStyle || "normal",
+                                textDecoration:
+                                  clinicHeader?.textDecoration || "none",
                               }}
                             >
-                              <p 
+                              <p
                                 className="text-gray-600 dark:text-gray-300 font-bold"
                                 style={{
-                                  fontSize: clinicHeader?.clinicNameFontSize || '16px'
+                                  fontSize:
+                                    clinicHeader?.clinicNameFontSize || "16px",
                                 }}
                               >
-                                {clinicHeader?.clinicName || 'Halo Health Clinic'}
+                                {clinicHeader?.clinicName ||
+                                  "Halo Health Clinic"}
                               </p>
                               <p className="text-sm text-gray-600 dark:text-gray-300">
-                                {clinicHeader?.address || 'Unit 2 Drayton Court, Solihull'}
+                                {clinicHeader?.address ||
+                                  "Unit 2 Drayton Court, Solihull"}
                               </p>
                               <p className="text-sm text-gray-600 dark:text-gray-300">
-                                {clinicHeader?.phone || '+44(0)121 827 5531'}
+                                {clinicHeader?.phone || "+44(0)121 827 5531"}
                               </p>
                               {clinicHeader?.email && (
                                 <p className="text-sm text-gray-600 dark:text-gray-300">
@@ -3076,44 +3524,55 @@ export default function PrescriptionsPage() {
                         ) : (
                           <>
                             {clinicHeader?.logoBase64 && (
-                              <div 
+                              <div
                                 className="my-2"
                                 style={{
-                                  textAlign: clinicHeader.logoPosition || 'center'
+                                  textAlign:
+                                    clinicHeader.logoPosition || "center",
                                 }}
                               >
-                                <img 
-                                  src={clinicHeader.logoBase64} 
-                                  alt="Clinic Logo" 
+                                <img
+                                  src={clinicHeader.logoBase64}
+                                  alt="Clinic Logo"
                                   className="inline-block"
-                                  style={{ maxWidth: '80px', maxHeight: '80px' }}
+                                  style={{
+                                    maxWidth: "80px",
+                                    maxHeight: "80px",
+                                  }}
                                 />
                               </div>
                             )}
-                            
+
                             <div
                               style={{
-                                fontFamily: clinicHeader?.fontFamily || 'inherit',
-                                fontSize: clinicHeader?.fontSize || '14px',
-                                fontWeight: clinicHeader?.fontWeight || 'normal',
-                                fontStyle: clinicHeader?.fontStyle || 'normal',
-                                textDecoration: clinicHeader?.textDecoration || 'none',
-                                textAlign: clinicHeader?.logoPosition || 'center'
+                                fontFamily:
+                                  clinicHeader?.fontFamily || "inherit",
+                                fontSize: clinicHeader?.fontSize || "14px",
+                                fontWeight:
+                                  clinicHeader?.fontWeight || "normal",
+                                fontStyle: clinicHeader?.fontStyle || "normal",
+                                textDecoration:
+                                  clinicHeader?.textDecoration || "none",
+                                textAlign:
+                                  clinicHeader?.logoPosition || "center",
                               }}
                             >
-                              <p 
+                              <p
                                 className="text-gray-600 dark:text-gray-300 font-bold"
                                 style={{
-                                  fontSize: clinicHeader?.clinicNameFontSize || '16px'
+                                  fontSize:
+                                    clinicHeader?.clinicNameFontSize || "16px",
                                 }}
                               >
-                                {clinicHeader?.clinicName || 'Halo Health Clinic'}
+                                {clinicHeader?.clinicName ||
+                                  "Halo Health Clinic"}
                               </p>
                               <p className="text-sm text-gray-600 dark:text-gray-300">
-                                {clinicHeader?.address || 'Unit 2 Drayton Court, Solihull'}
+                                {clinicHeader?.address ||
+                                  "Unit 2 Drayton Court, Solihull"}
                               </p>
                               <p className="text-sm text-gray-600 dark:text-gray-300">
-                                {clinicHeader?.phone || '+44(0)121 827 5531'}
+                                {clinicHeader?.phone || "+44(0)121 827 5531"}
                               </p>
                               {clinicHeader?.email && (
                                 <p className="text-sm text-gray-600 dark:text-gray-300">
@@ -3139,10 +3598,12 @@ export default function PrescriptionsPage() {
                             <strong>Name:</strong> {prescription.patientName}
                           </p>
                           <p className="text-sm text-gray-800 dark:text-gray-100">
-                            <strong>Address:</strong> {prescription.patientAddress || "-"}
+                            <strong>Address:</strong>{" "}
+                            {prescription.patientAddress || "-"}
                           </p>
                           <p className="text-sm text-gray-800 dark:text-gray-100">
-                            <strong>Allergies:</strong> {prescription.patientAllergies || "-"}
+                            <strong>Allergies:</strong>{" "}
+                            {prescription.patientAllergies || "-"}
                           </p>
                           <p className="text-sm text-gray-800 dark:text-gray-100">
                             <strong>Weight:</strong>{" "}
@@ -3164,13 +3625,26 @@ export default function PrescriptionsPage() {
                           </p>
                           <p className="text-sm text-gray-800 dark:text-gray-100">
                             <strong>Date:</strong>{" "}
-                            {prescription.prescribedAt || prescription.issuedDate || prescription.createdAt 
+                            {prescription.prescribedAt ||
+                            prescription.issuedDate ||
+                            prescription.createdAt
                               ? (() => {
-                                  const date = new Date(prescription.prescribedAt || prescription.issuedDate || prescription.createdAt);
+                                  const date = new Date(
+                                    prescription.prescribedAt ||
+                                      prescription.issuedDate ||
+                                      prescription.createdAt,
+                                  );
                                   const day = date.getDate();
-                                  const month = date.toLocaleDateString("en-GB", { month: "short" });
+                                  const month = date.toLocaleDateString(
+                                    "en-GB",
+                                    { month: "short" },
+                                  );
                                   const year = date.getFullYear();
-                                  const suffix = day > 3 && day < 21 ? 'th' : ['th', 'st', 'nd', 'rd'][day % 10] || 'th';
+                                  const suffix =
+                                    day > 3 && day < 21
+                                      ? "th"
+                                      : ["th", "st", "nd", "rd"][day % 10] ||
+                                        "th";
                                   return `${day}${suffix} ${month} ${year}`;
                                 })()
                               : "-"}
@@ -3351,7 +3825,7 @@ export default function PrescriptionsPage() {
                         </span>
                         <span className="lg:hidden">Send</span>
                       </Button>
-                      {user?.role !== 'patient' && (
+                      {user?.role !== "patient" && (
                         <Button
                           variant="outline"
                           size="sm"
@@ -3366,19 +3840,20 @@ export default function PrescriptionsPage() {
                           <span className="lg:hidden">Sign</span>
                         </Button>
                       )}
-                      {user?.role !== 'patient' && prescription.status === "active" && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEditPrescription(prescription)}
-                          className="text-xs sm:text-sm px-2 sm:px-3"
-                        >
-                          <Edit className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                          <span className="hidden sm:inline">Edit</span>
-                          <span className="sm:hidden">Edit</span>
-                        </Button>
-                      )}
-                      {user?.role !== 'patient' && (
+                      {user?.role !== "patient" &&
+                        prescription.status === "active" && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEditPrescription(prescription)}
+                            className="text-xs sm:text-sm px-2 sm:px-3"
+                          >
+                            <Edit className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                            <span className="hidden sm:inline">Edit</span>
+                            <span className="sm:hidden">Edit</span>
+                          </Button>
+                        )}
+                      {user?.role !== "patient" && (
                         <Button
                           variant="outline"
                           size="sm"
@@ -3454,7 +3929,9 @@ export default function PrescriptionsPage() {
                   </CardHeader>
                   <CardContent className="space-y-2">
                     {(() => {
-                      const doctor = allUsers.find(u => u.id === selectedPrescription.doctorId);
+                      const doctor = allUsers.find(
+                        (u) => u.id === selectedPrescription.doctorId,
+                      );
                       return doctor ? (
                         <>
                           <div>
@@ -3470,9 +3947,7 @@ export default function PrescriptionsPage() {
                               <p className="text-sm font-medium text-gray-600">
                                 Specialization
                               </p>
-                              <p className="font-medium">
-                                {doctor.department}
-                              </p>
+                              <p className="font-medium">{doctor.department}</p>
                             </div>
                           )}
                         </>
@@ -3539,46 +4014,59 @@ export default function PrescriptionsPage() {
                           Issued Date
                         </p>
                         <p className="font-medium">
-                          {new Date(selectedPrescription.issuedDate).toLocaleDateString()}
+                          {new Date(
+                            selectedPrescription.issuedDate,
+                          ).toLocaleDateString()}
                         </p>
                       </div>
                     )}
-                    {selectedPrescription.doctorId && (() => {
-                      const doctor = allUsers.find(u => u.id === selectedPrescription.doctorId);
-                      return doctor && (
-                        <div>
-                          <p className="text-sm font-medium text-gray-600">
-                            Prescribing Doctor
-                          </p>
-                          <p className="font-medium">
-                            Dr. {doctor.firstName} {doctor.lastName}
-                          </p>
-                          {doctor.department && (
-                            <p className="text-sm text-gray-500">
-                              {doctor.department}
-                            </p>
-                          )}
-                        </div>
-                      );
-                    })()}
-                    {selectedPrescription.prescriptionCreatedBy && (() => {
-                      const creator = allUsers.find(u => u.id === selectedPrescription.prescriptionCreatedBy);
-                      return creator && (
-                        <div>
-                          <p className="text-sm font-medium text-gray-600">
-                            Created By
-                          </p>
-                          <p className="font-medium">
-                            {creator.firstName} {creator.lastName}
-                          </p>
-                          {creator.role && (
-                            <p className="text-sm text-gray-500 capitalize">
-                              {formatRoleLabel(creator.role)}
-                            </p>
-                          )}
-                        </div>
-                      );
-                    })()}
+                    {selectedPrescription.doctorId &&
+                      (() => {
+                        const doctor = allUsers.find(
+                          (u) => u.id === selectedPrescription.doctorId,
+                        );
+                        return (
+                          doctor && (
+                            <div>
+                              <p className="text-sm font-medium text-gray-600">
+                                Prescribing Doctor
+                              </p>
+                              <p className="font-medium">
+                                Dr. {doctor.firstName} {doctor.lastName}
+                              </p>
+                              {doctor.department && (
+                                <p className="text-sm text-gray-500">
+                                  {doctor.department}
+                                </p>
+                              )}
+                            </div>
+                          )
+                        );
+                      })()}
+                    {selectedPrescription.prescriptionCreatedBy &&
+                      (() => {
+                        const creator = allUsers.find(
+                          (u) =>
+                            u.id === selectedPrescription.prescriptionCreatedBy,
+                        );
+                        return (
+                          creator && (
+                            <div>
+                              <p className="text-sm font-medium text-gray-600">
+                                Created By
+                              </p>
+                              <p className="font-medium">
+                                {creator.firstName} {creator.lastName}
+                              </p>
+                              {creator.role && (
+                                <p className="text-sm text-gray-500 capitalize">
+                                  {formatRoleLabel(creator.role)}
+                                </p>
+                              )}
+                            </div>
+                          )
+                        );
+                      })()}
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     {selectedPrescription.createdAt && (
@@ -3587,7 +4075,9 @@ export default function PrescriptionsPage() {
                           Created At
                         </p>
                         <p className="font-medium">
-                          {new Date(selectedPrescription.createdAt).toLocaleString()}
+                          {new Date(
+                            selectedPrescription.createdAt,
+                          ).toLocaleString()}
                         </p>
                       </div>
                     )}
@@ -3597,7 +4087,9 @@ export default function PrescriptionsPage() {
                           Updated At
                         </p>
                         <p className="font-medium">
-                          {new Date(selectedPrescription.updatedAt).toLocaleString()}
+                          {new Date(
+                            selectedPrescription.updatedAt,
+                          ).toLocaleString()}
                         </p>
                       </div>
                     )}
@@ -4452,7 +4944,8 @@ export default function PrescriptionsPage() {
                   Signature Saved Successfully!
                 </h4>
                 <p className="text-sm text-green-700">
-                  Prescription has been electronically signed and saved to database.
+                  Prescription has been electronically signed and saved to
+                  database.
                 </p>
               </div>
             </div>
@@ -4475,7 +4968,9 @@ export default function PrescriptionsPage() {
               disabled={!selectedPrescription || signatureSaved}
             >
               <PenTool className="h-4 w-4 mr-2" />
-              {signatureSaved ? "Signature Applied" : "Apply Advanced E-Signature"}
+              {signatureSaved
+                ? "Signature Applied"
+                : "Apply Advanced E-Signature"}
             </Button>
           </div>
         </DialogContent>
