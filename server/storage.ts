@@ -586,10 +586,12 @@ export interface IStorage {
   
   // Clinic Headers
   createClinicHeader(header: InsertClinicHeader): Promise<ClinicHeader>;
+  updateClinicHeader(id: number, organizationId: number, updates: Partial<InsertClinicHeader>): Promise<ClinicHeader | undefined>;
   getActiveClinicHeader(organizationId: number): Promise<ClinicHeader | undefined>;
   
   // Clinic Footers
   createClinicFooter(footer: InsertClinicFooter): Promise<ClinicFooter>;
+  updateClinicFooter(id: number, organizationId: number, updates: Partial<InsertClinicFooter>): Promise<ClinicFooter | undefined>;
   getActiveClinicFooter(organizationId: number): Promise<ClinicFooter | undefined>;
 }
 
@@ -6799,6 +6801,16 @@ export class DatabaseStorage implements IStorage {
     return header || undefined;
   }
 
+  async updateClinicHeader(id: number, organizationId: number, updates: Partial<InsertClinicHeader>): Promise<ClinicHeader | undefined> {
+    const updateData = { ...updates, updatedAt: new Date() };
+    const [updated] = await db
+      .update(clinicHeaders)
+      .set(updateData as any)
+      .where(and(eq(clinicHeaders.id, id), eq(clinicHeaders.organizationId, organizationId)))
+      .returning();
+    return updated || undefined;
+  }
+
   // Clinic Footers
   async createClinicFooter(footer: InsertClinicFooter): Promise<ClinicFooter> {
     // Deactivate existing footers for this organization
@@ -6823,6 +6835,16 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(clinicFooters.createdAt))
       .limit(1);
     return footer || undefined;
+  }
+
+  async updateClinicFooter(id: number, organizationId: number, updates: Partial<InsertClinicFooter>): Promise<ClinicFooter | undefined> {
+    const updateData = { ...updates, updatedAt: new Date() };
+    const [updated] = await db
+      .update(clinicFooters)
+      .set(updateData as any)
+      .where(and(eq(clinicFooters.id, id), eq(clinicFooters.organizationId, organizationId)))
+      .returning();
+    return updated || undefined;
   }
 }
 

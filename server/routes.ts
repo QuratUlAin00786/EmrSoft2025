@@ -16417,10 +16417,21 @@ Cura EMR Team
         organizationId
       });
       
-      const header = await storage.createClinicHeader(validated);
-      res.status(201).json(header);
+      // Check if header already exists for this organization
+      const existingHeader = await storage.getActiveClinicHeader(organizationId);
+      
+      let header;
+      if (existingHeader) {
+        // Update existing header
+        header = await storage.updateClinicHeader(existingHeader.id, organizationId, validated);
+        res.json(header);
+      } else {
+        // Create new header
+        header = await storage.createClinicHeader(validated);
+        res.status(201).json(header);
+      }
     } catch (error) {
-      handleRouteError(error, "create clinic header", res);
+      handleRouteError(error, "create or update clinic header", res);
     }
   });
 
@@ -16444,10 +16455,21 @@ Cura EMR Team
         organizationId
       });
       
-      const footer = await storage.createClinicFooter(validated);
-      res.status(201).json(footer);
+      // Check if footer already exists for this organization
+      const existingFooter = await storage.getActiveClinicFooter(organizationId);
+      
+      let footer;
+      if (existingFooter) {
+        // Update existing footer
+        footer = await storage.updateClinicFooter(existingFooter.id, organizationId, validated);
+        res.json(footer);
+      } else {
+        // Create new footer
+        footer = await storage.createClinicFooter(validated);
+        res.status(201).json(footer);
+      }
     } catch (error) {
-      handleRouteError(error, "create clinic footer", res);
+      handleRouteError(error, "create or update clinic footer", res);
     }
   });
 
