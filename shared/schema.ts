@@ -157,6 +157,38 @@ export const organizations = pgTable("organizations", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Clinic Headers - Application-wide header information
+export const clinicHeaders = pgTable("clinic_headers", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  logoBase64: text("logo_base64"),
+  logoPosition: varchar("logo_position", { length: 20 }).notNull().default("center"), // left, right, center
+  clinicName: text("clinic_name").notNull(),
+  address: text("address"),
+  phone: varchar("phone", { length: 50 }),
+  email: text("email"),
+  website: text("website"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Clinic Footers - Application-wide footer information
+export const clinicFooters = pgTable("clinic_footers", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  footerText: text("footer_text").notNull(),
+  backgroundColor: varchar("background_color", { length: 7 }).notNull().default("#4A7DFF"),
+  textColor: varchar("text_color", { length: 7 }).notNull().default("#FFFFFF"),
+  showSocial: boolean("show_social").notNull().default(false),
+  facebook: text("facebook"),
+  twitter: text("twitter"),
+  linkedin: text("linkedin"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Users
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -1973,6 +2005,25 @@ export const updateUserDocumentPreferencesSchema = insertUserDocumentPreferences
   userId: true,
 }).partial();
 
+export const insertClinicHeaderSchema = createInsertSchema(clinicHeaders).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  clinicName: z.string().trim().min(1, "Clinic name is required"),
+  logoPosition: z.enum(["left", "right", "center"]).default("center"),
+});
+
+export const insertClinicFooterSchema = createInsertSchema(clinicFooters).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  footerText: z.string().trim().min(1, "Footer text is required"),
+  backgroundColor: z.string().regex(/^#[0-9A-F]{6}$/i, "Invalid color format"),
+  textColor: z.string().regex(/^#[0-9A-F]{6}$/i, "Invalid color format"),
+});
+
 export const insertRoleSchema = createInsertSchema(roles).omit({
   id: true,
   createdAt: true,
@@ -2397,6 +2448,12 @@ export type InsertUser = z.infer<typeof insertUserSchema>;
 export type UserDocumentPreferences = typeof userDocumentPreferences.$inferSelect;
 export type InsertUserDocumentPreferences = z.infer<typeof insertUserDocumentPreferencesSchema>;
 export type UpdateUserDocumentPreferences = z.infer<typeof updateUserDocumentPreferencesSchema>;
+
+export type ClinicHeader = typeof clinicHeaders.$inferSelect;
+export type InsertClinicHeader = z.infer<typeof insertClinicHeaderSchema>;
+
+export type ClinicFooter = typeof clinicFooters.$inferSelect;
+export type InsertClinicFooter = z.infer<typeof insertClinicFooterSchema>;
 
 export type Role = typeof roles.$inferSelect;
 export type InsertRole = z.infer<typeof insertRoleSchema>;

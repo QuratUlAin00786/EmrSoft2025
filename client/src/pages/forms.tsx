@@ -175,6 +175,7 @@ export default function Forms() {
   const [showCreateClinicInfoDialog, setShowCreateClinicInfoDialog] = useState(false);
   const [clinicLogoFile, setClinicLogoFile] = useState<File | null>(null);
   const [clinicLogoPreview, setClinicLogoPreview] = useState<string>("");
+  const [selectedLogoPosition, setSelectedLogoPosition] = useState<"left" | "right" | "center">("center");
   const [clinicHeaderInfo, setClinicHeaderInfo] = useState({
     clinicName: "",
     address: "",
@@ -10274,14 +10275,50 @@ Registration No: [Number]`
                   />
                 </div>
                 {clinicLogoPreview && (
-                  <div className="mt-4">
-                    <Label className="text-sm font-medium mb-2 block">Logo Preview:</Label>
-                    <div className="border rounded-lg p-4 bg-white dark:bg-[hsl(var(--cura-midnight))] flex justify-center">
-                      <img 
-                        src={clinicLogoPreview} 
-                        alt="Clinic Logo Preview" 
-                        className="max-h-32 object-contain"
-                      />
+                  <div className="mt-4 space-y-4">
+                    <div>
+                      <Label className="text-sm font-medium mb-2 block">Logo Position:</Label>
+                      <div className="flex gap-3">
+                        <Button
+                          type="button"
+                          variant={selectedLogoPosition === "left" ? "default" : "outline"}
+                          onClick={() => setSelectedLogoPosition("left")}
+                          className="flex-1"
+                          data-testid="button-logo-position-left"
+                        >
+                          Left
+                        </Button>
+                        <Button
+                          type="button"
+                          variant={selectedLogoPosition === "center" ? "default" : "outline"}
+                          onClick={() => setSelectedLogoPosition("center")}
+                          className="flex-1"
+                          data-testid="button-logo-position-center"
+                        >
+                          Center
+                        </Button>
+                        <Button
+                          type="button"
+                          variant={selectedLogoPosition === "right" ? "default" : "outline"}
+                          onClick={() => setSelectedLogoPosition("right")}
+                          className="flex-1"
+                          data-testid="button-logo-position-right"
+                        >
+                          Right
+                        </Button>
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium mb-2 block">Logo Preview:</Label>
+                      <div className="border rounded-lg p-4 bg-white dark:bg-[hsl(var(--cura-midnight))]">
+                        <div style={{ display: "flex", justifyContent: selectedLogoPosition }}>
+                          <img 
+                            src={clinicLogoPreview} 
+                            alt="Clinic Logo Preview" 
+                            className="max-h-32 object-contain"
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -10352,6 +10389,44 @@ Registration No: [Number]`
                   />
                 </div>
               </div>
+              
+              {/* Header Preview */}
+              {clinicHeaderInfo.clinicName && (
+                <div className="mt-4">
+                  <Label className="text-sm font-medium mb-2 block">Header Preview:</Label>
+                  <div className="border rounded-lg p-6 bg-white dark:bg-[hsl(var(--cura-midnight))]">
+                    <div style={{ borderBottom: '3px solid ' + clinicFooterInfo.backgroundColor, paddingBottom: '20px' }}>
+                      {clinicLogoPreview && (
+                        <div style={{ display: "flex", justifyContent: selectedLogoPosition, marginBottom: "15px" }}>
+                          <img 
+                            src={clinicLogoPreview} 
+                            alt="Clinic Logo" 
+                            style={{ maxHeight: "80px", objectFit: "contain" }}
+                          />
+                        </div>
+                      )}
+                      <div style={{ textAlign: "center" }}>
+                        <h1 style={{ margin: 0, fontSize: "24px", fontWeight: "bold", color: clinicFooterInfo.backgroundColor }}>
+                          {clinicHeaderInfo.clinicName}
+                        </h1>
+                        {clinicHeaderInfo.address && (
+                          <p style={{ margin: "5px 0", color: "#666" }}>{clinicHeaderInfo.address}</p>
+                        )}
+                        {(clinicHeaderInfo.phone || clinicHeaderInfo.email) && (
+                          <p style={{ margin: "5px 0", color: "#666" }}>
+                            {clinicHeaderInfo.phone}
+                            {clinicHeaderInfo.phone && clinicHeaderInfo.email && " • "}
+                            {clinicHeaderInfo.email}
+                          </p>
+                        )}
+                        {clinicHeaderInfo.website && (
+                          <p style={{ margin: "5px 0", color: "#666" }}>{clinicHeaderInfo.website}</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Footer Information Section */}
@@ -10493,87 +10568,135 @@ Registration No: [Number]`
             </div>
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t">
+          <div className="flex justify-between gap-3 pt-4 border-t">
             <Button
               variant="outline"
               onClick={() => {
                 setShowCreateClinicInfoDialog(false);
                 setClinicLogoFile(null);
                 setClinicLogoPreview("");
+                setSelectedLogoPosition("center");
               }}
               data-testid="button-cancel-clinic-info"
             >
               Cancel
             </Button>
-            <Button
-              onClick={() => {
-                // Create header HTML with logo and info
-                let headerHTML = '<div style="border-bottom: 3px solid ' + clinicFooterInfo.backgroundColor + '; padding-bottom: 20px; margin-bottom: 30px;">';
-                
-                // Add logo if uploaded
-                if (clinicLogoPreview) {
-                  headerHTML += '<div style="text-align: center; margin-bottom: 15px;">';
-                  headerHTML += '<img src="' + clinicLogoPreview + '" alt="Clinic Logo" style="max-height: 100px; object-fit: contain;" />';
-                  headerHTML += '</div>';
-                }
-                
-                // Add header information
-                headerHTML += '<div style="text-align: center;">';
-                if (clinicHeaderInfo.clinicName) {
-                  headerHTML += '<h1 style="margin: 0; font-size: 24px; font-weight: bold; color: ' + clinicFooterInfo.backgroundColor + ';">' + clinicHeaderInfo.clinicName + '</h1>';
-                }
-                if (clinicHeaderInfo.address) {
-                  headerHTML += '<p style="margin: 5px 0; color: #666;">' + clinicHeaderInfo.address + '</p>';
-                }
-                if (clinicHeaderInfo.phone || clinicHeaderInfo.email) {
-                  headerHTML += '<p style="margin: 5px 0; color: #666;">';
-                  if (clinicHeaderInfo.phone) headerHTML += clinicHeaderInfo.phone;
-                  if (clinicHeaderInfo.phone && clinicHeaderInfo.email) headerHTML += ' • ';
-                  if (clinicHeaderInfo.email) headerHTML += clinicHeaderInfo.email;
-                  headerHTML += '</p>';
-                }
-                if (clinicHeaderInfo.website) {
-                  headerHTML += '<p style="margin: 5px 0; color: #666;">' + clinicHeaderInfo.website + '</p>';
-                }
-                headerHTML += '</div></div>';
-                
-                // Create footer HTML
-                let footerHTML = '<div style="border-top: 3px solid ' + clinicFooterInfo.backgroundColor + '; margin-top: 40px; padding-top: 20px; background-color: ' + clinicFooterInfo.backgroundColor + '; color: ' + clinicFooterInfo.textColor + '; padding: 20px; border-radius: 8px; text-align: center;">';
-                footerHTML += '<p style="margin: 0; font-size: 14px;">' + (clinicFooterInfo.footerText || "© 2025 Your Clinic. All rights reserved.") + '</p>';
-                
-                if (clinicFooterInfo.showSocial && (clinicFooterInfo.facebook || clinicFooterInfo.twitter || clinicFooterInfo.linkedin)) {
-                  footerHTML += '<div style="margin-top: 10px; display: flex; justify-content: center; gap: 15px;">';
-                  if (clinicFooterInfo.facebook) {
-                    footerHTML += '<span style="font-size: 12px;">📘 Facebook</span>';
+            <div className="flex gap-3">
+              <Button
+                onClick={async () => {
+                  if (!clinicHeaderInfo.clinicName.trim()) {
+                    toast({
+                      title: "⚠️ Validation Error",
+                      description: "Clinic name is required",
+                      variant: "destructive",
+                      duration: 3000,
+                    });
+                    return;
                   }
-                  if (clinicFooterInfo.twitter) {
-                    footerHTML += '<span style="font-size: 12px;">🐦 Twitter</span>';
+
+                  try {
+                    const headerData = {
+                      organizationId: user?.organizationId || 0,
+                      logoBase64: clinicLogoPreview || null,
+                      logoPosition: selectedLogoPosition,
+                      clinicName: clinicHeaderInfo.clinicName,
+                      address: clinicHeaderInfo.address || null,
+                      phone: clinicHeaderInfo.phone || null,
+                      email: clinicHeaderInfo.email || null,
+                      website: clinicHeaderInfo.website || null,
+                      isActive: true,
+                    };
+
+                    const response = await fetch('/api/clinic-headers', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'X-Tenant-Subdomain': user?.organizationId ? `org-${user.organizationId}` : '',
+                      },
+                      body: JSON.stringify(headerData),
+                    });
+
+                    if (!response.ok) {
+                      throw new Error('Failed to save header');
+                    }
+
+                    toast({
+                      title: "✓ Header Saved Successfully",
+                      description: "Clinic header information saved to database",
+                      duration: 3000,
+                    });
+                  } catch (error) {
+                    toast({
+                      title: "⚠️ Save Failed",
+                      description: "Failed to save header information",
+                      variant: "destructive",
+                      duration: 3000,
+                    });
                   }
-                  if (clinicFooterInfo.linkedin) {
-                    footerHTML += '<span style="font-size: 12px;">💼 LinkedIn</span>';
+                }}
+                className="bg-green-600 hover:bg-green-700 text-white"
+                data-testid="button-save-header"
+              >
+                Save Header
+              </Button>
+              <Button
+                onClick={async () => {
+                  if (!clinicFooterInfo.footerText.trim()) {
+                    toast({
+                      title: "⚠️ Validation Error",
+                      description: "Footer text is required",
+                      variant: "destructive",
+                      duration: 3000,
+                    });
+                    return;
                   }
-                  footerHTML += '</div>';
-                }
-                footerHTML += '</div>';
-                
-                // Insert header and footer into document
-                if (textareaRef) {
-                  textareaRef.innerHTML = headerHTML + textareaRef.innerHTML + footerHTML;
-                  setDocumentContent(textareaRef.innerHTML);
-                }
-                
-                setShowCreateClinicInfoDialog(false);
-                toast({
-                  title: "✓ Clinic Information Added",
-                  description: "Header and footer have been added to your document",
-                  duration: 3000,
-                });
-              }}
-              className="bg-[hsl(var(--cura-bluewave))] hover:bg-[hsl(var(--cura-bluewave))/90]"
-              data-testid="button-apply-clinic-info"
-            >
-              Apply to Document
-            </Button>
+
+                  try {
+                    const footerData = {
+                      organizationId: user?.organizationId || 0,
+                      footerText: clinicFooterInfo.footerText,
+                      backgroundColor: clinicFooterInfo.backgroundColor,
+                      textColor: clinicFooterInfo.textColor,
+                      showSocial: clinicFooterInfo.showSocial,
+                      facebook: clinicFooterInfo.facebook || null,
+                      twitter: clinicFooterInfo.twitter || null,
+                      linkedin: clinicFooterInfo.linkedin || null,
+                      isActive: true,
+                    };
+
+                    const response = await fetch('/api/clinic-footers', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'X-Tenant-Subdomain': user?.organizationId ? `org-${user.organizationId}` : '',
+                      },
+                      body: JSON.stringify(footerData),
+                    });
+
+                    if (!response.ok) {
+                      throw new Error('Failed to save footer');
+                    }
+
+                    toast({
+                      title: "✓ Footer Saved Successfully",
+                      description: "Clinic footer information saved to database",
+                      duration: 3000,
+                    });
+                  } catch (error) {
+                    toast({
+                      title: "⚠️ Save Failed",
+                      description: "Failed to save footer information",
+                      variant: "destructive",
+                      duration: 3000,
+                    });
+                  }
+                }}
+                className="bg-[hsl(var(--cura-bluewave))] hover:bg-[hsl(var(--cura-bluewave))/90]"
+                data-testid="button-save-footer"
+              >
+                Save Footer
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

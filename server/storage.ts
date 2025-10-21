@@ -1,6 +1,6 @@
 import { isDoctorLike } from './utils/role-utils.js';
 import { 
-  organizations, users, patients, medicalRecords, appointments, invoices, payments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages, clinicalPhotos, labResults, claims, revenueRecords, insuranceVerifications, clinicalProcedures, emergencyProtocols, medicationsDatabase, roles, staffShifts, doctorDefaultShifts, gdprConsents, gdprDataRequests, gdprAuditTrail, gdprProcessingActivities, conversations as conversationsTable, messages, voiceNotes, saasOwners, saasPackages, saasSubscriptions, saasPayments, saasInvoices, saasSettings, chatbotConfigs, chatbotSessions, chatbotMessages, chatbotAnalytics, musclePositions, userDocumentPreferences, letterDrafts, forecastModels, financialForecasts, quickbooksConnections, quickbooksSyncLogs, quickbooksCustomerMappings, quickbooksInvoiceMappings, quickbooksPaymentMappings, quickbooksAccountMappings, quickbooksItemMappings, quickbooksSyncConfigs, doctorsFee, labTestPricing, imagingPricing,
+  organizations, users, patients, medicalRecords, appointments, invoices, payments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages, clinicalPhotos, labResults, claims, revenueRecords, insuranceVerifications, clinicalProcedures, emergencyProtocols, medicationsDatabase, roles, staffShifts, doctorDefaultShifts, gdprConsents, gdprDataRequests, gdprAuditTrail, gdprProcessingActivities, conversations as conversationsTable, messages, voiceNotes, saasOwners, saasPackages, saasSubscriptions, saasPayments, saasInvoices, saasSettings, chatbotConfigs, chatbotSessions, chatbotMessages, chatbotAnalytics, musclePositions, userDocumentPreferences, letterDrafts, forecastModels, financialForecasts, quickbooksConnections, quickbooksSyncLogs, quickbooksCustomerMappings, quickbooksInvoiceMappings, quickbooksPaymentMappings, quickbooksAccountMappings, quickbooksItemMappings, quickbooksSyncConfigs, doctorsFee, labTestPricing, imagingPricing, clinicHeaders, clinicFooters,
   type Organization, type InsertOrganization,
   type User, type InsertUser,
   type Role, type InsertRole,
@@ -58,7 +58,9 @@ import {
   type QuickBooksSyncConfig, type InsertQuickBooksSyncConfig,
   type DoctorsFee, type InsertDoctorsFee,
   type LabTestPricing, type InsertLabTestPricing,
-  type ImagingPricing, type InsertImagingPricing
+  type ImagingPricing, type InsertImagingPricing,
+  type ClinicHeader, type InsertClinicHeader,
+  type ClinicFooter, type InsertClinicFooter
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, count, not, sql, gte, lt, lte, isNotNull, or, ilike, ne } from "drizzle-orm";
@@ -581,6 +583,14 @@ export interface IStorage {
   createImagingPricing(pricing: InsertImagingPricing): Promise<ImagingPricing>;
   updateImagingPricing(id: number, organizationId: number, updates: Partial<InsertImagingPricing>): Promise<ImagingPricing | undefined>;
   deleteImagingPricing(id: number, organizationId: number): Promise<boolean>;
+  
+  // Clinic Headers
+  createClinicHeader(header: InsertClinicHeader): Promise<ClinicHeader>;
+  getActiveClinicHeader(organizationId: number): Promise<ClinicHeader | undefined>;
+  
+  // Clinic Footers
+  createClinicFooter(footer: InsertClinicFooter): Promise<ClinicFooter>;
+  getActiveClinicFooter(organizationId: number): Promise<ClinicFooter | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -6761,6 +6771,58 @@ export class DatabaseStorage implements IStorage {
       .delete(imagingPricing)
       .where(and(eq(imagingPricing.id, id), eq(imagingPricing.organizationId, organizationId)));
     return result.rowCount > 0;
+  }
+
+  // Clinic Headers
+  async createClinicHeader(header: InsertClinicHeader): Promise<ClinicHeader> {
+    // Deactivate existing headers for this organization
+    await db
+      .update(clinicHeaders)
+      .set({ isActive: false, updatedAt: new Date() })
+      .where(and(eq(clinicHeaders.organizationId, header.organizationId), eq(clinicHeaders.isActive, true)));
+    
+    // Insert new header
+    const [created] = await db
+      .insert(clinicHeaders)
+      .values(header as any)
+      .returning();
+    return created;
+  }
+
+  async getActiveClinicHeader(organizationId: number): Promise<ClinicHeader | undefined> {
+    const [header] = await db
+      .select()
+      .from(clinicHeaders)
+      .where(and(eq(clinicHeaders.organizationId, organizationId), eq(clinicHeaders.isActive, true)))
+      .orderBy(desc(clinicHeaders.createdAt))
+      .limit(1);
+    return header || undefined;
+  }
+
+  // Clinic Footers
+  async createClinicFooter(footer: InsertClinicFooter): Promise<ClinicFooter> {
+    // Deactivate existing footers for this organization
+    await db
+      .update(clinicFooters)
+      .set({ isActive: false, updatedAt: new Date() })
+      .where(and(eq(clinicFooters.organizationId, footer.organizationId), eq(clinicFooters.isActive, true)));
+    
+    // Insert new footer
+    const [created] = await db
+      .insert(clinicFooters)
+      .values(footer as any)
+      .returning();
+    return created;
+  }
+
+  async getActiveClinicFooter(organizationId: number): Promise<ClinicFooter | undefined> {
+    const [footer] = await db
+      .select()
+      .from(clinicFooters)
+      .where(and(eq(clinicFooters.organizationId, organizationId), eq(clinicFooters.isActive, true)))
+      .orderBy(desc(clinicFooters.createdAt))
+      .limit(1);
+    return footer || undefined;
   }
 }
 

@@ -17,7 +17,7 @@ import { messagingService } from "./messaging-service";
 import { isDoctorLike } from './utils/role-utils.js';
 // PayPal imports moved to dynamic imports to avoid initialization errors when credentials are missing
 import { gdprComplianceService } from "./services/gdpr-compliance";
-import { insertGdprConsentSchema, insertGdprDataRequestSchema, updateMedicalImageReportFieldSchema, insertAiInsightSchema, medicationsDatabase, patientDrugInteractions, insuranceVerifications, type Appointment, organizations, subscriptions, users, patients, symptomChecks, quickbooksConnections } from "../shared/schema";
+import { insertGdprConsentSchema, insertGdprDataRequestSchema, updateMedicalImageReportFieldSchema, insertAiInsightSchema, medicationsDatabase, patientDrugInteractions, insuranceVerifications, type Appointment, organizations, subscriptions, users, patients, symptomChecks, quickbooksConnections, insertClinicHeaderSchema, insertClinicFooterSchema } from "../shared/schema";
 import { db } from "./db";
 import { and, eq, sql, desc } from "drizzle-orm";
 import { processAppointmentBookingChat, generateAppointmentSummary } from "./anthropic";
@@ -16403,6 +16403,62 @@ Cura EMR Team
       res.json({ message: "Imaging pricing deleted successfully" });
     } catch (error) {
       handleRouteError(error, "delete imaging pricing", res);
+    }
+  });
+
+  // ===== Clinic Headers & Footers Routes =====
+  
+  // Create or update clinic header
+  app.post("/api/clinic-headers", authMiddleware, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = requireOrgId(req);
+      const validated = insertClinicHeaderSchema.parse({
+        ...req.body,
+        organizationId
+      });
+      
+      const header = await storage.createClinicHeader(validated);
+      res.status(201).json(header);
+    } catch (error) {
+      handleRouteError(error, "create clinic header", res);
+    }
+  });
+
+  // Get active clinic header for organization
+  app.get("/api/clinic-headers", authMiddleware, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = requireOrgId(req);
+      const header = await storage.getActiveClinicHeader(organizationId);
+      res.json(header);
+    } catch (error) {
+      handleRouteError(error, "get clinic header", res);
+    }
+  });
+
+  // Create or update clinic footer
+  app.post("/api/clinic-footers", authMiddleware, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = requireOrgId(req);
+      const validated = insertClinicFooterSchema.parse({
+        ...req.body,
+        organizationId
+      });
+      
+      const footer = await storage.createClinicFooter(validated);
+      res.status(201).json(footer);
+    } catch (error) {
+      handleRouteError(error, "create clinic footer", res);
+    }
+  });
+
+  // Get active clinic footer for organization
+  app.get("/api/clinic-footers", authMiddleware, multiTenantEnforcer(), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = requireOrgId(req);
+      const footer = await storage.getActiveClinicFooter(organizationId);
+      res.json(footer);
+    } catch (error) {
+      handleRouteError(error, "get clinic footer", res);
     }
   });
   
