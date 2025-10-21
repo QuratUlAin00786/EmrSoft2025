@@ -6581,7 +6581,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Save PDF to file
       const pdfBuffer = Buffer.from(doc.output('arraybuffer'));
-      await fse.writeFile(filePath, pdfBuffer);
+      await fse.outputFile(filePath, pdfBuffer);
 
       console.log(`PDF generated successfully at: ${filePath}`);
 
