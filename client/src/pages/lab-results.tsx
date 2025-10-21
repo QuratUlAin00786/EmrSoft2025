@@ -3932,89 +3932,56 @@ Report generated from Cura EMR System`;
             >
               {/* Header */}
               <div className="border-b pb-4 pt-6">
-                <div className="flex flex-col items-center">
-                  {/* Center Logo (if position is center) */}
-                  {clinicHeader?.logoBase64 && clinicHeader?.logoPosition === 'center' && (
+                <div className="flex items-start gap-4">
+                  {/* Logo on Left */}
+                  {clinicHeader?.logoBase64 && (
                     <img
                       src={clinicHeader.logoBase64}
                       alt="Clinic Logo"
                       style={{
                         height: "100px",
                         width: "100px",
-                        marginBottom: "1rem",
+                        flexShrink: 0,
                       }}
                     />
                   )}
 
-                  <div className="flex items-center w-full">
-                    {/* Left Side: Image */}
-                    {clinicHeader?.logoBase64 && clinicHeader?.logoPosition === 'left' && (
-                      <img
-                        src={clinicHeader.logoBase64}
-                        alt="Clinic Logo"
-                        style={{
-                          height: "100px",
-                          width: "100px",
-                          marginRight: "1.5rem",
-                          marginLeft: "1rem",
-                        }}
-                      />
-                    )}
-
-                    {/* Text Content */}
-                    <div
-                      className="flex-1 text-center"
-                      style={{ marginLeft: clinicHeader?.logoPosition === 'left' ? "-120px" : "0" }}
+                  {/* Header Content */}
+                  <div className="flex-1">
+                    <h1 
+                      className="font-bold text-medical-blue mb-2"
+                      style={{
+                        fontSize: clinicHeader?.clinicNameFontSize || '24pt',
+                        fontFamily: clinicHeader?.fontFamily || 'verdana',
+                        fontWeight: clinicHeader?.fontWeight || 'bold',
+                        fontStyle: clinicHeader?.fontStyle || 'normal',
+                        textDecoration: clinicHeader?.textDecoration || 'none'
+                      }}
                     >
-                      <h1 
-                        className="font-bold text-medical-blue mb-2"
-                        style={{
-                          fontSize: clinicHeader?.clinicNameFontSize || '24pt',
-                          fontFamily: clinicHeader?.fontFamily || 'verdana',
-                          fontWeight: clinicHeader?.fontWeight || 'bold',
-                          fontStyle: clinicHeader?.fontStyle || 'normal',
-                          textDecoration: clinicHeader?.textDecoration || 'none'
-                        }}
-                      >
-                        {clinicHeader?.clinicName || 'CURA EMR SYSTEM'}
-                      </h1>
-                      <p 
-                        className="text-gray-600 font-medium"
-                        style={{
-                          fontSize: clinicHeader?.fontSize || '12pt',
-                          fontFamily: clinicHeader?.fontFamily || 'verdana'
-                        }}
-                      >
-                        Laboratory Test Prescription
-                      </p>
+                      {clinicHeader?.clinicName || 'CURA EMR SYSTEM'}
+                    </h1>
+                    <p 
+                      className="text-gray-600 font-medium"
+                      style={{
+                        fontSize: clinicHeader?.fontSize || '12pt',
+                        fontFamily: clinicHeader?.fontFamily || 'verdana'
+                      }}
+                    >
+                      Laboratory Test Prescription
+                    </p>
 
-                      <div 
-                        className="text-gray-700 mt-2 leading-5"
-                        style={{
-                          fontSize: clinicHeader?.fontSize || '12pt',
-                          fontFamily: clinicHeader?.fontFamily || 'verdana'
-                        }}
-                      >
-                        {clinicHeader?.address && <p>{clinicHeader.address}</p>}
-                        {clinicHeader?.phone && <p>{clinicHeader.phone}</p>}
-                        {clinicHeader?.email && <p>{clinicHeader.email}</p>}
-                        {clinicHeader?.website && <p>{clinicHeader.website}</p>}
-                      </div>
+                    <div 
+                      className="text-gray-700 mt-2 leading-5"
+                      style={{
+                        fontSize: clinicHeader?.fontSize || '12pt',
+                        fontFamily: clinicHeader?.fontFamily || 'verdana'
+                      }}
+                    >
+                      {clinicHeader?.address && <p>{clinicHeader.address}</p>}
+                      {clinicHeader?.phone && <p>{clinicHeader.phone}</p>}
+                      {clinicHeader?.email && <p>{clinicHeader.email}</p>}
+                      {clinicHeader?.website && <p>{clinicHeader.website}</p>}
                     </div>
-
-                    {/* Right Side: Image */}
-                    {clinicHeader?.logoBase64 && clinicHeader?.logoPosition === 'right' && (
-                      <img
-                        src={clinicHeader.logoBase64}
-                        alt="Clinic Logo"
-                        style={{
-                          height: "100px",
-                          width: "100px",
-                          marginLeft: "1.5rem",
-                          marginRight: "1rem",
-                        }}
-                      />
-                    )}
                   </div>
                 </div>
               </div>
