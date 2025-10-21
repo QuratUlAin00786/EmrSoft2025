@@ -10719,7 +10719,8 @@ Registration No: [Number]`
                       method: 'POST',
                       headers: {
                         'Content-Type': 'application/json',
-                        'X-Tenant-Subdomain': user?.organizationId ? `org-${user.organizationId}` : '',
+                        Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+                        'X-Tenant-Subdomain': localStorage.getItem("user_subdomain") || '',
                       },
                       body: JSON.stringify(headerData),
                     });
@@ -10776,7 +10777,8 @@ Registration No: [Number]`
                       method: 'POST',
                       headers: {
                         'Content-Type': 'application/json',
-                        'X-Tenant-Subdomain': user?.organizationId ? `org-${user.organizationId}` : '',
+                        Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+                        'X-Tenant-Subdomain': localStorage.getItem("user_subdomain") || '',
                       },
                       body: JSON.stringify(footerData),
                     });
