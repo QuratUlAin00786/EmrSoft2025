@@ -130,7 +130,7 @@ export default function PatientAppointments({
     queryKey: ["/api/users"],
     staleTime: 300000, // 5 minutes cache
     retry: false,
-    enabled: !!user && user.role === 'patient', // Only fetch for patients who need role filtering
+    enabled: !!user, // Fetch for all users to filter by creator role
     queryFn: async () => {
       console.log('🔍 FETCHING /api/users for role filtering');
       const response = await apiRequest('GET', '/api/users');
@@ -206,18 +206,33 @@ export default function PatientAppointments({
   }, [user, patientsData]);
 
   // Filter appointments to show only the logged-in patient's own appointments
+  // AND only show appointments created by doctor, patient, or admin roles
   const appointments = React.useMemo(() => {
     // If we're loading or no data, return empty array
     if (!appointmentsData) return [];
     
-    // For patient role users, filter appointments by matching patientId with currentPatient.id
-    if (user?.role === 'patient' && currentPatient) {
-      return appointmentsData.filter((apt: any) => apt.patientId === currentPatient.id);
+    // Filter appointments created by doctor, patient, or admin roles only
+    let filtered = appointmentsData;
+    
+    // Filter by creator role (must be doctor, patient, or admin)
+    if (usersData && Array.isArray(usersData)) {
+      filtered = filtered.filter((apt: any) => {
+        if (!apt.createdBy) return true; // Keep appointments without createdBy (legacy data)
+        const creator = usersData.find((u: any) => u.id === apt.createdBy);
+        if (!creator) return false; // Exclude if creator not found
+        const creatorRole = creator.role?.toLowerCase();
+        return creatorRole === 'doctor' || creatorRole === 'patient' || creatorRole === 'admin';
+      });
     }
     
-    // For non-patient users (admin, doctor, etc.), show all appointments
-    return appointmentsData;
-  }, [appointmentsData, user?.role, currentPatient]);
+    // For patient role users, additionally filter by matching patientId with currentPatient.id
+    if (user?.role === 'patient' && currentPatient) {
+      filtered = filtered.filter((apt: any) => apt.patientId === currentPatient.id);
+    }
+    
+    // Appointments are already filtered by organizationId at the backend level via tenant middleware
+    return filtered;
+  }, [appointmentsData, user?.role, currentPatient, usersData]);
 
   const getDoctorSpecialtyData = (providerId: number) => {
     const doctorsResponse = doctorsData as any;
