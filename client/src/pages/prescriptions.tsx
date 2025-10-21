@@ -1111,12 +1111,7 @@ export default function PrescriptionsPage() {
 
           pdf.setFontSize(10);
           pdf.setFont("helvetica", "normal");
-          pdf.text(
-            `Provider: ${prescriptionData.providerName || "N/A"}`,
-            20,
-            153,
-          );
-
+      
           // Medication Details - Highlighted Box
           pdf.setFillColor(240, 245, 255);
           pdf.rect(15, 165, 180, 60, "F");
