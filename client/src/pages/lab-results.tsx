@@ -4522,7 +4522,7 @@ Report generated from Cura EMR System`;
                   </Button>
                 )}
                 <Button
-                onClick={() => {
+                onClick={async () => {
                   // Validate required fields
                   if (!generateFormData.patientId) {
                     toast({
@@ -4582,7 +4582,8 @@ Report generated from Cura EMR System`;
                     `LAB${Date.now()}${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
 
                   // Create lab result for each selected test
-                  generateFormData.selectedTests.forEach((testType: string, index: number) => {
+                  for (let index = 0; index < generateFormData.selectedTests.length; index++) {
+                    const testType = generateFormData.selectedTests[index];
                     const testResults = results.filter((r) => {
                       const fields = TEST_FIELD_DEFINITIONS[testType];
                       return fields?.some((f) => f.name === r.name);
@@ -4606,13 +4607,27 @@ Report generated from Cura EMR System`;
                         criticalValues: false,
                       };
 
-                      createLabOrderMutation.mutate(labResultData);
+                      // Create lab result
+                      const createdResult = await apiRequest("/api/lab-results", {
+                        method: "POST",
+                        body: JSON.stringify(labResultData),
+                      });
+
+                      // Generate PDF for the created lab result
+                      if (createdResult?.id) {
+                        await apiRequest(`/api/lab-results/${createdResult.id}/generate-pdf`, {
+                          method: "POST",
+                        });
+                      }
                     }
-                  });
+                  }
+
+                  // Invalidate cache to refetch lab results
+                  queryClient.invalidateQueries({ queryKey: ["/api/lab-results"] });
 
                   toast({
                     title: "Success",
-                    description: `Lab result${generateFormData.selectedTests.length > 1 ? 's' : ''} generated successfully`,
+                    description: `Lab result${generateFormData.selectedTests.length > 1 ? 's' : ''} generated successfully and PDF saved`,
                   });
                   
                   setShowGenerateDialog(false);
@@ -5121,7 +5136,7 @@ Report generated from Cura EMR System`;
                   Download Lab Test Result
                 </Button>
                 <Button
-                  onClick={() => {
+                  onClick={async () => {
                     // Check for validation errors
                     if (Object.keys(validationErrors).length > 0) {
                       toast({
@@ -5169,19 +5184,27 @@ Report generated from Cura EMR System`;
                     }
 
                     // Update the existing lab order with results
-                    updateLabResultMutation.mutate({
-                      id: selectedLabOrder.id,
-                      data: {
+                    await apiRequest(`/api/lab-results/${selectedLabOrder.id}`, {
+                      method: "PUT",
+                      body: JSON.stringify({
                         status: "completed",
                         results: results,
                         notes: fillResultFormData.notes || selectedLabOrder.notes || "",
                         criticalValues: false,
-                      },
+                      }),
                     });
+
+                    // Generate PDF for the updated lab result
+                    await apiRequest(`/api/lab-results/${selectedLabOrder.id}/generate-pdf`, {
+                      method: "POST",
+                    });
+
+                    // Invalidate cache
+                    queryClient.invalidateQueries({ queryKey: ["/api/lab-results"] });
 
                     toast({
                       title: "Success",
-                      description: "Lab test results generated successfully",
+                      description: "Lab test results generated successfully and PDF saved",
                     });
                     
                     setShowFillResultDialog(false);

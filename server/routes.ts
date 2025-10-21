@@ -6380,6 +6380,204 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Generate PDF for lab result
+  app.post("/api/lab-results/:id/generate-pdf", authMiddleware, requireNonPatientRole(), async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const labResultId = parseInt(req.params.id);
+      if (isNaN(labResultId)) {
+        return res.status(400).json({ error: "Invalid lab result ID" });
+      }
+
+      const organizationId = req.tenant!.id;
+
+      // Fetch lab result
+      const labResults = await storage.getLabResults(organizationId);
+      const labResult = labResults.find(result => result.id === labResultId);
+      
+      if (!labResult) {
+        return res.status(404).json({ error: "Lab result not found" });
+      }
+
+      // Fetch patient details
+      const patient = await storage.getPatient(labResult.patientId, organizationId);
+      if (!patient) {
+        return res.status(404).json({ error: "Patient not found" });
+      }
+
+      // Fetch clinic header
+      const clinicHeaders = await storage.getClinicHeaders(organizationId);
+      const clinicHeader = clinicHeaders[0] || null;
+
+      // Construct directory path: uploads/organization_id/Lab_TestResults/{patient_id}/
+      const dirPath = path.join(process.cwd(), 'uploads', organizationId.toString(), 'Lab_TestResults', labResult.patientId.toString());
+      
+      // Ensure directory exists
+      await fse.ensureDir(dirPath);
+
+      // Construct file path with Test ID as filename
+      const fileName = `${labResult.testId}.pdf`;
+      const filePath = path.join(dirPath, fileName);
+
+      // Generate PDF using jsPDF
+      const { jsPDF } = await import('jspdf');
+      const doc = new jsPDF();
+
+      let yPos = 20;
+
+      // Header - Clinic Name
+      if (clinicHeader?.clinicName) {
+        doc.setFontSize(parseInt(clinicHeader.clinicNameFontSize || '24'));
+        doc.setFont(clinicHeader.fontFamily || 'helvetica', clinicHeader.fontWeight || 'bold');
+        doc.text(clinicHeader.clinicName, 105, yPos, { align: 'center' });
+        yPos += 10;
+      }
+
+      // Clinic Details
+      if (clinicHeader) {
+        doc.setFontSize(parseInt(clinicHeader.fontSize || '12'));
+        doc.setFont(clinicHeader.fontFamily || 'helvetica', 'normal');
+        if (clinicHeader.address) {
+          doc.text(clinicHeader.address, 105, yPos, { align: 'center' });
+          yPos += 6;
+        }
+        if (clinicHeader.phone) {
+          doc.text(clinicHeader.phone, 105, yPos, { align: 'center' });
+          yPos += 6;
+        }
+        if (clinicHeader.email) {
+          doc.text(clinicHeader.email, 105, yPos, { align: 'center' });
+          yPos += 6;
+        }
+      }
+
+      yPos += 10;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(14);
+      doc.text('Laboratory Test Prescription', 105, yPos, { align: 'center' });
+      yPos += 15;
+
+      // Patient Information
+      doc.setFontSize(12);
+      doc.text('Patient Information:', 20, yPos);
+      yPos += 8;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      doc.text(`Name: ${patient.firstName} ${patient.lastName}`, 20, yPos);
+      yPos += 6;
+      doc.text(`Patient ID: ${patient.id}`, 20, yPos);
+      yPos += 6;
+      if (patient.dateOfBirth) {
+        doc.text(`Date of Birth: ${new Date(patient.dateOfBirth).toLocaleDateString()}`, 20, yPos);
+        yPos += 6;
+      }
+      if (patient.gender) {
+        doc.text(`Gender: ${patient.gender}`, 20, yPos);
+        yPos += 6;
+      }
+
+      yPos += 8;
+
+      // Lab Result Information
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(12);
+      doc.text('Test Information:', 20, yPos);
+      yPos += 8;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      doc.text(`Test ID: ${labResult.testId}`, 20, yPos);
+      yPos += 6;
+      doc.text(`Test Type: ${labResult.testType}`, 20, yPos);
+      yPos += 6;
+      doc.text(`Status: ${labResult.status}`, 20, yPos);
+      yPos += 6;
+      if (labResult.priority) {
+        doc.text(`Priority: ${labResult.priority}`, 20, yPos);
+        yPos += 6;
+      }
+      if (labResult.orderedAt) {
+        doc.text(`Ordered At: ${new Date(labResult.orderedAt).toLocaleString()}`, 20, yPos);
+        yPos += 6;
+      }
+
+      // Results
+      if (labResult.results) {
+        yPos += 8;
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(12);
+        doc.text('Test Results:', 20, yPos);
+        yPos += 8;
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
+
+        try {
+          const results = typeof labResult.results === 'string' 
+            ? JSON.parse(labResult.results) 
+            : labResult.results;
+
+          if (Array.isArray(results)) {
+            results.forEach((result: any) => {
+              if (yPos > 270) {
+                doc.addPage();
+                yPos = 20;
+              }
+              doc.text(`${result.testName}: ${result.value} ${result.unit || ''}`, 25, yPos);
+              yPos += 6;
+              if (result.referenceRange) {
+                doc.text(`  Reference Range: ${result.referenceRange}`, 25, yPos);
+                yPos += 6;
+              }
+            });
+          }
+        } catch (e) {
+          doc.text(labResult.results.toString(), 25, yPos);
+          yPos += 6;
+        }
+      }
+
+      // Notes
+      if (labResult.notes) {
+        yPos += 8;
+        if (yPos > 270) {
+          doc.addPage();
+          yPos = 20;
+        }
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(12);
+        doc.text('Notes:', 20, yPos);
+        yPos += 8;
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
+        const splitNotes = doc.splitTextToSize(labResult.notes, 170);
+        doc.text(splitNotes, 20, yPos);
+      }
+
+      // Save PDF to file
+      const pdfBuffer = Buffer.from(doc.output('arraybuffer'));
+      await fse.writeFile(filePath, pdfBuffer);
+
+      console.log(`PDF generated successfully at: ${filePath}`);
+
+      // Return relative path for download
+      const relativePath = `uploads/${organizationId}/Lab_TestResults/${labResult.patientId}/${fileName}`;
+
+      res.json({
+        success: true,
+        message: "PDF generated successfully",
+        filePath: relativePath,
+        fileName: fileName,
+        testId: labResult.testId
+      });
+
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      res.status(500).json({ error: "Failed to generate PDF" });
+    }
+  });
+
   // Imaging Routes
   app.get("/api/imaging", authMiddleware, async (req: TenantRequest, res) => {
     try {
