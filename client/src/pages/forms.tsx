@@ -145,32 +145,32 @@ function ViewClinicInfo({ user }: { user: any }) {
             <div className="border rounded-lg p-6 bg-gray-50 dark:bg-gray-800">
               <p className="text-xs font-semibold mb-2 text-gray-500">Center Position</p>
               <div style={{ borderBottom: '3px solid ' + (savedFooter?.backgroundColor || '#4A7DFF'), paddingBottom: '20px' }}>
-                {savedHeader.logoBase64 && (
-                  <div style={{ display: "flex", justifyContent: "center", marginBottom: "15px" }}>
+                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "center", gap: "20px" }}>
+                  {savedHeader.logoBase64 && (
                     <img 
                       src={savedHeader.logoBase64} 
                       alt="Clinic Logo - Center" 
                       style={{ maxHeight: "80px", objectFit: "contain" }}
                     />
+                  )}
+                  <div style={{ textAlign: "center" }}>
+                    <h1 style={{ margin: 0, fontSize: "24px", fontWeight: "bold", color: savedFooter?.backgroundColor || '#4A7DFF' }}>
+                      {savedHeader.clinicName}
+                    </h1>
+                    {savedHeader.address && (
+                      <p style={{ margin: "5px 0", color: "#666" }}>{savedHeader.address}</p>
+                    )}
+                    {(savedHeader.phone || savedHeader.email) && (
+                      <p style={{ margin: "5px 0", color: "#666" }}>
+                        {savedHeader.phone}
+                        {savedHeader.phone && savedHeader.email && " • "}
+                        {savedHeader.email}
+                      </p>
+                    )}
+                    {savedHeader.website && (
+                      <p style={{ margin: "5px 0", color: "#666" }}>{savedHeader.website}</p>
+                    )}
                   </div>
-                )}
-                <div style={{ textAlign: "center" }}>
-                  <h1 style={{ margin: 0, fontSize: "24px", fontWeight: "bold", color: savedFooter?.backgroundColor || '#4A7DFF' }}>
-                    {savedHeader.clinicName}
-                  </h1>
-                  {savedHeader.address && (
-                    <p style={{ margin: "5px 0", color: "#666" }}>{savedHeader.address}</p>
-                  )}
-                  {(savedHeader.phone || savedHeader.email) && (
-                    <p style={{ margin: "5px 0", color: "#666" }}>
-                      {savedHeader.phone}
-                      {savedHeader.phone && savedHeader.email && " • "}
-                      {savedHeader.email}
-                    </p>
-                  )}
-                  {savedHeader.website && (
-                    <p style={{ margin: "5px 0", color: "#666" }}>{savedHeader.website}</p>
-                  )}
                 </div>
               </div>
             </div>
@@ -10614,32 +10614,32 @@ Registration No: [Number]`
                   <div className="border rounded-lg p-6 bg-white dark:bg-[hsl(var(--cura-midnight))]">
                     <p className="text-xs font-semibold mb-2 text-gray-500">Center Position</p>
                     <div style={{ borderBottom: '3px solid ' + clinicFooterInfo.backgroundColor, paddingBottom: '20px' }}>
-                      {clinicLogoPreview && (
-                        <div style={{ display: "flex", justifyContent: "center", marginBottom: "15px" }}>
+                      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "center", gap: "20px" }}>
+                        {clinicLogoPreview && (
                           <img 
                             src={clinicLogoPreview} 
                             alt="Clinic Logo - Center" 
                             style={{ maxHeight: "80px", objectFit: "contain" }}
                           />
+                        )}
+                        <div style={{ textAlign: "center" }}>
+                          <h1 style={{ margin: 0, fontSize: "24px", fontWeight: "bold", color: clinicFooterInfo.backgroundColor }}>
+                            {clinicHeaderInfo.clinicName}
+                          </h1>
+                          {clinicHeaderInfo.address && (
+                            <p style={{ margin: "5px 0", color: "#666" }}>{clinicHeaderInfo.address}</p>
+                          )}
+                          {(clinicHeaderInfo.phone || clinicHeaderInfo.email) && (
+                            <p style={{ margin: "5px 0", color: "#666" }}>
+                              {clinicHeaderInfo.phone}
+                              {clinicHeaderInfo.phone && clinicHeaderInfo.email && " • "}
+                              {clinicHeaderInfo.email}
+                            </p>
+                          )}
+                          {clinicHeaderInfo.website && (
+                            <p style={{ margin: "5px 0", color: "#666" }}>{clinicHeaderInfo.website}</p>
+                          )}
                         </div>
-                      )}
-                      <div style={{ textAlign: "center" }}>
-                        <h1 style={{ margin: 0, fontSize: "24px", fontWeight: "bold", color: clinicFooterInfo.backgroundColor }}>
-                          {clinicHeaderInfo.clinicName}
-                        </h1>
-                        {clinicHeaderInfo.address && (
-                          <p style={{ margin: "5px 0", color: "#666" }}>{clinicHeaderInfo.address}</p>
-                        )}
-                        {(clinicHeaderInfo.phone || clinicHeaderInfo.email) && (
-                          <p style={{ margin: "5px 0", color: "#666" }}>
-                            {clinicHeaderInfo.phone}
-                            {clinicHeaderInfo.phone && clinicHeaderInfo.email && " • "}
-                            {clinicHeaderInfo.email}
-                          </p>
-                        )}
-                        {clinicHeaderInfo.website && (
-                          <p style={{ margin: "5px 0", color: "#666" }}>{clinicHeaderInfo.website}</p>
-                        )}
                       </div>
                     </div>
                   </div>
