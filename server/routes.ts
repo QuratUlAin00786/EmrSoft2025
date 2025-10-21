@@ -6408,8 +6408,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Patient not found" });
       }
 
-      // Fetch clinic header
+      // Fetch clinic header and footer
       const clinicHeader = await storage.getActiveClinicHeader(organizationId);
+      const clinicFooter = await storage.getActiveClinicFooter(organizationId);
 
       // Construct directory path: uploads/organization_id/Lab_TestResults/{patient_id}/
       const dirPath = path.join(process.cwd(), 'uploads', organizationId.toString(), 'Lab_TestResults', labResult.patientId.toString());
@@ -6426,6 +6427,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const doc = new jsPDF();
 
       let yPos = 20;
+
+      // Add logo if available
+      if (clinicHeader?.logoBase64) {
+        try {
+          const logoX = clinicHeader.logoPosition === 'left' ? 20 : 
+                        clinicHeader.logoPosition === 'right' ? 160 : 90; // center
+          doc.addImage(clinicHeader.logoBase64, 'PNG', logoX, yPos, 30, 30);
+          yPos += 35;
+        } catch (error) {
+          console.error('Error adding logo to PDF:', error);
+        }
+      }
 
       // Header - Clinic Name
       if (clinicHeader?.clinicName) {
@@ -6552,6 +6565,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         doc.setFontSize(10);
         const splitNotes = doc.splitTextToSize(labResult.notes, 170);
         doc.text(splitNotes, 20, yPos);
+      }
+
+      // Add footer at bottom of all pages
+      if (clinicFooter) {
+        const pageCount = doc.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+          doc.setPage(i);
+          doc.setFontSize(10);
+          doc.setFont('helvetica', 'normal');
+          // Footer text centered at bottom
+          doc.text(clinicFooter.footerText, 105, 285, { align: 'center' });
+        }
       }
 
       // Save PDF to file
