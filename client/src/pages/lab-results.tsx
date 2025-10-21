@@ -2278,7 +2278,12 @@ Report generated from Cura EMR System`;
                         size="sm"
                         onClick={async () => {
                           try {
-                            const response = await fetch(`/api/lab-results/${result.id}/pdf-path`);
+                            const response = await fetch(`/api/lab-results/${result.id}/pdf-path`, {
+                              headers: {
+                                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+                                'X-Tenant-Subdomain': localStorage.getItem('user_subdomain') || ''
+                              }
+                            });
                             const data = await response.json();
                             if (data.pdfPath) {
                               setPdfViewerUrl(`/${data.pdfPath}`);
