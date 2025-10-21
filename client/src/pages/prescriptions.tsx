@@ -850,15 +850,42 @@ export default function PrescriptionsPage() {
           pdf.setFont('helvetica', 'bold');
           pdf.text('RESIDENT PHYSICIAN M.D', 105, 50, { align: 'center' });
           
-          // Pharmacy/Clinic Information
-          pdf.setFontSize(10);
-          pdf.setFont('helvetica', 'normal');
+          // Logo - if available
+          let yPosition = 58;
+          if (clinicHeader?.logoBase64) {
+            try {
+              const logoPosition = clinicHeader.logoPosition || 'center';
+              const xPosition = logoPosition === 'left' ? 20 : logoPosition === 'right' ? 170 : 95;
+              pdf.addImage(clinicHeader.logoBase64, 'PNG', xPosition, yPosition, 30, 30);
+              yPosition += 35;
+            } catch (err) {
+              console.error('Failed to add logo to PDF:', err);
+            }
+          }
+          
+          // Clinic Information with styling
           const clinicName = clinicHeader?.clinicName || pharmacyData?.name || 'Halo Health Clinic';
           const clinicAddress = clinicHeader?.address || 'Unit 2 Drayton Court, Solihull';
           const clinicPhone = clinicHeader?.phone || '+44(0)121 827 5531';
-          pdf.text(clinicName, 105, 58, { align: 'center' });
-          pdf.text(clinicAddress, 105, 64, { align: 'center' });
-          pdf.text(clinicPhone, 105, 70, { align: 'center' });
+          
+          // Apply clinic name font size
+          const clinicNameSize = parseInt(clinicHeader?.clinicNameFontSize || '24pt') || 24;
+          const contentSize = parseInt(clinicHeader?.fontSize || '10pt') || 10;
+          const fontWeight = clinicHeader?.fontWeight === 'bold' ? 'bold' : 'normal';
+          const fontStyle = clinicHeader?.fontStyle === 'italic' ? 'italic' : 'normal';
+          
+          // Clinic name with custom font size
+          pdf.setFontSize(clinicNameSize);
+          pdf.setFont('helvetica', fontWeight);
+          pdf.text(clinicName, 105, yPosition, { align: 'center' });
+          
+          // Other clinic info with regular styling
+          yPosition += 6;
+          pdf.setFontSize(contentSize);
+          pdf.setFont('helvetica', fontStyle);
+          pdf.text(clinicAddress, 105, yPosition, { align: 'center' });
+          yPosition += 6;
+          pdf.text(clinicPhone, 105, yPosition, { align: 'center' });
           
           // Horizontal line separator
           pdf.setDrawColor(200, 200, 200);
@@ -1821,9 +1848,22 @@ export default function PrescriptionsPage() {
               <!-- Provider Section -->
               <div class="provider-section">
                 <div class="provider-title">RESIDENT PHYSICIAN M.D</div>
-                <div class="provider-details">
+                ${clinicHeader?.logoBase64 ? `
+                <div style="text-align: ${clinicHeader.logoPosition || 'center'}; margin: 10px 0;">
+                  <img src="${clinicHeader.logoBase64}" alt="Clinic Logo" style="max-width: 100px; max-height: 100px;" />
+                </div>
+                ` : ''}
+                <div class="provider-details" style="
+                  font-family: ${clinicHeader?.fontFamily || 'Arial'}, sans-serif;
+                  font-size: ${clinicHeader?.fontSize || '12pt'};
+                  font-weight: ${clinicHeader?.fontWeight || 'normal'};
+                  font-style: ${clinicHeader?.fontStyle || 'normal'};
+                  text-decoration: ${clinicHeader?.textDecoration || 'none'};
+                ">
                   ${prescription.providerName}<br>
-                  ${clinicHeader?.clinicName || 'Halo Health Clinic'}<br>
+                  <span style="font-size: ${clinicHeader?.clinicNameFontSize || '16pt'}; font-weight: bold;">
+                    ${clinicHeader?.clinicName || 'Halo Health Clinic'}
+                  </span><br>
                   ${clinicHeader?.address || 'Unit 2 Drayton Court, Solihull'}<br>
                   ${clinicHeader?.phone || '+44(0)121 827 5531'}
                 </div>
@@ -2857,15 +2897,46 @@ export default function PrescriptionsPage() {
                           RESIDENT PHYSICIAN M.D
                         </h3>
                       
-                        <p className="text-sm text-gray-600 dark:text-gray-300">
-                          {clinicHeader?.clinicName || 'Halo Health Clinic'}
-                        </p>
-                        <p className="text-sm text-gray-600 dark:text-gray-300">
-                          {clinicHeader?.address || 'Unit 2 Drayton Court, Solihull'}
-                        </p>
-                        <p className="text-sm text-gray-600 dark:text-gray-300">
-                          {clinicHeader?.phone || '+44(0)121 827 5531'}
-                        </p>
+                        {clinicHeader?.logoBase64 && (
+                          <div 
+                            className="my-2"
+                            style={{
+                              textAlign: clinicHeader.logoPosition || 'center'
+                            }}
+                          >
+                            <img 
+                              src={clinicHeader.logoBase64} 
+                              alt="Clinic Logo" 
+                              className="inline-block"
+                              style={{ maxWidth: '80px', maxHeight: '80px' }}
+                            />
+                          </div>
+                        )}
+                        
+                        <div
+                          style={{
+                            fontFamily: clinicHeader?.fontFamily || 'inherit',
+                            fontSize: clinicHeader?.fontSize || '14px',
+                            fontWeight: clinicHeader?.fontWeight || 'normal',
+                            fontStyle: clinicHeader?.fontStyle || 'normal',
+                            textDecoration: clinicHeader?.textDecoration || 'none'
+                          }}
+                        >
+                          <p 
+                            className="text-gray-600 dark:text-gray-300 font-bold"
+                            style={{
+                              fontSize: clinicHeader?.clinicNameFontSize || '16px'
+                            }}
+                          >
+                            {clinicHeader?.clinicName || 'Halo Health Clinic'}
+                          </p>
+                          <p className="text-sm text-gray-600 dark:text-gray-300">
+                            {clinicHeader?.address || 'Unit 2 Drayton Court, Solihull'}
+                          </p>
+                          <p className="text-sm text-gray-600 dark:text-gray-300">
+                            {clinicHeader?.phone || '+44(0)121 827 5531'}
+                          </p>
+                        </div>
                       </div>
                     </div>
 
