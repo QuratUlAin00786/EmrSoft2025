@@ -99,115 +99,118 @@ function ViewClinicInfo({ user }: { user: any }) {
 
   return (
     <div className="space-y-6 py-4">
-      {/* Display Saved Header with Logo - All Positions */}
+      {/* Display Saved Header with Logo - Saved Position */}
       {savedHeader && (
         <div className="border rounded-lg p-6 bg-white dark:bg-[hsl(var(--cura-midnight))]">
           <h3 className="text-lg font-semibold mb-4 text-[hsl(var(--cura-bluewave))] flex items-center gap-2">
             <FileText className="h-5 w-5" />
-            Saved Clinic Header (All Positions)
+            Saved Clinic Header ({savedHeader.logoPosition})
           </h3>
           <div className="space-y-4">
             {/* Left Position */}
-            <div className="border rounded-lg p-6 bg-gray-50 dark:bg-gray-800">
-              <p className="text-xs font-semibold mb-2 text-gray-500">Left Position</p>
-              <div style={{ borderBottom: '3px solid ' + (savedFooter?.backgroundColor || '#4A7DFF'), paddingBottom: '20px' }}>
-                <div style={{ display: "flex", alignItems: "flex-start", gap: "20px" }}>
-                  {savedHeader.logoBase64 && (
-                    <img 
-                      src={savedHeader.logoBase64} 
-                      alt="Clinic Logo - Left" 
-                      style={{ maxHeight: "80px", objectFit: "contain" }}
-                    />
-                  )}
-                  <div style={{ flex: 1 }}>
-                    <h1 style={{ margin: 0, fontSize: "24px", fontWeight: "bold", color: savedFooter?.backgroundColor || '#4A7DFF' }}>
-                      {savedHeader.clinicName}
-                    </h1>
-                    {savedHeader.address && (
-                      <p style={{ margin: "5px 0", color: "#666" }}>{savedHeader.address}</p>
+            {savedHeader.logoPosition === 'left' && (
+              <div className="border rounded-lg p-6 bg-gray-50 dark:bg-gray-800">
+                <div style={{ borderBottom: '3px solid ' + (savedFooter?.backgroundColor || '#4A7DFF'), paddingBottom: '20px' }}>
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: "20px" }}>
+                    {savedHeader.logoBase64 && (
+                      <img 
+                        src={savedHeader.logoBase64} 
+                        alt="Clinic Logo - Left" 
+                        style={{ maxHeight: "80px", objectFit: "contain" }}
+                      />
                     )}
-                    {(savedHeader.phone || savedHeader.email) && (
-                      <p style={{ margin: "5px 0", color: "#666" }}>
-                        {savedHeader.phone}
-                        {savedHeader.phone && savedHeader.email && " • "}
-                        {savedHeader.email}
-                      </p>
-                    )}
-                    {savedHeader.website && (
-                      <p style={{ margin: "5px 0", color: "#666" }}>{savedHeader.website}</p>
-                    )}
+                    <div style={{ flex: 1 }}>
+                      <h1 style={{ margin: 0, fontSize: "24px", fontWeight: "bold", color: savedFooter?.backgroundColor || '#4A7DFF' }}>
+                        {savedHeader.clinicName}
+                      </h1>
+                      {savedHeader.address && (
+                        <p style={{ margin: "5px 0", color: "#666" }}>{savedHeader.address}</p>
+                      )}
+                      {(savedHeader.phone || savedHeader.email) && (
+                        <p style={{ margin: "5px 0", color: "#666" }}>
+                          {savedHeader.phone}
+                          {savedHeader.phone && savedHeader.email && " • "}
+                          {savedHeader.email}
+                        </p>
+                      )}
+                      {savedHeader.website && (
+                        <p style={{ margin: "5px 0", color: "#666" }}>{savedHeader.website}</p>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* Center Position */}
-            <div className="border rounded-lg p-6 bg-gray-50 dark:bg-gray-800">
-              <p className="text-xs font-semibold mb-2 text-gray-500">Center Position</p>
-              <div style={{ borderBottom: '3px solid ' + (savedFooter?.backgroundColor || '#4A7DFF'), paddingBottom: '20px' }}>
-                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "center", gap: "20px" }}>
-                  {savedHeader.logoBase64 && (
-                    <img 
-                      src={savedHeader.logoBase64} 
-                      alt="Clinic Logo - Center" 
-                      style={{ maxHeight: "80px", objectFit: "contain" }}
-                    />
-                  )}
-                  <div style={{ textAlign: "center" }}>
-                    <h1 style={{ margin: 0, fontSize: "24px", fontWeight: "bold", color: savedFooter?.backgroundColor || '#4A7DFF' }}>
-                      {savedHeader.clinicName}
-                    </h1>
-                    {savedHeader.address && (
-                      <p style={{ margin: "5px 0", color: "#666" }}>{savedHeader.address}</p>
+            {savedHeader.logoPosition === 'center' && (
+              <div className="border rounded-lg p-6 bg-gray-50 dark:bg-gray-800">
+                <div style={{ borderBottom: '3px solid ' + (savedFooter?.backgroundColor || '#4A7DFF'), paddingBottom: '20px' }}>
+                  <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "center", gap: "20px" }}>
+                    {savedHeader.logoBase64 && (
+                      <img 
+                        src={savedHeader.logoBase64} 
+                        alt="Clinic Logo - Center" 
+                        style={{ maxHeight: "80px", objectFit: "contain" }}
+                      />
                     )}
-                    {(savedHeader.phone || savedHeader.email) && (
-                      <p style={{ margin: "5px 0", color: "#666" }}>
-                        {savedHeader.phone}
-                        {savedHeader.phone && savedHeader.email && " • "}
-                        {savedHeader.email}
-                      </p>
-                    )}
-                    {savedHeader.website && (
-                      <p style={{ margin: "5px 0", color: "#666" }}>{savedHeader.website}</p>
-                    )}
+                    <div style={{ textAlign: "center" }}>
+                      <h1 style={{ margin: 0, fontSize: "24px", fontWeight: "bold", color: savedFooter?.backgroundColor || '#4A7DFF' }}>
+                        {savedHeader.clinicName}
+                      </h1>
+                      {savedHeader.address && (
+                        <p style={{ margin: "5px 0", color: "#666" }}>{savedHeader.address}</p>
+                      )}
+                      {(savedHeader.phone || savedHeader.email) && (
+                        <p style={{ margin: "5px 0", color: "#666" }}>
+                          {savedHeader.phone}
+                          {savedHeader.phone && savedHeader.email && " • "}
+                          {savedHeader.email}
+                        </p>
+                      )}
+                      {savedHeader.website && (
+                        <p style={{ margin: "5px 0", color: "#666" }}>{savedHeader.website}</p>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* Right Position */}
-            <div className="border rounded-lg p-6 bg-gray-50 dark:bg-gray-800">
-              <p className="text-xs font-semibold mb-2 text-gray-500">Right Position</p>
-              <div style={{ borderBottom: '3px solid ' + (savedFooter?.backgroundColor || '#4A7DFF'), paddingBottom: '20px' }}>
-                <div style={{ display: "flex", alignItems: "flex-start", gap: "20px", flexDirection: "row-reverse" }}>
-                  {savedHeader.logoBase64 && (
-                    <img 
-                      src={savedHeader.logoBase64} 
-                      alt="Clinic Logo - Right" 
-                      style={{ maxHeight: "80px", objectFit: "contain" }}
-                    />
-                  )}
-                  <div style={{ flex: 1, textAlign: "right" }}>
-                    <h1 style={{ margin: 0, fontSize: "24px", fontWeight: "bold", color: savedFooter?.backgroundColor || '#4A7DFF' }}>
-                      {savedHeader.clinicName}
-                    </h1>
-                    {savedHeader.address && (
-                      <p style={{ margin: "5px 0", color: "#666" }}>{savedHeader.address}</p>
+            {savedHeader.logoPosition === 'right' && (
+              <div className="border rounded-lg p-6 bg-gray-50 dark:bg-gray-800">
+                <div style={{ borderBottom: '3px solid ' + (savedFooter?.backgroundColor || '#4A7DFF'), paddingBottom: '20px' }}>
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: "20px", flexDirection: "row-reverse" }}>
+                    {savedHeader.logoBase64 && (
+                      <img 
+                        src={savedHeader.logoBase64} 
+                        alt="Clinic Logo - Right" 
+                        style={{ maxHeight: "80px", objectFit: "contain" }}
+                      />
                     )}
-                    {(savedHeader.phone || savedHeader.email) && (
-                      <p style={{ margin: "5px 0", color: "#666" }}>
-                        {savedHeader.phone}
-                        {savedHeader.phone && savedHeader.email && " • "}
-                        {savedHeader.email}
-                      </p>
-                    )}
-                    {savedHeader.website && (
-                      <p style={{ margin: "5px 0", color: "#666" }}>{savedHeader.website}</p>
-                    )}
+                    <div style={{ flex: 1, textAlign: "right" }}>
+                      <h1 style={{ margin: 0, fontSize: "24px", fontWeight: "bold", color: savedFooter?.backgroundColor || '#4A7DFF' }}>
+                        {savedHeader.clinicName}
+                      </h1>
+                      {savedHeader.address && (
+                        <p style={{ margin: "5px 0", color: "#666" }}>{savedHeader.address}</p>
+                      )}
+                      {(savedHeader.phone || savedHeader.email) && (
+                        <p style={{ margin: "5px 0", color: "#666" }}>
+                          {savedHeader.phone}
+                          {savedHeader.phone && savedHeader.email && " • "}
+                          {savedHeader.email}
+                        </p>
+                      )}
+                      {savedHeader.website && (
+                        <p style={{ margin: "5px 0", color: "#666" }}>{savedHeader.website}</p>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       )}
