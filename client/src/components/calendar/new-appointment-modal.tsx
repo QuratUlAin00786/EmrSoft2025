@@ -174,11 +174,14 @@ export function NewAppointmentModal({ isOpen, onClose, onAppointmentCreated }: N
         
         if (currentPatient) {
           console.log("✅ APPOINTMENT-MODAL: Found matching patient:", currentPatient);
+          console.log("✅ APPOINTMENT-MODAL: Setting patientId to:", currentPatient.id);
           setCurrentPatientDetails(currentPatient);
-          // Auto-populate the form with patient ID
+          // Auto-populate the form with patient ID (database record ID, not user ID)
           form.setValue("patientId", currentPatient.id.toString());
+          console.log("✅ APPOINTMENT-MODAL: Form patientId value set to:", currentPatient.id.toString());
         } else {
-          console.log("❌ APPOINTMENT-MODAL: No matching patient found");
+          console.log("❌ APPOINTMENT-MODAL: No matching patient found for user:", user);
+          console.log("❌ APPOINTMENT-MODAL: Available patients:", uniquePatients);
           setCurrentPatientDetails(null);
         }
       }
