@@ -834,6 +834,20 @@ export default function PrescriptionsPage() {
           const { jsPDF } = await import('jspdf');
           const pdf = new jsPDF();
           
+          // Fetch doctor information
+          const doctorId = prescriptionData.prescriptionCreatedBy || prescriptionData.doctorId;
+          let doctorInfo = null;
+          if (doctorId) {
+            try {
+              const doctorResponse = await apiRequest("GET", `/api/users/${doctorId}`);
+              if (doctorResponse.ok) {
+                doctorInfo = await doctorResponse.json();
+              }
+            } catch (err) {
+              console.error('Failed to fetch doctor info:', err);
+            }
+          }
+          
           // Professional Header - Similar to medical prescription format
           pdf.setFontSize(16);
           pdf.setFont('helvetica', 'bold');
@@ -842,8 +856,10 @@ export default function PrescriptionsPage() {
           
           pdf.setFontSize(9);
           pdf.setFont('helvetica', 'normal');
-          pdf.text('License # 123456', 20, 26);
-          pdf.text('NPI # 1234567890', 20, 31);
+          const doctorName = doctorInfo ? `${doctorInfo.firstName} ${doctorInfo.lastName}` : 'N/A';
+          const doctorRole = doctorInfo ? (doctorInfo.role || 'N/A') : 'N/A';
+          pdf.text(`Doctor: ${doctorName} (${doctorRole})`, 20, 26);
+          pdf.text(`Prescription #: ${prescriptionNumber}`, 20, 31);
           
           // Center Title
           pdf.setFontSize(18);
@@ -854,6 +870,8 @@ export default function PrescriptionsPage() {
           const clinicName = clinicHeader?.clinicName || pharmacyData?.name || 'Halo Health Clinic';
           const clinicAddress = clinicHeader?.address || 'Unit 2 Drayton Court, Solihull';
           const clinicPhone = clinicHeader?.phone || '+44(0)121 827 5531';
+          const clinicEmail = clinicHeader?.email || '';
+          const clinicWebsite = clinicHeader?.website || '';
           
           // Apply clinic name font size
           const clinicNameSize = parseInt(clinicHeader?.clinicNameFontSize || '24pt') || 24;
@@ -887,6 +905,16 @@ export default function PrescriptionsPage() {
                 yPosition += 6;
                 pdf.text(clinicPhone, textX, yPosition + 8, { align: 'left' });
                 
+                if (clinicEmail) {
+                  yPosition += 6;
+                  pdf.text(clinicEmail, textX, yPosition + 8, { align: 'left' });
+                }
+                
+                if (clinicWebsite) {
+                  yPosition += 6;
+                  pdf.text(clinicWebsite, textX, yPosition + 8, { align: 'left' });
+                }
+                
                 yPosition += 10;
               } else {
                 // Left or right positioning - logo above text
@@ -905,6 +933,16 @@ export default function PrescriptionsPage() {
                 pdf.text(clinicAddress, 105, yPosition, { align: 'center' });
                 yPosition += 6;
                 pdf.text(clinicPhone, 105, yPosition, { align: 'center' });
+                
+                if (clinicEmail) {
+                  yPosition += 6;
+                  pdf.text(clinicEmail, 105, yPosition, { align: 'center' });
+                }
+                
+                if (clinicWebsite) {
+                  yPosition += 6;
+                  pdf.text(clinicWebsite, 105, yPosition, { align: 'center' });
+                }
               }
             } catch (err) {
               console.error('Failed to add logo to PDF:', err);
@@ -921,6 +959,16 @@ export default function PrescriptionsPage() {
             pdf.text(clinicAddress, 105, yPosition, { align: 'center' });
             yPosition += 6;
             pdf.text(clinicPhone, 105, yPosition, { align: 'center' });
+            
+            if (clinicEmail) {
+              yPosition += 6;
+              pdf.text(clinicEmail, 105, yPosition, { align: 'center' });
+            }
+            
+            if (clinicWebsite) {
+              yPosition += 6;
+              pdf.text(clinicWebsite, 105, yPosition, { align: 'center' });
+            }
           }
           
           // Horizontal line separator
@@ -1572,6 +1620,20 @@ export default function PrescriptionsPage() {
     // Get patient details
     const patient = patients.find((p) => p.id === prescription.patientId);
     const provider = providers.find((p) => p.id === prescription.providerId);
+    
+    // Fetch doctor information
+    const doctorId = prescription.prescriptionCreatedBy || prescription.doctorId;
+    let doctorInfo = null;
+    if (doctorId) {
+      try {
+        const doctorResponse = await apiRequest("GET", `/api/users/${doctorId}`);
+        if (doctorResponse.ok) {
+          doctorInfo = await doctorResponse.json();
+        }
+      } catch (err) {
+        console.error('Failed to fetch doctor info:', err);
+      }
+    }
 
     // Calculate age from DOB
     const calculateAge = (dob: string) => {
@@ -1874,8 +1936,8 @@ export default function PrescriptionsPage() {
                 <div class="header-left">
                   <h1>CURA HEALTH EMR</h1>
                   <div class="license-info">
-                    License # 123456<br>
-                    NPI # 1234567890
+                    Doctor: ${doctorInfo ? `${doctorInfo.firstName} ${doctorInfo.lastName}` : 'N/A'} (${doctorInfo?.role || 'N/A'})<br>
+                    Prescription #: ${prescription.prescriptionNumber || 'N/A'}
                   </div>
                 </div>
                 <div class="status-badge">active</div>
@@ -1901,7 +1963,7 @@ export default function PrescriptionsPage() {
                       ${clinicHeader?.clinicName || 'Halo Health Clinic'}
                     </span><br>
                     ${clinicHeader?.address || 'Unit 2 Drayton Court, Solihull'}<br>
-                    ${clinicHeader?.phone || '+44(0)121 827 5531'}
+                    ${clinicHeader?.phone || '+44(0)121 827 5531'}${clinicHeader?.email ? `<br>${clinicHeader.email}` : ''}${clinicHeader?.website ? `<br>${clinicHeader.website}` : ''}
                   </div>
                 </div>
                 ` : clinicHeader?.logoBase64 ? `
@@ -1921,7 +1983,7 @@ export default function PrescriptionsPage() {
                     ${clinicHeader?.clinicName || 'Halo Health Clinic'}
                   </span><br>
                   ${clinicHeader?.address || 'Unit 2 Drayton Court, Solihull'}<br>
-                  ${clinicHeader?.phone || '+44(0)121 827 5531'}
+                  ${clinicHeader?.phone || '+44(0)121 827 5531'}${clinicHeader?.email ? `<br>${clinicHeader.email}` : ''}${clinicHeader?.website ? `<br>${clinicHeader.website}` : ''}
                 </div>
                 ` : `
                 <!-- No logo -->
@@ -1937,7 +1999,7 @@ export default function PrescriptionsPage() {
                     ${clinicHeader?.clinicName || 'Halo Health Clinic'}
                   </span><br>
                   ${clinicHeader?.address || 'Unit 2 Drayton Court, Solihull'}<br>
-                  ${clinicHeader?.phone || '+44(0)121 827 5531'}
+                  ${clinicHeader?.phone || '+44(0)121 827 5531'}${clinicHeader?.email ? `<br>${clinicHeader.email}` : ''}${clinicHeader?.website ? `<br>${clinicHeader.website}` : ''}
                 </div>
                 `}
               </div>
@@ -2888,10 +2950,7 @@ export default function PrescriptionsPage() {
                             CURA HEALTH EMR
                           </h2>
                           <p className="text-sm text-gray-600 dark:text-gray-300">
-                            License # 123456
-                          </p>
-                          <p className="text-sm text-gray-600 dark:text-gray-300">
-                            NPI # 1234567890
+                            Prescription #: {prescription.prescriptionNumber || 'N/A'}
                           </p>
                         </div>
                         <div>
@@ -3002,6 +3061,16 @@ export default function PrescriptionsPage() {
                               <p className="text-sm text-gray-600 dark:text-gray-300">
                                 {clinicHeader?.phone || '+44(0)121 827 5531'}
                               </p>
+                              {clinicHeader?.email && (
+                                <p className="text-sm text-gray-600 dark:text-gray-300">
+                                  {clinicHeader.email}
+                                </p>
+                              )}
+                              {clinicHeader?.website && (
+                                <p className="text-sm text-gray-600 dark:text-gray-300">
+                                  {clinicHeader.website}
+                                </p>
+                              )}
                             </div>
                           </div>
                         ) : (
@@ -3045,6 +3114,16 @@ export default function PrescriptionsPage() {
                               <p className="text-sm text-gray-600 dark:text-gray-300">
                                 {clinicHeader?.phone || '+44(0)121 827 5531'}
                               </p>
+                              {clinicHeader?.email && (
+                                <p className="text-sm text-gray-600 dark:text-gray-300">
+                                  {clinicHeader.email}
+                                </p>
+                              )}
+                              {clinicHeader?.website && (
+                                <p className="text-sm text-gray-600 dark:text-gray-300">
+                                  {clinicHeader.website}
+                                </p>
+                              )}
                             </div>
                           </>
                         )}
