@@ -6412,8 +6412,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const clinicHeader = await storage.getActiveClinicHeader(organizationId);
       const clinicFooter = await storage.getActiveClinicFooter(organizationId);
 
-      // Construct directory path: uploads/organization_id/Lab_TestResults/{patient_id}/
-      const dirPath = path.join(process.cwd(), 'uploads', organizationId.toString(), 'Lab_TestResults', labResult.patientId.toString());
+      // Construct directory path: uploads/Lab_TestResults/{organization_id}/{patient_id}/
+      const dirPath = path.join(process.cwd(), 'uploads', 'Lab_TestResults', organizationId.toString(), labResult.patientId.toString());
       
       // Ensure directory exists
       await fse.ensureDir(dirPath);
@@ -6652,7 +6652,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`PDF generated successfully at: ${filePath}`);
 
       // Return relative path for download
-      const relativePath = `uploads/${organizationId}/Lab_TestResults/${labResult.patientId}/${fileName}`;
+      const relativePath = `uploads/Lab_TestResults/${organizationId}/${labResult.patientId}/${fileName}`;
 
       res.json({
         success: true,

@@ -5446,6 +5446,13 @@ Report generated from Cura EMR System`;
                     const fileName = `${selectedLabOrder.testId || Date.now()}.pdf`;
                     pdf.save(fileName);
 
+                    // Also save PDF to server
+                    try {
+                      await apiRequest("POST", `/api/lab-results/${selectedLabOrder.id}/generate-pdf`);
+                    } catch (error) {
+                      console.error("Error saving PDF to server:", error);
+                    }
+
                     // Invalidate cache
                     queryClient.invalidateQueries({ queryKey: ["/api/lab-results"] });
 
