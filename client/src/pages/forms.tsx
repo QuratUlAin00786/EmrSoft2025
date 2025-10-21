@@ -171,6 +171,27 @@ export default function Forms() {
   const [showDraftDetailsDialog, setShowDraftDetailsDialog] = useState(false);
   const [selectedDraft, setSelectedDraft] = useState<any>(null);
 
+  // Create Clinic Information states
+  const [showCreateClinicInfoDialog, setShowCreateClinicInfoDialog] = useState(false);
+  const [clinicLogoFile, setClinicLogoFile] = useState<File | null>(null);
+  const [clinicLogoPreview, setClinicLogoPreview] = useState<string>("");
+  const [clinicHeaderInfo, setClinicHeaderInfo] = useState({
+    clinicName: "",
+    address: "",
+    phone: "",
+    email: "",
+    website: "",
+  });
+  const [clinicFooterInfo, setClinicFooterInfo] = useState({
+    footerText: "",
+    backgroundColor: "#4A7DFF",
+    textColor: "#FFFFFF",
+    showSocial: false,
+    facebook: "",
+    twitter: "",
+    linkedin: "",
+  });
+
   // Get current user
   const { user } = useAuth();
 
@@ -4721,6 +4742,14 @@ Coverage Details: [Insurance Coverage]`;
               onClick={handleInsertLogo}
             >
               Logo
+            </Button>
+            <Button
+              size="sm"
+              className="text-xs h-7 px-4 py-2 mt-5 bg-white text-black  border border-lightgray-400"
+              onClick={() => setShowCreateClinicInfoDialog(true)}
+              data-testid="button-create-clinic-info"
+            >
+              Create Clinic Information
             </Button>
             <Button
               size="sm"
@@ -10205,6 +10234,345 @@ Registration No: [Number]`
               }}
             >
               OK
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Clinic Information Dialog */}
+      <Dialog open={showCreateClinicInfoDialog} onOpenChange={setShowCreateClinicInfoDialog}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-[hsl(var(--cura-bluewave))]">Create Clinic Information</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6 py-4">
+            {/* Logo Upload Section */}
+            <div className="border rounded-lg p-6 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-[hsl(var(--cura-midnight))] dark:to-[hsl(var(--cura-midnight))]">
+              <h3 className="text-lg font-semibold mb-4 text-[hsl(var(--cura-bluewave))] flex items-center gap-2">
+                <Image className="h-5 w-5" />
+                Clinic Logo
+              </h3>
+              <div className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setClinicLogoFile(file);
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          setClinicLogoPreview(reader.result as string);
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                    className="flex-1"
+                    data-testid="input-clinic-logo"
+                  />
+                </div>
+                {clinicLogoPreview && (
+                  <div className="mt-4">
+                    <Label className="text-sm font-medium mb-2 block">Logo Preview:</Label>
+                    <div className="border rounded-lg p-4 bg-white dark:bg-[hsl(var(--cura-midnight))] flex justify-center">
+                      <img 
+                        src={clinicLogoPreview} 
+                        alt="Clinic Logo Preview" 
+                        className="max-h-32 object-contain"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Header Information Section */}
+            <div className="border rounded-lg p-6 bg-gradient-to-r from-green-50 to-blue-50 dark:from-[hsl(var(--cura-midnight))] dark:to-[hsl(var(--cura-midnight))]">
+              <h3 className="text-lg font-semibold mb-4 text-[hsl(var(--cura-bluewave))] flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Header Information
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="clinic-name" className="text-sm font-medium">Clinic Name</Label>
+                  <Input
+                    id="clinic-name"
+                    value={clinicHeaderInfo.clinicName}
+                    onChange={(e) => setClinicHeaderInfo(prev => ({ ...prev, clinicName: e.target.value }))}
+                    placeholder="Enter clinic name"
+                    className="mt-1"
+                    data-testid="input-clinic-name"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="clinic-address" className="text-sm font-medium">Address</Label>
+                  <Input
+                    id="clinic-address"
+                    value={clinicHeaderInfo.address}
+                    onChange={(e) => setClinicHeaderInfo(prev => ({ ...prev, address: e.target.value }))}
+                    placeholder="Enter clinic address"
+                    className="mt-1"
+                    data-testid="input-clinic-address"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="clinic-phone" className="text-sm font-medium">Phone</Label>
+                  <Input
+                    id="clinic-phone"
+                    value={clinicHeaderInfo.phone}
+                    onChange={(e) => setClinicHeaderInfo(prev => ({ ...prev, phone: e.target.value }))}
+                    placeholder="+44 20 1234 5678"
+                    className="mt-1"
+                    data-testid="input-clinic-phone"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="clinic-email" className="text-sm font-medium">Email</Label>
+                  <Input
+                    id="clinic-email"
+                    type="email"
+                    value={clinicHeaderInfo.email}
+                    onChange={(e) => setClinicHeaderInfo(prev => ({ ...prev, email: e.target.value }))}
+                    placeholder="info@clinic.com"
+                    className="mt-1"
+                    data-testid="input-clinic-email"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <Label htmlFor="clinic-website" className="text-sm font-medium">Website</Label>
+                  <Input
+                    id="clinic-website"
+                    value={clinicHeaderInfo.website}
+                    onChange={(e) => setClinicHeaderInfo(prev => ({ ...prev, website: e.target.value }))}
+                    placeholder="www.clinic.com"
+                    className="mt-1"
+                    data-testid="input-clinic-website"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Footer Information Section */}
+            <div className="border rounded-lg p-6 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-[hsl(var(--cura-midnight))] dark:to-[hsl(var(--cura-midnight))]">
+              <h3 className="text-lg font-semibold mb-4 text-[hsl(var(--cura-bluewave))] flex items-center gap-2">
+                <Palette className="h-5 w-5" />
+                Footer Design & Information
+              </h3>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="footer-text" className="text-sm font-medium">Footer Text</Label>
+                  <Input
+                    id="footer-text"
+                    value={clinicFooterInfo.footerText}
+                    onChange={(e) => setClinicFooterInfo(prev => ({ ...prev, footerText: e.target.value }))}
+                    placeholder="© 2025 Your Clinic. All rights reserved."
+                    className="mt-1"
+                    data-testid="input-footer-text"
+                  />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="footer-bg-color" className="text-sm font-medium">Background Color</Label>
+                    <div className="flex gap-2 mt-1">
+                      <Input
+                        id="footer-bg-color"
+                        type="color"
+                        value={clinicFooterInfo.backgroundColor}
+                        onChange={(e) => setClinicFooterInfo(prev => ({ ...prev, backgroundColor: e.target.value }))}
+                        className="w-16 h-10"
+                        data-testid="input-footer-bg-color"
+                      />
+                      <Input
+                        value={clinicFooterInfo.backgroundColor}
+                        onChange={(e) => setClinicFooterInfo(prev => ({ ...prev, backgroundColor: e.target.value }))}
+                        placeholder="#4A7DFF"
+                        className="flex-1"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor="footer-text-color" className="text-sm font-medium">Text Color</Label>
+                    <div className="flex gap-2 mt-1">
+                      <Input
+                        id="footer-text-color"
+                        type="color"
+                        value={clinicFooterInfo.textColor}
+                        onChange={(e) => setClinicFooterInfo(prev => ({ ...prev, textColor: e.target.value }))}
+                        className="w-16 h-10"
+                        data-testid="input-footer-text-color"
+                      />
+                      <Input
+                        value={clinicFooterInfo.textColor}
+                        onChange={(e) => setClinicFooterInfo(prev => ({ ...prev, textColor: e.target.value }))}
+                        placeholder="#FFFFFF"
+                        className="flex-1"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Social Media Links */}
+                <div className="pt-4 border-t">
+                  <div className="flex items-center gap-2 mb-3">
+                    <input
+                      type="checkbox"
+                      id="show-social"
+                      checked={clinicFooterInfo.showSocial}
+                      onChange={(e) => setClinicFooterInfo(prev => ({ ...prev, showSocial: e.target.checked }))}
+                      className="w-4 h-4"
+                      data-testid="checkbox-show-social"
+                    />
+                    <Label htmlFor="show-social" className="text-sm font-medium cursor-pointer">
+                      Include Social Media Links
+                    </Label>
+                  </div>
+                  
+                  {clinicFooterInfo.showSocial && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
+                      <div>
+                        <Label htmlFor="facebook" className="text-sm">Facebook</Label>
+                        <Input
+                          id="facebook"
+                          value={clinicFooterInfo.facebook}
+                          onChange={(e) => setClinicFooterInfo(prev => ({ ...prev, facebook: e.target.value }))}
+                          placeholder="facebook.com/clinic"
+                          className="mt-1"
+                          data-testid="input-facebook"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="twitter" className="text-sm">Twitter</Label>
+                        <Input
+                          id="twitter"
+                          value={clinicFooterInfo.twitter}
+                          onChange={(e) => setClinicFooterInfo(prev => ({ ...prev, twitter: e.target.value }))}
+                          placeholder="twitter.com/clinic"
+                          className="mt-1"
+                          data-testid="input-twitter"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="linkedin" className="text-sm">LinkedIn</Label>
+                        <Input
+                          id="linkedin"
+                          value={clinicFooterInfo.linkedin}
+                          onChange={(e) => setClinicFooterInfo(prev => ({ ...prev, linkedin: e.target.value }))}
+                          placeholder="linkedin.com/company/clinic"
+                          className="mt-1"
+                          data-testid="input-linkedin"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Footer Preview */}
+                <div className="mt-4">
+                  <Label className="text-sm font-medium mb-2 block">Footer Preview:</Label>
+                  <div 
+                    className="rounded-lg p-6 text-center"
+                    style={{ 
+                      backgroundColor: clinicFooterInfo.backgroundColor,
+                      color: clinicFooterInfo.textColor 
+                    }}
+                  >
+                    <p className="text-sm font-medium">{clinicFooterInfo.footerText || "© 2025 Your Clinic. All rights reserved."}</p>
+                    {clinicFooterInfo.showSocial && (clinicFooterInfo.facebook || clinicFooterInfo.twitter || clinicFooterInfo.linkedin) && (
+                      <div className="flex justify-center gap-4 mt-3">
+                        {clinicFooterInfo.facebook && <span className="text-xs">📘 Facebook</span>}
+                        {clinicFooterInfo.twitter && <span className="text-xs">🐦 Twitter</span>}
+                        {clinicFooterInfo.linkedin && <span className="text-xs">💼 LinkedIn</span>}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4 border-t">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowCreateClinicInfoDialog(false);
+                setClinicLogoFile(null);
+                setClinicLogoPreview("");
+              }}
+              data-testid="button-cancel-clinic-info"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                // Create header HTML with logo and info
+                let headerHTML = '<div style="border-bottom: 3px solid ' + clinicFooterInfo.backgroundColor + '; padding-bottom: 20px; margin-bottom: 30px;">';
+                
+                // Add logo if uploaded
+                if (clinicLogoPreview) {
+                  headerHTML += '<div style="text-align: center; margin-bottom: 15px;">';
+                  headerHTML += '<img src="' + clinicLogoPreview + '" alt="Clinic Logo" style="max-height: 100px; object-fit: contain;" />';
+                  headerHTML += '</div>';
+                }
+                
+                // Add header information
+                headerHTML += '<div style="text-align: center;">';
+                if (clinicHeaderInfo.clinicName) {
+                  headerHTML += '<h1 style="margin: 0; font-size: 24px; font-weight: bold; color: ' + clinicFooterInfo.backgroundColor + ';">' + clinicHeaderInfo.clinicName + '</h1>';
+                }
+                if (clinicHeaderInfo.address) {
+                  headerHTML += '<p style="margin: 5px 0; color: #666;">' + clinicHeaderInfo.address + '</p>';
+                }
+                if (clinicHeaderInfo.phone || clinicHeaderInfo.email) {
+                  headerHTML += '<p style="margin: 5px 0; color: #666;">';
+                  if (clinicHeaderInfo.phone) headerHTML += clinicHeaderInfo.phone;
+                  if (clinicHeaderInfo.phone && clinicHeaderInfo.email) headerHTML += ' • ';
+                  if (clinicHeaderInfo.email) headerHTML += clinicHeaderInfo.email;
+                  headerHTML += '</p>';
+                }
+                if (clinicHeaderInfo.website) {
+                  headerHTML += '<p style="margin: 5px 0; color: #666;">' + clinicHeaderInfo.website + '</p>';
+                }
+                headerHTML += '</div></div>';
+                
+                // Create footer HTML
+                let footerHTML = '<div style="border-top: 3px solid ' + clinicFooterInfo.backgroundColor + '; margin-top: 40px; padding-top: 20px; background-color: ' + clinicFooterInfo.backgroundColor + '; color: ' + clinicFooterInfo.textColor + '; padding: 20px; border-radius: 8px; text-align: center;">';
+                footerHTML += '<p style="margin: 0; font-size: 14px;">' + (clinicFooterInfo.footerText || "© 2025 Your Clinic. All rights reserved.") + '</p>';
+                
+                if (clinicFooterInfo.showSocial && (clinicFooterInfo.facebook || clinicFooterInfo.twitter || clinicFooterInfo.linkedin)) {
+                  footerHTML += '<div style="margin-top: 10px; display: flex; justify-content: center; gap: 15px;">';
+                  if (clinicFooterInfo.facebook) {
+                    footerHTML += '<span style="font-size: 12px;">📘 Facebook</span>';
+                  }
+                  if (clinicFooterInfo.twitter) {
+                    footerHTML += '<span style="font-size: 12px;">🐦 Twitter</span>';
+                  }
+                  if (clinicFooterInfo.linkedin) {
+                    footerHTML += '<span style="font-size: 12px;">💼 LinkedIn</span>';
+                  }
+                  footerHTML += '</div>';
+                }
+                footerHTML += '</div>';
+                
+                // Insert header and footer into document
+                if (textareaRef) {
+                  textareaRef.innerHTML = headerHTML + textareaRef.innerHTML + footerHTML;
+                  setDocumentContent(textareaRef.innerHTML);
+                }
+                
+                setShowCreateClinicInfoDialog(false);
+                toast({
+                  title: "✓ Clinic Information Added",
+                  description: "Header and footer have been added to your document",
+                  duration: 3000,
+                });
+              }}
+              className="bg-[hsl(var(--cura-bluewave))] hover:bg-[hsl(var(--cura-bluewave))/90]"
+              data-testid="button-apply-clinic-info"
+            >
+              Apply to Document
             </Button>
           </div>
         </DialogContent>
