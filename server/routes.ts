@@ -6409,8 +6409,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Fetch clinic header
-      const clinicHeaders = await storage.getClinicHeaders(organizationId);
-      const clinicHeader = clinicHeaders[0] || null;
+      const clinicHeader = await storage.getActiveClinicHeader(organizationId);
 
       // Construct directory path: uploads/organization_id/Lab_TestResults/{patient_id}/
       const dirPath = path.join(process.cwd(), 'uploads', organizationId.toString(), 'Lab_TestResults', labResult.patientId.toString());
