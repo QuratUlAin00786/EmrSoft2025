@@ -1147,7 +1147,7 @@ export default function PrescriptionsPage() {
           }
 
           // Instructions Section
-          let currentY = 238;
+          let currentY = 138;
           if (prescriptionData.instructions) {
             pdf.setFontSize(11);
             pdf.setFont("helvetica", "bold");
@@ -1163,21 +1163,25 @@ export default function PrescriptionsPage() {
             currentY += 8 + splitInstructions.length * 5;
           }
 
-          // E-Signature Section (if exists)
+          // E-Signature Section (if exists) - positioned before footer
           console.log("[PDF GENERATION] Checking for signature:", {
             hasSignature: !!prescriptionData.signature,
             signatureData: prescriptionData.signature,
           });
 
+          // Footer - Professional
+          const footerY = 275;
+          
+          // Place signature before footer on first page
           if (prescriptionData.signature) {
-            currentY += 10;
+            const signatureY = footerY - 55; // Position signature 55 units above footer
             pdf.setFontSize(11);
             pdf.setFont("helvetica", "bold");
             pdf.setTextColor(0, 0, 0);
-            pdf.text("Resident Physician", 20, currentY);
+            pdf.text("Resident Physician", 20, signatureY);
             pdf.setFontSize(9);
             pdf.setFont("helvetica", "normal");
-            pdf.text("(Signature)", 20, currentY + 6);
+            pdf.text("(Signature)", 20, signatureY + 6);
 
             // Add signature image if available
             if (prescriptionData.signature.imageData) {
@@ -1187,7 +1191,7 @@ export default function PrescriptionsPage() {
                   prescriptionData.signature.imageData,
                   "PNG",
                   20,
-                  currentY + 10,
+                  signatureY + 10,
                   50,
                   20,
                 );
@@ -1204,7 +1208,7 @@ export default function PrescriptionsPage() {
             // Add e-signed by info
             pdf.setFontSize(9);
             pdf.setTextColor(34, 139, 34); // Green color for e-sign
-            pdf.text(`✓ E-Signed by`, 20, currentY + 35);
+            pdf.text(`✓ E-Signed by`, 20, signatureY + 35);
 
             const signedDate = prescriptionData.signature.signedAt
               ? new Date(
@@ -1218,16 +1222,13 @@ export default function PrescriptionsPage() {
                 })
               : "";
             pdf.setTextColor(80, 80, 80);
-            pdf.text(signedDate, 20, currentY + 41);
+            pdf.text(signedDate, 20, signatureY + 41);
             console.log("[PDF GENERATION] E-signature section added to PDF");
           } else {
             console.log(
               "[PDF GENERATION] No signature found in prescription data",
             );
           }
-
-          // Footer - Professional
-          const footerY = 275;
           pdf.setDrawColor(200, 200, 200);
           pdf.line(20, footerY, 190, footerY);
 
@@ -2271,12 +2272,6 @@ export default function PrescriptionsPage() {
               <div class="footer">
                 <div class="signature-section">
                   <div class="signature-label">Resident Physician<br>(Signature)</div>
-                  ${
-                    prescription.signature && prescription.signature.doctorSignature
-                      ? `<img src="${prescription.signature.doctorSignature}" alt="Doctor Signature" style="height: 48px; width: 128px; border: 1px solid #dee2e6; background: white; border-radius: 4px; margin-top: 8px;" />
-                         <p style="font-size: 8px; color: #28a745; margin-top: 4px;">✓ E-Signed by ${prescription.signature.signedBy || "Provider"}</p>`
-                      : ""
-                  }
                 </div>
                 <div class="substitute-section">
                   <div class="substitute-label">May Substitute</div>
