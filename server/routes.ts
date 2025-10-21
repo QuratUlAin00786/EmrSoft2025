@@ -717,10 +717,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Serve uploaded files (clinical photos, imaging reports, etc.)
-  // Add headers to allow PDFs to be displayed in iframes (fixes Microsoft Edge blocking)
+  // Configure headers to allow PDF viewing in iframes with no restrictions
   app.use('/uploads', (req, res, next) => {
-    res.setHeader('X-Frame-Options', 'SAMEORIGIN');
-    res.setHeader('Content-Security-Policy', "frame-ancestors 'self'");
+    // Remove all frame restrictions to allow PDF viewing
+    res.removeHeader('X-Frame-Options');
+    // Set proper MIME type for PDFs
+    if (req.path.endsWith('.pdf')) {
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'inline'); // Force inline viewing, not download
+    }
     next();
   });
   app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
