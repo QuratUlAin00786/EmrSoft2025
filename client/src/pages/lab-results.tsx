@@ -662,6 +662,21 @@ export default function LabResultsPage() {
     },
   });
 
+  // Fetch clinic header data
+  const { data: clinicHeader } = useQuery({
+    queryKey: ["/api/clinic-headers"],
+    queryFn: async () => {
+      try {
+        const response = await apiRequest("GET", "/api/clinic-headers");
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.error("Clinic header fetch error:", error);
+        return null;
+      }
+    },
+  });
+
   // Doctor specialty states for lab order
   const [selectedSpecialtyCategory, setSelectedSpecialtyCategory] =
     useState<string>("");
@@ -1496,19 +1511,28 @@ Report generated from Cura EMR System`;
       <div style="display: grid; grid-template-columns: auto 1fr auto; align-items: center; border-bottom: 1px solid #ccc; padding: 1rem 0; position: relative;">
   
   <!-- Left Icon -->
+  ${clinicHeader?.logoBase64 && clinicHeader?.logoPosition === 'left' ? `
+    <div style="grid-column: 1 / 2;">
+      <img src="${clinicHeader.logoBase64}" alt="Clinic Logo" style="max-width: 80px; max-height: 80px;" />
+    </div>
+  ` : '<div></div>'}
 
   <!-- Centered Text Content -->
-  <div style="grid-column: 2 / 3; text-align: center;margin-left:-100;">
-    <span style="font-size: 25px; color: darkblue; font-weight: 700;">CURA EMR SYSTEM</span>
-    <h2 style="margin: 4px 0;">Laboratory Test Prescription</h2>
-    <p>Halo Health Clinic</p>
-    <p>Unit 2 Drayton Court, Solihull</p>
-    <p>B90 4NG, UK</p>
-    <p>+44(0)121 827 5531</p>
+  <div style="grid-column: 2 / 3; text-align: center;">
+    <span style="font-size: ${clinicHeader?.clinicNameFontSize || '25px'}; color: darkblue; font-weight: ${clinicHeader?.fontWeight || '700'}; font-family: ${clinicHeader?.fontFamily || 'verdana'}; font-style: ${clinicHeader?.fontStyle || 'normal'}; text-decoration: ${clinicHeader?.textDecoration || 'none'};">${clinicHeader?.clinicName || 'CURA EMR SYSTEM'}</span>
+    <h2 style="margin: 4px 0; font-size: ${clinicHeader?.fontSize || '12pt'}; font-family: ${clinicHeader?.fontFamily || 'verdana'};">Laboratory Test Prescription</h2>
+    ${clinicHeader?.address ? `<p style="font-size: ${clinicHeader.fontSize || '12pt'}; font-family: ${clinicHeader.fontFamily || 'verdana'}; margin: 2px 0;">${clinicHeader.address}</p>` : ''}
+    ${clinicHeader?.phone ? `<p style="font-size: ${clinicHeader.fontSize || '12pt'}; font-family: ${clinicHeader.fontFamily || 'verdana'}; margin: 2px 0;">${clinicHeader.phone}</p>` : ''}
+    ${clinicHeader?.email ? `<p style="font-size: ${clinicHeader.fontSize || '12pt'}; font-family: ${clinicHeader.fontFamily || 'verdana'}; margin: 2px 0;">${clinicHeader.email}</p>` : ''}
+    ${clinicHeader?.website ? `<p style="font-size: ${clinicHeader.fontSize || '12pt'}; font-family: ${clinicHeader.fontFamily || 'verdana'}; margin: 2px 0;">${clinicHeader.website}</p>` : ''}
   </div>
 
-  <!-- Placeholder Right Column (empty for spacing symmetry) -->
-  <div></div>
+  <!-- Right Logo or Placeholder -->
+  ${clinicHeader?.logoBase64 && clinicHeader?.logoPosition === 'right' ? `
+    <div style="grid-column: 3 / 4;">
+      <img src="${clinicHeader.logoBase64}" alt="Clinic Logo" style="max-width: 80px; max-height: 80px;" />
+    </div>
+  ` : '<div></div>'}
 </div>
 
             <div style="display: flex; justify-content: space-between; gap: 2rem; margin-top: 1rem;">
