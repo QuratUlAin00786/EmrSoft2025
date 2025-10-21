@@ -3038,7 +3038,7 @@ Report generated from Cura EMR System`;
                   if (invoiceData.paymentMethod === 'cash') {
                     // Handle cash payment
                     createCashPaymentMutation.mutate({
-                      patientId: pendingOrderData?.patientId,
+                      patient_id: pendingOrderData?.patientId,
                       patientName: patientName,
                       items: invoiceData.items,
                       totalAmount: invoiceData.totalAmount,
@@ -3050,7 +3050,7 @@ Report generated from Cura EMR System`;
                   } else if (invoiceData.paymentMethod === 'debit_card') {
                     // Handle Stripe payment - setup payment intent
                     createStripePaymentMutation.mutate({
-                      patientId: pendingOrderData?.patientId,
+                      patient_id: pendingOrderData?.patientId,
                       patientName: patientName,
                       amount: invoiceData.totalAmount,
                       items: invoiceData.items,
