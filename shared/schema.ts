@@ -168,6 +168,7 @@ export const clinicHeaders = pgTable("clinic_headers", {
   phone: varchar("phone", { length: 50 }),
   email: text("email"),
   website: text("website"),
+  clinicNameFontSize: varchar("clinic_name_font_size", { length: 20 }).notNull().default("24pt"),
   fontSize: varchar("font_size", { length: 20 }).notNull().default("12pt"),
   fontFamily: varchar("font_family", { length: 50 }).notNull().default("verdana"),
   fontWeight: varchar("font_weight", { length: 20 }).notNull().default("normal"), // normal, bold

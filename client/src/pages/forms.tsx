@@ -19,6 +19,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Command,
   CommandEmpty,
@@ -363,6 +364,7 @@ export default function Forms() {
     phone: "",
     email: "",
     website: "",
+    clinicNameFontSize: "24pt",
     fontSize: "12pt",
     fontFamily: "verdana",
     fontWeight: "normal",
@@ -10537,7 +10539,13 @@ Registration No: [Number]`
             <DialogTitle className="text-2xl font-bold text-[hsl(var(--cura-bluewave))]">Create Clinic Information</DialogTitle>
           </DialogHeader>
           
-          <div className="space-y-6 py-4">
+          <Tabs defaultValue="header" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="header" data-testid="tab-header">Header Design & Information</TabsTrigger>
+              <TabsTrigger value="footer" data-testid="tab-footer">Footer Design & Information</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="header" className="space-y-6 py-4">
             {/* Logo and Header Information Section in One Row */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Logo Upload Section */}
@@ -10622,6 +10630,27 @@ Registration No: [Number]`
                       className="mt-1"
                       data-testid="input-clinic-name"
                     />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">Clinic Name Font Size</Label>
+                    <Select
+                      value={clinicHeaderInfo.clinicNameFontSize}
+                      onValueChange={(value) => setClinicHeaderInfo(prev => ({ ...prev, clinicNameFontSize: value }))}
+                    >
+                      <SelectTrigger className="mt-1" data-testid="select-clinic-name-font-size">
+                        <SelectValue placeholder="Select size" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="16pt">16pt</SelectItem>
+                        <SelectItem value="18pt">18pt</SelectItem>
+                        <SelectItem value="20pt">20pt</SelectItem>
+                        <SelectItem value="22pt">22pt</SelectItem>
+                        <SelectItem value="24pt">24pt</SelectItem>
+                        <SelectItem value="26pt">26pt</SelectItem>
+                        <SelectItem value="28pt">28pt</SelectItem>
+                        <SelectItem value="30pt">30pt</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div>
                     <Label htmlFor="clinic-address" className="text-sm font-medium">Address</Label>
@@ -10765,7 +10794,7 @@ Registration No: [Number]`
                           />
                         )}
                         <div style={{ flex: 1 }}>
-                          <h1 style={{ margin: 0, fontSize: "24px", fontWeight: "bold", color: clinicFooterInfo.backgroundColor }}>
+                          <h1 style={{ margin: 0, fontSize: clinicHeaderInfo.clinicNameFontSize, fontWeight: "bold", color: clinicFooterInfo.backgroundColor }}>
                             {clinicHeaderInfo.clinicName}
                           </h1>
                           {clinicHeaderInfo.address && (
@@ -10801,7 +10830,7 @@ Registration No: [Number]`
                           />
                         )}
                         <div style={{ textAlign: "center" }}>
-                          <h1 style={{ margin: 0, fontSize: "24px", fontWeight: "bold", color: clinicFooterInfo.backgroundColor }}>
+                          <h1 style={{ margin: 0, fontSize: clinicHeaderInfo.clinicNameFontSize, fontWeight: "bold", color: clinicFooterInfo.backgroundColor }}>
                             {clinicHeaderInfo.clinicName}
                           </h1>
                           {clinicHeaderInfo.address && (
@@ -10837,7 +10866,7 @@ Registration No: [Number]`
                           />
                         )}
                         <div style={{ flex: 1, textAlign: "right" }}>
-                          <h1 style={{ margin: 0, fontSize: "24px", fontWeight: "bold", color: clinicFooterInfo.backgroundColor }}>
+                          <h1 style={{ margin: 0, fontSize: clinicHeaderInfo.clinicNameFontSize, fontWeight: "bold", color: clinicFooterInfo.backgroundColor }}>
                             {clinicHeaderInfo.clinicName}
                           </h1>
                           {clinicHeaderInfo.address && (
@@ -10860,7 +10889,9 @@ Registration No: [Number]`
                 )}
               </div>
             )}
-
+            </TabsContent>
+            
+            <TabsContent value="footer" className="space-y-6 py-4">
             {/* Footer Information Section */}
             <div className="border rounded-lg p-6 bg-white dark:bg-[hsl(var(--cura-midnight))]">
               <h3 className="text-lg font-semibold mb-4 text-[hsl(var(--cura-bluewave))] flex items-center gap-2">
@@ -10998,7 +11029,8 @@ Registration No: [Number]`
                 </div>
               </div>
             </div>
-          </div>
+            </TabsContent>
+          </Tabs>
 
           <div className="flex justify-between gap-3 pt-4 border-t">
             <Button
@@ -11036,6 +11068,7 @@ Registration No: [Number]`
                       phone: clinicHeaderInfo.phone || null,
                       email: clinicHeaderInfo.email || null,
                       website: clinicHeaderInfo.website || null,
+                      clinicNameFontSize: clinicHeaderInfo.clinicNameFontSize,
                       fontSize: clinicHeaderInfo.fontSize,
                       fontFamily: clinicHeaderInfo.fontFamily,
                       fontWeight: clinicHeaderInfo.fontWeight,
