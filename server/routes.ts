@@ -14134,7 +14134,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log('[CASH PAYMENT] Request received, body:', JSON.stringify(req.body, null, 2));
       const organizationId = requireOrgId(req);
-      const { patientId, patientName, items, totalAmount, insuranceProvider, serviceDate, invoiceDate, dueDate } = req.body;
+      const { patient_id, patientName, items, totalAmount, insuranceProvider, serviceDate, invoiceDate, dueDate } = req.body;
+      const patientId = patient_id;
 
       // Generate unique invoice number
       const invoiceNumber = `INV-${Date.now()}-${Math.random().toString(36).substring(7).toUpperCase()}`;
@@ -14226,7 +14227,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/payments/stripe", authMiddleware, multiTenantEnforcer(), async (req: TenantRequest, res) => {
     try {
       const organizationId = requireOrgId(req);
-      const { patientId, patientName, amount, items, insuranceProvider, serviceDate, invoiceDate, dueDate } = req.body;
+      const { patient_id, patientName, amount, items, insuranceProvider, serviceDate, invoiceDate, dueDate } = req.body;
+      const patientId = patient_id;
 
       if (!stripe) {
         return res.status(503).json({ error: "Stripe is not configured" });
