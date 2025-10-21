@@ -2276,51 +2276,10 @@ Report generated from Cura EMR System`;
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={async () => {
-                          try {
-                            console.log('[VIEW PDF] Fetching PDF path for lab result:', result.id);
-                            const response = await fetch(`/api/lab-results/${result.id}/pdf-path`, {
-                              headers: {
-                                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-                                'X-Tenant-Subdomain': localStorage.getItem('user_subdomain') || ''
-                              }
-                            });
-                            
-                            console.log('[VIEW PDF] Response status:', response.status);
-                            console.log('[VIEW PDF] Response headers:', response.headers.get('content-type'));
-                            
-                            if (!response.ok) {
-                              console.error('[VIEW PDF] Response not OK:', response.status, response.statusText);
-                              throw new Error(`HTTP error! status: ${response.status}`);
-                            }
-                            
-                            const text = await response.text();
-                            console.log('[VIEW PDF] Response text:', text);
-                            
-                            const data = JSON.parse(text);
-                            console.log('[VIEW PDF] Response data:', data);
-                            console.log('[VIEW PDF] pdfPath value:', data.pdfPath);
-                            console.log('[VIEW PDF] pdfPath type:', typeof data.pdfPath);
-                            if (data.pdfPath) {
-                              console.log('[VIEW PDF] Opening PDF:', data.pdfPath);
-                              setPdfViewerUrl(`/${data.pdfPath}`);
-                              setShowPdfViewerDialog(true);
-                            } else {
-                              console.log('[VIEW PDF] No PDF path found');
-                              toast({
-                                title: "Report Not Found",
-                                description: "Please generate report first",
-                                variant: "destructive",
-                              });
-                            }
-                          } catch (error) {
-                            console.error('[VIEW PDF] Error:', error);
-                            toast({
-                              title: "Error",
-                              description: "Please generate report first",
-                              variant: "destructive",
-                            });
-                          }
+                        onClick={() => {
+                          const pdfPath = `/uploads/Lab_TestResults/${result.organizationId}/${result.patientId}/${result.testId}.pdf`;
+                          setPdfViewerUrl(pdfPath);
+                          setShowPdfViewerDialog(true);
                         }}
                         className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200"
                         data-testid="button-view-lab-report"

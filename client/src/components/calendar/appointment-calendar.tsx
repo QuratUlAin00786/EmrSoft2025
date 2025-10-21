@@ -1393,8 +1393,8 @@ Medical License: [License Number]
                   </div>
                   <div className="flex items-center space-x-2">
                     <div className="text-right mr-4">
-                      <div className="font-medium">{appointment.title}</div>
-                      <div className="text-sm text-gray-500">Dr. {appointment.providerName}</div>
+                   
+                      <div className="font-medium">Dr. {appointment.providerName}</div>
                       {(() => {
                         const createdBy = getCreatedByUser(appointment.createdBy);
                         return createdBy ? (
