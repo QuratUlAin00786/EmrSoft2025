@@ -3390,6 +3390,22 @@ export default function PrescriptionsPage() {
                             Prescription #:{" "}
                             {prescription.prescriptionNumber || "N/A"}
                           </p>
+                          {(() => {
+                            const doctorId = prescription.prescriptionCreatedBy || prescription.doctorId;
+                            const doctorInfo = providers?.find((p: any) => p.id === doctorId);
+                            return doctorInfo ? (
+                              <div className="mt-1">
+                                <p className="text-xs text-gray-600 dark:text-gray-300">
+                                  <span className="font-medium">Provider:</span> Dr. {doctorInfo.firstName} {doctorInfo.lastName}
+                                </p>
+                                {doctorInfo.department && (
+                                  <p className="text-xs text-gray-600 dark:text-gray-300">
+                                    <span className="font-medium">Specialization:</span> {doctorInfo.department}
+                                  </p>
+                                )}
+                              </div>
+                            ) : null;
+                          })()}
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
