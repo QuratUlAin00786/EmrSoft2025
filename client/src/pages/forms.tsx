@@ -130,21 +130,53 @@ function ViewClinicInfo({ user, onLoadHeader }: { user: any; onLoadHeader: (head
                       />
                     )}
                     <div style={{ flex: 1 }}>
-                      <h1 style={{ margin: 0, fontSize: "24px", fontWeight: "bold", color: savedFooter?.backgroundColor || '#4A7DFF' }}>
+                      <h1 style={{ 
+                        margin: 0, 
+                        fontSize: savedHeader.clinicNameFontSize || "24pt",
+                        fontFamily: savedHeader.fontFamily || "verdana",
+                        fontWeight: savedHeader.fontWeight || "normal",
+                        fontStyle: savedHeader.fontStyle || "normal",
+                        textDecoration: savedHeader.textDecoration || "none",
+                        color: savedFooter?.backgroundColor || '#4A7DFF' 
+                      }}>
                         {savedHeader.clinicName}
                       </h1>
                       {savedHeader.address && (
-                        <p style={{ margin: "5px 0", color: "#666" }}>{savedHeader.address}</p>
+                        <p style={{ 
+                          margin: "5px 0", 
+                          fontSize: savedHeader.fontSize || "12pt",
+                          fontFamily: savedHeader.fontFamily || "verdana",
+                          fontWeight: savedHeader.fontWeight || "normal",
+                          fontStyle: savedHeader.fontStyle || "normal",
+                          textDecoration: savedHeader.textDecoration || "none",
+                          color: "#666" 
+                        }}>{savedHeader.address}</p>
                       )}
                       {(savedHeader.phone || savedHeader.email) && (
-                        <p style={{ margin: "5px 0", color: "#666" }}>
+                        <p style={{ 
+                          margin: "5px 0", 
+                          fontSize: savedHeader.fontSize || "12pt",
+                          fontFamily: savedHeader.fontFamily || "verdana",
+                          fontWeight: savedHeader.fontWeight || "normal",
+                          fontStyle: savedHeader.fontStyle || "normal",
+                          textDecoration: savedHeader.textDecoration || "none",
+                          color: "#666" 
+                        }}>
                           {savedHeader.phone}
                           {savedHeader.phone && savedHeader.email && " • "}
                           {savedHeader.email}
                         </p>
                       )}
                       {savedHeader.website && (
-                        <p style={{ margin: "5px 0", color: "#666" }}>{savedHeader.website}</p>
+                        <p style={{ 
+                          margin: "5px 0", 
+                          fontSize: savedHeader.fontSize || "12pt",
+                          fontFamily: savedHeader.fontFamily || "verdana",
+                          fontWeight: savedHeader.fontWeight || "normal",
+                          fontStyle: savedHeader.fontStyle || "normal",
+                          textDecoration: savedHeader.textDecoration || "none",
+                          color: "#666" 
+                        }}>{savedHeader.website}</p>
                       )}
                     </div>
                   </div>
@@ -165,21 +197,53 @@ function ViewClinicInfo({ user, onLoadHeader }: { user: any; onLoadHeader: (head
                       />
                     )}
                     <div style={{ textAlign: "center" }}>
-                      <h1 style={{ margin: 0, fontSize: "24px", fontWeight: "bold", color: savedFooter?.backgroundColor || '#4A7DFF' }}>
+                      <h1 style={{ 
+                        margin: 0, 
+                        fontSize: savedHeader.clinicNameFontSize || "24pt",
+                        fontFamily: savedHeader.fontFamily || "verdana",
+                        fontWeight: savedHeader.fontWeight || "normal",
+                        fontStyle: savedHeader.fontStyle || "normal",
+                        textDecoration: savedHeader.textDecoration || "none",
+                        color: savedFooter?.backgroundColor || '#4A7DFF' 
+                      }}>
                         {savedHeader.clinicName}
                       </h1>
                       {savedHeader.address && (
-                        <p style={{ margin: "5px 0", color: "#666" }}>{savedHeader.address}</p>
+                        <p style={{ 
+                          margin: "5px 0", 
+                          fontSize: savedHeader.fontSize || "12pt",
+                          fontFamily: savedHeader.fontFamily || "verdana",
+                          fontWeight: savedHeader.fontWeight || "normal",
+                          fontStyle: savedHeader.fontStyle || "normal",
+                          textDecoration: savedHeader.textDecoration || "none",
+                          color: "#666" 
+                        }}>{savedHeader.address}</p>
                       )}
                       {(savedHeader.phone || savedHeader.email) && (
-                        <p style={{ margin: "5px 0", color: "#666" }}>
+                        <p style={{ 
+                          margin: "5px 0", 
+                          fontSize: savedHeader.fontSize || "12pt",
+                          fontFamily: savedHeader.fontFamily || "verdana",
+                          fontWeight: savedHeader.fontWeight || "normal",
+                          fontStyle: savedHeader.fontStyle || "normal",
+                          textDecoration: savedHeader.textDecoration || "none",
+                          color: "#666" 
+                        }}>
                           {savedHeader.phone}
                           {savedHeader.phone && savedHeader.email && " • "}
                           {savedHeader.email}
                         </p>
                       )}
                       {savedHeader.website && (
-                        <p style={{ margin: "5px 0", color: "#666" }}>{savedHeader.website}</p>
+                        <p style={{ 
+                          margin: "5px 0", 
+                          fontSize: savedHeader.fontSize || "12pt",
+                          fontFamily: savedHeader.fontFamily || "verdana",
+                          fontWeight: savedHeader.fontWeight || "normal",
+                          fontStyle: savedHeader.fontStyle || "normal",
+                          textDecoration: savedHeader.textDecoration || "none",
+                          color: "#666" 
+                        }}>{savedHeader.website}</p>
                       )}
                     </div>
                   </div>
@@ -200,21 +264,53 @@ function ViewClinicInfo({ user, onLoadHeader }: { user: any; onLoadHeader: (head
                       />
                     )}
                     <div style={{ flex: 1, textAlign: "right" }}>
-                      <h1 style={{ margin: 0, fontSize: "24px", fontWeight: "bold", color: savedFooter?.backgroundColor || '#4A7DFF' }}>
+                      <h1 style={{ 
+                        margin: 0, 
+                        fontSize: savedHeader.clinicNameFontSize || "24pt",
+                        fontFamily: savedHeader.fontFamily || "verdana",
+                        fontWeight: savedHeader.fontWeight || "normal",
+                        fontStyle: savedHeader.fontStyle || "normal",
+                        textDecoration: savedHeader.textDecoration || "none",
+                        color: savedFooter?.backgroundColor || '#4A7DFF' 
+                      }}>
                         {savedHeader.clinicName}
                       </h1>
                       {savedHeader.address && (
-                        <p style={{ margin: "5px 0", color: "#666" }}>{savedHeader.address}</p>
+                        <p style={{ 
+                          margin: "5px 0", 
+                          fontSize: savedHeader.fontSize || "12pt",
+                          fontFamily: savedHeader.fontFamily || "verdana",
+                          fontWeight: savedHeader.fontWeight || "normal",
+                          fontStyle: savedHeader.fontStyle || "normal",
+                          textDecoration: savedHeader.textDecoration || "none",
+                          color: "#666" 
+                        }}>{savedHeader.address}</p>
                       )}
                       {(savedHeader.phone || savedHeader.email) && (
-                        <p style={{ margin: "5px 0", color: "#666" }}>
+                        <p style={{ 
+                          margin: "5px 0", 
+                          fontSize: savedHeader.fontSize || "12pt",
+                          fontFamily: savedHeader.fontFamily || "verdana",
+                          fontWeight: savedHeader.fontWeight || "normal",
+                          fontStyle: savedHeader.fontStyle || "normal",
+                          textDecoration: savedHeader.textDecoration || "none",
+                          color: "#666" 
+                        }}>
                           {savedHeader.phone}
                           {savedHeader.phone && savedHeader.email && " • "}
                           {savedHeader.email}
                         </p>
                       )}
                       {savedHeader.website && (
-                        <p style={{ margin: "5px 0", color: "#666" }}>{savedHeader.website}</p>
+                        <p style={{ 
+                          margin: "5px 0", 
+                          fontSize: savedHeader.fontSize || "12pt",
+                          fontFamily: savedHeader.fontFamily || "verdana",
+                          fontWeight: savedHeader.fontWeight || "normal",
+                          fontStyle: savedHeader.fontStyle || "normal",
+                          textDecoration: savedHeader.textDecoration || "none",
+                          color: "#666" 
+                        }}>{savedHeader.website}</p>
                       )}
                     </div>
                   </div>
