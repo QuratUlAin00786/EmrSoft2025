@@ -1570,17 +1570,17 @@ export default function UserManagement() {
     onSuccess: (data, userId) => {
       const deletionSteps = `The user has been successfully deleted. The following operations were completed:
 
-✅ Delete notifications for user
-✅ Delete prescriptions where user is the doctor (doctorId)
-✅ Delete appointments where user is provider
-✅ Delete lab results ordered by user (orderedBy)
-✅ Find patient record linked to this user
-✅ Delete prescriptions FOR this patient (patientId)
-✅ Delete lab results for this patient (patientId)
-✅ Delete medical images for this patient (patientId)
-✅ Delete symptom checks for this patient (patientId)
-✅ Delete patient record
-✅ Delete user`;
+1. Delete notifications for user
+2. Delete prescriptions where user is the doctor (doctorId)
+3. Delete appointments where user is provider
+4. Delete lab results ordered by user (orderedBy)
+5. Find patient record linked to this user
+6. Delete prescriptions FOR this patient (patientId)
+7. Delete lab results for this patient (patientId)
+8. Delete medical images for this patient (patientId)
+9. Delete symptom checks for this patient (patientId)
+10. Delete patient record
+11. Delete user`;
       
       setSuccessMessage(deletionSteps);
       setShowSuccessModal(true);
