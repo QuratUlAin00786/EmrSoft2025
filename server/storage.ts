@@ -1052,45 +1052,56 @@ export class DatabaseStorage implements IStorage {
         .limit(1);
 
       if (!patient) {
-        console.error("Patient not found for deletion");
+        console.error(`❌ Patient ${id} not found for deletion in org ${organizationId}`);
         return false;
       }
+
+      console.log(`🗑️ Starting deletion of patient ${id} (${patient.firstName} ${patient.lastName}), userId: ${patient.userId}`);
 
       // Delete related records (cascade delete)
       // Delete medical records
       await db.delete(medicalRecords)
         .where(and(eq(medicalRecords.patientId, id), eq(medicalRecords.organizationId, organizationId)));
+      console.log(`✅ Deleted medical records for patient ${id}`);
       
       // Delete appointments
       await db.delete(appointments)
         .where(and(eq(appointments.patientId, id), eq(appointments.organizationId, organizationId)));
+      console.log(`✅ Deleted appointments for patient ${id}`);
       
       // Delete AI insights
       await db.delete(aiInsights)
         .where(and(eq(aiInsights.patientId, id), eq(aiInsights.organizationId, organizationId)));
+      console.log(`✅ Deleted AI insights for patient ${id}`);
       
       // Delete prescriptions
       await db.delete(prescriptions)
         .where(and(eq(prescriptions.patientId, id), eq(prescriptions.organizationId, organizationId)));
+      console.log(`✅ Deleted prescriptions for patient ${id}`);
       
       // Delete lab results
       await db.delete(labResults)
         .where(and(eq(labResults.patientId, id), eq(labResults.organizationId, organizationId)));
+      console.log(`✅ Deleted lab results for patient ${id}`);
       
       // Delete the patient record
       const patientResult = await db.delete(patients)
         .where(and(eq(patients.id, id), eq(patients.organizationId, organizationId)));
+      console.log(`✅ Deleted patient record ${id}`);
       
       // Delete the associated user account if it exists
       if (patient.userId) {
-        await db.delete(users)
+        console.log(`🔍 Attempting to delete user account ID: ${patient.userId} for org ${organizationId}`);
+        const userDeleteResult = await db.delete(users)
           .where(and(eq(users.id, patient.userId), eq(users.organizationId, organizationId)));
-        console.log(`Deleted associated user account (ID: ${patient.userId}) for patient ${id}`);
+        console.log(`✅ Deleted associated user account (ID: ${patient.userId}, rows affected: ${userDeleteResult.rowCount}) for patient ${id}`);
+      } else {
+        console.log(`⚠️ No userId associated with patient ${id}`);
       }
       
       return (patientResult.rowCount || 0) > 0;
     } catch (error) {
-      console.error("Error deleting patient:", error);
+      console.error("❌ Error deleting patient:", error);
       return false;
     }
   }
