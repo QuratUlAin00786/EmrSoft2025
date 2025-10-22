@@ -189,6 +189,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -902,6 +911,7 @@ export default function LabResultsPage() {
 
   const [showPermissionErrorDialog, setShowPermissionErrorDialog] = useState(false);
   const [permissionErrorMessage, setPermissionErrorMessage] = useState("");
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
 
   const updateLabResultMutation = useMutation({
     mutationFn: async (updateData: { id: number; data: any }) => {
@@ -5602,14 +5612,11 @@ Report generated from Cura EMR System`;
                     // Invalidate cache
                     queryClient.invalidateQueries({ queryKey: ["/api/lab-results"] });
 
-                    toast({
-                      title: "Success",
-                      description: "Lab test result PDF generated and downloaded successfully",
-                    });
-                    
+                    // Show success modal
                     setShowFillResultDialog(false);
                     setFillResultFormData({});
                     setValidationErrors({});
+                    setShowSuccessDialog(true);
                   }}
                   className="bg-green-600 hover:bg-green-700"
                   data-testid="button-submit-fill-result"
@@ -5667,6 +5674,33 @@ Report generated from Cura EMR System`;
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Success Dialog */}
+      <AlertDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <div className="flex flex-col items-center gap-4 py-6">
+              <div className="rounded-full bg-green-100 p-3">
+                <CheckCircle className="h-12 w-12 text-green-600" />
+              </div>
+              <AlertDialogTitle className="text-2xl font-bold text-center">
+                Success!
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-center text-base text-gray-700">
+                Lab test result PDF generated and downloaded successfully
+              </AlertDialogDescription>
+            </div>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction
+              onClick={() => setShowSuccessDialog(false)}
+              className="bg-green-600 hover:bg-green-700 w-full"
+            >
+              OK
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
