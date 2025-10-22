@@ -6441,17 +6441,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { jsPDF } = await import('jspdf');
       const doc = new jsPDF();
 
+      const pageWidth = doc.internal.pageSize.getWidth();
       let yPos = 20;
 
-      // Add logo if available
+      // Add logo if available - logo always beside header
+      const headerStartY = yPos;
+      let textStartX = 105; // Default center position
+      let textAlign: 'left' | 'center' | 'right' = 'center';
+      
       if (clinicHeader?.logoBase64) {
         try {
-          const logoX = clinicHeader.logoPosition === 'left' ? 20 : 
-                        clinicHeader.logoPosition === 'right' ? 160 : 90; // center
-          doc.addImage(clinicHeader.logoBase64, 'PNG', logoX, yPos, 30, 30);
-          yPos += 35;
+          // Logo always beside header for all positions
+          if (clinicHeader.logoPosition === 'left') {
+            // Logo on left, text starts after logo
+            doc.addImage(clinicHeader.logoBase64, 'PNG', 20, yPos, 30, 30);
+            textStartX = 55;
+            textAlign = 'left';
+          } else if (clinicHeader.logoPosition === 'center') {
+            // Logo on left, text beside it (left-aligned)
+            doc.addImage(clinicHeader.logoBase64, 'PNG', 20, yPos, 30, 30);
+            textStartX = 55;
+            textAlign = 'left';
+          } else if (clinicHeader.logoPosition === 'right') {
+            // Logo on right, text ends before logo
+            doc.addImage(clinicHeader.logoBase64, 'PNG', 160, yPos, 30, 30);
+            textStartX = 155;
+            textAlign = 'right';
+          }
         } catch (error) {
           console.error('Error adding logo to PDF:', error);
+        }
+      } else if (clinicHeader?.logoPosition) {
+        // No logo but position is set - align text accordingly
+        if (clinicHeader.logoPosition === 'left') {
+          textStartX = 20;
+          textAlign = 'left';
+        } else if (clinicHeader.logoPosition === 'right') {
+          textStartX = pageWidth - 20;
+          textAlign = 'right';
         }
       }
 
@@ -6459,7 +6486,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (clinicHeader?.clinicName) {
         doc.setFontSize(parseInt(clinicHeader.clinicNameFontSize || '24'));
         doc.setFont(clinicHeader.fontFamily || 'helvetica', clinicHeader.fontWeight || 'bold');
-        doc.text(clinicHeader.clinicName, 105, yPos, { align: 'center' });
+        doc.text(clinicHeader.clinicName, textStartX, yPos, { align: textAlign });
         yPos += 10;
       }
 
@@ -6468,16 +6495,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         doc.setFontSize(parseInt(clinicHeader.fontSize || '12'));
         doc.setFont(clinicHeader.fontFamily || 'helvetica', 'normal');
         if (clinicHeader.address) {
-          doc.text(clinicHeader.address, 105, yPos, { align: 'center' });
+          doc.text(clinicHeader.address, textStartX, yPos, { align: textAlign });
           yPos += 6;
         }
         if (clinicHeader.phone) {
-          doc.text(clinicHeader.phone, 105, yPos, { align: 'center' });
+          doc.text(clinicHeader.phone, textStartX, yPos, { align: textAlign });
           yPos += 6;
         }
         if (clinicHeader.email) {
-          doc.text(clinicHeader.email, 105, yPos, { align: 'center' });
+          doc.text(clinicHeader.email, textStartX, yPos, { align: textAlign });
           yPos += 6;
+        }
+      }
+      
+      // Ensure proper spacing after header section if logo was beside it
+      if (clinicHeader?.logoBase64 && (clinicHeader.logoPosition === 'left' || clinicHeader.logoPosition === 'center')) {
+        const headerEndY = yPos;
+        const logoEndY = headerStartY + 30;
+        if (logoEndY > headerEndY) {
+          yPos = logoEndY + 5;
         }
       }
 
@@ -6531,7 +6567,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       yPos = Math.max(leftY, rightY) + 10;
 
-      // Results Table
+      // Results Table - Group by test type
       if (labResult.results) {
         try {
           const results = typeof labResult.results === 'string' 
@@ -6539,81 +6575,113 @@ export async function registerRoutes(app: Express): Promise<Server> {
             : labResult.results;
 
           if (Array.isArray(results) && results.length > 0) {
-            // Test Type Header (in blue)
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(12);
-            doc.setTextColor(66, 133, 244); // Blue color
-            doc.text(labResult.testType, 20, yPos);
-            doc.setTextColor(0, 0, 0); // Reset to black
-            yPos += 10;
+            // Group results by test type
+            const resultsByTestType: Record<string, any[]> = {};
+            results.forEach((result: any) => {
+              let testType = 'General Tests';
+              const resultName = result.testName || result.name || '';
+              
+              // Extract test type from result name (before " - ")
+              const dashIndex = resultName.indexOf(' - ');
+              if (dashIndex !== -1) {
+                testType = resultName.substring(0, dashIndex).trim();
+              }
+              
+              if (!resultsByTestType[testType]) {
+                resultsByTestType[testType] = [];
+              }
+              resultsByTestType[testType].push(result);
+            });
 
-            // Table Header
-            const tableStartY = yPos;
-            const rowHeight = 8;
-            const colWidths = [60, 30, 30, 50]; // Parameter, Value, Unit, Reference Range
-            const tableX = 20;
-            
-            // Draw header background (light gray)
-            doc.setFillColor(240, 240, 240);
-            doc.rect(tableX, tableStartY, colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], rowHeight, 'F');
-            
-            // Draw header borders
-            doc.setDrawColor(200, 200, 200);
-            doc.rect(tableX, tableStartY, colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], rowHeight);
-            
-            // Header text
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(10);
-            doc.text('Parameter', tableX + 2, tableStartY + 5);
-            doc.text('Value', tableX + colWidths[0] + 2, tableStartY + 5);
-            doc.text('Unit', tableX + colWidths[0] + colWidths[1] + 2, tableStartY + 5);
-            doc.text('Reference Range', tableX + colWidths[0] + colWidths[1] + colWidths[2] + 2, tableStartY + 5);
-            
-            yPos = tableStartY + rowHeight;
-
-            // Table rows
-            doc.setFont('helvetica', 'normal');
-            results.forEach((result: any, index: number) => {
-              if (yPos > 270) {
+            // Render each test type group
+            Object.entries(resultsByTestType).forEach(([testType, groupResults], groupIndex) => {
+              // Add extra spacing between test groups (but not before first group)
+              if (groupIndex > 0) {
+                yPos += 8;
+              }
+              
+              if (yPos > 240) {
                 doc.addPage();
                 yPos = 20;
               }
 
-              // Alternate row background (very light gray)
-              if (index % 2 === 0) {
-                doc.setFillColor(250, 250, 250);
-                doc.rect(tableX, yPos, colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], rowHeight, 'F');
-              }
+              // Test Type Header with blue background box
+              doc.setFillColor(66, 133, 244);
+              doc.rect(20, yPos - 2, 170, 10, 'F');
               
-              // Draw row borders
-              doc.setDrawColor(200, 200, 200);
-              doc.rect(tableX, yPos, colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], rowHeight);
-              
-              // Draw vertical lines between columns
-              doc.line(tableX + colWidths[0], yPos, tableX + colWidths[0], yPos + rowHeight);
-              doc.line(tableX + colWidths[0] + colWidths[1], yPos, tableX + colWidths[0] + colWidths[1], yPos + rowHeight);
-              doc.line(tableX + colWidths[0] + colWidths[1] + colWidths[2], yPos, tableX + colWidths[0] + colWidths[1] + colWidths[2], yPos + rowHeight);
-              
-              // Row data
-              let paramName = result.testName || result.name || '';
-              
-              // Strip test type prefix - extract short parameter name after " - "
-              // Example: "Thyroid Function Tests (TSH, Free T4, Free T3) - TSH" becomes "TSH"
-              // Example: "Comprehensive Metabolic Panel (CMP) - Glucose" becomes "Glucose"
-              const dashIndex = paramName.indexOf(' - ');
-              if (dashIndex !== -1) {
-                paramName = paramName.substring(dashIndex + 3).trim();
-              }
-              
-              doc.text(paramName, tableX + 2, yPos + 5);
-              doc.text(String(result.value || ''), tableX + colWidths[0] + 2, yPos + 5);
-              doc.text(result.unit || '', tableX + colWidths[0] + colWidths[1] + 2, yPos + 5);
-              doc.text(result.referenceRange || '', tableX + colWidths[0] + colWidths[1] + colWidths[2] + 2, yPos + 5);
-              
-              yPos += rowHeight;
-            });
+              doc.setFont('helvetica', 'bold');
+              doc.setFontSize(12);
+              doc.setTextColor(255, 255, 255);
+              doc.text(testType, 22, yPos + 5);
+              doc.setTextColor(0, 0, 0);
+              yPos += 12;
 
-            yPos += 5;
+              // Table Header
+              const tableStartY = yPos;
+              const rowHeight = 8;
+              const colWidths = [60, 30, 30, 50]; // Parameter, Value, Unit, Reference Range
+              const tableX = 20;
+              
+              // Draw header background (light gray)
+              doc.setFillColor(240, 240, 240);
+              doc.rect(tableX, tableStartY, colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], rowHeight, 'F');
+              
+              // Draw header borders
+              doc.setDrawColor(200, 200, 200);
+              doc.rect(tableX, tableStartY, colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], rowHeight);
+              
+              // Header text
+              doc.setFont('helvetica', 'bold');
+              doc.setFontSize(10);
+              doc.text('Parameter', tableX + 2, tableStartY + 5);
+              doc.text('Value', tableX + colWidths[0] + 2, tableStartY + 5);
+              doc.text('Unit', tableX + colWidths[0] + colWidths[1] + 2, tableStartY + 5);
+              doc.text('Reference Range', tableX + colWidths[0] + colWidths[1] + colWidths[2] + 2, tableStartY + 5);
+              
+              yPos = tableStartY + rowHeight;
+
+              // Table rows
+              doc.setFont('helvetica', 'normal');
+              groupResults.forEach((result: any, index: number) => {
+                if (yPos > 270) {
+                  doc.addPage();
+                  yPos = 20;
+                }
+
+                // Alternate row background (very light gray)
+                if (index % 2 === 0) {
+                  doc.setFillColor(250, 250, 250);
+                  doc.rect(tableX, yPos, colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], rowHeight, 'F');
+                }
+                
+                // Draw row borders
+                doc.setDrawColor(200, 200, 200);
+                doc.rect(tableX, yPos, colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], rowHeight);
+                
+                // Draw vertical lines between columns
+                doc.line(tableX + colWidths[0], yPos, tableX + colWidths[0], yPos + rowHeight);
+                doc.line(tableX + colWidths[0] + colWidths[1], yPos, tableX + colWidths[0] + colWidths[1], yPos + rowHeight);
+                doc.line(tableX + colWidths[0] + colWidths[1] + colWidths[2], yPos, tableX + colWidths[0] + colWidths[1] + colWidths[2], yPos + rowHeight);
+                
+                // Row data
+                let paramName = result.testName || result.name || '';
+                
+                // Strip test type prefix - extract short parameter name after " - "
+                const dashIndex = paramName.indexOf(' - ');
+                if (dashIndex !== -1) {
+                  paramName = paramName.substring(dashIndex + 3).trim();
+                }
+                
+                doc.text(paramName, tableX + 2, yPos + 5);
+                doc.text(String(result.value || ''), tableX + colWidths[0] + 2, yPos + 5);
+                doc.text(result.unit || '', tableX + colWidths[0] + colWidths[1] + 2, yPos + 5);
+                doc.text(result.referenceRange || '', tableX + colWidths[0] + colWidths[1] + colWidths[2] + 2, yPos + 5);
+                
+                yPos += rowHeight;
+              });
+
+              yPos += 5;
+            });
           }
         } catch (e) {
           doc.setFont('helvetica', 'normal');
