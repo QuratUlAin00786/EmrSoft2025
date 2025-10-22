@@ -6597,20 +6597,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
               // Row data
               let paramName = result.testName || result.name || '';
               
-              // Strip test type prefix (e.g., "Complete Blood Count (CBC) - " becomes "")
-              const testTypePrefixes = [
-                'Complete Blood Count (CBC) - ',
-                'Urinalysis - ',
-                'Basic Metabolic Panel - ',
-                'Comprehensive Metabolic Panel - ',
-                'Lipid Panel - '
-              ];
-              
-              for (const prefix of testTypePrefixes) {
-                if (paramName.startsWith(prefix)) {
-                  paramName = paramName.substring(prefix.length);
-                  break;
-                }
+              // Strip test type prefix - extract short parameter name after " - "
+              // Example: "Thyroid Function Tests (TSH, Free T4, Free T3) - TSH" becomes "TSH"
+              // Example: "Comprehensive Metabolic Panel (CMP) - Glucose" becomes "Glucose"
+              const dashIndex = paramName.indexOf(' - ');
+              if (dashIndex !== -1) {
+                paramName = paramName.substring(dashIndex + 3).trim();
               }
               
               doc.text(paramName, tableX + 2, yPos + 5);
