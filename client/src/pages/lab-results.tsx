@@ -2314,6 +2314,102 @@ Report generated from Cura EMR System`;
                         <FileText className="h-4 w-4 mr-2" />
                         View Lab Report
                       </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={async () => {
+                          try {
+                            const token = localStorage.getItem("auth_token");
+                            const headers: Record<string, string> = {
+                              "X-Tenant-Subdomain": getActiveSubdomain(),
+                            };
+                            if (token) {
+                              headers["Authorization"] = `Bearer ${token}`;
+                            }
+
+                            const response = await fetch(`/api/files/${result.id}/signed-url`, {
+                              headers,
+                              credentials: "include",
+                            });
+
+                            if (!response.ok) {
+                              throw new Error("Failed to generate signed URL");
+                            }
+
+                            const data = await response.json();
+                            
+                            // Open PDF in new window for printing
+                            const printWindow = window.open(data.signedUrl, "_blank");
+                            if (printWindow) {
+                              printWindow.onload = () => {
+                                printWindow.print();
+                              };
+                            }
+                          } catch (error) {
+                            console.error("Error printing PDF:", error);
+                            toast({
+                              title: "Error",
+                              description: "Failed to print lab report. Please try again.",
+                              variant: "destructive",
+                            });
+                          }
+                        }}
+                        className="bg-gray-50 hover:bg-gray-100 text-gray-700 border-gray-200"
+                        data-testid="button-print-lab-report"
+                      >
+                        <Printer className="h-4 w-4 mr-2" />
+                        Print
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={async () => {
+                          try {
+                            const token = localStorage.getItem("auth_token");
+                            const headers: Record<string, string> = {
+                              "X-Tenant-Subdomain": getActiveSubdomain(),
+                            };
+                            if (token) {
+                              headers["Authorization"] = `Bearer ${token}`;
+                            }
+
+                            const response = await fetch(`/api/files/${result.id}/signed-url`, {
+                              headers,
+                              credentials: "include",
+                            });
+
+                            if (!response.ok) {
+                              throw new Error("Failed to generate signed URL");
+                            }
+
+                            const data = await response.json();
+                            
+                            // Download PDF
+                            const pdfResponse = await fetch(data.signedUrl);
+                            const blob = await pdfResponse.blob();
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `Lab_Result_${result.testId || result.id}.pdf`;
+                            document.body.appendChild(a);
+                            a.click();
+                            window.URL.revokeObjectURL(url);
+                            document.body.removeChild(a);
+                          } catch (error) {
+                            console.error("Error downloading PDF:", error);
+                            toast({
+                              title: "Error",
+                              description: "Failed to download lab report. Please try again.",
+                              variant: "destructive",
+                            });
+                          }
+                        }}
+                        className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
+                        data-testid="button-download-lab-report"
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        Download
+                      </Button>
                       {user?.role !== 'patient' && (
                         <Button
                           variant="outline"
@@ -5180,7 +5276,14 @@ Report generated from Cura EMR System`;
                         pdf.line(tableX + colWidths[0] + colWidths[1] + colWidths[2], yPos, tableX + colWidths[0] + colWidths[1] + colWidths[2], yPos + rowHeight);
                         
                         // Row data
-                        pdf.text(result.name, tableX + 2, yPos + 5);
+                        // Strip test type prefix - extract short parameter name after " - "
+                        let paramName = result.name || '';
+                        const dashIndex = paramName.indexOf(' - ');
+                        if (dashIndex !== -1) {
+                          paramName = paramName.substring(dashIndex + 3).trim();
+                        }
+                        
+                        pdf.text(paramName, tableX + 2, yPos + 5);
                         pdf.text(String(result.value || ''), tableX + colWidths[0] + 2, yPos + 5);
                         pdf.text(result.unit || '', tableX + colWidths[0] + colWidths[1] + 2, yPos + 5);
                         pdf.text(result.referenceRange || '', tableX + colWidths[0] + colWidths[1] + colWidths[2] + 2, yPos + 5);
@@ -5441,7 +5544,14 @@ Report generated from Cura EMR System`;
                         pdf.line(tableX + colWidths[0] + colWidths[1] + colWidths[2], yPos, tableX + colWidths[0] + colWidths[1] + colWidths[2], yPos + rowHeight);
                         
                         // Row data
-                        pdf.text(result.name, tableX + 2, yPos + 5);
+                        // Strip test type prefix - extract short parameter name after " - "
+                        let paramName = result.name || '';
+                        const dashIndex = paramName.indexOf(' - ');
+                        if (dashIndex !== -1) {
+                          paramName = paramName.substring(dashIndex + 3).trim();
+                        }
+                        
+                        pdf.text(paramName, tableX + 2, yPos + 5);
                         pdf.text(String(result.value || ''), tableX + colWidths[0] + 2, yPos + 5);
                         pdf.text(result.unit || '', tableX + colWidths[0] + colWidths[1] + 2, yPos + 5);
                         pdf.text(result.referenceRange || '', tableX + colWidths[0] + colWidths[1] + colWidths[2] + 2, yPos + 5);
