@@ -2110,6 +2110,15 @@ export function PatientList({ onSelectPatient, showActiveOnly = true, genderFilt
   const [editingRiskLevelId, setEditingRiskLevelId] = useState<number | null>(null);
   const [tempRiskLevel, setTempRiskLevel] = useState("");
 
+  // Delete confirmation dialog state
+  const [deleteConfirmDialog, setDeleteConfirmDialog] = useState<{
+    open: boolean;
+    patient: any | null;
+  }>({
+    open: false,
+    patient: null,
+  });
+
   const handleRemindPatient = (patient: any) => {
     setCommunicationDialog({
       open: true,
@@ -2307,12 +2316,16 @@ export function PatientList({ onSelectPatient, showActiveOnly = true, genderFilt
   };
 
   const handleDeletePatient = (patient: any) => {
-    if (
-      window.confirm(
-        `Are you sure you want to delete ${patient.firstName} ${patient.lastName}? This action cannot be undone.`,
-      )
-    ) {
-      deletePatientMutation.mutate(patient.id);
+    setDeleteConfirmDialog({
+      open: true,
+      patient,
+    });
+  };
+
+  const confirmDeletePatient = () => {
+    if (deleteConfirmDialog.patient) {
+      deletePatientMutation.mutate(deleteConfirmDialog.patient.id);
+      setDeleteConfirmDialog({ open: false, patient: null });
     }
   };
 
@@ -3310,6 +3323,45 @@ export function PatientList({ onSelectPatient, showActiveOnly = true, genderFilt
         }
         patient={patientDetailsModal.patient}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteConfirmDialog.open} onOpenChange={(open) => setDeleteConfirmDialog({ open, patient: open ? deleteConfirmDialog.patient : null })}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold text-gray-900 dark:text-white">
+              Delete Patient
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-gray-700 dark:text-gray-300 mb-4">
+              Are you sure you want to delete{" "}
+              <span className="font-semibold">
+                {deleteConfirmDialog.patient?.firstName} {deleteConfirmDialog.patient?.lastName}
+              </span>?
+            </p>
+            <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-md p-3">
+              This action cannot be undone. The patient and their associated user account will be permanently deleted from the system.
+            </p>
+          </div>
+          <div className="flex gap-3 justify-end">
+            <Button
+              variant="outline"
+              onClick={() => setDeleteConfirmDialog({ open: false, patient: null })}
+              data-testid="button-cancel-delete"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDeletePatient}
+              disabled={deletePatientMutation.isPending}
+              data-testid="button-confirm-delete"
+            >
+              {deletePatientMutation.isPending ? "Deleting..." : "Yes, Delete"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

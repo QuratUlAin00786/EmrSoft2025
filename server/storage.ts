@@ -1045,7 +1045,18 @@ export class DatabaseStorage implements IStorage {
 
   async deletePatient(id: number, organizationId: number): Promise<boolean> {
     try {
-      // First delete related records (cascade delete)
+      // First, get the patient to find the associated userId
+      const [patient] = await db.select()
+        .from(patients)
+        .where(and(eq(patients.id, id), eq(patients.organizationId, organizationId)))
+        .limit(1);
+
+      if (!patient) {
+        console.error("Patient not found for deletion");
+        return false;
+      }
+
+      // Delete related records (cascade delete)
       // Delete medical records
       await db.delete(medicalRecords)
         .where(and(eq(medicalRecords.patientId, id), eq(medicalRecords.organizationId, organizationId)));
@@ -1066,11 +1077,18 @@ export class DatabaseStorage implements IStorage {
       await db.delete(labResults)
         .where(and(eq(labResults.patientId, id), eq(labResults.organizationId, organizationId)));
       
-      // Finally delete the patient
-      const result = await db.delete(patients)
+      // Delete the patient record
+      const patientResult = await db.delete(patients)
         .where(and(eq(patients.id, id), eq(patients.organizationId, organizationId)));
       
-      return (result.rowCount || 0) > 0;
+      // Delete the associated user account if it exists
+      if (patient.userId) {
+        await db.delete(users)
+          .where(and(eq(users.id, patient.userId), eq(users.organizationId, organizationId)));
+        console.log(`Deleted associated user account (ID: ${patient.userId}) for patient ${id}`);
+      }
+      
+      return (patientResult.rowCount || 0) > 0;
     } catch (error) {
       console.error("Error deleting patient:", error);
       return false;
