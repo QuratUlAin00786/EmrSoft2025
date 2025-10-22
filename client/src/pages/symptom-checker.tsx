@@ -14,6 +14,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { 
   Activity, 
   AlertTriangle, 
@@ -27,9 +29,12 @@ import {
   AlertCircle,
   Home,
   Clock,
-  User
+  User,
+  Check,
+  ChevronsUpDown
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 const symptomFormSchema = insertSymptomCheckSchema.omit({
   organizationId: true,
@@ -74,6 +79,8 @@ export default function SymptomCheckerPage() {
   const [currentSymptom, setCurrentSymptom] = useState("");
   const [analysis, setAnalysis] = useState<SymptomAnalysis | null>(null);
   const [showResults, setShowResults] = useState(false);
+  const [selectedPatientId, setSelectedPatientId] = useState<number | null>(null);
+  const [patientSearchOpen, setPatientSearchOpen] = useState(false);
 
   const form = useForm<SymptomFormValues>({
     resolver: zodResolver(symptomFormSchema),
@@ -107,7 +114,7 @@ export default function SymptomCheckerPage() {
         ...data,
         duration: data.duration || undefined,
         severity: data.severity || undefined,
-        patientId: user?.id
+        patientId: selectedPatientId || undefined
       });
       return response.json();
     },
@@ -133,6 +140,10 @@ export default function SymptomCheckerPage() {
     queryKey: ['/api/symptom-checker/history'],
   });
 
+  const { data: patients = [] } = useQuery({
+    queryKey: ['/api/patients'],
+  });
+
   const onSubmit = (data: SymptomFormValues) => {
     analyzeMutation.mutate(data);
   };
@@ -140,6 +151,7 @@ export default function SymptomCheckerPage() {
   const resetForm = () => {
     setSymptoms([]);
     setCurrentSymptom("");
+    setSelectedPatientId(null);
     form.reset({
       patientId: user?.id || 0,
       symptoms: [],
@@ -209,6 +221,62 @@ export default function SymptomCheckerPage() {
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
+                      <div className="space-y-2">
+                        <FormLabel data-testid="label-patient">Select Patient</FormLabel>
+                        <Popover open={patientSearchOpen} onOpenChange={setPatientSearchOpen}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              aria-expanded={patientSearchOpen}
+                              className="w-full justify-between"
+                              data-testid="button-select-patient"
+                            >
+                              {selectedPatientId
+                                ? patients.find((patient: any) => patient.id === selectedPatientId)
+                                    ? `${patients.find((patient: any) => patient.id === selectedPatientId)?.firstName} ${patients.find((patient: any) => patient.id === selectedPatientId)?.lastName}`
+                                    : "Select patient..."
+                                : "Select patient..."}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-full p-0">
+                            <Command>
+                              <CommandInput placeholder="Search patient..." data-testid="input-search-patient" />
+                              <CommandList>
+                                <CommandEmpty>No patient found.</CommandEmpty>
+                                <CommandGroup>
+                                  {patients.map((patient: any) => (
+                                    <CommandItem
+                                      key={patient.id}
+                                      value={`${patient.firstName} ${patient.lastName} ${patient.patientNumber || ''}`}
+                                      onSelect={() => {
+                                        setSelectedPatientId(patient.id);
+                                        setPatientSearchOpen(false);
+                                      }}
+                                      data-testid={`option-patient-${patient.id}`}
+                                    >
+                                      <Check
+                                        className={cn(
+                                          "mr-2 h-4 w-4",
+                                          selectedPatientId === patient.id ? "opacity-100" : "opacity-0"
+                                        )}
+                                      />
+                                      {patient.firstName} {patient.lastName}
+                                      {patient.patientNumber && (
+                                        <span className="ml-2 text-xs text-gray-500">
+                                          ({patient.patientNumber})
+                                        </span>
+                                      )}
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+
                       <div className="space-y-2">
                         <FormLabel htmlFor="symptoms" data-testid="label-symptoms">List Your Symptoms</FormLabel>
                         <div className="flex gap-2">
