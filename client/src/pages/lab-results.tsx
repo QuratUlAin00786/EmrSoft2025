@@ -2384,31 +2384,19 @@ Report generated from Cura EMR System`;
 
                             const data = await response.json();
                             
-                            // Download PDF
-                            const pdfResponse = await fetch(data.signedUrl);
-                            if (!pdfResponse.ok) {
-                              throw new Error("Failed to fetch PDF file");
-                            }
-                            
-                            const blob = await pdfResponse.blob();
-                            const pdfBlob = new Blob([blob], { type: 'application/pdf' });
-                            const url = window.URL.createObjectURL(pdfBlob);
+                            // Use a simple anchor tag with download attribute
                             const a = document.createElement('a');
-                            a.href = url;
+                            a.href = data.signedUrl;
                             a.download = `Lab_Result_${result.testId || result.id}.pdf`;
-                            a.style.display = 'none';
+                            a.target = '_blank';
+                            a.rel = 'noopener noreferrer';
                             document.body.appendChild(a);
                             a.click();
-                            
-                            // Clean up after a short delay
-                            setTimeout(() => {
-                              window.URL.revokeObjectURL(url);
-                              document.body.removeChild(a);
-                            }, 100);
+                            document.body.removeChild(a);
                             
                             toast({
                               title: "Success",
-                              description: "Lab result PDF downloaded successfully",
+                              description: "Lab result PDF download started",
                             });
                           } catch (error) {
                             console.error("Error downloading PDF:", error);
