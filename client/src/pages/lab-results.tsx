@@ -2044,14 +2044,6 @@ Report generated from Cura EMR System`;
                       <Plus className="h-4 w-4 mr-2" />
                       Order Lab Test
                     </Button>
-                    <Button
-                      onClick={() => setShowGenerateDialog(true)}
-                      className="bg-green-600 hover:bg-green-700"
-                      data-testid="button-generate-lab-result"
-                    >
-                      <FileText className="h-4 w-4 mr-2" />
-                      Generate Lab Test Result
-                    </Button>
                   </div>
                 )}
               </div>
