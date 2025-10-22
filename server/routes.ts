@@ -16876,6 +16876,22 @@ Cura EMR Team
       const organizationId = req.tenant!.id;
       const userId = req.user!.id;
 
+      // Look up patient record for this user (if they have one)
+      let finalPatientId = patientId || null;
+      if (!finalPatientId) {
+        const [patientRecord] = await db.select()
+          .from(patients)
+          .where(and(
+            eq(patients.userId, userId),
+            eq(patients.organizationId, organizationId)
+          ))
+          .limit(1);
+        
+        if (patientRecord) {
+          finalPatientId = patientRecord.id;
+        }
+      }
+
       // Use AI service to analyze symptoms and provide diagnosis
       const aiAnalysis = await aiService.analyzeSymptoms({
         symptoms,
@@ -16887,7 +16903,7 @@ Cura EMR Team
       // Save symptom check to database
       const [symptomCheck] = await db.insert(symptomChecks).values({
         organizationId,
-        patientId: patientId || userId,
+        patientId: finalPatientId,
         userId,
         symptoms,
         symptomDescription,

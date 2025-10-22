@@ -631,8 +631,8 @@ export const consultations = pgTable("consultations", {
 export const symptomChecks = pgTable("symptom_checks", {
   id: serial("id").primaryKey(),
   organizationId: integer("organization_id").notNull(),
-  patientId: integer("patient_id").notNull().references(() => patients.id),
-  userId: integer("user_id").references(() => users.id),
+  patientId: integer("patient_id").references(() => patients.id),
+  userId: integer("user_id").notNull().references(() => users.id),
   symptoms: text("symptoms").array().notNull(),
   symptomDescription: text("symptom_description").notNull(),
   duration: text("duration"),
