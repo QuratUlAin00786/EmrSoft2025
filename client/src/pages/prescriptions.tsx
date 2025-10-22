@@ -3397,7 +3397,7 @@ export default function PrescriptionsPage() {
                             CURA HEALTH EMR
                           </h2>
                           {(() => {
-                            const providerId = prescription.prescriptionCreatedBy || prescription.doctorId;
+                            const providerId = prescription.doctorId || prescription.prescriptionCreatedBy;
                             const providerInfo = allUsers?.find((p: any) => p.id === providerId);
                             console.log("🔍 Looking for providerId:", providerId);
                             console.log("🔍 Found providerInfo:", providerInfo);
@@ -3412,7 +3412,7 @@ export default function PrescriptionsPage() {
                             {prescription.prescriptionNumber || "N/A"}
                           </p>
                           {(() => {
-                            const providerId = prescription.prescriptionCreatedBy || prescription.doctorId;
+                            const providerId = prescription.doctorId || prescription.prescriptionCreatedBy;
                             const providerInfo = allUsers?.find((p: any) => p.id === providerId);
                             return providerInfo ? (
                               <div className="mt-1">
