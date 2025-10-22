@@ -2029,10 +2029,11 @@ export default function PrescriptionsPage() {
                 transform: translate(-50%, -50%);
                 font-size: 120px;
                 font-weight: bold;
-                color: rgba(173, 216, 230, 0.3);
+                color: rgba(173, 216, 230, 0.08);
                 z-index: 1;
                 pointer-events: none;
                 letter-spacing: 10px;
+                background: transparent;
               }
               
               .prescription-details {
