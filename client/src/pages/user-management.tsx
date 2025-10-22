@@ -3921,24 +3921,68 @@ export default function UserManagement() {
 
       {/* Success Modal */}
       <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-green-600">Success</DialogTitle>
-          </DialogHeader>
-          
-          <div className="py-4">
-            <p className="text-gray-700">{successMessage}</p>
-          </div>
+        <DialogContent className="max-w-2xl border-0 shadow-2xl">
+          <div className="relative overflow-hidden rounded-lg bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 p-8">
+            {/* Success Icon */}
+            <div className="flex justify-center mb-6">
+              <div className="relative">
+                <div className="absolute inset-0 bg-green-500 dark:bg-green-600 rounded-full blur-xl opacity-30 animate-pulse"></div>
+                <div className="relative bg-green-500 dark:bg-green-600 rounded-full p-4 shadow-lg">
+                  <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              </div>
+            </div>
 
-          <div className="flex justify-end">
-            <Button
-              onClick={() => {
-                setShowSuccessModal(false);
-                setSuccessMessage("");
-              }}
-            >
-              OK
-            </Button>
+            {/* Title */}
+            <DialogHeader className="text-center mb-6">
+              <DialogTitle className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent">
+                User Deleted Successfully
+              </DialogTitle>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                All related data has been permanently removed from the system
+              </p>
+            </DialogHeader>
+            
+            {/* Deletion Steps */}
+            <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
+              <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4 flex items-center gap-2">
+                <svg className="w-4 h-4 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                Completed Operations
+              </h4>
+              <div className="space-y-3 text-sm">
+                {successMessage.split('\n').slice(2).map((step, index) => {
+                  if (!step.trim()) return null;
+                  return (
+                    <div key={index} className="flex items-start gap-3 group">
+                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-700 dark:text-green-400 font-semibold text-xs group-hover:bg-green-200 dark:group-hover:bg-green-900/50 transition-colors">
+                        {step.trim().split('.')[0]}
+                      </div>
+                      <p className="flex-1 text-gray-700 dark:text-gray-300 leading-relaxed pt-0.5">
+                        {step.trim().substring(step.trim().indexOf('.') + 1).trim()}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Action Button */}
+            <div className="flex justify-center">
+              <Button
+                onClick={() => {
+                  setShowSuccessModal(false);
+                  setSuccessMessage("");
+                }}
+                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-8 py-2 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 font-semibold"
+                data-testid="button-success-ok"
+              >
+                Got it, thanks!
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
