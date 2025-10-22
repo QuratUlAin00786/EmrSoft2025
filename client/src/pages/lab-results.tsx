@@ -9,6 +9,7 @@ import { Header } from "@/components/layout/header";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { isDoctorLike, formatRoleLabel } from "@/lib/role-utils";
+import { getActiveSubdomain } from "@/lib/subdomain-utils";
 import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 
