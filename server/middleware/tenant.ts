@@ -120,8 +120,9 @@ export async function tenantMiddleware(req: TenantRequest, res: Response, next: 
 
 export async function authMiddleware(req: TenantRequest, res: Response, next: NextFunction) {
   try {
-    // Skip authentication for file view endpoint (handles its own token validation with FILE_SECRET)
-    if (req.path.startsWith('/files/view/') || req.path.startsWith('files/view/')) {
+    // Skip authentication for file view endpoints (handles their own token validation with FILE_SECRET)
+    if (req.path.startsWith('/files/view/') || req.path.startsWith('files/view/') ||
+        req.path.startsWith('/imaging-files/view/') || req.path.startsWith('imaging-files/view/')) {
       return next();
     }
 

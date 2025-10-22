@@ -1404,44 +1404,20 @@ export default function ImagingPage() {
 
   const viewPDFReport = async (reportId: string) => {
     try {
-      // Prepare authentication headers
-      const headers: Record<string, string> = {
-        "X-Tenant-Subdomain": getActiveSubdomain(),
-      };
-
-      // Add authorization token if available
-      const token = localStorage.getItem("auth_token");
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
+      // Request a temporary signed URL from the backend
+      const response = await apiRequest("GET", `/api/imaging-files/${reportId}/signed-url`);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to generate signed URL");
       }
 
-      // First check if file exists using HEAD request
-      const checkResponse = await fetch(`/api/imaging/reports/${reportId}`, {
-        method: "HEAD",
-        headers,
-        credentials: "include",
-      });
-
-      if (checkResponse.status === 404) {
-        // File not found - show error with file path and timestamp
-        const timestamp = new Date().toLocaleString();
-        toast({
-          title: "Report Not Found",
-          description: `PDF file does not exist at: uploads/Imaging_Reports/{org_id}/patients/{patient_id}/${reportId}.pdf (checked at ${timestamp})`,
-          variant: "destructive",
-        });
-        return;
-      } else if (!checkResponse.ok) {
-        throw new Error(`Failed to check PDF: ${checkResponse.status}`);
-      }
-
-      // File exists, construct direct URL with auth token in query and open in new tab
-      const directUrl = `/api/imaging/reports/${reportId}?token=${encodeURIComponent(token || '')}`;
+      const { signedUrl } = await response.json();
       
-      console.log("📄 PDF Direct URL created:", directUrl);
+      console.log("📄 Signed URL received for imaging report:", reportId);
       
-      // Open PDF in new tab
-      window.open(directUrl, '_blank');
+      // Open PDF in new tab using the signed URL
+      window.open(signedUrl, '_blank');
       
       toast({
         title: "Opening Report",

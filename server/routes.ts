@@ -6840,6 +6840,109 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Generate temporary signed URL for imaging report PDF (HIPAA/GDPR compliant)
+  app.get("/api/imaging-files/:id/signed-url", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const imageId = req.params.id;
+      if (!imageId) {
+        return res.status(400).json({ error: "Invalid image ID" });
+      }
+
+      const organizationId = req.tenant!.id;
+
+      // Fetch medical image to verify access
+      const medicalImages = await storage.getMedicalImagesByOrganization(organizationId);
+      const medicalImage = medicalImages.find(img => img.imageId === imageId);
+
+      if (!medicalImage) {
+        return res.status(404).json({ error: "Medical image not found" });
+      }
+
+      const fileSecret = process.env.FILE_SECRET;
+      if (!fileSecret) {
+        console.error("FILE_SECRET not configured");
+        return res.status(500).json({ error: "Server configuration error" });
+      }
+
+      const token = jwt.sign(
+        { 
+          fileId: medicalImage.id,
+          imageId: imageId,
+          organizationId: organizationId,
+          patientId: medicalImage.patientId,
+          userId: req.user.id
+        }, 
+        fileSecret, 
+        { expiresIn: "5m" }
+      );
+
+      const signedUrl = `${req.protocol}://${req.get('host')}/api/imaging-files/view/${imageId}?token=${token}`;
+      
+      console.log(`[SIGNED-URL] Generated for imaging report ${imageId}, valid for 5 minutes`);
+      res.json({ signedUrl });
+
+    } catch (error) {
+      console.error("Error generating signed URL for imaging:", error);
+      res.status(500).json({ error: "Failed to generate signed URL" });
+    }
+  });
+
+  // View imaging report PDF using temporary signed URL (no authentication required - token validated)
+  app.get("/api/imaging-files/view/:id", async (req, res) => {
+    try {
+      const { token } = req.query;
+      if (!token || typeof token !== 'string') {
+        return res.status(403).json({ error: "Missing or invalid token" });
+      }
+
+      const fileSecret = process.env.FILE_SECRET;
+      if (!fileSecret) {
+        console.error("FILE_SECRET not configured");
+        return res.status(500).json({ error: "Server configuration error" });
+      }
+
+      // Verify and decode token
+      let payload: any;
+      try {
+        payload = jwt.verify(token, fileSecret);
+      } catch (err) {
+        console.log("[IMAGING-VIEW] Token verification failed:", err);
+        return res.status(403).json({ error: "Invalid or expired link" });
+      }
+
+      const { imageId, organizationId, patientId } = payload;
+      
+      // Construct file path
+      const fileName = `${imageId}.pdf`;
+      const relativePath = `uploads/Imaging_Reports/${organizationId}/patients/${patientId}/${fileName}`;
+      const fullPath = path.join(process.cwd(), relativePath);
+
+      // Check if file exists
+      const fileExists = await fse.pathExists(fullPath);
+      if (!fileExists) {
+        console.log(`[IMAGING-VIEW] File not found: ${fullPath}`);
+        return res.status(404).json({ error: "File not found" });
+      }
+
+      console.log(`[IMAGING-VIEW] Serving file: ${fullPath}`);
+      
+      // Set headers for PDF viewing
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'inline; filename="' + fileName + '"');
+      
+      // Stream the file
+      res.sendFile(fullPath);
+
+    } catch (error) {
+      console.error("Error viewing imaging file:", error);
+      res.status(500).json({ error: "Failed to view file" });
+    }
+  });
+
   // Imaging Routes
   app.get("/api/imaging", authMiddleware, async (req: TenantRequest, res) => {
     try {
