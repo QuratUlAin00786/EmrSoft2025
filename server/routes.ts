@@ -16933,16 +16933,62 @@ Cura EMR Team
       // Patients see only their own history, others see all
       let history;
       if (userRole === 'patient') {
-        history = await db.select()
+        history = await db.select({
+          id: symptomChecks.id,
+          organizationId: symptomChecks.organizationId,
+          patientId: symptomChecks.patientId,
+          userId: symptomChecks.userId,
+          symptoms: symptomChecks.symptoms,
+          symptomDescription: symptomChecks.symptomDescription,
+          duration: symptomChecks.duration,
+          severity: symptomChecks.severity,
+          aiAnalysis: symptomChecks.aiAnalysis,
+          status: symptomChecks.status,
+          createdAt: symptomChecks.createdAt,
+          updatedAt: symptomChecks.updatedAt,
+          patient: {
+            id: patients.id,
+            patientId: patients.patientId,
+            firstName: patients.firstName,
+            lastName: patients.lastName,
+            dateOfBirth: patients.dateOfBirth,
+            phone: patients.phone,
+            email: patients.email
+          }
+        })
           .from(symptomChecks)
+          .leftJoin(patients, eq(symptomChecks.patientId, patients.id))
           .where(and(
             eq(symptomChecks.organizationId, organizationId),
             eq(symptomChecks.patientId, userId)
           ))
           .orderBy(desc(symptomChecks.createdAt));
       } else {
-        history = await db.select()
+        history = await db.select({
+          id: symptomChecks.id,
+          organizationId: symptomChecks.organizationId,
+          patientId: symptomChecks.patientId,
+          userId: symptomChecks.userId,
+          symptoms: symptomChecks.symptoms,
+          symptomDescription: symptomChecks.symptomDescription,
+          duration: symptomChecks.duration,
+          severity: symptomChecks.severity,
+          aiAnalysis: symptomChecks.aiAnalysis,
+          status: symptomChecks.status,
+          createdAt: symptomChecks.createdAt,
+          updatedAt: symptomChecks.updatedAt,
+          patient: {
+            id: patients.id,
+            patientId: patients.patientId,
+            firstName: patients.firstName,
+            lastName: patients.lastName,
+            dateOfBirth: patients.dateOfBirth,
+            phone: patients.phone,
+            email: patients.email
+          }
+        })
           .from(symptomChecks)
+          .leftJoin(patients, eq(symptomChecks.patientId, patients.id))
           .where(eq(symptomChecks.organizationId, organizationId))
           .orderBy(desc(symptomChecks.createdAt));
       }

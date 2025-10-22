@@ -435,6 +435,11 @@ export default function SymptomCheckerPage() {
                             >
                               <div className="flex items-start justify-between gap-2">
                                 <div className="flex-1">
+                                  {check.patient && (
+                                    <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 mb-1">
+                                      {check.patient.firstName} {check.patient.lastName} ({check.patient.patientId})
+                                    </p>
+                                  )}
                                   <p className="text-sm font-medium text-gray-900 dark:text-white">
                                     {check.symptoms.slice(0, 2).join(', ')}
                                     {check.symptoms.length > 2 && ` +${check.symptoms.length - 2} more`}
