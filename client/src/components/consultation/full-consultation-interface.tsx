@@ -489,143 +489,288 @@ ${
   };
 
   // Handle view full consultation - generates and downloads full consultation report as PDF
-  const handleViewFullConsultation = () => {
+  const handleViewFullConsultation = async () => {
     const currentPatientId = patientId || patient?.id;
     const currentPatientName = patientName || (patient ? `${patient.firstName} ${patient.lastName}` : 'Unknown Patient');
     
-    const pdf = new jsPDF();
-    let yPosition = 20;
-    const lineHeight = 7;
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const marginLeft = 15;
-    const marginRight = 15;
-    const maxWidth = pageWidth - marginLeft - marginRight;
+    try {
+      const token = localStorage.getItem('auth_token');
+      const headers = {
+        'Authorization': `Bearer ${token}`,
+        'X-Tenant-Subdomain': getTenantSubdomain()
+      };
 
-    const addText = (text: string, fontSize: number = 10, isBold: boolean = false) => {
-      if (yPosition > 280) {
-        pdf.addPage();
-        yPosition = 20;
-      }
-      pdf.setFontSize(fontSize);
-      pdf.setFont('helvetica', isBold ? 'bold' : 'normal');
-      const lines = pdf.splitTextToSize(text, maxWidth);
-      pdf.text(lines, marginLeft, yPosition);
-      yPosition += lines.length * lineHeight;
-    };
+      const [clinicHeaderRes, clinicFooterRes, patientRecordsRes] = await Promise.all([
+        fetch('/api/clinic-headers', { headers }).catch(() => null),
+        fetch('/api/clinic-footers', { headers }).catch(() => null),
+        currentPatientId ? fetch(`/api/patients/${currentPatientId}/records`, { headers }).catch(() => null) : Promise.resolve(null)
+      ]);
 
-    const addSection = (title: string) => {
-      yPosition += 5;
-      addText(title, 14, true);
-      yPosition += 2;
-    };
+      const clinicHeader = clinicHeaderRes?.ok ? await clinicHeaderRes.json() : null;
+      const clinicFooter = clinicFooterRes?.ok ? await clinicFooterRes.json() : null;
+      const patientRecords = patientRecordsRes?.ok ? await patientRecordsRes.json() : null;
 
-    pdf.setFontSize(18);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('FULL CONSULTATION REPORT', pageWidth / 2, yPosition, { align: 'center' });
-    yPosition += 15;
-
-    addText(`Patient: ${currentPatientName}`, 11, true);
-    addText(`Date: ${format(new Date(), 'MMMM dd, yyyy - HH:mm')}`, 10);
-    addText(`Consultation ID: ${currentPatientId}-${Date.now()}`, 10);
-
-    addSection('VITALS');
-    addText(`Blood Pressure: ${vitals.bloodPressure || 'Not recorded'}`);
-    addText(`Heart Rate: ${vitals.heartRate || 'Not recorded'} bpm`);
-    addText(`Temperature: ${vitals.temperature || 'Not recorded'}°C`);
-    addText(`Respiratory Rate: ${vitals.respiratoryRate || 'Not recorded'}/min`);
-    addText(`Oxygen Saturation: ${vitals.oxygenSaturation || 'Not recorded'}%`);
-    addText(`Weight: ${vitals.weight || 'Not recorded'} kg`);
-    addText(`Height: ${vitals.height || 'Not recorded'} cm`);
-    addText(`BMI: ${vitals.bmi || 'Not recorded'}`);
-
-    addSection('HISTORY');
-    addText('Chief Complaint:', 11, true);
-    addText(consultationData.chiefComplaint || 'Not recorded');
-    yPosition += 3;
-    addText('History of Presenting Complaint:', 11, true);
-    addText(consultationData.historyPresentingComplaint || 'Not recorded');
-    yPosition += 3;
-    addText('Review of Systems:', 11, true);
-    addText(`Cardiovascular: ${consultationData.reviewOfSystems?.cardiovascular || 'Not recorded'}`);
-    addText(`Respiratory: ${consultationData.reviewOfSystems?.respiratory || 'Not recorded'}`);
-    addText(`Gastrointestinal: ${consultationData.reviewOfSystems?.gastrointestinal || 'Not recorded'}`);
-    addText(`Genitourinary: ${consultationData.reviewOfSystems?.genitourinary || 'Not recorded'}`);
-    addText(`Neurological: ${consultationData.reviewOfSystems?.neurological || 'Not recorded'}`);
-    addText(`Musculoskeletal: ${consultationData.reviewOfSystems?.musculoskeletal || 'Not recorded'}`);
-    addText(`Skin: ${consultationData.reviewOfSystems?.skin || 'Not recorded'}`);
-    addText(`Psychiatric: ${consultationData.reviewOfSystems?.psychiatric || 'Not recorded'}`);
-
-    addSection('EXAMINATION');
-    addText(clinicalNotes || 'Not recorded');
-    if (transcript) {
-      addText(`[Live Transcript: ${transcript}]`);
-    }
-
-    addSection('ASSESSMENT');
-    addText(consultationData.assessment || 'Not recorded');
-
-    addSection('PROFESSIONAL ANATOMICAL ANALYSIS');
-    if (selectedMuscleGroup || selectedAnalysisType) {
-      addText(`Target Muscle Group: ${selectedMuscleGroup ? selectedMuscleGroup.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Not specified'}`);
-      addText(`Analysis Type: ${selectedAnalysisType ? selectedAnalysisType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Not specified'}`);
-    } else {
-      addText('No anatomical analysis performed during this consultation.');
-    }
-
-    addSection('GENERATED TREATMENT PLAN');
-    if (generatedTreatmentPlan) {
-      addText(generatedTreatmentPlan);
-    } else {
-      addText('No treatment plan generated during this consultation.');
-    }
-
-    addSection('PLAN');
-    addText('Management Plan:', 11, true);
-    addText(consultationData.plan || 'Not recorded');
-
-    if (consultationData.prescriptions.length > 0) {
-      yPosition += 3;
-      addText(`Prescriptions (${consultationData.prescriptions.length}):`, 11, true);
-      consultationData.prescriptions.forEach((rx, idx) => {
-        addText(`${idx + 1}. ${rx.medication} ${rx.dosage}`);
-        addText(`   ${rx.frequency} for ${rx.duration}`);
-        if (rx.instructions) {
-          addText(`   Instructions: ${rx.instructions}`);
+      let dbVitals: any = {};
+      if (patientRecords?.length > 0) {
+        const vitalsRecord = patientRecords.find((r: any) => r.type === 'vitals');
+        if (vitalsRecord?.notes) {
+          const notesLines = vitalsRecord.notes.split('\n');
+          notesLines.forEach((line: string) => {
+            const [key, value] = line.split(':').map((s: string) => s.trim());
+            if (key && value) {
+              if (key === 'Blood Pressure') dbVitals.bloodPressure = value;
+              if (key === 'Heart Rate') dbVitals.heartRate = value.replace(' bpm', '');
+              if (key === 'Temperature') dbVitals.temperature = value.replace('°C', '');
+              if (key === 'Respiratory Rate') dbVitals.respiratoryRate = value.replace('/min', '');
+              if (key === 'Oxygen Saturation') dbVitals.oxygenSaturation = value.replace('%', '');
+              if (key === 'Weight') dbVitals.weight = value.replace(' kg', '');
+              if (key === 'Height') dbVitals.height = value.replace(' cm', '');
+              if (key === 'BMI') dbVitals.bmi = value;
+            }
+          });
         }
+      }
+
+      const finalVitals = {
+        bloodPressure: vitals.bloodPressure || dbVitals.bloodPressure || 'Not recorded',
+        heartRate: vitals.heartRate || dbVitals.heartRate || 'Not recorded',
+        temperature: vitals.temperature || dbVitals.temperature || 'Not recorded',
+        respiratoryRate: vitals.respiratoryRate || dbVitals.respiratoryRate || 'Not recorded',
+        oxygenSaturation: vitals.oxygenSaturation || dbVitals.oxygenSaturation || 'Not recorded',
+        weight: vitals.weight || dbVitals.weight || 'Not recorded',
+        height: vitals.height || dbVitals.height || 'Not recorded',
+        bmi: vitals.bmi || dbVitals.bmi || 'Not recorded'
+      };
+
+      const pdf = new jsPDF();
+      let yPosition = 15;
+      const lineHeight = 6;
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const marginLeft = 15;
+      const marginRight = 15;
+      const maxWidth = pageWidth - marginLeft - marginRight;
+
+      const addHeader = () => {
+        if (clinicHeader) {
+          const headerHeight = 35;
+          pdf.setFillColor(74, 125, 255);
+          pdf.rect(0, 0, pageWidth, headerHeight, 'F');
+
+          let textStartX = marginLeft;
+          const logoSize = 25;
+
+          if (clinicHeader.logoBase64 && clinicHeader.logoPosition === 'center') {
+            const logoX = (pageWidth - logoSize) / 2 - 30;
+            pdf.addImage(clinicHeader.logoBase64, 'PNG', logoX, 5, logoSize, logoSize);
+            textStartX = logoX + logoSize + 5;
+          } else if (clinicHeader.logoBase64 && clinicHeader.logoPosition === 'left') {
+            pdf.addImage(clinicHeader.logoBase64, 'PNG', marginLeft, 5, logoSize, logoSize);
+            textStartX = marginLeft + logoSize + 5;
+          }
+
+          pdf.setTextColor(255, 255, 255);
+          pdf.setFontSize(16);
+          pdf.setFont('helvetica', 'bold');
+          pdf.text(clinicHeader.clinicName || 'Clinic', textStartX, 12);
+
+          pdf.setFontSize(8);
+          pdf.setFont('helvetica', 'normal');
+          let infoY = 18;
+          if (clinicHeader.address) {
+            pdf.text(clinicHeader.address, textStartX, infoY);
+            infoY += 4;
+          }
+          if (clinicHeader.phone || clinicHeader.email) {
+            const contact = [clinicHeader.phone, clinicHeader.email].filter(Boolean).join(' | ');
+            pdf.text(contact, textStartX, infoY);
+            infoY += 4;
+          }
+          if (clinicHeader.website) {
+            pdf.text(clinicHeader.website, textStartX, infoY);
+          }
+
+          if (clinicHeader.logoBase64 && clinicHeader.logoPosition === 'right') {
+            pdf.addImage(clinicHeader.logoBase64, 'PNG', pageWidth - marginRight - logoSize, 5, logoSize, logoSize);
+          }
+
+          pdf.setTextColor(0, 0, 0);
+          yPosition = headerHeight + 10;
+        }
+      };
+
+      const addFooter = (pageNum: number) => {
+        if (clinicFooter) {
+          const footerHeight = 15;
+          const footerY = pageHeight - footerHeight;
+          
+          const bgColor = clinicFooter.backgroundColor || '#4A7DFF';
+          const rgb = parseInt(bgColor.slice(1), 16);
+          const r = (rgb >> 16) & 255;
+          const g = (rgb >> 8) & 255;
+          const b = rgb & 255;
+          pdf.setFillColor(r, g, b);
+          pdf.rect(0, footerY, pageWidth, footerHeight, 'F');
+
+          const textColor = clinicFooter.textColor || '#FFFFFF';
+          const trgb = parseInt(textColor.slice(1), 16);
+          const tr = (trgb >> 16) & 255;
+          const tg = (trgb >> 8) & 255;
+          const tb = trgb & 255;
+          pdf.setTextColor(tr, tg, tb);
+
+          pdf.setFontSize(8);
+          pdf.setFont('helvetica', 'normal');
+          pdf.text(clinicFooter.footerText || '', pageWidth / 2, footerY + 7, { align: 'center' });
+          pdf.text(`Page ${pageNum}`, pageWidth - marginRight, footerY + 11, { align: 'right' });
+          
+          pdf.setTextColor(0, 0, 0);
+        } else {
+          pdf.setFontSize(8);
+          pdf.text(`Page ${pageNum}`, pageWidth - marginRight, pageHeight - 10, { align: 'right' });
+        }
+      };
+
+      const addText = (text: string, fontSize: number = 10, isBold: boolean = false, color: string = 'black') => {
+        const footerSpace = clinicFooter ? 20 : 15;
+        if (yPosition > pageHeight - footerSpace) {
+          addFooter(pdf.getCurrentPageInfo().pageNumber);
+          pdf.addPage();
+          addHeader();
+        }
+        pdf.setFontSize(fontSize);
+        pdf.setFont('helvetica', isBold ? 'bold' : 'normal');
+        if (color === 'blue') pdf.setTextColor(74, 125, 255);
+        else pdf.setTextColor(0, 0, 0);
+        
+        const lines = pdf.splitTextToSize(text, maxWidth);
+        pdf.text(lines, marginLeft, yPosition);
+        yPosition += lines.length * lineHeight;
+      };
+
+      const addSection = (title: string) => {
+        yPosition += 4;
+        pdf.setDrawColor(74, 125, 255);
+        pdf.setLineWidth(0.5);
+        pdf.line(marginLeft, yPosition, pageWidth - marginRight, yPosition);
+        yPosition += 6;
+        addText(title, 12, true, 'blue');
+        yPosition += 2;
+      };
+
+      addHeader();
+
+      pdf.setFontSize(16);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(74, 125, 255);
+      pdf.text('FULL CONSULTATION REPORT', pageWidth / 2, yPosition, { align: 'center' });
+      yPosition += 12;
+      pdf.setTextColor(0, 0, 0);
+
+      addText(`Patient: ${currentPatientName}`, 11, true);
+      addText(`Date: ${format(new Date(), 'MMMM dd, yyyy - HH:mm')}`, 9);
+      addText(`Consultation ID: ${currentPatientId}-${Date.now()}`, 9);
+
+      addSection('VITALS');
+      addText(`Blood Pressure: ${finalVitals.bloodPressure}`);
+      addText(`Heart Rate: ${finalVitals.heartRate} ${finalVitals.heartRate !== 'Not recorded' ? 'bpm' : ''}`);
+      addText(`Temperature: ${finalVitals.temperature} ${finalVitals.temperature !== 'Not recorded' ? '°C' : ''}`);
+      addText(`Respiratory Rate: ${finalVitals.respiratoryRate} ${finalVitals.respiratoryRate !== 'Not recorded' ? '/min' : ''}`);
+      addText(`Oxygen Saturation: ${finalVitals.oxygenSaturation} ${finalVitals.oxygenSaturation !== 'Not recorded' ? '%' : ''}`);
+      addText(`Weight: ${finalVitals.weight} ${finalVitals.weight !== 'Not recorded' ? 'kg' : ''}`);
+      addText(`Height: ${finalVitals.height} ${finalVitals.height !== 'Not recorded' ? 'cm' : ''}`);
+      addText(`BMI: ${finalVitals.bmi}`);
+
+      addSection('HISTORY');
+      addText('Chief Complaint:', 10, true);
+      addText(consultationData.chiefComplaint || 'Not recorded');
+      yPosition += 2;
+      addText('History of Presenting Complaint:', 10, true);
+      addText(consultationData.historyPresentingComplaint || 'Not recorded');
+      yPosition += 2;
+      addText('Review of Systems:', 10, true);
+      addText(`• Cardiovascular: ${consultationData.reviewOfSystems?.cardiovascular || 'Not recorded'}`);
+      addText(`• Respiratory: ${consultationData.reviewOfSystems?.respiratory || 'Not recorded'}`);
+      addText(`• Gastrointestinal: ${consultationData.reviewOfSystems?.gastrointestinal || 'Not recorded'}`);
+      addText(`• Genitourinary: ${consultationData.reviewOfSystems?.genitourinary || 'Not recorded'}`);
+      addText(`• Neurological: ${consultationData.reviewOfSystems?.neurological || 'Not recorded'}`);
+      addText(`• Musculoskeletal: ${consultationData.reviewOfSystems?.musculoskeletal || 'Not recorded'}`);
+      addText(`• Skin: ${consultationData.reviewOfSystems?.skin || 'Not recorded'}`);
+      addText(`• Psychiatric: ${consultationData.reviewOfSystems?.psychiatric || 'Not recorded'}`);
+
+      addSection('EXAMINATION');
+      addText(clinicalNotes || 'Not recorded');
+      if (transcript) {
+        addText(`[Live Transcript: ${transcript}]`, 9);
+      }
+
+      addSection('ASSESSMENT');
+      addText(consultationData.assessment || 'Not recorded');
+
+      addSection('PROFESSIONAL ANATOMICAL ANALYSIS');
+      if (selectedMuscleGroup || selectedAnalysisType) {
+        addText(`Target Muscle Group: ${selectedMuscleGroup ? selectedMuscleGroup.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Not specified'}`);
+        addText(`Analysis Type: ${selectedAnalysisType ? selectedAnalysisType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Not specified'}`);
+      } else {
+        addText('No anatomical analysis performed during this consultation.');
+      }
+
+      addSection('GENERATED TREATMENT PLAN');
+      if (generatedTreatmentPlan) {
+        addText(generatedTreatmentPlan);
+      } else {
+        addText('No treatment plan generated during this consultation.');
+      }
+
+      addSection('PLAN');
+      addText('Management Plan:', 10, true);
+      addText(consultationData.plan || 'Not recorded');
+
+      if (consultationData.prescriptions.length > 0) {
+        yPosition += 2;
+        addText(`Prescriptions (${consultationData.prescriptions.length}):`, 10, true);
+        consultationData.prescriptions.forEach((rx, idx) => {
+          addText(`${idx + 1}. ${rx.medication} ${rx.dosage}`);
+          addText(`   ${rx.frequency} for ${rx.duration}`, 9);
+          if (rx.instructions) {
+            addText(`   Instructions: ${rx.instructions}`, 9);
+          }
+        });
+      }
+
+      if (consultationData.referrals.length > 0) {
+        yPosition += 2;
+        addText(`Referrals (${consultationData.referrals.length}):`, 10, true);
+        consultationData.referrals.forEach((ref, idx) => {
+          addText(`${idx + 1}. ${ref.specialty} - ${ref.urgency.toUpperCase()}`, 9);
+          addText(`   Reason: ${ref.reason}`, 9);
+        });
+      }
+
+      if (consultationData.investigations.length > 0) {
+        yPosition += 2;
+        addText(`Investigations (${consultationData.investigations.length}):`, 10, true);
+        consultationData.investigations.forEach((inv, idx) => {
+          addText(`${idx + 1}. ${inv.type} - ${inv.urgency.toUpperCase()}`, 9);
+          addText(`   Reason: ${inv.reason}`, 9);
+        });
+      }
+
+      addFooter(pdf.getCurrentPageInfo().pageNumber);
+
+      pdf.save(`Consultation_${currentPatientName.replace(/\s+/g, '_')}_${format(new Date(), 'yyyy-MM-dd_HHmm')}.pdf`);
+
+      toast({
+        title: "PDF Report Generated",
+        description: "Full consultation report with clinic branding has been downloaded successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to generate PDF report. Please try again.",
+        variant: "destructive",
       });
     }
-
-    if (consultationData.referrals.length > 0) {
-      yPosition += 3;
-      addText(`Referrals (${consultationData.referrals.length}):`, 11, true);
-      consultationData.referrals.forEach((ref, idx) => {
-        addText(`${idx + 1}. ${ref.specialty} - ${ref.urgency.toUpperCase()}`);
-        addText(`   Reason: ${ref.reason}`);
-      });
-    }
-
-    if (consultationData.investigations.length > 0) {
-      yPosition += 3;
-      addText(`Investigations (${consultationData.investigations.length}):`, 11, true);
-      consultationData.investigations.forEach((inv, idx) => {
-        addText(`${idx + 1}. ${inv.type} - ${inv.urgency.toUpperCase()}`);
-        addText(`   Reason: ${inv.reason}`);
-      });
-    }
-
-    yPosition += 10;
-    pdf.setFontSize(8);
-    pdf.setFont('helvetica', 'normal');
-    pdf.text(`Report Generated: ${format(new Date(), 'MMMM dd, yyyy - HH:mm:ss')}`, marginLeft, yPosition);
-    yPosition += 5;
-    pdf.text('Healthcare Management System - Cura EMR', marginLeft, yPosition);
-
-    pdf.save(`Consultation_${currentPatientName.replace(/\s+/g, '_')}_${format(new Date(), 'yyyy-MM-dd_HHmm')}.pdf`);
-
-    toast({
-      title: "PDF Report Generated",
-      description: "Full consultation report has been downloaded successfully as PDF.",
-    });
   };
 
   // Handle save consultation
