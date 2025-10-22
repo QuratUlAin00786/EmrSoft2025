@@ -4668,56 +4668,7 @@ Report generated from Cura EMR System`;
               >
                 Cancel
               </Button>
-              <div className="flex gap-2">
-                {/* Auto-Fill Button */}
-                {generateFormData.selectedTests && generateFormData.selectedTests.length > 0 && (
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      // Auto-fill all test values based on reference ranges
-                      const newTestValues: any = {};
-                      
-                      console.log('🔄 AUTO-FILL: Selected tests:', generateFormData.selectedTests);
-                      
-                      generateFormData.selectedTests.forEach((testType: string) => {
-                        const testFields = TEST_FIELD_DEFINITIONS[testType];
-                        console.log(`📝 Processing test: ${testType}, Fields:`, testFields?.length || 0);
-                        
-                        if (testFields) {
-                          newTestValues[testType] = {};
-                          testFields.forEach((field) => {
-                            const generatedValue = generateValueFromRange(field.referenceRange);
-                            if (generatedValue !== null) {
-                              newTestValues[testType][field.name] = generatedValue;
-                              console.log(`  ✅ ${testType} - ${field.name}: ${generatedValue}`);
-                            } else {
-                              console.log(`  ❌ ${testType} - ${field.name}: null (non-numeric range: ${field.referenceRange})`);
-                            }
-                          });
-                        }
-                      });
-                      
-                      console.log('📦 Final testValues object:', newTestValues);
-                      console.log('📊 Total tests filled:', Object.keys(newTestValues).length);
-                      
-                      setGenerateFormData((prev: any) => ({
-                        ...prev,
-                        testValues: newTestValues,
-                      }));
-                      
-                      toast({
-                        title: "Success",
-                        description: `Auto-filled ${Object.keys(newTestValues).length} test(s) successfully`,
-                      });
-                    }}
-                    className="bg-purple-50 hover:bg-purple-100 text-purple-700 border-purple-200"
-                    data-testid="button-auto-fill-generate"
-                  >
-                    <Sparkles className="h-4 w-4 mr-2" />
-                    Auto-Fill Results
-                  </Button>
-                )}
-                <Button
+              <Button
                 onClick={async () => {
                   // Validate required fields
                   if (!generateFormData.patientId) {
@@ -4835,7 +4786,6 @@ Report generated from Cura EMR System`;
                 <FileText className="h-4 w-4 mr-2" />
                 Generate Lab Result
               </Button>
-              </div>
             </div>
           </div>
         </DialogContent>
