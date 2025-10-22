@@ -3403,7 +3403,7 @@ export default function PrescriptionsPage() {
                             console.log("🔍 Found providerInfo:", providerInfo);
                             return providerInfo ? (
                               <p className="text-xs text-gray-600 dark:text-gray-300">
-                                {formatRoleLabel(providerInfo.role)}: {providerInfo.firstName} {providerInfo.lastName}
+                                Created by {formatRoleLabel(providerInfo.role)}: {providerInfo.firstName} {providerInfo.lastName}
                               </p>
                             ) : null;
                           })()}
