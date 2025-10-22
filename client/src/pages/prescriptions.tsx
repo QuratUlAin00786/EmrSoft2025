@@ -2275,6 +2275,18 @@ export default function PrescriptionsPage() {
                 </div>
               </div>
               
+              <!-- Provider and Creator Information -->
+              <div style="margin: 15px 0; padding: 12px; background: #f8f9fa; border-radius: 5px; border-left: 3px solid #4A7DFF;">
+                <div class="info-line" style="margin-bottom: 5px;">
+                  <span class="info-label" style="color: #2c3e50; font-weight: bold;">Provider:</span> ${doctorInfo ? `${doctorInfo.firstName} ${doctorInfo.lastName}` : "N/A"}${doctorInfo?.role ? ` (${doctorInfo.role.charAt(0).toUpperCase() + doctorInfo.role.slice(1)})` : ""}
+                </div>
+                ${creatorInfo && creatorInfo.id !== doctorInfo?.id ? `
+                <div class="info-line">
+                  <span class="info-label" style="color: #2c3e50; font-weight: bold;">Created by:</span> ${creatorInfo.firstName} ${creatorInfo.lastName}${creatorInfo.role ? ` (${creatorInfo.role.charAt(0).toUpperCase() + creatorInfo.role.slice(1)})` : ""}
+                </div>
+                ` : ""}
+              </div>
+              
               <!-- Watermark -->
               <div class="watermark">HHC</div>
               
