@@ -2277,10 +2277,35 @@ Report generated from Cura EMR System`;
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => {
-                          const pdfPath = `/uploads/Lab_TestResults/${result.organizationId}/${result.patientId}/${result.testId}.pdf`;
-                          setPdfViewerUrl(pdfPath);
-                          setShowPdfViewerDialog(true);
+                        onClick={async () => {
+                          try {
+                            const token = localStorage.getItem("auth_token");
+                            const headers: Record<string, string> = {
+                              "X-Tenant-Subdomain": getActiveSubdomain(),
+                            };
+                            if (token) {
+                              headers["Authorization"] = `Bearer ${token}`;
+                            }
+
+                            const response = await fetch(`/api/files/${result.id}/signed-url`, {
+                              headers,
+                              credentials: "include",
+                            });
+
+                            if (!response.ok) {
+                              throw new Error("Failed to generate signed URL");
+                            }
+
+                            const data = await response.json();
+                            window.open(data.signedUrl, "_blank");
+                          } catch (error) {
+                            console.error("Error viewing PDF:", error);
+                            toast({
+                              title: "Error",
+                              description: "Failed to view lab report. Please try again.",
+                              variant: "destructive",
+                            });
+                          }
                         }}
                         className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200"
                         data-testid="button-view-lab-report"

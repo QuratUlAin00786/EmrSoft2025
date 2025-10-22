@@ -6727,6 +6727,119 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Generate temporary signed URL for lab result PDF (HIPAA/GDPR compliant)
+  app.get("/api/files/:id/signed-url", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const labResultId = parseInt(req.params.id);
+      if (isNaN(labResultId)) {
+        return res.status(400).json({ error: "Invalid file ID" });
+      }
+
+      const organizationId = req.tenant!.id;
+
+      // Fetch lab result to verify access
+      const labResults = await storage.getLabResults(organizationId);
+      const labResult = labResults.find(result => result.id === labResultId);
+      
+      if (!labResult) {
+        return res.status(404).json({ error: "Lab result not found" });
+      }
+
+      // Verify user has access to this patient's data
+      if (req.user.role === 'patient') {
+        const patients = await storage.getPatients(organizationId);
+        const userPatient = patients.find(p => p.userId === req.user!.id);
+        if (!userPatient || userPatient.id !== labResult.patientId) {
+          return res.status(403).json({ error: "Access denied to this lab result" });
+        }
+      }
+
+      // Generate temporary signed token (valid for 5 minutes)
+      const fileSecret = process.env.FILE_SECRET;
+      if (!fileSecret) {
+        console.error("FILE_SECRET not configured");
+        return res.status(500).json({ error: "Server configuration error" });
+      }
+
+      const token = jwt.sign(
+        { 
+          fileId: labResultId,
+          organizationId: organizationId,
+          patientId: labResult.patientId,
+          testId: labResult.testId,
+          userId: req.user.id
+        }, 
+        fileSecret, 
+        { expiresIn: "5m" }
+      );
+
+      const signedUrl = `${req.protocol}://${req.get('host')}/api/files/view/${labResultId}?token=${token}`;
+      
+      console.log(`[SIGNED-URL] Generated for lab result ${labResultId}, valid for 5 minutes`);
+      res.json({ signedUrl });
+
+    } catch (error) {
+      console.error("Error generating signed URL:", error);
+      res.status(500).json({ error: "Failed to generate signed URL" });
+    }
+  });
+
+  // View lab result PDF using temporary signed URL (no authentication required - token validated)
+  app.get("/api/files/view/:id", async (req, res) => {
+    try {
+      const { token } = req.query;
+      if (!token || typeof token !== 'string') {
+        return res.status(403).json({ error: "Missing or invalid token" });
+      }
+
+      const fileSecret = process.env.FILE_SECRET;
+      if (!fileSecret) {
+        console.error("FILE_SECRET not configured");
+        return res.status(500).json({ error: "Server configuration error" });
+      }
+
+      // Verify and decode token
+      let payload: any;
+      try {
+        payload = jwt.verify(token, fileSecret);
+      } catch (err) {
+        console.log("[FILE-VIEW] Token verification failed:", err);
+        return res.status(403).json({ error: "Invalid or expired link" });
+      }
+
+      const { fileId, organizationId, patientId, testId } = payload;
+      
+      // Construct file path
+      const fileName = `${testId}.pdf`;
+      const relativePath = `uploads/Lab_TestResults/${organizationId}/${patientId}/${fileName}`;
+      const fullPath = path.join(process.cwd(), relativePath);
+
+      // Check if file exists
+      const fileExists = await fse.pathExists(fullPath);
+      if (!fileExists) {
+        console.log(`[FILE-VIEW] File not found: ${fullPath}`);
+        return res.status(404).json({ error: "File not found" });
+      }
+
+      console.log(`[FILE-VIEW] Serving file: ${fullPath}`);
+      
+      // Set headers for PDF viewing
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'inline; filename="' + fileName + '"');
+      
+      // Stream the file
+      res.sendFile(fullPath);
+
+    } catch (error) {
+      console.error("Error viewing file:", error);
+      res.status(500).json({ error: "Failed to view file" });
+    }
+  });
+
   // Imaging Routes
   app.get("/api/imaging", authMiddleware, async (req: TenantRequest, res) => {
     try {
