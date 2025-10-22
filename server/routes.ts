@@ -6719,6 +6719,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Check if lab result PDF file exists
+  app.get("/api/files/:id/exists", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const labResultId = parseInt(req.params.id);
+      if (isNaN(labResultId)) {
+        return res.status(400).json({ error: "Invalid file ID" });
+      }
+
+      const organizationId = req.tenant!.id;
+
+      // Fetch lab result
+      const labResults = await storage.getLabResults(organizationId);
+      const labResult = labResults.find(result => result.id === labResultId);
+      
+      if (!labResult) {
+        return res.status(404).json({ error: "Lab result not found" });
+      }
+
+      // Construct file path
+      const fileName = `${labResult.testId}.pdf`;
+      const fullPath = path.join(process.cwd(), `uploads/Lab_TestResults/${organizationId}/${labResult.patientId}/${fileName}`);
+
+      // Check if file exists
+      const fileExists = await fse.pathExists(fullPath);
+
+      res.json({ exists: fileExists });
+
+    } catch (error) {
+      console.error("Error checking file existence:", error);
+      res.status(500).json({ error: "Failed to check file existence" });
+    }
+  });
+
   // Generate temporary signed URL for lab result PDF (HIPAA/GDPR compliant)
   app.get("/api/files/:id/signed-url", authMiddleware, async (req: TenantRequest, res) => {
     try {

@@ -780,6 +780,46 @@ export default function LabResultsPage() {
     enabled: !!user && patients.length > 0, // Wait for user and patients data to be loaded
   });
 
+  // Check file existence for all lab results
+  useEffect(() => {
+    const checkFileExistence = async () => {
+      if (!labResults || labResults.length === 0) return;
+
+      const existenceChecks: Record<number, boolean> = {};
+      
+      for (const result of labResults) {
+        try {
+          const token = localStorage.getItem("auth_token");
+          const headers: Record<string, string> = {
+            "X-Tenant-Subdomain": getActiveSubdomain(),
+          };
+          if (token) {
+            headers["Authorization"] = `Bearer ${token}`;
+          }
+
+          const response = await fetch(`/api/files/${result.id}/exists`, {
+            headers,
+            credentials: "include",
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            existenceChecks[result.id] = data.exists;
+          } else {
+            existenceChecks[result.id] = false;
+          }
+        } catch (error) {
+          console.error(`Error checking file existence for result ${result.id}:`, error);
+          existenceChecks[result.id] = false;
+        }
+      }
+
+      setFileExistenceMap(existenceChecks);
+    };
+
+    checkFileExistence();
+  }, [labResults]);
+
   // Fetch medical staff for doctor selection
   const { data: medicalStaffData, isLoading: medicalStaffLoading } = useQuery({
     queryKey: ["/api/medical-staff"],
@@ -912,6 +952,7 @@ export default function LabResultsPage() {
   const [showPermissionErrorDialog, setShowPermissionErrorDialog] = useState(false);
   const [permissionErrorMessage, setPermissionErrorMessage] = useState("");
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [fileExistenceMap, setFileExistenceMap] = useState<Record<number, boolean>>({});
 
   const updateLabResultMutation = useMutation({
     mutationFn: async (updateData: { id: number; data: any }) => {
@@ -2285,144 +2326,148 @@ Report generated from Cura EMR System`;
                           Generate Test Result
                         </Button>
                       )}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={async () => {
-                          try {
-                            const token = localStorage.getItem("auth_token");
-                            const headers: Record<string, string> = {
-                              "X-Tenant-Subdomain": getActiveSubdomain(),
-                            };
-                            if (token) {
-                              headers["Authorization"] = `Bearer ${token}`;
-                            }
+                      {fileExistenceMap[result.id] && (
+                        <>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={async () => {
+                              try {
+                                const token = localStorage.getItem("auth_token");
+                                const headers: Record<string, string> = {
+                                  "X-Tenant-Subdomain": getActiveSubdomain(),
+                                };
+                                if (token) {
+                                  headers["Authorization"] = `Bearer ${token}`;
+                                }
 
-                            const response = await fetch(`/api/files/${result.id}/signed-url`, {
-                              headers,
-                              credentials: "include",
-                            });
+                                const response = await fetch(`/api/files/${result.id}/signed-url`, {
+                                  headers,
+                                  credentials: "include",
+                                });
 
-                            if (!response.ok) {
-                              throw new Error("Failed to generate signed URL");
-                            }
+                                if (!response.ok) {
+                                  throw new Error("Failed to generate signed URL");
+                                }
 
-                            const data = await response.json();
-                            window.open(data.signedUrl, "_blank");
-                          } catch (error) {
-                            console.error("Error viewing PDF:", error);
-                            toast({
-                              title: "Error",
-                              description: "Failed to view lab report. Please try again.",
-                              variant: "destructive",
-                            });
-                          }
-                        }}
-                        className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200"
-                        data-testid="button-view-lab-report"
-                      >
-                        <FileText className="h-4 w-4 mr-2" />
-                        View Lab Report
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={async () => {
-                          try {
-                            const token = localStorage.getItem("auth_token");
-                            const headers: Record<string, string> = {
-                              "X-Tenant-Subdomain": getActiveSubdomain(),
-                            };
-                            if (token) {
-                              headers["Authorization"] = `Bearer ${token}`;
-                            }
+                                const data = await response.json();
+                                window.open(data.signedUrl, "_blank");
+                              } catch (error) {
+                                console.error("Error viewing PDF:", error);
+                                toast({
+                                  title: "Error",
+                                  description: "Failed to view lab report. Please try again.",
+                                  variant: "destructive",
+                                });
+                              }
+                            }}
+                            className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200"
+                            data-testid="button-view-lab-report"
+                          >
+                            <FileText className="h-4 w-4 mr-2" />
+                         
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={async () => {
+                              try {
+                                const token = localStorage.getItem("auth_token");
+                                const headers: Record<string, string> = {
+                                  "X-Tenant-Subdomain": getActiveSubdomain(),
+                                };
+                                if (token) {
+                                  headers["Authorization"] = `Bearer ${token}`;
+                                }
 
-                            const response = await fetch(`/api/files/${result.id}/signed-url`, {
-                              headers,
-                              credentials: "include",
-                            });
+                                const response = await fetch(`/api/files/${result.id}/signed-url`, {
+                                  headers,
+                                  credentials: "include",
+                                });
 
-                            if (!response.ok) {
-                              throw new Error("Failed to generate signed URL");
-                            }
+                                if (!response.ok) {
+                                  throw new Error("Failed to generate signed URL");
+                                }
 
-                            const data = await response.json();
-                            
-                            // Open PDF in new window for printing
-                            const printWindow = window.open(data.signedUrl, "_blank");
-                            if (printWindow) {
-                              printWindow.onload = () => {
-                                printWindow.print();
-                              };
-                            }
-                          } catch (error) {
-                            console.error("Error printing PDF:", error);
-                            toast({
-                              title: "Error",
-                              description: "Failed to print lab report. Please try again.",
-                              variant: "destructive",
-                            });
-                          }
-                        }}
-                        className="bg-gray-50 hover:bg-gray-100 text-gray-700 border-gray-200"
-                        data-testid="button-print-lab-report"
-                      >
-                        <Printer className="h-4 w-4 mr-2" />
-                        Print
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={async () => {
-                          try {
-                            const token = localStorage.getItem("auth_token");
-                            const headers: Record<string, string> = {
-                              "X-Tenant-Subdomain": getActiveSubdomain(),
-                            };
-                            if (token) {
-                              headers["Authorization"] = `Bearer ${token}`;
-                            }
+                                const data = await response.json();
+                                
+                                // Open PDF in new window for printing
+                                const printWindow = window.open(data.signedUrl, "_blank");
+                                if (printWindow) {
+                                  printWindow.onload = () => {
+                                    printWindow.print();
+                                  };
+                                }
+                              } catch (error) {
+                                console.error("Error printing PDF:", error);
+                                toast({
+                                  title: "Error",
+                                  description: "Failed to print lab report. Please try again.",
+                                  variant: "destructive",
+                                });
+                              }
+                            }}
+                            className="bg-gray-50 hover:bg-gray-100 text-gray-700 border-gray-200"
+                            data-testid="button-print-lab-report"
+                          >
+                            <Printer className="h-4 w-4 mr-2" />
+                         
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={async () => {
+                              try {
+                                const token = localStorage.getItem("auth_token");
+                                const headers: Record<string, string> = {
+                                  "X-Tenant-Subdomain": getActiveSubdomain(),
+                                };
+                                if (token) {
+                                  headers["Authorization"] = `Bearer ${token}`;
+                                }
 
-                            const response = await fetch(`/api/files/${result.id}/signed-url`, {
-                              headers,
-                              credentials: "include",
-                            });
+                                const response = await fetch(`/api/files/${result.id}/signed-url`, {
+                                  headers,
+                                  credentials: "include",
+                                });
 
-                            if (!response.ok) {
-                              throw new Error("Failed to generate signed URL");
-                            }
+                                if (!response.ok) {
+                                  throw new Error("Failed to generate signed URL");
+                                }
 
-                            const data = await response.json();
-                            
-                            // Use a simple anchor tag with download attribute
-                            const a = document.createElement('a');
-                            a.href = data.signedUrl;
-                            a.download = `Lab_Result_${result.testId || result.id}.pdf`;
-                            a.target = '_blank';
-                            a.rel = 'noopener noreferrer';
-                            document.body.appendChild(a);
-                            a.click();
-                            document.body.removeChild(a);
-                            
-                            toast({
-                              title: "Success",
-                              description: "Lab result PDF download started",
-                            });
-                          } catch (error) {
-                            console.error("Error downloading PDF:", error);
-                            toast({
-                              title: "Error",
-                              description: "Failed to download lab report. Please try again.",
-                              variant: "destructive",
-                            });
-                          }
-                        }}
-                        className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
-                        data-testid="button-download-lab-report"
-                      >
-                        <Download className="h-4 w-4 mr-2" />
-                        Download
-                      </Button>
+                                const data = await response.json();
+                                
+                                // Use a simple anchor tag with download attribute
+                                const a = document.createElement('a');
+                                a.href = data.signedUrl;
+                                a.download = `Lab_Result_${result.testId || result.id}.pdf`;
+                                a.target = '_blank';
+                                a.rel = 'noopener noreferrer';
+                                document.body.appendChild(a);
+                                a.click();
+                                document.body.removeChild(a);
+                                
+                                toast({
+                                  title: "Success",
+                                  description: "Lab result PDF download started",
+                                });
+                              } catch (error) {
+                                console.error("Error downloading PDF:", error);
+                                toast({
+                                  title: "Error",
+                                  description: "Failed to download lab report. Please try again.",
+                                  variant: "destructive",
+                                });
+                              }
+                            }}
+                            className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
+                            data-testid="button-download-lab-report"
+                          >
+                            <Download className="h-4 w-4 mr-2" />
+                          
+                          </Button>
+                        </>
+                      )}
                       {user?.role !== 'patient' && (
                         <Button
                           variant="outline"
