@@ -926,12 +926,7 @@ export default function PrescriptionsPage() {
           // Doctor information after header
           pdf.setFontSize(9);
           pdf.setFont("helvetica", "normal");
-          if (doctorInfo) {
-            const doctorName = `${doctorInfo.firstName} ${doctorInfo.lastName}`;
-            const doctorRole = doctorInfo.role || "N/A";
-            pdf.text(`Doctor: ${doctorName} (${doctorRole})`, 20, 26);
-          }
-
+      
           pdf.text(`Prescription #: ${prescriptionNumber}`, 20, doctorInfo ? 31 : 26);
 
           // Center Title
@@ -2040,7 +2035,7 @@ export default function PrescriptionsPage() {
                 margin: 25px 0;
                 position: relative;
                 z-index: 2;
-                background: white;
+                background-color: transparent; /* important: removes white box effect */
               }
               
               .medication-name {
@@ -2059,7 +2054,9 @@ export default function PrescriptionsPage() {
               .diagnosis-section {
                 margin: 20px 0;
                 padding: 10px;
-                background: #f8f9fa;
+               position: relative;
+
+  background-color: transparent; /* important: removes white box effect */
                 border-radius: 5px;
                 position: relative;
                 z-index: 2;
@@ -2167,8 +2164,7 @@ export default function PrescriptionsPage() {
                 <div class="header-left">
                   <h1>CURA HEALTH EMR</h1>
                   <div class="license-info">
-                    Provider: ${doctorInfo ? `${doctorInfo.firstName} ${doctorInfo.lastName}` : "N/A"} (${doctorInfo?.role || "N/A"})<br>
-                    ${creatorInfo && creatorInfo.id !== doctorInfo?.id ? `Created by: ${creatorInfo.firstName} ${creatorInfo.lastName} (${creatorInfo.role || "N/A"})<br>` : ""}
+                 
                     Prescription #: ${prescription.prescriptionNumber || "N/A"}
                   </div>
                 </div>
@@ -2193,7 +2189,7 @@ export default function PrescriptionsPage() {
                     text-decoration: ${clinicHeader?.textDecoration || "none"};
                     text-align: center;
                   ">
-                    ${prescription.providerName}<br>
+                 
                     <span style="font-size: ${clinicHeader?.clinicNameFontSize || "16pt"}; font-weight: bold;">
                       ${clinicHeader?.clinicName || "Halo Health Clinic"}
                     </span><br>
@@ -2216,7 +2212,7 @@ export default function PrescriptionsPage() {
                   text-decoration: ${clinicHeader?.textDecoration || "none"};
                   text-align: ${clinicHeader.logoPosition || "center"};
                 ">
-                  ${prescription.providerName}<br>
+             
                   <span style="font-size: ${clinicHeader?.clinicNameFontSize || "16pt"}; font-weight: bold;">
                     ${clinicHeader?.clinicName || "Halo Health Clinic"}
                   </span><br>

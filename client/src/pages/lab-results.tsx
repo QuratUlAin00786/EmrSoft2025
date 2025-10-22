@@ -5292,19 +5292,27 @@ Report generated from Cura EMR System`;
                     yPos = Math.max(leftY, rightY) + 10;
 
                     // Test Results Section - Separate section for each test type
-                    Object.entries(resultsByTestType).forEach(([testType, results]) => {
+                    Object.entries(resultsByTestType).forEach(([testType, results], groupIndex) => {
+                      // Add extra spacing between test groups (but not before first group)
+                      if (groupIndex > 0) {
+                        yPos += 8;
+                      }
+                      
                       if (yPos > 240) {
                         pdf.addPage();
                         yPos = 20;
                       }
 
-                      // Test Type Header (Blue)
+                      // Test Type Header with background box
+                      pdf.setFillColor(66, 133, 244);
+                      pdf.rect(20, yPos - 2, 170, 10, 'F');
+                      
                       pdf.setFont('helvetica', 'bold');
                       pdf.setFontSize(12);
-                      pdf.setTextColor(66, 133, 244);
-                      pdf.text(testType, 20, yPos);
+                      pdf.setTextColor(255, 255, 255);
+                      pdf.text(testType, 22, yPos + 5);
                       pdf.setTextColor(0, 0, 0);
-                      yPos += 10;
+                      yPos += 12;
 
                       // Table with proper borders
                       const tableStartY = yPos;
