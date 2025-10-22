@@ -2294,11 +2294,6 @@ export default function PrescriptionsPage() {
                 </div>
               </div>
               
-              <!-- Pharmacy Info -->
-              <div class="pharmacy-info">
-                ${clinicFooter?.footerText || "Pharmacy: Halo Health - +44(0)121 827 5531"}
-              </div>
-              
               <!-- Action Buttons -->
               <div class="action-buttons">
                 <button class="action-btn btn-view" onclick="window.close()">
@@ -2323,7 +2318,9 @@ export default function PrescriptionsPage() {
             </div>
 
             <div class="footer">
-
+              <div class="pharmacy-info">
+                ${clinicFooter?.footerText || "Pharmacy: Halo Health - +44(0)121 827 5531"}
+              </div>
             </div>
           </body>
         </html>
@@ -3786,15 +3783,11 @@ export default function PrescriptionsPage() {
                         </div>
                       </div>
 
-                      {prescription.pharmacy && (
-                        <div className="mt-4 text-center">
-                          <p className="text-xs text-gray-600 dark:text-gray-300">
-                            <strong>Pharmacy:</strong>{" "}
-                            {prescription.pharmacy.name} -{" "}
-                            {prescription.pharmacy.phone}
-                          </p>
-                        </div>
-                      )}
+                      <div className="mt-4 text-center">
+                        <p className="text-xs text-gray-600 dark:text-gray-300">
+                          {clinicFooter?.footerText || "Pharmacy: Halo Health - +44(0)121 827 5531"}
+                        </p>
+                      </div>
                     </div>
 
                     {/* Drug Interactions Warning */}
