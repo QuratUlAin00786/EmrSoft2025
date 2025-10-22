@@ -5326,20 +5326,26 @@ Report generated from Cura EMR System`;
                       }
                     }
 
-                    // Download PDF
-                    const fileName = `${selectedLabOrder.testId || Date.now()}.pdf`;
-                    pdf.save(fileName);
+                    // Preview PDF in new window
+                    const pdfBlob = pdf.output('blob');
+                    const pdfUrl = URL.createObjectURL(pdfBlob);
+                    const previewWindow = window.open(pdfUrl, '_blank');
+                    if (previewWindow) {
+                      previewWindow.onload = () => {
+                        URL.revokeObjectURL(pdfUrl);
+                      };
+                    }
 
                     toast({
                       title: "Success",
-                      description: "Lab test result PDF downloaded successfully",
+                      description: "Lab test result preview opened",
                     });
                   }}
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
-                  data-testid="button-download-fill-result"
+                  className="bg-purple-50 hover:bg-purple-100 text-purple-700 border-purple-200"
+                  data-testid="button-preview-fill-result"
                 >
-                  <Download className="h-4 w-4 mr-2" />
-                  Download Lab Test Result
+                  <Eye className="h-4 w-4 mr-2" />
+                  Preview
                 </Button>
                 <Button
                   onClick={async () => {
