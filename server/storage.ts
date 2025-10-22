@@ -776,6 +776,10 @@ export class DatabaseStorage implements IStorage {
       await db.delete(labResults).where(eq(labResults.patientId, patientRecord.id));
       console.log(`Storage: Deleted lab results for patient ${patientRecord.id}`);
       
+      // Delete medical images for this patient
+      await db.delete(medicalImages).where(eq(medicalImages.patientId, patientRecord.id));
+      console.log(`Storage: Deleted medical images for patient ${patientRecord.id}`);
+      
       // Delete patient record
       await db.delete(patients).where(eq(patients.id, patientRecord.id));
       console.log(`Storage: Deleted patient record ${patientRecord.id} for user ${id}`);
