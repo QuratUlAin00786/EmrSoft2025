@@ -2057,15 +2057,13 @@ export default function PrescriptionsPage() {
               }
               
               .footer {
-                position: absolute;
-                bottom: 15mm;
+                position: fixed;
+                bottom: 10mm;
                 left: 15mm;
                 right: 15mm;
-                display: flex;
-                justify-content: space-between;
-                align-items: flex-end;
-                border-top: 1px solid #e9ecef;
-                padding-top: 15px;
+                width: calc(100% - 30mm);
+                background: white;
+                z-index: 10;
               }
               
               .signature-section {
@@ -2092,7 +2090,9 @@ export default function PrescriptionsPage() {
                 text-align: center;
                 font-size: 9px;
                 color: #6c757d;
-                margin-top: 10px;
+                padding: 8px 0;
+                border-top: 1px solid #e9ecef;
+                margin-top: 5px;
               }
               
               .action-buttons {
