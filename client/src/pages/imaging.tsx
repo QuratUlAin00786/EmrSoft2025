@@ -1408,8 +1408,14 @@ export default function ImagingPage() {
       const response = await apiRequest("GET", `/api/imaging-files/${reportId}/signed-url`);
       
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to generate signed URL");
+        let errorMessage = "Failed to generate signed URL";
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch {
+          errorMessage = `Server error: ${response.status} ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
       }
 
       const { signedUrl } = await response.json();
