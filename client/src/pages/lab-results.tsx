@@ -5166,19 +5166,40 @@ Report generated from Cura EMR System`;
 
                     // Add logo if available - center position places logo beside header
                     const headerStartY = yPos;
+                    let textStartX = 105; // Default center position
+                    let textAlign: 'left' | 'center' | 'right' = 'center';
+                    
                     if (clinicHeader?.logoBase64) {
                       try {
                         if (clinicHeader.logoPosition === 'center') {
                           // Place logo beside (to the left of) header details
                           pdf.addImage(clinicHeader.logoBase64, 'PNG', 20, yPos, 30, 30);
-                        } else {
-                          // Left or right positions - logo on top as before
-                          const logoX = clinicHeader.logoPosition === 'left' ? 20 : 160;
-                          pdf.addImage(clinicHeader.logoBase64, 'PNG', logoX, yPos, 30, 30);
+                          textStartX = 55; // Text starts after logo
+                          textAlign = 'left';
+                        } else if (clinicHeader.logoPosition === 'left') {
+                          // Logo on top left
+                          pdf.addImage(clinicHeader.logoBase64, 'PNG', 20, yPos, 30, 30);
                           yPos += 35;
+                          textStartX = 20;
+                          textAlign = 'left';
+                        } else if (clinicHeader.logoPosition === 'right') {
+                          // Logo on top right
+                          pdf.addImage(clinicHeader.logoBase64, 'PNG', 160, yPos, 30, 30);
+                          yPos += 35;
+                          textStartX = pageWidth - 20;
+                          textAlign = 'right';
                         }
                       } catch (error) {
                         console.error('Error adding logo:', error);
+                      }
+                    } else if (clinicHeader?.logoPosition) {
+                      // No logo but position is set - align text accordingly
+                      if (clinicHeader.logoPosition === 'left') {
+                        textStartX = 20;
+                        textAlign = 'left';
+                      } else if (clinicHeader.logoPosition === 'right') {
+                        textStartX = pageWidth - 20;
+                        textAlign = 'right';
                       }
                     }
 
@@ -5186,7 +5207,7 @@ Report generated from Cura EMR System`;
                     if (clinicHeader?.clinicName) {
                       pdf.setFontSize(parseInt(clinicHeader.clinicNameFontSize || '24'));
                       pdf.setFont(clinicHeader.fontFamily || 'helvetica', clinicHeader.fontWeight || 'bold');
-                      pdf.text(clinicHeader.clinicName, 105, yPos, { align: 'center' });
+                      pdf.text(clinicHeader.clinicName, textStartX, yPos, { align: textAlign });
                       yPos += 10;
                     }
 
@@ -5195,15 +5216,15 @@ Report generated from Cura EMR System`;
                       pdf.setFontSize(parseInt(clinicHeader.fontSize || '12'));
                       pdf.setFont(clinicHeader.fontFamily || 'helvetica', 'normal');
                       if (clinicHeader.address) {
-                        pdf.text(clinicHeader.address, 105, yPos, { align: 'center' });
+                        pdf.text(clinicHeader.address, textStartX, yPos, { align: textAlign });
                         yPos += 6;
                       }
                       if (clinicHeader.phone) {
-                        pdf.text(clinicHeader.phone, 105, yPos, { align: 'center' });
+                        pdf.text(clinicHeader.phone, textStartX, yPos, { align: textAlign });
                         yPos += 6;
                       }
                       if (clinicHeader.email) {
-                        pdf.text(clinicHeader.email, 105, yPos, { align: 'center' });
+                        pdf.text(clinicHeader.email, textStartX, yPos, { align: textAlign });
                         yPos += 6;
                       }
                     }
