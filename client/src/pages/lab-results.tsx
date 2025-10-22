@@ -2386,15 +2386,30 @@ Report generated from Cura EMR System`;
                             
                             // Download PDF
                             const pdfResponse = await fetch(data.signedUrl);
+                            if (!pdfResponse.ok) {
+                              throw new Error("Failed to fetch PDF file");
+                            }
+                            
                             const blob = await pdfResponse.blob();
-                            const url = window.URL.createObjectURL(blob);
+                            const pdfBlob = new Blob([blob], { type: 'application/pdf' });
+                            const url = window.URL.createObjectURL(pdfBlob);
                             const a = document.createElement('a');
                             a.href = url;
                             a.download = `Lab_Result_${result.testId || result.id}.pdf`;
+                            a.style.display = 'none';
                             document.body.appendChild(a);
                             a.click();
-                            window.URL.revokeObjectURL(url);
-                            document.body.removeChild(a);
+                            
+                            // Clean up after a short delay
+                            setTimeout(() => {
+                              window.URL.revokeObjectURL(url);
+                              document.body.removeChild(a);
+                            }, 100);
+                            
+                            toast({
+                              title: "Success",
+                              description: "Lab result PDF downloaded successfully",
+                            });
                           } catch (error) {
                             console.error("Error downloading PDF:", error);
                             toast({
