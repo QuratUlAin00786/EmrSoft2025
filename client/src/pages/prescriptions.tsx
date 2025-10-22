@@ -254,6 +254,12 @@ export default function PrescriptionsPage() {
     enabled: !!user,
   });
 
+  // Fetch clinic footers
+  const { data: clinicFooter } = useQuery({
+    queryKey: ["/api/clinic-footers"],
+    enabled: !!user,
+  });
+
   // Status editing state
   const [editingStatusId, setEditingStatusId] = useState<string | null>(null);
   const [tempStatus, setTempStatus] = useState<string>("");
@@ -2290,7 +2296,7 @@ export default function PrescriptionsPage() {
               
               <!-- Pharmacy Info -->
               <div class="pharmacy-info">
-                Pharmacy: Halo Health - +44(0)121 827 5531
+                ${clinicFooter?.footerText || "Pharmacy: Halo Health - +44(0)121 827 5531"}
               </div>
               
               <!-- Action Buttons -->
