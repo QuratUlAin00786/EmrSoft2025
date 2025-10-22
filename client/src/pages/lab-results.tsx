@@ -715,6 +715,38 @@ export default function LabResultsPage() {
   const [testTypeOpen, setTestTypeOpen] = useState(false);
   const [editingStatusId, setEditingStatusId] = useState<number | null>(null);
 
+  // Helper function to generate random value within reference range
+  const generateValueFromRange = (referenceRange: string): string | null => {
+    // Handle different range formats
+    if (referenceRange.includes(' - ')) {
+      // Format: "13.0 - 17.0" or "4.0 - 10.0"
+      const parts = referenceRange.split(' - ').map(v => parseFloat(v.trim()));
+      if (parts.some(isNaN)) return null; // Skip non-numeric ranges
+      const [min, max] = parts;
+      const value = min + Math.random() * (max - min);
+      // Determine decimal places from original range
+      const decimals = referenceRange.includes('.') ? 1 : 0;
+      return value.toFixed(decimals);
+    } else if (referenceRange.startsWith('<')) {
+      // Format: "<2" or "<200"
+      const max = parseFloat(referenceRange.substring(1).trim());
+      if (isNaN(max)) return null; // Skip non-numeric ranges
+      const value = Math.random() * (max * 0.8); // Use 80% of max for safety
+      const decimals = referenceRange.includes('.') ? 1 : 0;
+      return value.toFixed(decimals);
+    } else if (referenceRange.startsWith('>')) {
+      // Format: ">10" or ">150"
+      const min = parseFloat(referenceRange.substring(1).trim());
+      if (isNaN(min)) return null; // Skip non-numeric ranges
+      const value = min + Math.random() * (min * 0.5); // Use min + 50% for safety
+      const decimals = referenceRange.includes('.') ? 1 : 0;
+      return value.toFixed(decimals);
+    }
+    
+    // Skip other formats (e.g., "negative", "positive", etc.)
+    return null;
+  };
+
   // Real API data fetching for patients - MUST come first before lab results query
   const { data: patients = [], isLoading: patientsLoading } = useQuery({
     queryKey: ["/api/patients"],
@@ -5003,43 +5035,6 @@ Report generated from Cura EMR System`;
                 <Button
                   variant="outline"
                   onClick={() => {
-                    // Helper function to generate random value within reference range
-                    const generateValueFromRange = (referenceRange: string): string | null => {
-                      // Handle different range formats
-                      if (referenceRange.includes(' - ')) {
-                        // Format: "13.0 - 17.0" or "4.0 - 10.0"
-                        const parts = referenceRange.split(' - ').map(v => parseFloat(v.trim()));
-                        if (parts.some(isNaN)) return null; // Skip non-numeric ranges
-                        const [min, max] = parts;
-                        const value = min + Math.random() * (max - min);
-                        // Determine decimal places from original range
-                        const decimals = referenceRange.includes('.') ? 1 : 0;
-                        return value.toFixed(decimals);
-                      } else if (referenceRange.startsWith('<')) {
-                        // Format: "<2" or "<200"
-                        const max = parseFloat(referenceRange.substring(1).trim());
-                        if (isNaN(max)) return null; // Skip non-numeric ranges
-                        const value = Math.random() * (max * 0.8); // Use 80% of max for safety
-                        const decimals = referenceRange.includes('.') ? 1 : 0;
-                        return value.toFixed(decimals);
-                      } else if (referenceRange.startsWith('>')) {
-                        // Format: ">40"
-                        const min = parseFloat(referenceRange.substring(1).trim());
-                        if (isNaN(min)) return null; // Skip non-numeric ranges
-                        const value = min + Math.random() * (min * 0.5); // Add up to 50% above min
-                        const decimals = referenceRange.includes('.') ? 1 : 0;
-                        return value.toFixed(decimals);
-                      } else if (referenceRange.includes('< ')) {
-                        // Format: "< 117"
-                        const max = parseFloat(referenceRange.split('< ')[1].trim());
-                        if (isNaN(max)) return null; // Skip non-numeric ranges
-                        const value = Math.random() * (max * 0.8);
-                        const decimals = referenceRange.includes('.') ? 1 : 0;
-                        return value.toFixed(decimals);
-                      }
-                      return null; // Skip unknown or non-numeric formats
-                    };
-
                     // Auto-generate values for all empty fields
                     const testTypes = selectedLabOrder.testType
                       .split(',')
