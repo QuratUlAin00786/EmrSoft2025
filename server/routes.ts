@@ -6931,9 +6931,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         { expiresIn: "5m" }
       );
 
-      const signedUrl = `${req.protocol}://${req.get('host')}/api/files/view/${labResultId}?token=${token}`;
+      // Get the correct protocol and host for production environments
+      const protocol = req.get('x-forwarded-proto') || req.protocol || 'https';
+      const host = req.get('x-forwarded-host') || req.get('host') || req.headers.host;
+      const signedUrl = `${protocol}://${host}/api/files/view/${labResultId}?token=${token}`;
       
-      console.log(`[SIGNED-URL] Generated for lab result ${labResultId}, valid for 5 minutes`);
+      console.log(`[SIGNED-URL] Generated for lab result ${labResultId}, valid for 5 minutes, URL: ${signedUrl}`);
       res.json({ signedUrl });
 
     } catch (error) {
@@ -7034,9 +7037,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         { expiresIn: "5m" }
       );
 
-      const signedUrl = `${req.protocol}://${req.get('host')}/api/imaging-files/view/${imageId}?token=${token}`;
+      // Get the correct protocol and host for production environments
+      const protocol = req.get('x-forwarded-proto') || req.protocol || 'https';
+      const host = req.get('x-forwarded-host') || req.get('host') || req.headers.host;
+      const signedUrl = `${protocol}://${host}/api/imaging-files/view/${imageId}?token=${token}`;
       
-      console.log(`[SIGNED-URL] Generated for imaging report ${imageId}, valid for 5 minutes`);
+      console.log(`[SIGNED-URL] Generated for imaging report ${imageId}, valid for 5 minutes, URL: ${signedUrl}`);
       res.json({ signedUrl });
 
     } catch (error) {
