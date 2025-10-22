@@ -176,14 +176,10 @@ export default function SaaSDashboard({ onLogout }: SaaSDashboardProps) {
           {/* Main Content */}
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="overview" className="flex items-center space-x-2">
               <Activity className="h-4 w-4" />
               <span>Overview</span>
-            </TabsTrigger>
-            <TabsTrigger value="users" className="flex items-center space-x-2">
-              <Users className="h-4 w-4" />
-              <span>Users</span>
             </TabsTrigger>
             <TabsTrigger value="customers" className="flex items-center space-x-2">
               <Building2 className="h-4 w-4" />
@@ -369,10 +365,6 @@ export default function SaaSDashboard({ onLogout }: SaaSDashboardProps) {
                 </CardContent>
               </Card>
             </div>
-          </TabsContent>
-
-          <TabsContent value="users">
-            <SaaSUsers />
           </TabsContent>
 
           <TabsContent value="customers">
