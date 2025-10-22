@@ -4897,6 +4897,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Send welcome email to newly created user
+  app.post("/api/users/send-welcome-email", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const emailData = z.object({
+        userEmail: z.string().email(),
+        userName: z.string().min(1),
+        password: z.string().min(1),
+        role: z.string().min(1)
+      }).parse(req.body);
+
+      // Get organization details
+      const organization = await storage.getOrganizationById(req.tenant!.id);
+      if (!organization) {
+        return res.status(404).json({ error: "Organization not found" });
+      }
+
+      // Send the welcome email
+      const emailSent = await emailService.sendNewUserAccountEmail(
+        emailData.userEmail,
+        emailData.userName,
+        emailData.password,
+        organization.name,
+        emailData.role
+      );
+
+      if (emailSent) {
+        res.status(200).json({ success: true, message: "Welcome email sent successfully" });
+      } else {
+        res.status(500).json({ success: false, error: "Failed to send welcome email" });
+      }
+    } catch (error: any) {
+      console.error("Error sending welcome email:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: error.errors.map(e => `${e.path.join('.')}: ${e.message}`)
+        });
+      }
+      res.status(500).json({ error: "Failed to send welcome email" });
+    }
+  });
+
   // Update user
   app.patch("/api/users/:id", async (req: TenantRequest, res) => {
     try {

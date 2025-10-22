@@ -1362,7 +1362,7 @@ export default function UserManagement() {
       
       return result;
     },
-    onSuccess: (newUser) => {
+    onSuccess: async (newUser, variables) => {
       setSuccessMessage("The new user has been added to the system.");
       setShowSuccessModal(true);
       // Immediately add user to list for instant display
@@ -1371,6 +1371,20 @@ export default function UserManagement() {
       refetch();
       setIsCreateModalOpen(false);
       form.reset();
+      
+      // Send welcome email to the newly created user
+      try {
+        await apiRequest("POST", "/api/users/send-welcome-email", {
+          userEmail: newUser.email,
+          userName: `${newUser.firstName} ${newUser.lastName}`,
+          password: variables.password, // Password from the form submission
+          role: newUser.role
+        });
+        console.log("Welcome email sent successfully to", newUser.email);
+      } catch (emailError) {
+        console.error("Failed to send welcome email:", emailError);
+        // Don't show error to user - email is a background task
+      }
       
       // Redirect to shifts page if role is doctor
       if (newUser.role && (newUser.role.toLowerCase() === 'doctor')) {

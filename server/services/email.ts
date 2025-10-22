@@ -945,6 +945,226 @@ For technical support, please contact your system administrator.
       ]
     });
   }
+
+  // Template for new user account creation
+  generateNewUserAccountEmail(
+    userName: string, 
+    userEmail: string, 
+    password: string,
+    organizationName: string,
+    role: string
+  ): EmailTemplate {
+    const subject = `Welcome to Cura EMR - Your Account Has Been Created`;
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; 
+            line-height: 1.6; 
+            color: #333; 
+          }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff; }
+          .header { 
+            background: linear-gradient(135deg, #4A7DFF 0%, #7279FB 100%); 
+            color: white; 
+            padding: 30px 20px; 
+            text-align: center; 
+            border-radius: 8px 8px 0 0;
+          }
+          .header h1 { margin: 0; font-size: 28px; font-weight: 600; }
+          .content { padding: 30px 20px; background-color: #f9fafb; }
+          .welcome-message { 
+            background-color: #ffffff; 
+            padding: 20px; 
+            border-radius: 8px; 
+            margin-bottom: 20px;
+            border-left: 4px solid #4A7DFF;
+          }
+          .credentials-box { 
+            background-color: #ffffff; 
+            padding: 20px; 
+            border-radius: 8px; 
+            margin: 20px 0;
+            border: 2px solid #e5e7eb;
+          }
+          .credential-item { 
+            margin: 12px 0; 
+            padding: 12px;
+            background-color: #f3f4f6;
+            border-radius: 6px;
+          }
+          .credential-label { 
+            font-weight: 600; 
+            color: #4A7DFF; 
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          }
+          .credential-value { 
+            font-size: 16px; 
+            color: #1f2937; 
+            font-family: 'Courier New', monospace;
+            margin-top: 4px;
+          }
+          .warning-box {
+            background-color: #FEF3C7;
+            border-left: 4px solid #F59E0B;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+          }
+          .warning-box p {
+            margin: 0;
+            color: #92400E;
+          }
+          .footer { 
+            text-align: center; 
+            color: #6b7280; 
+            font-size: 12px; 
+            padding: 20px;
+            border-top: 1px solid #e5e7eb;
+          }
+          .button {
+            display: inline-block;
+            background-color: #4A7DFF;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 6px;
+            margin: 20px 0;
+            font-weight: 500;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Welcome to Cura EMR</h1>
+            <p style="margin: 10px 0 0 0; font-size: 16px;">Your Healthcare Management Platform</p>
+          </div>
+          
+          <div class="content">
+            <div class="welcome-message">
+              <h2 style="margin-top: 0; color: #1f2937;">Hello ${userName}!</h2>
+              <p>Your account has been successfully created at <strong>${organizationName}</strong>.</p>
+              <p>You have been assigned the role of <strong>${role}</strong> and can now access the Cura EMR system.</p>
+            </div>
+            
+            <div class="credentials-box">
+              <h3 style="margin-top: 0; color: #1f2937;">Your Login Credentials</h3>
+              
+              <div class="credential-item">
+                <div class="credential-label">Email Address</div>
+                <div class="credential-value">${userEmail}</div>
+              </div>
+              
+              <div class="credential-item">
+                <div class="credential-label">Temporary Password</div>
+                <div class="credential-value">${password}</div>
+              </div>
+              
+              <div class="credential-item">
+                <div class="credential-label">Organization</div>
+                <div class="credential-value">${organizationName}</div>
+              </div>
+              
+              <div class="credential-item">
+                <div class="credential-label">Role</div>
+                <div class="credential-value">${role}</div>
+              </div>
+            </div>
+
+            <div class="warning-box">
+              <p><strong>⚠️ Security Notice:</strong> For your security, please change your password after your first login. Keep your credentials confidential and do not share them with anyone.</p>
+            </div>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <p>Ready to get started? Click the button below to log in:</p>
+              <a href="https://app.curaemr.ai/auth/login" class="button">Login to Cura EMR</a>
+            </div>
+
+            <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; margin-top: 20px;">
+              <h3 style="margin-top: 0; color: #1f2937;">Next Steps</h3>
+              <ol style="color: #4b5563; line-height: 1.8;">
+                <li>Log in using your email and temporary password</li>
+                <li>Complete your profile setup</li>
+                <li>Change your password to something secure</li>
+                <li>Explore the platform features</li>
+              </ol>
+            </div>
+
+            <p style="margin-top: 30px; color: #6b7280;">If you have any questions or need assistance, please contact your system administrator.</p>
+          </div>
+          
+          <div class="footer">
+            <p style="margin: 0 0 10px 0;"><strong>Cura Software Limited</strong></p>
+            <p style="margin: 0;">Ground Floor Unit 2, Drayton Court, Drayton Road</p>
+            <p style="margin: 0;">Solihull, England B90 4NG</p>
+            <p style="margin: 10px 0 0 0;">Company Registration: 16556912</p>
+            <p style="margin: 10px 0 0 0;">© 2025 Cura Software Limited. All rights reserved.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+    
+    const text = `
+Welcome to Cura EMR!
+
+Hello ${userName},
+
+Your account has been successfully created at ${organizationName}.
+You have been assigned the role of ${role}.
+
+YOUR LOGIN CREDENTIALS:
+━━━━━━━━━━━━━━━━━━━━━━━━━
+Email Address: ${userEmail}
+Temporary Password: ${password}
+Organization: ${organizationName}
+Role: ${role}
+
+⚠️ SECURITY NOTICE:
+For your security, please change your password after your first login.
+Keep your credentials confidential and do not share them with anyone.
+
+NEXT STEPS:
+1. Log in at: https://app.curaemr.ai/auth/login
+2. Complete your profile setup
+3. Change your password to something secure
+4. Explore the platform features
+
+If you have any questions or need assistance, please contact your system administrator.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━
+Cura Software Limited
+Ground Floor Unit 2, Drayton Court, Drayton Road
+Solihull, England B90 4NG
+Company Registration: 16556912
+
+© 2025 Cura Software Limited. All rights reserved.
+    `;
+
+    return { subject, html, text };
+  }
+
+  // Send new user account email
+  async sendNewUserAccountEmail(
+    userEmail: string,
+    userName: string,
+    password: string,
+    organizationName: string,
+    role: string
+  ): Promise<boolean> {
+    const template = this.generateNewUserAccountEmail(userName, userEmail, password, organizationName, role);
+    return this.sendEmail({
+      to: userEmail,
+      subject: template.subject,
+      html: template.html,
+      text: template.text
+    });
+  }
 }
 
 export const emailService = new EmailService();
