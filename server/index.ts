@@ -5,6 +5,11 @@ import { registerSaaSRoutes } from "./saas-routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { seedDatabase } from "./seed-data";
 
+console.log("🔐 ENVIRONMENT CHECK:");
+console.log("  - FILE_SECRET exists:", !!process.env.FILE_SECRET);
+console.log("  - NODE_ENV:", process.env.NODE_ENV);
+console.log("  - DATABASE_URL exists:", !!process.env.DATABASE_URL);
+
 const app = express();
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: false, limit: '50mb' }));
