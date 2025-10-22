@@ -6884,6 +6884,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Generate temporary signed URL for lab result PDF (HIPAA/GDPR compliant)
   app.get("/api/files/:id/signed-url", authMiddleware, async (req: TenantRequest, res) => {
     try {
+      console.log(`[SIGNED-URL-REQUEST] Headers:`, {
+        protocol: req.protocol,
+        xForwardedProto: req.get('x-forwarded-proto'),
+        host: req.get('host'),
+        xForwardedHost: req.get('x-forwarded-host'),
+        referer: req.get('referer'),
+        origin: req.get('origin')
+      });
+
       if (!req.user) {
         return res.status(401).json({ error: "User not authenticated" });
       }
@@ -6932,11 +6941,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       // Get the correct protocol and host for production environments
-      const protocol = req.get('x-forwarded-proto') || req.protocol || 'https';
-      const host = req.get('x-forwarded-host') || req.get('host') || req.headers.host;
-      const signedUrl = `${protocol}://${host}/api/files/view/${labResultId}?token=${token}`;
+      // Try to extract baseURL from origin or referer header to avoid port issues
+      let baseUrl;
+      const origin = req.get('origin');
+      const referer = req.get('referer');
       
-      console.log(`[SIGNED-URL] Generated for lab result ${labResultId}, valid for 5 minutes, URL: ${signedUrl}`);
+      if (origin) {
+        // Use origin if available (most reliable)
+        baseUrl = origin;
+      } else if (referer) {
+        // Extract base URL from referer
+        const url = new URL(referer);
+        baseUrl = `${url.protocol}//${url.host}`;
+      } else {
+        // Fallback to constructing from headers
+        const protocol = req.get('x-forwarded-proto') || req.protocol || 'https';
+        let host = req.get('x-forwarded-host') || req.get('host') || req.headers.host;
+        
+        // Remove port if it's 5000 (development port shouldn't be in production URLs)
+        if (typeof host === 'string' && host.includes(':5000')) {
+          host = host.replace(':5000', '');
+        }
+        
+        baseUrl = `${protocol}://${host}`;
+      }
+      
+      const signedUrl = `${baseUrl}/api/files/view/${labResultId}?token=${token}`;
+      
+      console.log(`[SIGNED-URL] Generated for lab result ${labResultId}, valid for 5 minutes`);
+      console.log(`[SIGNED-URL] Base URL: ${baseUrl}`);
+      console.log(`[SIGNED-URL] Full signed URL: ${signedUrl}`);
       res.json({ signedUrl });
 
     } catch (error) {
@@ -7038,11 +7072,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       // Get the correct protocol and host for production environments
-      const protocol = req.get('x-forwarded-proto') || req.protocol || 'https';
-      const host = req.get('x-forwarded-host') || req.get('host') || req.headers.host;
-      const signedUrl = `${protocol}://${host}/api/imaging-files/view/${imageId}?token=${token}`;
+      // Try to extract baseURL from origin or referer header to avoid port issues
+      let baseUrl;
+      const origin = req.get('origin');
+      const referer = req.get('referer');
       
-      console.log(`[SIGNED-URL] Generated for imaging report ${imageId}, valid for 5 minutes, URL: ${signedUrl}`);
+      if (origin) {
+        // Use origin if available (most reliable)
+        baseUrl = origin;
+      } else if (referer) {
+        // Extract base URL from referer
+        const url = new URL(referer);
+        baseUrl = `${url.protocol}//${url.host}`;
+      } else {
+        // Fallback to constructing from headers
+        const protocol = req.get('x-forwarded-proto') || req.protocol || 'https';
+        let host = req.get('x-forwarded-host') || req.get('host') || req.headers.host;
+        
+        // Remove port if it's 5000 (development port shouldn't be in production URLs)
+        if (typeof host === 'string' && host.includes(':5000')) {
+          host = host.replace(':5000', '');
+        }
+        
+        baseUrl = `${protocol}://${host}`;
+      }
+      
+      const signedUrl = `${baseUrl}/api/imaging-files/view/${imageId}?token=${token}`;
+      
+      console.log(`[SIGNED-URL] Generated for imaging report ${imageId}, valid for 5 minutes`);
+      console.log(`[SIGNED-URL] Base URL: ${baseUrl}`);
+      console.log(`[SIGNED-URL] Full signed URL: ${signedUrl}`);
       res.json({ signedUrl });
 
     } catch (error) {
