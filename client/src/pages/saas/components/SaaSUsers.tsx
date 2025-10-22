@@ -30,7 +30,8 @@ import {
   RotateCcw,
   Shield,
   Mail,
-  Calendar
+  Calendar,
+  CheckCircle2
 } from 'lucide-react';
 
 export default function SaaSUsers() {
@@ -412,27 +413,112 @@ export default function SaaSUsers() {
 
       {/* Delete User Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-red-600">
-              <Trash2 className="h-5 w-5" />
-              Delete User
+              <Trash2 className="h-6 w-6" />
+              Delete User - Confirmation Required
             </DialogTitle>
           </DialogHeader>
           {selectedUser && (
-            <div className="space-y-4">
-              <p className="text-sm text-gray-600">
-                Are you sure you want to permanently delete this user?
-              </p>
-              <div className="bg-gray-50 p-4 rounded-lg space-y-2">
-                <p className="font-medium">{selectedUser.firstName} {selectedUser.lastName}</p>
-                <p className="text-sm text-gray-600">{selectedUser.email}</p>
-                <p className="text-sm text-gray-600">Organization: {selectedUser.organizationName}</p>
+            <div className="space-y-6">
+              {/* User Details Section */}
+              <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-lg border-2 border-blue-200 dark:border-blue-800">
+                <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-3">User Details</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Name</p>
+                    <p className="font-medium text-gray-900 dark:text-gray-100">{selectedUser.firstName} {selectedUser.lastName}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Email</p>
+                    <p className="font-medium text-gray-900 dark:text-gray-100">{selectedUser.email}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Role</p>
+                    <Badge className={getRoleBadgeColor(selectedUser.role)}>
+                      {selectedUser.role}
+                    </Badge>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Organization</p>
+                    <p className="font-medium text-gray-900 dark:text-gray-100">{selectedUser.organizationName}</p>
+                  </div>
+                </div>
               </div>
-              <p className="text-sm text-red-600 font-medium">
-                ⚠️ This action cannot be undone!
-              </p>
-              <div className="flex justify-end gap-3 mt-6">
+
+              {/* Records to be Deleted Section */}
+              <div className="bg-red-50 dark:bg-red-950 p-4 rounded-lg border-2 border-red-200 dark:border-red-800">
+                <h3 className="text-lg font-semibold text-red-900 dark:text-red-100 mb-3">
+                  The following records will be permanently deleted:
+                </h3>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3 p-2 bg-white dark:bg-gray-800 rounded-md">
+                    <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0" />
+                    <div>
+                      <p className="font-medium text-gray-900 dark:text-gray-100">User Account</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Login credentials and user profile</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-3 p-2 bg-white dark:bg-gray-800 rounded-md">
+                    <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0" />
+                    <div>
+                      <p className="font-medium text-gray-900 dark:text-gray-100">Notifications</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">All notifications sent to this user</p>
+                    </div>
+                  </div>
+
+                  {(selectedUser.role === 'doctor' || selectedUser.role === 'nurse') && (
+                    <>
+                      <div className="flex items-center gap-3 p-2 bg-white dark:bg-gray-800 rounded-md">
+                        <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0" />
+                        <div>
+                          <p className="font-medium text-gray-900 dark:text-gray-100">Prescriptions</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Prescriptions created by this provider</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3 p-2 bg-white dark:bg-gray-800 rounded-md">
+                        <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0" />
+                        <div>
+                          <p className="font-medium text-gray-900 dark:text-gray-100">Appointments</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Appointments where this user is the provider</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3 p-2 bg-white dark:bg-gray-800 rounded-md">
+                        <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0" />
+                        <div>
+                          <p className="font-medium text-gray-900 dark:text-gray-100">Lab Results</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Lab tests ordered by this provider</p>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {selectedUser.role === 'patient' && (
+                    <div className="flex items-center gap-3 p-2 bg-white dark:bg-gray-800 rounded-md">
+                      <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0" />
+                      <div>
+                        <p className="font-medium text-gray-900 dark:text-gray-100">Patient Medical Record</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Complete patient medical history and records</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Warning */}
+              <div className="bg-yellow-50 dark:bg-yellow-950 p-4 rounded-lg border-2 border-yellow-300 dark:border-yellow-700">
+                <p className="text-sm text-yellow-900 dark:text-yellow-100 font-semibold flex items-center gap-2">
+                  <span className="text-2xl">⚠️</span>
+                  <span>This action cannot be undone! All data will be permanently deleted.</span>
+                </p>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-end gap-3 pt-2">
                 <Button
                   variant="outline"
                   onClick={() => {
@@ -448,8 +534,9 @@ export default function SaaSUsers() {
                   onClick={() => deleteUserMutation.mutate(selectedUser.id)}
                   disabled={deleteUserMutation.isPending}
                   data-testid="button-confirm-delete"
+                  className="bg-red-600 hover:bg-red-700"
                 >
-                  {deleteUserMutation.isPending ? 'Deleting...' : 'Delete User'}
+                  {deleteUserMutation.isPending ? 'Deleting...' : 'Confirm Delete'}
                 </Button>
               </div>
             </div>
