@@ -5164,29 +5164,28 @@ Report generated from Cura EMR System`;
                     const pageWidth = pdf.internal.pageSize.getWidth();
                     let yPos = 20;
 
-                    // Add logo if available - center position places logo beside header
+                    // Add logo if available - logo always beside header
                     const headerStartY = yPos;
                     let textStartX = 105; // Default center position
                     let textAlign: 'left' | 'center' | 'right' = 'center';
                     
                     if (clinicHeader?.logoBase64) {
                       try {
-                        if (clinicHeader.logoPosition === 'center') {
-                          // Place logo beside (to the left of) header details
+                        // Logo always beside header for all positions
+                        if (clinicHeader.logoPosition === 'left') {
+                          // Logo on left, text starts after logo
                           pdf.addImage(clinicHeader.logoBase64, 'PNG', 20, yPos, 30, 30);
-                          textStartX = 55; // Text starts after logo
+                          textStartX = 55;
                           textAlign = 'left';
-                        } else if (clinicHeader.logoPosition === 'left') {
-                          // Logo on top left
+                        } else if (clinicHeader.logoPosition === 'center') {
+                          // Logo on left, text beside it (left-aligned)
                           pdf.addImage(clinicHeader.logoBase64, 'PNG', 20, yPos, 30, 30);
-                          yPos += 35;
-                          textStartX = 20;
+                          textStartX = 55;
                           textAlign = 'left';
                         } else if (clinicHeader.logoPosition === 'right') {
-                          // Logo on top right
+                          // Logo on right, text ends before logo
                           pdf.addImage(clinicHeader.logoBase64, 'PNG', 160, yPos, 30, 30);
-                          yPos += 35;
-                          textStartX = pageWidth - 20;
+                          textStartX = 155;
                           textAlign = 'right';
                         }
                       } catch (error) {
