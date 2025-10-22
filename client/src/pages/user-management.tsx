@@ -1373,16 +1373,26 @@ export default function UserManagement() {
       form.reset();
       
       // Send welcome email to the newly created user
+      console.log("📧 ATTEMPTING TO SEND WELCOME EMAIL");
+      console.log("📧 New user:", newUser);
+      console.log("📧 Variables:", variables);
+      console.log("📧 Password from variables:", variables.password);
+      
       try {
-        await apiRequest("POST", "/api/users/send-welcome-email", {
+        console.log("📧 Making request to send-welcome-email endpoint");
+        const emailResponse = await apiRequest("POST", "/api/users/send-welcome-email", {
           userEmail: newUser.email,
           userName: `${newUser.firstName} ${newUser.lastName}`,
           password: variables.password, // Password from the form submission
           role: newUser.role
         });
-        console.log("Welcome email sent successfully to", newUser.email);
+        console.log("📧 Email API response:", emailResponse);
+        const emailResult = await emailResponse.json();
+        console.log("📧 Email API result:", emailResult);
+        console.log("✅ Welcome email sent successfully to", newUser.email);
       } catch (emailError) {
-        console.error("Failed to send welcome email:", emailError);
+        console.error("❌ Failed to send welcome email:", emailError);
+        console.error("❌ Email error details:", JSON.stringify(emailError));
         // Don't show error to user - email is a background task
       }
       
