@@ -1578,6 +1578,7 @@ export default function UserManagement() {
 ✅ Delete prescriptions FOR this patient (patientId)
 ✅ Delete lab results for this patient (patientId)
 ✅ Delete medical images for this patient (patientId)
+✅ Delete symptom checks for this patient (patientId)
 ✅ Delete patient record
 ✅ Delete user`;
       
@@ -3275,6 +3276,7 @@ export default function UserManagement() {
                                             <li>Delete prescriptions FOR this patient (patientId)</li>
                                             <li>Delete lab results for this patient (patientId)</li>
                                             <li>Delete medical images for this patient (patientId)</li>
+                                            <li>Delete symptom checks for this patient (patientId)</li>
                                             <li>Delete patient record</li>
                                             <li>Delete user</li>
                                           </ul>
@@ -3417,6 +3419,7 @@ export default function UserManagement() {
                                       <li>Delete prescriptions FOR this patient (patientId)</li>
                                       <li>Delete lab results for this patient (patientId)</li>
                                       <li>Delete medical images for this patient (patientId)</li>
+                                      <li>Delete symptom checks for this patient (patientId)</li>
                                       <li>Delete patient record</li>
                                       <li>Delete user</li>
                                     </ul>
