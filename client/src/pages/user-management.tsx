@@ -3222,18 +3222,48 @@ export default function UserManagement() {
                                 <AlertDialogContent>
                                   <AlertDialogHeader>
                                     <AlertDialogTitle>Delete User</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      Are you sure you want to delete {user.firstName} {user.lastName}? 
-                                      This action cannot be undone and will remove all their access to the system.
+                                    <AlertDialogDescription asChild>
+                                      <div className="space-y-3">
+                                        <p className="text-base font-medium text-gray-900 dark:text-gray-100">
+                                          Do you want to delete {user.firstName} {user.lastName} ({getRoleDisplayName(user.role)})?
+                                        </p>
+                                        <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg space-y-2 text-sm">
+                                          <div className="flex justify-between">
+                                            <span className="font-medium text-gray-700 dark:text-gray-300">Name:</span>
+                                            <span className="text-gray-900 dark:text-gray-100">{user.firstName} {user.lastName}</span>
+                                          </div>
+                                          <div className="flex justify-between">
+                                            <span className="font-medium text-gray-700 dark:text-gray-300">Role:</span>
+                                            <span className="text-gray-900 dark:text-gray-100">{getRoleDisplayName(user.role)}</span>
+                                          </div>
+                                          <div className="flex justify-between">
+                                            <span className="font-medium text-gray-700 dark:text-gray-300">Email:</span>
+                                            <span className="text-gray-900 dark:text-gray-100">{user.email}</span>
+                                          </div>
+                                          {user.department && (
+                                            <div className="flex justify-between">
+                                              <span className="font-medium text-gray-700 dark:text-gray-300">Department:</span>
+                                              <span className="text-gray-900 dark:text-gray-100">{user.department}</span>
+                                            </div>
+                                          )}
+                                          <div className="flex justify-between">
+                                            <span className="font-medium text-gray-700 dark:text-gray-300">Status:</span>
+                                            <span className="text-gray-900 dark:text-gray-100">{user.isActive ? "Active" : "Inactive"}</span>
+                                          </div>
+                                        </div>
+                                        <p className="text-sm text-red-600 dark:text-red-400">
+                                          This action cannot be undone and will remove all their access to the system.
+                                        </p>
+                                      </div>
                                     </AlertDialogDescription>
                                   </AlertDialogHeader>
                                   <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogCancel>No, Cancel</AlertDialogCancel>
                                     <AlertDialogAction
                                       onClick={() => handleDelete(user.id)}
                                       className="bg-red-600 hover:bg-red-700"
                                     >
-                                      Delete User
+                                      Yes, Delete
                                     </AlertDialogAction>
                                   </AlertDialogFooter>
                                 </AlertDialogContent>
@@ -3319,18 +3349,48 @@ export default function UserManagement() {
                           <AlertDialogContent>
                             <AlertDialogHeader>
                               <AlertDialogTitle>Delete User</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to delete {user.firstName} {user.lastName}? 
-                                This action cannot be undone and will remove all their access to the system.
+                              <AlertDialogDescription asChild>
+                                <div className="space-y-3">
+                                  <p className="text-base font-medium text-gray-900 dark:text-gray-100">
+                                    Do you want to delete {user.firstName} {user.lastName} ({getRoleDisplayName(user.role)})?
+                                  </p>
+                                  <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg space-y-2 text-sm">
+                                    <div className="flex justify-between">
+                                      <span className="font-medium text-gray-700 dark:text-gray-300">Name:</span>
+                                      <span className="text-gray-900 dark:text-gray-100">{user.firstName} {user.lastName}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="font-medium text-gray-700 dark:text-gray-300">Role:</span>
+                                      <span className="text-gray-900 dark:text-gray-100">{getRoleDisplayName(user.role)}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="font-medium text-gray-700 dark:text-gray-300">Email:</span>
+                                      <span className="text-gray-900 dark:text-gray-100">{user.email}</span>
+                                    </div>
+                                    {user.department && (
+                                      <div className="flex justify-between">
+                                        <span className="font-medium text-gray-700 dark:text-gray-300">Department:</span>
+                                        <span className="text-gray-900 dark:text-gray-100">{user.department}</span>
+                                      </div>
+                                    )}
+                                    <div className="flex justify-between">
+                                      <span className="font-medium text-gray-700 dark:text-gray-300">Status:</span>
+                                      <span className="text-gray-900 dark:text-gray-100">{user.isActive ? "Active" : "Inactive"}</span>
+                                    </div>
+                                  </div>
+                                  <p className="text-sm text-red-600 dark:text-red-400">
+                                    This action cannot be undone and will remove all their access to the system.
+                                  </p>
+                                </div>
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogCancel>No, Cancel</AlertDialogCancel>
                               <AlertDialogAction
                                 onClick={() => handleDelete(user.id)}
                                 className="bg-red-600 hover:bg-red-700"
                               >
-                                Delete User
+                                Yes, Delete
                               </AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
