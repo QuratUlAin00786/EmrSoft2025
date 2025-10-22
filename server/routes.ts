@@ -4900,6 +4900,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Send welcome email to newly created user
   app.post("/api/users/send-welcome-email", authMiddleware, async (req: TenantRequest, res) => {
     try {
+      console.log("📧 [EMAIL ENDPOINT] Received welcome email request");
+      console.log("📧 [EMAIL ENDPOINT] Request body:", req.body);
+      console.log("📧 [EMAIL ENDPOINT] Organization ID:", req.tenant!.id);
+      
       const emailData = z.object({
         userEmail: z.string().email(),
         userName: z.string().min(1),
@@ -4907,13 +4911,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         role: z.string().min(1)
       }).parse(req.body);
 
+      console.log("📧 [EMAIL ENDPOINT] Validated email data:", emailData);
+
       // Get organization details
-      const organization = await storage.getOrganizationById(req.tenant!.id);
+      const organization = await storage.getOrganization(req.tenant!.id);
+      console.log("📧 [EMAIL ENDPOINT] Organization retrieved:", organization);
+      
       if (!organization) {
+        console.error("❌ [EMAIL ENDPOINT] Organization not found for ID:", req.tenant!.id);
         return res.status(404).json({ error: "Organization not found" });
       }
 
       // Send the welcome email
+      console.log("📧 [EMAIL ENDPOINT] Attempting to send email via emailService...");
       const emailSent = await emailService.sendNewUserAccountEmail(
         emailData.userEmail,
         emailData.userName,
@@ -4922,13 +4932,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         emailData.role
       );
 
+      console.log("📧 [EMAIL ENDPOINT] Email service result:", emailSent);
+
       if (emailSent) {
+        console.log("✅ [EMAIL ENDPOINT] Welcome email sent successfully to", emailData.userEmail);
         res.status(200).json({ success: true, message: "Welcome email sent successfully" });
       } else {
+        console.error("❌ [EMAIL ENDPOINT] Email service returned false");
         res.status(500).json({ success: false, error: "Failed to send welcome email" });
       }
     } catch (error: any) {
-      console.error("Error sending welcome email:", error);
+      console.error("❌ [EMAIL ENDPOINT] Error sending welcome email:", error);
+      console.error("❌ [EMAIL ENDPOINT] Error stack:", error.stack);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ 
           error: "Validation failed", 
