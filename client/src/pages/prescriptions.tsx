@@ -2285,7 +2285,15 @@ export default function PrescriptionsPage() {
                   ${
                     prescription.signature && prescription.signature.doctorSignature
                       ? `<img src="${prescription.signature.doctorSignature}" alt="Doctor Signature" style="height: 48px; width: 128px; border: 1px solid #dee2e6; background: white; border-radius: 4px; margin-top: 8px;" />
-                         <p style="font-size: 8px; color: #28a745; margin-top: 4px;">✓ E-Signed by ${prescription.signature.signedBy || "Provider"}</p>`
+                         <p style="font-size: 8px; color: #28a745; margin-top: 4px;">✓ E-Signed by ${prescription.signature.signedBy || "Provider"}${prescription.signature.signedAt ? ` - ${(() => {
+                           const date = new Date(prescription.signature.signedAt);
+                           const month = date.toLocaleDateString('en-GB', { month: 'short' });
+                           const day = date.getDate();
+                           const year = date.getFullYear();
+                           const hours = date.getHours().toString().padStart(2, '0');
+                           const minutes = date.getMinutes().toString().padStart(2, '0');
+                           return month + ' ' + day + ', ' + year + ' ' + hours + ':' + minutes;
+                         })()}` : ''}</p>`
                       : ""
                   }
                 </div>
