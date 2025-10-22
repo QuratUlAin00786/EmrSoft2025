@@ -3397,13 +3397,13 @@ export default function PrescriptionsPage() {
                             CURA HEALTH EMR
                           </h2>
                           {(() => {
-                            const doctorId = prescription.prescriptionCreatedBy || prescription.doctorId;
-                            const doctorInfo = providers?.find((p: any) => p.id === doctorId);
-                            console.log("🔍 Looking for doctorId:", doctorId);
-                            console.log("🔍 Found doctorInfo:", doctorInfo);
-                            return doctorInfo ? (
+                            const providerId = prescription.prescriptionCreatedBy || prescription.doctorId;
+                            const providerInfo = allUsers?.find((p: any) => p.id === providerId);
+                            console.log("🔍 Looking for providerId:", providerId);
+                            console.log("🔍 Found providerInfo:", providerInfo);
+                            return providerInfo ? (
                               <p className="text-xs text-gray-600 dark:text-gray-300">
-                                Doctor: {doctorInfo.firstName} {doctorInfo.lastName} ({doctorInfo.role})
+                                {formatRoleLabel(providerInfo.role)}: {providerInfo.firstName} {providerInfo.lastName}
                               </p>
                             ) : null;
                           })()}
@@ -3412,16 +3412,16 @@ export default function PrescriptionsPage() {
                             {prescription.prescriptionNumber || "N/A"}
                           </p>
                           {(() => {
-                            const doctorId = prescription.prescriptionCreatedBy || prescription.doctorId;
-                            const doctorInfo = providers?.find((p: any) => p.id === doctorId);
-                            return doctorInfo ? (
+                            const providerId = prescription.prescriptionCreatedBy || prescription.doctorId;
+                            const providerInfo = allUsers?.find((p: any) => p.id === providerId);
+                            return providerInfo ? (
                               <div className="mt-1">
                                 <p className="text-xs text-gray-600 dark:text-gray-300">
-                                  <span className="font-medium">Provider:</span> Dr. {doctorInfo.firstName} {doctorInfo.lastName}
+                                  <span className="font-medium">Provider:</span> {providerInfo.firstName} {providerInfo.lastName}
                                 </p>
-                                {doctorInfo.department && (
+                                {providerInfo.department && (
                                   <p className="text-xs text-gray-600 dark:text-gray-300">
-                                    <span className="font-medium">Specialization:</span> {doctorInfo.department}
+                                    <span className="font-medium">Specialization:</span> {providerInfo.department}
                                   </p>
                                 )}
                               </div>
