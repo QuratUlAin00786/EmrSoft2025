@@ -1829,21 +1829,35 @@ export default function PrescriptionsPage() {
     const patient = patients.find((p) => p.id === prescription.patientId);
     const provider = providers.find((p) => p.id === prescription.providerId);
 
-    // Fetch doctor information
-    const doctorId =
-      prescription.prescriptionCreatedBy || prescription.doctorId;
+    // Fetch prescribing provider information
     let doctorInfo = null;
-    if (doctorId) {
+    if (prescription.doctorId) {
       try {
         const doctorResponse = await apiRequest(
           "GET",
-          `/api/users/${doctorId}`,
+          `/api/users/${prescription.doctorId}`,
         );
         if (doctorResponse.ok) {
           doctorInfo = await doctorResponse.json();
         }
       } catch (err) {
         console.error("Failed to fetch doctor info:", err);
+      }
+    }
+
+    // Fetch creator information (who entered the prescription)
+    let creatorInfo = null;
+    if (prescription.prescriptionCreatedBy) {
+      try {
+        const creatorResponse = await apiRequest(
+          "GET",
+          `/api/users/${prescription.prescriptionCreatedBy}`,
+        );
+        if (creatorResponse.ok) {
+          creatorInfo = await creatorResponse.json();
+        }
+      } catch (err) {
+        console.error("Failed to fetch creator info:", err);
       }
     }
 
@@ -2152,7 +2166,8 @@ export default function PrescriptionsPage() {
                 <div class="header-left">
                   <h1>CURA HEALTH EMR</h1>
                   <div class="license-info">
-                    Doctor: ${doctorInfo ? `${doctorInfo.firstName} ${doctorInfo.lastName}` : "N/A"} (${doctorInfo?.role || "N/A"})<br>
+                    Provider: ${doctorInfo ? `${doctorInfo.firstName} ${doctorInfo.lastName}` : "N/A"} (${doctorInfo?.role || "N/A"})<br>
+                    ${creatorInfo && creatorInfo.id !== doctorInfo?.id ? `Created by: ${creatorInfo.firstName} ${creatorInfo.lastName} (${creatorInfo.role || "N/A"})<br>` : ""}
                     Prescription #: ${prescription.prescriptionNumber || "N/A"}
                   </div>
                 </div>
@@ -3396,36 +3411,34 @@ export default function PrescriptionsPage() {
                           <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100">
                             CURA HEALTH EMR
                           </h2>
-                          {(() => {
-                            const providerId = prescription.doctorId || prescription.prescriptionCreatedBy;
-                            const providerInfo = allUsers?.find((p: any) => p.id === providerId);
-                            console.log("🔍 Looking for providerId:", providerId);
-                            console.log("🔍 Found providerInfo:", providerInfo);
-                            return providerInfo ? (
-                              <p className="text-xs text-gray-600 dark:text-gray-300">
-                                Created by {formatRoleLabel(providerInfo.role)}: {providerInfo.firstName} {providerInfo.lastName}
-                              </p>
-                            ) : null;
-                          })()}
                           <p className="text-sm text-gray-600 dark:text-gray-300">
                             Prescription #:{" "}
                             {prescription.prescriptionNumber || "N/A"}
                           </p>
                           {(() => {
-                            const providerId = prescription.doctorId || prescription.prescriptionCreatedBy;
-                            const providerInfo = allUsers?.find((p: any) => p.id === providerId);
-                            return providerInfo ? (
-                              <div className="mt-1">
-                                <p className="text-xs text-gray-600 dark:text-gray-300">
-                                  <span className="font-medium">Provider:</span> {providerInfo.firstName} {providerInfo.lastName}
-                                </p>
-                                {providerInfo.department && (
+                            const providerInfo = allUsers?.find((p: any) => p.id === prescription.doctorId);
+                            const creatorInfo = allUsers?.find((p: any) => p.id === prescription.prescriptionCreatedBy);
+                            return (
+                              <div className="mt-1 space-y-1">
+                                {providerInfo && (
+                                  <div>
+                                    <p className="text-xs text-gray-600 dark:text-gray-300">
+                                      <span className="font-medium">Provider:</span> {providerInfo.firstName} {providerInfo.lastName}
+                                    </p>
+                                    {providerInfo.department && (
+                                      <p className="text-xs text-gray-600 dark:text-gray-300">
+                                        <span className="font-medium">Specialization:</span> {providerInfo.department}
+                                      </p>
+                                    )}
+                                  </div>
+                                )}
+                                {creatorInfo && (
                                   <p className="text-xs text-gray-600 dark:text-gray-300">
-                                    <span className="font-medium">Specialization:</span> {providerInfo.department}
+                                    Created by {formatRoleLabel(creatorInfo.role)}: {creatorInfo.firstName} {creatorInfo.lastName}
                                   </p>
                                 )}
                               </div>
-                            ) : null;
+                            );
                           })()}
                         </div>
                         <div>
@@ -4524,7 +4537,17 @@ export default function PrescriptionsPage() {
                     <div>
                       <p>
                         <strong>Prescribing Provider:</strong>{" "}
-                        {selectedPrescription.providerName}
+                        {(() => {
+                          const providerInfo = allUsers?.find((p: any) => p.id === selectedPrescription.doctorId);
+                          return providerInfo ? `${providerInfo.firstName} ${providerInfo.lastName}` : selectedPrescription.providerName;
+                        })()}
+                      </p>
+                      <p>
+                        <strong>Created By:</strong>{" "}
+                        {(() => {
+                          const creatorInfo = allUsers?.find((p: any) => p.id === selectedPrescription.prescriptionCreatedBy);
+                          return creatorInfo ? `${formatRoleLabel(creatorInfo.role)} - ${creatorInfo.firstName} ${creatorInfo.lastName}` : 'N/A';
+                        })()}
                       </p>
                       <p>
                         <strong>Diagnosis:</strong>{" "}
