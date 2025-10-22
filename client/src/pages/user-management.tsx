@@ -1568,7 +1568,20 @@ export default function UserManagement() {
       return response.json();
     },
     onSuccess: (data, userId) => {
-      setSuccessMessage("The user has been removed from the system.");
+      const deletionSteps = `The user has been successfully deleted. The following operations were completed:
+
+✅ Delete notifications for user
+✅ Delete prescriptions where user is the doctor (doctorId)
+✅ Delete appointments where user is provider
+✅ Delete lab results ordered by user (orderedBy)
+✅ Find patient record linked to this user
+✅ Delete prescriptions FOR this patient (patientId)
+✅ Delete lab results for this patient (patientId)
+✅ Delete medical images for this patient (patientId)
+✅ Delete patient record
+✅ Delete user`;
+      
+      setSuccessMessage(deletionSteps);
       setShowSuccessModal(true);
       // Immediately remove user from list for instant display
       setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
@@ -3251,6 +3264,21 @@ export default function UserManagement() {
                                             <span className="text-gray-900 dark:text-gray-100">{user.isActive ? "Active" : "Inactive"}</span>
                                           </div>
                                         </div>
+                                        <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg">
+                                          <p className="font-medium text-sm text-yellow-800 dark:text-yellow-200 mb-2">The following data will be deleted:</p>
+                                          <ul className="text-xs text-yellow-700 dark:text-yellow-300 space-y-1 ml-4 list-disc">
+                                            <li>Delete notifications for user</li>
+                                            <li>Delete prescriptions where user is the doctor (doctorId)</li>
+                                            <li>Delete appointments where user is provider</li>
+                                            <li>Delete lab results ordered by user (orderedBy)</li>
+                                            <li>Find patient record linked to this user</li>
+                                            <li>Delete prescriptions FOR this patient (patientId)</li>
+                                            <li>Delete lab results for this patient (patientId)</li>
+                                            <li>Delete medical images for this patient (patientId)</li>
+                                            <li>Delete patient record</li>
+                                            <li>Delete user</li>
+                                          </ul>
+                                        </div>
                                         <p className="text-sm text-red-600 dark:text-red-400">
                                           This action cannot be undone and will remove all their access to the system.
                                         </p>
@@ -3377,6 +3405,21 @@ export default function UserManagement() {
                                       <span className="font-medium text-gray-700 dark:text-gray-300">Status:</span>
                                       <span className="text-gray-900 dark:text-gray-100">{user.isActive ? "Active" : "Inactive"}</span>
                                     </div>
+                                  </div>
+                                  <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg">
+                                    <p className="font-medium text-sm text-yellow-800 dark:text-yellow-200 mb-2">The following data will be deleted:</p>
+                                    <ul className="text-xs text-yellow-700 dark:text-yellow-300 space-y-1 ml-4 list-disc">
+                                      <li>Delete notifications for user</li>
+                                      <li>Delete prescriptions where user is the doctor (doctorId)</li>
+                                      <li>Delete appointments where user is provider</li>
+                                      <li>Delete lab results ordered by user (orderedBy)</li>
+                                      <li>Find patient record linked to this user</li>
+                                      <li>Delete prescriptions FOR this patient (patientId)</li>
+                                      <li>Delete lab results for this patient (patientId)</li>
+                                      <li>Delete medical images for this patient (patientId)</li>
+                                      <li>Delete patient record</li>
+                                      <li>Delete user</li>
+                                    </ul>
                                   </div>
                                   <p className="text-sm text-red-600 dark:text-red-400">
                                     This action cannot be undone and will remove all their access to the system.
