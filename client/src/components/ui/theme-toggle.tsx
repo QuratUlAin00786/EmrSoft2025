@@ -58,7 +58,13 @@ export function ThemeToggle() {
         .dark button[style*="background-color:#fff"],
         .dark button[style*="background-color: #fff"],
         .dark button[style*="background-color:#ffffff"],
-        .dark button[style*="background-color: #ffffff"] {
+        .dark button[style*="background-color: #ffffff"],
+        .dark *[style*="background-color: white"],
+        .dark *[style*="backgroundColor: white"],
+        .dark *[style*="background-color:#fff"],
+        .dark *[style*="background-color: #fff"],
+        .dark *[style*="background-color:#ffffff"],
+        .dark *[style*="background-color: #ffffff"] {
           background-color: hsl(222.2, 84%, 12%) !important;
           border-color: hsl(222.2, 84%, 25%) !important;
           color: hsl(210, 40%, 98%) !important;
@@ -68,14 +74,48 @@ export function ThemeToggle() {
         .dark button[style*="background-color:#fff"]:hover,
         .dark button[style*="background-color: #fff"]:hover,
         .dark button[style*="background-color:#ffffff"]:hover,
-        .dark button[style*="background-color: #ffffff"]:hover {
+        .dark button[style*="background-color: #ffffff"]:hover,
+        .dark *[style*="background-color: white"]:hover,
+        .dark *[style*="backgroundColor: white"]:hover {
           background-color: hsl(222.2, 84%, 18%) !important;
           border-color: hsl(217, 91%, 50%) !important;
         }
         .dark [style*="color: black"],
         .dark [style*="color:#000"],
-        .dark [style*="color: #000"] {
+        .dark [style*="color: #000"],
+        .dark [style*="color:#00"],
+        .dark [style*="color: #00"] {
           color: hsl(210, 40%, 98%) !important;
+        }
+        .dark .ql-toolbar,
+        .dark .ql-container {
+          background-color: hsl(222.2, 84%, 8%) !important;
+          border-color: hsl(222.2, 84%, 20%) !important;
+        }
+        .dark .ql-toolbar button,
+        .dark .ql-toolbar .ql-picker-label,
+        .dark .ql-toolbar .ql-picker-options {
+          background-color: hsl(222.2, 84%, 12%) !important;
+          color: hsl(210, 40%, 98%) !important;
+          border-color: hsl(222.2, 84%, 25%) !important;
+        }
+        .dark .ql-toolbar button:hover,
+        .dark .ql-toolbar .ql-picker-label:hover {
+          background-color: hsl(222.2, 84%, 18%) !important;
+          border-color: hsl(217, 91%, 50%) !important;
+        }
+        .dark .ql-toolbar .ql-stroke {
+          stroke: hsl(210, 40%, 98%) !important;
+        }
+        .dark .ql-toolbar .ql-fill {
+          fill: hsl(210, 40%, 98%) !important;
+        }
+        .dark .ql-editor {
+          background-color: hsl(222.2, 84%, 6%) !important;
+          color: hsl(210, 40%, 98%) !important;
+        }
+        .dark .ql-picker-options {
+          background-color: hsl(222.2, 84%, 10%) !important;
         }
       `;
     } else {
