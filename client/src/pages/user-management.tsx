@@ -293,7 +293,7 @@ const COUNTRY_DIGIT_LIMITS: Record<string, number> = {
 };
 
 const userSchema = z.object({
-  email: z.string().email("Invalid email address"),
+  email: z.string().min(1, "Email address is required").email("Please enter a valid email address"),
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   role: z.string().min(1, "Role is required"),
