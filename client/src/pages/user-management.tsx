@@ -2200,6 +2200,9 @@ export default function UserManagement() {
                     <Input
                       id="firstName"
                       {...form.register("firstName")}
+                      minLength={2}
+                      maxLength={50}
+                      required
                       className={form.formState.errors.firstName ? "border-red-500" : ""}
                     />
                     {form.formState.errors.firstName && (
@@ -2212,6 +2215,9 @@ export default function UserManagement() {
                     <Input
                       id="lastName"
                       {...form.register("lastName")}
+                      minLength={2}
+                      maxLength={50}
+                      required
                       className={form.formState.errors.lastName ? "border-red-500" : ""}
                     />
                     {form.formState.errors.lastName && (
@@ -2227,6 +2233,7 @@ export default function UserManagement() {
                     <Input
                       id="email"
                       type="email"
+                      required
                       {...form.register("email", {
                         onChange: (e) => {
                           handleEmailChange(e.target.value);
@@ -2761,6 +2768,7 @@ export default function UserManagement() {
                         <Select 
                           onValueChange={(value) => form.setValue("genderAtBirth", value)}
                           value={form.watch("genderAtBirth") || ""}
+                          required
                         >
                           <SelectTrigger data-testid="dropdown-gender-at-birth">
                             <SelectValue placeholder="Select gender..." />
@@ -2770,6 +2778,9 @@ export default function UserManagement() {
                             <SelectItem value="Female">Female</SelectItem>
                           </SelectContent>
                         </Select>
+                        {form.formState.errors.genderAtBirth && (
+                          <p className="text-sm text-red-500">{form.formState.errors.genderAtBirth.message}</p>
+                        )}
                       </div>
                     </div>
 
@@ -2835,9 +2846,14 @@ export default function UserManagement() {
                             <Input
                               id="emergencyName"
                               {...form.register("emergencyContact.name")}
+                              minLength={2}
+                              maxLength={50}
                               placeholder="Enter name"
                               data-testid="input-emergency-name"
                             />
+                            {form.formState.errors.emergencyContact?.name && (
+                              <p className="text-sm text-red-500">{form.formState.errors.emergencyContact.name.message}</p>
+                            )}
                           </div>
                           <div className="space-y-2">
                             <Label htmlFor="emergencyRelationship">Relationship</Label>
