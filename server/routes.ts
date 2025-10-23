@@ -17,7 +17,8 @@ import { messagingService } from "./messaging-service";
 import { isDoctorLike } from './utils/role-utils.js';
 // PayPal imports moved to dynamic imports to avoid initialization errors when credentials are missing
 import { gdprComplianceService } from "./services/gdpr-compliance";
-import { insertGdprConsentSchema, insertGdprDataRequestSchema, updateMedicalImageReportFieldSchema, insertAiInsightSchema, medicationsDatabase, patientDrugInteractions, insuranceVerifications, type Appointment, organizations, subscriptions, users, patients, symptomChecks, quickbooksConnections, insertClinicHeaderSchema, insertClinicFooterSchema } from "../shared/schema";
+import { insertGdprConsentSchema, insertGdprDataRequestSchema, updateMedicalImageReportFieldSchema, insertAiInsightSchema, medicationsDatabase, patientDrugInteractions, insuranceVerifications, type Appointment, organizations, subscriptions, users, patients, symptomChecks, quickbooksConnections, insertClinicHeaderSchema, insertClinicFooterSchema, doctorsFee, invoices } from "../shared/schema";
+import * as schema from "../shared/schema";
 import { db } from "./db";
 import { and, eq, sql, desc } from "drizzle-orm";
 import { processAppointmentBookingChat, generateAppointmentSummary } from "./anthropic";
@@ -3597,6 +3598,111 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("❌ Appointment deletion error:", error);
       res.status(500).json({ error: "Failed to delete appointment" });
+    }
+  });
+
+  // ============================================
+  // DOCTORS FEE AND INVOICES ROUTES
+  // ============================================
+
+  // Get doctor's fee information
+  app.get("/api/doctors-fee/:doctorId", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const doctorId = parseInt(req.params.doctorId);
+      
+      if (isNaN(doctorId)) {
+        return res.status(400).json({ error: "Invalid doctor ID" });
+      }
+
+      // Query the doctors_fee table for this doctor
+      const doctorFees = await db
+        .select()
+        .from(schema.doctorsFee)
+        .where(
+          and(
+            eq(schema.doctorsFee.organizationId, req.tenant!.id),
+            eq(schema.doctorsFee.doctorId, doctorId)
+          )
+        )
+        .limit(1);
+
+      if (doctorFees.length === 0) {
+        // Return default fee if no specific fee is configured
+        return res.json({
+          id: 0,
+          doctorId: doctorId,
+          serviceName: "General Consultation",
+          basePrice: "50.00",
+          currency: "GBP"
+        });
+      }
+
+      res.json(doctorFees[0]);
+    } catch (error) {
+      console.error("Error fetching doctor's fee:", error);
+      res.status(500).json({ error: "Failed to fetch doctor's fee" });
+    }
+  });
+
+  // Create invoice
+  app.post("/api/invoices", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const invoiceData = z.object({
+        patientId: z.string(),
+        patientName: z.string(),
+        nhsNumber: z.string().optional(),
+        dateOfService: z.string(),
+        invoiceDate: z.string(),
+        dueDate: z.string(),
+        status: z.string().default("draft"),
+        invoiceType: z.string().default("payment"),
+        subtotal: z.string(),
+        tax: z.string().default("0"),
+        discount: z.string().default("0"),
+        totalAmount: z.string(),
+        paidAmount: z.string().default("0"),
+        items: z.array(z.object({
+          code: z.string(),
+          description: z.string(),
+          quantity: z.number(),
+          amount: z.number()
+        })),
+        insuranceProvider: z.string().optional(),
+        notes: z.string().optional()
+      }).parse(req.body);
+
+      // Generate unique invoice number
+      const invoiceNumber = `INV-${Date.now()}-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
+
+      const newInvoice = await db
+        .insert(schema.invoices)
+        .values({
+          organizationId: req.tenant!.id,
+          invoiceNumber: invoiceNumber,
+          patientId: invoiceData.patientId,
+          patientName: invoiceData.patientName,
+          nhsNumber: invoiceData.nhsNumber || null,
+          dateOfService: new Date(invoiceData.dateOfService),
+          invoiceDate: new Date(invoiceData.invoiceDate),
+          dueDate: new Date(invoiceData.dueDate),
+          status: invoiceData.status,
+          invoiceType: invoiceData.invoiceType,
+          subtotal: invoiceData.subtotal,
+          tax: invoiceData.tax,
+          discount: invoiceData.discount,
+          totalAmount: invoiceData.totalAmount,
+          paidAmount: invoiceData.paidAmount,
+          items: invoiceData.items as any,
+          insuranceProvider: invoiceData.insuranceProvider || null,
+          notes: invoiceData.notes || null
+        })
+        .returning();
+
+      console.log("Invoice created successfully:", newInvoice[0]);
+      res.status(201).json(newInvoice[0]);
+    } catch (error) {
+      console.error("Invoice creation error:", error);
+      res.status(500).json({ error: "Failed to create invoice" });
     }
   });
 

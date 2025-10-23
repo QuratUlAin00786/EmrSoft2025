@@ -175,6 +175,21 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
   const [editingAppointment, setEditingAppointment] = useState<any>(null);
   const [editAppointmentDate, setEditAppointmentDate] = useState<Date | undefined>(undefined);
   const [editSelectedTimeSlot, setEditSelectedTimeSlot] = useState<string>("");
+  
+  // State for invoice creation workflow
+  const [showInvoiceDialog, setShowInvoiceDialog] = useState(false);
+  const [showInvoiceSummaryDialog, setShowInvoiceSummaryDialog] = useState(false);
+  const [invoiceData, setInvoiceData] = useState<any>({
+    serviceDate: "",
+    doctor: "",
+    invoiceDate: "",
+    dueDate: "",
+    services: [],
+    insuranceProvider: "",
+    totalAmount: "0.00",
+    notes: ""
+  });
+  const [doctorFee, setDoctorFee] = useState<any>(null);
 
 
   // Convert time slot string to 24-hour format
@@ -485,6 +500,31 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
       toast({
         title: "Cancellation Failed",
         description: "Failed to cancel the appointment. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Create invoice mutation
+  const createInvoiceMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await apiRequest("POST", "/api/invoices", data);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to create invoice");
+      }
+      return response.json();
+    },
+    onSuccess: (data) => {
+      console.log("Invoice created successfully:", data);
+      // Invalidate invoices query to refresh data
+      queryClient.invalidateQueries({ queryKey: ["/api/invoices"] });
+    },
+    onError: (error) => {
+      console.error("Create invoice error:", error);
+      toast({
+        title: "Invoice Creation Failed",
+        description: error instanceof Error ? error.message : "Failed to create the invoice. Please try again.",
         variant: "destructive",
       });
     },
@@ -2378,7 +2418,7 @@ Medical License: [License Number]
                   Cancel
                 </Button>
                 <Button
-                  onClick={() => {
+                  onClick={async () => {
                     // Clear previous errors
                     setPatientError("");
                     setProviderError("");
@@ -2418,8 +2458,52 @@ Medical License: [License Number]
                       return;
                     }
                     
-                    // Show confirmation dialog
-                    setShowConfirmationDialog(true);
+                    // Fetch doctor's fee
+                    try {
+                      const response = await apiRequest("GET", `/api/doctors-fee/${selectedProviderId}`);
+                      if (!response.ok) {
+                        throw new Error("Failed to fetch doctor's fee");
+                      }
+                      const feeData = await response.json();
+                      setDoctorFee(feeData);
+                      
+                      // Initialize invoice data with fetched fee
+                      const selectedDate = format(newAppointmentDate!, 'yyyy-MM-dd');
+                      const today = format(new Date(), 'yyyy-MM-dd');
+                      const dueDate = new Date();
+                      dueDate.setDate(dueDate.getDate() + 30);
+                      const dueDateStr = format(dueDate, 'yyyy-MM-dd');
+                      
+                      const selectedPatient = patientsData?.find((p: any) => p.id.toString() === newAppointmentData.patientId);
+                      const providerName = usersData?.find((u: any) => u.id.toString() === selectedProviderId);
+                      
+                      setInvoiceData({
+                        serviceDate: selectedDate,
+                        doctor: `${providerName?.firstName || ''} ${providerName?.lastName || ''}`,
+                        invoiceDate: today,
+                        dueDate: dueDateStr,
+                        services: [{
+                          code: feeData.serviceCode || 'CONS-001',
+                          description: feeData.serviceName || 'General Consultation',
+                          quantity: 1,
+                          amount: parseFloat(feeData.basePrice || '50.00')
+                        }],
+                        insuranceProvider: selectedPatient?.insuranceProvider || 'None (Patient Self-Pay)',
+                        totalAmount: feeData.basePrice || '50.00',
+                        notes: ''
+                      });
+                      
+                      // Show invoice dialog
+                      setShowInvoiceDialog(true);
+                    } catch (error) {
+                      console.error("Error fetching doctor's fee:", error);
+                      toast({
+                        title: "Error",
+                        description: "Failed to fetch doctor's fee. Please try again.",
+                        variant: "destructive",
+                      });
+                      return; // Stop if fee fetch fails
+                    }
                   }}
                 >
                   Create Appointment
@@ -2568,6 +2652,319 @@ Medical License: [License Number]
               disabled={createAppointmentMutation.isPending}
             >
               {createAppointmentMutation.isPending ? "Confirming..." : "Confirm"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create New Invoice Dialog */}
+      <Dialog open={showInvoiceDialog} onOpenChange={setShowInvoiceDialog}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-blue-800">Create New Invoice</DialogTitle>
+            <DialogDescription>Invoice details for the appointment</DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 mt-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Patient</Label>
+                <Input 
+                  value={patientsData?.find((p: any) => p.id.toString() === newAppointmentData.patientId)?.firstName + ' ' + patientsData?.find((p: any) => p.id.toString() === newAppointmentData.patientId)?.lastName || ''}
+                  disabled
+                  className="bg-gray-100"
+                />
+              </div>
+              <div>
+                <Label>Service Date</Label>
+                <Input 
+                  type="date"
+                  value={invoiceData.serviceDate}
+                  onChange={(e) => setInvoiceData({...invoiceData, serviceDate: e.target.value})}
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label>Doctor</Label>
+              <Input 
+                value={invoiceData.doctor}
+                disabled
+                className="bg-gray-100"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Invoice Date</Label>
+                <Input 
+                  type="date"
+                  value={invoiceData.invoiceDate}
+                  onChange={(e) => setInvoiceData({...invoiceData, invoiceDate: e.target.value})}
+                />
+              </div>
+              <div>
+                <Label>Due Date</Label>
+                <Input 
+                  type="date"
+                  value={invoiceData.dueDate}
+                  onChange={(e) => setInvoiceData({...invoiceData, dueDate: e.target.value})}
+                />
+              </div>
+            </div>
+
+            <div className="border rounded p-4 bg-gray-50">
+              <h3 className="font-semibold mb-2">Services & Procedures</h3>
+              <div className="grid grid-cols-4 gap-2 mb-2 text-sm font-medium">
+                <div>Code</div>
+                <div>Description</div>
+                <div>Qty</div>
+                <div>Amount</div>
+              </div>
+              {invoiceData.services.map((service: any, index: number) => (
+                <div key={index} className="grid grid-cols-4 gap-2 mb-2">
+                  <Input value={service.code} disabled className="bg-gray-100" />
+                  <Input value={service.description} disabled className="bg-gray-100" />
+                  <Input value={service.quantity} disabled className="bg-gray-100" />
+                  <Input value={service.amount.toFixed(2)} disabled className="bg-gray-100" />
+                </div>
+              ))}
+            </div>
+
+            <div>
+              <Label>Insurance Provider</Label>
+              <Input 
+                value={invoiceData.insuranceProvider}
+                onChange={(e) => setInvoiceData({...invoiceData, insuranceProvider: e.target.value})}
+              />
+            </div>
+
+            <div>
+              <Label>Total Amount</Label>
+              <Input 
+                value={invoiceData.totalAmount}
+                disabled
+                className="bg-gray-100 font-bold text-lg"
+              />
+            </div>
+
+            <div>
+              <Label>Notes</Label>
+              <Textarea 
+                value={invoiceData.notes}
+                onChange={(e) => setInvoiceData({...invoiceData, notes: e.target.value})}
+                placeholder="Add any additional notes about this invoice..."
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end space-x-2 pt-4 border-t mt-4">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowInvoiceDialog(false);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                // Close invoice dialog and show summary
+                setShowInvoiceDialog(false);
+                setShowInvoiceSummaryDialog(true);
+              }}
+            >
+              Create Invoice
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Invoice Summary Dialog */}
+      <Dialog open={showInvoiceSummaryDialog} onOpenChange={setShowInvoiceSummaryDialog}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-blue-800">Appointment & Invoice Summary</DialogTitle>
+            <DialogDescription>Please review the appointment and invoice details before confirming</DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6 mt-4">
+            {/* Invoice Summary */}
+            <div className="border rounded-lg p-4 bg-blue-50">
+              <h3 className="text-sm font-semibold text-blue-900 mb-3">Invoice Details</h3>
+              <div className="space-y-2 text-sm">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-blue-600 text-xs">Patient</p>
+                    <p className="font-medium text-blue-900">
+                      {patientsData?.find((p: any) => p.id.toString() === newAppointmentData.patientId)?.firstName} {patientsData?.find((p: any) => p.id.toString() === newAppointmentData.patientId)?.lastName}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-blue-600 text-xs">Doctor</p>
+                    <p className="font-medium text-blue-900">{invoiceData.doctor}</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-blue-600 text-xs">Service Date</p>
+                    <p className="font-medium text-blue-900">{invoiceData.serviceDate}</p>
+                  </div>
+                  <div>
+                    <p className="text-blue-600 text-xs">Total Amount</p>
+                    <p className="font-medium text-blue-900 text-lg">£{invoiceData.totalAmount}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Appointment Summary */}
+            <div className="border rounded-lg p-4 bg-gray-50">
+              <h3 className="text-sm font-semibold text-gray-800 mb-3">Appointment Details</h3>
+              <div className="space-y-2 text-sm">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-gray-500 text-xs">Date</p>
+                    <p className="font-medium text-gray-900">
+                      {newAppointmentDate ? format(newAppointmentDate, 'MMM dd, yyyy') : "Not selected"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500 text-xs">Time Slot</p>
+                    <p className="font-medium text-gray-900">{newSelectedTimeSlot || "Not selected"}</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-gray-500 text-xs">Duration</p>
+                    <p className="font-medium text-gray-900">{selectedDuration} minutes</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500 text-xs">Type</p>
+                    <p className="font-medium text-gray-900">Consultation</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end space-x-2 pt-6 border-t mt-6">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowInvoiceSummaryDialog(false);
+                setShowInvoiceDialog(true);
+              }}
+            >
+              Go Back
+            </Button>
+            <Button
+              onClick={async () => {
+                try {
+                  const selectedPatient = patientsData?.find((p: any) => p.id.toString() === newAppointmentData.patientId);
+                  
+                  // Create invoice first
+                  const invoicePayload = {
+                    patientId: selectedPatient?.patientId || '',
+                    patientName: `${selectedPatient?.firstName || ''} ${selectedPatient?.lastName || ''}`,
+                    nhsNumber: selectedPatient?.nhsNumber || '',
+                    dateOfService: invoiceData.serviceDate,
+                    invoiceDate: invoiceData.invoiceDate,
+                    dueDate: invoiceData.dueDate,
+                    status: 'draft',
+                    invoiceType: 'payment',
+                    subtotal: invoiceData.totalAmount,
+                    tax: '0',
+                    discount: '0',
+                    totalAmount: invoiceData.totalAmount,
+                    paidAmount: '0',
+                    items: invoiceData.services,
+                    insuranceProvider: invoiceData.insuranceProvider,
+                    notes: invoiceData.notes
+                  };
+                  
+                  console.log("Creating invoice with payload:", invoicePayload);
+                  await createInvoiceMutation.mutateAsync(invoicePayload);
+                  
+                  // Create appointment
+                  const selectedDate = format(newAppointmentDate!, 'yyyy-MM-dd');
+                  const [time, period] = newSelectedTimeSlot.split(' ');
+                  const [hours, minutes] = time.split(':');
+                  let hour24 = parseInt(hours);
+                  
+                  if (period === 'PM' && hour24 !== 12) {
+                    hour24 += 12;
+                  } else if (period === 'AM' && hour24 === 12) {
+                    hour24 = 0;
+                  }
+                  
+                  const newScheduledAt = `${selectedDate}T${hour24.toString().padStart(2, '0')}:${minutes}:00.000Z`;
+                  const providerName = usersData?.find((u: any) => u.id.toString() === selectedProviderId);
+                  const generatedTitle = `${selectedPatient?.firstName || 'Patient'} - ${selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1)} Appointment`;
+                  
+                  const appointmentPayload = {
+                    patientId: parseInt(newAppointmentData.patientId),
+                    providerId: parseInt(selectedProviderId),
+                    assignedRole: selectedRole,
+                    title: generatedTitle,
+                    type: "consultation",
+                    status: "scheduled",
+                    scheduledAt: newScheduledAt,
+                    duration: selectedDuration,
+                    description: "",
+                    createdBy: user?.id,
+                  };
+                  
+                  console.log("Creating appointment with payload:", appointmentPayload);
+                  await createAppointmentMutation.mutateAsync(appointmentPayload);
+                  
+                  // Invalidate queries to refresh data
+                  queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
+                  
+                  // Close all dialogs
+                  setShowInvoiceSummaryDialog(false);
+                  setShowNewAppointment(false);
+                  
+                  // Show success
+                  toast({
+                    title: "Appointment Created",
+                    description: "Appointment and invoice have been created successfully.",
+                  });
+                  
+                  // Reset form and invoice data
+                  setNewAppointmentDate(undefined);
+                  setNewSelectedTimeSlot("");
+                  setSelectedRole("");
+                  setSelectedProviderId("");
+                  setSelectedDuration(30);
+                  setNewAppointmentData({
+                    title: "",
+                    type: "consultation",
+                    patientId: "",
+                    description: "",
+                  });
+                  setInvoiceData({
+                    serviceDate: "",
+                    doctor: "",
+                    invoiceDate: "",
+                    dueDate: "",
+                    services: [],
+                    insuranceProvider: "",
+                    totalAmount: "0.00",
+                    notes: ""
+                  });
+                } catch (error) {
+                  console.error("Error creating appointment and invoice:", error);
+                  toast({
+                    title: "Creation Failed",
+                    description: error instanceof Error ? error.message : "Failed to create appointment and invoice. Please try again.",
+                    variant: "destructive",
+                  });
+                }
+              }}
+              disabled={createAppointmentMutation.isPending || createInvoiceMutation.isPending}
+            >
+              {(createAppointmentMutation.isPending || createInvoiceMutation.isPending) ? "Confirming..." : "Confirm"}
             </Button>
           </div>
         </DialogContent>
