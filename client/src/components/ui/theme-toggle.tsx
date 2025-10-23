@@ -20,18 +20,38 @@ export function ThemeToggle() {
         .dark img[alt*="Logo"]:not([data-theme-exempt]) {
           filter: brightness(0.9) contrast(1.1);
         }
-        .dark [style*="background: white"],
-        .dark [style*="background-color: white"],
-        .dark [style*="background:#fff"],
-        .dark [style*="background-color:#fff"] {
+        .dark .bg-white:not(.dark\\:bg-\\[hsl\\(var\\(--cura-midnight\\)\\)\\]) {
           background-color: hsl(222.2, 84%, 4.9%) !important;
           color: hsl(210, 40%, 98%) !important;
         }
-        .dark .bg-white {
-          background-color: hsl(222.2, 84%, 4.9%) !important;
+        .dark .bg-blue-50:not([class*="dark:bg-"]) {
+          background-color: hsl(222.2, 84%, 10%) !important;
+          border-color: hsl(222.2, 84%, 20%) !important;
         }
-        .dark .text-black {
+        .dark .bg-gray-50:not([class*="dark:bg-"]) {
+          background-color: hsl(222.2, 84%, 8%) !important;
+          border-color: hsl(222.2, 84%, 18%) !important;
+        }
+        .dark .text-black:not([class*="dark:text-"]) {
           color: hsl(210, 40%, 98%) !important;
+        }
+        .dark .text-gray-700:not([class*="dark:text-"]) {
+          color: hsl(215, 20%, 85%) !important;
+        }
+        .dark .text-gray-600:not([class*="dark:text-"]) {
+          color: hsl(215, 20%, 75%) !important;
+        }
+        .dark .text-blue-700:not([class*="dark:text-"]) {
+          color: hsl(217, 91%, 70%) !important;
+        }
+        .dark .text-blue-800:not([class*="dark:text-"]) {
+          color: hsl(217, 91%, 75%) !important;
+        }
+        .dark .border-blue-200:not([class*="dark:border-"]) {
+          border-color: hsl(222.2, 84%, 20%) !important;
+        }
+        .dark .border-gray-200:not([class*="dark:border-"]) {
+          border-color: hsl(222.2, 84%, 15%) !important;
         }
       `;
     } else {
