@@ -1183,7 +1183,8 @@ export default function UserManagement() {
       setIsRoleModalOpen(false);
       setEditingRole(null);
       roleForm.reset();
-      setSuccessMessage("The new role has been created successfully.");
+      setSuccessTitle(`Role ${newRole.displayName} created successfully`);
+      setSuccessMessage("");
       setShowSuccessModal(true);
     },
     onError: (error: any) => {
