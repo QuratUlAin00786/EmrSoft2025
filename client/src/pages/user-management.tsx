@@ -1213,7 +1213,8 @@ export default function UserManagement() {
       setEditingRole(null);
       roleForm.reset();
       
-      setSuccessMessage("The role permissions have been updated successfully.");
+      setSuccessTitle(`Role ${updatedRole.displayName} updated successfully`);
+      setSuccessMessage("");
       setShowSuccessModal(true);
     },
     onError: (error: any) => {
