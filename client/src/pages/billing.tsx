@@ -285,6 +285,39 @@ function PricingManagementDashboard() {
       
       // Handle multiple services for doctors fees, lab tests, and imaging when not editing
       if ((pricingTab === "doctors" || pricingTab === "lab-tests" || pricingTab === "imaging") && !editingItem) {
+        // Validation for doctors fees
+        if (pricingTab === "doctors") {
+          if (!formData.doctorRole || !formData.doctorName) {
+            toast({
+              title: "Validation Error",
+              description: "Please select both Role and Name",
+              variant: "destructive"
+            });
+            setIsSaving(false);
+            return;
+          }
+          
+          // Check for duplicate (doctorRole + doctorId combination)
+          if (formData.doctorId) {
+            try {
+              const checkResponse = await apiRequest('GET', `/api/pricing/doctors-fees/check-duplicate?doctorRole=${encodeURIComponent(formData.doctorRole)}&doctorId=${formData.doctorId}`, undefined);
+              const checkData = await checkResponse.json();
+              
+              if (checkData.exists) {
+                toast({
+                  title: "Duplicate Entry",
+                  description: "Price already exists in the database",
+                  variant: "destructive"
+                });
+                setIsSaving(false);
+                return;
+              }
+            } catch (error: any) {
+              console.error("Error checking for duplicate:", error);
+            }
+          }
+        }
+        
         const validServices = multipleServices.filter(
           service => service.serviceName && service.basePrice
         );
@@ -312,6 +345,9 @@ function PricingManagementDashboard() {
               serviceName: service.serviceName,
               serviceCode: service.serviceCode,
               category: service.category,
+              doctorId: formData.doctorId,
+              doctorName: formData.doctorName,
+              doctorRole: formData.doctorRole,
               basePrice: parseFloat(service.basePrice) || 0,
               isActive: true,
               currency: "GBP",
@@ -344,7 +380,11 @@ function PricingManagementDashboard() {
         
         queryClient.invalidateQueries({ queryKey: [`/api/pricing/${apiPath}`] });
         toast({
-          title: "Success",
+          title: pricingTab === "doctors" 
+            ? "Doctor Fee Added"
+            : pricingTab === "lab-tests"
+            ? "Lab Test Added"
+            : "Imaging Service Added",
           description: pricingTab === "doctors" 
             ? `${validServices.length} service(s) created successfully`
             : pricingTab === "lab-tests"
@@ -353,6 +393,7 @@ function PricingManagementDashboard() {
         });
         setShowAddDialog(false);
         setMultipleServices([{ serviceName: "", serviceCode: "", category: "", basePrice: "" }]);
+        setFormData({});
       } else {
         // Original single save logic for editing or other tabs
         const endpoint = editingItem 
@@ -814,7 +855,7 @@ function PricingManagementDashboard() {
               <>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2 relative">
-                    <Label htmlFor="bulkDoctorRole">Role</Label>
+                    <Label htmlFor="bulkDoctorRole">Role <span className="text-red-500">*</span></Label>
                     <Input
                       id="bulkDoctorRole"
                       value={formData.doctorRole || ""}
@@ -825,6 +866,7 @@ function PricingManagementDashboard() {
                       onFocus={() => setShowRoleSuggestions(true)}
                       placeholder="Select role"
                       autoComplete="off"
+                      required
                       data-testid="input-bulk-role"
                     />
                     {showRoleSuggestions && (
@@ -865,7 +907,7 @@ function PricingManagementDashboard() {
                   </div>
 
                   <div className="grid gap-2 relative">
-                    <Label htmlFor="bulkDoctorName">Select Name</Label>
+                    <Label htmlFor="bulkDoctorName">Select Name <span className="text-red-500">*</span></Label>
                     <Input
                       id="bulkDoctorName"
                       value={formData.doctorName || ""}
@@ -876,6 +918,7 @@ function PricingManagementDashboard() {
                       onFocus={() => setShowDoctorSuggestions(true)}
                       placeholder="Select or enter name"
                       autoComplete="off"
+                      required
                       data-testid="input-bulk-name"
                     />
                     {showDoctorSuggestions && (

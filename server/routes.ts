@@ -3644,6 +3644,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Check for duplicate doctor fee
+  app.get("/api/pricing/doctors-fees/check-duplicate", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const doctorRole = req.query.doctorRole as string;
+      const doctorId = parseInt(req.query.doctorId as string);
+      
+      if (!doctorRole || isNaN(doctorId)) {
+        return res.status(400).json({ error: "Invalid parameters" });
+      }
+
+      // Query the doctors_fee table for this combination
+      const existingFees = await db
+        .select()
+        .from(schema.doctorsFee)
+        .where(
+          and(
+            eq(schema.doctorsFee.organizationId, req.tenant!.id),
+            eq(schema.doctorsFee.doctorRole, doctorRole),
+            eq(schema.doctorsFee.doctorId, doctorId)
+          )
+        )
+        .limit(1);
+
+      res.json({ exists: existingFees.length > 0 });
+    } catch (error) {
+      console.error("Error checking for duplicate doctor fee:", error);
+      res.status(500).json({ error: "Failed to check for duplicate" });
+    }
+  });
+
   // Create invoice
   app.post("/api/invoices", authMiddleware, async (req: TenantRequest, res) => {
     try {
