@@ -43,6 +43,7 @@ export default function SaaSUsers() {
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const [successTitle, setSuccessTitle] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -74,6 +75,7 @@ export default function SaaSUsers() {
       return response.json();
     },
     onSuccess: () => {
+      setSuccessTitle("Password Reset Successfully");
       setSuccessMessage("Password reset email sent successfully");
       setShowSuccessModal(true);
     },
@@ -93,6 +95,7 @@ export default function SaaSUsers() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/saas/users'] });
+      setSuccessTitle("User Status Changed Successfully");
       setSuccessMessage("User status changed successfully");
       setShowSuccessModal(true);
     },
@@ -133,6 +136,7 @@ export default function SaaSUsers() {
       queryClient.invalidateQueries({ queryKey: ['/api/saas/users'] });
       setEditDialogOpen(false);
       setSelectedUser(null);
+      setSuccessTitle("User Updated Successfully");
       setSuccessMessage("User information has been updated successfully");
       setShowSuccessModal(true);
     },
@@ -550,7 +554,7 @@ export default function SaaSUsers() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-green-600">
               <Shield className="h-5 w-5" />
-              User Deleted
+              User Deleted Successfully
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
@@ -576,7 +580,7 @@ export default function SaaSUsers() {
       <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-green-600">Success</DialogTitle>
+            <DialogTitle className="text-xl font-bold text-green-600">{successTitle}</DialogTitle>
           </DialogHeader>
           
           <div className="py-4">
@@ -588,6 +592,7 @@ export default function SaaSUsers() {
               onClick={() => {
                 setShowSuccessModal(false);
                 setSuccessMessage("");
+                setSuccessTitle("");
               }}
             >
               OK
