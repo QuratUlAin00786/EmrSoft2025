@@ -767,6 +767,7 @@ export default function UserManagement() {
   const [, setLocation] = useLocation();
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const [successTitle, setSuccessTitle] = useState("");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -1363,7 +1364,8 @@ export default function UserManagement() {
       return result;
     },
     onSuccess: async (newUser, variables) => {
-      setSuccessMessage("The new user has been added to the system.");
+      setSuccessTitle("User Created Successfully");
+      setSuccessMessage("");
       setShowSuccessModal(true);
       // Immediately add user to list for instant display
       setUsers(prevUsers => [...prevUsers, newUser]);
@@ -1475,7 +1477,8 @@ export default function UserManagement() {
       return await response.json();
     },
     onSuccess: (updatedUserData) => {
-      setSuccessMessage("The user information has been updated.");
+      setSuccessTitle("User Updated Successfully");
+      setSuccessMessage("");
       setShowSuccessModal(true);
       
       // Update the form with fresh data from server response
@@ -1582,6 +1585,7 @@ export default function UserManagement() {
 10. Delete patient record
 11. Delete user`;
       
+      setSuccessTitle("User Deleted Successfully");
       setSuccessMessage(deletionSteps);
       setShowSuccessModal(true);
       // Immediately remove user from list for instant display
@@ -3938,15 +3942,18 @@ export default function UserManagement() {
             {/* Title */}
             <DialogHeader className="text-center mb-6">
               <DialogTitle className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent">
-                User Deleted Successfully
+                {successTitle}
               </DialogTitle>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                All related data has been permanently removed from the system
-              </p>
+              {successTitle === "User Deleted Successfully" && (
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                  All related data has been permanently removed from the system
+                </p>
+              )}
             </DialogHeader>
             
-            {/* Deletion Steps */}
-            <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
+            {/* Deletion Steps - Only show for deletions */}
+            {successMessage && successTitle === "User Deleted Successfully" && (
+              <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
               <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4 flex items-center gap-2">
                 <svg className="w-4 h-4 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -3971,6 +3978,7 @@ export default function UserManagement() {
                 })}
               </div>
             </div>
+            )}
 
             {/* Action Button */}
             <div className="flex justify-center">
@@ -3978,6 +3986,7 @@ export default function UserManagement() {
                 onClick={() => {
                   setShowSuccessModal(false);
                   setSuccessMessage("");
+                  setSuccessTitle("");
                 }}
                 className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-8 py-2 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 font-semibold"
                 data-testid="button-success-ok"
