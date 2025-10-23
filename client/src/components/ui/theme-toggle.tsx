@@ -20,6 +20,19 @@ export function ThemeToggle() {
         .dark img[alt*="Logo"]:not([data-theme-exempt]) {
           filter: brightness(0.9) contrast(1.1);
         }
+        .dark [style*="background: white"],
+        .dark [style*="background-color: white"],
+        .dark [style*="background:#fff"],
+        .dark [style*="background-color:#fff"] {
+          background-color: hsl(222.2, 84%, 4.9%) !important;
+          color: hsl(210, 40%, 98%) !important;
+        }
+        .dark .bg-white {
+          background-color: hsl(222.2, 84%, 4.9%) !important;
+        }
+        .dark .text-black {
+          color: hsl(210, 40%, 98%) !important;
+        }
       `;
     } else {
       style.textContent = '';
