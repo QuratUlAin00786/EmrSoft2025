@@ -3947,23 +3947,20 @@ export default function UserManagement() {
 
       {/* Success Modal */}
       <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
-        <DialogContent className="max-w-2xl border-0 shadow-2xl">
-          <div className="relative overflow-hidden rounded-lg bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 p-8">
+        <DialogContent className="max-w-md">
+          <div className="p-6">
             {/* Success Icon */}
             <div className="flex justify-center mb-6">
-              <div className="relative">
-                <div className="absolute inset-0 bg-green-500 dark:bg-green-600 rounded-full blur-xl opacity-30 animate-pulse"></div>
-                <div className="relative bg-green-500 dark:bg-green-600 rounded-full p-4 shadow-lg">
-                  <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
+              <div className="bg-green-500 rounded-full p-3">
+                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                </svg>
               </div>
             </div>
 
             {/* Title */}
             <DialogHeader className="text-center mb-6">
-              <DialogTitle className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent">
+              <DialogTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100">
                 {successTitle}
               </DialogTitle>
               {successTitle === "User Deleted Successfully" && (
@@ -3975,24 +3972,21 @@ export default function UserManagement() {
             
             {/* Deletion Steps - Only show for deletions */}
             {successMessage && successTitle === "User Deleted Successfully" && (
-              <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
-              <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4 flex items-center gap-2">
-                <svg className="w-4 h-4 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 mb-6">
+              <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
                 Completed Operations
               </h4>
-              <div className="space-y-2.5">
+              <div className="space-y-2">
                 {successMessage.split('\n').slice(2).map((step, index) => {
                   if (!step.trim()) return null;
                   return (
-                    <div key={index} className="flex items-start gap-3 p-2.5 rounded-lg hover:bg-green-50 dark:hover:bg-green-950/20 transition-colors group">
+                    <div key={index} className="flex items-start gap-2">
                       <div className="flex-shrink-0 mt-0.5">
-                        <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                        <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                         </svg>
                       </div>
-                      <p className="flex-1 text-gray-700 dark:text-gray-300 leading-relaxed text-sm">
+                      <p className="flex-1 text-gray-700 dark:text-gray-300 text-sm">
                         {step.trim().substring(step.trim().indexOf('.') + 1).trim()}
                       </p>
                     </div>
@@ -4010,7 +4004,7 @@ export default function UserManagement() {
                   setSuccessMessage("");
                   setSuccessTitle("");
                 }}
-                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-8 py-2 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 font-semibold"
+                className="px-6"
                 data-testid="button-success-ok"
               >
                 Got it, thanks!
