@@ -552,7 +552,7 @@ export default function SaaSUsers() {
       <Dialog open={deleteSuccessDialogOpen} onOpenChange={setDeleteSuccessDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-green-600">
+            <DialogTitle className="flex items-center gap-2">
               <Shield className="h-5 w-5" />
               User Deleted Successfully
             </DialogTitle>
@@ -580,7 +580,7 @@ export default function SaaSUsers() {
       <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-green-600">{successTitle}</DialogTitle>
+            <DialogTitle className="text-xl font-bold">{successTitle}</DialogTitle>
           </DialogHeader>
           
           <div className="py-4">
