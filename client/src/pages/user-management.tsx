@@ -3538,7 +3538,11 @@ export default function UserManagement() {
                         <Label htmlFor="roleName">Role Name</Label>
                         <Input
                           id="roleName"
-                          {...roleForm.register("name")}
+                          value={roleForm.watch("name") || ""}
+                          onChange={(e) => {
+                            const lowercaseValue = e.target.value.toLowerCase();
+                            roleForm.setValue("name", lowercaseValue, { shouldValidate: true });
+                          }}
                           placeholder="e.g., senior_doctor"
                           className={roleForm.formState.errors.name ? "border-red-500" : ""}
                         />
