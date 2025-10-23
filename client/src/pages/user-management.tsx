@@ -342,7 +342,9 @@ const userSchema = z.object({
 });
 
 const roleSchema = z.object({
-  name: z.string().min(1, "Role name is required"),
+  name: z.string()
+    .min(1, "Role name is required")
+    .regex(/^[a-z_]+$/, "Role name must contain only lowercase letters and underscores"),
   displayName: z.string().min(1, "Display name is required"),
   description: z.string().min(1, "Description is required"),
   permissions: z.object({
