@@ -294,8 +294,8 @@ const COUNTRY_DIGIT_LIMITS: Record<string, number> = {
 
 const userSchema = z.object({
   email: z.string().min(1, "Email address is required").email("Please enter a valid email address"),
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
+  firstName: z.string().min(2, "First name must be at least 2 characters").max(50, "First name must not exceed 50 characters"),
+  lastName: z.string().min(2, "Last name must be at least 2 characters").max(50, "Last name must not exceed 50 characters"),
   role: z.string().min(1, "Role is required"),
   department: z.string().optional(),
   medicalSpecialtyCategory: z.string().optional(),
@@ -318,7 +318,7 @@ const userSchema = z.object({
       (val) => !val || /^\d{0,10}$/.test(val.replace(/\s/g, '')),
       "NHS Number must be exactly 10 digits"
     ),
-  genderAtBirth: z.string().optional(),
+  genderAtBirth: z.string().min(1, "Gender is required"),
   address: z.object({
     street: z.string().optional(),
     city: z.string().optional(),
@@ -327,7 +327,7 @@ const userSchema = z.object({
     country: z.string().optional(),
   }).optional(),
   emergencyContact: z.object({
-    name: z.string().optional(),
+    name: z.string().min(2, "Emergency contact name must be at least 2 characters").max(50, "Emergency contact name must not exceed 50 characters"),
     relationship: z.string().optional(),
     phone: z.string().optional(),
     email: z.string().optional(),
