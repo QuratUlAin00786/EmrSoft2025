@@ -53,6 +53,30 @@ export function ThemeToggle() {
         .dark .border-gray-200:not([class*="dark:border-"]) {
           border-color: hsl(222.2, 84%, 15%) !important;
         }
+        .dark button[style*="background-color: white"],
+        .dark button[style*="backgroundColor: white"],
+        .dark button[style*="background-color:#fff"],
+        .dark button[style*="background-color: #fff"],
+        .dark button[style*="background-color:#ffffff"],
+        .dark button[style*="background-color: #ffffff"] {
+          background-color: hsl(222.2, 84%, 12%) !important;
+          border-color: hsl(222.2, 84%, 25%) !important;
+          color: hsl(210, 40%, 98%) !important;
+        }
+        .dark button[style*="background-color: white"]:hover,
+        .dark button[style*="backgroundColor: white"]:hover,
+        .dark button[style*="background-color:#fff"]:hover,
+        .dark button[style*="background-color: #fff"]:hover,
+        .dark button[style*="background-color:#ffffff"]:hover,
+        .dark button[style*="background-color: #ffffff"]:hover {
+          background-color: hsl(222.2, 84%, 18%) !important;
+          border-color: hsl(217, 91%, 50%) !important;
+        }
+        .dark [style*="color: black"],
+        .dark [style*="color:#000"],
+        .dark [style*="color: #000"] {
+          color: hsl(210, 40%, 98%) !important;
+        }
       `;
     } else {
       style.textContent = '';
