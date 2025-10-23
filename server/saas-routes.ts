@@ -1380,9 +1380,18 @@ The Cura EMR Team`,
           status as string,
         );
         res.json(customers);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error fetching customers:", error);
-        res.status(500).json({ message: "Failed to fetch customers" });
+        res.status(500).json({ 
+          message: "Failed to fetch customers",
+          error: error.message || String(error),
+          errorName: error.name,
+          errorStack: process.env.NODE_ENV === 'production' ? undefined : error.stack,
+          details: {
+            search: req.query.search,
+            status: req.query.status
+          }
+        });
       }
     },
   );
