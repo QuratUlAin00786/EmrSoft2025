@@ -2715,17 +2715,15 @@ Medical License: [License Number]
 
             <div className="border rounded p-4 bg-gray-50">
               <h3 className="font-semibold mb-2">Services & Procedures</h3>
-              <div className="grid grid-cols-4 gap-2 mb-2 text-sm font-medium">
+              <div className="grid grid-cols-3 gap-2 mb-2 text-sm font-medium">
                 <div>Code</div>
                 <div>Description</div>
-                <div>Qty</div>
                 <div>Amount</div>
               </div>
               {invoiceData.services.map((service: any, index: number) => (
-                <div key={index} className="grid grid-cols-4 gap-2 mb-2">
+                <div key={index} className="grid grid-cols-3 gap-2 mb-2">
                   <Input value={service.code} disabled className="bg-gray-100" />
                   <Input value={service.description} disabled className="bg-gray-100" />
-                  <Input value={service.quantity} disabled className="bg-gray-100" />
                   <Input value={service.amount.toFixed(2)} disabled className="bg-gray-100" />
                 </div>
               ))}
