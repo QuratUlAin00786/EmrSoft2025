@@ -110,7 +110,7 @@ function ViewClinicInfo({ user, onLoadHeader }: { user: any; onLoadHeader: (head
             </h3>
             <Button
               onClick={() => onLoadHeader(savedHeader, savedFooter)}
-              className="bg-[hsl(var(--cura-bluewave))] hover:bg-[hsl(var(--cura-electric-lilac))] text-white"
+              className="bg-[hsl(var(--cura-bluewave))] hover:bg-[hsl(var(--cura-electric-lilac))] text-light"
               data-testid="button-load-header"
             >
               Load
@@ -5089,13 +5089,13 @@ Coverage Details: [Insurance Coverage]`;
             >
               View Custom Clinic Information
             </Button>
-            <Button
+            {/* <Button
               size="sm"
               className="text-xs h-7 px-4 py-2 mt-5 bg-white text-black  border border-lightgray-400"
               onClick={handleClinic}
             >
               Clinic
-            </Button>
+            </Button> */}
             <Button
               size="sm"
               className="text-xs h-7 px-4 py-2 mt-5 bg-white text-black  border border-lightgray-400"
