@@ -122,7 +122,8 @@ export function SampleTakerDashboard() {
 
   // Filter lab requests based on status
   const pendingCollection = labRequests.filter((req: LabRequest) => 
-    req.Lab_Request_Generated === true && req.Sample_Collected !== true
+    req.Sample_Collected !== true && 
+    (!req.invoiceStatus || req.invoiceStatus !== 'paid')
   );
   const collectedToday = labRequests.filter((req: LabRequest) => 
     req.Sample_Collected === true && 
