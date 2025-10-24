@@ -991,6 +991,10 @@ export const labResults = pgTable("lab_results", {
   }>>().default([]),
   criticalValues: boolean("critical_values").notNull().default(false),
   notes: text("notes"),
+  labRequestGenerated: boolean("Lab_Request_Generated").notNull().default(false),
+  sampleCollected: boolean("Sample_Collected").notNull().default(false),
+  labReportGenerated: boolean("Lab_Report_Generated").notNull().default(false),
+  reviewed: boolean("Reviewed").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
