@@ -1463,7 +1463,7 @@ export default function MessagingPage() {
                 New Message
               </Button>
             </DialogTrigger>
-            <DialogContent className="w-[1670px] max-w-[95vw] max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Compose New Message</DialogTitle>
               </DialogHeader>
