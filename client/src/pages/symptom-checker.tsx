@@ -192,23 +192,14 @@ export default function SymptomCheckerPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Header />
+      <Header title="AI Symptom Checker" subtitle="Get AI-powered insights about your symptoms and recommended next steps" />
       
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <Brain className="h-8 w-8 text-primary" />
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">AI Symptom Checker</h1>
-          </div>
-          <p className="text-gray-600 dark:text-gray-300">
-            Get AI-powered insights about your symptoms and recommended next steps
-          </p>
-        </div>
+      <div className="container mx-auto px-4 lg:px-6 py-6 max-w-7xl">
 
         {!showResults ? (
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
                 <div className="lg:col-span-2">
                   <Card>
                     <CardHeader>
@@ -220,7 +211,7 @@ export default function SymptomCheckerPage() {
                         Provide detailed information about what you're experiencing
                       </CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-6">
+                    <CardContent className="space-y-4 lg:space-y-6">
                       <div className="space-y-2">
                         <FormLabel data-testid="label-patient">Select Patient</FormLabel>
                         <Popover open={patientSearchOpen} onOpenChange={setPatientSearchOpen}>
@@ -463,7 +454,7 @@ export default function SymptomCheckerPage() {
             </form>
           </Form>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-4 lg:space-y-6">
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -499,13 +490,13 @@ export default function SymptomCheckerPage() {
                 </div>
 
                 {analysis && (
-                  <div className="space-y-6">
+                  <div className="space-y-4 lg:space-y-6">
                     <div>
-                      <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                      <h3 className="text-lg font-semibold mb-3 lg:mb-4 flex items-center gap-2">
                         <FileText className="h-5 w-5" />
                         Potential Diagnoses
                       </h3>
-                      <div className="space-y-3">
+                      <div className="space-y-2 lg:space-y-3">
                         {analysis.potentialDiagnoses.map((diagnosis, index) => (
                           <Card key={index} data-testid={`diagnosis-${index}`}>
                             <CardContent className="p-4">
@@ -534,11 +525,11 @@ export default function SymptomCheckerPage() {
                     </div>
 
                     <div>
-                      <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                      <h3 className="text-lg font-semibold mb-3 lg:mb-4 flex items-center gap-2">
                         <User className="h-5 w-5" />
                         Recommended Specialists
                       </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 lg:gap-3">
                         {analysis.recommendedSpecialists.map((specialist, index) => (
                           <Card key={index} data-testid={`specialist-${index}`}>
                             <CardContent className="p-4">
@@ -579,7 +570,7 @@ export default function SymptomCheckerPage() {
                     )}
 
                     <div>
-                      <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                      <h3 className="text-lg font-semibold mb-3 lg:mb-4 flex items-center gap-2">
                         <Home className="h-5 w-5" />
                         Home Care Tips
                       </h3>

@@ -32,13 +32,12 @@ import {
   Clock,
   Download,
   Filter,
-  ArrowLeft,
   Activity,
   FileText,
   AlertTriangle
 } from "lucide-react";
 import { format } from "date-fns";
-import { useLocation } from "wouter";
+import { Header } from "@/components/layout/header";
 
 function getTenantSubdomain(): string {
   return localStorage.getItem('user_subdomain') || 'demo';
@@ -79,7 +78,6 @@ interface AnalyticsData {
 const COLORS = ['#0ea5e9', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
 export default function AnalyticsPage() {
-  const [, setLocation] = useLocation();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filters, setFilters] = useState({
     dateRange: '30',
@@ -172,25 +170,12 @@ export default function AnalyticsPage() {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto w-full overflow-x-hidden h-screen overflow-y-auto">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
-        <div className="flex items-center space-x-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setLocation("/")}
-            className="flex items-center space-x-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            <span>Back</span>
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Analytics Dashboard</h1>
-            <p className="text-gray-600 mt-1">Comprehensive insights into practice performance</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <Header title="Analytics Dashboard" subtitle="Comprehensive insights into practice performance" />
+      
+      <div className="container mx-auto px-4 lg:px-6 py-6 max-w-7xl">
+        {/* Action Buttons */}
+        <div className="flex flex-wrap items-center justify-end gap-3 mb-6">
           <Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm">
@@ -281,16 +266,15 @@ export default function AnalyticsPage() {
             Export
           </Button>
         </div>
-      </div>
 
-      {/* Key Metrics Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {/* Key Metrics Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-6 lg:mb-8">
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Patients</p>
-                <p className="text-2xl font-bold">{analytics.overview.totalPatients.toLocaleString()}</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Patients</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{analytics.overview.totalPatients.toLocaleString()}</p>
                 <p className="text-xs text-green-600 flex items-center mt-1">
                   <TrendingUp className="h-3 w-3 mr-1" />
                   +{analytics.overview.newPatients} this month
@@ -305,8 +289,8 @@ export default function AnalyticsPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Appointments</p>
-                <p className="text-2xl font-bold">{analytics.overview.totalAppointments.toLocaleString()}</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Appointments</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{analytics.overview.totalAppointments.toLocaleString()}</p>
                 <p className="text-xs text-blue-600 flex items-center mt-1">
                   {analytics.overview.totalAppointments > 0 ? 
                     Math.round((analytics.overview.completedAppointments / analytics.overview.totalAppointments) * 100) : 0}% completion rate
@@ -321,8 +305,8 @@ export default function AnalyticsPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Revenue</p>
-                <p className="text-2xl font-bold">{formatCurrency(analytics.overview.revenue)}</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Revenue</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{formatCurrency(analytics.overview.revenue)}</p>
                 <p className="text-xs text-green-600 flex items-center mt-1">
                   <TrendingUp className="h-3 w-3 mr-1" />
                   +5.2% vs last month
@@ -337,8 +321,8 @@ export default function AnalyticsPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Avg Wait Time</p>
-                <p className="text-2xl font-bold">{analytics.overview.averageWaitTime}min</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Avg Wait Time</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{analytics.overview.averageWaitTime}min</p>
                 <p className="text-xs text-green-600 flex items-center mt-1">
                   <TrendingDown className="h-3 w-3 mr-1" />
                   -2min vs last month
@@ -348,19 +332,19 @@ export default function AnalyticsPage() {
             </div>
           </CardContent>
         </Card>
-      </div>
+        </div>
 
-      {/* Analytics Tabs */}
-      <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="patients">Patients</TabsTrigger>
-          <TabsTrigger value="clinical">Clinical</TabsTrigger>
-          <TabsTrigger value="financial">Financial</TabsTrigger>
-        </TabsList>
+        {/* Analytics Tabs */}
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="patients">Patients</TabsTrigger>
+            <TabsTrigger value="clinical">Clinical</TabsTrigger>
+            <TabsTrigger value="financial">Financial</TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="overview" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <TabsContent value="overview" className="space-y-4 lg:space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
             {/* Patient Growth */}
             <Card>
               <CardHeader>
@@ -426,10 +410,10 @@ export default function AnalyticsPage() {
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
+          </TabsContent>
 
-        <TabsContent value="patients" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <TabsContent value="patients" className="space-y-4 lg:space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 mb-4 lg:mb-6">
             {/* Patient Demographics */}
             <Card>
               <CardHeader>
@@ -480,9 +464,9 @@ export default function AnalyticsPage() {
                 </ResponsiveContainer>
               </CardContent>
             </Card>
-          </div>
+            </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
             {/* Top Conditions */}
             <Card>
               <CardHeader>
@@ -542,12 +526,12 @@ export default function AnalyticsPage() {
                 </div>
               </CardContent>
             </Card>
-          </div>
+            </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Patient Summary</CardTitle>
-            </CardHeader>
+            <Card>
+              <CardHeader>
+                <CardTitle>Patient Summary</CardTitle>
+              </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="text-center">
@@ -569,13 +553,13 @@ export default function AnalyticsPage() {
                   <div className="text-sm text-gray-600">Completion Rate</div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-        <TabsContent value="clinical" className="space-y-6">
-          {/* Clinical Overview Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <TabsContent value="clinical" className="space-y-4 lg:space-y-6">
+            {/* Clinical Overview Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
             <Card>
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
@@ -629,12 +613,12 @@ export default function AnalyticsPage() {
                   </div>
                   <AlertTriangle className="h-8 w-8 text-red-600" />
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+                </CardContent>
+              </Card>
+            </div>
 
-          {/* Clinical Charts */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Clinical Charts */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
             {/* Top Medications */}
             <Card>
               <CardHeader>
@@ -681,12 +665,12 @@ export default function AnalyticsPage() {
                     <Tooltip />
                   </PieChart>
                 </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </div>
+                </CardContent>
+              </Card>
+            </div>
 
-          {/* AI Insights and Recent Activity */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* AI Insights and Recent Activity */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
             {/* AI Insights Severity */}
             <Card>
               <CardHeader>
@@ -743,12 +727,12 @@ export default function AnalyticsPage() {
                     </span>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+                </CardContent>
+              </Card>
+            </div>
 
-          {/* Performance Metrics */}
-          <Card>
+            {/* Performance Metrics */}
+            <Card>
             <CardHeader>
               <CardTitle>Clinical Performance Metrics</CardTitle>
             </CardHeader>
@@ -773,12 +757,12 @@ export default function AnalyticsPage() {
                   <div className="text-sm text-gray-600">Medication Types</div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-        <TabsContent value="financial" className="space-y-6">
-          <Card>
+          <TabsContent value="financial" className="space-y-4 lg:space-y-6">
+            <Card>
             <CardHeader>
               <CardTitle>Revenue Trends</CardTitle>
             </CardHeader>
@@ -793,10 +777,11 @@ export default function AnalyticsPage() {
                   <Line type="monotone" dataKey="target" stroke="#94a3b8" strokeDasharray="5 5" />
                 </LineChart>
               </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 }
