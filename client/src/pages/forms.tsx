@@ -4972,7 +4972,7 @@ Coverage Details: [Insurance Coverage]`;
       
     
         {/* Toolbar - medical theme colors */}
-        <div className="bg-gray-50 border-b border-gray-200 px-4 py-3 flex-shrink-0">
+        <div className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex-shrink-0">
      
        
           {/* Save, Download, Print and View buttons - medical theme colors */}
@@ -5196,20 +5196,7 @@ Coverage Details: [Insurance Coverage]`;
             <Button
               variant="ghost"
               size="sm"
-              className="h-6 w-6 p-0 border transition-all duration-200"
-              style={{
-                backgroundColor: "white",
-                borderColor: "white",
-                color: "black",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#7279FB";
-                e.currentTarget.style.borderColor = "#7279FB";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "white";
-                e.currentTarget.style.borderColor = "white";
-              }}
+              className="h-6 w-6 p-0 border transition-all duration-200 bg-white dark:bg-gray-800 border-white dark:border-gray-700 text-black dark:text-white hover:bg-[#7279FB] hover:border-[#7279FB]"
               onClick={handleBold}
             >
               <Bold className="h-3 w-3" />
@@ -5217,20 +5204,7 @@ Coverage Details: [Insurance Coverage]`;
             <Button
               variant="ghost"
               size="sm"
-              className="h-6 w-6 p-0 border transition-all duration-200"
-              style={{
-                backgroundColor: "white",
-                borderColor: "white",
-                color: "black",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#7279FB";
-                e.currentTarget.style.borderColor = "#e5e7eb";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "white";
-                e.currentTarget.style.borderColor = "white";
-              }}
+              className="h-6 w-6 p-0 border transition-all duration-200 bg-white dark:bg-gray-800 border-white dark:border-gray-700 text-black dark:text-white hover:bg-[#7279FB] hover:border-[#7279FB]"
               onClick={handleItalic}
             >
               <Italic className="h-3 w-3" />
@@ -5238,20 +5212,7 @@ Coverage Details: [Insurance Coverage]`;
             <Button
               variant="ghost"
               size="sm"
-              className="h-6 w-6 p-0 border transition-all duration-200"
-              style={{
-                backgroundColor: "white",
-                borderColor: "white",
-                color: "black",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#7279FB";
-                e.currentTarget.style.borderColor = "#7279FB";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "white";
-                e.currentTarget.style.borderColor = "white";
-              }}
+              className="h-6 w-6 p-0 border transition-all duration-200 bg-white dark:bg-gray-800 border-white dark:border-gray-700 text-black dark:text-white hover:bg-[#7279FB] hover:border-[#7279FB]"
               onClick={handleUnderline}
             >
               <Underline className="h-3 w-3" />
@@ -5263,20 +5224,7 @@ Coverage Details: [Insurance Coverage]`;
             <Button
               variant="ghost"
               size="sm"
-              className="h-6 w-6 p-0 border transition-all duration-200"
-              style={{
-                backgroundColor: "white",
-                borderColor: "white",
-                color: "black",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#7279FB";
-                e.currentTarget.style.borderColor = "#e5e7eb";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "white";
-                e.currentTarget.style.borderColor = "white";
-              }}
+              className="h-6 w-6 p-0 border transition-all duration-200 bg-white dark:bg-gray-800 border-white dark:border-gray-700 text-black dark:text-white hover:bg-[#7279FB] hover:border-[#7279FB]"
               onClick={handleBulletList}
             >
               <List className="h-3 w-3" />
@@ -5284,20 +5232,7 @@ Coverage Details: [Insurance Coverage]`;
             <Button
               variant="ghost"
               size="sm"
-              className="h-6 w-6 p-0 border transition-all duration-200"
-              style={{
-                backgroundColor: "white",
-                borderColor: "white",
-                color: "black",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#7279FB";
-                e.currentTarget.style.borderColor = "#7279FB";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "white";
-                e.currentTarget.style.borderColor = "white";
-              }}
+              className="h-6 w-6 p-0 border transition-all duration-200 bg-white dark:bg-gray-800 border-white dark:border-gray-700 text-black dark:text-white hover:bg-[#7279FB] hover:border-[#7279FB]"
               onClick={handleNumberedList}
             >
               <ListOrdered className="h-3 w-3" />
@@ -5309,20 +5244,7 @@ Coverage Details: [Insurance Coverage]`;
             <Button
               variant="ghost"
               size="sm"
-              className="h-6 w-6 p-0 border transition-all duration-200"
-              style={{
-                backgroundColor: "white",
-                borderColor: "white",
-                color: "black",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#7279FB";
-                e.currentTarget.style.borderColor = "#e5e7eb";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "white";
-                e.currentTarget.style.borderColor = "white";
-              }}
+              className="h-6 w-6 p-0 border transition-all duration-200 bg-white dark:bg-gray-800 border-white dark:border-gray-700 text-black dark:text-white hover:bg-[#7279FB] hover:border-[#7279FB]"
               onClick={handleAlignLeft}
             >
               <AlignLeft className="h-3 w-3" />
@@ -5330,20 +5252,7 @@ Coverage Details: [Insurance Coverage]`;
             <Button
               variant="ghost"
               size="sm"
-              className="h-6 w-6 p-0 border transition-all duration-200"
-              style={{
-                backgroundColor: "white",
-                borderColor: "#e5e7eb",
-                color: "black",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#7279FB";
-                e.currentTarget.style.borderColor = "#7279FB";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "white";
-                e.currentTarget.style.borderColor = "white";
-              }}
+              className="h-6 w-6 p-0 border transition-all duration-200 bg-white dark:bg-gray-800 border-white dark:border-gray-700 text-black dark:text-white hover:bg-[#7279FB] hover:border-[#7279FB]"
               onClick={handleAlignCenter}
             >
               <AlignCenter className="h-3 w-3" />
@@ -5351,20 +5260,7 @@ Coverage Details: [Insurance Coverage]`;
             <Button
               variant="ghost"
               size="sm"
-              className="h-6 w-6 p-0 border transition-all duration-200"
-              style={{
-                backgroundColor: "white",
-                borderColor: "white",
-                color: "black",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#7279FB";
-                e.currentTarget.style.borderColor = "#e5e7eb";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "white";
-                e.currentTarget.style.borderColor = "white";
-              }}
+              className="h-6 w-6 p-0 border transition-all duration-200 bg-white dark:bg-gray-800 border-white dark:border-gray-700 text-black dark:text-white hover:bg-[#7279FB] hover:border-[#7279FB]"
               onClick={handleAlignRight}
             >
               <AlignRight className="h-3 w-3" />
@@ -5372,20 +5268,7 @@ Coverage Details: [Insurance Coverage]`;
             <Button
               variant="ghost"
               size="sm"
-              className="h-6 w-6 p-0 border transition-all duration-200"
-              style={{
-                backgroundColor: "white",
-                borderColor: "white",
-                color: "black",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#7279FB";
-                e.currentTarget.style.borderColor = "#7279FB";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "white";
-                e.currentTarget.style.borderColor = "white";
-              }}
+              className="h-6 w-6 p-0 border transition-all duration-200 bg-white dark:bg-gray-800 border-white dark:border-gray-700 text-black dark:text-white hover:bg-[#7279FB] hover:border-[#7279FB]"
               onClick={handleAlignJustify}
             >
               <AlignJustify className="h-3 w-3" />
