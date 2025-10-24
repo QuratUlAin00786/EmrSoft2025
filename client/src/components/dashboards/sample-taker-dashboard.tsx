@@ -669,17 +669,33 @@ export function SampleTakerDashboard() {
                         )}
                       </td>
                       <td className="p-3 text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          <Switch
-                            checked={request.Sample_Collected}
-                            onCheckedChange={() => handleToggleSampleCollected(request.id, request.Sample_Collected)}
-                            disabled={toggleSampleMutation.isPending}
-                            data-testid={`toggle-sample-${request.id}`}
-                          />
-                          {request.Sample_Collected && (
+                        {request.Sample_Collected ? (
+                          <div className="flex items-center justify-center gap-2">
+                            <Badge variant="default" className="text-xs bg-green-600 dark:bg-green-700">
+                              Collected
+                            </Badge>
                             <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
-                          )}
-                        </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-center gap-2">
+                            <Switch
+                              checked={false}
+                              onCheckedChange={() => {
+                                // Use confirmation dialog for paid invoices, direct toggle for others
+                                if (request.invoiceStatus === 'paid') {
+                                  handlePaidInvoiceToggle(request.id, request.Sample_Collected);
+                                } else {
+                                  handleToggleSampleCollected(request.id, request.Sample_Collected);
+                                }
+                              }}
+                              disabled={toggleSampleMutation.isPending}
+                              data-testid={`toggle-sample-${request.id}`}
+                            />
+                            <span className="text-xs text-gray-600 dark:text-gray-400">
+                              No
+                            </span>
+                          </div>
+                        )}
                       </td>
                       <td className="p-3">
                         {!request.Sample_Collected && (
