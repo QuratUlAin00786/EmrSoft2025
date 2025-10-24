@@ -6648,6 +6648,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get lab results joined with invoices for sample taker dashboard
+  app.get("/api/lab-results/with-invoices", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const organizationId = req.tenant!.id;
+
+      // Fetch lab results and invoices
+      const labResults = await storage.getLabResults(organizationId);
+      const invoices = await storage.getInvoicesByOrganization(organizationId);
+
+      // Join lab results with invoices by patientId
+      const joinedData = labResults.map(labResult => {
+        // Find matching invoice by patient ID (using patientId from lab_results table)
+        const matchingInvoice = invoices.find(invoice => {
+          // Get patient from patients table to match patientId with invoice.patientId (which is a string)
+          return invoice.patientId === labResult.patientId.toString();
+        });
+
+        return {
+          ...labResult,
+          invoice: matchingInvoice || null,
+          invoiceNumber: matchingInvoice?.invoiceNumber || null,
+          invoiceStatus: matchingInvoice?.status || null,
+          totalAmount: matchingInvoice?.totalAmount || null,
+          invoiceDate: matchingInvoice?.invoiceDate || null
+        };
+      });
+
+      res.json(joinedData);
+    } catch (error) {
+      console.error("Error fetching lab results with invoices:", error);
+      res.status(500).json({ error: "Failed to fetch lab results with invoices" });
+    }
+  });
+
+  // Update Sample_Collected field (toggle)
+  app.patch("/api/lab-results/:id/toggle-sample-collected", authMiddleware, requireRole(["admin", "sample_taker", "nurse", "lab_technician"]), async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const labResultId = parseInt(req.params.id);
+      if (isNaN(labResultId)) {
+        return res.status(400).json({ error: "Invalid lab result ID" });
+      }
+
+      const { sampleCollected } = req.body;
+
+      if (typeof sampleCollected !== 'boolean') {
+        return res.status(400).json({ error: "Sample_Collected must be a boolean value" });
+      }
+
+      // Update the lab result Sample_Collected field
+      const updateData: any = {
+        Sample_Collected: sampleCollected,
+        status: sampleCollected ? "Sample Collected" : "pending",
+        reportStatus: sampleCollected ? "Sample Ready for Testing" : "Awaiting Collection"
+      };
+
+      const updatedLabResult = await storage.updateLabResult(labResultId, req.tenant!.id, updateData);
+
+      if (!updatedLabResult) {
+        return res.status(404).json({ error: "Failed to update lab result" });
+      }
+
+      res.json({ 
+        success: true, 
+        message: sampleCollected ? "Sample marked as collected" : "Sample marked as not collected",
+        labResult: updatedLabResult 
+      });
+    } catch (error) {
+      console.error("Error toggling sample collected status:", error);
+      res.status(500).json({ error: "Failed to toggle sample collected status" });
+    }
+  });
+
   // Generate PDF for lab result
   app.post("/api/lab-results/:id/generate-pdf", authMiddleware, requireNonPatientRole(), async (req: TenantRequest, res) => {
     try {
