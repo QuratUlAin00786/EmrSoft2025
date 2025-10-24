@@ -327,7 +327,7 @@ const userSchema = z.object({
     country: z.string().optional(),
   }).optional(),
   emergencyContact: z.object({
-    name: z.string().min(2, "Emergency contact name must be at least 2 characters").max(50, "Emergency contact name must not exceed 50 characters"),
+    name: z.string().optional(),
     relationship: z.string().optional(),
     phone: z.string().optional(),
     email: z.string().optional(),
