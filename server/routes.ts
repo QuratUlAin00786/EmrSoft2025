@@ -19,7 +19,7 @@ import { isDoctorLike } from './utils/role-utils.js';
 import { gdprComplianceService } from "./services/gdpr-compliance";
 import { insertGdprConsentSchema, insertGdprDataRequestSchema, updateMedicalImageReportFieldSchema, insertAiInsightSchema, medicationsDatabase, patientDrugInteractions, insuranceVerifications, type Appointment, organizations, subscriptions, users, patients, symptomChecks, quickbooksConnections, insertClinicHeaderSchema, insertClinicFooterSchema, doctorsFee, invoices, labResults } from "../shared/schema";
 import * as schema from "../shared/schema";
-import { db } from "./db";
+import { db, pool } from "./db";
 import { and, eq, sql, desc } from "drizzle-orm";
 import { processAppointmentBookingChat, generateAppointmentSummary } from "./anthropic";
 import { inventoryService } from "./services/inventory";
@@ -6674,15 +6674,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Lab result not found" });
       }
 
-      // Update the lab result using raw SQL
-      const result = await db.execute(sql`
-        UPDATE lab_results 
-        SET "Sample_Collected" = ${sampleCollected}
-        WHERE id = ${labResultId} AND organization_id = ${req.tenant!.id}
-        RETURNING *
-      `);
+      // Update the lab result using direct pool query
+      const result = await pool.query(
+        'UPDATE lab_results SET "Sample_Collected" = $1 WHERE id = $2 AND organization_id = $3 RETURNING *',
+        [sampleCollected, labResultId, req.tenant!.id]
+      );
 
-      const updatedLabResult = result.rows?.[0];
+      const updatedLabResult = result.rows[0];
 
       if (!updatedLabResult) {
         return res.status(404).json({ error: "Failed to update lab result" });
