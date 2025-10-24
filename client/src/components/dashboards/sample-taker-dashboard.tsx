@@ -147,6 +147,41 @@ export function SampleTakerDashboard() {
     staleTime: 30000,
   });
 
+  // Fetch collected paid lab invoices (where Sample_Collected = true)
+  const { data: collectedPaidLabInvoices = [] } = useQuery({
+    queryKey: ["/api/invoices/paid-lab-results", { sampleCollected: true }],
+    queryFn: async () => {
+      console.log('[SAMPLE TAKER] Fetching collected paid lab invoices...');
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'X-Tenant-Subdomain': getTenantSubdomain(),
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      console.log('[SAMPLE TAKER] Request headers:', headers);
+      
+      const response = await fetch('/api/invoices/paid-lab-results?sampleCollected=true', {
+        headers,
+        credentials: 'include'
+      });
+      
+      console.log('[SAMPLE TAKER] Response status:', response.status);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('[SAMPLE TAKER] Received collected paid lab invoices:', data);
+      return Array.isArray(data) ? data : [];
+    },
+    retry: false,
+    staleTime: 30000,
+  });
+
   // Helper function to get patient name
   const getPatientName = (patientId: number) => {
     const patient = Array.isArray(patients) 
@@ -403,6 +438,89 @@ export function SampleTakerDashboard() {
                             {invoice.Sample_Collected ? 'Yes' : 'No'}
                           </span>
                         </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Collected Paid Lab Results */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Collected Paid Lab Results</CardTitle>
+          <CardDescription>Paid lab invoices where samples have been collected (Sample_Collected = true)</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {collectedPaidLabInvoices.length === 0 ? (
+            <div className="text-center py-8 text-neutral-500 dark:text-neutral-400">
+              <FileText className="h-12 w-12 mx-auto mb-3 opacity-50" />
+              <p>No collected paid lab invoices found</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                    <th className="text-left p-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Invoice #</th>
+                    <th className="text-left p-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Patient</th>
+                    <th className="text-left p-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Test ID</th>
+                    <th className="text-left p-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Test Type</th>
+                    <th className="text-left p-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Amount</th>
+                    <th className="text-left p-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Status</th>
+                    <th className="text-left p-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Invoice Date</th>
+                    <th className="text-left p-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Service Date</th>
+                    <th className="text-left p-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Doctor</th>
+                    <th className="text-left p-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Priority</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {collectedPaidLabInvoices.map((invoice: any) => (
+                    <tr 
+                      key={invoice.invoiceId} 
+                      className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+                    >
+                      <td className="p-3 text-sm text-blue-600 dark:text-blue-400 font-medium">
+                        {invoice.invoiceNumber}
+                      </td>
+                      <td className="p-3 text-sm text-gray-900 dark:text-gray-100">
+                        {invoice.patientFirstName && invoice.patientLastName 
+                          ? `${invoice.patientFirstName} ${invoice.patientLastName}` 
+                          : 'Unknown Patient'}
+                      </td>
+                      <td className="p-3 text-sm text-gray-900 dark:text-gray-100 font-medium">
+                        {invoice.testId}
+                      </td>
+                      <td className="p-3 text-sm text-gray-600 dark:text-gray-400">
+                        {invoice.testType}
+                      </td>
+                      <td className="p-3 text-sm text-gray-900 dark:text-gray-100 font-medium">
+                        £{invoice.totalAmount}
+                      </td>
+                      <td className="p-3">
+                        <Badge variant="default" className="text-xs bg-green-600 dark:bg-green-700">
+                          {invoice.invoiceStatus}
+                        </Badge>
+                      </td>
+                      <td className="p-3 text-sm text-gray-600 dark:text-gray-400">
+                        {new Date(invoice.invoiceDate).toLocaleDateString()}
+                      </td>
+                      <td className="p-3 text-sm text-gray-600 dark:text-gray-400">
+                        {new Date(invoice.serviceDate).toLocaleDateString()}
+                      </td>
+                      <td className="p-3 text-sm text-gray-600 dark:text-gray-400">
+                        {invoice.doctorName || 'N/A'}
+                      </td>
+                      <td className="p-3">
+                        <Badge 
+                          variant={invoice.priority === 'urgent' || invoice.priority === 'stat' ? 'destructive' : 'default'}
+                          className="text-xs"
+                        >
+                          {invoice.priority?.toUpperCase() || 'ROUTINE'}
+                        </Badge>
                       </td>
                     </tr>
                   ))}

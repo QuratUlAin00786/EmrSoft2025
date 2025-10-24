@@ -6846,7 +6846,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const organizationId = req.tenant!.id;
-      console.log(`[PAID LAB INVOICES] Fetching for organization ${organizationId}`);
+      const sampleCollected = req.query.sampleCollected === 'true';
+      console.log(`[PAID LAB INVOICES] Fetching for organization ${organizationId}, sampleCollected filter: ${sampleCollected}`);
 
       // Fetch all invoices, lab results, and patients
       const invoices = await storage.getInvoicesByOrganization(organizationId);
@@ -6862,7 +6863,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`[PAID LAB INVOICES] Paid lab invoices found: ${paidInvoices.length}`);
 
       // Join with lab_results and patients
-      const paidLabInvoices = paidInvoices
+      let paidLabInvoices = paidInvoices
         .map(invoice => {
           // Match invoice.serviceId with lab_results.testId
           const labResult = labResults.find(lr => lr.testId === invoice.serviceId);
@@ -6900,6 +6901,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })
         // Only include invoices that have matching lab results
         .filter(item => item.testId !== null);
+
+      // Apply sampleCollected filter if requested
+      if (sampleCollected) {
+        paidLabInvoices = paidLabInvoices.filter(item => item.Sample_Collected === true);
+        console.log(`[PAID LAB INVOICES] After Sample_Collected filter: ${paidLabInvoices.length}`);
+      }
 
       console.log(`[PAID LAB INVOICES] Final results with matched lab data: ${paidLabInvoices.length}`);
       res.json(paidLabInvoices);
