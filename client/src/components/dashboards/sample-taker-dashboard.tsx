@@ -166,8 +166,7 @@ export function SampleTakerDashboard() {
   const toggleSampleMutation = useMutation({
     mutationFn: async (data: { id: number; sampleCollected: boolean }) => {
       return await apiRequest('PATCH', `/api/lab-results/${data.id}/toggle-sample-collected`, {
-        body: JSON.stringify({ sampleCollected: data.sampleCollected }),
-        headers: { 'Content-Type': 'application/json' }
+        sampleCollected: data.sampleCollected
       });
     },
     onSuccess: (_, variables) => {
