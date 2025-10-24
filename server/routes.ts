@@ -6789,6 +6789,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get paid lab result invoices with joined lab_results details
+  app.get("/api/invoices/paid-lab-results", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const organizationId = req.tenant!.id;
+
+      // Fetch all invoices and lab results
+      const invoices = await storage.getInvoicesByOrganization(organizationId);
+      const labResults = await storage.getLabResults(organizationId);
+
+      // Filter paid invoices with serviceType = "lab_result" and join with lab_results
+      const paidLabInvoices = invoices
+        .filter(invoice => invoice.status === 'paid' && invoice.serviceType === 'lab_result')
+        .map(invoice => {
+          // Match invoice.serviceId with lab_results.testId
+          const labResult = labResults.find(lr => lr.testId === invoice.serviceId);
+
+          return {
+            // Invoice fields
+            invoiceId: invoice.id,
+            invoiceNumber: invoice.invoiceNumber,
+            totalAmount: invoice.totalAmount,
+            invoiceStatus: invoice.status,
+            invoiceDate: invoice.invoiceDate,
+            serviceDate: invoice.serviceDate,
+            patientId: invoice.patientId,
+            serviceType: invoice.serviceType,
+            serviceId: invoice.serviceId,
+            // Lab result fields (if matched)
+            testId: labResult?.testId || null,
+            testType: labResult?.testType || null,
+            priority: labResult?.priority || null,
+            status: labResult?.status || null,
+            reportStatus: labResult?.reportStatus || null,
+            orderedAt: labResult?.orderedAt || null,
+            Sample_Collected: labResult?.Sample_Collected || false,
+            Lab_Request_Generated: labResult?.Lab_Request_Generated || false,
+            doctorName: labResult?.doctorName || null,
+            notes: labResult?.notes || null,
+          };
+        })
+        // Only include invoices that have matching lab results
+        .filter(item => item.testId !== null);
+
+      res.json(paidLabInvoices);
+    } catch (error) {
+      console.error("Error fetching paid lab invoices:", error);
+      res.status(500).json({ error: "Failed to fetch paid lab invoices" });
+    }
+  });
+
   // Generate PDF for lab result
   app.post("/api/lab-results/:id/generate-pdf", authMiddleware, requireNonPatientRole(), async (req: TenantRequest, res) => {
     try {
