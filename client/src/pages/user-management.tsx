@@ -1247,6 +1247,34 @@ export default function UserManagement() {
 
   // Role submission handlers
   const onRoleSubmit = (data: RoleFormData) => {
+    // Check if role already exists (only for new roles, not edits)
+    if (!editingRole) {
+      const existingRoleByName = roles.find((role: Role) => 
+        role.name.toLowerCase() === data.name.toLowerCase()
+      );
+      const existingRoleByDisplayName = roles.find((role: Role) => 
+        role.displayName.toLowerCase() === data.displayName.toLowerCase()
+      );
+      
+      if (existingRoleByName) {
+        toast({
+          title: "Role Already Exists",
+          description: "Role already exist. Please select another Role",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      if (existingRoleByDisplayName) {
+        toast({
+          title: "Role Already Exists",
+          description: "Role already exist. Please select another Role",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+    
     // Final normalization: ensure all permission values are proper booleans
     const normalizedModules: Record<string, any> = {};
     MODULE_KEYS.forEach((moduleKey) => {
