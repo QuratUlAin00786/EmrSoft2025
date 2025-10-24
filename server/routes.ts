@@ -6512,6 +6512,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         priority: labData.priority || "routine",
         orderedAt: new Date(),
         status: "pending",
+        reportStatus: "Lab Request Generated",
         notes: labData.notes || null
       }, 'orderedBy'));
 
