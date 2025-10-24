@@ -75,7 +75,7 @@ import {
 } from "lucide-react";
 
 // View Clinic Info Component
-function ViewClinicInfo({ user, onLoadHeader }: { user: any; onLoadHeader: (header: any, footer: any) => void }) {
+function ViewClinicInfo({ user, onLoadHeader, onLoadFooter }: { user: any; onLoadHeader: (header: any, footer: any) => void; onLoadFooter: (footer: any) => void }) {
   const { data: savedHeader, isLoading: headerLoading } = useQuery({
     queryKey: ['/api/clinic-headers'],
     enabled: !!user,
@@ -324,10 +324,19 @@ function ViewClinicInfo({ user, onLoadHeader }: { user: any; onLoadHeader: (head
       {/* Display Saved Footer */}
       {savedFooter && (
         <div className="border rounded-lg p-6 bg-white dark:bg-[hsl(var(--cura-midnight))]">
-          <h3 className="text-lg font-semibold mb-4 text-[hsl(var(--cura-bluewave))] flex items-center gap-2">
-            <Palette className="h-5 w-5" />
-            Saved Clinic Footer
-          </h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-[hsl(var(--cura-bluewave))] flex items-center gap-2">
+              <Palette className="h-5 w-5" />
+              Saved Clinic Footer
+            </h3>
+            <Button
+              onClick={() => onLoadFooter(savedFooter)}
+              className="bg-[hsl(var(--cura-bluewave))] hover:bg-[hsl(var(--cura-electric-lilac))] text-light"
+              data-testid="button-load-footer"
+            >
+              Load
+            </Button>
+          </div>
           <div 
             className="rounded-lg p-6 text-center"
             style={{ 
@@ -4609,6 +4618,50 @@ Coverage Details: [Insurance Coverage]`;
       toast({
         title: "Load Error",
         description: "Failed to load header into document",
+        variant: "destructive",
+        duration: 3000,
+      });
+    }
+  };
+
+  const loadFooterToDocument = (footer: any) => {
+    if (!textareaRef) {
+      toast({
+        title: "Editor Not Ready",
+        description: "Please wait for the editor to load",
+        duration: 2000,
+      });
+      return;
+    }
+
+    try {
+      const footerHTML = `
+        <div style="margin-top: 40px; padding: 20px; text-align: center; background-color: ${footer.backgroundColor}; color: ${footer.textColor};">
+          <p style="margin: 0; font-size: 14px; font-weight: 500;">${footer.footerText}</p>
+          ${footer.showSocial && (footer.facebook || footer.twitter || footer.linkedin) ? `
+            <div style="margin-top: 12px; display: flex; justify-content: center; gap: 16px;">
+              ${footer.facebook ? '<span style="font-size: 12px;">📘 Facebook</span>' : ''}
+              ${footer.twitter ? '<span style="font-size: 12px;">🐦 Twitter</span>' : ''}
+              ${footer.linkedin ? '<span style="font-size: 12px;">💼 LinkedIn</span>' : ''}
+            </div>
+          ` : ''}
+        </div>
+      `;
+
+      textareaRef.innerHTML = textareaRef.innerHTML + footerHTML;
+      setDocumentContent(textareaRef.innerHTML);
+      setShowViewClinicInfoDialog(false);
+
+      toast({
+        title: "✓ Footer Loaded",
+        description: "Clinic footer loaded to bottom of document",
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error("Error loading footer:", error);
+      toast({
+        title: "Load Error",
+        description: "Failed to load footer into document",
         variant: "destructive",
         duration: 3000,
       });
@@ -11245,7 +11298,7 @@ Registration No: [Number]`
             <DialogTitle className="text-2xl font-bold text-[hsl(var(--cura-bluewave))]">Saved Clinic Information</DialogTitle>
           </DialogHeader>
 
-          <ViewClinicInfo user={user} onLoadHeader={loadHeaderToDocument} />
+          <ViewClinicInfo user={user} onLoadHeader={loadHeaderToDocument} onLoadFooter={loadFooterToDocument} />
         </DialogContent>
       </Dialog>
 
