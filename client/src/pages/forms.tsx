@@ -5088,7 +5088,7 @@ Coverage Details: [Insurance Coverage]`;
                 }, 100);
               }}
             >
-              <SelectTrigger data-bluewave="true" className="w-90 h-6 p-3 text-xs">
+              <SelectTrigger data-bluewave="true" className="w-90 h-6 p-3 text-xs bg-white dark:bg-gray-800 text-black dark:text-white border-gray-300 dark:border-gray-600">
                 <SelectValue placeholder="H2" />
               </SelectTrigger>
               <SelectContent>
@@ -5125,7 +5125,7 @@ Coverage Details: [Insurance Coverage]`;
                 }
               }}
             >
-              <SelectTrigger data-bluewave="true" className="w-150 h-5 p-3 text-xs">
+              <SelectTrigger data-bluewave="true" className="w-150 h-5 p-3 text-xs bg-white dark:bg-gray-800 text-black dark:text-white border-gray-300 dark:border-gray-600">
                 <SelectValue placeholder="Verdana" />
               </SelectTrigger>
               <SelectContent>
@@ -5167,7 +5167,7 @@ Coverage Details: [Insurance Coverage]`;
                 }
               }}
             >
-              <SelectTrigger data-bluewave="true" className="w-90 p-3 h-5 text-xs">
+              <SelectTrigger data-bluewave="true" className="w-90 p-3 h-5 text-xs bg-white dark:bg-gray-800 text-black dark:text-white border-gray-300 dark:border-gray-600">
                 <SelectValue placeholder="12pt" />
               </SelectTrigger>
               <SelectContent>
