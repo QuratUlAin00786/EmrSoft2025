@@ -116,6 +116,7 @@ export function SampleTakerDashboard() {
   const { data: paidLabInvoices = [] } = useQuery({
     queryKey: ["/api/invoices/paid-lab-results"],
     queryFn: async () => {
+      console.log('[SAMPLE TAKER] Fetching paid lab invoices...');
       const token = localStorage.getItem('auth_token');
       const headers: Record<string, string> = {
         'X-Tenant-Subdomain': getTenantSubdomain(),
@@ -125,16 +126,21 @@ export function SampleTakerDashboard() {
         headers['Authorization'] = `Bearer ${token}`;
       }
       
+      console.log('[SAMPLE TAKER] Request headers:', headers);
+      
       const response = await fetch('/api/invoices/paid-lab-results', {
         headers,
         credentials: 'include'
       });
+      
+      console.log('[SAMPLE TAKER] Response status:', response.status);
       
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
       
       const data = await response.json();
+      console.log('[SAMPLE TAKER] Received paid lab invoices:', data);
       return Array.isArray(data) ? data : [];
     },
     retry: false,
