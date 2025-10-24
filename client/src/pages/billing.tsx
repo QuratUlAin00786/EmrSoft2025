@@ -843,7 +843,7 @@ function PricingManagementDashboard() {
       </TabsContent>
 
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-w-[95vw] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editingItem ? "Edit" : "Add"} {pricingTab === "doctors" ? "Doctor Fee" : pricingTab === "lab-tests" ? "Lab Test" : "Imaging Service"}
@@ -4922,7 +4922,7 @@ export default function BillingPage() {
 
       {/* Send Invoice Dialog */}
       <Dialog open={sendInvoiceDialog} onOpenChange={setSendInvoiceDialog}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-w-[95vw] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Send Invoice</DialogTitle>
           </DialogHeader>
@@ -5037,7 +5037,7 @@ export default function BillingPage() {
 
       {/* Success Modal */}
       <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-w-[95vw] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <div className="flex items-center justify-center mb-4">
               <div className="h-16 w-16 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center">
@@ -5061,7 +5061,7 @@ export default function BillingPage() {
 
       {/* Download Success Modal */}
       <Dialog open={showDownloadModal} onOpenChange={setShowDownloadModal}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-w-[95vw] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <div className="flex items-center justify-center mb-4">
               <div className="h-16 w-16 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
@@ -5085,7 +5085,7 @@ export default function BillingPage() {
 
       {/* Delete Confirmation Modal */}
       <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-w-[95vw] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Delete Invoice</DialogTitle>
           </DialogHeader>
@@ -5107,7 +5107,7 @@ export default function BillingPage() {
 
       {/* Send Invoice Success Modal */}
       <Dialog open={showSendSuccessModal} onOpenChange={setShowSendSuccessModal}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-w-[95vw] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <div className="flex items-center justify-center mb-4">
               <div className="h-16 w-16 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
@@ -5131,7 +5131,7 @@ export default function BillingPage() {
 
       {/* Delete Invoice Success Modal */}
       <Dialog open={showDeleteSuccessModal} onOpenChange={setShowDeleteSuccessModal}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-w-[95vw] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <div className="flex items-center justify-center mb-4">
               <div className="h-16 w-16 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center">
@@ -5155,7 +5155,7 @@ export default function BillingPage() {
 
       {/* Status Update Success Modal */}
       <Dialog open={showStatusUpdateModal} onOpenChange={setShowStatusUpdateModal}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-w-[95vw] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <div className="flex items-center justify-center mb-4">
               <div className="h-16 w-16 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center">
@@ -5207,7 +5207,7 @@ function PaymentModal({ invoice, open, onClose, onSuccess }: {
 }) {
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-w-[95vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Pay Invoice {invoice.patientId}</DialogTitle>
         </DialogHeader>
