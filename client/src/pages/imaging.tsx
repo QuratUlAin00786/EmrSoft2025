@@ -60,6 +60,8 @@ import {
   AlertCircle,
   ChevronsUpDown,
   Check as CheckIcon,
+  Grid,
+  List,
 } from "lucide-react";
 import { format } from "date-fns";
 import { isDoctorLike, formatRoleLabel } from "@/lib/role-utils";
@@ -338,6 +340,7 @@ export default function ImagingPage() {
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [showPaymentSuccessDialog, setShowPaymentSuccessDialog] = useState(false);
   const [showPDFViewerDialog, setShowPDFViewerDialog] = useState(false);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [pdfViewerUrl, setPdfViewerUrl] = useState<string | null>(null);
   const [paymentSuccessData, setPaymentSuccessData] = useState<{
     invoiceId: string;
@@ -1798,6 +1801,29 @@ export default function ImagingPage() {
                     <SelectItem value="Mammography">Mammography</SelectItem>
                   </SelectContent>
                 </Select>
+
+                {/* View Mode Toggle */}
+                <div className="flex gap-1 border rounded-lg p-1">
+                  <Button
+                    variant={viewMode === "grid" ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setViewMode("grid")}
+                    className="h-8 w-8 p-0"
+                    data-testid="button-view-grid"
+                  >
+                    <Grid className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === "list" ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setViewMode("list")}
+                    className="h-8 w-8 p-0"
+                    data-testid="button-view-list"
+                  >
+                    <List className="h-4 w-4" />
+                  </Button>
+                </div>
+
                 <div className="">
                   {user?.role !== "patient" && (
                     <Button
@@ -1815,7 +1841,191 @@ export default function ImagingPage() {
 
           {/* Imaging Studies List */}
           <div className="space-y-4">
-            {filteredStudies.map((study: any) => (
+            {viewMode === "list" ? (
+              /* List View - Table Format */
+              <Card>
+                <CardContent className="p-0">
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            Image ID
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            Patient Name
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            Study Type
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            Modality
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            Ordered
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            Priority
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            Status
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            Actions
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white dark:bg-card divide-y divide-gray-200 dark:divide-gray-700">
+                        {filteredStudies.map((study: any) => (
+                          <tr
+                            key={study.id}
+                            className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                            data-testid={`row-imaging-${study.id}`}
+                          >
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
+                              {study.imageId || study.id}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                              {study.patientName}
+                            </td>
+                            <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
+                              {study.studyType || study.bodyPart}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                              <div className="flex items-center gap-2">
+                                {getModalityIcon(study.modality)}
+                                {study.modality}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                              {study.orderedAt ? format(new Date(study.orderedAt), "MMM dd, yyyy") : "N/A"}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                              <Badge
+                                variant={study.priority === "stat" || study.priority === "urgent" ? "destructive" : "secondary"}
+                                className="text-xs"
+                              >
+                                {study.priority || "routine"}
+                              </Badge>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                              {selectedStudyId === study.id && editModes.status ? (
+                                <div className="flex items-center gap-2">
+                                  <Select
+                                    value={editingStatus}
+                                    onValueChange={setEditingStatus}
+                                  >
+                                    <SelectTrigger className="w-32 h-8">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="ordered">Ordered</SelectItem>
+                                      <SelectItem value="scheduled">Scheduled</SelectItem>
+                                      <SelectItem value="in_progress">In Progress</SelectItem>
+                                      <SelectItem value="completed">Completed</SelectItem>
+                                      <SelectItem value="final">Final</SelectItem>
+                                      <SelectItem value="preliminary">Preliminary</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleFieldSave("status")}
+                                    disabled={saving.status}
+                                    className="h-8 px-2 text-xs"
+                                    data-testid="button-save-status"
+                                  >
+                                    {saving.status ? "..." : "Save"}
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleFieldCancel("status")}
+                                    disabled={saving.status}
+                                    className="h-8 px-2 text-xs"
+                                    data-testid="button-cancel-status"
+                                  >
+                                    Cancel
+                                  </Button>
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-2">
+                                  <Badge className={getStatusColor(study.status)}>
+                                    {study.status}
+                                  </Badge>
+                                  {user?.role !== 'patient' && (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => {
+                                        setSelectedStudyId(study.id);
+                                        handleFieldEdit("status");
+                                      }}
+                                      className="h-6 w-6 p-0"
+                                      data-testid={`button-edit-status-${study.id}`}
+                                    >
+                                      <Edit className="h-3 w-3" />
+                                    </Button>
+                                  )}
+                                </div>
+                              )}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleViewStudy(study)}
+                                  className="h-8 w-8 p-0"
+                                  data-testid={`button-view-${study.id}`}
+                                >
+                                  <Eye className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                                </Button>
+                                {user?.role !== 'patient' && (
+                                  <>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleViewStudy(study)}
+                                      className="h-8 w-8 p-0"
+                                      data-testid={`button-edit-${study.id}`}
+                                    >
+                                      <Edit className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => {
+                                        setStudyToDelete(study);
+                                        setShowDeleteDialog(true);
+                                      }}
+                                      className="h-8 w-8 p-0"
+                                      data-testid={`button-delete-${study.id}`}
+                                    >
+                                      <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
+                                    </Button>
+                                  </>
+                                )}
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDownloadStudy(study.id)}
+                                  className="h-8 w-8 p-0"
+                                  data-testid={`button-download-${study.id}`}
+                                >
+                                  <Download className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                                </Button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              filteredStudies.map((study: any) => (
               <Card
                 key={study.id}
                 className="hover:shadow-md transition-shadow bg-white dark:bg-slate-800 border dark:border-slate-600"
@@ -2615,7 +2825,8 @@ export default function ImagingPage() {
                   </div>
                 </CardContent>
               </Card>
-            ))}
+              ))
+            )}
           </div>
 
           {filteredStudies.length === 0 && (
