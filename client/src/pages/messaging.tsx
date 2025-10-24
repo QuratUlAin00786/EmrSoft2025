@@ -46,6 +46,8 @@ import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { isDoctorLike, formatRoleLabel } from "@/lib/role-utils";
+import { Header } from "@/components/layout/header";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 interface Message {
   id: string;
@@ -1173,26 +1175,24 @@ export default function MessagingPage() {
 
 
   return (
-    <div className="p-6 max-w-7xl mx-auto w-full overflow-x-hidden">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
-        <div className="flex items-center space-x-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setLocation("/")}
-            className="flex items-center space-x-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            <span>Back</span>
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Messaging Center</h1>
-            <p className="text-gray-600 dark:text-gray-300 mt-1">Secure communication with patients and staff</p>
-          </div>
+    <div>
+      {/* Top row: Header + Theme Toggle */}
+      <div className="flex items-center justify-between mr-6 bg-white px-2 py-1 rounded">
+        <Header
+          title="Messaging Center"
+          subtitle="Secure communication with patients and staff"
+        />
+
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-neutral-600">Theme:</span>
+          <ThemeToggle />
         </div>
-        <div className="flex items-center gap-4">
-          {/* Healthcare Quick Actions */}
+      </div>
+
+      {/* Messaging Content */}
+      <div className="flex-1 overflow-auto p-6">
+        {/* Healthcare Quick Actions */}
+        <div className="flex items-center gap-4 mb-8">
           <div className="flex gap-2 mr-4">
             <Button 
               variant="outline" 
