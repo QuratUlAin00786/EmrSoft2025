@@ -17,7 +17,7 @@ import { messagingService } from "./messaging-service";
 import { isDoctorLike } from './utils/role-utils.js';
 // PayPal imports moved to dynamic imports to avoid initialization errors when credentials are missing
 import { gdprComplianceService } from "./services/gdpr-compliance";
-import { insertGdprConsentSchema, insertGdprDataRequestSchema, updateMedicalImageReportFieldSchema, insertAiInsightSchema, medicationsDatabase, patientDrugInteractions, insuranceVerifications, type Appointment, organizations, subscriptions, users, patients, symptomChecks, quickbooksConnections, insertClinicHeaderSchema, insertClinicFooterSchema, doctorsFee, invoices } from "../shared/schema";
+import { insertGdprConsentSchema, insertGdprDataRequestSchema, updateMedicalImageReportFieldSchema, insertAiInsightSchema, medicationsDatabase, patientDrugInteractions, insuranceVerifications, type Appointment, organizations, subscriptions, users, patients, symptomChecks, quickbooksConnections, insertClinicHeaderSchema, insertClinicFooterSchema, doctorsFee, invoices, labResults } from "../shared/schema";
 import * as schema from "../shared/schema";
 import { db } from "./db";
 import { and, eq, sql, desc } from "drizzle-orm";
@@ -6674,12 +6674,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Lab result not found" });
       }
 
-      // Update the lab result Sample_Collected field
-      const updateData: any = {
-        sampleCollected: sampleCollected
-      };
+      // Update the lab result using raw SQL
+      const result = await db.execute(sql`
+        UPDATE lab_results 
+        SET "Sample_Collected" = ${sampleCollected}
+        WHERE id = ${labResultId} AND organization_id = ${req.tenant!.id}
+        RETURNING *
+      `);
 
-      const updatedLabResult = await storage.updateLabResult(labResultId, req.tenant!.id, updateData);
+      const updatedLabResult = result.rows?.[0];
 
       if (!updatedLabResult) {
         return res.status(404).json({ error: "Failed to update lab result" });
