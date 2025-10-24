@@ -4338,7 +4338,7 @@ export default function PrescriptionsPage() {
 
       {/* Send to Pharmacy Dialog */}
       <Dialog open={showPharmacyDialog} onOpenChange={setShowPharmacyDialog}>
-        <DialogContent className="max-w-md max-w-[95vw] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Send Prescription to Halo Health Pharmacy</DialogTitle>
           </DialogHeader>

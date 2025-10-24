@@ -1270,7 +1270,7 @@ export default function MessagingPage() {
                 Video Call
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-xl max-w-[95vw] max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-xl">
               <DialogHeader>
                 <DialogTitle>Start Video Call</DialogTitle>
               </DialogHeader>
@@ -2085,7 +2085,7 @@ export default function MessagingPage() {
                   Create Campaign
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl max-w-[95vw] max-h-[90vh] overflow-y-auto">
+              <DialogContent className="max-w-2xl">
                 <DialogHeader>
                   <DialogTitle>Create New Campaign</DialogTitle>
                 </DialogHeader>

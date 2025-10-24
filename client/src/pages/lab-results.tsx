@@ -2701,7 +2701,7 @@ Report generated from Cura EMR System`;
 
       {/* Order Lab Test Dialog */}
       <Dialog open={showOrderDialog} onOpenChange={setShowOrderDialog}>
-        <DialogContent className="max-w-lg max-w-[95vw] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Order Lab Test</DialogTitle>
           </DialogHeader>
@@ -3449,7 +3449,7 @@ Report generated from Cura EMR System`;
       {/* Stripe Payment Dialog */}
       {stripeClientSecret && (
         <Dialog open={!!stripeClientSecret} onOpenChange={(open) => !open && setStripeClientSecret("")}>
-          <DialogContent className="max-w-md max-w-[95vw] max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Complete Payment</DialogTitle>
             </DialogHeader>
@@ -3488,7 +3488,7 @@ Report generated from Cura EMR System`;
 
       {/* Payment Confirmation Modal */}
       <Dialog open={showPaymentConfirmation} onOpenChange={setShowPaymentConfirmation}>
-        <DialogContent className="max-w-md max-w-[95vw] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-md">
           <div className="flex flex-col items-center text-center space-y-4 py-6">
             <div className="rounded-full bg-green-100 dark:bg-green-900 p-4">
               <CheckCircle className="h-16 w-16 text-green-600 dark:text-green-400" />
@@ -4127,7 +4127,7 @@ Report generated from Cura EMR System`;
 
       {/* Share with Patient Dialog */}
       <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
-        <DialogContent className="max-w-md max-w-[95vw] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Share Lab Results</DialogTitle>
           </DialogHeader>
@@ -5774,7 +5774,7 @@ Report generated from Cura EMR System`;
 
       {/* PDF Viewer Dialog */}
       <Dialog open={showPdfViewerDialog} onOpenChange={setShowPdfViewerDialog}>
-        <DialogContent className="max-w-6xl max-w-[95vw] h-[90vh] p-0 overflow-y-auto" aria-describedby="pdf-viewer-description">
+        <DialogContent className="max-w-6xl h-[90vh] p-0" aria-describedby="pdf-viewer-description">
           <DialogHeader className="p-6 pb-2">
             <DialogTitle>Lab Test Result</DialogTitle>
             <DialogDescription id="pdf-viewer-description" className="sr-only">
@@ -5796,7 +5796,7 @@ Report generated from Cura EMR System`;
 
       {/* Permission Error Dialog */}
       <Dialog open={showPermissionErrorDialog} onOpenChange={setShowPermissionErrorDialog}>
-        <DialogContent className="max-w-md max-w-[95vw] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="text-red-600 flex items-center gap-2">
               <AlertTriangle className="h-5 w-5" />
@@ -5819,7 +5819,7 @@ Report generated from Cura EMR System`;
 
       {/* Success Dialog */}
       <AlertDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
-        <AlertDialogContent className="max-w-md max-w-[95vw] max-h-[90vh] overflow-y-auto">
+        <AlertDialogContent className="max-w-md">
           <AlertDialogHeader>
             <div className="flex flex-col items-center gap-4 py-6">
               <div className="rounded-full bg-green-100 p-3">

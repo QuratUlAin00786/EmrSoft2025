@@ -2845,7 +2845,7 @@ export default function ImagingPage() {
 
       {/* Share Study Dialog */}
       <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
-        <DialogContent className="max-w-md max-w-[95vw] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Share Imaging Study</DialogTitle>
           </DialogHeader>
@@ -4548,7 +4548,7 @@ export default function ImagingPage() {
 
       {/* Image Viewer Dialog */}
       <Dialog open={showImageViewer} onOpenChange={setShowImageViewer}>
-        <DialogContent className="max-w-4xl max-w-[95vw] h-[90vh] flex flex-col overflow-y-auto">
+        <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>Medical Image Viewer</DialogTitle>
             {selectedImageSeries && (
@@ -4738,7 +4738,7 @@ export default function ImagingPage() {
         open={showFileNotAvailableDialog}
         onOpenChange={setShowFileNotAvailableDialog}
       >
-        <DialogContent className="max-w-md max-w-[95vw] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>File Not Available</DialogTitle>
           </DialogHeader>
@@ -4761,7 +4761,7 @@ export default function ImagingPage() {
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <DialogContent className="max-w-md max-w-[95vw] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Confirm Deletion</DialogTitle>
           </DialogHeader>
@@ -5197,7 +5197,7 @@ export default function ImagingPage() {
 
       {/* Summary Dialog */}
       <Dialog open={showSummaryDialog} onOpenChange={setShowSummaryDialog}>
-        <DialogContent className="max-w-2xl max-w-[95vw] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Summary</DialogTitle>
           </DialogHeader>
@@ -5394,7 +5394,7 @@ export default function ImagingPage() {
 
       {/* Edit Image Dialog */}
       <Dialog open={showEditImageDialog} onOpenChange={setShowEditImageDialog}>
-        <DialogContent className="max-w-md max-w-[95vw] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Replace Medical Image</DialogTitle>
           </DialogHeader>
@@ -5479,7 +5479,7 @@ export default function ImagingPage() {
 
       {/* Payment Success Dialog */}
       <Dialog open={showPaymentSuccessDialog} onOpenChange={setShowPaymentSuccessDialog}>
-        <DialogContent className="max-w-md max-w-[95vw] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <div className="h-12 w-12 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
@@ -5535,7 +5535,7 @@ export default function ImagingPage() {
           setPdfViewerUrl(null);
         }
       }}>
-        <DialogContent className="max-w-6xl max-w-[95vw] h-[90vh] flex flex-col overflow-y-auto">
+        <DialogContent className="max-w-6xl h-[90vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>Radiology Report</DialogTitle>
           </DialogHeader>
