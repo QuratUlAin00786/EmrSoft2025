@@ -2932,7 +2932,7 @@ Report generated from Cura EMR System`;
                   </Command>
                   {orderFormData.testType.length > 0 && (
                     <div className="p-2 border-t">
-                      <div className="flex flex-wrap gap-1 mb-2">
+                      <div className="flex flex-wrap gap-1 mb-2 max-h-32 overflow-y-auto">
                         {orderFormData.testType.map((testType) => (
                           <Badge
                             key={testType}
