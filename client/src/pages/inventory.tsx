@@ -655,8 +655,6 @@ export default function Inventory() {
                 <Truck className="h-4 w-4 mr-2" />
                 Goods Receipt
               </Button>
-            </div>
-          </div>
         </div>
 
         {/* Critical Alerts Banner */}
