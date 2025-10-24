@@ -1291,22 +1291,6 @@ export function DoctorList({
                         )}
                       </SelectContent>
                     </Select>
-                    {selectedPatient && patients?.find((p: any) => p.id.toString() === selectedPatient) && (
-                      <div className="mt-3 space-y-1">
-                        <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
-                          <span>📞</span>
-                          <span className="truncate">{patients.find((p: any) => p.id.toString() === selectedPatient)?.phone || 'N/A'}</span>
-                        </div>
-                        <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
-                          <span>📧</span>
-                          <span className="truncate">{patients.find((p: any) => p.id.toString() === selectedPatient)?.email || 'N/A'}</span>
-                        </div>
-                        <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
-                          <span>🏥</span>
-                          <span className="truncate">NHS: {patients.find((p: any) => p.id.toString() === selectedPatient)?.nhsNumber || 'N/A'}</span>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 ) : (
                   /* Non-Admin: Show patient information card */
