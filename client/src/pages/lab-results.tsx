@@ -223,6 +223,8 @@ import {
   ChevronRight,
   CheckCircle,
   Sparkles,
+  LayoutGrid,
+  List,
 } from "lucide-react";
 
 interface DatabaseLabResult {
@@ -620,6 +622,7 @@ export default function LabResultsPage() {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [viewMode, setViewMode] = useState<"list" | "grid">("list");
   const [showOrderDialog, setShowOrderDialog] = useState(false);
   const [showViewDialog, setShowViewDialog] = useState(false);
   const [showReviewDialog, setShowReviewDialog] = useState(false);
@@ -2034,6 +2037,31 @@ Report generated from Cura EMR System`;
                     <SelectItem value="cancelled">Cancelled</SelectItem>
                   </SelectContent>
                 </Select>
+
+                {/* View Mode Toggle */}
+                <div className="flex items-center gap-1 border border-gray-200 rounded-md p-1">
+                  <Button
+                    variant={viewMode === "list" ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setViewMode("list")}
+                    className={`h-8 px-3 ${viewMode === "list" ? "bg-medical-blue hover:bg-blue-700" : ""}`}
+                    data-testid="button-list-view"
+                  >
+                    <List className="h-4 w-4 mr-1" />
+                    List View
+                  </Button>
+                  <Button
+                    variant={viewMode === "grid" ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setViewMode("grid")}
+                    className={`h-8 px-3 ${viewMode === "grid" ? "bg-medical-blue hover:bg-blue-700" : ""}`}
+                    data-testid="button-grid-view"
+                  >
+                    <LayoutGrid className="h-4 w-4 mr-1" />
+                    Grid View
+                  </Button>
+                </div>
+
                 {/* Right Side: Buttons */}
                 {user?.role !== "patient" && (
                   <div className="flex gap-3 ml-auto">
@@ -2050,8 +2078,8 @@ Report generated from Cura EMR System`;
             </CardContent>
           </Card>
 
-          {/* Lab Results List */}
-          <div className="space-y-4">
+          {/* Lab Results List/Grid */}
+          <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" : "space-y-4"}>
             {filteredResults.length === 0 ? (
               <Card>
                 <CardContent className="p-12 text-center">
