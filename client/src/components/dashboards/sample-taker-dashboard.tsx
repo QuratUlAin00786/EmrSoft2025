@@ -148,7 +148,8 @@ export function SampleTakerDashboard() {
       return Array.isArray(data) ? data : [];
     },
     retry: false,
-    staleTime: 30000,
+    staleTime: 0,
+    refetchOnMount: true,
   });
 
   // Fetch collected paid lab invoices (where Sample_Collected = true)
