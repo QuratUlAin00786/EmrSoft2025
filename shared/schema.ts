@@ -980,6 +980,7 @@ export const labResults = pgTable("lab_results", {
   collectedAt: timestamp("collected_at"),
   completedAt: timestamp("completed_at"),
   status: varchar("status", { length: 20 }).notNull().default("pending"), // pending, processing, completed, cancelled
+  reportStatus: varchar("report_status", { length: 50 }),
   results: jsonb("results").$type<Array<{
     name: string;
     value: string;
