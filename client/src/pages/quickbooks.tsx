@@ -1215,7 +1215,6 @@ export default function QuickBooks() {
           )}
         </DialogContent>
       </Dialog>
-      </div>
     </div>
   );
 }
