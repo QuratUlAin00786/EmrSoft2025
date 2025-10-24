@@ -205,10 +205,9 @@ export function SampleTakerDashboard() {
     return patient ? `${patient.firstName} ${patient.lastName}` : 'Unknown Patient';
   };
 
-  // Filter lab requests based on status
+  // Filter lab requests based on status - show all lab results with invoices where status is NOT paid
   const pendingCollection = labRequests.filter((req: LabRequest) => 
-    req.Sample_Collected !== true && 
-    (!req.invoiceStatus || req.invoiceStatus !== 'paid')
+    req.invoiceStatus && req.invoiceStatus !== 'paid'
   );
   const collectedToday = labRequests.filter((req: LabRequest) => 
     req.Sample_Collected === true && 
