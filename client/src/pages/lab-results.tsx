@@ -223,6 +223,12 @@ import {
   ChevronRight,
   CheckCircle,
   Sparkles,
+  Grid,
+  List,
+  Phone,
+  MapPin,
+  Calendar,
+  Copy,
 } from "lucide-react";
 
 interface DatabaseLabResult {
@@ -714,6 +720,7 @@ export default function LabResultsPage() {
   const [patientSearchOpen, setPatientSearchOpen] = useState(false);
   const [testTypeOpen, setTestTypeOpen] = useState(false);
   const [editingStatusId, setEditingStatusId] = useState<number | null>(null);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   // Helper function to generate random value within reference range
   const generateValueFromRange = (referenceRange: string): string | null => {
@@ -2034,6 +2041,29 @@ Report generated from Cura EMR System`;
                     <SelectItem value="cancelled">Cancelled</SelectItem>
                   </SelectContent>
                 </Select>
+
+                {/* View Mode Toggle */}
+                <div className="flex gap-1 border rounded-lg p-1">
+                  <Button
+                    variant={viewMode === "grid" ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setViewMode("grid")}
+                    className="h-8 w-8 p-0"
+                    data-testid="button-view-grid"
+                  >
+                    <Grid className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === "list" ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setViewMode("list")}
+                    className="h-8 w-8 p-0"
+                    data-testid="button-view-list"
+                  >
+                    <List className="h-4 w-4" />
+                  </Button>
+                </div>
+
                 {/* Right Side: Buttons */}
                 {user?.role !== "patient" && (
                   <div className="flex gap-3 ml-auto">
@@ -2062,6 +2092,161 @@ Report generated from Cura EMR System`;
                   <p className="text-gray-600">
                     Try adjusting your search terms or filters
                   </p>
+                </CardContent>
+              </Card>
+            ) : viewMode === "list" ? (
+              /* List View - Table Format */
+              <Card>
+                <CardContent className="p-0">
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            Test ID
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            Patient Name
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            Test Type
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            Ordered
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            Priority
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            Status
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            Actions
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white dark:bg-card divide-y divide-gray-200 dark:divide-gray-700">
+                        {filteredResults.map((result) => (
+                          <tr
+                            key={result.id}
+                            className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                            data-testid={`row-lab-result-${result.id}`}
+                          >
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
+                              {result.testId}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                              {getPatientName(result.patientId)}
+                            </td>
+                            <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
+                              {result.testType}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                              {format(new Date(result.orderedAt), "MMM dd, yyyy")}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                              <Badge
+                                variant={result.priority === "urgent" ? "destructive" : "secondary"}
+                                className="text-xs"
+                              >
+                                {result.priority || "routine"}
+                              </Badge>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                              {editingStatusId === result.id ? (
+                                <Select
+                                  value={result.status}
+                                  onValueChange={(newStatus) => {
+                                    updateLabResultMutation.mutate({
+                                      id: result.id,
+                                      data: { status: newStatus },
+                                    });
+                                    setEditingStatusId(null);
+                                  }}
+                                >
+                                  <SelectTrigger className="w-32">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="pending">pending</SelectItem>
+                                    <SelectItem value="collected">collected</SelectItem>
+                                    <SelectItem value="processing">processing</SelectItem>
+                                    <SelectItem value="completed">completed</SelectItem>
+                                    <SelectItem value="cancelled">cancelled</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              ) : (
+                                <div className="flex items-center gap-2">
+                                  <Badge className={getStatusColor(result.status)}>
+                                    {result.status}
+                                  </Badge>
+                                  {user?.role !== 'patient' && (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => setEditingStatusId(result.id)}
+                                      className="h-6 w-6 p-0"
+                                      data-testid={`button-edit-status-${result.id}`}
+                                    >
+                                      <Edit className="h-3 w-3" />
+                                    </Button>
+                                  )}
+                                </div>
+                              )}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleViewResult(result)}
+                                  className="h-8 w-8 p-0"
+                                  data-testid={`button-view-${result.id}`}
+                                >
+                                  <Eye className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                                </Button>
+                                {user?.role !== 'patient' && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleViewResult(result)}
+                                    className="h-8 w-8 p-0"
+                                    data-testid={`button-edit-${result.id}`}
+                                  >
+                                    <Edit className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                                  </Button>
+                                )}
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleGeneratePrescription(result)}
+                                  className="h-8 w-8 p-0"
+                                  data-testid={`button-prescription-${result.id}`}
+                                >
+                                  <FileText className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={async () => {
+                                    setSelectedResult(result);
+                                    setShowPrescriptionDialog(true);
+                                    await new Promise((resolve) => setTimeout(resolve, 100));
+                                    await handleGeneratePDF();
+                                    setShowPrescriptionDialog(false);
+                                  }}
+                                  className="h-8 w-8 p-0"
+                                  data-testid={`button-download-${result.id}`}
+                                >
+                                  <Download className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                                </Button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </CardContent>
               </Card>
             ) : (
