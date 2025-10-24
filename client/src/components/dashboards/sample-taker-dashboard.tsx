@@ -476,7 +476,7 @@ export function SampleTakerDashboard() {
                         ) : (
                           <div className="flex items-center gap-2">
                             <Switch
-                              checked={false}
+                              checked={invoice.Sample_Collected || false}
                               onCheckedChange={() => {
                                 const labResultId = labRequests.find((lr: LabRequest) => lr.testId === invoice.testId)?.id;
                                 if (labResultId) {
