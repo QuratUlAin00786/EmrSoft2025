@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
@@ -55,6 +56,9 @@ export function SampleTakerDashboard() {
   const [selectedRequest, setSelectedRequest] = useState<LabRequest | null>(null);
   const [showCollectionDialog, setShowCollectionDialog] = useState(false);
   const [collectionNotes, setCollectionNotes] = useState("");
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [pendingToggle, setPendingToggle] = useState<{ id: number; currentValue: boolean } | null>(null);
+  const [isPaidInvoiceToggle, setIsPaidInvoiceToggle] = useState(false);
 
   // Fetch lab results with invoices (joined data)
   const { data: labRequests = [], isLoading, refetch } = useQuery({
@@ -247,13 +251,24 @@ export function SampleTakerDashboard() {
       queryClient.invalidateQueries({ queryKey: ["/api/lab-results/with-invoices"] });
       queryClient.invalidateQueries({ queryKey: ["/api/lab-results"] });
       queryClient.invalidateQueries({ queryKey: ["/api/invoices/paid-lab-results"] });
-      toast({
-        title: variables.sampleCollected ? "Sample Collected" : "Sample Uncollected",
-        description: variables.sampleCollected 
-          ? "Sample has been marked as collected." 
-          : "Sample has been marked as not collected.",
-        variant: "default"
-      });
+      
+      // Custom message for paid invoice toggles (irreversible action)
+      if (isPaidInvoiceToggle && variables.sampleCollected) {
+        toast({
+          title: "Sample Collected & Locked",
+          description: "Sample has been marked as collected. This action cannot be reversed for paid invoices.",
+          variant: "default"
+        });
+        setIsPaidInvoiceToggle(false);
+      } else {
+        toast({
+          title: variables.sampleCollected ? "Sample Collected" : "Sample Uncollected",
+          description: variables.sampleCollected 
+            ? "Sample has been marked as collected." 
+            : "Sample has been marked as not collected.",
+          variant: "default"
+        });
+      }
       refetch();
     },
     onError: (error: any) => {
@@ -262,6 +277,7 @@ export function SampleTakerDashboard() {
         description: error.message || "Failed to update sample collection status.",
         variant: "destructive"
       });
+      setIsPaidInvoiceToggle(false); // Reset flag on error
     }
   });
 
@@ -284,6 +300,36 @@ export function SampleTakerDashboard() {
       id,
       sampleCollected: !currentValue
     });
+  };
+
+  // Separate handler for paid lab invoices with confirmation dialog
+  const handlePaidInvoiceToggle = (id: number, currentValue: boolean) => {
+    // If already collected, don't allow toggling (uneditable once collected)
+    if (currentValue) {
+      return;
+    }
+    
+    // Show confirmation dialog before marking as collected
+    setPendingToggle({ id, currentValue });
+    setIsPaidInvoiceToggle(true);
+    setShowConfirmDialog(true);
+  };
+
+  const confirmToggleSample = () => {
+    if (pendingToggle) {
+      toggleSampleMutation.mutate({
+        id: pendingToggle.id,
+        sampleCollected: !pendingToggle.currentValue
+      });
+    }
+    setShowConfirmDialog(false);
+    setPendingToggle(null);
+  };
+
+  const cancelToggleSample = () => {
+    setShowConfirmDialog(false);
+    setPendingToggle(null);
+    setIsPaidInvoiceToggle(false);
   };
 
   const sampleTakerCards = [
@@ -423,21 +469,27 @@ export function SampleTakerDashboard() {
                         {new Date(invoice.serviceDate).toLocaleDateString()}
                       </td>
                       <td className="p-3">
-                        <div className="flex items-center gap-2">
-                          <Switch
-                            checked={invoice.Sample_Collected || false}
-                            onCheckedChange={() => {
-                              const labResultId = labRequests.find((lr: LabRequest) => lr.testId === invoice.testId)?.id;
-                              if (labResultId) {
-                                handleToggleSampleCollected(labResultId, invoice.Sample_Collected || false);
-                              }
-                            }}
-                            data-testid={`toggle-sample-${invoice.testId}`}
-                          />
-                          <span className="text-xs text-gray-600 dark:text-gray-400">
-                            {invoice.Sample_Collected ? 'Yes' : 'No'}
-                          </span>
-                        </div>
+                        {invoice.Sample_Collected ? (
+                          <Badge variant="default" className="text-xs bg-green-600 dark:bg-green-700">
+                            Collected
+                          </Badge>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <Switch
+                              checked={false}
+                              onCheckedChange={() => {
+                                const labResultId = labRequests.find((lr: LabRequest) => lr.testId === invoice.testId)?.id;
+                                if (labResultId) {
+                                  handlePaidInvoiceToggle(labResultId, invoice.Sample_Collected || false);
+                                }
+                              }}
+                              data-testid={`toggle-sample-${invoice.testId}`}
+                            />
+                            <span className="text-xs text-gray-600 dark:text-gray-400">
+                              No
+                            </span>
+                          </div>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -931,6 +983,22 @@ export function SampleTakerDashboard() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Confirmation Dialog for Sample Collection */}
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Sample Collection Confirmation</AlertDialogTitle>
+            <AlertDialogDescription>
+              Have you taken the sample?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={cancelToggleSample}>No</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmToggleSample}>Yes</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
