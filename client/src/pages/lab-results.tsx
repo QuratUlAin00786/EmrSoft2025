@@ -3130,15 +3130,14 @@ Report generated from Cura EMR System`;
             <div>
               <Label className="text-sm font-medium mb-2 block">Services & Procedures</Label>
               <div className="border rounded-lg">
-                <div className="grid grid-cols-12 gap-2 bg-gray-100 dark:bg-gray-800 p-2 font-medium text-sm">
+                <div className="grid grid-cols-10 gap-2 bg-gray-100 dark:bg-gray-800 p-2 font-medium text-sm">
                   <div className="col-span-2">Code</div>
                   <div className="col-span-5">Description</div>
-                  <div className="col-span-2">Qty</div>
                   <div className="col-span-2">Amount</div>
                   <div className="col-span-1"></div>
                 </div>
                 {invoiceData.items.map((item: any, index: number) => (
-                  <div key={index} className="grid grid-cols-12 gap-2 p-2 border-t items-center">
+                  <div key={index} className="grid grid-cols-10 gap-2 p-2 border-t items-center">
                     <Input
                       value={item.code}
                       onChange={(e) => {
@@ -3161,25 +3160,12 @@ Report generated from Cura EMR System`;
                     />
                     <Input
                       type="number"
-                      value={item.quantity}
-                      onChange={(e) => {
-                        const newItems = [...invoiceData.items];
-                        newItems[index].quantity = parseInt(e.target.value) || 1;
-                        newItems[index].total = newItems[index].quantity * newItems[index].unitPrice;
-                        const total = newItems.reduce((sum, it) => sum + it.total, 0);
-                        setInvoiceData({ ...invoiceData, items: newItems, totalAmount: total });
-                      }}
-                      placeholder="Qty"
-                      className="col-span-2 h-9 text-sm"
-                    />
-                    <Input
-                      type="number"
                       step="0.01"
                       value={item.unitPrice}
                       onChange={(e) => {
                         const newItems = [...invoiceData.items];
                         newItems[index].unitPrice = parseFloat(e.target.value) || 0;
-                        newItems[index].total = newItems[index].quantity * newItems[index].unitPrice;
+                        newItems[index].total = newItems[index].unitPrice;
                         const total = newItems.reduce((sum, it) => sum + it.total, 0);
                         setInvoiceData({ ...invoiceData, items: newItems, totalAmount: total });
                       }}
@@ -3374,7 +3360,7 @@ Report generated from Cura EMR System`;
                   <div key={index} className="flex justify-between items-center py-2 border-b last:border-0">
                     <div>
                       <p className="font-medium">{item.description}</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Code: {item.code} | Qty: {item.quantity}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Code: {item.code}</p>
                     </div>
                     <p className="font-semibold">${item.total.toFixed(2)}</p>
                   </div>
