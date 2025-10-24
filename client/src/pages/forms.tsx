@@ -39,8 +39,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { Toaster } from "@/components/ui/toaster";
 import { isDoctorLike } from "@/lib/role-utils";
+import { Header } from "@/components/layout/header";
 import {
-  ArrowLeft,
   Bold,
   Italic,
   Underline,

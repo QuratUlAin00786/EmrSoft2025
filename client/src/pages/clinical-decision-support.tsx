@@ -38,7 +38,6 @@ import {
   Filter,
   Download,
   Settings,
-  ArrowLeft,
   Plus,
   Trash2,
   Save,
@@ -54,6 +53,7 @@ import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useAiInsightsEvents } from "@/hooks/use-ai-insights-events";
 import { useAuth } from "@/hooks/use-auth";
+import { Header } from "@/components/layout/header";
 
 // Use the actual database schema for form validation, excluding server-managed fields
 const createInsightSchema = insertAiInsightSchema.omit({
@@ -779,24 +779,11 @@ export default function ClinicalDecisionSupport() {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setLocation("/")}
-            className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Clinical Decision Support</h1>
-            <p className="text-gray-600 dark:text-gray-300 mt-1">AI-powered insights and recommendations</p>
-          </div>
-        </div>
-        <div className="flex gap-3">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <Header title="Clinical Decision Support" subtitle="AI-powered insights and recommendations" />
+      
+      <div className="container mx-auto px-4 lg:px-6 py-6 max-w-7xl">
+        <div className="flex flex-wrap justify-end gap-3 mb-6">
           <Dialog open={createInsightOpen} onOpenChange={setCreateInsightOpen}>
             <DialogTrigger asChild>
               <Button data-testid="button-create-insight">
@@ -1146,15 +1133,14 @@ export default function ClinicalDecisionSupport() {
             Export Report
           </Button>
         </div>
-      </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="insights">Clinical Insights</TabsTrigger>
-          <TabsTrigger value="risk">Risk Assessment</TabsTrigger>
-          <TabsTrigger value="interactions">Drug Interactions</TabsTrigger>
-          <TabsTrigger value="guidelines">Clinical Guidelines</TabsTrigger>
-        </TabsList>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
+            <TabsTrigger value="insights">Clinical Insights</TabsTrigger>
+            <TabsTrigger value="risk">Risk Assessment</TabsTrigger>
+            <TabsTrigger value="interactions">Drug Interactions</TabsTrigger>
+            <TabsTrigger value="guidelines">Clinical Guidelines</TabsTrigger>
+          </TabsList>
 
         <TabsContent value="insights" className="space-y-4">
           <div className="flex gap-4 items-center">
@@ -1856,6 +1842,7 @@ Generated on ${new Date().toLocaleDateString()}
           )}
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 }

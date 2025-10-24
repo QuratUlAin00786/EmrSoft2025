@@ -77,6 +77,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { Header } from "@/components/layout/header";
 import AddItemDialog from "@/components/inventory/add-item-dialog";
 import StockAdjustmentDialog from "@/components/inventory/stock-adjustment-dialog";
 import PurchaseOrderDialog from "../components/inventory/purchase-order-dialog";
@@ -635,20 +636,10 @@ export default function Inventory() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                Comprehensive Inventory Management
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-2">
-                Complete healthcare inventory system with Item Master, Stock
-                Tracking, Purchase Orders, Goods Receipt & Alerts
-              </p>
-            </div>
-            <div className="flex space-x-3">
+      <Header title="Comprehensive Inventory Management" subtitle="Complete healthcare inventory system with Item Master, Stock Tracking, Purchase Orders, Goods Receipt & Alerts" />
+      
+      <div className="container mx-auto px-4 lg:px-6 py-6 max-w-7xl">
+        <div className="flex flex-wrap justify-end gap-3 mb-6">
               <Button onClick={() => setShowAddDialog(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Item

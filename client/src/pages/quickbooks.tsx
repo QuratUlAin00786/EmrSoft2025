@@ -13,6 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { Header } from "@/components/layout/header";
 import { 
   Building2,
   RefreshCw, 
@@ -839,13 +840,11 @@ export default function QuickBooks() {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">QuickBooks Integration</h1>
-          <p className="text-gray-600">Manage your accounting synchronization and financial data integration</p>
-        </div>
-        <div className="flex items-center space-x-2">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <Header title="QuickBooks Integration" subtitle="Manage your accounting synchronization and financial data integration" />
+      
+      <div className="container mx-auto px-4 lg:px-6 py-6 max-w-7xl">
+        <div className="flex flex-wrap items-center justify-end gap-2 mb-6">
           <Button
             variant="outline"
             size="sm"
@@ -1216,6 +1215,7 @@ export default function QuickBooks() {
           )}
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 }

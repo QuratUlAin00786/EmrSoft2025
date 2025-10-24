@@ -83,7 +83,6 @@ import {
   Calculator,
   Banknote,
   ChevronDown,
-  ArrowLeft,
   Check,
   ChevronsUpDown,
   Plus,
@@ -93,6 +92,7 @@ import {
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
+import { Header } from "@/components/layout/header";
 
 interface RevenueData {
   month: string;
@@ -1057,21 +1057,12 @@ export default function FinancialIntelligence() {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Back Button */}
-      <div className="mb-6">
-        <Button
-          variant="ghost"
-          onClick={() => setLocation("/")}
-          className="flex items-center gap-2"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back
-        </Button>
-      </div>
-
-      {/* Scroll Down Button */}
-      {showScrollButton && (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <Header title="Financial Intelligence" subtitle="Advanced analytics and financial insights" />
+      
+      <div className="container mx-auto px-4 lg:px-6 py-6 max-w-7xl">
+        {/* Scroll Down Button */}
+        {showScrollButton && (
         <Button
           onClick={handleScrollDown}
           className="fixed bottom-6 right-6 z-50 rounded-full w-12 h-12 p-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-blue-600 hover:bg-blue-700"
@@ -3869,6 +3860,7 @@ export default function FinancialIntelligence() {
           </div>
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 }

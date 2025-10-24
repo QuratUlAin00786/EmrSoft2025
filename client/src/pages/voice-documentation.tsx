@@ -3915,7 +3915,9 @@ export default function VoiceDocumentation() {
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
     </div>
+  </div>
   );
 }
