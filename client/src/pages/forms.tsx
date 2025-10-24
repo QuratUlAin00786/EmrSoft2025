@@ -454,6 +454,7 @@ export default function Forms() {
   const [clinicLogoFile, setClinicLogoFile] = useState<File | null>(null);
   const [clinicLogoPreview, setClinicLogoPreview] = useState<string>("");
   const [selectedLogoPosition, setSelectedLogoPosition] = useState<"left" | "right" | "center">("center");
+  const [activeClinicTab, setActiveClinicTab] = useState<string>("header");
   const [clinicHeaderInfo, setClinicHeaderInfo] = useState({
     clinicName: "",
     address: "",
@@ -10583,7 +10584,7 @@ Registration No: [Number]`
             <DialogTitle className="text-2xl font-bold text-[hsl(var(--cura-bluewave))]">Create Clinic Information</DialogTitle>
           </DialogHeader>
           
-          <Tabs defaultValue="header" className="w-full">
+          <Tabs defaultValue="header" className="w-full" value={activeClinicTab} onValueChange={setActiveClinicTab}>
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="header" data-testid="tab-header">Header Design & Information</TabsTrigger>
               <TabsTrigger value="footer" data-testid="tab-footer">Footer Design & Information</TabsTrigger>
@@ -10618,6 +10619,20 @@ Registration No: [Number]`
                       data-testid="input-clinic-logo"
                     />
                   </div>
+                  
+                  {/* Logo Preview Section */}
+                  <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800 min-h-[120px] flex items-center justify-center">
+                    {clinicLogoPreview ? (
+                      <img 
+                        src={clinicLogoPreview} 
+                        alt="Logo Preview" 
+                        className="max-h-[100px] object-contain"
+                      />
+                    ) : (
+                      <p className="text-gray-400 dark:text-gray-500 text-sm italic">logo will preview here</p>
+                    )}
+                  </div>
+                  
                   {clinicLogoPreview && (
                     <div className="mt-4 space-y-4">
                       <div>
@@ -11084,135 +11099,140 @@ Registration No: [Number]`
                 setClinicLogoFile(null);
                 setClinicLogoPreview("");
                 setSelectedLogoPosition("center");
+                setActiveClinicTab("header");
               }}
               data-testid="button-cancel-clinic-info"
             >
               Cancel
             </Button>
             <div className="flex gap-3">
-              <Button
-                onClick={async () => {
-                  if (!clinicHeaderInfo.clinicName.trim()) {
-                    toast({
-                      title: "⚠️ Validation Error",
-                      description: "Clinic name is required",
-                      variant: "destructive",
-                      duration: 3000,
-                    });
-                    return;
-                  }
-
-                  try {
-                    const headerData = {
-                      organizationId: user?.organizationId || 0,
-                      logoBase64: clinicLogoPreview || null,
-                      logoPosition: selectedLogoPosition,
-                      clinicName: clinicHeaderInfo.clinicName,
-                      address: clinicHeaderInfo.address || null,
-                      phone: clinicHeaderInfo.phone || null,
-                      email: clinicHeaderInfo.email || null,
-                      website: clinicHeaderInfo.website || null,
-                      clinicNameFontSize: clinicHeaderInfo.clinicNameFontSize,
-                      fontSize: clinicHeaderInfo.fontSize,
-                      fontFamily: clinicHeaderInfo.fontFamily,
-                      fontWeight: clinicHeaderInfo.fontWeight,
-                      fontStyle: clinicHeaderInfo.fontStyle,
-                      textDecoration: clinicHeaderInfo.textDecoration,
-                      isActive: true,
-                    };
-
-                    const response = await fetch('/api/clinic-headers', {
-                      method: 'POST',
-                      headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-                        'X-Tenant-Subdomain': localStorage.getItem("user_subdomain") || '',
-                      },
-                      body: JSON.stringify(headerData),
-                    });
-
-                    if (!response.ok) {
-                      throw new Error('Failed to save header');
+              {activeClinicTab === "header" && (
+                <Button
+                  onClick={async () => {
+                    if (!clinicHeaderInfo.clinicName.trim()) {
+                      toast({
+                        title: "⚠️ Validation Error",
+                        description: "Clinic name is required",
+                        variant: "destructive",
+                        duration: 3000,
+                      });
+                      return;
                     }
 
-                    toast({
-                      title: "✓ Header Saved Successfully",
-                      description: "Clinic header information saved to database",
-                      duration: 3000,
-                    });
-                  } catch (error) {
-                    toast({
-                      title: "⚠️ Save Failed",
-                      description: "Failed to save header information",
-                      variant: "destructive",
-                      duration: 3000,
-                    });
-                  }
-                }}
-                className="bg-green-600 hover:bg-green-700 text-white"
-                data-testid="button-save-header"
-              >
-                Save Header
-              </Button>
-              <Button
-                onClick={async () => {
-                  if (!clinicFooterInfo.footerText.trim()) {
-                    toast({
-                      title: "⚠️ Validation Error",
-                      description: "Footer text is required",
-                      variant: "destructive",
-                      duration: 3000,
-                    });
-                    return;
-                  }
+                    try {
+                      const headerData = {
+                        organizationId: user?.organizationId || 0,
+                        logoBase64: clinicLogoPreview || null,
+                        logoPosition: selectedLogoPosition,
+                        clinicName: clinicHeaderInfo.clinicName,
+                        address: clinicHeaderInfo.address || null,
+                        phone: clinicHeaderInfo.phone || null,
+                        email: clinicHeaderInfo.email || null,
+                        website: clinicHeaderInfo.website || null,
+                        clinicNameFontSize: clinicHeaderInfo.clinicNameFontSize,
+                        fontSize: clinicHeaderInfo.fontSize,
+                        fontFamily: clinicHeaderInfo.fontFamily,
+                        fontWeight: clinicHeaderInfo.fontWeight,
+                        fontStyle: clinicHeaderInfo.fontStyle,
+                        textDecoration: clinicHeaderInfo.textDecoration,
+                        isActive: true,
+                      };
 
-                  try {
-                    const footerData = {
-                      organizationId: user?.organizationId || 0,
-                      footerText: clinicFooterInfo.footerText,
-                      backgroundColor: clinicFooterInfo.backgroundColor,
-                      textColor: clinicFooterInfo.textColor,
-                      showSocial: clinicFooterInfo.showSocial,
-                      facebook: clinicFooterInfo.facebook || null,
-                      twitter: clinicFooterInfo.twitter || null,
-                      linkedin: clinicFooterInfo.linkedin || null,
-                      isActive: true,
-                    };
+                      const response = await fetch('/api/clinic-headers', {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+                          'X-Tenant-Subdomain': localStorage.getItem("user_subdomain") || '',
+                        },
+                        body: JSON.stringify(headerData),
+                      });
 
-                    const response = await fetch('/api/clinic-footers', {
-                      method: 'POST',
-                      headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-                        'X-Tenant-Subdomain': localStorage.getItem("user_subdomain") || '',
-                      },
-                      body: JSON.stringify(footerData),
-                    });
+                      if (!response.ok) {
+                        throw new Error('Failed to save header');
+                      }
 
-                    if (!response.ok) {
-                      throw new Error('Failed to save footer');
+                      toast({
+                        title: "✓ Header Saved Successfully",
+                        description: "Clinic header information saved to database",
+                        duration: 3000,
+                      });
+                    } catch (error) {
+                      toast({
+                        title: "⚠️ Save Failed",
+                        description: "Failed to save header information",
+                        variant: "destructive",
+                        duration: 3000,
+                      });
+                    }
+                  }}
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                  data-testid="button-save-header"
+                >
+                  Save Header
+                </Button>
+              )}
+              {activeClinicTab === "footer" && (
+                <Button
+                  onClick={async () => {
+                    if (!clinicFooterInfo.footerText.trim()) {
+                      toast({
+                        title: "⚠️ Validation Error",
+                        description: "Footer text is required",
+                        variant: "destructive",
+                        duration: 3000,
+                      });
+                      return;
                     }
 
-                    toast({
-                      title: "✓ Footer Saved Successfully",
-                      description: "Clinic footer information saved to database",
-                      duration: 3000,
-                    });
-                  } catch (error) {
-                    toast({
-                      title: "⚠️ Save Failed",
-                      description: "Failed to save footer information",
-                      variant: "destructive",
-                      duration: 3000,
-                    });
-                  }
-                }}
-                className="bg-[hsl(var(--cura-bluewave))] hover:bg-[hsl(var(--cura-bluewave))/90] text-grey hover:text-lightgrey"
+                    try {
+                      const footerData = {
+                        organizationId: user?.organizationId || 0,
+                        footerText: clinicFooterInfo.footerText,
+                        backgroundColor: clinicFooterInfo.backgroundColor,
+                        textColor: clinicFooterInfo.textColor,
+                        showSocial: clinicFooterInfo.showSocial,
+                        facebook: clinicFooterInfo.facebook || null,
+                        twitter: clinicFooterInfo.twitter || null,
+                        linkedin: clinicFooterInfo.linkedin || null,
+                        isActive: true,
+                      };
 
-                data-testid="button-save-footer"
-              >
-                Save Footer
-              </Button>
+                      const response = await fetch('/api/clinic-footers', {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+                          'X-Tenant-Subdomain': localStorage.getItem("user_subdomain") || '',
+                        },
+                        body: JSON.stringify(footerData),
+                      });
+
+                      if (!response.ok) {
+                        throw new Error('Failed to save footer');
+                      }
+
+                      toast({
+                        title: "✓ Footer Saved Successfully",
+                        description: "Clinic footer information saved to database",
+                        duration: 3000,
+                      });
+                    } catch (error) {
+                      toast({
+                        title: "⚠️ Save Failed",
+                        description: "Failed to save footer information",
+                        variant: "destructive",
+                        duration: 3000,
+                      });
+                    }
+                  }}
+                  className="bg-[hsl(var(--cura-bluewave))] hover:bg-[hsl(var(--cura-bluewave))/90] text-grey hover:text-lightgrey"
+
+                  data-testid="button-save-footer"
+                >
+                  Save Footer
+                </Button>
+              )}
             </div>
           </div>
         </DialogContent>
