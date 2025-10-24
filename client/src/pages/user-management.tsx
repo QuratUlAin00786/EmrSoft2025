@@ -4013,7 +4013,7 @@ export default function UserManagement() {
 
       {/* Success Modal */}
       <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-lg">
           <div className="p-6">
             {/* Success Icon */}
             <div className="flex justify-center mb-6">
@@ -4042,7 +4042,7 @@ export default function UserManagement() {
               <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
                 Completed Operations
               </h4>
-              <div className="space-y-2">
+              <div className="space-y-2 max-h-60 overflow-y-auto">
                 {successMessage.split('\n').slice(2).map((step, index) => {
                   if (!step.trim()) return null;
                   return (
