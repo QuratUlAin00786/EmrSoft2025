@@ -466,7 +466,7 @@ export function SampleTakerDashboard() {
         <CardContent>
           {/* Filters Section */}
           <div className="mb-6 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-4 gap-4">
               {/* Status Filter */}
               <div className="space-y-2">
                 <Label htmlFor="filter-status" className="text-sm font-medium">Status</Label>
@@ -498,6 +498,19 @@ export function SampleTakerDashboard() {
                 </Select>
               </div>
 
+              {/* Invoice Date Filter */}
+              <div className="space-y-2">
+                <Label htmlFor="filter-invoice-date" className="text-sm font-medium">Invoice Date</Label>
+                <Input
+                  id="filter-invoice-date"
+                  type="date"
+                  value={filterInvoiceDate}
+                  onChange={(e) => setFilterInvoiceDate(e.target.value)}
+                  data-testid="filter-invoice-date"
+                  className="w-full"
+                />
+              </div>
+
               {/* Unified Search - Invoice #, Patient, Test ID */}
               <div className="space-y-2">
                 <Label htmlFor="filter-search" className="text-sm font-medium">Search (Invoice # / Patient / Test ID)</Label>
@@ -508,19 +521,6 @@ export function SampleTakerDashboard() {
                   value={filterSearch}
                   onChange={(e) => setFilterSearch(e.target.value)}
                   data-testid="filter-search"
-                  className="w-full"
-                />
-              </div>
-
-              {/* Invoice Date Filter */}
-              <div className="space-y-2">
-                <Label htmlFor="filter-invoice-date" className="text-sm font-medium">Invoice Date</Label>
-                <Input
-                  id="filter-invoice-date"
-                  type="date"
-                  value={filterInvoiceDate}
-                  onChange={(e) => setFilterInvoiceDate(e.target.value)}
-                  data-testid="filter-invoice-date"
                   className="w-full"
                 />
               </div>
