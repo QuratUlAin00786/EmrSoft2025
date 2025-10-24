@@ -229,6 +229,7 @@ import {
   MapPin,
   Calendar,
   Copy,
+  Receipt,
 } from "lucide-react";
 
 interface DatabaseLabResult {
@@ -1154,6 +1155,51 @@ export default function LabResultsPage() {
     setSelectedResult(result);
     setShowViewDialog(true);
     console.log("showViewDialog set to true");
+  };
+
+  const handleCreateInvoiceForTest = (result: DatabaseLabResult) => {
+    // Parse test types from the result
+    const testTypes = result.testType.split(' | ');
+    
+    // Prepare invoice items from test types
+    const invoiceItems = testTypes.map((testType: string, index: number) => {
+      // Find matching price from lab_test_pricing table where test_name equals description
+      const pricingData = labTestPricing.find((item: any) => item.testName === testType);
+      const unitPrice = pricingData?.basePrice || 50.00; // Use base_price or default to 50.00
+      
+      return {
+        code: `LAB-${(index + 1).toString().padStart(3, '0')}`,
+        description: testType,
+        quantity: 1,
+        unitPrice: unitPrice,
+        total: unitPrice * 1
+      };
+    });
+    
+    const totalAmount = invoiceItems.reduce((sum, item) => sum + item.total, 0);
+    
+    // Set pending order data with the existing test
+    setPendingOrderData({
+      patientId: result.patientId,
+      patientName: getPatientName(result.patientId),
+      testTypes: testTypes,
+      testId: result.testId
+    });
+    
+    // Populate invoice form with test details
+    setInvoiceData({
+      serviceDate: new Date().toISOString().split('T')[0],
+      invoiceDate: new Date().toISOString().split('T')[0],
+      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      items: invoiceItems,
+      totalAmount: totalAmount,
+      paymentMethod: '',
+      insuranceProvider: '',
+      notes: ''
+    });
+    
+    // Open the invoice dialog
+    setShowInvoiceDialog(true);
   };
 
   const handleDownloadResult = async (resultId: number | string) => {
@@ -2242,6 +2288,17 @@ Report generated from Cura EMR System`;
                                 >
                                   <Download className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                                 </Button>
+                                {user?.role === 'admin' && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleCreateInvoiceForTest(result)}
+                                    className="h-8 w-8 p-0"
+                                    data-testid={`button-create-invoice-${result.id}`}
+                                  >
+                                    <Receipt className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                                  </Button>
+                                )}
                               </div>
                             </td>
                           </tr>
