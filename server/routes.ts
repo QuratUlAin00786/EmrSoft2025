@@ -6659,19 +6659,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Fetch lab results and invoices
       const labResults = await storage.getLabResults(organizationId);
-      const invoices = await storage.getInvoicesByOrganization(organizationId);
+      const allInvoices = await storage.getInvoicesByOrganization(organizationId);
 
-      // Join lab results with invoices using polymorphic association
+      // Filter invoices to only include paid invoices with serviceType = "lab_result"
+      const paidLabInvoices = allInvoices.filter(invoice => 
+        invoice.status === 'paid' && invoice.serviceType === 'lab_result'
+      );
+
+      // Join lab results with paid invoices using polymorphic association
       const joinedData = labResults.map(labResult => {
-        // Find matching invoice using polymorphic association (service_type + service_id)
-        const matchingInvoice = invoices.find(invoice => {
-          // Check if invoice is linked via polymorphic association (service_type and service_id)
-          if (invoice.serviceType === 'lab_result' && invoice.serviceId === labResult.id) {
-            return true;
-          }
-          // Fallback: match by patientId for backward compatibility
-          return invoice.patientId === labResult.patientId.toString();
-        });
+        // Find matching paid invoice using polymorphic association (service_type + service_id matching testId)
+        const matchingInvoice = paidLabInvoices.find(invoice => 
+          invoice.serviceId === labResult.testId
+        );
 
         return {
           ...labResult,
