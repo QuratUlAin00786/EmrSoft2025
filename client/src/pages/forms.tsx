@@ -4914,55 +4914,13 @@ Coverage Details: [Insurance Coverage]`;
             <div className="flex items-center gap-4">
 
               <Button
-                className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
-                style={{
-                  backgroundColor: "white",
-                  color: "black",
-                  borderColor: "#e5e7eb",
-                  borderRadius: "10px",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#f9fafb";
-                  e.currentTarget.style.borderColor = "#d1d5db";
-                  e.currentTarget.style.transform = "translateY(-2px)";
-                  e.currentTarget.style.boxShadow =
-                    "0 6px 16px rgba(0,0,0,0.15)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "white";
-                  e.currentTarget.style.borderColor = "#e5e7eb";
-                  e.currentTarget.style.transform = "translateY(0px)";
-                  e.currentTarget.style.boxShadow =
-                    "0 4px 12px rgba(0,0,0,0.1)";
-                }}
+                className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2 bg-white dark:bg-gray-800 text-black dark:text-white border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 hover:-translate-y-0.5 rounded-[10px]"
                 onClick={handlePreview}
               >
                 Preview
               </Button>
               <Button
-                className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
-                style={{
-                  backgroundColor: "white",
-                  color: "black",
-                  borderColor: "#e5e7eb",
-                  borderRadius: "10px",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#f9fafb";
-                  e.currentTarget.style.borderColor = "#d1d5db";
-                  e.currentTarget.style.transform = "translateY(-2px)";
-                  e.currentTarget.style.boxShadow =
-                    "0 6px 16px rgba(0,0,0,0.15)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "white";
-                  e.currentTarget.style.borderColor = "#e5e7eb";
-                  e.currentTarget.style.transform = "translateY(0px)";
-                  e.currentTarget.style.boxShadow =
-                    "0 4px 12px rgba(0,0,0,0.1)";
-                }}
+                className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2 bg-white dark:bg-gray-800 text-black dark:text-white border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 hover:-translate-y-0.5 rounded-[10px]"
                 onClick={handleSaveAsDraft}
               >
                 View Draft
@@ -4976,28 +4934,7 @@ Coverage Details: [Insurance Coverage]`;
 
           
               <Button
-                className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
-                style={{
-                  backgroundColor: "white",
-                  color: "black",
-                  borderColor: "#e5e7eb",
-                  borderRadius: "10px",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#f9fafb";
-                  e.currentTarget.style.borderColor = "#d1d5db";
-                  e.currentTarget.style.transform = "translateY(-2px)";
-                  e.currentTarget.style.boxShadow =
-                    "0 6px 16px rgba(0,0,0,0.15)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "white";
-                  e.currentTarget.style.borderColor = "#e5e7eb";
-                  e.currentTarget.style.transform = "translateY(0px)";
-                  e.currentTarget.style.boxShadow =
-                    "0 4px 12px rgba(0,0,0,0.1)";
-                }}
+                className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2 bg-white dark:bg-gray-800 text-black dark:text-white border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 hover:-translate-y-0.5 rounded-[10px]"
                 onClick={() => setShowShareDialog(true)}
               >
                 Share this...
@@ -5008,28 +4945,7 @@ Coverage Details: [Insurance Coverage]`;
                 <>
                   <div className="h-8 w-px bg-white/30 mx-1"></div>
                   <Button
-                    className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
-                    style={{
-                      backgroundColor: "white",
-                      color: "black",
-                      borderColor: "#e5e7eb",
-                      borderRadius: "10px",
-                      boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = "#f9fafb";
-                      e.currentTarget.style.borderColor = "#d1d5db";
-                      e.currentTarget.style.transform = "translateY(-2px)";
-                      e.currentTarget.style.boxShadow =
-                        "0 6px 16px rgba(0,0,0,0.15)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = "white";
-                      e.currentTarget.style.borderColor = "#e5e7eb";
-                      e.currentTarget.style.transform = "translateY(0px)";
-                      e.currentTarget.style.boxShadow =
-                        "0 4px 12px rgba(0,0,0,0.1)";
-                    }}
+                    className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2 bg-white dark:bg-gray-800 text-black dark:text-white border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 hover:-translate-y-0.5 rounded-[10px]"
                     onClick={() => setShowPatientTemplateDialog(true)}
                   >
                     Letters
@@ -5042,28 +4958,7 @@ Coverage Details: [Insurance Coverage]`;
                 <>
                   <div className="h-8 w-px bg-white/30 mx-1"></div>
                   <Button
-                    className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2"
-                    style={{
-                      backgroundColor: "white",
-                      color: "black",
-                      borderColor: "#e5e7eb",
-                      borderRadius: "10px",
-                      boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = "#f9fafb";
-                      e.currentTarget.style.borderColor = "#d1d5db";
-                      e.currentTarget.style.transform = "translateY(-2px)";
-                      e.currentTarget.style.boxShadow =
-                        "0 6px 16px rgba(0,0,0,0.15)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = "white";
-                      e.currentTarget.style.borderColor = "#e5e7eb";
-                      e.currentTarget.style.transform = "translateY(0px)";
-                      e.currentTarget.style.boxShadow =
-                        "0 4px 12px rgba(0,0,0,0.1)";
-                    }}
+                    className="h-10 px-5 text-sm font-medium shadow-lg transition-all duration-300 border-2 bg-white dark:bg-gray-800 text-black dark:text-white border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 hover:-translate-y-0.5 rounded-[10px]"
                     onClick={() => setShowDoctorTemplateDialog(true)}
                   >
                     Doctor Templates
@@ -5085,7 +4980,7 @@ Coverage Details: [Insurance Coverage]`;
 
             <Button
               size="sm"
-              className="text-xs h-7 px-4 py-2 mt-5 bg-white text-black  border border-lightgray-400"
+              className="text-xs h-7 px-4 py-2 mt-5 bg-white dark:bg-gray-800 text-black dark:text-white border border-gray-400 dark:border-gray-600"
               onClick={() => setShowAllTemplatesDialog(true)}
             >
               Templates
@@ -5093,7 +4988,7 @@ Coverage Details: [Insurance Coverage]`;
             
             <Button
               size="sm"
-              className="text-xs h-7 px-4 py-2 mt-5 bg-white text-black  border border-lightgray-400"
+              className="text-xs h-7 px-4 py-2 mt-5 bg-white dark:bg-gray-800 text-black dark:text-white border border-gray-400 dark:border-gray-600"
               onClick={handleSave}
               data-testid="button-save-template"
             >
@@ -5121,14 +5016,14 @@ Coverage Details: [Insurance Coverage]`;
             </Button>
             <Button
               size="sm"
-              className="text-xs h-7 px-4 py-2 mt-5 bg-white text-black  border border-lightgray-400"
+              className="text-xs h-7 px-4 py-2 mt-5 bg-white dark:bg-gray-800 text-black dark:text-white border border-gray-400 dark:border-gray-600"
               onClick={handleInsertLogo}
             >
               Logo
             </Button>
             <Button
               size="sm"
-              className="text-xs h-7 px-4 py-2 mt-5 bg-white text-black  border border-lightgray-400"
+              className="text-xs h-7 px-4 py-2 mt-5 bg-white dark:bg-gray-800 text-black dark:text-white border border-gray-400 dark:border-gray-600"
               onClick={() => setShowCreateClinicInfoDialog(true)}
               data-testid="button-create-clinic-info"
             >
@@ -5136,7 +5031,7 @@ Coverage Details: [Insurance Coverage]`;
             </Button>
             <Button
               size="sm"
-              className="text-xs h-7 px-4 py-2 mt-5 bg-white text-black  border border-lightgray-400"
+              className="text-xs h-7 px-4 py-2 mt-5 bg-white dark:bg-gray-800 text-black dark:text-white border border-gray-400 dark:border-gray-600"
               onClick={() => setShowViewClinicInfoDialog(true)}
               data-testid="button-view-clinic-info"
             >
@@ -5151,7 +5046,7 @@ Coverage Details: [Insurance Coverage]`;
             </Button> */}
             <Button
               size="sm"
-              className="text-xs h-7 px-4 py-2 mt-5 bg-white text-black  border border-lightgray-400"
+              className="text-xs h-7 px-4 py-2 mt-5 bg-white dark:bg-gray-800 text-black dark:text-white border border-gray-400 dark:border-gray-600"
               onClick={handleClinicalHeader}
               data-testid="button-clinical-header"
             >
@@ -5159,7 +5054,7 @@ Coverage Details: [Insurance Coverage]`;
             </Button>
             <Button
               size="sm"
-              className="text-xs h-7 px-4 py-2 mt-5 bg-white text-black  border border-lightgray-400"
+              className="text-xs h-7 px-4 py-2 mt-5 bg-white dark:bg-gray-800 text-black dark:text-white border border-gray-400 dark:border-gray-600"
               onClick={() => setShowSavedTemplatesDialog(true)}
             >
               View Saved Templates

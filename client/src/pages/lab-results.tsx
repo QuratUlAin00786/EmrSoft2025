@@ -2505,7 +2505,7 @@ Report generated from Cura EMR System`;
                           // Close the dialog
                           setShowPrescriptionDialog(false);
                         }}
-                        className="bg-white hover:bg-gray-50 text-gray-900 border-gray-300"
+                        className="bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600"
                       >
                         <Download className="h-4 w-4 mr-2" />
                         Download PDF
@@ -2528,7 +2528,7 @@ Report generated from Cura EMR System`;
                             setSelectedLabOrder(result);
                             setShowFillResultDialog(true);
                           }}
-                          className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
+                          className="bg-green-50 hover:bg-green-100 dark:bg-green-900/30 dark:hover:bg-green-900/50 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800"
                           data-testid="button-generate-lab-result"
                         >
                           <FileText className="h-4 w-4 mr-2" />
@@ -2570,7 +2570,7 @@ Report generated from Cura EMR System`;
                                 });
                               }
                             }}
-                            className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200"
+                            className="bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800"
                             data-testid="button-view-lab-report"
                           >
                             <FileText className="h-4 w-4 mr-2" />
