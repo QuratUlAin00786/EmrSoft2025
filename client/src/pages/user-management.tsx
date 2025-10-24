@@ -820,6 +820,8 @@ export default function UserManagement() {
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
   const [editingRole, setEditingRole] = useState<Role | null>(null);
   const [activeTab, setActiveTab] = useState<"users" | "roles">("users");
+  const [roleNameError, setRoleNameError] = useState<string>("");
+  const [roleDisplayNameError, setRoleDisplayNameError] = useState<string>("");
   
   // View type states
   const [userViewType, setUserViewType] = useState<"list" | "grid">("list");
@@ -1249,28 +1251,8 @@ export default function UserManagement() {
   const onRoleSubmit = (data: RoleFormData) => {
     // Check if role already exists (only for new roles, not edits)
     if (!editingRole) {
-      const existingRoleByName = roles.find((role: Role) => 
-        role.name.toLowerCase() === data.name.toLowerCase()
-      );
-      const existingRoleByDisplayName = roles.find((role: Role) => 
-        role.displayName.toLowerCase() === data.displayName.toLowerCase()
-      );
-      
-      if (existingRoleByName) {
-        toast({
-          title: "Role Already Exists",
-          description: "Role already exist. Please select another Role",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      if (existingRoleByDisplayName) {
-        toast({
-          title: "Role Already Exists",
-          description: "Role already exist. Please select another Role",
-          variant: "destructive",
-        });
+      // Prevent submission if there are validation errors
+      if (roleNameError || roleDisplayNameError) {
         return;
       }
     }
@@ -3555,6 +3537,8 @@ export default function UserManagement() {
                     setIsRoleModalOpen(false);
                     setEditingRole(null);
                     roleForm.reset();
+                    setRoleNameError("");
+                    setRoleDisplayNameError("");
                   }
                 }}>
                   <DialogTrigger asChild>
@@ -3586,12 +3570,29 @@ export default function UserManagement() {
                           onChange={(e) => {
                             const lowercaseValue = e.target.value.toLowerCase();
                             roleForm.setValue("name", lowercaseValue, { shouldValidate: true });
+                            
+                            // Check for duplicate role name (only when creating, not editing)
+                            if (!editingRole && lowercaseValue) {
+                              const existingRole = roles.find((role: Role) => 
+                                role.name.toLowerCase() === lowercaseValue
+                              );
+                              if (existingRole) {
+                                setRoleNameError("Role already exist. Please select another Role");
+                              } else {
+                                setRoleNameError("");
+                              }
+                            } else {
+                              setRoleNameError("");
+                            }
                           }}
                           placeholder="e.g., senior_doctor"
-                          className={roleForm.formState.errors.name ? "border-red-500" : ""}
+                          className={roleForm.formState.errors.name || roleNameError ? "border-red-500" : ""}
                         />
                         {roleForm.formState.errors.name && (
                           <p className="text-sm text-red-500">{roleForm.formState.errors.name.message}</p>
+                        )}
+                        {roleNameError && !roleForm.formState.errors.name && (
+                          <p className="text-sm text-red-500">{roleNameError}</p>
                         )}
                       </div>
                       
@@ -3599,12 +3600,33 @@ export default function UserManagement() {
                         <Label htmlFor="roleDisplayName">Display Name</Label>
                         <Input
                           id="roleDisplayName"
-                          {...roleForm.register("displayName")}
+                          value={roleForm.watch("displayName") || ""}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            roleForm.setValue("displayName", value, { shouldValidate: true });
+                            
+                            // Check for duplicate display name (only when creating, not editing)
+                            if (!editingRole && value) {
+                              const existingRole = roles.find((role: Role) => 
+                                role.displayName.toLowerCase() === value.toLowerCase()
+                              );
+                              if (existingRole) {
+                                setRoleDisplayNameError("Role already exist. Please select another Role");
+                              } else {
+                                setRoleDisplayNameError("");
+                              }
+                            } else {
+                              setRoleDisplayNameError("");
+                            }
+                          }}
                           placeholder="e.g., Senior Doctor"
-                          className={roleForm.formState.errors.displayName ? "border-red-500" : ""}
+                          className={roleForm.formState.errors.displayName || roleDisplayNameError ? "border-red-500" : ""}
                         />
                         {roleForm.formState.errors.displayName && (
                           <p className="text-sm text-red-500">{roleForm.formState.errors.displayName.message}</p>
+                        )}
+                        {roleDisplayNameError && !roleForm.formState.errors.displayName && (
+                          <p className="text-sm text-red-500">{roleDisplayNameError}</p>
                         )}
                       </div>
                     </div>
