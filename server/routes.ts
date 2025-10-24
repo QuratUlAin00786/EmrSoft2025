@@ -6513,6 +6513,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         orderedAt: new Date(),
         status: "pending",
         reportStatus: "Lab Request Generated",
+        Lab_Request_Generated: true,
         notes: labData.notes || null
       }, 'orderedBy'));
 
