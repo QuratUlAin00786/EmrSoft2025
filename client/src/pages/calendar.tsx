@@ -1207,7 +1207,7 @@ export default function CalendarPage() {
         subtitle="Schedule and manage patient appointments efficiently."
       />
       
-      <div className="flex-1 overflow-auto p-6 max-w-[1800px] mx-auto">
+      <div className="flex-1 overflow-auto p-6">
         <div className="mb-6">
           <div className="flex justify-between items-center mb-4">
          
