@@ -217,10 +217,15 @@ export function Sidebar() {
   // Items to show ONLY to Patient role users (hide from all other roles)
   const patientOnlyItems = ["Patient Portal"];
 
-  // Items that are disabled and shown in grey
-  const disabledItems = ["Automation", "Telemedicine"];
+  // Items to hide from all users
+  const hiddenItems = ["Automation", "Telemedicine"];
 
   const filteredNavigation = ALL_NAVIGATION.filter((item) => {
+    // Hide specific items from all users
+    if (hiddenItems.includes(item.name)) {
+      return false;
+    }
+
     // While permissions are loading, show all items (except role-specific restrictions)
     // This prevents the sidebar from being empty while fetching permissions from database
     if (!isLoading) {
@@ -317,20 +322,6 @@ export function Sidebar() {
               const prefixedHref = `/${subdomain}${item.href}`;
               const isActive =
                 location === prefixedHref || location === item.href;
-              const isDisabled = disabledItems.includes(item.name);
-              
-              // Render disabled items with grey styling and no link behavior
-              if (isDisabled) {
-                return (
-                  <div
-                    key={item.name}
-                    className="sidebar-nav-item opacity-40 cursor-not-allowed text-gray-400 dark:text-gray-600"
-                  >
-                    <item.icon className="h-5 w-5" />
-                    <span>{item.name}</span>
-                  </div>
-                );
-              }
               
               return (
                 <Link
