@@ -312,7 +312,6 @@ const userSchema = z.object({
   dobMonth: z.string().optional(),
   dobYear: z.string().optional(),
   phone: z.string().optional(),
-  relationship: z.string().optional(),
   nhsNumber: z.string()
     .optional()
     .refine(
@@ -1091,7 +1090,6 @@ export default function UserManagement() {
       dobMonth: "",
       dobYear: "",
       phone: "",
-      relationship: "",
       nhsNumber: "",
       genderAtBirth: "",
       address: {
@@ -2340,33 +2338,6 @@ export default function UserManagement() {
                   </div>
                 </div>
 
-                {/* Relationship - Only show when role is Patient */}
-                {selectedRole.toLowerCase() === 'patient' && (
-                  <div className="space-y-2">
-                    <Label htmlFor="relationship">Relationship</Label>
-                    <Select onValueChange={(value) => form.setValue("relationship", value)} value={form.watch("relationship") || ""}>
-                      <SelectTrigger data-testid="dropdown-relationship">
-                        <SelectValue placeholder="Select relationship" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Father">Father</SelectItem>
-                        <SelectItem value="Mother">Mother</SelectItem>
-                        <SelectItem value="Son">Son</SelectItem>
-                        <SelectItem value="Daughter">Daughter</SelectItem>
-                        <SelectItem value="Brother">Brother</SelectItem>
-                        <SelectItem value="Sister">Sister</SelectItem>
-                        <SelectItem value="Husband">Husband</SelectItem>
-                        <SelectItem value="Wife">Wife</SelectItem>
-                        <SelectItem value="Friend">Friend</SelectItem>
-                        <SelectItem value="Other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {form.formState.errors.relationship && (
-                      <p className="text-sm text-red-500">{form.formState.errors.relationship.message}</p>
-                    )}
-                  </div>
-                )}
-
                 {/* Doctor Specialty Dropdowns - Only show when role is doctor-like, excluding Lab Technician, Pharmacist, Physiotherapist, Paramedic, Optician, Aesthetician, and Sample Taker */}
                 {isDoctorLike(selectedRole) && !['lab technician', 'lab_technician', 'pharmacist', 'physiotherapist', 'paramedic', 'optician', 'aesthetician', 'sample taker'].includes(selectedRole.toLowerCase()) && (
                   <>
@@ -2890,12 +2861,26 @@ export default function UserManagement() {
                           </div>
                           <div className="space-y-2">
                             <Label htmlFor="emergencyRelationship">Relationship</Label>
-                            <Input
-                              id="emergencyRelationship"
-                              {...form.register("emergencyContact.relationship")}
-                              placeholder="e.g., Spouse, Parent, Friend"
-                              data-testid="input-emergency-relationship"
-                            />
+                            <Select 
+                              onValueChange={(value) => form.setValue("emergencyContact.relationship", value)} 
+                              value={form.watch("emergencyContact.relationship") || ""}
+                            >
+                              <SelectTrigger data-testid="dropdown-emergency-relationship">
+                                <SelectValue placeholder="Select relationship" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Father">Father</SelectItem>
+                                <SelectItem value="Mother">Mother</SelectItem>
+                                <SelectItem value="Son">Son</SelectItem>
+                                <SelectItem value="Daughter">Daughter</SelectItem>
+                                <SelectItem value="Brother">Brother</SelectItem>
+                                <SelectItem value="Sister">Sister</SelectItem>
+                                <SelectItem value="Husband">Husband</SelectItem>
+                                <SelectItem value="Wife">Wife</SelectItem>
+                                <SelectItem value="Friend">Friend</SelectItem>
+                                <SelectItem value="Other">Other</SelectItem>
+                              </SelectContent>
+                            </Select>
                           </div>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
