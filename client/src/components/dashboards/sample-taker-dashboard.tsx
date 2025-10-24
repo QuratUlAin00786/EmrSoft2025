@@ -65,9 +65,7 @@ export function SampleTakerDashboard() {
   // Filter states for Paid Lab Result Invoices
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterSampleCollected, setFilterSampleCollected] = useState<string>("all");
-  const [filterInvoiceNumber, setFilterInvoiceNumber] = useState<string>("");
-  const [filterPatient, setFilterPatient] = useState<string>("");
-  const [filterTestId, setFilterTestId] = useState<string>("");
+  const [filterSearch, setFilterSearch] = useState<string>("");
   const [filterInvoiceDate, setFilterInvoiceDate] = useState<string>("");
 
   // Fetch lab results with invoices (joined data)
@@ -357,22 +355,21 @@ export function SampleTakerDashboard() {
       return false;
     }
 
-    // Filter by invoice number
-    if (filterInvoiceNumber && !invoice.invoiceNumber.toLowerCase().includes(filterInvoiceNumber.toLowerCase())) {
-      return false;
-    }
-
-    // Filter by patient name
-    if (filterPatient) {
+    // Unified search filter (searches Invoice #, Patient, and Test ID)
+    if (filterSearch) {
+      const searchLower = filterSearch.toLowerCase();
       const patientName = `${invoice.patientFirstName || ''} ${invoice.patientLastName || ''}`.toLowerCase();
-      if (!patientName.includes(filterPatient.toLowerCase())) {
+      const invoiceNumber = invoice.invoiceNumber.toLowerCase();
+      const testId = invoice.testId.toLowerCase();
+      
+      const matchesSearch = 
+        invoiceNumber.includes(searchLower) ||
+        patientName.includes(searchLower) ||
+        testId.includes(searchLower);
+      
+      if (!matchesSearch) {
         return false;
       }
-    }
-
-    // Filter by test ID
-    if (filterTestId && !invoice.testId.toLowerCase().includes(filterTestId.toLowerCase())) {
-      return false;
     }
 
     // Filter by invoice date
@@ -501,44 +498,16 @@ export function SampleTakerDashboard() {
                 </Select>
               </div>
 
-              {/* Invoice Number Search */}
+              {/* Unified Search - Invoice #, Patient, Test ID */}
               <div className="space-y-2">
-                <Label htmlFor="filter-invoice-number" className="text-sm font-medium">Invoice #</Label>
+                <Label htmlFor="filter-search" className="text-sm font-medium">Search (Invoice # / Patient / Test ID)</Label>
                 <Input
-                  id="filter-invoice-number"
+                  id="filter-search"
                   type="text"
-                  placeholder="Search by Invoice #"
-                  value={filterInvoiceNumber}
-                  onChange={(e) => setFilterInvoiceNumber(e.target.value)}
-                  data-testid="filter-invoice-number"
-                  className="w-full"
-                />
-              </div>
-
-              {/* Patient Name Search */}
-              <div className="space-y-2">
-                <Label htmlFor="filter-patient" className="text-sm font-medium">Patient</Label>
-                <Input
-                  id="filter-patient"
-                  type="text"
-                  placeholder="Search by Patient Name"
-                  value={filterPatient}
-                  onChange={(e) => setFilterPatient(e.target.value)}
-                  data-testid="filter-patient"
-                  className="w-full"
-                />
-              </div>
-
-              {/* Test ID Search */}
-              <div className="space-y-2">
-                <Label htmlFor="filter-test-id" className="text-sm font-medium">Test ID</Label>
-                <Input
-                  id="filter-test-id"
-                  type="text"
-                  placeholder="Search by Test ID"
-                  value={filterTestId}
-                  onChange={(e) => setFilterTestId(e.target.value)}
-                  data-testid="filter-test-id"
+                  placeholder="Search by Invoice #, Patient Name, or Test ID"
+                  value={filterSearch}
+                  onChange={(e) => setFilterSearch(e.target.value)}
+                  data-testid="filter-search"
                   className="w-full"
                 />
               </div>
@@ -564,9 +533,7 @@ export function SampleTakerDashboard() {
                 onClick={() => {
                   setFilterStatus("all");
                   setFilterSampleCollected("all");
-                  setFilterInvoiceNumber("");
-                  setFilterPatient("");
-                  setFilterTestId("");
+                  setFilterSearch("");
                   setFilterInvoiceDate("");
                 }}
                 data-testid="clear-filters"
