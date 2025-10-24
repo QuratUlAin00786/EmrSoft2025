@@ -937,14 +937,16 @@ export default function LabResultsPage() {
 
   const createLabOrderMutation = useMutation({
     mutationFn: async (labOrderData: any) => {
-      return await apiRequest("POST", "/api/lab-results", labOrderData);
+      const response = await apiRequest("POST", "/api/lab-results", labOrderData);
+      return response.json();
     },
-    onSuccess: (response, variables) => {
-      // Store pending order data for invoice
+    onSuccess: (labResult, variables) => {
+      // Store pending order data for invoice with testId
       setPendingOrderData({
         ...variables,
         patientName: orderFormData.patientName,
-        testTypes: orderFormData.testType
+        testTypes: orderFormData.testType,
+        testId: labResult.testId  // Store the generated testId
       });
       
       // Prepare invoice items from test types
@@ -3421,6 +3423,8 @@ Report generated from Cura EMR System`;
                       serviceDate: invoiceData.serviceDate,
                       invoiceDate: invoiceData.invoiceDate,
                       dueDate: invoiceData.dueDate,
+                      serviceType: 'lab_result',
+                      serviceId: pendingOrderData?.testId,
                     });
                   } else if (invoiceData.paymentMethod === 'debit_card') {
                     // Handle Stripe payment - setup payment intent
@@ -3433,6 +3437,8 @@ Report generated from Cura EMR System`;
                       serviceDate: invoiceData.serviceDate,
                       invoiceDate: invoiceData.invoiceDate,
                       dueDate: invoiceData.dueDate,
+                      serviceType: 'lab_result',
+                      serviceId: pendingOrderData?.testId,
                     });
                   }
                 }}

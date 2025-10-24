@@ -14906,7 +14906,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log('[CASH PAYMENT] Request received, body:', JSON.stringify(req.body, null, 2));
       const organizationId = requireOrgId(req);
-      const { patient_id, patientName, items, totalAmount, insuranceProvider, serviceDate, invoiceDate, dueDate } = req.body;
+      const { patient_id, patientName, items, totalAmount, insuranceProvider, serviceDate, invoiceDate, dueDate, serviceType, serviceId } = req.body;
 
       // Fetch patient record to get formatted patientId (e.g., P000001)
       const patientRecord = await storage.getPatient(patient_id, organizationId);
@@ -14920,7 +14920,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('[CASH PAYMENT] Generated invoice number:', invoiceNumber);
       
       // Create invoice
-      const invoiceData = {
+      const invoiceData: any = {
         organizationId,
         invoiceNumber,
         patientId: formattedPatientId,
@@ -14952,6 +14952,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         notes: insuranceProvider ? `Insurance Provider: ${insuranceProvider}` : undefined,
         createdBy: req.user?.id
       };
+      
+      // Add polymorphic association fields if provided
+      if (serviceType && serviceId) {
+        invoiceData.serviceType = serviceType;
+        invoiceData.serviceId = serviceId;
+      }
 
       console.log('[CASH PAYMENT] Creating invoice...');
       const invoice = await storage.createPatientInvoice(invoiceData);
@@ -15005,7 +15011,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/payments/stripe", authMiddleware, multiTenantEnforcer(), async (req: TenantRequest, res) => {
     try {
       const organizationId = requireOrgId(req);
-      const { patient_id, patientName, amount, items, insuranceProvider, serviceDate, invoiceDate, dueDate } = req.body;
+      const { patient_id, patientName, amount, items, insuranceProvider, serviceDate, invoiceDate, dueDate, serviceType, serviceId } = req.body;
 
       // Fetch patient record to get formatted patientId (e.g., P000001)
       const patientRecord = await storage.getPatient(patient_id, organizationId);
@@ -15030,7 +15036,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           invoiceDate,
           dueDate,
           items: JSON.stringify(items),
-          insuranceProvider: insuranceProvider || ''
+          insuranceProvider: insuranceProvider || '',
+          serviceType: serviceType || '',
+          serviceId: serviceId || ''
         }
       });
 
@@ -15069,7 +15077,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const invoiceNumber = `INV-${Date.now()}-${Math.random().toString(36).substring(7).toUpperCase()}`;
       
       // Create invoice
-      const invoiceData = {
+      const invoiceData: any = {
         organizationId,
         invoiceNumber,
         patientId: metadata.patientId,
@@ -15103,6 +15111,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         notes: metadata.insuranceProvider ? `Insurance Provider: ${metadata.insuranceProvider}` : undefined,
         createdBy: req.user?.id
       };
+      
+      // Add polymorphic association fields if provided in metadata
+      if (metadata.serviceType && metadata.serviceId) {
+        invoiceData.serviceType = metadata.serviceType;
+        invoiceData.serviceId = metadata.serviceId;
+      }
 
       const invoice = await storage.createInvoice(invoiceData);
 
