@@ -6590,6 +6590,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Collect sample - Mark sample as collected
+  app.post("/api/lab-results/:id/collect-sample", authMiddleware, requireRole(["admin", "sample_taker", "nurse", "lab_technician"]), async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const labResultId = parseInt(req.params.id);
+      if (isNaN(labResultId)) {
+        return res.status(400).json({ error: "Invalid lab result ID" });
+      }
+
+      const { notes } = req.body;
+
+      // Fetch the lab result
+      const labResults = await storage.getLabResults(req.tenant!.id);
+      const labResult = labResults.find(result => result.id === labResultId);
+      
+      if (!labResult) {
+        return res.status(404).json({ error: "Lab result not found" });
+      }
+
+      // Check if sample is already collected
+      if (labResult.Sample_Collected === true) {
+        return res.status(400).json({ error: "Sample already collected" });
+      }
+
+      // Update the lab result to mark sample as collected
+      const updateData: any = {
+        Sample_Collected: true,
+        status: "Sample Collected",
+        reportStatus: "Sample Ready for Testing"
+      };
+
+      // Add collection notes if provided
+      if (notes) {
+        updateData.notes = labResult.notes 
+          ? `${labResult.notes}\n\nCollection Notes (${new Date().toLocaleString()}): ${notes}`
+          : `Collection Notes (${new Date().toLocaleString()}): ${notes}`;
+      }
+
+      const updatedLabResult = await storage.updateLabResult(labResultId, req.tenant!.id, updateData);
+
+      if (!updatedLabResult) {
+        return res.status(404).json({ error: "Failed to update lab result" });
+      }
+
+      res.json({ 
+        success: true, 
+        message: "Sample collected successfully",
+        labResult: updatedLabResult 
+      });
+    } catch (error) {
+      console.error("Error collecting sample:", error);
+      res.status(500).json({ error: "Failed to collect sample" });
+    }
+  });
+
   // Generate PDF for lab result
   app.post("/api/lab-results/:id/generate-pdf", authMiddleware, requireNonPatientRole(), async (req: TenantRequest, res) => {
     try {
