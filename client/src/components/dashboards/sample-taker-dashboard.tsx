@@ -128,6 +128,9 @@ export function SampleTakerDashboard() {
     req.Sample_Collected === true && 
     new Date(req.orderedAt).toDateString() === new Date().toDateString()
   );
+  const allCollected = labRequests.filter((req: LabRequest) => 
+    req.Sample_Collected === true
+  );
   const urgentRequests = pendingCollection.filter((req: LabRequest) => 
     req.priority === 'urgent' || req.priority === 'stat'
   );
@@ -486,40 +489,118 @@ export function SampleTakerDashboard() {
       {/* Recently Collected Samples */}
       <Card>
         <CardHeader>
-          <CardTitle>Recently Collected Samples</CardTitle>
-          <CardDescription>Samples collected today</CardDescription>
+          <CardTitle>Collected Samples</CardTitle>
+          <CardDescription>All lab results where samples have been collected</CardDescription>
         </CardHeader>
         <CardContent>
-          {collectedToday.length === 0 ? (
+          {allCollected.length === 0 ? (
             <div className="text-center py-4 text-neutral-500 dark:text-neutral-400">
-              <p>No samples collected today</p>
+              <CheckCircle className="h-12 w-12 mx-auto mb-3 opacity-50" />
+              <p>No collected samples</p>
             </div>
           ) : (
-            <div className="space-y-2">
-              {collectedToday.map((request: LabRequest) => (
+            <div className="space-y-3">
+              {allCollected.map((request: LabRequest) => (
                 <div 
                   key={request.id} 
-                  className="flex items-center justify-between p-3 border rounded-lg border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950"
+                  className="p-4 border rounded-lg border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950"
+                  data-testid={`collected-sample-${request.id}`}
                 >
-                  <div className="flex items-center gap-3">
-                    <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
-                    <div>
-                      <p className="font-medium text-gray-900 dark:text-gray-100">
-                        {getPatientName(request.patientId)}
-                      </p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {request.testType} - {request.testId}
-                      </p>
-                      {request.invoiceNumber && (
-                        <p className="text-xs text-gray-500">
-                          Invoice: {request.invoiceNumber} - £{request.totalAmount}
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
+                      <div>
+                        <p className="font-semibold text-gray-900 dark:text-gray-100 text-lg">
+                          {getPatientName(request.patientId)}
                         </p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge variant="outline" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                            Sample Collected
+                          </Badge>
+                          <Badge 
+                            variant={request.priority === 'urgent' || request.priority === 'stat' ? 'destructive' : 'default'}
+                          >
+                            {request.priority?.toUpperCase() || 'ROUTINE'}
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    {/* Test Details */}
+                    <div className="space-y-2">
+                      <h4 className="font-semibold text-gray-700 dark:text-gray-300 mb-2">Test Details</h4>
+                      <div className="space-y-1">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600 dark:text-gray-400">Test ID:</span>
+                          <span className="font-medium text-gray-900 dark:text-gray-100">{request.testId}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600 dark:text-gray-400">Test Type:</span>
+                          <span className="font-medium text-gray-900 dark:text-gray-100">{request.testType}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600 dark:text-gray-400">Status:</span>
+                          <span className="font-medium text-gray-900 dark:text-gray-100">{request.status}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600 dark:text-gray-400">Report Status:</span>
+                          <span className="font-medium text-gray-900 dark:text-gray-100">{request.reportStatus || 'N/A'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600 dark:text-gray-400">Ordered:</span>
+                          <span className="font-medium text-gray-900 dark:text-gray-100">
+                            {new Date(request.orderedAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Invoice Details */}
+                    <div className="space-y-2">
+                      <h4 className="font-semibold text-gray-700 dark:text-gray-300 mb-2">Invoice Details</h4>
+                      {request.invoiceNumber ? (
+                        <div className="space-y-1">
+                          <div className="flex justify-between">
+                            <span className="text-gray-600 dark:text-gray-400">Invoice #:</span>
+                            <span className="font-medium text-gray-900 dark:text-gray-100">{request.invoiceNumber}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600 dark:text-gray-400">Status:</span>
+                            <Badge 
+                              variant={request.invoiceStatus === 'paid' ? 'default' : 'outline'}
+                              className="text-xs"
+                            >
+                              {request.invoiceStatus}
+                            </Badge>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600 dark:text-gray-400">Amount:</span>
+                            <span className="font-medium text-gray-900 dark:text-gray-100">£{request.totalAmount}</span>
+                          </div>
+                          {request.invoiceDate && (
+                            <div className="flex justify-between">
+                              <span className="text-gray-600 dark:text-gray-400">Invoice Date:</span>
+                              <span className="font-medium text-gray-900 dark:text-gray-100">
+                                {new Date(request.invoiceDate).toLocaleDateString()}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-gray-500 dark:text-gray-400 italic">No invoice information available</p>
                       )}
                     </div>
                   </div>
-                  <Badge variant="outline" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                    Collected
-                  </Badge>
+
+                  {request.notes && (
+                    <div className="mt-3 pt-3 border-t border-green-300 dark:border-green-700">
+                      <p className="text-xs text-gray-600 dark:text-gray-400">
+                        <span className="font-semibold">Notes:</span> {request.notes}
+                      </p>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
