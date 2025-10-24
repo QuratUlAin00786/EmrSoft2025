@@ -4013,8 +4013,8 @@ export default function UserManagement() {
 
       {/* Success Modal */}
       <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
-        <DialogContent className="max-w-md">
-          <div className="p-6">
+        <DialogContent className="max-w-md max-h-[80vh] overflow-hidden flex flex-col">
+          <div className="p-6 overflow-y-auto">
             {/* Success Icon */}
             <div className="flex justify-center mb-6">
               <div className="bg-green-500 rounded-full p-3">
@@ -4038,7 +4038,7 @@ export default function UserManagement() {
             
             {/* Deletion Steps - Only show for deletions */}
             {successMessage && successTitle === "User Deleted Successfully" && (
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 mb-6">
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 mb-6 max-h-48 overflow-y-auto">
               <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
                 Completed Operations
               </h4>
