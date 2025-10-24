@@ -4870,39 +4870,23 @@ export default function ImagingPage() {
             <div>
               <Label>Services & Procedures</Label>
               <div className="border rounded-md p-4 space-y-3">
-                <div className="grid grid-cols-4 gap-2 text-sm font-medium text-gray-600 dark:text-gray-300">
+                <div className="grid grid-cols-3 gap-2 text-sm font-medium text-gray-600 dark:text-gray-300">
                   <span>Code</span>
                   <span>Description</span>
-                  <span>Qty</span>
                   <span>Amount</span>
                 </div>
                 
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-3 gap-2">
                   <Input placeholder="Enter CPT Code" value={invoiceServiceCode} onChange={(e) => setInvoiceServiceCode(e.target.value)} />
                   <Input placeholder="Enter Description" value={invoiceServiceDesc} onChange={(e) => setInvoiceServiceDesc(e.target.value)} />
-                  <Input 
-                    placeholder="Qty" 
-                    value={invoiceServiceQty} 
-                    onChange={(e) => {
-                      setInvoiceServiceQty(e.target.value);
-                      // Auto-calculate total when quantity changes
-                      const qty = parseFloat(e.target.value) || 0;
-                      const amount = parseFloat(invoiceServiceAmount) || 0;
-                      const subtotal = qty * amount;
-                      const tax = subtotal * 0.2; // 20% VAT
-                      const total = subtotal + tax;
-                      setInvoiceTotalAmount(total.toFixed(2));
-                    }}
-                  />
                   <Input 
                     placeholder="Amount" 
                     value={invoiceServiceAmount} 
                     onChange={(e) => {
                       setInvoiceServiceAmount(e.target.value);
                       // Auto-calculate total when amount changes
-                      const qty = parseFloat(invoiceServiceQty) || 1;
                       const amount = parseFloat(e.target.value) || 0;
-                      const subtotal = qty * amount;
+                      const subtotal = amount;
                       const tax = subtotal * 0.2; // 20% VAT
                       const total = subtotal + tax;
                       setInvoiceTotalAmount(total.toFixed(2));
@@ -4910,10 +4894,9 @@ export default function ImagingPage() {
                   />
                 </div>
                 
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-3 gap-2">
                   <Input placeholder="CPT Code" disabled />
                   <Input placeholder="Description" disabled />
-                  <Input placeholder="1" disabled />
                   <Input placeholder="0.00" disabled />
                 </div>
               </div>
@@ -5072,9 +5055,6 @@ export default function ImagingPage() {
                     hasError = true;
                   } else if (!invoiceServiceDesc.trim()) {
                     setInvoiceServiceError('Please enter a service description');
-                    hasError = true;
-                  } else if (!invoiceServiceQty.trim() || isNaN(parseInt(invoiceServiceQty)) || parseInt(invoiceServiceQty) <= 0) {
-                    setInvoiceServiceError('Please enter a valid service quantity');
                     hasError = true;
                   } else if (!invoiceServiceAmount.trim() || isNaN(parseFloat(invoiceServiceAmount)) || parseFloat(invoiceServiceAmount) <= 0) {
                     setInvoiceServiceError('Please enter a valid service amount');
