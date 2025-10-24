@@ -318,7 +318,7 @@ const userSchema = z.object({
       (val) => !val || /^\d{0,10}$/.test(val.replace(/\s/g, '')),
       "NHS Number must be exactly 10 digits"
     ),
-  genderAtBirth: z.string().min(1, "Gender is required"),
+  genderAtBirth: z.string().optional(),
   address: z.object({
     street: z.string().optional(),
     city: z.string().optional(),
