@@ -6676,7 +6676,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Update the lab result Sample_Collected field
       const updateData: any = {
-        Sample_Collected: sampleCollected
+        sampleCollected: sampleCollected
       };
 
       const updatedLabResult = await storage.updateLabResult(labResultId, req.tenant!.id, updateData);
