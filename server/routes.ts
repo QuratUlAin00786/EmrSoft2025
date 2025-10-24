@@ -6661,11 +6661,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const labResults = await storage.getLabResults(organizationId);
       const invoices = await storage.getInvoicesByOrganization(organizationId);
 
-      // Join lab results with invoices by patientId
+      // Join lab results with invoices using polymorphic association
       const joinedData = labResults.map(labResult => {
-        // Find matching invoice by patient ID (using patientId from lab_results table)
+        // Find matching invoice using polymorphic association (service_type + service_id)
         const matchingInvoice = invoices.find(invoice => {
-          // Get patient from patients table to match patientId with invoice.patientId (which is a string)
+          // Check if invoice is linked via polymorphic association (service_type and service_id)
+          if (invoice.serviceType === 'lab_result' && invoice.serviceId === labResult.id) {
+            return true;
+          }
+          // Fallback: match by patientId for backward compatibility
           return invoice.patientId === labResult.patientId.toString();
         });
 
@@ -6675,7 +6679,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           invoiceNumber: matchingInvoice?.invoiceNumber || null,
           invoiceStatus: matchingInvoice?.status || null,
           totalAmount: matchingInvoice?.totalAmount || null,
-          invoiceDate: matchingInvoice?.invoiceDate || null
+          invoiceDate: matchingInvoice?.invoiceDate || null,
+          serviceType: matchingInvoice?.serviceType || null
         };
       });
 
@@ -6725,6 +6730,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error toggling sample collected status:", error);
       res.status(500).json({ error: "Failed to toggle sample collected status" });
+    }
+  });
+
+  // Get invoices with polymorphic joins (lab_results OR medical_images)
+  app.get("/api/invoices/with-services", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const organizationId = req.tenant!.id;
+
+      // Fetch all invoices, lab results, and medical images
+      const invoices = await storage.getInvoicesByOrganization(organizationId);
+      const labResults = await storage.getLabResults(organizationId);
+      const medicalImages = await storage.getMedicalImagesByOrganization(organizationId);
+
+      // Join invoices with either lab_results or medical_images based on service_type
+      const joinedData = invoices.map(invoice => {
+        let labResult = null;
+        let medicalImage = null;
+
+        // Check service_type and join accordingly
+        if (invoice.serviceType === 'lab_result' && invoice.serviceId) {
+          labResult = labResults.find(lr => lr.id === invoice.serviceId);
+        } else if (invoice.serviceType === 'medical_image' && invoice.serviceId) {
+          medicalImage = medicalImages.find(img => img.id === invoice.serviceId);
+        }
+
+        return {
+          invoiceId: invoice.id,
+          patientId: invoice.patientId,
+          invoiceNumber: invoice.invoiceNumber,
+          amount: invoice.totalAmount,
+          status: invoice.status,
+          serviceType: invoice.serviceType,
+          // Lab result data (if applicable)
+          labResultId: labResult?.id || null,
+          testType: labResult?.testType || null,
+          testName: labResult?.testId || null,
+          labReportStatus: labResult?.reportStatus || null,
+          // Medical image data (if applicable)
+          imageId: medicalImage?.id || null,
+          imageType: medicalImage?.studyType || null,
+          modality: medicalImage?.modality || null,
+          imageStatus: medicalImage?.status || null,
+          // Common fields
+          invoiceDate: invoice.invoiceDate,
+          createdAt: invoice.createdAt
+        };
+      });
+
+      res.json(joinedData);
+    } catch (error) {
+      console.error("Error fetching invoices with services:", error);
+      res.status(500).json({ error: "Failed to fetch invoices with services" });
     }
   });
 
