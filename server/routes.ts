@@ -6893,8 +6893,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             status: labResult?.status || null,
             reportStatus: labResult?.reportStatus || null,
             orderedAt: labResult?.orderedAt || null,
-            Sample_Collected: labResult?.Sample_Collected || false,
-            Lab_Request_Generated: labResult?.Lab_Request_Generated || false,
+            Sample_Collected: labResult?.sampleCollected || false,
+            Lab_Request_Generated: labResult?.labRequestGenerated || false,
             doctorName: labResult?.doctorName || null,
             notes: labResult?.notes || null,
           };
