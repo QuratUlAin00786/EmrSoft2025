@@ -1258,39 +1258,53 @@ export function DoctorList({
               <div>
                 <Label className="text-sm font-medium mb-1 block">Patient Information</Label>
                 {user?.role === 'admin' ? (
-                  /* Admin: Show patient list */
-                  <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-2 h-40 overflow-y-auto">
-                    {patients && patients.length > 0 ? (
-                      <div className="space-y-2">
-                        {patients.map((patient: any) => (
-                          <div
-                            key={patient.id}
-                            className={`p-2 border rounded cursor-pointer transition-colors ${
-                              selectedPatient === patient.id.toString()
-                                ? 'bg-blue-100 dark:bg-blue-900 border-blue-500 dark:border-blue-400'
-                                : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750'
-                            }`}
-                            onClick={() => setSelectedPatient(patient.id.toString())}
-                          >
-                            <div className="flex items-center gap-2">
-                              <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-medium text-xs flex-shrink-0">
-                                {patient.firstName?.charAt(0)}{patient.lastName?.charAt(0)}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="font-medium text-sm text-gray-900 dark:text-white truncate">
-                                  {patient.firstName} {patient.lastName}
+                  /* Admin: Show patient dropdown with search */
+                  <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 h-40">
+                    <Select
+                      value={selectedPatient}
+                      onValueChange={setSelectedPatient}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select a patient" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {patients && patients.length > 0 ? (
+                          patients.map((patient: any) => (
+                            <SelectItem
+                              key={patient.id}
+                              value={patient.id.toString()}
+                            >
+                              <div className="flex items-center gap-2">
+                                <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white font-medium text-xs flex-shrink-0">
+                                  {patient.firstName?.charAt(0)}{patient.lastName?.charAt(0)}
                                 </div>
-                                <div className="text-xs text-gray-600 dark:text-gray-400">
-                                  OP{String(patient.id).padStart(6, '0')}
-                                </div>
+                                <span>
+                                  {patient.firstName} {patient.lastName} (OP{String(patient.id).padStart(6, '0')})
+                                </span>
                               </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-center h-full">
-                        <p className="text-gray-400 text-sm">No patients available</p>
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="no-patients" disabled>
+                            No patients available
+                          </SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
+                    {selectedPatient && patients?.find((p: any) => p.id.toString() === selectedPatient) && (
+                      <div className="mt-3 space-y-1">
+                        <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
+                          <span>📞</span>
+                          <span className="truncate">{patients.find((p: any) => p.id.toString() === selectedPatient)?.phone || 'N/A'}</span>
+                        </div>
+                        <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
+                          <span>📧</span>
+                          <span className="truncate">{patients.find((p: any) => p.id.toString() === selectedPatient)?.email || 'N/A'}</span>
+                        </div>
+                        <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
+                          <span>🏥</span>
+                          <span className="truncate">NHS: {patients.find((p: any) => p.id.toString() === selectedPatient)?.nhsNumber || 'N/A'}</span>
+                        </div>
                       </div>
                     )}
                   </div>
