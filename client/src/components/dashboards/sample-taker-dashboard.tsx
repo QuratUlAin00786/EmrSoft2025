@@ -10,6 +10,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { getActiveSubdomain } from "@/lib/subdomain-utils";
@@ -59,6 +61,14 @@ export function SampleTakerDashboard() {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [pendingToggle, setPendingToggle] = useState<{ id: number; currentValue: boolean } | null>(null);
   const [isPaidInvoiceToggle, setIsPaidInvoiceToggle] = useState(false);
+
+  // Filter states for Paid Lab Result Invoices
+  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [filterSampleCollected, setFilterSampleCollected] = useState<string>("all");
+  const [filterInvoiceNumber, setFilterInvoiceNumber] = useState<string>("");
+  const [filterPatient, setFilterPatient] = useState<string>("");
+  const [filterTestId, setFilterTestId] = useState<string>("");
+  const [filterInvoiceDate, setFilterInvoiceDate] = useState<string>("");
 
   // Fetch lab results with invoices (joined data)
   const { data: labRequests = [], isLoading, refetch } = useQuery({
@@ -333,6 +343,50 @@ export function SampleTakerDashboard() {
     setIsPaidInvoiceToggle(false);
   };
 
+  // Apply filters to paid lab invoices
+  const filteredPaidLabInvoices = paidLabInvoices.filter((invoice: any) => {
+    // Filter by status
+    if (filterStatus !== "all" && invoice.invoiceStatus !== filterStatus) {
+      return false;
+    }
+
+    // Filter by sample collected
+    if (filterSampleCollected === "collected" && !invoice.Sample_Collected) {
+      return false;
+    }
+    if (filterSampleCollected === "not_collected" && invoice.Sample_Collected) {
+      return false;
+    }
+
+    // Filter by invoice number
+    if (filterInvoiceNumber && !invoice.invoiceNumber.toLowerCase().includes(filterInvoiceNumber.toLowerCase())) {
+      return false;
+    }
+
+    // Filter by patient name
+    if (filterPatient) {
+      const patientName = `${invoice.patientFirstName || ''} ${invoice.patientLastName || ''}`.toLowerCase();
+      if (!patientName.includes(filterPatient.toLowerCase())) {
+        return false;
+      }
+    }
+
+    // Filter by test ID
+    if (filterTestId && !invoice.testId.toLowerCase().includes(filterTestId.toLowerCase())) {
+      return false;
+    }
+
+    // Filter by invoice date
+    if (filterInvoiceDate) {
+      const invoiceDate = new Date(invoice.invoiceDate).toISOString().split('T')[0];
+      if (invoiceDate !== filterInvoiceDate) {
+        return false;
+      }
+    }
+
+    return true;
+  });
+
   const sampleTakerCards = [
     {
       title: "Pending Collection",
@@ -414,10 +468,124 @@ export function SampleTakerDashboard() {
           <CardDescription>All paid invoices for lab results with complete details from both invoices and lab results tables</CardDescription>
         </CardHeader>
         <CardContent>
+          {/* Filters Section */}
+          <div className="mb-6 space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Status Filter */}
+              <div className="space-y-2">
+                <Label htmlFor="filter-status" className="text-sm font-medium">Status</Label>
+                <Select value={filterStatus} onValueChange={setFilterStatus}>
+                  <SelectTrigger id="filter-status" data-testid="filter-status">
+                    <SelectValue placeholder="All Statuses" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="paid">Paid</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="overdue">Overdue</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Sample Collected Filter */}
+              <div className="space-y-2">
+                <Label htmlFor="filter-sample-collected" className="text-sm font-medium">Sample Collected</Label>
+                <Select value={filterSampleCollected} onValueChange={setFilterSampleCollected}>
+                  <SelectTrigger id="filter-sample-collected" data-testid="filter-sample-collected">
+                    <SelectValue placeholder="All" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="collected">Collected</SelectItem>
+                    <SelectItem value="not_collected">Not Collected</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Invoice Number Search */}
+              <div className="space-y-2">
+                <Label htmlFor="filter-invoice-number" className="text-sm font-medium">Invoice #</Label>
+                <Input
+                  id="filter-invoice-number"
+                  type="text"
+                  placeholder="Search by Invoice #"
+                  value={filterInvoiceNumber}
+                  onChange={(e) => setFilterInvoiceNumber(e.target.value)}
+                  data-testid="filter-invoice-number"
+                  className="w-full"
+                />
+              </div>
+
+              {/* Patient Name Search */}
+              <div className="space-y-2">
+                <Label htmlFor="filter-patient" className="text-sm font-medium">Patient</Label>
+                <Input
+                  id="filter-patient"
+                  type="text"
+                  placeholder="Search by Patient Name"
+                  value={filterPatient}
+                  onChange={(e) => setFilterPatient(e.target.value)}
+                  data-testid="filter-patient"
+                  className="w-full"
+                />
+              </div>
+
+              {/* Test ID Search */}
+              <div className="space-y-2">
+                <Label htmlFor="filter-test-id" className="text-sm font-medium">Test ID</Label>
+                <Input
+                  id="filter-test-id"
+                  type="text"
+                  placeholder="Search by Test ID"
+                  value={filterTestId}
+                  onChange={(e) => setFilterTestId(e.target.value)}
+                  data-testid="filter-test-id"
+                  className="w-full"
+                />
+              </div>
+
+              {/* Invoice Date Filter */}
+              <div className="space-y-2">
+                <Label htmlFor="filter-invoice-date" className="text-sm font-medium">Invoice Date</Label>
+                <Input
+                  id="filter-invoice-date"
+                  type="date"
+                  value={filterInvoiceDate}
+                  onChange={(e) => setFilterInvoiceDate(e.target.value)}
+                  data-testid="filter-invoice-date"
+                  className="w-full"
+                />
+              </div>
+            </div>
+
+            {/* Clear Filters Button */}
+            <div className="flex justify-end">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setFilterStatus("all");
+                  setFilterSampleCollected("all");
+                  setFilterInvoiceNumber("");
+                  setFilterPatient("");
+                  setFilterTestId("");
+                  setFilterInvoiceDate("");
+                }}
+                data-testid="clear-filters"
+              >
+                Clear All Filters
+              </Button>
+            </div>
+          </div>
+
           {paidLabInvoices.length === 0 ? (
             <div className="text-center py-8 text-neutral-500 dark:text-neutral-400">
               <FileText className="h-12 w-12 mx-auto mb-3 opacity-50" />
               <p>No paid lab invoices found</p>
+            </div>
+          ) : filteredPaidLabInvoices.length === 0 ? (
+            <div className="text-center py-8 text-neutral-500 dark:text-neutral-400">
+              <FileText className="h-12 w-12 mx-auto mb-3 opacity-50" />
+              <p>No invoices match your filters</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -436,7 +604,7 @@ export function SampleTakerDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {paidLabInvoices.map((invoice: any) => (
+                  {filteredPaidLabInvoices.map((invoice: any) => (
                     <tr 
                       key={invoice.invoiceId} 
                       className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
