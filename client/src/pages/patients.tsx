@@ -65,9 +65,6 @@ export default function Patients() {
   const [patient, setPatient] = useState<any>(null);
   const [patientLoading, setPatientLoading] = useState(false);
   
-  // State for active/inactive filter toggle
-  const [showActivePatients, setShowActivePatients] = useState(true);
-  
   // State for gender filter ("all" shows both, "Male" shows males, "Female" shows females)
   const [genderFilter, setGenderFilter] = useState<"all" | "Male" | "Female">("all");
   
@@ -126,58 +123,6 @@ export default function Patients() {
       setSelectedPatient(patient);
     }
   }, [patient]);
-
-  // Active status update mutation
-  const activeStatusUpdateMutation = useMutation({
-    mutationFn: async ({ patientId, isActive }: { patientId: number; isActive: boolean }) => {
-      const token = localStorage.getItem('auth_token');
-      const headers: Record<string, string> = {
-        'X-Tenant-Subdomain': getTenantSubdomain(),
-        'Content-Type': 'application/json',
-      };
-
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-
-      const response = await fetch(`/api/patients/${patientId}`, {
-        method: 'PATCH',
-        headers,
-        credentials: 'include',
-        body: JSON.stringify({ isActive }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to update active status: ${response.status}`);
-      }
-
-      return response.json();
-    },
-    onSuccess: (updatedPatient) => {
-      // Update local state
-      setPatient(updatedPatient);
-      setSelectedPatient(updatedPatient);
-      // Auto refresh - invalidate and refetch patients
-      queryClient.invalidateQueries({ queryKey: ['/api/patients'] });
-      setSuccessMessage('Patient active status has been updated successfully.');
-      setShowSuccessModal(true);
-    },
-    onError: (error) => {
-      toast({
-        title: 'Error',
-        description: 'Failed to update active status. Please try again.',
-        variant: 'destructive',
-      });
-    },
-  });
-
-  // Helper function for active status toggle
-  const handleToggleActiveStatus = (patientId: number, currentStatus: boolean) => {
-    activeStatusUpdateMutation.mutate({
-      patientId,
-      isActive: !currentStatus,
-    });
-  };
 
   // Function to handle flag deletion
   const handleFlagDelete = async (flagIndex: number) => {
@@ -285,30 +230,6 @@ export default function Patients() {
                   <p className="text-sm text-gray-600 dark:text-neutral-300">
                     {patient.address?.street}, {patient.address?.city} {patient.address?.postcode}
                   </p>
-                </div>
-                {/* Active Status Badge with Toggle */}
-                <div>
-                  <p className="text-sm font-medium text-gray-700 dark:text-white">Status</p>
-                  <div className="flex items-center gap-3 mt-1">
-                    <Badge
-                      variant={patient.isActive ? "default" : "secondary"}
-                      className={`text-xs ${
-                        patient.isActive
-                          ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                          : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
-                      }`}
-                      data-testid={`badge-active-${patient.id}`}
-                    >
-                      {patient.isActive ? "Active" : "Inactive"}
-                    </Badge>
-                    <Switch
-                      checked={patient.isActive || false}
-                      onCheckedChange={() => handleToggleActiveStatus(patient.id, patient.isActive || false)}
-                      disabled={activeStatusUpdateMutation.isPending}
-                      className="h-4 w-8"
-                      data-testid={`toggle-active-${patient.id}`}
-                    />
-                  </div>
                 </div>
                 {patient.medicalHistory?.chronicConditions && (
                   <div>
@@ -443,17 +364,6 @@ export default function Patients() {
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Patients</h3>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-neutral-600 dark:text-neutral-300">
-                  {showActivePatients ? "Active" : "Inactive"}
-                </span>
-                <Switch
-                  checked={showActivePatients}
-                  onCheckedChange={setShowActivePatients}
-                  className="h-4 w-8"
-                  data-testid="toggle-patient-filter"
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-neutral-600 dark:text-neutral-300">
                   Gender: {genderFilter === "all" ? "All" : genderFilter}
                 </span>
                 <Button
@@ -484,7 +394,7 @@ export default function Patients() {
               </div>
             </div>
             <p className="text-sm text-neutral-600 dark:text-neutral-300">
-              View and manage {showActivePatients ? "active" : "inactive"} patient information securely.
+              View and manage patient information securely.
             </p>
           </div>
           <Button 
@@ -498,7 +408,7 @@ export default function Patients() {
           </Button>
         </div>
 
-        <PatientList showActiveOnly={showActivePatients} genderFilter={genderFilter === "all" ? null : genderFilter} viewMode={isListView ? "list" : "grid"} />
+        <PatientList genderFilter={genderFilter === "all" ? null : genderFilter} viewMode={isListView ? "list" : "grid"} />
       </div>
 
       <PatientModal 
