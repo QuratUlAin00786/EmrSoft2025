@@ -2356,7 +2356,7 @@ Report generated from Cura EMR System`;
 
                     {/* Header with patient name and status - with right margin for blue box */}
                     <div className="flex items-center gap-3 mb-4 mr-72">
-                      <h3 className="text-lg font-semibold text-gray-900">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                         {getPatientName(result.patientId)}
                       </h3>
                       <div className="flex items-center gap-2">
