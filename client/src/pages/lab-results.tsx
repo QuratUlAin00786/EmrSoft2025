@@ -5162,45 +5162,6 @@ Report generated from Cura EMR System`;
                 <Button
                   variant="outline"
                   onClick={() => {
-                    // Auto-generate values for all empty fields
-                    const testTypes = selectedLabOrder.testType
-                      .split(',')
-                      .map((t: string) => t.trim())
-                      .filter((t: string) => TEST_FIELD_DEFINITIONS[t]);
-                    
-                    const newFormData: any = { ...fillResultFormData };
-                    
-                    testTypes.forEach((testType: string) => {
-                      const testFields = TEST_FIELD_DEFINITIONS[testType];
-                      if (testFields) {
-                        testFields.forEach((field) => {
-                          const fieldKey = `${testType}::${field.name}`;
-                          // Only fill if field is empty
-                          if (!newFormData[fieldKey] || newFormData[fieldKey].trim() === "") {
-                            const generatedValue = generateValueFromRange(field.referenceRange);
-                            if (generatedValue !== null) {
-                              newFormData[fieldKey] = generatedValue;
-                            }
-                          }
-                        });
-                      }
-                    });
-                    
-                    setFillResultFormData(newFormData);
-                    toast({
-                      title: "Success",
-                      description: "Test results auto-generated successfully",
-                    });
-                  }}
-                  className="bg-purple-50 hover:bg-purple-100 text-purple-700 border-purple-200"
-                  data-testid="button-auto-fill-results"
-                >
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  Auto-Fill Results
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => {
                     setShowFillResultDialog(false);
                     setFillResultFormData({});
                     setValidationErrors({});
