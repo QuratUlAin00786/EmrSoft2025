@@ -363,7 +363,9 @@ export function SampleTakerDashboard() {
                         {invoice.invoiceNumber}
                       </td>
                       <td className="p-3 text-sm text-gray-900 dark:text-gray-100">
-                        {getPatientName(invoice.patientId)}
+                        {invoice.patientFirstName && invoice.patientLastName 
+                          ? `${invoice.patientFirstName} ${invoice.patientLastName}` 
+                          : 'Unknown Patient'}
                       </td>
                       <td className="p-3 text-sm text-gray-900 dark:text-gray-100 font-medium">
                         {invoice.testId}

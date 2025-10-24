@@ -6848,23 +6848,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const organizationId = req.tenant!.id;
       console.log(`[PAID LAB INVOICES] Fetching for organization ${organizationId}`);
 
-      // Fetch all invoices and lab results
+      // Fetch all invoices, lab results, and patients
       const invoices = await storage.getInvoicesByOrganization(organizationId);
       const labResults = await storage.getLabResults(organizationId);
+      const patients = await storage.getPatientsByOrganization(organizationId);
 
       console.log(`[PAID LAB INVOICES] Total invoices: ${invoices.length}`);
       console.log(`[PAID LAB INVOICES] Total lab results: ${labResults.length}`);
+      console.log(`[PAID LAB INVOICES] Total patients: ${patients.length}`);
 
       // Filter paid invoices with serviceType = "lab_result"
       const paidInvoices = invoices.filter(invoice => invoice.status === 'paid' && invoice.serviceType === 'lab_result');
       console.log(`[PAID LAB INVOICES] Paid lab invoices found: ${paidInvoices.length}`);
 
-      // Join with lab_results
+      // Join with lab_results and patients
       const paidLabInvoices = paidInvoices
         .map(invoice => {
           // Match invoice.serviceId with lab_results.testId
           const labResult = labResults.find(lr => lr.testId === invoice.serviceId);
           console.log(`[PAID LAB INVOICES] Invoice ${invoice.invoiceNumber} serviceId: ${invoice.serviceId}, matched lab result: ${labResult?.testId || 'NOT FOUND'}`);
+
+          // Match patient by patientId from invoice
+          const patient = patients.find(p => p.patientId === invoice.patientId);
 
           return {
             // Invoice fields
@@ -6877,6 +6882,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             patientId: invoice.patientId,
             serviceType: invoice.serviceType,
             serviceId: invoice.serviceId,
+            // Patient fields (if matched)
+            patientFirstName: patient?.firstName || null,
+            patientLastName: patient?.lastName || null,
             // Lab result fields (if matched)
             testId: labResult?.testId || null,
             testType: labResult?.testType || null,
