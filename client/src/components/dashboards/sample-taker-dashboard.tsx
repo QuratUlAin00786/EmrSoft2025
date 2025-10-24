@@ -293,13 +293,13 @@ export function SampleTakerDashboard() {
       <Card>
         <CardHeader>
           <CardTitle>All Lab Results with Invoice Information</CardTitle>
-          <CardDescription>Complete lab results data joined with invoice details</CardDescription>
+          <CardDescription>Complete lab results data joined with invoice details (uncollected samples)</CardDescription>
         </CardHeader>
         <CardContent>
-          {labRequests.length === 0 ? (
+          {labRequests.filter((req: LabRequest) => req.Sample_Collected === false).length === 0 ? (
             <div className="text-center py-8 text-neutral-500 dark:text-neutral-400">
               <FlaskConical className="h-12 w-12 mx-auto mb-3 opacity-50" />
-              <p>No lab results found</p>
+              <p>No uncollected lab results found</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -319,7 +319,7 @@ export function SampleTakerDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {labRequests.map((request: LabRequest) => (
+                  {labRequests.filter((req: LabRequest) => req.Sample_Collected === false).map((request: LabRequest) => (
                     <tr 
                       key={request.id} 
                       className={`border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 ${
