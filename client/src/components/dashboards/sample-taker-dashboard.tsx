@@ -211,6 +211,7 @@ export function SampleTakerDashboard() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["/api/lab-results/with-invoices"] });
       queryClient.invalidateQueries({ queryKey: ["/api/lab-results"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/invoices/paid-lab-results"] });
       toast({
         title: variables.sampleCollected ? "Sample Collected" : "Sample Uncollected",
         description: variables.sampleCollected 
@@ -349,6 +350,7 @@ export function SampleTakerDashboard() {
                     <th className="text-left p-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Status</th>
                     <th className="text-left p-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Invoice Date</th>
                     <th className="text-left p-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Service Date</th>
+                    <th className="text-left p-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Sample Collected</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -382,6 +384,23 @@ export function SampleTakerDashboard() {
                       </td>
                       <td className="p-3 text-sm text-gray-600 dark:text-gray-400">
                         {new Date(invoice.serviceDate).toLocaleDateString()}
+                      </td>
+                      <td className="p-3">
+                        <div className="flex items-center gap-2">
+                          <Switch
+                            checked={invoice.Sample_Collected || false}
+                            onCheckedChange={() => {
+                              const labResultId = labRequests.find((lr: LabRequest) => lr.testId === invoice.testId)?.id;
+                              if (labResultId) {
+                                handleToggleSampleCollected(labResultId, invoice.Sample_Collected || false);
+                              }
+                            }}
+                            data-testid={`toggle-sample-${invoice.testId}`}
+                          />
+                          <span className="text-xs text-gray-600 dark:text-gray-400">
+                            {invoice.Sample_Collected ? 'Yes' : 'No'}
+                          </span>
+                        </div>
                       </td>
                     </tr>
                   ))}

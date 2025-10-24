@@ -6648,6 +6648,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Toggle Sample_Collected status
+  app.patch("/api/lab-results/:id/toggle-sample-collected", authMiddleware, requireRole(["admin", "sample_taker", "nurse", "lab_technician"]), async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const labResultId = parseInt(req.params.id);
+      if (isNaN(labResultId)) {
+        return res.status(400).json({ error: "Invalid lab result ID" });
+      }
+
+      const { sampleCollected } = req.body;
+
+      if (typeof sampleCollected !== 'boolean') {
+        return res.status(400).json({ error: "sampleCollected must be a boolean" });
+      }
+
+      // Fetch the lab result
+      const labResults = await storage.getLabResults(req.tenant!.id);
+      const labResult = labResults.find(result => result.id === labResultId);
+      
+      if (!labResult) {
+        return res.status(404).json({ error: "Lab result not found" });
+      }
+
+      // Update the lab result Sample_Collected field
+      const updateData: any = {
+        Sample_Collected: sampleCollected
+      };
+
+      const updatedLabResult = await storage.updateLabResult(labResultId, req.tenant!.id, updateData);
+
+      if (!updatedLabResult) {
+        return res.status(404).json({ error: "Failed to update lab result" });
+      }
+
+      res.json({ 
+        success: true, 
+        message: `Sample marked as ${sampleCollected ? 'collected' : 'not collected'}`,
+        labResult: updatedLabResult 
+      });
+    } catch (error) {
+      console.error("Error toggling sample collected status:", error);
+      res.status(500).json({ error: "Failed to update sample collection status" });
+    }
+  });
+
   // Get lab results joined with invoices for sample taker dashboard
   app.get("/api/lab-results/with-invoices", authMiddleware, async (req: TenantRequest, res) => {
     try {
