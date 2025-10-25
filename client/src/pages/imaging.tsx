@@ -5280,8 +5280,8 @@ export default function ImagingPage() {
                     try {
                       if (summaryData.invoice.paymentMethod === 'cash') {
                         // For Cash payment: Create invoice with payment record
-                        // Get the image ID from uploadResult for service_id
-                        const imageId = summaryData.uploadResult?.images?.[0]?.id || null;
+                        // Get the image ID (e.g., IMG1761380377679I37ONC) from uploadResult for service_id
+                        const imageId = summaryData.uploadResult?.images?.[0]?.imageId || null;
                         
                         const invoiceData = {
                           patientId: summaryData.invoice.patient,

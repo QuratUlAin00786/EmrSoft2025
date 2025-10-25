@@ -14970,7 +14970,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         insuranceProvider: z.string().optional(),
         nhsNumber: z.string().optional(),
         notes: z.string().optional(),
-        serviceId: z.number().optional(),
+        serviceId: z.union([z.number(), z.string()]).optional(),
         serviceType: z.string().optional()
       }).parse(req.body);
 
