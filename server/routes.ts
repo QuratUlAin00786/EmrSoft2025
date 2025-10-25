@@ -16838,9 +16838,9 @@ Cura EMR Team
                 color: primaryBlue
               });
               
-              // Draw the medical image
+              // Draw the medical image on the right side
               page.drawImage(image, {
-                x: (width - drawWidth) / 2, // Center the image
+                x: width - drawWidth - 40, // Right-aligned with 40pt margin
                 y: yPosition - drawHeight - 40,
                 width: drawWidth,
                 height: drawHeight
