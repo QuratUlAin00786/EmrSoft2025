@@ -10475,6 +10475,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Save Anatomical Analysis Image
+  app.post("/api/anatomical-analysis/save-image", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const imageUploadData = z.object({
+        patientId: z.number(),
+        imageData: z.string(),
+        muscleGroup: z.string().optional()
+      }).parse(req.body);
+
+      const organizationId = req.tenant!.id;
+      const patientId = imageUploadData.patientId;
+
+      // Create directory structure: uploads/{organization_id}/anatomical_analysis_img/{patient_id}/
+      const baseDir = path.join('./uploads', organizationId.toString(), 'anatomical_analysis_img', patientId.toString());
+      
+      // Check if directory exists, if not create it recursively
+      if (!await fs.promises.access(baseDir).then(() => true).catch(() => false)) {
+        await fs.promises.mkdir(baseDir, { recursive: true });
+        console.log(`📁 Created directory: ${baseDir}`);
+      }
+
+      // Define image file path: {patient_id}.png
+      const imagePath = path.join(baseDir, `${patientId}.png`);
+      
+      // Convert base64 image data to buffer
+      const base64Data = imageUploadData.imageData.replace(/^data:image\/\w+;base64,/, '');
+      const imageBuffer = Buffer.from(base64Data, 'base64');
+
+      // Check if image already exists
+      const imageExists = await fs.promises.access(imagePath).then(() => true).catch(() => false);
+      
+      if (imageExists) {
+        // Update existing image
+        await fs.promises.writeFile(imagePath, imageBuffer);
+        console.log(`✏️ Updated anatomical analysis image for patient ${patientId} at: ${imagePath}`);
+        
+        res.json({
+          message: "Anatomical analysis image updated successfully",
+          path: imagePath,
+          action: "updated"
+        });
+      } else {
+        // Create new image
+        await fs.promises.writeFile(imagePath, imageBuffer);
+        console.log(`💾 Created new anatomical analysis image for patient ${patientId} at: ${imagePath}`);
+        
+        res.json({
+          message: "Anatomical analysis image created successfully",
+          path: imagePath,
+          action: "created"
+        });
+      }
+    } catch (error) {
+      console.error("Error saving anatomical analysis image:", error);
+      handleRouteError(error, "save anatomical analysis image", res);
+    }
+  });
+
   // Stripe Payment Intent for Subscription
   app.post("/api/create-subscription-payment-intent", authMiddleware, async (req: TenantRequest, res) => {
     try {

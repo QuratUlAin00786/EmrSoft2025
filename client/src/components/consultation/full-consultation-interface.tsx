@@ -1576,6 +1576,16 @@ ${
 
   // SAVE IMAGE WITH YELLOW DOTS FOR SELECTED MUSCLE GROUP
   const saveImageWithYellowDots = async () => {
+    const currentPatientId = patientId || patient?.id;
+    if (!currentPatientId) {
+      toast({
+        title: "Cannot Save Image",
+        description: "No patient selected.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     if (!selectedMuscleGroup || !imageRef.current || !canvasRef.current) {
       toast({
         title: "Cannot Save Image",
@@ -1631,24 +1641,35 @@ ${
         ctx.stroke();
       });
 
-      // Convert canvas to blob and download
-      canvas.toBlob((blob) => {
-        if (blob) {
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = 'Updated_facial_muscle_diagram.png';
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
+      // Convert canvas to base64
+      const imageData = canvas.toDataURL('image/png');
+      
+      // Send to server to save
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/anatomical-analysis/save-image', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': getTenantSubdomain(),
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          patientId: currentPatientId,
+          imageData: imageData,
+          muscleGroup: selectedMuscleGroup
+        })
+      });
 
-          toast({
-            title: "Image Saved",
-            description: `Image with ${musclePositions.length} yellow dot(s) for ${selectedMuscleGroup.replace(/_/g, ' ')} has been downloaded.`
-          });
-        }
-      }, 'image/png');
+      if (!response.ok) {
+        throw new Error('Failed to save image to server');
+      }
+
+      const result = await response.json();
+
+      toast({
+        title: "Image Saved to Server",
+        description: `Image with ${musclePositions.length} yellow dot(s) for ${selectedMuscleGroup.replace(/_/g, ' ')} has been saved successfully.`
+      });
     } catch (error) {
       console.error('Error saving image with yellow dots:', error);
       toast({
