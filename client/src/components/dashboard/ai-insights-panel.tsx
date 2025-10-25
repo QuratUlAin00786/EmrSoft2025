@@ -250,7 +250,8 @@ export function AiInsightsPanel() {
             size="sm"
             className="text-medical-blue hover:text-blue-700"
             onClick={() => {
-              setLocation("/clinical-decision-support");
+              const subdomain = getActiveSubdomain();
+              setLocation(`/${subdomain}/clinical-decision-support`);
             }}
           >
             View More
