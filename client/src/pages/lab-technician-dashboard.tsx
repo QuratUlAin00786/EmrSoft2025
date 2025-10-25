@@ -23,6 +23,7 @@ import {
   Grid3x3,
   List,
   CheckCircle2,
+  Filter,
 } from "lucide-react";
 import { format } from "date-fns";
 import { apiRequest } from "@/lib/queryClient";
@@ -78,6 +79,8 @@ interface LabTest {
   sampleCollected?: boolean;
   invoiceStatus?: string;
   invoiceNumber?: string;
+  nhsNumber?: string;
+  patientEmail?: string;
 }
 
 export default function LabTechnicianDashboard() {
@@ -87,6 +90,8 @@ export default function LabTechnicianDashboard() {
   const [selectedTest, setSelectedTest] = useState<LabTest | null>(null);
   const [generateFormData, setGenerateFormData] = useState<any>({});
   const [viewMode, setViewMode] = useState<"card" | "list">("card");
+  const [filterInvoiceStatus, setFilterInvoiceStatus] = useState<"all" | "paid" | "unpaid">("all");
+  const [filterSampleCollected, setFilterSampleCollected] = useState<"all" | "collected" | "not_collected">("all");
 
   // Fetch lab tests for lab technician
   const { data: labTests = [], isLoading } = useQuery({
@@ -97,15 +102,33 @@ export default function LabTechnicianDashboard() {
     },
   });
 
-  // Filter lab tests based on search query
+  // Filter lab tests based on search query and filters
   const filteredTests = labTests.filter((test: LabTest) => {
+    // Search filter
     const query = searchQuery.toLowerCase();
-    return (
+    const matchesSearch = !query || (
       test.testId.toLowerCase().includes(query) ||
       test.testType.toLowerCase().includes(query) ||
       test.patientName.toLowerCase().includes(query) ||
-      test.doctorName.toLowerCase().includes(query)
+      test.doctorName.toLowerCase().includes(query) ||
+      (test.invoiceNumber && test.invoiceNumber.toLowerCase().includes(query)) ||
+      (test.nhsNumber && test.nhsNumber.toLowerCase().includes(query)) ||
+      (test.patientEmail && test.patientEmail.toLowerCase().includes(query))
     );
+
+    // Invoice status filter
+    const matchesInvoiceStatus = 
+      filterInvoiceStatus === "all" ||
+      (filterInvoiceStatus === "paid" && test.invoiceStatus === "paid") ||
+      (filterInvoiceStatus === "unpaid" && test.invoiceStatus !== "paid");
+
+    // Sample collected filter
+    const matchesSampleCollected = 
+      filterSampleCollected === "all" ||
+      (filterSampleCollected === "collected" && test.sampleCollected === true) ||
+      (filterSampleCollected === "not_collected" && test.sampleCollected !== true);
+
+    return matchesSearch && matchesInvoiceStatus && matchesSampleCollected;
   });
 
   // Parse test types from testType string (could be comma-separated or array)
@@ -192,7 +215,7 @@ export default function LabTechnicianDashboard() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by Test ID, Patient Name, Test Type, or Doctor..."
+              placeholder="Search by Test ID, Invoice No., Patient Name, NHS No., Email..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -215,6 +238,70 @@ export default function LabTechnicianDashboard() {
               data-testid="button-view-list"
             >
               <List className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Filter Toggles */}
+        <div className="flex flex-wrap gap-3 items-center">
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm font-medium">Filters:</span>
+          </div>
+          
+          {/* Invoice Status Filter */}
+          <div className="flex gap-2">
+            <Button
+              variant={filterInvoiceStatus === "all" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setFilterInvoiceStatus("all")}
+              data-testid="filter-invoice-all"
+            >
+              All Invoices
+            </Button>
+            <Button
+              variant={filterInvoiceStatus === "paid" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setFilterInvoiceStatus("paid")}
+              data-testid="filter-invoice-paid"
+            >
+              Paid
+            </Button>
+            <Button
+              variant={filterInvoiceStatus === "unpaid" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setFilterInvoiceStatus("unpaid")}
+              data-testid="filter-invoice-unpaid"
+            >
+              Unpaid
+            </Button>
+          </div>
+
+          {/* Sample Collection Filter */}
+          <div className="flex gap-2">
+            <Button
+              variant={filterSampleCollected === "all" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setFilterSampleCollected("all")}
+              data-testid="filter-sample-all"
+            >
+              All Samples
+            </Button>
+            <Button
+              variant={filterSampleCollected === "collected" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setFilterSampleCollected("collected")}
+              data-testid="filter-sample-collected"
+            >
+              Sample Collected
+            </Button>
+            <Button
+              variant={filterSampleCollected === "not_collected" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setFilterSampleCollected("not_collected")}
+              data-testid="filter-sample-not-collected"
+            >
+              Sample Not Collected
             </Button>
           </div>
         </div>

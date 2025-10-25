@@ -6715,7 +6715,7 @@ This treatment plan should be reviewed and adjusted based on individual patient 
 
       const organizationId = req.tenant!.id;
 
-      // Query lab_results joined with patients and invoices
+      // Query lab_results joined with patients and invoices (LEFT JOIN to get all results)
       const query = `
         SELECT DISTINCT ON (lr.id)
           lr.id,
@@ -6729,17 +6729,16 @@ This treatment plan should be reviewed and adjusted based on individual patient 
           lr.patient_id as "patientId",
           lr."Sample_Collected" as "sampleCollected",
           CONCAT(p.first_name, ' ', p.last_name) as "patientName",
+          p.nhs_number as "nhsNumber",
+          p.email as "patientEmail",
           i.status as "invoiceStatus",
           i.invoice_number as "invoiceNumber"
         FROM lab_results lr
         INNER JOIN patients p ON lr.patient_id = p.id AND p.organization_id = $1
-        INNER JOIN invoices i ON i.service_id = lr.test_id 
+        LEFT JOIN invoices i ON i.service_id = lr.test_id 
           AND i.service_type = 'lab_result'
-          AND i.status = 'paid'
           AND i.organization_id = $1
         WHERE lr.organization_id = $1
-          AND lr."Sample_Collected" = true
-          AND lr."Lab_Request_Generated" = true
         ORDER BY lr.id, lr.ordered_at DESC
       `;
 
