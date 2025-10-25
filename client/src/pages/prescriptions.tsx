@@ -917,22 +917,6 @@ export default function PrescriptionsPage() {
             prescriptionData.prescriptionCreatedBy || prescriptionData.doctorId;
           const doctorInfo = providers?.find((p: any) => p.id === doctorId);
 
-          // Professional Header - Similar to medical prescription format
-          pdf.setFontSize(16);
-          pdf.setFont("helvetica", "bold");
-          pdf.setTextColor(0, 0, 0);
-          pdf.text("CURA HEALTH EMR", 20, 20);
-
-          // Doctor information after header
-          pdf.setFontSize(9);
-          pdf.setFont("helvetica", "normal");
-      
-          pdf.text(`Prescription #: ${prescriptionNumber}`, 20, doctorInfo ? 31 : 26);
-
-          // Center Title
-          pdf.setFontSize(18);
-          pdf.setFont("helvetica", "bold");
-
           // Clinic Information with styling
           const clinicName =
             clinicHeader?.clinicName ||
@@ -953,7 +937,7 @@ export default function PrescriptionsPage() {
           const fontStyle =
             clinicHeader?.fontStyle === "italic" ? "italic" : "normal";
 
-          let yPosition = 58;
+          let yPosition = 30;
 
           // Logo handling - if center, place beside text; if left/right, place above
           if (clinicHeader?.logoBase64) {
