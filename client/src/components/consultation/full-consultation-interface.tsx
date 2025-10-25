@@ -42,6 +42,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import jsPDF from "jspdf";
+import { useTenant } from "@/hooks/use-tenant";
 
 import updatedFacialMuscleImage from "@assets/generated_images/Updated_facial_muscle_diagram.png";
 import cleanFacialOutlineV2Image from "@assets/generated_images/Clean_facial_outline_v2.png";
@@ -88,6 +89,7 @@ interface FullConsultationInterfaceProps {
 export function FullConsultationInterface({ open, onOpenChange, patient, patientName, patientId }: FullConsultationInterfaceProps) {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
+  const { tenant } = useTenant();
 
   // Save consultation mutation
   const saveConsultationMutation = useMutation({
@@ -4404,6 +4406,30 @@ ${
                         doc.text('Professional Anatomical Analysis Report', 105, yPos, { align: 'center' });
                         yPos += 15;
 
+                        // Add anatomical analysis image if available
+                        try {
+                          const organizationId = tenant?.id || 0;
+                          const imagePath = `/uploads/anatomical_analysis_img/${organizationId}/${currentPatientId}/${currentPatientId}.png`;
+                          
+                          const imageResponse = await fetch(imagePath);
+                          if (imageResponse.ok) {
+                            const imageBlob = await imageResponse.blob();
+                            const imageBase64 = await new Promise<string>((resolve) => {
+                              const reader = new FileReader();
+                              reader.onloadend = () => resolve(reader.result as string);
+                              reader.readAsDataURL(imageBlob);
+                            });
+                            
+                            // Add image to PDF with proper sizing
+                            const imgWidth = 170; // Full content width
+                            const imgHeight = 120; // Maintain aspect ratio
+                            doc.addImage(imageBase64, 'PNG', 20, yPos, imgWidth, imgHeight);
+                            yPos += imgHeight + 10;
+                          }
+                        } catch (imageError) {
+                          // Image not available, continue without it
+                        }
+
                         // Analysis Details
                         doc.setFontSize(12);
                         doc.setFont('helvetica', 'bold');
@@ -4888,6 +4914,30 @@ ${
                         doc.setFont('helvetica', 'bold');
                         doc.text('Professional Anatomical Analysis Report', 105, yPos, { align: 'center' });
                         yPos += 15;
+
+                        // Add anatomical analysis image if available
+                        try {
+                          const organizationId = tenant?.id || 0;
+                          const imagePath = `/uploads/anatomical_analysis_img/${organizationId}/${currentPatientId}/${currentPatientId}.png`;
+                          
+                          const imageResponse = await fetch(imagePath);
+                          if (imageResponse.ok) {
+                            const imageBlob = await imageResponse.blob();
+                            const imageBase64 = await new Promise<string>((resolve) => {
+                              const reader = new FileReader();
+                              reader.onloadend = () => resolve(reader.result as string);
+                              reader.readAsDataURL(imageBlob);
+                            });
+                            
+                            // Add image to PDF with proper sizing
+                            const imgWidth = 170; // Full content width
+                            const imgHeight = 120; // Maintain aspect ratio
+                            doc.addImage(imageBase64, 'PNG', 20, yPos, imgWidth, imgHeight);
+                            yPos += imgHeight + 10;
+                          }
+                        } catch (imageError) {
+                          // Image not available, continue without it
+                        }
 
                         // Analysis Details
                         doc.setFontSize(12);
