@@ -2811,77 +2811,78 @@ export default function PrescriptionsPage() {
                                 </Select>
                               </div>
 
-                              <div>
-                                <Label htmlFor="provider">Select Name</Label>
-                                <Select
-                                  value={formData.providerId}
-                                  onValueChange={(value) =>
-                                    setFormData((prev) => ({
-                                      ...prev,
-                                      providerId: value,
-                                    }))
-                                  }
-                                  disabled={!selectedRole}
-                                >
-                                  <SelectTrigger data-testid="select-provider">
-                                    <SelectValue
-                                      placeholder={
-                                        selectedRole
-                                          ? "Select name..."
-                                          : "Select a role first"
-                                      }
-                                    />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {allUsers
-                                      .filter(
-                                        (usr: any) => usr.role === selectedRole,
-                                      )
-                                      .map((usr: any) => (
-                                        <SelectItem
-                                          key={usr.id}
-                                          value={usr.id.toString()}
-                                        >
-                                          {usr.firstName} {usr.lastName}
-                                        </SelectItem>
-                                      ))}
-                                  </SelectContent>
-                                </Select>
-                              </div>
                             </>
                           )}
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-1 gap-4"></div>
-
-                      <div>
-                        <Label htmlFor="diagnosis">Diagnosis *</Label>
-                        <Input
-                          id="diagnosis"
-                          placeholder="Enter diagnosis"
-                          value={formData.diagnosis}
-                          onChange={(e) =>
-                            setFormData((prev) => ({
-                              ...prev,
-                              diagnosis: e.target.value,
-                            }))
-                          }
-                          data-testid="input-diagnosis"
-                          className={
-                            formErrors.general && !formData.diagnosis.trim()
-                              ? "border-red-500"
-                              : ""
-                          }
-                        />
-                        {formErrors.general && !formData.diagnosis.trim() && (
-                          <p
-                            className="text-red-500 text-sm mt-1"
-                            data-testid="error-diagnosis"
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="provider">Select Name</Label>
+                          <Select
+                            value={formData.providerId}
+                            onValueChange={(value) =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                providerId: value,
+                              }))
+                            }
+                            disabled={!selectedRole}
                           >
-                            Diagnosis is required
-                          </p>
-                        )}
+                            <SelectTrigger data-testid="select-provider">
+                              <SelectValue
+                                placeholder={
+                                  selectedRole
+                                    ? "Select name..."
+                                    : "Select a role first"
+                                }
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {allUsers
+                                .filter(
+                                  (usr: any) => usr.role === selectedRole,
+                                )
+                                .map((usr: any) => (
+                                  <SelectItem
+                                    key={usr.id}
+                                    value={usr.id.toString()}
+                                  >
+                                    {usr.firstName} {usr.lastName}
+                                  </SelectItem>
+                                ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div>
+                          <Label htmlFor="diagnosis">Diagnosis *</Label>
+                          <Input
+                            id="diagnosis"
+                            placeholder="Enter diagnosis"
+                            value={formData.diagnosis}
+                            onChange={(e) =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                diagnosis: e.target.value,
+                              }))
+                            }
+                            data-testid="input-diagnosis"
+                            className={
+                              formErrors.general && !formData.diagnosis.trim()
+                                ? "border-red-500"
+                                : ""
+                            }
+                          />
+                          {formErrors.general && !formData.diagnosis.trim() && (
+                            <p
+                              className="text-red-500 text-sm mt-1"
+                              data-testid="error-diagnosis"
+                            >
+                              Diagnosis is required
+                            </p>
+                          )}
+                        </div>
                       </div>
 
                       <div className="space-y-4">
