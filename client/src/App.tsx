@@ -32,6 +32,7 @@ import FormsPage from "@/pages/forms";
 import MessagingPage from "@/pages/messaging";
 import PrescriptionsPage from "@/pages/prescriptions";
 import LabResultsPage from "@/pages/lab-results";
+import LabTechnicianDashboard from "@/pages/lab-technician-dashboard";
 import ImagingPage from "@/pages/imaging";
 import BillingPage from "@/pages/billing";
 import AnalyticsPage from "@/pages/analytics";
@@ -286,6 +287,7 @@ function ProtectedApp() {
             component={PrescriptionsPage}
           />
           <Route path="/:subdomain/lab-results" component={LabResultsPage} />
+          <Route path="/:subdomain/lab-technician-dashboard" component={LabTechnicianDashboard} />
           <Route path="/:subdomain/imaging" component={ImagingPage} />
           <Route path="/:subdomain/forms" component={FormsPage} />
           <Route path="/:subdomain/messaging" component={MessagingPage} />
@@ -369,6 +371,7 @@ function ProtectedApp() {
           <Route path="/appointments" component={LegacyRouteRedirect} />
           <Route path="/prescriptions" component={LegacyRouteRedirect} />
           <Route path="/lab-results" component={LegacyRouteRedirect} />
+          <Route path="/lab-technician-dashboard" component={LegacyRouteRedirect} />
           <Route path="/imaging" component={LegacyRouteRedirect} />
           <Route path="/forms" component={LegacyRouteRedirect} />
           <Route path="/messaging" component={LegacyRouteRedirect} />
