@@ -182,6 +182,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -722,6 +723,7 @@ export default function LabResultsPage() {
   const [testTypeOpen, setTestTypeOpen] = useState(false);
   const [editingStatusId, setEditingStatusId] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [activeTab, setActiveTab] = useState<"request" | "generated">("request");
 
   // Helper function to generate random value within reference range
   const generateValueFromRange = (referenceRange: string): string | null => {
@@ -1920,7 +1922,12 @@ Report generated from Cura EMR System`;
         const matchesStatus =
           statusFilter === "all" || result.status === statusFilter;
 
-        return matchesSearch && matchesStatus;
+        const matchesTab =
+          activeTab === "request"
+            ? result.labReportGenerated === false
+            : result.labReportGenerated === true;
+
+        return matchesSearch && matchesStatus && matchesTab;
       })
     : [];
 
@@ -1990,8 +1997,14 @@ Report generated from Cura EMR System`;
       />
 
       <div className="flex-1 overflow-auto p-6">
-        <div className="space-y-6">
-          {/* Quick Stats */}
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "request" | "generated")} className="w-full">
+          <TabsList className="mb-6">
+            <TabsTrigger value="request">Request Report</TabsTrigger>
+            <TabsTrigger value="generated">Generated Reports</TabsTrigger>
+          </TabsList>
+          <TabsContent value={activeTab} className="mt-0">
+            <div className="space-y-6">
+              {/* Quick Stats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Card>
               <CardContent className="p-4">
@@ -2806,7 +2819,9 @@ Report generated from Cura EMR System`;
               ))
             )}
           </div>
-        </div>
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* Order Lab Test Dialog */}
