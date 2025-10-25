@@ -2975,6 +2975,18 @@ Report generated from Cura EMR System`;
                             <Download className="h-4 w-4 mr-2" />
               
                           </Button>
+                          {user?.role !== 'patient' && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDeleteResult(result.id)}
+                              className="bg-red-50 hover:bg-red-100 text-red-700 border-red-200"
+                              data-testid="button-delete-lab-result"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete
+                            </Button>
+                          )}
                         </>
                       ) : activeTab === "generate" ? (
                         <>
