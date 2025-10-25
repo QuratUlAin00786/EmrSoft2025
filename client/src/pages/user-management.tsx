@@ -2074,6 +2074,7 @@ export default function UserManagement() {
       case "patient":
         return "Patient";
       case "sample_taker":
+        return "Sample Taker";
       case "lab_technician":
         return "Lab Technician";
       default:
