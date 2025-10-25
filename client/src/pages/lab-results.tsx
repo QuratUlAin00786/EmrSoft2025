@@ -5286,35 +5286,72 @@ Report generated from Cura EMR System`;
                       <div key={testType} className="mb-6 p-4 bg-gray-50 rounded-lg border">
                         <h4 className="font-semibold text-blue-700 mb-4">{testType}</h4>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {testFields.map((field) => (
-                            <div key={field.name} className="space-y-1">
-                              <Label htmlFor={`${testType}-${field.name}`} className="text-sm">
-                                {field.name}
-                                <span className="text-gray-500 text-xs ml-2">
-                                  ({field.unit}) - Ref: {field.referenceRange}
-                                </span>
-                              </Label>
-                              <Input
-                                id={`${testType}-${field.name}`}
-                                type="text"
-                                placeholder={`Enter ${field.name} value`}
-                                value={generateFormData.testValues?.[testType]?.[field.name] || ""}
-                                onChange={(e) => {
-                                  setGenerateFormData((prev: any) => ({
-                                    ...prev,
-                                    testValues: {
-                                      ...prev.testValues,
-                                      [testType]: {
-                                        ...prev.testValues?.[testType],
-                                        [field.name]: e.target.value,
+                          {testFields.map((field) => {
+                            const currentValue = generateFormData.testValues?.[testType]?.[field.name] || "";
+                            
+                            // Parse reference range and check if critical
+                            let isCritical = false;
+                            let isNormal = false;
+                            if (currentValue && currentValue.trim() !== "") {
+                              const numValue = parseFloat(currentValue);
+                              if (!isNaN(numValue)) {
+                                // Parse reference range (e.g., "6 - 23", "13.0–17.0", "13.0-17.0")
+                                const rangeMatch = field.referenceRange.match(/([\d.]+)\s*[-–]\s*([\d.]+)/);
+                                if (rangeMatch) {
+                                  const minValue = parseFloat(rangeMatch[1]);
+                                  const maxValue = parseFloat(rangeMatch[2]);
+                                  if (!isNaN(minValue) && !isNaN(maxValue)) {
+                                    isNormal = numValue >= minValue && numValue <= maxValue;
+                                    isCritical = !isNormal;
+                                  }
+                                }
+                              }
+                            }
+
+                            return (
+                              <div key={field.name} className="space-y-1">
+                                <Label htmlFor={`${testType}-${field.name}`} className="text-sm">
+                                  {field.name}
+                                  <span className="text-gray-500 text-xs ml-2">
+                                    ({field.unit}) - Ref: {field.referenceRange}
+                                  </span>
+                                </Label>
+                                <Input
+                                  id={`${testType}-${field.name}`}
+                                  type="text"
+                                  placeholder={`Enter ${field.name} value`}
+                                  value={currentValue}
+                                  onChange={(e) => {
+                                    setGenerateFormData((prev: any) => ({
+                                      ...prev,
+                                      testValues: {
+                                        ...prev.testValues,
+                                        [testType]: {
+                                          ...prev.testValues?.[testType],
+                                          [field.name]: e.target.value,
+                                        },
                                       },
-                                    },
-                                  }));
-                                }}
-                                data-testid={`input-${testType.toLowerCase().replace(/\s+/g, '-')}-${field.name.toLowerCase().replace(/\s+/g, '-')}`}
-                              />
-                            </div>
-                          ))}
+                                    }));
+                                  }}
+                                  data-testid={`input-${testType.toLowerCase().replace(/\s+/g, '-')}-${field.name.toLowerCase().replace(/\s+/g, '-')}`}
+                                  className={isCritical ? "border-red-300" : isNormal ? "border-green-300" : ""}
+                                />
+                                {/* Status Indicator */}
+                                {isNormal && (
+                                  <div className="flex items-center gap-1 text-xs text-green-600 mt-1">
+                                    <span>✅</span>
+                                    <span className="font-medium">Normal</span>
+                                  </div>
+                                )}
+                                {isCritical && (
+                                  <div className="flex items-center gap-1 text-xs text-red-600 mt-1">
+                                    <span>⚠️</span>
+                                    <span className="font-medium">Critical - Outside normal range</span>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     );
