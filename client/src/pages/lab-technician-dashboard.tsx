@@ -358,13 +358,14 @@ export default function LabTechnicianDashboard() {
     return matchesSearch && matchesInvoiceStatus && matchesSampleCollected;
   });
 
-  // Parse test types from testType string (could be comma-separated or array)
+  // Parse test types from testType string (could be JSON array or pipe-separated)
   const parseTestTypes = (testType: string): string[] => {
     try {
       const parsed = JSON.parse(testType);
       return Array.isArray(parsed) ? parsed : [testType];
     } catch {
-      return testType.split(',').map(t => t.trim());
+      // Split by pipe (|) separator, NOT comma (since test names contain commas)
+      return testType.split('|').map(t => t.trim()).filter(t => t.length > 0);
     }
   };
 
