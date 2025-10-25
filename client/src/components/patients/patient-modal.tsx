@@ -590,6 +590,24 @@ export function PatientModal({ open, onOpenChange, editMode = false, editPatient
     }
   }, [editPatient, editMode, open, tenant?.region, form]);
 
+  // Watch for changes in postal code and country to auto-lookup
+  const watchedPostcode = form.watch("address.postcode");
+  const watchedCountry = form.watch("address.country");
+  
+  useEffect(() => {
+    // Auto-lookup when postal code or country changes
+    if (!watchedPostcode || watchedPostcode.trim().length < 3 || !watchedCountry) {
+      return;
+    }
+
+    // Debounce the lookup
+    const timeoutId = setTimeout(() => {
+      handlePostcodeLookup(watchedPostcode);
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [watchedPostcode, watchedCountry]);
+
   const patientMutation = useMutation({
     mutationFn: async (data: PatientFormData) => {
       const transformedData = {
