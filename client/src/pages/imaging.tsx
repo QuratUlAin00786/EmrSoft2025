@@ -5367,7 +5367,7 @@ export default function ImagingPage() {
                         const paymentData = {
                           organizationId: createdInvoice.organizationId,
                           invoiceId: createdInvoice.id,
-                          patientId: summaryData.selectedPatient.patientId,
+                          patientId: summaryData.invoice.patient,
                           transactionId: `TXN-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
                           amount: summaryData.invoice.totalAmount,
                           currency: 'GBP',
@@ -5390,7 +5390,7 @@ export default function ImagingPage() {
                         // Show success modal with invoice details
                         setPaymentSuccessData({
                           invoiceId: createdInvoice.invoiceNumber,
-                          patientName: `${summaryData.selectedPatient.firstName} ${summaryData.selectedPatient.lastName}`,
+                          patientName: createdInvoice.patientName,
                           amount: summaryData.invoice.totalAmount,
                         });
                         setShowPaymentSuccessDialog(true);
