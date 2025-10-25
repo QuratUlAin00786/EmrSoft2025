@@ -987,110 +987,121 @@ export default function UserManagement() {
     validateDOB(dobDay, dobMonth, value);
   };
   
-  // Auto-detect country, city, and state from postcode using Postcodes.io (UK) and Zippopotam.us (other countries)
+  // Auto-lookup city and state from postcode based on selected country
   const detectCountryFromPostcode = async (postcode: string) => {
-    console.log('🌍 Auto-detect triggered:', { postcode, postcodeLength: postcode?.trim().length });
+    const selectedCountry = form.watch("address.country");
     
-    // Validate postcode input
-    if (!postcode || postcode.trim().length < 3) {
-      console.log('🌍 Auto-detect skipped: postcode too short');
+    console.log('🌍 Auto-lookup triggered:', { postcode, selectedCountry });
+    
+    // Validate inputs
+    if (!postcode || postcode.trim().length < 3 || !selectedCountry) {
+      console.log('🌍 Auto-lookup skipped: missing postcode or country');
       return;
     }
 
-    console.log('🌍 Starting postcode lookup...');
+    console.log('🌍 Starting city lookup...');
     setIsDetectingCountry(true);
     
     // Normalize postcode
     const normalizedPostcode = postcode.trim().replace(/\s+/g, '');
     
+    // Country to ISO code mapping
+    const countryIsoMap: { [key: string]: string } = {
+      'United Kingdom': 'gb',
+      'United States': 'us',
+      'Canada': 'ca',
+      'Australia': 'au',
+      'Germany': 'de',
+      'France': 'fr',
+      'Spain': 'es',
+      'Italy': 'it',
+      'Netherlands': 'nl',
+      'Ireland': 'ie',
+      'Belgium': 'be',
+      'Switzerland': 'ch',
+      'Austria': 'at',
+      'Poland': 'pl',
+      'Portugal': 'pt',
+      'Czech Republic': 'cz',
+      'Denmark': 'dk',
+      'Sweden': 'se',
+      'Norway': 'no',
+      'Finland': 'fi',
+      'Greece': 'gr',
+      'Hungary': 'hu',
+      'Romania': 'ro',
+      'Bulgaria': 'bg',
+      'Croatia': 'hr',
+      'Slovakia': 'sk',
+      'Slovenia': 'si',
+      'Lithuania': 'lt',
+      'Latvia': 'lv',
+      'Estonia': 'ee',
+      'Luxembourg': 'lu',
+      'Malta': 'mt',
+      'Cyprus': 'cy',
+      'Iceland': 'is',
+      'New Zealand': 'nz',
+    };
+    
     try {
-      // First, try UK-specific Postcodes.io API
-      const ukResponse = await fetch(`https://api.postcodes.io/postcodes/${encodeURIComponent(postcode.trim())}`);
-      
-      if (ukResponse.ok) {
-        const ukData = await ukResponse.json();
+      // UK-specific lookup using Postcodes.io
+      if (selectedCountry === 'United Kingdom') {
+        const ukResponse = await fetch(`https://api.postcodes.io/postcodes/${encodeURIComponent(postcode.trim())}`);
         
-        if (ukData.status === 200 && ukData.result) {
-          const result = ukData.result;
-          console.log('🌍 ✅ UK Postcode found:', result);
+        if (ukResponse.ok) {
+          const ukData = await ukResponse.json();
           
-          // Set country
-          form.setValue("address.country", "United Kingdom");
+          if (ukData.status === 200 && ukData.result) {
+            const result = ukData.result;
+            console.log('🌍 ✅ UK Postcode found:', result);
+            
+            // Set City/Town with state format: "City, State"
+            const city = result.admin_district || result.parliamentary_constituency || '';
+            const state = result.region || result.county || '';
+            
+            if (city && state) {
+              form.setValue("address.city", `${city}, ${state}`);
+              console.log(`🌍 City/State detected: ${city}, ${state}`);
+            } else if (city) {
+              form.setValue("address.city", city);
+              console.log(`🌍 City detected: ${city}`);
+            }
+            
+            setIsDetectingCountry(false);
+            return;
+          }
+        }
+      }
+      
+      // Other countries using Zippopotam.us
+      const isoCode = countryIsoMap[selectedCountry];
+      if (isoCode) {
+        const response = await fetch(`https://api.zippopotam.us/${isoCode}/${normalizedPostcode}`);
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log(`🌍 ✅ Postcode found for ${selectedCountry}:`, data);
           
           // Set City/Town with state format: "City, State"
-          const city = result.admin_district || result.parliamentary_constituency || '';
-          const state = result.region || result.county || '';
-          
-          if (city && state) {
-            form.setValue("address.city", `${city}, ${state}`);
-            console.log(`🌍 City/State detected: ${city}, ${state}`);
-          } else if (city) {
-            form.setValue("address.city", city);
-            console.log(`🌍 City detected: ${city}`);
+          if (data.places && data.places.length > 0) {
+            const city = data.places[0]['place name'] || '';
+            const state = data.places[0]['state'] || '';
+            
+            if (city && state) {
+              form.setValue("address.city", `${city}, ${state}`);
+              console.log(`🌍 City/State detected: ${city}, ${state}`);
+            } else if (city) {
+              form.setValue("address.city", city);
+              console.log(`🌍 City detected: ${city}`);
+            }
           }
-          
-          setIsDetectingCountry(false);
-          return;
+        } else {
+          console.log(`🌍 ❌ No match found for postcode: ${normalizedPostcode} in ${selectedCountry}`);
         }
-      }
-      
-      // If not UK, try other countries with Zippopotam.us in parallel
-      console.log('🌍 Trying other countries...');
-      
-      const countriesToTry = [
-        { iso: 'us', name: 'United States' },
-        { iso: 'ca', name: 'Canada' },
-        { iso: 'au', name: 'Australia' },
-        { iso: 'de', name: 'Germany' },
-        { iso: 'fr', name: 'France' },
-        { iso: 'es', name: 'Spain' },
-        { iso: 'it', name: 'Italy' },
-        { iso: 'nl', name: 'Netherlands' },
-        { iso: 'ie', name: 'Ireland' },
-      ];
-
-      const promises = countriesToTry.map(async (country) => {
-        try {
-          const response = await fetch(`https://api.zippopotam.us/${country.iso}/${normalizedPostcode}`);
-          
-          if (response.ok) {
-            const data = await response.json();
-            return { country, data };
-          }
-          return null;
-        } catch (error) {
-          return null;
-        }
-      });
-
-      const results = await Promise.all(promises);
-      const successfulResult = results.find(result => result !== null);
-      
-      if (successfulResult) {
-        const { country, data } = successfulResult;
-        console.log(`🌍 ✅ Country detected: ${country.name}`, data);
-        
-        // Set country
-        form.setValue("address.country", country.name);
-        
-        // Set City/Town with state format: "City, State"
-        if (data.places && data.places.length > 0) {
-          const city = data.places[0]['place name'] || '';
-          const state = data.places[0]['state'] || '';
-          
-          if (city && state) {
-            form.setValue("address.city", `${city}, ${state}`);
-            console.log(`🌍 City/State detected: ${city}, ${state}`);
-          } else if (city) {
-            form.setValue("address.city", city);
-            console.log(`🌍 City detected: ${city}`);
-          }
-        }
-      } else {
-        console.log('🌍 ❌ No match found for postcode:', normalizedPostcode);
       }
     } catch (error) {
-      console.log('🌍 ❌ Detection error:', error);
+      console.log('🌍 ❌ Lookup error:', error);
     } finally {
       setIsDetectingCountry(false);
     }
@@ -2915,13 +2926,63 @@ export default function UserManagement() {
                     <div className="p-4 rounded-lg border border-gray-200 dark:border-gray-700">
                       <h5 className="font-medium text-blue-600 dark:text-blue-400 mb-4">Address Information</h5>
                       <div className="space-y-4">
-                        {/* Postcode first for auto-detection */}
+                        {/* Country FIRST - Step 1 */}
+                        <div className="space-y-2">
+                          <Label htmlFor="country">Country</Label>
+                          <Select 
+                            onValueChange={(value) => form.setValue("address.country", value)} 
+                            value={form.watch("address.country") || "United Kingdom"}
+                          >
+                            <SelectTrigger data-testid="select-country">
+                              <SelectValue placeholder="Select country" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="United Kingdom">🇬🇧 United Kingdom</SelectItem>
+                              <SelectItem value="United States">🇺🇸 United States</SelectItem>
+                              <SelectItem value="Canada">🇨🇦 Canada</SelectItem>
+                              <SelectItem value="Australia">🇦🇺 Australia</SelectItem>
+                              <SelectItem value="Germany">🇩🇪 Germany</SelectItem>
+                              <SelectItem value="France">🇫🇷 France</SelectItem>
+                              <SelectItem value="Spain">🇪🇸 Spain</SelectItem>
+                              <SelectItem value="Italy">🇮🇹 Italy</SelectItem>
+                              <SelectItem value="Netherlands">🇳🇱 Netherlands</SelectItem>
+                              <SelectItem value="Ireland">🇮🇪 Ireland</SelectItem>
+                              <SelectItem value="Belgium">🇧🇪 Belgium</SelectItem>
+                              <SelectItem value="Switzerland">🇨🇭 Switzerland</SelectItem>
+                              <SelectItem value="Austria">🇦🇹 Austria</SelectItem>
+                              <SelectItem value="Poland">🇵🇱 Poland</SelectItem>
+                              <SelectItem value="Portugal">🇵🇹 Portugal</SelectItem>
+                              <SelectItem value="Czech Republic">🇨🇿 Czech Republic</SelectItem>
+                              <SelectItem value="Denmark">🇩🇰 Denmark</SelectItem>
+                              <SelectItem value="Sweden">🇸🇪 Sweden</SelectItem>
+                              <SelectItem value="Norway">🇳🇴 Norway</SelectItem>
+                              <SelectItem value="Finland">🇫🇮 Finland</SelectItem>
+                              <SelectItem value="Greece">🇬🇷 Greece</SelectItem>
+                              <SelectItem value="Hungary">🇭🇺 Hungary</SelectItem>
+                              <SelectItem value="Romania">🇷🇴 Romania</SelectItem>
+                              <SelectItem value="Bulgaria">🇧🇬 Bulgaria</SelectItem>
+                              <SelectItem value="Croatia">🇭🇷 Croatia</SelectItem>
+                              <SelectItem value="Slovakia">🇸🇰 Slovakia</SelectItem>
+                              <SelectItem value="Slovenia">🇸🇮 Slovenia</SelectItem>
+                              <SelectItem value="Lithuania">🇱🇹 Lithuania</SelectItem>
+                              <SelectItem value="Latvia">🇱🇻 Latvia</SelectItem>
+                              <SelectItem value="Estonia">🇪🇪 Estonia</SelectItem>
+                              <SelectItem value="Luxembourg">🇱🇺 Luxembourg</SelectItem>
+                              <SelectItem value="Malta">🇲🇹 Malta</SelectItem>
+                              <SelectItem value="Cyprus">🇨🇾 Cyprus</SelectItem>
+                              <SelectItem value="Iceland">🇮🇸 Iceland</SelectItem>
+                              <SelectItem value="New Zealand">🇳🇿 New Zealand</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        {/* Postcode - Step 2 */}
                         <div className="space-y-2">
                           <Label htmlFor="postcode">Postcode (Auto-lookup)</Label>
                           <Input
                             id="postcode"
                             {...form.register("address.postcode")}
-                            placeholder="SW1A 1AA"
+                            placeholder="Enter postcode"
                             data-testid="input-postcode"
                             onChange={(e) => {
                               const value = e.target.value;
@@ -2932,16 +2993,16 @@ export default function UserManagement() {
                                 clearTimeout(detectionTimeout);
                               }
                               
-                              // Debounce: wait 600ms after user stops typing
+                              // Debounce: wait 500ms after user stops typing
                               const timeout = setTimeout(() => {
                                 detectCountryFromPostcode(value);
-                              }, 600);
+                              }, 500);
                               
                               setDetectionTimeout(timeout);
                             }}
                           />
                           {isDetectingCountry && (
-                            <p className="text-xs text-blue-500 dark:text-blue-400">🌍 Auto-detecting country...</p>
+                            <p className="text-xs text-green-600 dark:text-green-400">🌍 Looking up city...</p>
                           )}
                         </div>
                         
@@ -2956,40 +3017,15 @@ export default function UserManagement() {
                           />
                         </div>
                         
-                        {/* City/Town and Country in one row */}
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="city">City/Town</Label>
-                            <Input
-                              id="city"
-                              {...form.register("address.city")}
-                              placeholder="Enter city"
-                              data-testid="input-city"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="country">Country</Label>
-                            <Select 
-                              onValueChange={(value) => form.setValue("address.country", value)} 
-                              value={form.watch("address.country") || "United Kingdom"}
-                            >
-                              <SelectTrigger data-testid="select-country">
-                                <SelectValue placeholder="Select country" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="United Kingdom">United Kingdom</SelectItem>
-                                <SelectItem value="Ireland">Ireland</SelectItem>
-                                <SelectItem value="United States">United States</SelectItem>
-                                <SelectItem value="Canada">Canada</SelectItem>
-                                <SelectItem value="Australia">Australia</SelectItem>
-                                <SelectItem value="Germany">Germany</SelectItem>
-                                <SelectItem value="France">France</SelectItem>
-                                <SelectItem value="Spain">Spain</SelectItem>
-                                <SelectItem value="Italy">Italy</SelectItem>
-                                <SelectItem value="Netherlands">Netherlands</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
+                        {/* City/Town - Step 3 (Auto-filled) */}
+                        <div className="space-y-2">
+                          <Label htmlFor="city">City/Town</Label>
+                          <Input
+                            id="city"
+                            {...form.register("address.city")}
+                            placeholder="Auto-filled from postcode"
+                            data-testid="input-city"
+                          />
                         </div>
                       </div>
                     </div>
