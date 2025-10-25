@@ -7525,8 +7525,9 @@ This treatment plan should be reviewed and adjusted based on individual patient 
         hasTestFieldDefinitions: !!testFieldDefinitions
       }, null, 2));
 
-      if (!labResultId || !testId || !patientId || !testData) {
-        console.error("❌ Missing required fields:", { labResultId, testId, patientId, hasTestData: !!testData });
+      // Validate required fields (testData can be empty object - all fields are optional)
+      if (!labResultId || !testId || !patientId || testData === undefined || testData === null) {
+        console.error("❌ Missing required fields:", { labResultId, testId, patientId, hasTestData: testData !== undefined && testData !== null });
         return res.status(400).json({ error: "Missing required fields" });
       }
 
@@ -7663,8 +7664,12 @@ This treatment plan should be reviewed and adjusted based on individual patient 
           doc.text('Reference Range', 410, yPosition);
           yPosition += 20;
 
-          // Find all fields for this test type
-          const fields = Object.keys(testData).filter(key => key.startsWith(`${testType}_`) && testData[key]);
+          // Find all fields for this test type that have values (not empty strings)
+          const fields = Object.keys(testData).filter(key => 
+            key.startsWith(`${testType}_`) && 
+            testData[key] && 
+            testData[key].toString().trim() !== ''
+          );
           
           if (fields.length > 0) {
             doc.fontSize(9).font('Helvetica');
@@ -7687,14 +7692,15 @@ This treatment plan should be reviewed and adjusted based on individual patient 
                 yPosition = 50;
               }
 
-              // Draw table row
+              // Draw table row with actual values only
               doc.text(fieldName, 55, yPosition, { width: 170 });
-              doc.text(fieldValue, 230, yPosition, { width: 95 });
+              doc.text(fieldValue.toString(), 230, yPosition, { width: 95 });
               doc.text(unit, 330, yPosition, { width: 75 });
               doc.text(referenceRange, 410, yPosition, { width: 135 });
               yPosition += 18;
             });
           } else {
+            // Only show "no data" message if this test type was supposed to have data but doesn't
             doc.fontSize(9).font('Helvetica-Oblique').text('No data entered for this test type.', 55, yPosition);
             yPosition += 20;
           }
