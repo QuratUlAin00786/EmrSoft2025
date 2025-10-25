@@ -1121,7 +1121,7 @@ export default function ImagingPage() {
         name: `${selectedPatient.firstName} ${selectedPatient.lastName}`
       });
 
-      // Only upload if files are selected
+      // Upload files OR create order record
       if (selectedFiles.length > 0) {
         // Create FormData for multipart upload
         const formData = new FormData();
@@ -1183,6 +1183,38 @@ export default function ImagingPage() {
           selectedPatient,
           uploadedFiles: selectedFiles,
           totalSizeMB,
+          uploadResult: result,
+        });
+      } else {
+        // No files selected - create order record without files
+        console.log('📷 CLIENT: Creating medical image order without files');
+        
+        const imageData = {
+          patientId: selectedPatient.id,
+          imageType: uploadFormData.studyType,
+          studyType: uploadFormData.studyType,
+          modality: uploadFormData.modality,
+          bodyPart: uploadFormData.bodyPart || "Not specified",
+          indication: uploadFormData.indication || "",
+          priority: uploadFormData.priority,
+          notes: uploadFormData.indication || "",
+          filename: `ORDER-${Date.now()}.pending`,
+          fileUrl: null,
+          fileSize: 0,
+          uploadedBy: user?.id || 0,
+          status: "ordered"
+        };
+
+        const response = await apiRequest("POST", "/api/medical-images", imageData);
+        const result = await response.json();
+        console.log('📷 CLIENT: Medical image order created:', result);
+
+        // Store order data for invoice
+        setUploadedImageData({
+          ...uploadFormData,
+          selectedPatient,
+          uploadedFiles: [],
+          totalSizeMB: '0',
           uploadResult: result,
         });
       }
