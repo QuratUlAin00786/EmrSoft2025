@@ -5359,6 +5359,24 @@ Report generated from Cura EMR System`;
               </div>
             )}
 
+            {/* Notes */}
+            <div className="space-y-2">
+              <Label htmlFor="generate-notes">Clinical Notes (Optional)</Label>
+              <Textarea
+                id="generate-notes"
+                placeholder="Add any clinical notes or observations..."
+                value={generateFormData.notes || ""}
+                onChange={(e) =>
+                  setGenerateFormData((prev: any) => ({
+                    ...prev,
+                    notes: e.target.value,
+                  }))
+                }
+                rows={3}
+                data-testid="textarea-clinical-notes"
+              />
+            </div>
+
             {/* Critical Value Checkboxes */}
             <div className="space-y-2">
               <Label className="text-sm font-medium">Critical Status</Label>
@@ -5406,24 +5424,6 @@ Report generated from Cura EMR System`;
                   </Label>
                 </div>
               </div>
-            </div>
-
-            {/* Notes */}
-            <div className="space-y-2">
-              <Label htmlFor="generate-notes">Clinical Notes (Optional)</Label>
-              <Textarea
-                id="generate-notes"
-                placeholder="Add any clinical notes or observations..."
-                value={generateFormData.notes || ""}
-                onChange={(e) =>
-                  setGenerateFormData((prev: any) => ({
-                    ...prev,
-                    notes: e.target.value,
-                  }))
-                }
-                rows={3}
-                data-testid="textarea-clinical-notes"
-              />
             </div>
 
             {/* Action Buttons */}
