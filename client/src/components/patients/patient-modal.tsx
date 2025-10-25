@@ -1233,7 +1233,7 @@ export function PatientModal({ open, onOpenChange, editMode = false, editPatient
               <Card>
                 <CardContent className="p-6">
                   <h3 className="text-lg font-semibold mb-4">Emergency Contact</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
                       name="emergencyContact.name"
@@ -1278,7 +1278,7 @@ export function PatientModal({ open, onOpenChange, editMode = false, editPatient
                       control={form.control}
                       name="emergencyContact.phone"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem className="md:col-span-2">
                           <FormLabel>Contact Phone</FormLabel>
                           <FormControl>
                             <div className="flex gap-2">
