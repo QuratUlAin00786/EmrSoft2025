@@ -1839,6 +1839,11 @@ Report generated from Cura EMR System`;
             <!-- Footer -->
             <div style="margin-top: 50px; text-align: center; border-top: 1px solid #ddd; padding-top: 20px;">
               <div style="margin-bottom: 30px;">
+                ${selectedResult.signatureData ? `
+                  <div style="margin-bottom: 15px;">
+                    <img src="${selectedResult.signatureData}" alt="E-Signature" style="height: 80px; max-width: 250px; margin: 0 auto; display: block;" />
+                  </div>
+                ` : ""}
                 <div style="border-top: 2px solid #333; width: 300px; margin: 0 auto 10px;"></div>
                 <div style="font-weight: bold;">${selectedResult.doctorName || "Doctor"}</div>
                 ${selectedResult.mainSpecialty ? `<div style="font-size: 12px; color: #666;">${selectedResult.mainSpecialty}</div>` : ""}
@@ -2070,7 +2075,18 @@ Report generated from Cura EMR System`;
 
         queryClient.invalidateQueries({ queryKey: ["/api/lab-results"] });
 
+        // Update selectedResult to include the signature immediately
+        setSelectedResult((prev: any) => ({
+          ...prev,
+          signatureData: signatureData,
+        }));
+
         setSignatureSaved(true);
+
+        toast({
+          title: "Success",
+          description: "Electronic signature applied successfully!",
+        });
 
         setTimeout(() => {
           clearSignature();
@@ -5010,6 +5026,16 @@ Report generated from Cura EMR System`;
                   <p>Date: {format(new Date(), "MMM dd, yyyy HH:mm")}</p>
                 </div>
                 <div className="mt-4 text-center">
+                  {selectedResult.signatureData && (
+                    <div className="mb-2">
+                      <img
+                        src={selectedResult.signatureData}
+                        alt="E-Signature"
+                        className="h-20 mx-auto"
+                        style={{ maxWidth: "250px" }}
+                      />
+                    </div>
+                  )}
                   <div className="border-t border-gray-300 w-64 mx-auto mb-2"></div>
                   <p className="text-sm font-medium">
                     {selectedResult.doctorName || "Doctor"}
