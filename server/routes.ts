@@ -10491,8 +10491,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const organizationId = req.tenant!.id;
       const patientId = imageUploadData.patientId;
 
-      // Create directory structure: uploads/{organization_id}/anatomical_analysis_img/{patient_id}/
-      const baseDir = path.join('./uploads', organizationId.toString(), 'anatomical_analysis_img', patientId.toString());
+      // Create directory structure: uploads/anatomical_analysis_img/{organization_id}/{patient_id}/
+      const baseDir = path.join('./uploads', 'anatomical_analysis_img', organizationId.toString(), patientId.toString());
       
       // Check if directory exists, if not create it recursively
       if (!await fs.promises.access(baseDir).then(() => true).catch(() => false)) {
