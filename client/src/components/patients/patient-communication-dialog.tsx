@@ -69,13 +69,15 @@ export function PatientCommunicationDialog({ open, onOpenChange, patient, mode }
     enabled: !!patient?.id && open,
   });
 
-  // Type-safe access to communications
-  const communicationsList = communications as any;
+  // Type-safe access to communications - filter out any invalid/null entries
+  const communicationsList = Array.isArray(communications) 
+    ? (communications as any[]).filter(comm => comm && comm.id && comm.type && comm.message)
+    : [];
 
   // Check for recent reminders to prevent spam
   const { data: lastReminder } = useQuery({
     queryKey: ['/api/patients', patient?.id, 'last-reminder', selectedType],
-    enabled: !!patient?.id && !!selectedType && mode === "reminder",
+    enabled: false, // Disabled because endpoint doesn't exist yet
   });
 
   // Send reminder mutation
@@ -201,13 +203,8 @@ export function PatientCommunicationDialog({ open, onOpenChange, patient, mode }
   };
 
   const canSendReminder = () => {
-    if (!lastReminder) return true;
-    
-    const lastSent = new Date((lastReminder as any).sentAt);
-    const hoursSinceLastReminder = (Date.now() - lastSent.getTime()) / (1000 * 60 * 60);
-    
-    // Prevent reminders within 24 hours for same type
-    return hoursSinceLastReminder >= 24;
+    // Always allow sending reminders (rate limiting disabled until backend endpoint is implemented)
+    return true;
   };
 
   // Auto-set severity based on flag type, but allow user to override
@@ -304,15 +301,7 @@ export function PatientCommunicationDialog({ open, onOpenChange, patient, mode }
                   />
                 </div>
 
-                {lastReminder && !canSendReminder() && (
-                  <Alert>
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertDescription>
-                      A {COMMUNICATION_TYPES[selectedType as keyof typeof COMMUNICATION_TYPES]} was sent {(lastReminder as any)?.sentAt ? formatDistanceToNow(new Date((lastReminder as any).sentAt), { addSuffix: true }) : 'recently'}. 
-                      Please wait 24 hours before sending another similar reminder.
-                    </AlertDescription>
-                  </Alert>
-                )}
+                {/* Rate limiting alert removed - will be re-enabled when backend endpoint is implemented */}
 
                 <Button 
                   onClick={handleSendReminder} 
