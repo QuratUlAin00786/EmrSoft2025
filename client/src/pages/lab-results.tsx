@@ -724,6 +724,7 @@ export default function LabResultsPage() {
   const [editingStatusId, setEditingStatusId] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [activeTab, setActiveTab] = useState<"request" | "generated">("request");
+  const [showTestResults, setShowTestResults] = useState(false);
 
   // Helper function to generate random value within reference range
   const generateValueFromRange = (referenceRange: string): string | null => {
@@ -3808,7 +3809,29 @@ Report generated from Cura EMR System`;
                           </PopoverContent>
                         </Popover>
                       ) : (
-                        <p className="font-medium">{selectedResult.testType}</p>
+                        (() => {
+                          const tests = selectedResult.testType.split(' | ');
+                          if (tests.length <= 2) {
+                            return <p className="font-medium">{selectedResult.testType}</p>;
+                          }
+                          const visibleTests = tests.slice(0, 2).join(' | ');
+                          const hiddenCount = tests.length - 2;
+                          return (
+                            <div className="group relative">
+                              <p className="font-medium">
+                                {visibleTests} <span className="text-blue-600 dark:text-blue-400 cursor-help">+{hiddenCount} more</span>
+                              </p>
+                              <div className="invisible group-hover:visible absolute left-0 top-full mt-1 z-10 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg p-3 min-w-[300px]">
+                                <div className="text-sm font-medium mb-2">All Tests:</div>
+                                <div className="space-y-1">
+                                  {tests.map((test, idx) => (
+                                    <div key={idx} className="text-sm">{test}</div>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })()
                       )}
                     </div>
                     <div>
@@ -3854,50 +3877,65 @@ Report generated from Cura EMR System`;
                   )}
                 </div>
 
-                {/* Test Results */}
+                {/* Test Results Toggle */}
                 {selectedResult.results &&
                   selectedResult.results.length > 0 && (
                     <div>
-                      <h3 className="font-semibold mb-3">Test Results</h3>
-                      <div className="space-y-3">
-                        {selectedResult.results.map(
-                          (result: any, index: number) => (
-                            <div key={index} className="border rounded-lg p-4">
-                              <div className="flex justify-between items-center">
-                                <div className="flex-1">
-                                  <p className="font-medium">{result.name}</p>
-                                  <p className="text-sm text-gray-600">
-                                    Reference Range: {result.referenceRange}
-                                  </p>
-                                </div>
-                                <div className="text-right">
-                                  <p className="text-lg font-semibold">
-                                    {result.value} {result.unit}
-                                  </p>
-                                  <Badge
-                                    variant={
-                                      result.status === "normal"
-                                        ? "default"
-                                        : result.status === "abnormal_high" ||
-                                            result.status === "abnormal_low"
-                                          ? "secondary"
-                                          : "destructive"
-                                    }
-                                    className="ml-2"
-                                  >
-                                    {result.status.replace("_", " ")}
-                                  </Badge>
-                                </div>
-                              </div>
-                              {result.flag && (
-                                <p className="text-sm text-yellow-600 mt-2">
-                                  ⚠️ {result.flag}
-                                </p>
-                              )}
-                            </div>
-                          ),
-                        )}
+                      <div className="flex items-center gap-2 mb-3">
+                        <Checkbox
+                          id="show-test-results"
+                          checked={showTestResults}
+                          onCheckedChange={(checked) => setShowTestResults(checked as boolean)}
+                        />
+                        <Label
+                          htmlFor="show-test-results"
+                          className="text-sm font-semibold cursor-pointer"
+                        >
+                          Show Test Results
+                        </Label>
                       </div>
+                      
+                      {showTestResults && (
+                        <div className="space-y-3">
+                          {selectedResult.results.map(
+                            (result: any, index: number) => (
+                              <div key={index} className="border rounded-lg p-4">
+                                <div className="flex justify-between items-center">
+                                  <div className="flex-1">
+                                    <p className="font-medium">{result.name}</p>
+                                    <p className="text-sm text-gray-600">
+                                      Reference Range: {result.referenceRange}
+                                    </p>
+                                  </div>
+                                  <div className="text-right">
+                                    <p className="text-lg font-semibold">
+                                      {result.value} {result.unit}
+                                    </p>
+                                    <Badge
+                                      variant={
+                                        result.status === "normal"
+                                          ? "default"
+                                          : result.status === "abnormal_high" ||
+                                              result.status === "abnormal_low"
+                                            ? "secondary"
+                                            : "destructive"
+                                      }
+                                      className="ml-2"
+                                    >
+                                      {result.status.replace("_", " ")}
+                                    </Badge>
+                                  </div>
+                                </div>
+                                {result.flag && (
+                                  <p className="text-sm text-yellow-600 mt-2">
+                                    ⚠️ {result.flag}
+                                  </p>
+                                )}
+                              </div>
+                            ),
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
               </div>
