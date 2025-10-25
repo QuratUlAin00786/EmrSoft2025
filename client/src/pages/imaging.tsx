@@ -1100,6 +1100,16 @@ export default function ImagingPage() {
       return;
     }
 
+    // REQUIRE at least one file to be selected
+    if (selectedFiles.length === 0) {
+      toast({
+        title: "Upload Failed",
+        description: "Please select at least one medical image file",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       // Find the selected patient to get the numeric ID and patientId (string)
       const selectedPatient = patients.find(
@@ -1120,7 +1130,7 @@ export default function ImagingPage() {
         name: `${selectedPatient.firstName} ${selectedPatient.lastName}`
       });
 
-      // Only upload if files are selected
+      // Upload files to database
       if (selectedFiles.length > 0) {
         // Create FormData for multipart upload
         const formData = new FormData();
