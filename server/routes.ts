@@ -6740,10 +6740,7 @@ This treatment plan should be reviewed and adjusted based on individual patient 
         ORDER BY lr.id, lr.ordered_at DESC
       `;
 
-      const result = await db.execute({
-        sql: query,
-        args: [organizationId]
-      });
+      const result = await pool.query(query, [organizationId]);
 
       res.json(result.rows);
     } catch (error) {
