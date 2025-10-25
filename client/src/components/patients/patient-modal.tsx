@@ -635,26 +635,53 @@ export function PatientModal({ open, onOpenChange, editMode = false, editPatient
   };
 
   const handlePostcodeLookup = async (postcode: string) => {
-    if (!postcode || postcode.length < 5) return;
+    if (!postcode || postcode.trim().length < 5) return;
     
     try {
-      // Using a free UK postcode API for address lookup
-      const response = await fetch(`https://api.postcodes.io/postcodes/${postcode.replace(/\s+/g, '')}`);
-      if (response.ok) {
-        const data = await response.json();
-        if (data.result) {
-          // Auto-fill address fields
-          form.setValue('address.city', data.result.admin_district || '');
-          form.setValue('address.country', 'United Kingdom');
-          
-          toast({
-            title: "Address found",
-            description: `Location: ${data.result.admin_district}, ${data.result.admin_county}`,
-          });
-        }
+      const cleanedPostcode = postcode.trim().replace(/\s+/g, '');
+      const response = await fetch(`https://api.postcodes.io/postcodes/${cleanedPostcode}`);
+      
+      if (!response.ok) {
+        toast({
+          title: "Postcode not found",
+          description: "Please check the postcode and try again.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const data = await response.json();
+      
+      if (data.status === 200 && data.result) {
+        const result = data.result;
+        
+        // Map country from API response (England, Scotland, Wales, Northern Ireland all map to UK)
+        const countryMap: Record<string, string> = {
+          'England': 'United Kingdom',
+          'Scotland': 'United Kingdom',
+          'Wales': 'United Kingdom',
+          'Northern Ireland': 'United Kingdom'
+        };
+        
+        const country = countryMap[result.country] || result.country;
+        const city = result.admin_district || result.region || '';
+        
+        // Auto-fill the country and city fields
+        form.setValue('address.country', country);
+        form.setValue('address.city', city);
+        
+        toast({
+          title: "Address auto-filled",
+          description: `Found: ${city}, ${country}`,
+        });
       }
     } catch (error) {
-      console.log('Postcode lookup not available');
+      console.error('Postcode lookup error:', error);
+      toast({
+        title: "Lookup failed",
+        description: "Could not connect to postcode service. Please enter manually.",
+        variant: "destructive"
+      });
     }
   };
 
