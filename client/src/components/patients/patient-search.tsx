@@ -126,12 +126,19 @@ export function PatientSearch({ onSearch, onClear }: PatientSearchProps) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Any provider</SelectItem>
-                  <SelectItem value="nhs">NHS</SelectItem>
-                  <SelectItem value="bupa">Bupa</SelectItem>
-                  <SelectItem value="axa-ppp">AXA PPP</SelectItem>
-                  <SelectItem value="vitality">Vitality</SelectItem>
-                  <SelectItem value="aviva">Aviva</SelectItem>
-                  <SelectItem value="self-pay">Self-Pay</SelectItem>
+                  <SelectItem value="NHS (National Health Service)">NHS (National Health Service)</SelectItem>
+                  <SelectItem value="Bupa">Bupa</SelectItem>
+                  <SelectItem value="AXA PPP Healthcare">AXA PPP Healthcare</SelectItem>
+                  <SelectItem value="Vitality Health">Vitality Health</SelectItem>
+                  <SelectItem value="Aviva Health">Aviva Health</SelectItem>
+                  <SelectItem value="Simply Health">Simply Health</SelectItem>
+                  <SelectItem value="WPA">WPA</SelectItem>
+                  <SelectItem value="Benenden Health">Benenden Health</SelectItem>
+                  <SelectItem value="Healix Health Services">Healix Health Services</SelectItem>
+                  <SelectItem value="Sovereign Health Care">Sovereign Health Care</SelectItem>
+                  <SelectItem value="Exeter Friendly Society">Exeter Friendly Society</SelectItem>
+                  <SelectItem value="Self-Pay">Self-Pay</SelectItem>
+                  <SelectItem value="Other">Other</SelectItem>
                 </SelectContent>
               </Select>
             </div>
