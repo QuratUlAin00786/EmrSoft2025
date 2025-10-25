@@ -2923,16 +2923,6 @@ Report generated from Cura EMR System`;
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => handleShareResult(result)}
-                            >
-                              <User className="h-4 w-4 mr-2" />
-                              Review
-                            </Button>
-                          )}
-                          {user?.role !== 'patient' && (
-                            <Button
-                              variant="outline"
-                              size="sm"
                               onClick={() => {
                                 setSelectedResult(result);
                                 setShowESignDialog(true);
