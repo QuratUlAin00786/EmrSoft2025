@@ -1186,11 +1186,11 @@ export default function PrescriptionsPage() {
             pdf.text("(Signature)", 20, currentY + 6);
 
             // Add signature image if available
-            if (prescriptionData.signature.imageData) {
+            if (prescriptionData.signature.doctorSignature) {
               try {
                 console.log("[PDF GENERATION] Adding signature image to PDF");
                 pdf.addImage(
-                  prescriptionData.signature.imageData,
+                  prescriptionData.signature.doctorSignature,
                   "PNG",
                   20,
                   currentY + 10,
