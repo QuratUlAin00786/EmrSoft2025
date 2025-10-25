@@ -20,6 +20,9 @@ import {
   User,
   Calendar,
   Sparkles,
+  Grid3x3,
+  List,
+  CheckCircle2,
 } from "lucide-react";
 import { format } from "date-fns";
 import { apiRequest } from "@/lib/queryClient";
@@ -72,6 +75,9 @@ interface LabTest {
   orderedAt: string;
   status: string;
   patientId: number;
+  sampleCollected?: boolean;
+  invoiceStatus?: string;
+  invoiceNumber?: string;
 }
 
 export default function LabTechnicianDashboard() {
@@ -80,6 +86,7 @@ export default function LabTechnicianDashboard() {
   const [showGenerateDialog, setShowGenerateDialog] = useState(false);
   const [selectedTest, setSelectedTest] = useState<LabTest | null>(null);
   const [generateFormData, setGenerateFormData] = useState<any>({});
+  const [viewMode, setViewMode] = useState<"card" | "list">("card");
 
   // Fetch lab tests for lab technician
   const { data: labTests = [], isLoading } = useQuery({
@@ -180,16 +187,36 @@ export default function LabTechnicianDashboard() {
           </div>
         </div>
 
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search by Test ID, Patient Name, Test Type, or Doctor..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-            data-testid="input-search-lab-tests"
-          />
+        {/* Search and View Toggle */}
+        <div className="flex gap-4 items-center">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by Test ID, Patient Name, Test Type, or Doctor..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+              data-testid="input-search-lab-tests"
+            />
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant={viewMode === "card" ? "default" : "outline"}
+              size="icon"
+              onClick={() => setViewMode("card")}
+              data-testid="button-view-card"
+            >
+              <Grid3x3 className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === "list" ? "default" : "outline"}
+              size="icon"
+              onClick={() => setViewMode("list")}
+              data-testid="button-view-list"
+            >
+              <List className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
         {/* Lab Tests Grid */}
@@ -204,7 +231,7 @@ export default function LabTechnicianDashboard() {
               {searchQuery ? "No tests found matching your search" : "No tests ready for result generation"}
             </p>
           </div>
-        ) : (
+        ) : viewMode === "card" ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredTests.map((test: LabTest) => (
               <Card key={test.id} className="hover:shadow-lg transition-shadow">
@@ -223,6 +250,26 @@ export default function LabTechnicianDashboard() {
                       }>
                         {test.priority || 'routine'}
                       </Badge>
+                    </div>
+
+                    {/* Badges Row */}
+                    <div className="flex flex-wrap gap-2">
+                      {test.sampleCollected && (
+                        <Badge className="bg-green-600 hover:bg-green-700">
+                          <CheckCircle2 className="h-3 w-3 mr-1" />
+                          Sample Collected
+                        </Badge>
+                      )}
+                      {test.invoiceStatus === 'paid' && (
+                        <Badge className="bg-blue-600 hover:bg-blue-700">
+                          Paid
+                        </Badge>
+                      )}
+                      {test.invoiceNumber && (
+                        <Badge variant="outline">
+                          {test.invoiceNumber}
+                        </Badge>
+                      )}
                     </div>
 
                     {/* Patient Info */}
@@ -267,6 +314,75 @@ export default function LabTechnicianDashboard() {
                     >
                       <Sparkles className="h-4 w-4 mr-2" />
                       Generate Test Result
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {filteredTests.map((test: LabTest) => (
+              <Card key={test.id} className="hover:shadow-md transition-shadow">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between gap-4">
+                    {/* Test ID and Badges */}
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <p className="font-semibold text-medical-blue">{test.testId}</p>
+                        <Badge variant={
+                          test.priority === 'urgent' ? 'destructive' :
+                          test.priority === 'stat' ? 'destructive' :
+                          'secondary'
+                        }>
+                          {test.priority || 'routine'}
+                        </Badge>
+                        {test.sampleCollected && (
+                          <Badge className="bg-green-600 hover:bg-green-700">
+                            <CheckCircle2 className="h-3 w-3 mr-1" />
+                            Sample Collected
+                          </Badge>
+                        )}
+                        {test.invoiceStatus === 'paid' && (
+                          <Badge className="bg-blue-600 hover:bg-blue-700">
+                            Paid
+                          </Badge>
+                        )}
+                        {test.invoiceNumber && (
+                          <Badge variant="outline">
+                            {test.invoiceNumber}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                        <div>
+                          <p className="text-muted-foreground">Patient</p>
+                          <p className="font-medium">{test.patientName}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Test Type</p>
+                          <p className="font-medium truncate">{parseTestTypes(test.testType)[0]}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Ordered By</p>
+                          <p className="font-medium">{test.doctorName}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Ordered Date</p>
+                          <p className="font-medium">
+                            {test.orderedAt ? format(new Date(test.orderedAt), 'PP') : 'N/A'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    {/* Generate Button */}
+                    <Button
+                      onClick={() => handleGenerateClick(test)}
+                      className="bg-green-600 hover:bg-green-700"
+                      data-testid={`button-generate-result-${test.id}`}
+                    >
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      Generate Result
                     </Button>
                   </div>
                 </CardContent>

@@ -6727,7 +6727,10 @@ This treatment plan should be reviewed and adjusted based on individual patient 
           lr.ordered_at as "orderedAt",
           lr.status,
           lr.patient_id as "patientId",
-          CONCAT(p.first_name, ' ', p.last_name) as "patientName"
+          lr."Sample_Collected" as "sampleCollected",
+          CONCAT(p.first_name, ' ', p.last_name) as "patientName",
+          i.status as "invoiceStatus",
+          i.invoice_number as "invoiceNumber"
         FROM lab_results lr
         INNER JOIN patients p ON lr.patient_id = p.id AND p.organization_id = $1
         INNER JOIN invoices i ON i.service_id = lr.test_id 
