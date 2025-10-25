@@ -1963,6 +1963,17 @@ export default function ShiftsPage() {
             </DialogDescription>
           </DialogHeader>
 
+          {editingDefaultShift && (() => {
+            const staffMember = staff.find((s: any) => s.id === editingDefaultShift.userId);
+            return staffMember ? (
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mb-2">
+                <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                  Editing shift for: {staffMember.firstName} {staffMember.lastName}
+                </p>
+              </div>
+            ) : null;
+          })()}
+
           <div className="space-y-4 py-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
