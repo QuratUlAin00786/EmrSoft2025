@@ -5369,6 +5369,55 @@ Report generated from Cura EMR System`;
               </div>
             )}
 
+            {/* Critical Value Checkboxes */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Critical Status</Label>
+              <div className="flex gap-6">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="critical-normal"
+                    checked={generateFormData.criticalValues === false}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setGenerateFormData((prev: any) => ({
+                          ...prev,
+                          criticalValues: false,
+                        }));
+                      }
+                    }}
+                    data-testid="checkbox-normal"
+                  />
+                  <Label
+                    htmlFor="critical-normal"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                  >
+                    Normal
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="critical-critical"
+                    checked={generateFormData.criticalValues === true}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setGenerateFormData((prev: any) => ({
+                          ...prev,
+                          criticalValues: true,
+                        }));
+                      }
+                    }}
+                    data-testid="checkbox-critical"
+                  />
+                  <Label
+                    htmlFor="critical-critical"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                  >
+                    Critical
+                  </Label>
+                </div>
+              </div>
+            </div>
+
             {/* Notes */}
             <div className="space-y-2">
               <Label htmlFor="generate-notes">Clinical Notes (Optional)</Label>
@@ -5482,7 +5531,7 @@ Report generated from Cura EMR System`;
                         status: "completed",
                         results: testResults,
                         notes: generateFormData.notes || "",
-                        criticalValues: false,
+                        criticalValues: generateFormData.criticalValues || false,
                       };
 
                       // Create lab result
