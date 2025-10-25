@@ -7445,6 +7445,12 @@ This treatment plan should be reviewed and adjusted based on individual patient 
 
       console.log(`PDF generated successfully at: ${filePath}`);
 
+      // Update labReportGenerated to true
+      await storage.updateLabResult(labResultId, organizationId, {
+        labReportGenerated: true
+      });
+      console.log(`Updated labReportGenerated to true for lab result ID: ${labResultId}`);
+
       // Return relative path for download
       const relativePath = `uploads/Lab_TestResults/${organizationId}/${labResult.patientId}/${fileName}`;
 
