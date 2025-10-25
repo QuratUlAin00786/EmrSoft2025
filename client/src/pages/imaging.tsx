@@ -1763,6 +1763,7 @@ export default function ImagingPage() {
                       }).length}
                     </p>
                   </div>
+                  <Calendar className="h-8 w-8 text-blue-600" />
                 </div>
               </CardContent>
             </Card>
