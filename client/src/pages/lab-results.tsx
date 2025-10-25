@@ -1077,7 +1077,18 @@ export default function LabResultsPage() {
       const response = await apiRequest("POST", "/api/payments/cash", paymentData);
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
+      // Update Lab_Request_Generated to true
+      if (pendingOrderData?.testId) {
+        try {
+          await apiRequest("PATCH", `/api/lab-results/${pendingOrderData.testId}`, {
+            Lab_Request_Generated: true
+          });
+        } catch (error) {
+          console.error("Failed to update Lab_Request_Generated:", error);
+        }
+      }
+      
       setPaymentResult({
         invoiceId: data.invoice.invoiceNumber,
         patientName: pendingOrderData?.patientName,
@@ -3518,11 +3529,22 @@ Report generated from Cura EMR System`;
             </DialogHeader>
             <Elements stripe={stripePromise} options={{ clientSecret: stripeClientSecret }}>
               <StripePaymentForm 
-                onSuccess={(paymentIntentId: string) => {
+                onSuccess={async (paymentIntentId: string) => {
                   // Call confirmation endpoint
                   apiRequest("POST", "/api/payments/stripe/confirm", { paymentIntentId })
                     .then(res => res.json())
-                    .then(data => {
+                    .then(async data => {
+                      // Update Lab_Request_Generated to true
+                      if (pendingOrderData?.testId) {
+                        try {
+                          await apiRequest("PATCH", `/api/lab-results/${pendingOrderData.testId}`, {
+                            Lab_Request_Generated: true
+                          });
+                        } catch (error) {
+                          console.error("Failed to update Lab_Request_Generated:", error);
+                        }
+                      }
+                      
                       setPaymentResult({
                         invoiceId: data.invoice.invoiceNumber,
                         patientName: pendingOrderData?.patientName,
