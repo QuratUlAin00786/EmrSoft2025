@@ -4945,8 +4945,17 @@ Report generated from Cura EMR System`;
                       <p className="text-sm font-medium text-gray-700">
                         Test Type:
                       </p>
-                      <p className="font-semibold text-blue-800">
-                        {selectedResult.testType}
+                      <p 
+                        className="font-semibold text-blue-800 cursor-default" 
+                        title={selectedResult.testType}
+                      >
+                        {(() => {
+                          const tests = selectedResult.testType.split(' | ').map((t: string) => t.trim());
+                          if (tests.length > 2) {
+                            return tests.slice(0, 2).join(', ') + '...';
+                          }
+                          return selectedResult.testType;
+                        })()}
                       </p>
                     </div>
                   </div>
