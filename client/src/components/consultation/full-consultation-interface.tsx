@@ -4332,7 +4332,10 @@ ${
                   <Button
                     onClick={async () => {
                       try {
+                        console.log('[ANATOMICAL PDF STEP1] Button clicked');
                         const currentPatientId = patientId || patient?.id;
+                        console.log('[ANATOMICAL PDF STEP1] Patient ID:', currentPatientId);
+                        
                         if (!currentPatientId) {
                           toast({
                             title: "Error",
@@ -4349,24 +4352,31 @@ ${
                           'X-Tenant-Subdomain': getTenantSubdomain()
                         };
 
+                        console.log('[ANATOMICAL PDF STEP1] Fetching clinic branding...');
                         const [headerRes, footerRes] = await Promise.all([
                           fetch('/api/clinic-headers', { headers }),
                           fetch('/api/clinic-footers', { headers })
                         ]);
+
+                        console.log('[ANATOMICAL PDF STEP1] Header response status:', headerRes.status);
+                        console.log('[ANATOMICAL PDF STEP1] Footer response status:', footerRes.status);
 
                         let clinicHeader = null;
                         let clinicFooter = null;
 
                         if (headerRes.ok) {
                           const headerData = await headerRes.json();
+                          console.log('[ANATOMICAL PDF STEP1] Header data:', headerData);
                           clinicHeader = Array.isArray(headerData) && headerData.length > 0 ? headerData[0] : null;
                         }
                         if (footerRes.ok) {
                           const footerData = await footerRes.json();
+                          console.log('[ANATOMICAL PDF STEP1] Footer data:', footerData);
                           clinicFooter = Array.isArray(footerData) && footerData.length > 0 ? footerData[0] : null;
                         }
 
                         // Generate PDF with jsPDF
+                        console.log('[ANATOMICAL PDF STEP1] Creating PDF document...');
                         const doc = new jsPDF();
 
                         let yPos = 20;
@@ -4447,14 +4457,18 @@ ${
                         }
 
                         // Save PDF
-                        doc.save(`Anatomical_Analysis_Patient_${currentPatientId}_${new Date().toISOString().split('T')[0]}.pdf`);
+                        const pdfFilename = `Anatomical_Analysis_Patient_${currentPatientId}_${new Date().toISOString().split('T')[0]}.pdf`;
+                        console.log('[ANATOMICAL PDF STEP1] Saving PDF:', pdfFilename);
+                        doc.save(pdfFilename);
+                        console.log('[ANATOMICAL PDF STEP1] PDF saved successfully');
 
                         toast({
                           title: "PDF Generated",
                           description: "Anatomical analysis PDF has been downloaded successfully."
                         });
+                        console.log('[ANATOMICAL PDF STEP1] Success toast displayed');
                       } catch (error) {
-                        console.error('Error generating anatomical analysis PDF:', error);
+                        console.error('[ANATOMICAL PDF STEP1] Error generating anatomical analysis PDF:', error);
                         toast({
                           title: "Error",
                           description: "Failed to generate PDF. Please try again.",
@@ -4803,7 +4817,10 @@ ${
                   <Button
                     onClick={async () => {
                       try {
+                        console.log('[ANATOMICAL PDF STEP3] Button clicked');
                         const currentPatientId = patientId || patient?.id;
+                        console.log('[ANATOMICAL PDF STEP3] Patient ID:', currentPatientId);
+                        
                         if (!currentPatientId) {
                           toast({
                             title: "Error",
@@ -4820,24 +4837,31 @@ ${
                           'X-Tenant-Subdomain': getTenantSubdomain()
                         };
 
+                        console.log('[ANATOMICAL PDF STEP3] Fetching clinic branding...');
                         const [headerRes, footerRes] = await Promise.all([
                           fetch('/api/clinic-headers', { headers }),
                           fetch('/api/clinic-footers', { headers })
                         ]);
+
+                        console.log('[ANATOMICAL PDF STEP3] Header response status:', headerRes.status);
+                        console.log('[ANATOMICAL PDF STEP3] Footer response status:', footerRes.status);
 
                         let clinicHeader = null;
                         let clinicFooter = null;
 
                         if (headerRes.ok) {
                           const headerData = await headerRes.json();
+                          console.log('[ANATOMICAL PDF STEP3] Header data:', headerData);
                           clinicHeader = Array.isArray(headerData) && headerData.length > 0 ? headerData[0] : null;
                         }
                         if (footerRes.ok) {
                           const footerData = await footerRes.json();
+                          console.log('[ANATOMICAL PDF STEP3] Footer data:', footerData);
                           clinicFooter = Array.isArray(footerData) && footerData.length > 0 ? footerData[0] : null;
                         }
 
                         // Generate PDF with jsPDF
+                        console.log('[ANATOMICAL PDF STEP3] Creating PDF document...');
                         const doc = new jsPDF();
 
                         let yPos = 20;
@@ -4918,14 +4942,18 @@ ${
                         }
 
                         // Save PDF
-                        doc.save(`Anatomical_Analysis_Patient_${currentPatientId}_${new Date().toISOString().split('T')[0]}.pdf`);
+                        const pdfFilename = `Anatomical_Analysis_Patient_${currentPatientId}_${new Date().toISOString().split('T')[0]}.pdf`;
+                        console.log('[ANATOMICAL PDF STEP3] Saving PDF:', pdfFilename);
+                        doc.save(pdfFilename);
+                        console.log('[ANATOMICAL PDF STEP3] PDF saved successfully');
 
                         toast({
                           title: "PDF Generated",
                           description: "Anatomical analysis PDF has been downloaded successfully."
                         });
+                        console.log('[ANATOMICAL PDF STEP3] Success toast displayed');
                       } catch (error) {
-                        console.error('Error generating anatomical analysis PDF:', error);
+                        console.error('[ANATOMICAL PDF STEP3] Error generating anatomical analysis PDF:', error);
                         toast({
                           title: "Error",
                           description: "Failed to generate PDF. Please try again.",
