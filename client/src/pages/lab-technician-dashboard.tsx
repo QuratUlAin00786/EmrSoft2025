@@ -50,19 +50,92 @@ const TEST_FIELD_DEFINITIONS: Record<string, Array<{
     { name: "Eosinophils", unit: "%", referenceRange: "1 - 6" },
     { name: "Basophils", unit: "%", referenceRange: "<2" },
   ],
-  "Viral Panels / PCR Tests (e.g. COVID-19, Influenza)": [
+  "Sputum Culture": [
+    { name: "Specimen Type", unit: "", referenceRange: "Sputum" },
+    { name: "Culture Result", unit: "", referenceRange: "Normal Flora/No Growth" },
+    { name: "Organism Isolated", unit: "", referenceRange: "None" },
+    { name: "Colony Count", unit: "CFU/mL", referenceRange: "<10³" },
+    { name: "Gram Stain", unit: "", referenceRange: "N/A" },
+  ],
+  "Blood Culture & Sensitivity": [
+    { name: "Blood Culture Result", unit: "", referenceRange: "No Growth" },
+    { name: "Organism Identified", unit: "", referenceRange: "None" },
+    { name: "Time to Detection", unit: "hours", referenceRange: "N/A" },
+    { name: "Antibiotic Sensitivity", unit: "", referenceRange: "N/A" },
+    { name: "Resistance Pattern", unit: "", referenceRange: "None" },
+  ],
+  "Viral Panels / PCR Tests (e.g. COVID-19": [
     { name: "COVID-19 PCR", unit: "", referenceRange: "Negative" },
+    { name: "Viral Load (Ct Value)", unit: "Ct", referenceRange: ">35" },
+    { name: "Specimen Quality", unit: "", referenceRange: "Adequate" },
+  ],
+  "Influenza)": [
     { name: "Influenza A PCR", unit: "", referenceRange: "Negative" },
     { name: "Influenza B PCR", unit: "", referenceRange: "Negative" },
     { name: "RSV PCR", unit: "", referenceRange: "Negative" },
-    { name: "Viral Load (Ct Value)", unit: "Ct", referenceRange: ">35" },
   ],
-  "Tumor Markers (e.g. CA-125, CEA, AFP)": [
+  "Tumor Markers (e.g. CA-125": [
     { name: "CA-125 (Ovarian)", unit: "U/mL", referenceRange: "<35" },
-    { name: "CEA (Carcinoembryonic Antigen)", unit: "ng/mL", referenceRange: "<3.0" },
-    { name: "AFP (Alpha-Fetoprotein)", unit: "ng/mL", referenceRange: "<10" },
     { name: "CA 19-9 (Pancreatic)", unit: "U/mL", referenceRange: "<37" },
     { name: "CA 15-3 (Breast)", unit: "U/mL", referenceRange: "<30" },
+  ],
+  "CEA": [
+    { name: "CEA (Carcinoembryonic Antigen)", unit: "ng/mL", referenceRange: "<3.0" },
+    { name: "CEA Interpretation", unit: "", referenceRange: "Normal" },
+  ],
+  "AFP)": [
+    { name: "AFP (Alpha-Fetoprotein)", unit: "ng/mL", referenceRange: "<10" },
+    { name: "AFP Interpretation", unit: "", referenceRange: "Normal" },
+  ],
+  // Common Additional Tests
+  "Lipid Panel": [
+    { name: "Total Cholesterol", unit: "mg/dL", referenceRange: "<200" },
+    { name: "HDL Cholesterol", unit: "mg/dL", referenceRange: ">40" },
+    { name: "LDL Cholesterol", unit: "mg/dL", referenceRange: "<100" },
+    { name: "Triglycerides", unit: "mg/dL", referenceRange: "<150" },
+    { name: "VLDL Cholesterol", unit: "mg/dL", referenceRange: "<30" },
+  ],
+  "Liver Function Test (LFT)": [
+    { name: "Total Bilirubin", unit: "mg/dL", referenceRange: "0.3 - 1.2" },
+    { name: "Direct Bilirubin", unit: "mg/dL", referenceRange: "0.0 - 0.3" },
+    { name: "SGOT/AST", unit: "U/L", referenceRange: "5 - 40" },
+    { name: "SGPT/ALT", unit: "U/L", referenceRange: "7 - 56" },
+    { name: "Alkaline Phosphatase (ALP)", unit: "U/L", referenceRange: "44 - 147" },
+    { name: "Total Protein", unit: "g/dL", referenceRange: "6.0 - 8.3" },
+    { name: "Albumin", unit: "g/dL", referenceRange: "3.5 - 5.5" },
+    { name: "Globulin", unit: "g/dL", referenceRange: "2.0 - 3.5" },
+  ],
+  "Kidney Function Test (KFT)": [
+    { name: "Blood Urea", unit: "mg/dL", referenceRange: "15 - 40" },
+    { name: "Serum Creatinine", unit: "mg/dL", referenceRange: "0.7 - 1.3" },
+    { name: "Blood Urea Nitrogen (BUN)", unit: "mg/dL", referenceRange: "7 - 20" },
+    { name: "Uric Acid", unit: "mg/dL", referenceRange: "3.5 - 7.2" },
+    { name: "Sodium (Na+)", unit: "mEq/L", referenceRange: "136 - 145" },
+    { name: "Potassium (K+)", unit: "mEq/L", referenceRange: "3.5 - 5.0" },
+    { name: "Chloride (Cl-)", unit: "mEq/L", referenceRange: "96 - 106" },
+  ],
+  "Thyroid Function Test": [
+    { name: "TSH", unit: "μIU/mL", referenceRange: "0.4 - 4.0" },
+    { name: "Free T3", unit: "pg/mL", referenceRange: "2.3 - 4.2" },
+    { name: "Free T4", unit: "ng/dL", referenceRange: "0.8 - 1.8" },
+    { name: "Total T3", unit: "ng/dL", referenceRange: "80 - 200" },
+    { name: "Total T4", unit: "μg/dL", referenceRange: "5.0 - 12.0" },
+  ],
+  "HbA1c (Diabetes)": [
+    { name: "HbA1c", unit: "%", referenceRange: "<5.7" },
+    { name: "Average Blood Glucose", unit: "mg/dL", referenceRange: "<117" },
+  ],
+  "Urinalysis": [
+    { name: "Color", unit: "", referenceRange: "Yellow" },
+    { name: "Appearance", unit: "", referenceRange: "Clear" },
+    { name: "pH", unit: "", referenceRange: "5.0 - 7.0" },
+    { name: "Specific Gravity", unit: "", referenceRange: "1.010 - 1.030" },
+    { name: "Protein", unit: "", referenceRange: "Negative" },
+    { name: "Glucose", unit: "", referenceRange: "Negative" },
+    { name: "Ketones", unit: "", referenceRange: "Negative" },
+    { name: "Blood", unit: "", referenceRange: "Negative" },
+    { name: "Bilirubin", unit: "", referenceRange: "Negative" },
+    { name: "Leukocytes", unit: "", referenceRange: "Negative" },
   ],
 };
 
