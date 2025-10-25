@@ -1068,7 +1068,7 @@ export default function PrescriptionsPage() {
           // Prescription Number - Prominent Display
           pdf.setFontSize(11);
           pdf.setFont("helvetica", "bold");
-          pdf.text(`Prescription No: ${prescriptionNumber}`, 20, 95);
+          pdf.text(`Prescription No: ${prescriptionNumber}`, 20, 92);
 
           // Date
           const prescriptionDate =
@@ -1077,38 +1077,38 @@ export default function PrescriptionsPage() {
           pdf.text(
             `Date: ${new Date(prescriptionDate).toLocaleDateString("en-GB")}`,
             20,
-            102,
+            98,
           );
 
           // Patient Information
           pdf.setFontSize(11);
           pdf.setFont("helvetica", "bold");
-          pdf.text("PATIENT INFORMATION", 20, 115);
+          pdf.text("PATIENT INFORMATION", 20, 108);
 
           pdf.setFontSize(10);
           pdf.setFont("helvetica", "normal");
-          pdf.text(`Name: ${prescriptionData.patientName || "N/A"}`, 20, 123);
+          pdf.text(`Name: ${prescriptionData.patientName || "N/A"}`, 20, 115);
           pdf.text(
             `Sex: ${prescriptionData.patientSex || "Not specified"}`,
             20,
-            130,
+            121,
           );
 
           // Provider Information
           pdf.setFontSize(11);
           pdf.setFont("helvetica", "bold");
-          pdf.text("PRESCRIBING PROVIDER", 20, 145);
+          pdf.text("PRESCRIBING PROVIDER", 20, 131);
 
           pdf.setFontSize(10);
           pdf.setFont("helvetica", "normal");
       
           // Medication Details - Highlighted Box
           pdf.setFillColor(240, 245, 255);
-          pdf.rect(15, 165, 180, 60, "F");
+          pdf.rect(15, 145, 180, 55, "F");
 
           pdf.setFontSize(12);
           pdf.setFont("helvetica", "bold");
-          pdf.text("MEDICATION PRESCRIBED", 20, 175);
+          pdf.text("MEDICATION PRESCRIBED", 20, 153);
 
           pdf.setFontSize(11);
           pdf.setFont("helvetica", "bold");
@@ -1116,28 +1116,28 @@ export default function PrescriptionsPage() {
             prescriptionData.medicationName ||
             prescriptionData.medication ||
             "N/A";
-          pdf.text(`Rx: ${medicationName}`, 20, 186);
+          pdf.text(`Rx: ${medicationName}`, 20, 162);
 
           pdf.setFontSize(10);
           pdf.setFont("helvetica", "normal");
-          pdf.text(`Dosage: ${prescriptionData.dosage || "N/A"}`, 20, 195);
+          pdf.text(`Dosage: ${prescriptionData.dosage || "N/A"}`, 20, 170);
           pdf.text(
             `Frequency: ${prescriptionData.frequency || "N/A"}`,
             20,
-            202,
+            176,
           );
-          pdf.text(`Duration: ${prescriptionData.duration || "N/A"}`, 20, 209);
+          pdf.text(`Duration: ${prescriptionData.duration || "N/A"}`, 20, 182);
 
           // Refills if available
           if (
             prescriptionData.refills !== undefined &&
             prescriptionData.refills !== null
           ) {
-            pdf.text(`Refills: ${prescriptionData.refills}`, 20, 216);
+            pdf.text(`Refills: ${prescriptionData.refills}`, 20, 188);
           }
 
           // Instructions Section
-          let currentY = 238;
+          let currentY = 206;
           if (prescriptionData.instructions) {
             pdf.setFontSize(11);
             pdf.setFont("helvetica", "bold");
@@ -1149,8 +1149,8 @@ export default function PrescriptionsPage() {
               prescriptionData.instructions,
               170,
             );
-            pdf.text(splitInstructions, 20, currentY + 8);
-            currentY += 8 + splitInstructions.length * 5;
+            pdf.text(splitInstructions, 20, currentY + 6);
+            currentY += 6 + splitInstructions.length * 4;
           }
 
           // E-Signature Section (if exists)
@@ -1160,27 +1160,27 @@ export default function PrescriptionsPage() {
           });
 
           if (prescriptionData.signature) {
-            // Ensure we have enough space for signature (stop at Y=220 max to avoid footer overlap)
-            if (currentY > 220) {
+            // Ensure we have enough space for signature (stop at Y=230 max to avoid footer overlap)
+            if (currentY > 230) {
               pdf.addPage();
               currentY = 20;
             }
             
-            currentY += 8;
+            currentY += 4;
             
             // Text labels OUTSIDE the box
-            pdf.setFontSize(11);
+            pdf.setFontSize(10);
             pdf.setFont("helvetica", "bold");
             pdf.setTextColor(0, 0, 0);
             pdf.text("Resident Physician", 20, currentY);
-            pdf.setFontSize(9);
+            pdf.setFontSize(8);
             pdf.setFont("helvetica", "normal");
-            pdf.text("(Signature)", 20, currentY + 5);
+            pdf.text("(Signature)", 20, currentY + 4);
 
             // Signature box with border - ONLY around the signature image (compact, no padding)
             pdf.setDrawColor(200, 200, 200);
             pdf.setFillColor(250, 250, 255);
-            pdf.rect(18, currentY + 8, 54, 22, "FD");
+            pdf.rect(18, currentY + 7, 54, 20, "FD");
 
             // Add signature image if available
             if (prescriptionData.signature.doctorSignature) {
@@ -1190,9 +1190,9 @@ export default function PrescriptionsPage() {
                   prescriptionData.signature.doctorSignature,
                   "PNG",
                   20,
-                  currentY + 9,
+                  currentY + 8,
                   50,
-                  20,
+                  18,
                 );
               } catch (err) {
                 console.log(
@@ -1205,9 +1205,9 @@ export default function PrescriptionsPage() {
             }
 
             // Add e-signed by info - OUTSIDE the signature box
-            pdf.setFontSize(9);
+            pdf.setFontSize(8);
             pdf.setTextColor(34, 139, 34); // Green color for e-sign
-            pdf.text(`✓ E-Signed by`, 20, currentY + 34);
+            pdf.text(`✓ E-Signed by`, 20, currentY + 30);
 
             const signedDate = prescriptionData.signature.signedAt
               ? new Date(
@@ -1221,7 +1221,7 @@ export default function PrescriptionsPage() {
                 })
               : "";
             pdf.setTextColor(80, 80, 80);
-            pdf.text(signedDate, 20, currentY + 39);
+            pdf.text(signedDate, 20, currentY + 35);
             console.log("[PDF GENERATION] E-signature section added to PDF");
           } else {
             console.log(
