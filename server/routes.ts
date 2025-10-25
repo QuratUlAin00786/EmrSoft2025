@@ -6980,6 +6980,43 @@ This treatment plan should be reviewed and adjusted based on individual patient 
     }
   });
 
+  // Apply e-signature to lab result
+  app.post("/api/lab-results/:id/e-sign", authMiddleware, requireNonPatientRole(), async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const labResultId = parseInt(req.params.id);
+      if (isNaN(labResultId)) {
+        return res.status(400).json({ error: "Invalid lab result ID" });
+      }
+
+      const { signature } = req.body;
+      if (!signature) {
+        return res.status(400).json({ error: "Signature data is required" });
+      }
+
+      // Update the lab result with signature
+      const updatedLabResult = await storage.updateLabResult(labResultId, req.tenant!.id, {
+        signatureData: signature
+      });
+
+      if (!updatedLabResult) {
+        return res.status(404).json({ error: "Lab result not found or failed to update" });
+      }
+
+      res.json({
+        success: true,
+        message: "E-signature applied successfully",
+        labResult: updatedLabResult
+      });
+    } catch (error) {
+      console.error("Error applying e-signature:", error);
+      res.status(500).json({ error: "Failed to apply e-signature" });
+    }
+  });
+
   // Get invoices with polymorphic joins (lab_results OR medical_images)
   app.get("/api/invoices/with-services", authMiddleware, async (req: TenantRequest, res) => {
     try {
