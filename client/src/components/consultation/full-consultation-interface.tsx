@@ -4333,29 +4333,133 @@ ${
                     onClick={async () => {
                       try {
                         const currentPatientId = patientId || patient?.id;
-                        if (!currentPatientId) return;
-
-                        const token = localStorage.getItem('auth_token');
-                        const meResponse = await fetch('/api/me', {
-                          headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'X-Tenant-Subdomain': getTenantSubdomain()
-                          }
-                        });
-
-                        if (!meResponse.ok) {
-                          console.error('Failed to fetch user info');
+                        if (!currentPatientId) {
+                          toast({
+                            title: "Error",
+                            description: "Patient information not available.",
+                            variant: "destructive"
+                          });
                           return;
                         }
 
-                        const userData = await meResponse.json();
-                        const orgId = userData.organizationId;
-                        
-                        const imagePath = `/uploads/anatomical_analysis_img/${orgId}/${currentPatientId}/${currentPatientId}.png`;
-                        setSavedAnatomicalImage(imagePath);
-                        setShowViewAnatomicalDialog(true);
+                        // Fetch clinic header and footer
+                        const token = localStorage.getItem('auth_token');
+                        const headers = {
+                          'Authorization': `Bearer ${token}`,
+                          'X-Tenant-Subdomain': getTenantSubdomain()
+                        };
+
+                        const [headerRes, footerRes] = await Promise.all([
+                          fetch('/api/clinic-headers', { headers }),
+                          fetch('/api/clinic-footers', { headers })
+                        ]);
+
+                        let clinicHeader = null;
+                        let clinicFooter = null;
+
+                        if (headerRes.ok) {
+                          const headerData = await headerRes.json();
+                          clinicHeader = Array.isArray(headerData) && headerData.length > 0 ? headerData[0] : null;
+                        }
+                        if (footerRes.ok) {
+                          const footerData = await footerRes.json();
+                          clinicFooter = Array.isArray(footerData) && footerData.length > 0 ? footerData[0] : null;
+                        }
+
+                        // Generate PDF with jsPDF
+                        const doc = new jsPDF();
+
+                        let yPos = 20;
+
+                        // Add clinic header if available
+                        if (clinicHeader && clinicHeader.clinicName) {
+                          doc.setFontSize(16);
+                          doc.setFont('helvetica', 'bold');
+                          doc.text(clinicHeader.clinicName, 105, yPos, { align: 'center' });
+                          yPos += 10;
+
+                          doc.setFontSize(10);
+                          doc.setFont('helvetica', 'normal');
+                          if (clinicHeader.address) doc.text(clinicHeader.address, 105, yPos, { align: 'center' });
+                          yPos += 5;
+                          if (clinicHeader.phone || clinicHeader.email) {
+                            doc.text(`${clinicHeader.phone || ''} | ${clinicHeader.email || ''}`, 105, yPos, { align: 'center' });
+                            yPos += 10;
+                          }
+                        }
+
+                        // Title
+                        doc.setFontSize(14);
+                        doc.setFont('helvetica', 'bold');
+                        doc.text('Professional Anatomical Analysis Report', 105, yPos, { align: 'center' });
+                        yPos += 15;
+
+                        // Analysis Details
+                        doc.setFontSize(12);
+                        doc.setFont('helvetica', 'bold');
+                        doc.text('Analysis Details:', 20, yPos);
+                        yPos += 10;
+
+                        doc.setFontSize(10);
+                        doc.setFont('helvetica', 'normal');
+                        const details = [
+                          `Target Muscle Group: ${selectedMuscleGroup ? selectedMuscleGroup.replace(/_/g, ' ') : 'Not specified'}`,
+                          `Analysis Type: ${selectedAnalysisType ? selectedAnalysisType.replace(/_/g, ' ') : 'Not specified'}`,
+                          `Primary Treatment: ${selectedTreatment ? selectedTreatment.replace(/_/g, ' ') : 'Not specified'}`,
+                          `Treatment Intensity: ${selectedTreatmentIntensity || 'Not specified'}`,
+                          `Session Frequency: ${selectedSessionFrequency || 'Not specified'}`,
+                          `Severity Scale: ${severityScale || 'Not specified'}`,
+                          `Primary Symptoms: ${primarySymptoms || 'Not specified'}`,
+                          `Follow-up Plan: ${followUpPlan || 'Not specified'}`
+                        ];
+
+                        details.forEach(detail => {
+                          doc.text(detail, 20, yPos);
+                          yPos += 7;
+                        });
+
+                        // Treatment Plan
+                        if (generatedTreatmentPlan) {
+                          yPos += 10;
+                          doc.setFontSize(12);
+                          doc.setFont('helvetica', 'bold');
+                          doc.text('Generated Treatment Plan:', 20, yPos);
+                          yPos += 10;
+
+                          doc.setFontSize(10);
+                          doc.setFont('helvetica', 'normal');
+                          const lines = doc.splitTextToSize(generatedTreatmentPlan, 170);
+                          lines.forEach((line: string) => {
+                            if (yPos > 270) {
+                              doc.addPage();
+                              yPos = 20;
+                            }
+                            doc.text(line, 20, yPos);
+                            yPos += 5;
+                          });
+                        }
+
+                        // Add clinic footer if available
+                        if (clinicFooter && clinicFooter.footerText) {
+                          doc.setFontSize(8);
+                          doc.setFont('helvetica', 'italic');
+                          doc.text(clinicFooter.footerText, 105, 285, { align: 'center' });
+                        }
+
+                        // Save PDF
+                        doc.save(`Anatomical_Analysis_Patient_${currentPatientId}_${new Date().toISOString().split('T')[0]}.pdf`);
+
+                        toast({
+                          title: "PDF Generated",
+                          description: "Anatomical analysis PDF has been downloaded successfully."
+                        });
                       } catch (error) {
-                        console.error('Error viewing anatomical analysis:', error);
+                        console.error('Error generating anatomical analysis PDF:', error);
+                        toast({
+                          title: "Error",
+                          description: "Failed to generate PDF. Please try again.",
+                          variant: "destructive"
+                        });
                       }
                     }}
                     className="bg-purple-600 hover:bg-purple-700 px-4 py-2 min-w-fit"
@@ -4700,29 +4804,133 @@ ${
                     onClick={async () => {
                       try {
                         const currentPatientId = patientId || patient?.id;
-                        if (!currentPatientId) return;
-
-                        const token = localStorage.getItem('auth_token');
-                        const meResponse = await fetch('/api/me', {
-                          headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'X-Tenant-Subdomain': getTenantSubdomain()
-                          }
-                        });
-
-                        if (!meResponse.ok) {
-                          console.error('Failed to fetch user info');
+                        if (!currentPatientId) {
+                          toast({
+                            title: "Error",
+                            description: "Patient information not available.",
+                            variant: "destructive"
+                          });
                           return;
                         }
 
-                        const userData = await meResponse.json();
-                        const orgId = userData.organizationId;
-                        
-                        const imagePath = `/uploads/anatomical_analysis_img/${orgId}/${currentPatientId}/${currentPatientId}.png`;
-                        setSavedAnatomicalImage(imagePath);
-                        setShowViewAnatomicalDialog(true);
+                        // Fetch clinic header and footer
+                        const token = localStorage.getItem('auth_token');
+                        const headers = {
+                          'Authorization': `Bearer ${token}`,
+                          'X-Tenant-Subdomain': getTenantSubdomain()
+                        };
+
+                        const [headerRes, footerRes] = await Promise.all([
+                          fetch('/api/clinic-headers', { headers }),
+                          fetch('/api/clinic-footers', { headers })
+                        ]);
+
+                        let clinicHeader = null;
+                        let clinicFooter = null;
+
+                        if (headerRes.ok) {
+                          const headerData = await headerRes.json();
+                          clinicHeader = Array.isArray(headerData) && headerData.length > 0 ? headerData[0] : null;
+                        }
+                        if (footerRes.ok) {
+                          const footerData = await footerRes.json();
+                          clinicFooter = Array.isArray(footerData) && footerData.length > 0 ? footerData[0] : null;
+                        }
+
+                        // Generate PDF with jsPDF
+                        const doc = new jsPDF();
+
+                        let yPos = 20;
+
+                        // Add clinic header if available
+                        if (clinicHeader && clinicHeader.clinicName) {
+                          doc.setFontSize(16);
+                          doc.setFont('helvetica', 'bold');
+                          doc.text(clinicHeader.clinicName, 105, yPos, { align: 'center' });
+                          yPos += 10;
+
+                          doc.setFontSize(10);
+                          doc.setFont('helvetica', 'normal');
+                          if (clinicHeader.address) doc.text(clinicHeader.address, 105, yPos, { align: 'center' });
+                          yPos += 5;
+                          if (clinicHeader.phone || clinicHeader.email) {
+                            doc.text(`${clinicHeader.phone || ''} | ${clinicHeader.email || ''}`, 105, yPos, { align: 'center' });
+                            yPos += 10;
+                          }
+                        }
+
+                        // Title
+                        doc.setFontSize(14);
+                        doc.setFont('helvetica', 'bold');
+                        doc.text('Professional Anatomical Analysis Report', 105, yPos, { align: 'center' });
+                        yPos += 15;
+
+                        // Analysis Details
+                        doc.setFontSize(12);
+                        doc.setFont('helvetica', 'bold');
+                        doc.text('Analysis Details:', 20, yPos);
+                        yPos += 10;
+
+                        doc.setFontSize(10);
+                        doc.setFont('helvetica', 'normal');
+                        const details = [
+                          `Target Muscle Group: ${selectedMuscleGroup ? selectedMuscleGroup.replace(/_/g, ' ') : 'Not specified'}`,
+                          `Analysis Type: ${selectedAnalysisType ? selectedAnalysisType.replace(/_/g, ' ') : 'Not specified'}`,
+                          `Primary Treatment: ${selectedTreatment ? selectedTreatment.replace(/_/g, ' ') : 'Not specified'}`,
+                          `Treatment Intensity: ${selectedTreatmentIntensity || 'Not specified'}`,
+                          `Session Frequency: ${selectedSessionFrequency || 'Not specified'}`,
+                          `Severity Scale: ${severityScale || 'Not specified'}`,
+                          `Primary Symptoms: ${primarySymptoms || 'Not specified'}`,
+                          `Follow-up Plan: ${followUpPlan || 'Not specified'}`
+                        ];
+
+                        details.forEach(detail => {
+                          doc.text(detail, 20, yPos);
+                          yPos += 7;
+                        });
+
+                        // Treatment Plan
+                        if (generatedTreatmentPlan) {
+                          yPos += 10;
+                          doc.setFontSize(12);
+                          doc.setFont('helvetica', 'bold');
+                          doc.text('Generated Treatment Plan:', 20, yPos);
+                          yPos += 10;
+
+                          doc.setFontSize(10);
+                          doc.setFont('helvetica', 'normal');
+                          const lines = doc.splitTextToSize(generatedTreatmentPlan, 170);
+                          lines.forEach((line: string) => {
+                            if (yPos > 270) {
+                              doc.addPage();
+                              yPos = 20;
+                            }
+                            doc.text(line, 20, yPos);
+                            yPos += 5;
+                          });
+                        }
+
+                        // Add clinic footer if available
+                        if (clinicFooter && clinicFooter.footerText) {
+                          doc.setFontSize(8);
+                          doc.setFont('helvetica', 'italic');
+                          doc.text(clinicFooter.footerText, 105, 285, { align: 'center' });
+                        }
+
+                        // Save PDF
+                        doc.save(`Anatomical_Analysis_Patient_${currentPatientId}_${new Date().toISOString().split('T')[0]}.pdf`);
+
+                        toast({
+                          title: "PDF Generated",
+                          description: "Anatomical analysis PDF has been downloaded successfully."
+                        });
                       } catch (error) {
-                        console.error('Error viewing anatomical analysis:', error);
+                        console.error('Error generating anatomical analysis PDF:', error);
+                        toast({
+                          title: "Error",
+                          description: "Failed to generate PDF. Please try again.",
+                          variant: "destructive"
+                        });
                       }
                     }}
                     className="bg-purple-600 hover:bg-purple-700 px-6"
