@@ -3322,16 +3322,6 @@ export default function PrescriptionsPage() {
 
                             // Run comprehensive validation
                             if (!validateForm()) {
-                              const errorMessage =
-                                user?.role === "doctor"
-                                  ? "Please fill in all required fields: Select a Patient, enter the Diagnosis, and add at least one complete Medication with Name, Dosage, Frequency, Duration, and Quantity."
-                                  : "Please fix the errors in the form before submitting";
-
-                              toast({
-                                title: "Required Information Missing",
-                                description: errorMessage,
-                                variant: "destructive",
-                              });
                               return;
                             }
 
