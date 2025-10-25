@@ -1175,12 +1175,12 @@ export default function PrescriptionsPage() {
             pdf.text("Resident Physician", 20, currentY);
             pdf.setFontSize(9);
             pdf.setFont("helvetica", "normal");
-            pdf.text("(Signature)", 20, currentY + 6);
+            pdf.text("(Signature)", 20, currentY + 5);
 
-            // Signature box with border - ONLY around the signature image
+            // Signature box with border - ONLY around the signature image (compact, no padding)
             pdf.setDrawColor(200, 200, 200);
             pdf.setFillColor(250, 250, 255);
-            pdf.rect(15, currentY + 8, 60, 25, "FD");
+            pdf.rect(18, currentY + 8, 54, 22, "FD");
 
             // Add signature image if available
             if (prescriptionData.signature.doctorSignature) {
@@ -1190,7 +1190,7 @@ export default function PrescriptionsPage() {
                   prescriptionData.signature.doctorSignature,
                   "PNG",
                   20,
-                  currentY + 10,
+                  currentY + 9,
                   50,
                   20,
                 );
@@ -1207,7 +1207,7 @@ export default function PrescriptionsPage() {
             // Add e-signed by info - OUTSIDE the signature box
             pdf.setFontSize(9);
             pdf.setTextColor(34, 139, 34); // Green color for e-sign
-            pdf.text(`✓ E-Signed by`, 20, currentY + 38);
+            pdf.text(`✓ E-Signed by`, 20, currentY + 34);
 
             const signedDate = prescriptionData.signature.signedAt
               ? new Date(
@@ -1221,7 +1221,7 @@ export default function PrescriptionsPage() {
                 })
               : "";
             pdf.setTextColor(80, 80, 80);
-            pdf.text(signedDate, 20, currentY + 44);
+            pdf.text(signedDate, 20, currentY + 39);
             console.log("[PDF GENERATION] E-signature section added to PDF");
           } else {
             console.log(
