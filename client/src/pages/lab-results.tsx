@@ -2296,11 +2296,7 @@ Report generated from Cura EMR System`;
                     <p className="text-2xl font-bold">
                       {
                         searchFilteredResults.filter(
-                          (r) =>
-                            r.status === "completed" &&
-                            r.completedAt &&
-                            new Date(r.completedAt).toDateString() ===
-                              new Date().toDateString(),
+                          (r) => r.status === "completed"
                         ).length
                       }
                     </p>
