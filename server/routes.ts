@@ -6706,6 +6706,52 @@ This treatment plan should be reviewed and adjusted based on individual patient 
     }
   });
 
+  // Lab Technician Dashboard - Get tests ready for result generation
+  app.get("/api/lab-technician/tests", authMiddleware, requireRole(["lab_technician", "admin"]), async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const organizationId = req.tenant!.id;
+
+      // Query lab_results joined with patients and invoices
+      const query = `
+        SELECT DISTINCT ON (lr.id)
+          lr.id,
+          lr.test_id as "testId",
+          lr.test_type as "testType",
+          lr.ordered_by as "orderedBy",
+          lr.doctor_name as "doctorName",
+          lr.priority,
+          lr.ordered_at as "orderedAt",
+          lr.status,
+          lr.patient_id as "patientId",
+          CONCAT(p.first_name, ' ', p.last_name) as "patientName"
+        FROM lab_results lr
+        INNER JOIN patients p ON lr.patient_id = p.id AND p.organization_id = $1
+        INNER JOIN invoices i ON i.service_id = lr.test_id 
+          AND i.service_type = 'lab_result'
+          AND i.status = 'paid'
+          AND i.organization_id = $1
+        WHERE lr.organization_id = $1
+          AND lr."Sample_Collected" = true
+          AND lr."Lab_Request_Generated" = true
+        ORDER BY lr.id, lr.ordered_at DESC
+      `;
+
+      const result = await db.execute({
+        sql: query,
+        args: [organizationId]
+      });
+
+      res.json(result.rows);
+    } catch (error) {
+      console.error("Error fetching lab technician tests:", error);
+      res.status(500).json({ error: "Failed to fetch lab technician tests" });
+    }
+  });
+
   // Collect sample - Mark sample as collected
   app.post("/api/lab-results/:id/collect-sample", authMiddleware, requireRole(["admin", "sample_taker", "nurse", "lab_technician"]), async (req: TenantRequest, res) => {
     try {
