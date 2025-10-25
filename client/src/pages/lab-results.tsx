@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import curaIcon from "@/assets/cura-icon.png";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -231,6 +231,7 @@ import {
   Calendar,
   Copy,
   Receipt,
+  PenTool,
 } from "lucide-react";
 
 interface DatabaseLabResult {
@@ -667,6 +668,14 @@ export default function LabResultsPage() {
   });
   const [paymentResult, setPaymentResult] = useState<any>(null);
   const [stripeClientSecret, setStripeClientSecret] = useState<string>("");
+
+  // E-Signature states
+  const [showESignDialog, setShowESignDialog] = useState(false);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [signature, setSignature] = useState<string>("");
+  const [signatureSaved, setSignatureSaved] = useState(false);
+  const [lastPosition, setLastPosition] = useState<{ x: number; y: number } | null>(null);
+  const canvasRef = React.useRef<HTMLCanvasElement>(null);
 
   // Fetch roles from the roles table filtered by organization_id
   const { data: rolesData = [] } = useQuery({
@@ -1876,6 +1885,218 @@ Report generated from Cura EMR System`;
     }
   };
 
+  // E-Signature Canvas Drawing Functions
+  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!canvasRef.current) return;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    setIsDrawing(true);
+    setLastPosition({ x, y });
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+  };
+
+  const stopDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!canvasRef.current || !isDrawing) return;
+
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const currentX = e.clientX - rect.left;
+    const currentY = e.clientY - rect.top;
+
+    const moved =
+      lastPosition &&
+      (Math.abs(currentX - lastPosition.x) > 2 ||
+        Math.abs(currentY - lastPosition.y) > 2);
+
+    if (!moved && lastPosition) {
+      ctx.lineWidth = 2;
+      ctx.fillStyle = "#000000";
+      ctx.beginPath();
+      ctx.arc(lastPosition.x, lastPosition.y, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    setIsDrawing(false);
+    setLastPosition(null);
+  };
+
+  const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!isDrawing || !canvasRef.current) return;
+
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    ctx.lineWidth = 2;
+    ctx.lineCap = "round";
+    ctx.strokeStyle = "#000000";
+
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+
+    setLastPosition({ x, y });
+  };
+
+  const startDrawingTouch = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    if (!canvasRef.current) return;
+
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const touch = e.touches[0];
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+
+    setIsDrawing(true);
+    setLastPosition({ x, y });
+
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+  };
+
+  const stopDrawingTouch = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    if (!canvasRef.current || !isDrawing) return;
+    e.preventDefault();
+
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const touch = e.changedTouches[0];
+    const currentX = touch.clientX - rect.left;
+    const currentY = touch.clientY - rect.top;
+
+    const moved =
+      lastPosition &&
+      (Math.abs(currentX - lastPosition.x) > 2 ||
+        Math.abs(currentY - lastPosition.y) > 2);
+
+    if (!moved && lastPosition) {
+      ctx.lineWidth = 2;
+      ctx.fillStyle = "#000000";
+      ctx.beginPath();
+      ctx.arc(lastPosition.x, lastPosition.y, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    setIsDrawing(false);
+    setLastPosition(null);
+  };
+
+  const drawTouch = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    if (!isDrawing || !canvasRef.current) return;
+    e.preventDefault();
+
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const touch = e.touches[0];
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+
+    ctx.lineWidth = 2;
+    ctx.lineCap = "round";
+    ctx.strokeStyle = "#000000";
+
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+
+    setLastPosition({ x, y });
+  };
+
+  const clearSignature = () => {
+    if (!canvasRef.current) return;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    setSignature("");
+    setSignatureSaved(false);
+  };
+
+  const saveSignature = async () => {
+    if (!canvasRef.current || !selectedResult) return;
+
+    const canvas = canvasRef.current;
+    const signatureData = canvas.toDataURL();
+
+    const blankCanvas = document.createElement("canvas");
+    blankCanvas.width = canvas.width;
+    blankCanvas.height = canvas.height;
+    if (signatureData === blankCanvas.toDataURL()) {
+      toast({
+        title: "Error",
+        description: "Please draw your signature before saving.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const response = await apiRequest(
+        "POST",
+        `/api/lab-results/${selectedResult.id}/e-sign`,
+        {
+          signature: signatureData,
+        },
+      );
+
+      if (response.ok) {
+        await response.json();
+
+        queryClient.invalidateQueries({ queryKey: ["/api/lab-results"] });
+
+        setSignatureSaved(true);
+
+        setTimeout(() => {
+          clearSignature();
+          setShowESignDialog(false);
+          setSignatureSaved(false);
+        }, 2000);
+      } else {
+        const errorData = await response
+          .json()
+          .catch(() => ({ error: "Unknown error" }));
+        throw new Error(errorData.error || "Failed to save signature");
+      }
+    } catch (error) {
+      console.error("Error saving e-signature:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to save electronic signature. Please try again.";
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    }
+  };
+
   // Helper function to get patient name from patient ID
   const getPatientName = (patientId: number) => {
     const patient =
@@ -2322,6 +2543,20 @@ Report generated from Cura EMR System`;
                                         <Receipt className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                                       </Button>
                                     )}
+                                    {user?.role !== 'patient' && (
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => {
+                                          setSelectedResult(result);
+                                          setShowESignDialog(true);
+                                        }}
+                                        className="h-8 w-8 p-0"
+                                        data-testid={`button-esign-${result.id}`}
+                                      >
+                                        <PenTool className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                                      </Button>
+                                    )}
                                   </>
                                 ) : (
                                   <>
@@ -2651,6 +2886,22 @@ Report generated from Cura EMR System`;
                             >
                               <FileText className="h-4 w-4 mr-2" />
                               Generate Test Result
+                            </Button>
+                          )}
+                          {user?.role !== 'patient' && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedResult(result);
+                                setShowESignDialog(true);
+                              }}
+                              className="text-xs sm:text-sm px-2 sm:px-3"
+                              data-testid="button-esign-card"
+                            >
+                              <PenTool className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                              <span className="hidden lg:inline">E-Sign</span>
+                              <span className="lg:hidden">Sign</span>
                             </Button>
                           )}
                         </>
@@ -6007,6 +6258,100 @@ Report generated from Cura EMR System`;
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* E-Signature Dialog */}
+      <Dialog open={showESignDialog} onOpenChange={setShowESignDialog}>
+        <DialogContent className="max-w-2xl max-h-[95vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl">
+              <PenTool className="h-6 w-6 text-medical-blue" />
+              Electronic Signature - Lab Result
+            </DialogTitle>
+          </DialogHeader>
+
+          {selectedResult && (
+            <div className="space-y-4">
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200">
+                <h4 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  Lab Result Summary
+                </h4>
+                <div className="grid grid-cols-2 gap-3 text-sm text-blue-800">
+                  <div>
+                    <p><strong>Patient:</strong> {getPatientName(selectedResult.patientId)}</p>
+                    <p><strong>Test ID:</strong> {selectedResult.testId}</p>
+                    <p><strong>Test Type:</strong> {selectedResult.testType}</p>
+                  </div>
+                  <div>
+                    <p><strong>Ordered By:</strong> {getUserName(selectedResult.orderedBy)}</p>
+                    <p><strong>Status:</strong> {selectedResult.status}</p>
+                    <p><strong>Date:</strong> {format(new Date(selectedResult.orderedAt), "MMM dd, yyyy")}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <label className="text-sm font-medium text-gray-700">
+                    Digital Signature Pad
+                  </label>
+                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    Ready to Sign
+                  </div>
+                </div>
+
+                <div className="border-2 border-gray-300 rounded-lg relative overflow-hidden bg-white shadow-inner">
+                  <canvas
+                    ref={canvasRef}
+                    width={450}
+                    height={200}
+                    className="cursor-crosshair w-full"
+                    onMouseDown={startDrawing}
+                    onMouseMove={draw}
+                    onMouseUp={stopDrawing}
+                    onMouseLeave={stopDrawing}
+                    onTouchStart={startDrawingTouch}
+                    onTouchMove={drawTouch}
+                    onTouchEnd={stopDrawingTouch}
+                  />
+                  <div className="absolute top-2 right-2 text-xs text-gray-400">
+                    Sign Here
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={clearSignature}
+                    className="flex-1"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Clear
+                  </Button>
+                  <Button
+                    onClick={saveSignature}
+                    disabled={signatureSaved}
+                    className="flex-1 bg-medical-blue hover:bg-blue-700"
+                  >
+                    {signatureSaved ? (
+                      <>
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        Signature Saved!
+                      </>
+                    ) : (
+                      <>
+                        <PenTool className="h-4 w-4 mr-2" />
+                        Apply Signature
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
