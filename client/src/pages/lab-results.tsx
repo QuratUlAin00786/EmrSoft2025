@@ -2601,6 +2601,57 @@ Report generated from Cura EMR System`;
                                       <Download className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                                     </Button>
                                   </>
+                                ) : activeTab === "generate" ? (
+                                  <>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleViewResult(result)}
+                                      className="h-8 w-8 p-0"
+                                      data-testid={`button-view-${result.id}`}
+                                    >
+                                      <Eye className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                                    </Button>
+                                    {user?.role !== 'patient' && (
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => handleViewResult(result)}
+                                        className="h-8 w-8 p-0"
+                                        data-testid={`button-edit-${result.id}`}
+                                      >
+                                        <Edit className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                                      </Button>
+                                    )}
+                                    {user?.role !== 'patient' && (
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => {
+                                          setSelectedLabOrder(result);
+                                          setShowFillResultDialog(true);
+                                        }}
+                                        className="h-8 w-8 p-0"
+                                        data-testid={`button-generate-${result.id}`}
+                                      >
+                                        <FileText className="h-4 w-4 text-green-600 dark:text-green-400" />
+                                      </Button>
+                                    )}
+                                    {user?.role !== 'patient' && (
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => {
+                                          setSelectedResult(result);
+                                          setShowESignDialog(true);
+                                        }}
+                                        className="h-8 w-8 p-0"
+                                        data-testid={`button-esign-${result.id}`}
+                                      >
+                                        <PenTool className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                                      </Button>
+                                    )}
+                                  </>
                                 ) : (
                                   <>
                                     <Button
@@ -2921,21 +2972,6 @@ Report generated from Cura EMR System`;
                               variant="outline"
                               size="sm"
                               onClick={() => {
-                                setSelectedLabOrder(result);
-                                setShowFillResultDialog(true);
-                              }}
-                              className="bg-green-50 hover:bg-green-100 dark:bg-green-900/30 dark:hover:bg-green-900/50 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800"
-                              data-testid="button-generate-lab-result"
-                            >
-                              <FileText className="h-4 w-4 mr-2" />
-                              Generate Test Result
-                            </Button>
-                          )}
-                          {user?.role !== 'patient' && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
                                 setSelectedResult(result);
                                 setShowESignDialog(true);
                               }}
@@ -2973,6 +3009,60 @@ Report generated from Cura EMR System`;
                             <Download className="h-4 w-4 mr-2" />
                             Download PDF
                           </Button>
+                        </>
+                      ) : activeTab === "generate" ? (
+                        <>
+                          {user?.role !== 'patient' && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleViewResult(result)}
+                            >
+                              <Edit className="h-4 w-4 mr-2" />
+                              Edit
+                            </Button>
+                          )}
+                          {user?.role !== 'patient' && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleShareResult(result)}
+                            >
+                              <User className="h-4 w-4 mr-2" />
+                              Review
+                            </Button>
+                          )}
+                          {user?.role !== 'patient' && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedLabOrder(result);
+                                setShowFillResultDialog(true);
+                              }}
+                              className="bg-green-50 hover:bg-green-100 dark:bg-green-900/30 dark:hover:bg-green-900/50 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800"
+                              data-testid="button-generate-lab-result"
+                            >
+                              <FileText className="h-4 w-4 mr-2" />
+                              Generate Test Result
+                            </Button>
+                          )}
+                          {user?.role !== 'patient' && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedResult(result);
+                                setShowESignDialog(true);
+                              }}
+                              className="text-xs sm:text-sm px-2 sm:px-3"
+                              data-testid="button-esign-card"
+                            >
+                              <PenTool className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                              <span className="hidden lg:inline">E-Sign</span>
+                              <span className="lg:hidden">Sign</span>
+                            </Button>
+                          )}
                         </>
                       ) : (
                         <>
