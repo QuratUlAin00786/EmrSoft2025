@@ -1088,136 +1088,66 @@ export default function ImagingPage() {
   };
 
   const handleUploadSubmit = async () => {
-    if (
-      !uploadFormData.patientId ||
-      !uploadFormData.studyType
-    ) {
+    // Validate required fields
+    if (!uploadFormData.patientId || !uploadFormData.studyType) {
       toast({
-        title: "Upload Failed",
-        description:
-          "Please fill in all required fields",
+        title: "Order Failed",
+        description: "Please fill in all required fields",
         variant: "destructive",
       });
       return;
     }
 
     try {
-      // Find the selected patient to get the numeric ID and patientId (string)
+      // Find the selected patient
       const selectedPatient = patients.find(
         (p) => p.id.toString() === uploadFormData.patientId,
       );
+      
       if (!selectedPatient) {
         toast({
-          title: "Upload Failed",
+          title: "Order Failed",
           description: "Selected patient not found",
           variant: "destructive",
         });
         return;
       }
 
-      console.log('📷 CLIENT: Selected patient for unique naming:', {
+      console.log('📷 CLIENT: Creating medical imaging order for patient:', {
         id: selectedPatient.id,
         patientId: selectedPatient.patientId,
         name: `${selectedPatient.firstName} ${selectedPatient.lastName}`
       });
 
-      // Upload files OR create order record
-      if (selectedFiles.length > 0) {
-        // Create FormData for multipart upload
-        const formData = new FormData();
-        
-        // Add form data fields
-        formData.append('patientId', selectedPatient.id.toString()); // Use numeric ID for database
-        formData.append('imageType', uploadFormData.studyType);
-        formData.append('bodyPart', uploadFormData.bodyPart || "Not specified");
-        formData.append('notes', uploadFormData.indication || "");
-        formData.append('modality', uploadFormData.modality);
-        formData.append('priority', uploadFormData.priority);
-        formData.append('studyType', uploadFormData.studyType);
-        formData.append('indication', uploadFormData.indication || "");
+      // Create medical imaging order record in database (without file upload)
+      const imageData = {
+        patientId: selectedPatient.id,
+        imageType: uploadFormData.studyType,
+        studyType: uploadFormData.studyType,
+        modality: uploadFormData.modality,
+        bodyPart: uploadFormData.bodyPart || "Not specified",
+        indication: uploadFormData.indication || "",
+        priority: uploadFormData.priority,
+        notes: uploadFormData.indication || "",
+        filename: `ORDER-${Date.now()}.pending`,
+        fileUrl: "",
+        fileSize: 0,
+        uploadedBy: user?.id || 0,
+        status: "ordered"
+      };
 
-        // Add all files to FormData
-        selectedFiles.forEach((file, index) => {
-          formData.append('images', file);
-          console.log(`📷 CLIENT: Adding file ${index + 1}:`, {
-            originalName: file.name,
-            size: file.size,
-            type: file.type,
-            patientForUniqueName: selectedPatient.patientId
-          });
-        });
+      const response = await apiRequest("POST", "/api/medical-images", imageData);
+      const result = await response.json();
+      console.log('📷 CLIENT: Medical imaging order created successfully:', result);
 
-        console.log('📷 CLIENT: Uploading to /api/medical-images/upload with unique naming');
-
-        // Upload using fetch to handle FormData properly with authentication
-        const token = localStorage.getItem('auth_token');
-        const headers: Record<string, string> = {
-          'X-Tenant-Subdomain': getActiveSubdomain()
-        };
-        
-        if (token) {
-          headers['Authorization'] = `Bearer ${token}`;
-        }
-
-        const response = await fetch('/api/medical-images/upload', {
-          method: 'POST',
-          body: formData,
-          headers,
-          credentials: "include",
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Upload failed');
-        }
-
-        const result = await response.json();
-        console.log('📷 CLIENT: Upload successful:', result);
-
-        const totalSize = selectedFiles.reduce((sum, file) => sum + file.size, 0);
-        const totalSizeMB = (totalSize / (1024 * 1024)).toFixed(1);
-
-        // Store uploaded image data for invoice
-        setUploadedImageData({
-          ...uploadFormData,
-          selectedPatient,
-          uploadedFiles: selectedFiles,
-          totalSizeMB,
-          uploadResult: result,
-        });
-      } else {
-        // No files selected - create order record without files
-        console.log('📷 CLIENT: Creating medical image order without files');
-        
-        const imageData = {
-          patientId: selectedPatient.id,
-          imageType: uploadFormData.studyType,
-          studyType: uploadFormData.studyType,
-          modality: uploadFormData.modality,
-          bodyPart: uploadFormData.bodyPart || "Not specified",
-          indication: uploadFormData.indication || "",
-          priority: uploadFormData.priority,
-          notes: uploadFormData.indication || "",
-          filename: `ORDER-${Date.now()}.pending`,
-          fileUrl: null,
-          fileSize: 0,
-          uploadedBy: user?.id || 0,
-          status: "ordered"
-        };
-
-        const response = await apiRequest("POST", "/api/medical-images", imageData);
-        const result = await response.json();
-        console.log('📷 CLIENT: Medical image order created:', result);
-
-        // Store order data for invoice
-        setUploadedImageData({
-          ...uploadFormData,
-          selectedPatient,
-          uploadedFiles: [],
-          totalSizeMB: '0',
-          uploadResult: result,
-        });
-      }
+      // Store order data for invoice
+      setUploadedImageData({
+        ...uploadFormData,
+        selectedPatient,
+        uploadedFiles: [],
+        totalSizeMB: '0',
+        uploadResult: result,
+      });
 
       // Close upload dialog and open invoice dialog
       setShowUploadDialog(false);
@@ -1251,11 +1181,16 @@ export default function ImagingPage() {
       });
       
       setShowInvoiceDialog(true);
-    } catch (error) {
-      console.error("📷 CLIENT: Upload error:", error);
+
       toast({
-        title: "Upload Failed",
-        description: "Failed to upload images. Please try again.",
+        title: "Order Created",
+        description: "Medical imaging order created successfully",
+      });
+    } catch (error) {
+      console.error("📷 CLIENT: Order creation error:", error);
+      toast({
+        title: "Order Failed",
+        description: "Failed to create medical imaging order. Please try again.",
         variant: "destructive",
       });
     }
