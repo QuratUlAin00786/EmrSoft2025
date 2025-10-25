@@ -4407,13 +4407,13 @@ ${
                         yPos += 15;
 
                         // Add anatomical analysis image if available
+                        const organizationId = tenant?.id || 0;
+                        const imagePath = `/uploads/${organizationId}/anatomical_analysis_img/${organizationId}/${currentPatientId}/${currentPatientId}.png`;
+                        console.log('[ANATOMICAL PDF STEP1] Fetching image from:', imagePath);
+                        console.log('[ANATOMICAL PDF STEP1] Tenant ID:', tenant?.id);
+                        console.log('[ANATOMICAL PDF STEP1] Organization ID:', organizationId);
+                        
                         try {
-                          const organizationId = tenant?.id || 0;
-                          const imagePath = `/uploads/anatomical_analysis_img/${organizationId}/${currentPatientId}/${currentPatientId}.png`;
-                          console.log('[ANATOMICAL PDF STEP1] Fetching image from:', imagePath);
-                          console.log('[ANATOMICAL PDF STEP1] Tenant ID:', tenant?.id);
-                          console.log('[ANATOMICAL PDF STEP1] Organization ID:', organizationId);
-                          
                           const imageResponse = await fetch(imagePath);
                           console.log('[ANATOMICAL PDF STEP1] Image response status:', imageResponse.status);
                           
@@ -4929,13 +4929,13 @@ ${
                         yPos += 15;
 
                         // Add anatomical analysis image if available
+                        const organizationId = tenant?.id || 0;
+                        const imagePath = `/uploads/${organizationId}/anatomical_analysis_img/${organizationId}/${currentPatientId}/${currentPatientId}.png`;
+                        console.log('[ANATOMICAL PDF STEP1] Fetching image from:', imagePath);
+                        console.log('[ANATOMICAL PDF STEP1] Tenant ID:', tenant?.id);
+                        console.log('[ANATOMICAL PDF STEP1] Organization ID:', organizationId);
+                        
                         try {
-                          const organizationId = tenant?.id || 0;
-                          const imagePath = `/uploads/anatomical_analysis_img/${organizationId}/${currentPatientId}/${currentPatientId}.png`;
-                          console.log('[ANATOMICAL PDF STEP1] Fetching image from:', imagePath);
-                          console.log('[ANATOMICAL PDF STEP1] Tenant ID:', tenant?.id);
-                          console.log('[ANATOMICAL PDF STEP1] Organization ID:', organizationId);
-                          
                           const imageResponse = await fetch(imagePath);
                           console.log('[ANATOMICAL PDF STEP1] Image response status:', imageResponse.status);
                           
