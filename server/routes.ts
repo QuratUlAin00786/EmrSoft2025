@@ -11671,6 +11671,7 @@ This treatment plan should be reviewed and adjusted based on individual patient 
     try {
       const imageData = z.object({
         patientId: z.number(),
+        imageId: z.string().optional(), // Add imageId field
         imageType: z.string().optional(),
         studyType: z.string().optional(),
         modality: z.string().optional(),
@@ -11687,9 +11688,13 @@ This treatment plan should be reviewed and adjusted based on individual patient 
         status: z.string().optional() // Add status field for orders vs uploads
       }).parse(req.body);
 
+      // Generate imageId if not provided
+      const finalImageId = imageData.imageId || `IMG${Date.now()}I${imageData.patientId}AUTO`;
+
       // Create proper object for database insertion (with enforced created_by)
       const dbImageData = enforceCreatedBy(req, {
         patientId: imageData.patientId,
+        imageId: finalImageId, // Include imageId in database object
         studyType: imageData.studyType || imageData.imageType || "Unknown Study", // Use studyType first, then imageType as fallback
         modality: imageData.modality || "X-Ray", // Use provided modality or default
         bodyPart: imageData.bodyPart,

@@ -1119,9 +1119,14 @@ export default function ImagingPage() {
         name: `${selectedPatient.firstName} ${selectedPatient.lastName}`
       });
 
+      // Generate unique image ID (format: IMG{timestamp}I{patientId}ONC)
+      const timestamp = Date.now();
+      const uniqueImageId = `IMG${timestamp}I${selectedPatient.id}ORDER`;
+      
       // Create medical imaging order record in database (without file upload)
       const imageData = {
         patientId: selectedPatient.id,
+        imageId: uniqueImageId,
         imageType: uploadFormData.studyType,
         studyType: uploadFormData.studyType,
         modality: uploadFormData.modality,
@@ -1129,9 +1134,10 @@ export default function ImagingPage() {
         indication: uploadFormData.indication || "",
         priority: uploadFormData.priority,
         notes: uploadFormData.indication || "",
-        filename: `ORDER-${Date.now()}.pending`,
+        filename: `ORDER-${timestamp}.pending`,
         fileUrl: "",
         fileSize: 0,
+        mimeType: "application/pending",
         uploadedBy: user?.id || 0,
         status: "ordered"
       };
