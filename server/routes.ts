@@ -13025,6 +13025,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/default-shifts/:userId", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const organizationId = req.tenant!.id;
+      const requestingUserId = req.user?.id;
+      const isAdmin = req.user?.role === "admin";
+
+      if (!isAdmin && userId !== requestingUserId) {
+        return res.status(403).json({ error: "Forbidden: Can only delete your own default shift" });
+      }
+
+      const deleted = await storage.deleteDefaultShift(userId, organizationId);
+
+      if (!deleted) {
+        return res.status(404).json({ error: "Default shift not found" });
+      }
+
+      res.json({ message: "Default shift deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting default shift:", error);
+      res.status(500).json({ error: "Failed to delete default shift" });
+    }
+  });
+
   app.delete("/api/default-shifts/all", authMiddleware, requireRole(["admin"]), async (req: TenantRequest, res) => {
     try {
       const organizationId = req.tenant!.id;

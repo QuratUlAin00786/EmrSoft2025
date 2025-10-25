@@ -399,6 +399,7 @@ export interface IStorage {
   getDefaultShiftByUser(userId: number, organizationId: number): Promise<DoctorDefaultShift | undefined>;
   updateDefaultShift(userId: number, organizationId: number, updates: Partial<InsertDoctorDefaultShift>): Promise<DoctorDefaultShift | undefined>;
   initializeDefaultShifts(organizationId: number): Promise<{ created: number; skipped: number }>;
+  deleteDefaultShift(userId: number, organizationId: number): Promise<boolean>;
   deleteAllDefaultShifts(organizationId: number): Promise<{ deleted: number }>;
 
   // GDPR Compliance
@@ -4486,6 +4487,16 @@ export class DatabaseStorage implements IStorage {
     }
 
     return { created, skipped };
+  }
+
+  async deleteDefaultShift(userId: number, organizationId: number): Promise<boolean> {
+    const result = await db.delete(doctorDefaultShifts)
+      .where(and(
+        eq(doctorDefaultShifts.userId, userId),
+        eq(doctorDefaultShifts.organizationId, organizationId)
+      ))
+      .returning();
+    return result.length > 0;
   }
 
   async deleteAllDefaultShifts(organizationId: number): Promise<{ deleted: number }> {

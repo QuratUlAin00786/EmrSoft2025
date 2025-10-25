@@ -45,6 +45,8 @@ export default function ShiftsPage() {
   const [defaultEndTime, setDefaultEndTime] = useState("17:00");
   const [defaultWorkingDays, setDefaultWorkingDays] = useState<string[]>(["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]);
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
+  const [showDeleteSingleConfirmModal, setShowDeleteSingleConfirmModal] = useState(false);
+  const [shiftToDelete, setShiftToDelete] = useState<any>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -157,6 +159,27 @@ export default function ShiftsPage() {
       toast({
         title: "Error",
         description: error.message || "Failed to update default shift",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete single default shift mutation
+  const deleteDefaultShiftMutation = useMutation({
+    mutationFn: async (userId: number) => {
+      const response = await apiRequest("DELETE", `/api/default-shifts/${userId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/default-shifts"] });
+      setShowDeleteSingleConfirmModal(false);
+      setSuccessMessage("Default shift deleted successfully");
+      setShowSuccessModal(true);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete default shift",
         variant: "destructive",
       });
     },
@@ -956,10 +979,29 @@ export default function ShiftsPage() {
                           </div>
                         </div>
                         {canEdit && (
-                          <Button variant="outline" size="sm" onClick={() => handleEditDefaultShift(shift)}>
-                            <Edit className="h-4 w-4 mr-2" />
-                            Edit
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => handleEditDefaultShift(shift)}
+                              data-testid={`button-edit-shift-${shift.userId}`}
+                            >
+                              <Edit className="h-4 w-4 mr-2" />
+                              Edit
+                            </Button>
+                            <Button 
+                              variant="destructive" 
+                              size="sm" 
+                              onClick={() => {
+                                setShiftToDelete(shift);
+                                setShowDeleteSingleConfirmModal(true);
+                              }}
+                              data-testid={`button-delete-shift-${shift.userId}`}
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete
+                            </Button>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -2084,6 +2126,54 @@ export default function ShiftsPage() {
               }}
             >
               OK
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Single Shift Confirmation Modal */}
+      <Dialog open={showDeleteSingleConfirmModal} onOpenChange={setShowDeleteSingleConfirmModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-red-600 dark:text-red-400">Confirm Deletion</DialogTitle>
+          </DialogHeader>
+          
+          <div className="py-4">
+            {shiftToDelete && (() => {
+              const staffMember = staff.find((s: any) => s.id === shiftToDelete.userId);
+              return (
+                <>
+                  <p className="text-gray-700 dark:text-gray-300 mb-4">
+                    Are you sure you want to delete the default shift for{' '}
+                    <span className="font-bold">
+                      {staffMember ? `${staffMember.firstName} ${staffMember.lastName}` : 'this user'}
+                    </span>?
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    This action cannot be undone.
+                  </p>
+                </>
+              );
+            })()}
+          </div>
+
+          <div className="flex justify-end gap-3">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowDeleteSingleConfirmModal(false);
+                setShiftToDelete(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => shiftToDelete && deleteDefaultShiftMutation.mutate(shiftToDelete.userId)}
+              disabled={deleteDefaultShiftMutation.isPending}
+              data-testid="button-confirm-delete-single"
+            >
+              {deleteDefaultShiftMutation.isPending ? "Deleting..." : "Delete"}
             </Button>
           </div>
         </DialogContent>
