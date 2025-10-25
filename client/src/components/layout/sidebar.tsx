@@ -445,7 +445,7 @@ export function Sidebar() {
               <DropdownMenuItem
                 onClick={() => {
                   logout();
-                  window.location.href = "https://curaemr.ai";
+                  window.location.href = "/auth/login";
                 }}
                 className="text-red-600"
               >
