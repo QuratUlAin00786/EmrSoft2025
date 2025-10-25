@@ -407,6 +407,7 @@ export default function ImagingPage() {
   const [invoiceServiceError, setInvoiceServiceError] = useState("");
   const [invoiceNhsError, setInvoiceNhsError] = useState("");
   const [invoiceTotalError, setInvoiceTotalError] = useState("");
+  const [invoicePaymentMethodError, setInvoicePaymentMethodError] = useState("");
   
   // Combobox open states
   const [modalityOpen, setModalityOpen] = useState(false);
@@ -5132,6 +5133,9 @@ export default function ImagingPage() {
                   <SelectItem value="debit_card">Debit Card</SelectItem>
                 </SelectContent>
               </Select>
+              {invoicePaymentMethodError && (
+                <p className="text-sm text-red-600 mt-1">{invoicePaymentMethodError}</p>
+              )}
             </div>
 
             <div className="flex justify-end gap-2 pt-4">
@@ -5151,6 +5155,7 @@ export default function ImagingPage() {
                   setInvoiceServiceError("");
                   setInvoiceNhsError("");
                   setInvoiceTotalError("");
+                  setInvoicePaymentMethodError("");
                   
                   let hasError = false;
                   
@@ -5196,11 +5201,7 @@ export default function ImagingPage() {
                   
                   // Validate payment method
                   if (!invoiceFormData.paymentMethod) {
-                    toast({
-                      title: "Payment Method Required",
-                      description: "Please select a payment method",
-                      variant: "destructive",
-                    });
+                    setInvoicePaymentMethodError("Please select a payment method");
                     hasError = true;
                   }
                   
