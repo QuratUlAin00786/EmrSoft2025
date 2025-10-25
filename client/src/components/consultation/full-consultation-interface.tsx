@@ -4401,37 +4401,29 @@ ${
                         const organizationId = tenant?.id || 0;
                         const imagePath = `/uploads/${organizationId}/anatomical_analysis_img/${organizationId}/${currentPatientId}/${currentPatientId}.png`;
                         console.log('[ANATOMICAL PDF STEP1] Fetching image from:', imagePath);
-                        console.log('[ANATOMICAL PDF STEP1] Tenant ID:', tenant?.id);
-                        console.log('[ANATOMICAL PDF STEP1] Organization ID:', organizationId);
                         
                         try {
                           const imageResponse = await fetch(imagePath);
                           console.log('[ANATOMICAL PDF STEP1] Image response status:', imageResponse.status);
                           
                           if (imageResponse.ok) {
-                            console.log('[ANATOMICAL PDF STEP1] Image fetch successful, converting to blob...');
                             const imageBlob = await imageResponse.blob();
-                            console.log('[ANATOMICAL PDF STEP1] Blob size:', imageBlob.size);
-                            
                             const imageBase64 = await new Promise<string>((resolve) => {
                               const reader = new FileReader();
                               reader.onloadend = () => resolve(reader.result as string);
                               reader.readAsDataURL(imageBlob);
                             });
                             
-                            console.log('[ANATOMICAL PDF STEP1] Image converted to base64, adding to PDF...');
+                            console.log('[ANATOMICAL PDF STEP1] Adding image at yPos:', yPos);
+                            const imgWidth = 170;
+                            const imgHeight = 120;
                             
-                            // Add image to PDF with proper sizing
-                            const imgWidth = 170; // Full content width
-                            const imgHeight = 120; // Maintain aspect ratio
                             doc.addImage(imageBase64, 'PNG', 20, yPos, imgWidth, imgHeight);
                             yPos += imgHeight + 10;
-                            console.log('[ANATOMICAL PDF STEP1] Image added to PDF successfully');
-                          } else {
-                            console.log('[ANATOMICAL PDF STEP1] Image not found, status:', imageResponse.status);
+                            console.log('[ANATOMICAL PDF STEP1] Image added successfully');
                           }
                         } catch (imageError) {
-                          console.error('[ANATOMICAL PDF STEP1] Error loading image:', imageError);
+                          console.error('[ANATOMICAL PDF STEP1] Image error:', imageError);
                         }
 
                         // Analysis Details
@@ -4914,37 +4906,29 @@ ${
                         const organizationId = tenant?.id || 0;
                         const imagePath = `/uploads/${organizationId}/anatomical_analysis_img/${organizationId}/${currentPatientId}/${currentPatientId}.png`;
                         console.log('[ANATOMICAL PDF STEP1] Fetching image from:', imagePath);
-                        console.log('[ANATOMICAL PDF STEP1] Tenant ID:', tenant?.id);
-                        console.log('[ANATOMICAL PDF STEP1] Organization ID:', organizationId);
                         
                         try {
                           const imageResponse = await fetch(imagePath);
                           console.log('[ANATOMICAL PDF STEP1] Image response status:', imageResponse.status);
                           
                           if (imageResponse.ok) {
-                            console.log('[ANATOMICAL PDF STEP1] Image fetch successful, converting to blob...');
                             const imageBlob = await imageResponse.blob();
-                            console.log('[ANATOMICAL PDF STEP1] Blob size:', imageBlob.size);
-                            
                             const imageBase64 = await new Promise<string>((resolve) => {
                               const reader = new FileReader();
                               reader.onloadend = () => resolve(reader.result as string);
                               reader.readAsDataURL(imageBlob);
                             });
                             
-                            console.log('[ANATOMICAL PDF STEP1] Image converted to base64, adding to PDF...');
+                            console.log('[ANATOMICAL PDF STEP1] Adding image at yPos:', yPos);
+                            const imgWidth = 170;
+                            const imgHeight = 120;
                             
-                            // Add image to PDF with proper sizing
-                            const imgWidth = 170; // Full content width
-                            const imgHeight = 120; // Maintain aspect ratio
                             doc.addImage(imageBase64, 'PNG', 20, yPos, imgWidth, imgHeight);
                             yPos += imgHeight + 10;
-                            console.log('[ANATOMICAL PDF STEP1] Image added to PDF successfully');
-                          } else {
-                            console.log('[ANATOMICAL PDF STEP1] Image not found, status:', imageResponse.status);
+                            console.log('[ANATOMICAL PDF STEP1] Image added successfully');
                           }
                         } catch (imageError) {
-                          console.error('[ANATOMICAL PDF STEP1] Error loading image:', imageError);
+                          console.error('[ANATOMICAL PDF STEP1] Image error:', imageError);
                         }
 
                         // Analysis Details
