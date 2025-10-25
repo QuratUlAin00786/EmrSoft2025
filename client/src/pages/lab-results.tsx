@@ -2465,7 +2465,27 @@ Report generated from Cura EMR System`;
                           </div>
                           <div className="text-sm text-gray-600 dark:text-gray-300">
                             <span className="font-medium">Test:</span>{" "}
-                            {result.testType}
+                            {(() => {
+                              const tests = result.testType.split(' | ');
+                              if (tests.length <= 3) {
+                                return result.testType;
+                              }
+                              const visibleTests = tests.slice(0, 3).join(' | ');
+                              const hiddenCount = tests.length - 3;
+                              return (
+                                <span className="group relative inline-block">
+                                  <span>{visibleTests} <span className="text-blue-600 dark:text-blue-400 cursor-help font-medium">+{hiddenCount} more</span></span>
+                                  <div className="invisible group-hover:visible absolute left-0 top-full mt-1 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg p-3 min-w-[400px] max-w-[600px]">
+                                    <div className="text-sm font-semibold mb-2 text-gray-900 dark:text-gray-100">All Tests ({tests.length}):</div>
+                                    <div className="space-y-1 max-h-[300px] overflow-y-auto">
+                                      {tests.map((test, idx) => (
+                                        <div key={idx} className="text-sm text-gray-700 dark:text-gray-300 py-0.5">{test}</div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </span>
+                              );
+                            })()}
                           </div>
                           <div className="text-sm text-gray-600 dark:text-gray-300">
                             <span className="font-medium">Test ID:</span>{" "}
