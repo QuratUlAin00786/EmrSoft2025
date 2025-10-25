@@ -399,6 +399,7 @@ export interface IStorage {
   getDefaultShiftByUser(userId: number, organizationId: number): Promise<DoctorDefaultShift | undefined>;
   updateDefaultShift(userId: number, organizationId: number, updates: Partial<InsertDoctorDefaultShift>): Promise<DoctorDefaultShift | undefined>;
   initializeDefaultShifts(organizationId: number): Promise<{ created: number; skipped: number }>;
+  deleteAllDefaultShifts(organizationId: number): Promise<{ deleted: number }>;
 
   // GDPR Compliance
   createGdprConsent(consent: InsertGdprConsent): Promise<GdprConsent>;
@@ -4485,6 +4486,13 @@ export class DatabaseStorage implements IStorage {
     }
 
     return { created, skipped };
+  }
+
+  async deleteAllDefaultShifts(organizationId: number): Promise<{ deleted: number }> {
+    const result = await db.delete(doctorDefaultShifts)
+      .where(eq(doctorDefaultShifts.organizationId, organizationId))
+      .returning();
+    return { deleted: result.length };
   }
 
   // GDPR Compliance Methods

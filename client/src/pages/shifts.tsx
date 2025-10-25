@@ -44,6 +44,7 @@ export default function ShiftsPage() {
   const [defaultStartTime, setDefaultStartTime] = useState("09:00");
   const [defaultEndTime, setDefaultEndTime] = useState("17:00");
   const [defaultWorkingDays, setDefaultWorkingDays] = useState<string[]>(["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]);
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -156,6 +157,27 @@ export default function ShiftsPage() {
       toast({
         title: "Error",
         description: error.message || "Failed to update default shift",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete all default shifts mutation
+  const deleteAllDefaultShiftsMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("DELETE", "/api/default-shifts/all");
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/default-shifts"] });
+      setShowDeleteConfirmModal(false);
+      setSuccessMessage(`Successfully deleted ${data.deleted} default shifts`);
+      setShowSuccessModal(true);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete all default shifts",
         variant: "destructive",
       });
     },
@@ -876,7 +898,16 @@ export default function ShiftsPage() {
 
             <div className="space-y-4">
               {isAdmin && (
-                <div className="flex justify-end mb-4">
+                <div className="flex justify-end gap-3 mb-4">
+                  <Button
+                    variant="destructive"
+                    onClick={() => setShowDeleteConfirmModal(true)}
+                    disabled={defaultShifts.length === 0}
+                    data-testid="button-delete-all-shifts"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete All Shifts
+                  </Button>
                   <Button
                     onClick={async () => {
                       try {
@@ -2042,7 +2073,7 @@ export default function ShiftsPage() {
           </DialogHeader>
           
           <div className="py-4">
-            <p className="text-gray-700">{successMessage}</p>
+            <p className="text-gray-700 dark:text-gray-300">{successMessage}</p>
           </div>
 
           <div className="flex justify-end">
@@ -2053,6 +2084,41 @@ export default function ShiftsPage() {
               }}
             >
               OK
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete All Shifts Confirmation Modal */}
+      <Dialog open={showDeleteConfirmModal} onOpenChange={setShowDeleteConfirmModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-red-600 dark:text-red-400">Confirm Deletion</DialogTitle>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <p className="text-gray-700 dark:text-gray-300 mb-4">
+              Are you sure you want to delete all default shifts? This action cannot be undone.
+            </p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              This will delete <span className="font-bold text-red-600 dark:text-red-400">{defaultShifts.length}</span> default shift(s).
+            </p>
+          </div>
+
+          <div className="flex justify-end gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setShowDeleteConfirmModal(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => deleteAllDefaultShiftsMutation.mutate()}
+              disabled={deleteAllDefaultShiftsMutation.isPending}
+              data-testid="button-confirm-delete-all"
+            >
+              {deleteAllDefaultShiftsMutation.isPending ? "Deleting..." : "Delete All"}
             </Button>
           </div>
         </DialogContent>

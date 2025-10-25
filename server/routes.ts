@@ -13025,6 +13025,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/default-shifts/all", authMiddleware, requireRole(["admin"]), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = req.tenant!.id;
+      
+      const result = await storage.deleteAllDefaultShifts(organizationId);
+
+      res.json({
+        message: "All default shifts deleted successfully",
+        deleted: result.deleted
+      });
+    } catch (error) {
+      console.error("Error deleting all default shifts:", error);
+      res.status(500).json({ error: "Failed to delete all default shifts" });
+    }
+  });
+
   // Mobile API endpoints for Doctor and Patient apps
   
   // Doctor Mobile API endpoints
