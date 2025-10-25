@@ -4827,8 +4827,15 @@ ${
                       fetch('/api/clinic-footers', { headers })
                     ]);
 
-                    const clinicHeader = await headerRes.json();
-                    const clinicFooter = await footerRes.json();
+                    let clinicHeader = null;
+                    let clinicFooter = null;
+
+                    if (headerRes.ok) {
+                      clinicHeader = await headerRes.json();
+                    }
+                    if (footerRes.ok) {
+                      clinicFooter = await footerRes.json();
+                    }
 
                     // Generate PDF with jsPDF
                     const { jsPDF } = await import('jspdf');
