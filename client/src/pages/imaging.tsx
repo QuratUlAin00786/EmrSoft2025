@@ -1922,7 +1922,28 @@ export default function ImagingPage() {
                             Modality
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            Ordered
+                            Body Part
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            Indication
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            File Name
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            File Size
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            Radiologist
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            Scheduled
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            Performed
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            Created
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                             Priority
@@ -1949,7 +1970,7 @@ export default function ImagingPage() {
                               {study.patientName}
                             </td>
                             <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
-                              {study.studyType || study.bodyPart}
+                              {study.studyType || "N/A"}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                               <div className="flex items-center gap-2">
@@ -1957,8 +1978,29 @@ export default function ImagingPage() {
                                 {study.modality}
                               </div>
                             </td>
+                            <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
+                              {study.bodyPart || "N/A"}
+                            </td>
+                            <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
+                              {study.indication || "N/A"}
+                            </td>
+                            <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
+                              {study.fileName || "N/A"}
+                            </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                              {study.orderedAt ? format(new Date(study.orderedAt), "MMM dd, yyyy") : "N/A"}
+                              {study.fileSize ? `${(study.fileSize / 1024).toFixed(2)} KB` : "N/A"}
+                            </td>
+                            <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
+                              {study.radiologist || "N/A"}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                              {study.scheduledAt ? format(new Date(study.scheduledAt), "MMM dd, yyyy") : "N/A"}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                              {study.performedAt ? format(new Date(study.performedAt), "MMM dd, yyyy") : "N/A"}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                              {study.createdAt ? format(new Date(study.createdAt), "MMM dd, yyyy") : "N/A"}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm">
                               <Badge
