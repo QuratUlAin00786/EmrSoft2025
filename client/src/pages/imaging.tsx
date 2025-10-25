@@ -3260,6 +3260,68 @@ export default function ImagingPage() {
                   )}
                 </div>
 
+                {/* File Upload - Medical Images */}
+                <div>
+                  <Label htmlFor="report-upload-files">Medical Images *</Label>
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                    <FileImage className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                    <div className="space-y-2">
+                      <div>
+                        <input
+                          type="file"
+                          id="report-upload-files"
+                          multiple
+                          accept="image/*,.dcm,.dicom,.jpg,.jpeg,.png,.gif,.bmp,.tiff,.tif,.webp,.svg,.ico,.jfif,.pjpeg,.pjp"
+                          onChange={handleFileUpload}
+                          className="hidden"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() =>
+                            document.getElementById("report-upload-files")?.click()
+                          }
+                        >
+                          Select Images
+                        </Button>
+                      </div>
+                      <p className="text-sm text-gray-500">
+                        Select X-ray images, DICOM files, or other medical images
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        Supported formats: All image formats (JPEG, PNG, GIF, BMP,
+                        TIFF, WebP, SVG), DICOM (.dcm), and medical imaging files
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Selected Files Display */}
+                  {selectedFiles.length > 0 && (
+                    <div className="mt-4 space-y-2">
+                      <Label>Selected Files ({selectedFiles.length}):</Label>
+                      <div className="max-h-32 overflow-y-auto space-y-1">
+                        {selectedFiles.map((file, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center justify-between bg-gray-50 p-2 rounded"
+                          >
+                            <span className="text-sm truncate">{file.name}</span>
+                            <span className="text-xs text-gray-500">
+                              {file.size
+                                ? file.size < 1024
+                                  ? `${file.size} B`
+                                  : file.size < 1024 * 1024
+                                    ? `${(file.size / 1024).toFixed(1)} KB`
+                                    : `${(file.size / (1024 * 1024)).toFixed(1)} MB`
+                                : "Unknown size"}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 {/* Saved Reports Section */}
                 {selectedStudy.reportFilePath &&
                   !nonExistentReports.has(selectedStudy.id) && (
