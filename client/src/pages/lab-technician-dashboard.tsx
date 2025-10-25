@@ -137,6 +137,49 @@ const TEST_FIELD_DEFINITIONS: Record<string, Array<{
     { name: "Bilirubin", unit: "", referenceRange: "Negative" },
     { name: "Leukocytes", unit: "", referenceRange: "Negative" },
   ],
+  "Hormonal tests (Cortisol": [
+    { name: "Morning Cortisol", unit: "μg/dL", referenceRange: "5.0 - 25.0" },
+    { name: "Evening Cortisol", unit: "μg/dL", referenceRange: "3.0 - 16.0" },
+    { name: "24-hour Urinary Cortisol", unit: "μg/24hr", referenceRange: "10 - 100" },
+  ],
+  "ACTH)": [
+    { name: "ACTH Level", unit: "pg/mL", referenceRange: "10 - 60" },
+    { name: "Sample Collection Time", unit: "", referenceRange: "8:00 AM" },
+  ],
+  "Stool Culture / Ova & Parasites": [
+    { name: "Stool Consistency", unit: "", referenceRange: "Formed" },
+    { name: "Culture Result", unit: "", referenceRange: "Normal Flora" },
+    { name: "Pathogenic Bacteria", unit: "", referenceRange: "None Detected" },
+    { name: "Ova/Cysts", unit: "", referenceRange: "Not Seen" },
+    { name: "Parasites", unit: "", referenceRange: "Not Detected" },
+    { name: "WBC in Stool", unit: "/HPF", referenceRange: "<5" },
+  ],
+  "Autoimmune Panels (ANA": [
+    { name: "ANA Titer", unit: "", referenceRange: "<1:40" },
+    { name: "ANA Pattern", unit: "", referenceRange: "Negative" },
+    { name: "Anti-dsDNA", unit: "IU/mL", referenceRange: "<30" },
+  ],
+  "ENA": [
+    { name: "Anti-Sm", unit: "", referenceRange: "Negative" },
+    { name: "Anti-RNP", unit: "", referenceRange: "Negative" },
+    { name: "Anti-SSA (Ro)", unit: "", referenceRange: "Negative" },
+    { name: "Anti-SSB (La)", unit: "", referenceRange: "Negative" },
+    { name: "Anti-Scl-70", unit: "", referenceRange: "Negative" },
+  ],
+  "Rheumatoid Factor)": [
+    { name: "Rheumatoid Factor (RF)", unit: "IU/mL", referenceRange: "<20" },
+    { name: "RF Interpretation", unit: "", referenceRange: "Negative" },
+  ],
+  "Blood Culture & Sensitivity | Tumor Markers (e.g. CA-125": [
+    { name: "Blood Culture Result", unit: "", referenceRange: "No Growth" },
+    { name: "Organism Identified", unit: "", referenceRange: "None" },
+    { name: "CA-125 (Ovarian)", unit: "U/mL", referenceRange: "<35" },
+  ],
+  "AFP) | Autoimmune Panels (ANA": [
+    { name: "AFP (Alpha-Fetoprotein)", unit: "ng/mL", referenceRange: "<10" },
+    { name: "ANA Titer", unit: "", referenceRange: "<1:40" },
+    { name: "ANA Pattern", unit: "", referenceRange: "Negative" },
+  ],
 };
 
 interface LabTest {
@@ -412,6 +455,14 @@ export default function LabTechnicianDashboard() {
                       </Badge>
                     </div>
 
+                    {/* Invoice Number Display */}
+                    {test.invoiceNumber && (
+                      <div className="bg-muted/50 px-3 py-2 rounded">
+                        <p className="text-xs text-muted-foreground">Invoice</p>
+                        <p className="font-medium text-sm">{test.invoiceNumber}</p>
+                      </div>
+                    )}
+
                     {/* Badges Row */}
                     <div className="flex flex-wrap gap-2">
                       {test.sampleCollected && (
@@ -420,14 +471,13 @@ export default function LabTechnicianDashboard() {
                           Sample Collected
                         </Badge>
                       )}
-                      {test.invoiceStatus === 'paid' && (
+                      {test.invoiceStatus === 'paid' ? (
                         <Badge className="bg-blue-600 hover:bg-blue-700">
                           Paid
                         </Badge>
-                      )}
-                      {test.invoiceNumber && (
-                        <Badge variant="outline">
-                          {test.invoiceNumber}
+                      ) : (
+                        <Badge className="bg-orange-600 hover:bg-orange-700">
+                          Unpaid
                         </Badge>
                       )}
                     </div>
