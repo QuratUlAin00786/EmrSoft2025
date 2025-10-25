@@ -16922,13 +16922,36 @@ Cura EMR Team
       // Get the user details who is sharing the study
       const sharedBy = req.user.email;
       
-      // Create report URL if report exists
+      // Create signed report URL if report exists
       let reportUrl = '';
-      if (study.reportFileName) {
+      if (study.reportFileName && study.imageId) {
+        const fileSecret = process.env.FILE_SECRET;
+        if (!fileSecret) {
+          console.error("FILE_SECRET not configured");
+          return res.status(500).json({ error: "Server configuration error" });
+        }
+
+        // Generate signed token valid for 7 days (for email access)
+        const token = jwt.sign(
+          {
+            fileId: study.id,
+            imageId: study.imageId,
+            organizationId: study.organizationId,
+            patientId: study.patientId,
+            userId: req.user.id
+          },
+          fileSecret,
+          { expiresIn: '7d' }
+        );
+
         const baseUrl = process.env.NODE_ENV === 'production' 
           ? `https://${req.get('host')}` 
           : `http://${req.get('host')}`;
-        reportUrl = `${baseUrl}/api/imaging/reports/${study.reportFileName.replace('.pdf', '')}`;
+        
+        // Use signed URL endpoint for email access (no auth required)
+        reportUrl = `${baseUrl}/api/imaging-files/view/${study.imageId}?token=${token}`;
+        
+        console.log('[EMAIL-SHARE] Generated signed URL for imaging report:', study.imageId);
       }
 
       // Send the email using the email service
