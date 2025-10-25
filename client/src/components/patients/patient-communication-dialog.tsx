@@ -88,11 +88,11 @@ export function PatientCommunicationDialog({ open, onOpenChange, patient, mode }
     onSuccess: () => {
       toast({
         title: "Reminder Sent",
-        description: "Patient reminder has been sent successfully",
+        description: "Patient reminder has been sent successfully. Check Communication History below.",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/patients', patient?.id, 'communications'] });
-      onOpenChange(false);
       resetForm();
+      // Don't close the dialog so user can see the updated communication history
     },
     onError: (error: any) => {
       toast({
