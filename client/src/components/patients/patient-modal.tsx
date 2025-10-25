@@ -731,8 +731,8 @@ export function PatientModal({ open, onOpenChange, editMode = false, editPatient
           const city = place['place name'] || '';
           const state = place['state'] || '';
           
-          // Auto-fill city field
-          form.setValue('address.city', city);
+          // Auto-fill city field with state (e.g., "Toronto, Ontario")
+          form.setValue('address.city', state ? `${city}, ${state}` : city);
           setPostcodeLookupMessage(state 
             ? `Found: ${city}, ${state}, ${selectedCountry}`
             : `Found: ${city}, ${selectedCountry}`);
