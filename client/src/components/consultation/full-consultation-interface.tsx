@@ -1574,6 +1574,91 @@ ${
     console.log('🔍 DETECTED BLACK DOTS:', detectedDots);
   };
 
+  // SAVE IMAGE WITH YELLOW DOTS FOR SELECTED MUSCLE GROUP
+  const saveImageWithYellowDots = async () => {
+    if (!selectedMuscleGroup || !imageRef.current || !canvasRef.current) {
+      toast({
+        title: "Cannot Save Image",
+        description: "Please select a muscle group first.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const image = imageRef.current;
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext('2d');
+      
+      if (!ctx) return;
+
+      // Set canvas dimensions to match image natural size
+      canvas.width = image.naturalWidth;
+      canvas.height = image.naturalHeight;
+
+      // Draw the base image
+      ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+      // Get muscle positions for the selected muscle group
+      const staticPositions = getStaticMusclePositions();
+      const musclePositions = staticPositions.filter((pos: any) => {
+        const muscleValue = pos.value.toLowerCase().replace(/\s+/g, '_');
+        return muscleValue === selectedMuscleGroup.toLowerCase();
+      });
+
+      // Draw yellow dots on the muscle positions
+      musclePositions.forEach((position: any) => {
+        const x = position.coordinates.xPct * canvas.width;
+        const y = position.coordinates.yPct * canvas.height;
+        const radius = 20;
+
+        // Draw yellow circle
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, 2 * Math.PI);
+        ctx.fillStyle = 'rgba(255, 255, 0, 0.7)';
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(255, 215, 0, 1)';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        // Draw inner circle
+        ctx.beginPath();
+        ctx.arc(x, y, 10, 0, 2 * Math.PI);
+        ctx.fillStyle = 'rgba(255, 255, 0, 0.9)';
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(255, 215, 0, 1)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      });
+
+      // Convert canvas to blob and download
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'Updated_facial_muscle_diagram.png';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+
+          toast({
+            title: "Image Saved",
+            description: `Image with ${musclePositions.length} yellow dot(s) for ${selectedMuscleGroup.replace(/_/g, ' ')} has been downloaded.`
+          });
+        }
+      }, 'image/png');
+    } catch (error) {
+      console.error('Error saving image with yellow dots:', error);
+      toast({
+        title: "Save Failed",
+        description: "Failed to save image with yellow dots.",
+        variant: "destructive"
+      });
+    }
+  };
+
   // SAVE MUSCLE POSITIONS TO DATABASE
   const saveMusclePositions = async () => {
     const currentPatientId = patientId || patient?.id;
@@ -3928,6 +4013,17 @@ Patient should be advised of potential side effects and expected timeline for re
                         </Select>
                         {anatomicalErrors.muscleGroup && (
                           <p className="text-sm text-red-500 mt-1">{anatomicalErrors.muscleGroup}</p>
+                        )}
+                        {selectedMuscleGroup && (
+                          <Button
+                            onClick={saveImageWithYellowDots}
+                            variant="outline"
+                            size="sm"
+                            className="w-full mt-2 bg-yellow-50 hover:bg-yellow-100 border-yellow-300 text-yellow-800"
+                            data-testid="button-save-image-with-dots"
+                          >
+                            💾 Save Image with Yellow Dot Position
+                          </Button>
                         )}
                       </div>
 
