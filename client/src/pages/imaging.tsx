@@ -1352,6 +1352,64 @@ export default function ImagingPage() {
 
       console.log("📷 IMAGING: Generating PDF with fileName:", study.fileName);
 
+      // Upload selected images first if any
+      if (selectedFiles.length > 0) {
+        try {
+          const formData = new FormData();
+          
+          // Add patient and study information
+          formData.append('patientId', study.patientId);
+          formData.append('studyType', study.studyType);
+          formData.append('modality', study.modality || '');
+          formData.append('bodyPart', study.bodyPart || '');
+          formData.append('indication', study.indication || '');
+
+          // Add all files to FormData
+          selectedFiles.forEach((file, index) => {
+            formData.append('images', file);
+            console.log(`📷 CLIENT: Adding file ${index + 1}:`, {
+              originalName: file.name,
+              type: file.type,
+              size: file.size
+            });
+          });
+
+          console.log(`📷 CLIENT: Uploading ${selectedFiles.length} file(s) for report generation`);
+
+          // Upload images to server
+          const uploadResponse = await fetch('/api/medical-images/upload', {
+            method: 'POST',
+            body: formData,
+            headers: {
+              'X-Tenant-Subdomain': getActiveSubdomain(),
+            },
+            credentials: 'include',
+          });
+
+          if (!uploadResponse.ok) {
+            throw new Error('Failed to upload images');
+          }
+
+          const uploadResult = await uploadResponse.json();
+          console.log('📷 CLIENT: Images uploaded successfully:', uploadResult);
+
+          toast({
+            title: "Images Uploaded",
+            description: `${selectedFiles.length} image(s) uploaded successfully`,
+          });
+
+          // Clear selected files after successful upload
+          setSelectedFiles([]);
+        } catch (uploadError) {
+          console.error('Error uploading images:', uploadError);
+          toast({
+            title: "Image Upload Failed",
+            description: "Failed to upload images. Continuing with report generation.",
+            variant: "destructive",
+          });
+        }
+      }
+
       // Call server-side PDF generation endpoint with fileName
       const response = await apiRequest(
         "POST",
