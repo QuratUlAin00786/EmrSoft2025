@@ -1176,7 +1176,19 @@ export default function PrescriptionsPage() {
           });
 
           if (prescriptionData.signature) {
+            // Ensure we have enough space for signature (stop at Y=245 max to avoid footer overlap)
+            if (currentY > 245) {
+              pdf.addPage();
+              currentY = 20;
+            }
+            
             currentY += 10;
+            
+            // Signature box with border for professional look
+            pdf.setDrawColor(200, 200, 200);
+            pdf.setFillColor(250, 250, 255);
+            pdf.rect(15, currentY - 5, 85, 55, "FD");
+            
             pdf.setFontSize(11);
             pdf.setFont("helvetica", "bold");
             pdf.setTextColor(0, 0, 0);
@@ -1232,25 +1244,42 @@ export default function PrescriptionsPage() {
             );
           }
 
-          // Footer - Professional
+          // Footer - Professional with clinic footer data
           const footerY = 275;
           pdf.setDrawColor(200, 200, 200);
           pdf.line(20, footerY, 190, footerY);
 
+          // Add clinic footer text if available
           pdf.setFontSize(8);
           pdf.setTextColor(80, 80, 80);
-          pdf.text(
-            "This prescription has been electronically generated and verified",
-            105,
-            footerY + 6,
-            { align: "center" },
-          );
-          pdf.text(
-            "Cura EMR Platform - Electronic Prescription System",
-            105,
-            footerY + 11,
-            { align: "center" },
-          );
+          
+          if (clinicFooter?.footerText) {
+            pdf.text(
+              clinicFooter.footerText,
+              105,
+              footerY + 6,
+              { align: "center" },
+            );
+            pdf.text(
+              "This prescription has been electronically generated and verified",
+              105,
+              footerY + 11,
+              { align: "center" },
+            );
+          } else {
+            pdf.text(
+              "This prescription has been electronically generated and verified",
+              105,
+              footerY + 6,
+              { align: "center" },
+            );
+            pdf.text(
+              "Cura EMR Platform - Electronic Prescription System",
+              105,
+              footerY + 11,
+              { align: "center" },
+            );
+          }
 
           // Convert PDF to Blob and then to File
           const pdfBlob = pdf.output("blob");
