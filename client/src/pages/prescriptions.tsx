@@ -2829,7 +2829,7 @@ export default function PrescriptionsPage() {
                             }
                             disabled={!selectedRole}
                           >
-                            <SelectTrigger data-testid="select-provider">
+                            <SelectTrigger data-testid="select-provider" className="[&>span]:text-gray-900 dark:[&>span]:text-gray-100">
                               <SelectValue
                                 placeholder={
                                   selectedRole
