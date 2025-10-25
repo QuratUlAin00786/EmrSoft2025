@@ -4415,15 +4415,21 @@ ${
                             });
                             
                             console.log('[ANATOMICAL PDF STEP1] Adding image at yPos:', yPos);
+                            console.log('[ANATOMICAL PDF STEP1] Base64 preview:', imageBase64.substring(0, 100));
                             const imgWidth = 170;
                             const imgHeight = 120;
                             
-                            doc.addImage(imageBase64, 'PNG', 20, yPos, imgWidth, imgHeight);
-                            yPos += imgHeight + 10;
-                            console.log('[ANATOMICAL PDF STEP1] Image added successfully');
+                            try {
+                              doc.addImage(imageBase64, 'PNG', 20, yPos, imgWidth, imgHeight);
+                              yPos += imgHeight + 10;
+                              console.log('[ANATOMICAL PDF STEP1] Image added successfully');
+                            } catch (addImgError) {
+                              console.error('[ANATOMICAL PDF STEP1] addImage error:', addImgError, 'Message:', addImgError?.message);
+                              // Continue without image
+                            }
                           }
                         } catch (imageError) {
-                          console.error('[ANATOMICAL PDF STEP1] Image error:', imageError);
+                          console.error('[ANATOMICAL PDF STEP1] Image fetch error:', imageError);
                         }
 
                         // Analysis Details
@@ -4920,15 +4926,21 @@ ${
                             });
                             
                             console.log('[ANATOMICAL PDF STEP1] Adding image at yPos:', yPos);
+                            console.log('[ANATOMICAL PDF STEP1] Base64 preview:', imageBase64.substring(0, 100));
                             const imgWidth = 170;
                             const imgHeight = 120;
                             
-                            doc.addImage(imageBase64, 'PNG', 20, yPos, imgWidth, imgHeight);
-                            yPos += imgHeight + 10;
-                            console.log('[ANATOMICAL PDF STEP1] Image added successfully');
+                            try {
+                              doc.addImage(imageBase64, 'PNG', 20, yPos, imgWidth, imgHeight);
+                              yPos += imgHeight + 10;
+                              console.log('[ANATOMICAL PDF STEP1] Image added successfully');
+                            } catch (addImgError) {
+                              console.error('[ANATOMICAL PDF STEP1] addImage error:', addImgError, 'Message:', addImgError?.message);
+                              // Continue without image
+                            }
                           }
                         } catch (imageError) {
-                          console.error('[ANATOMICAL PDF STEP1] Image error:', imageError);
+                          console.error('[ANATOMICAL PDF STEP1] Image fetch error:', imageError);
                         }
 
                         // Analysis Details
