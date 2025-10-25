@@ -1089,13 +1089,12 @@ export default function ImagingPage() {
   const handleUploadSubmit = async () => {
     if (
       !uploadFormData.patientId ||
-      !uploadFormData.studyType ||
-      selectedFiles.length === 0
+      !uploadFormData.studyType
     ) {
       toast({
         title: "Upload Failed",
         description:
-          "Please fill in all required fields and select images to upload",
+          "Please fill in all required fields",
         variant: "destructive",
       });
       return;
@@ -1121,68 +1120,71 @@ export default function ImagingPage() {
         name: `${selectedPatient.firstName} ${selectedPatient.lastName}`
       });
 
-      // Create FormData for multipart upload
-      const formData = new FormData();
-      
-      // Add form data fields
-      formData.append('patientId', selectedPatient.id.toString()); // Use numeric ID for database
-      formData.append('imageType', uploadFormData.studyType);
-      formData.append('bodyPart', uploadFormData.bodyPart || "Not specified");
-      formData.append('notes', uploadFormData.indication || "");
-      formData.append('modality', uploadFormData.modality);
-      formData.append('priority', uploadFormData.priority);
-      formData.append('studyType', uploadFormData.studyType);
-      formData.append('indication', uploadFormData.indication || "");
+      // Only upload if files are selected
+      if (selectedFiles.length > 0) {
+        // Create FormData for multipart upload
+        const formData = new FormData();
+        
+        // Add form data fields
+        formData.append('patientId', selectedPatient.id.toString()); // Use numeric ID for database
+        formData.append('imageType', uploadFormData.studyType);
+        formData.append('bodyPart', uploadFormData.bodyPart || "Not specified");
+        formData.append('notes', uploadFormData.indication || "");
+        formData.append('modality', uploadFormData.modality);
+        formData.append('priority', uploadFormData.priority);
+        formData.append('studyType', uploadFormData.studyType);
+        formData.append('indication', uploadFormData.indication || "");
 
-      // Add all files to FormData
-      selectedFiles.forEach((file, index) => {
-        formData.append('images', file);
-        console.log(`📷 CLIENT: Adding file ${index + 1}:`, {
-          originalName: file.name,
-          size: file.size,
-          type: file.type,
-          patientForUniqueName: selectedPatient.patientId
+        // Add all files to FormData
+        selectedFiles.forEach((file, index) => {
+          formData.append('images', file);
+          console.log(`📷 CLIENT: Adding file ${index + 1}:`, {
+            originalName: file.name,
+            size: file.size,
+            type: file.type,
+            patientForUniqueName: selectedPatient.patientId
+          });
         });
-      });
 
-      console.log('📷 CLIENT: Uploading to /api/medical-images/upload with unique naming');
+        console.log('📷 CLIENT: Uploading to /api/medical-images/upload with unique naming');
 
-      // Upload using fetch to handle FormData properly with authentication
-      const token = localStorage.getItem('auth_token');
-      const headers: Record<string, string> = {
-        'X-Tenant-Subdomain': getActiveSubdomain()
-      };
-      
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
+        // Upload using fetch to handle FormData properly with authentication
+        const token = localStorage.getItem('auth_token');
+        const headers: Record<string, string> = {
+          'X-Tenant-Subdomain': getActiveSubdomain()
+        };
+        
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        const response = await fetch('/api/medical-images/upload', {
+          method: 'POST',
+          body: formData,
+          headers,
+          credentials: "include",
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Upload failed');
+        }
+
+        const result = await response.json();
+        console.log('📷 CLIENT: Upload successful:', result);
+
+        const totalSize = selectedFiles.reduce((sum, file) => sum + file.size, 0);
+        const totalSizeMB = (totalSize / (1024 * 1024)).toFixed(1);
+
+        // Store uploaded image data for invoice
+        setUploadedImageData({
+          ...uploadFormData,
+          selectedPatient,
+          uploadedFiles: selectedFiles,
+          totalSizeMB,
+          uploadResult: result,
+        });
       }
-
-      const response = await fetch('/api/medical-images/upload', {
-        method: 'POST',
-        body: formData,
-        headers,
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Upload failed');
-      }
-
-      const result = await response.json();
-      console.log('📷 CLIENT: Upload successful:', result);
-
-      const totalSize = selectedFiles.reduce((sum, file) => sum + file.size, 0);
-      const totalSizeMB = (totalSize / (1024 * 1024)).toFixed(1);
-
-      // Store uploaded image data for invoice
-      setUploadedImageData({
-        ...uploadFormData,
-        selectedPatient,
-        uploadedFiles: selectedFiles,
-        totalSizeMB,
-        uploadResult: result,
-      });
 
       // Close upload dialog and open invoice dialog
       setShowUploadDialog(false);
