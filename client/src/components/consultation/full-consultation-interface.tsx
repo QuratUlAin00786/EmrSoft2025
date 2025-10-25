@@ -4305,27 +4305,6 @@ ${
                     {isSavingAnalysis ? "Saving..." : "Save Analysis"}
                   </Button>
                   <Button
-                    onClick={async () => {
-                      const currentPatientId = patientId || patient?.id;
-                      if (currentPatientId) {
-                        const token = localStorage.getItem('auth_token');
-                        const orgId = (await fetch('/api/me', {
-                          headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'X-Tenant-Subdomain': getTenantSubdomain()
-                          }
-                        }).then(r => r.json())).organizationId;
-                        
-                        const imagePath = `/uploads/anatomical_analysis_img/${orgId}/${currentPatientId}/${currentPatientId}.png`;
-                        setSavedAnatomicalImage(imagePath);
-                        setShowViewAnatomicalDialog(true);
-                      }
-                    }}
-                    className="bg-purple-600 hover:bg-purple-700 px-4 py-2 min-w-fit"
-                  >
-                    View Anatomical Analysis
-                  </Button>
-                  <Button
                     onClick={() => setShowAnatomicalModal(false)}
                     variant="outline"
                     className="px-4 py-2 min-w-fit"
@@ -4347,6 +4326,31 @@ ${
                     </CardContent>
                   </Card>
                 )}
+
+                {/* View Anatomical Analysis Button */}
+                <div className="flex justify-center pt-4">
+                  <Button
+                    onClick={async () => {
+                      const currentPatientId = patientId || patient?.id;
+                      if (currentPatientId) {
+                        const token = localStorage.getItem('auth_token');
+                        const orgId = (await fetch('/api/me', {
+                          headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'X-Tenant-Subdomain': getTenantSubdomain()
+                          }
+                        }).then(r => r.json())).organizationId;
+                        
+                        const imagePath = `/uploads/anatomical_analysis_img/${orgId}/${currentPatientId}/${currentPatientId}.png`;
+                        setSavedAnatomicalImage(imagePath);
+                        setShowViewAnatomicalDialog(true);
+                      }
+                    }}
+                    className="bg-purple-600 hover:bg-purple-700 px-4 py-2 min-w-fit"
+                  >
+                    View Anatomical Analysis
+                  </Button>
+                </div>
               </div>
             </div>
           )}
