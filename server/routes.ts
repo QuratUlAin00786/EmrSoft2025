@@ -7513,10 +7513,12 @@ This treatment plan should be reviewed and adjusted based on individual patient 
         return res.status(401).json({ error: "User not authenticated" });
       }
 
+      console.log("📥 RAW REQUEST BODY:", JSON.stringify(req.body, null, 2));
+      
       const { labResultId, testId, patientId, testData, testTypes, testFieldDefinitions } = req.body;
       const organizationId = req.tenant!.id;
 
-      console.log("📥 PDF generation request received:", JSON.stringify({
+      console.log("📥 PDF generation request parsed:", JSON.stringify({
         labResultId,
         testId,
         patientId,
