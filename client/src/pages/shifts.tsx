@@ -253,7 +253,7 @@ export default function ShiftsPage() {
     return days;
   }, [currentMonth]);
 
-  // Fetch all users and filter for staff roles
+  // Fetch all users and filter for staff roles (non-patient users)
   const { data: staff = [], isLoading: staffLoading } = useQuery({
     queryKey: ["/api/users"],
     queryFn: async () => {
@@ -261,10 +261,8 @@ export default function ShiftsPage() {
         const response = await apiRequest("GET", "/api/users");
         const data = await response.json();
 
-        // Filter for staff roles only
-        return Array.isArray(data) ? data.filter((user: any) => 
-          ['doctor', 'nurse', 'sample_taker', 'lab_technician', 'admin', 'receptionist'].includes(user.role)
-        ) : [];
+        // Filter for all non-patient users (matches backend initializeDefaultShifts logic)
+        return Array.isArray(data) ? data.filter((user: any) => user.role !== 'patient') : [];
       } catch (error) {
         console.error("Users fetch error:", error);
         throw error;
