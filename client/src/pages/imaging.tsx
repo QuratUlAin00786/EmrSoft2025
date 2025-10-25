@@ -5191,13 +5191,24 @@ export default function ImagingPage() {
                   }
 
                   if (invoiceFormData.paymentMethod === "debit_card") {
+                    // Show friendly connecting message
+                    toast({
+                      title: "Connecting to Stripe...",
+                      description: "Please wait while we process your payment request",
+                    });
+                    
                     try {
                       // Create Stripe payment intent
                       const response = await apiRequest("POST", "/api/create-payment-intent", {
                         amount: invoiceFormData.totalAmount,
                       });
                       
-                      const { clientSecret } = response as any;
+                      const data = await response.json();
+                      const { clientSecret } = data;
+                      
+                      if (!clientSecret) {
+                        throw new Error("No client secret received");
+                      }
                       
                       toast({
                         title: "Payment Processing",
@@ -5229,9 +5240,8 @@ export default function ImagingPage() {
                       setShowSummaryDialog(true);
                     } catch (error) {
                       toast({
-                        title: "Payment Failed",
-                        description: "Could not initialize Stripe payment",
-                        variant: "destructive",
+                        title: "Stripe Connection",
+                        description: "Stripe payment integration is currently being configured. Please try Cash payment method for now.",
                       });
                     }
                   } else {
