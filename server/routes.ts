@@ -7506,6 +7506,96 @@ This treatment plan should be reviewed and adjusted based on individual patient 
     }
   });
 
+  // Generate and save lab test results
+  app.post("/api/lab-results/generate", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const { labResultId, testId, patientId, testData, testTypes } = req.body;
+      const organizationId = req.tenant!.id;
+
+      if (!labResultId || !testId || !patientId || !testData) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+
+      // Create directory structure: uploads/Lab_TestResults/{organization_id}/{patient_id}/
+      const dirPath = path.join(process.cwd(), `uploads/Lab_TestResults/${organizationId}/${patientId}`);
+      await fse.ensureDir(dirPath);
+
+      // Generate filename with timestamp
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const fileName = `${testId}_${timestamp}.txt`;
+      const filePath = path.join(dirPath, fileName);
+
+      // Format test results as text
+      let fileContent = `LAB TEST RESULT\n`;
+      fileContent += `${'='.repeat(60)}\n\n`;
+      fileContent += `Test ID: ${testId}\n`;
+      fileContent += `Patient ID: ${patientId}\n`;
+      fileContent += `Organization ID: ${organizationId}\n`;
+      fileContent += `Generated: ${new Date().toLocaleString()}\n`;
+      fileContent += `\n${'='.repeat(60)}\n\n`;
+
+      // Add test results
+      if (testTypes && Array.isArray(testTypes)) {
+        testTypes.forEach((testType: string, idx: number) => {
+          fileContent += `${idx + 1}. ${testType}\n`;
+          fileContent += `${'-'.repeat(60)}\n`;
+          
+          // Find all fields for this test type
+          const fields = Object.keys(testData).filter(key => key.startsWith(`${testType}_`));
+          
+          if (fields.length > 0) {
+            fields.forEach(fieldKey => {
+              const fieldName = fieldKey.replace(`${testType}_`, '');
+              const fieldValue = testData[fieldKey];
+              if (fieldValue) {
+                fileContent += `  ${fieldName}: ${fieldValue}\n`;
+              }
+            });
+          } else {
+            fileContent += `  No data entered for this test type.\n`;
+          }
+          
+          fileContent += `\n`;
+        });
+      }
+
+      // Add clinical notes if present
+      if (testData.clinicalNotes) {
+        fileContent += `${'='.repeat(60)}\n`;
+        fileContent += `CLINICAL NOTES\n`;
+        fileContent += `${'='.repeat(60)}\n`;
+        fileContent += `${testData.clinicalNotes}\n\n`;
+      }
+
+      fileContent += `${'='.repeat(60)}\n`;
+      fileContent += `End of Report\n`;
+
+      // Write file to disk
+      await fse.writeFile(filePath, fileContent, 'utf-8');
+
+      console.log(`Lab result file generated successfully at: ${filePath}`);
+
+      // Return relative path
+      const relativePath = `uploads/Lab_TestResults/${organizationId}/${patientId}/${fileName}`;
+
+      res.json({
+        success: true,
+        message: "Lab result generated successfully",
+        filePath: relativePath,
+        fileName: fileName,
+        testId: testId
+      });
+
+    } catch (error) {
+      console.error("Error generating lab result:", error);
+      res.status(500).json({ error: "Failed to generate lab result" });
+    }
+  });
+
   // Check if lab result PDF file exists
   app.get("/api/files/:id/exists", authMiddleware, async (req: TenantRequest, res) => {
     try {

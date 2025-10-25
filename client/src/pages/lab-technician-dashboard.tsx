@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
@@ -90,8 +91,9 @@ export default function LabTechnicianDashboard() {
   const [selectedTest, setSelectedTest] = useState<LabTest | null>(null);
   const [generateFormData, setGenerateFormData] = useState<any>({});
   const [viewMode, setViewMode] = useState<"card" | "list">("card");
-  const [filterInvoiceStatus, setFilterInvoiceStatus] = useState<"all" | "paid" | "unpaid">("all");
-  const [filterSampleCollected, setFilterSampleCollected] = useState<"all" | "collected" | "not_collected">("all");
+  const [showPaidOnly, setShowPaidOnly] = useState(false);
+  const [showCollectedOnly, setShowCollectedOnly] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Fetch lab tests for lab technician
   const { data: labTests = [], isLoading } = useQuery({
@@ -116,17 +118,11 @@ export default function LabTechnicianDashboard() {
       (test.patientEmail && test.patientEmail.toLowerCase().includes(query))
     );
 
-    // Invoice status filter
-    const matchesInvoiceStatus = 
-      filterInvoiceStatus === "all" ||
-      (filterInvoiceStatus === "paid" && test.invoiceStatus === "paid") ||
-      (filterInvoiceStatus === "unpaid" && test.invoiceStatus !== "paid");
+    // Invoice status filter (toggle)
+    const matchesInvoiceStatus = !showPaidOnly || test.invoiceStatus === "paid";
 
-    // Sample collected filter
-    const matchesSampleCollected = 
-      filterSampleCollected === "all" ||
-      (filterSampleCollected === "collected" && test.sampleCollected === true) ||
-      (filterSampleCollected === "not_collected" && test.sampleCollected !== true);
+    // Sample collected filter (toggle)
+    const matchesSampleCollected = !showCollectedOnly || test.sampleCollected === true;
 
     return matchesSearch && matchesInvoiceStatus && matchesSampleCollected;
   });
@@ -193,6 +189,40 @@ export default function LabTechnicianDashboard() {
     }));
   };
 
+  // Handle generate and save lab result
+  const handleGenerateLabResult = async () => {
+    if (!selectedTest) return;
+
+    setIsSaving(true);
+    try {
+      const response = await apiRequest("POST", "/api/lab-results/generate", {
+        body: JSON.stringify({
+          labResultId: selectedTest.id,
+          testId: selectedTest.testId,
+          patientId: selectedTest.patientId,
+          testData: generateFormData,
+          testTypes: parseTestTypes(selectedTest.testType)
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setShowGenerateDialog(false);
+        setGenerateFormData({});
+        setSelectedTest(null);
+        // Show success message or toast
+        alert(`Lab result generated successfully! File saved at: ${result.filePath}`);
+      } else {
+        throw new Error("Failed to generate lab result");
+      }
+    } catch (error) {
+      console.error("Error generating lab result:", error);
+      alert("Failed to generate lab result. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -243,66 +273,36 @@ export default function LabTechnicianDashboard() {
         </div>
 
         {/* Filter Toggles */}
-        <div className="flex flex-wrap gap-3 items-center">
+        <div className="flex flex-wrap gap-6 items-center bg-muted/50 p-4 rounded-lg">
           <div className="flex items-center gap-2">
             <Filter className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm font-medium">Filters:</span>
           </div>
           
-          {/* Invoice Status Filter */}
-          <div className="flex gap-2">
-            <Button
-              variant={filterInvoiceStatus === "all" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setFilterInvoiceStatus("all")}
-              data-testid="filter-invoice-all"
-            >
-              All Invoices
-            </Button>
-            <Button
-              variant={filterInvoiceStatus === "paid" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setFilterInvoiceStatus("paid")}
-              data-testid="filter-invoice-paid"
-            >
-              Paid
-            </Button>
-            <Button
-              variant={filterInvoiceStatus === "unpaid" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setFilterInvoiceStatus("unpaid")}
-              data-testid="filter-invoice-unpaid"
-            >
-              Unpaid
-            </Button>
+          {/* Invoice Status Toggle */}
+          <div className="flex items-center gap-3">
+            <Switch
+              id="paid-toggle"
+              checked={showPaidOnly}
+              onCheckedChange={setShowPaidOnly}
+              data-testid="toggle-paid-only"
+            />
+            <Label htmlFor="paid-toggle" className="cursor-pointer">
+              Show Paid Invoices Only
+            </Label>
           </div>
 
-          {/* Sample Collection Filter */}
-          <div className="flex gap-2">
-            <Button
-              variant={filterSampleCollected === "all" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setFilterSampleCollected("all")}
-              data-testid="filter-sample-all"
-            >
-              All Samples
-            </Button>
-            <Button
-              variant={filterSampleCollected === "collected" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setFilterSampleCollected("collected")}
-              data-testid="filter-sample-collected"
-            >
-              Sample Collected
-            </Button>
-            <Button
-              variant={filterSampleCollected === "not_collected" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setFilterSampleCollected("not_collected")}
-              data-testid="filter-sample-not-collected"
-            >
-              Sample Not Collected
-            </Button>
+          {/* Sample Collection Toggle */}
+          <div className="flex items-center gap-3">
+            <Switch
+              id="collected-toggle"
+              checked={showCollectedOnly}
+              onCheckedChange={setShowCollectedOnly}
+              data-testid="toggle-collected-only"
+            />
+            <Label htmlFor="collected-toggle" className="cursor-pointer">
+              Show Sample Collected Only
+            </Label>
           </div>
         </div>
 
@@ -604,10 +604,12 @@ export default function LabTechnicianDashboard() {
                 </Button>
                 <Button
                   className="flex-1 bg-green-600 hover:bg-green-700"
+                  onClick={handleGenerateLabResult}
+                  disabled={isSaving}
                   data-testid="button-generate-lab-result"
                 >
                   <Sparkles className="h-4 w-4 mr-2" />
-                  Generate Lab Result
+                  {isSaving ? "Generating..." : "Generate Lab Result"}
                 </Button>
               </div>
             </div>
