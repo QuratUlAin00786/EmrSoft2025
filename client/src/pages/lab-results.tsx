@@ -2198,7 +2198,27 @@ Report generated from Cura EMR System`;
                               {getPatientName(result.patientId)}
                             </td>
                             <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
-                              {result.testType}
+                              {(() => {
+                                const tests = result.testType.split(' | ');
+                                if (tests.length <= 3) {
+                                  return result.testType;
+                                }
+                                const visibleTests = tests.slice(0, 3).join(' | ');
+                                const hiddenCount = tests.length - 3;
+                                return (
+                                  <div className="group relative inline-block">
+                                    <span>{visibleTests} <span className="text-blue-600 dark:text-blue-400 cursor-help">+{hiddenCount} more</span></span>
+                                    <div className="invisible group-hover:visible absolute left-0 top-full mt-1 z-10 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg p-3 min-w-[300px]">
+                                      <div className="text-sm font-medium mb-2">All Tests:</div>
+                                      <div className="space-y-1">
+                                        {tests.map((test, idx) => (
+                                          <div key={idx} className="text-sm">{test}</div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              })()}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                               {format(new Date(result.orderedAt), "MMM dd, yyyy")}
