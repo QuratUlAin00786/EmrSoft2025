@@ -1160,13 +1160,13 @@ export default function PrescriptionsPage() {
           });
 
           if (prescriptionData.signature) {
-            // Ensure we have enough space for signature (stop at Y=245 max to avoid footer overlap)
-            if (currentY > 245) {
+            // Ensure we have enough space for signature (stop at Y=220 max to avoid footer overlap)
+            if (currentY > 220) {
               pdf.addPage();
               currentY = 20;
             }
             
-            currentY += 10;
+            currentY += 8;
             
             // Text labels OUTSIDE the box
             pdf.setFontSize(11);
