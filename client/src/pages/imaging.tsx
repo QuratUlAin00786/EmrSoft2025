@@ -2305,13 +2305,13 @@ export default function ImagingPage() {
                             </div>
 
                             {/* Scheduled Date - Editable */}
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <span>
                                 <strong>Scheduled:</strong>
                               </span>
                               {selectedStudy?.id === study.id &&
                               editModes.scheduledAt ? (
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 flex-wrap">
                                   <Popover>
                                     <PopoverTrigger asChild>
                                       <Button
@@ -2397,13 +2397,13 @@ export default function ImagingPage() {
                             </div>
 
                             {/* Performed Date - Editable */}
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <span>
                                 <strong>Performed:</strong>
                               </span>
                               {selectedStudy?.id === study.id &&
                               editModes.performedAt ? (
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 flex-wrap">
                                   <Popover>
                                     <PopoverTrigger asChild>
                                       <Button
