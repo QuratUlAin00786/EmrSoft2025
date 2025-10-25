@@ -65,7 +65,7 @@ export function PatientCommunicationDialog({ open, onOpenChange, patient, mode }
 
   // Fetch patient communications history
   const { data: communications = [], isLoading: communicationsLoading } = useQuery({
-    queryKey: ['/api/patients', patient?.id, 'communications'],
+    queryKey: [`/api/patients/${patient?.id}/communications`],
     enabled: !!patient?.id && open,
   });
 
@@ -90,7 +90,7 @@ export function PatientCommunicationDialog({ open, onOpenChange, patient, mode }
         title: "Reminder Sent",
         description: "Patient reminder has been sent successfully. Check Communication History below.",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/patients', patient?.id, 'communications'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/patients/${patient?.id}/communications`] });
       resetForm();
       // Don't close the dialog so user can see the updated communication history
     },
