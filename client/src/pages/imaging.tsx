@@ -1352,13 +1352,22 @@ export default function ImagingPage() {
 
           console.log(`📷 CLIENT: Uploading ${selectedFiles.length} file(s) for report generation`);
 
+          // Prepare authentication headers
+          const uploadHeaders: Record<string, string> = {
+            'X-Tenant-Subdomain': getActiveSubdomain(),
+          };
+
+          // Add authorization token if available
+          const token = localStorage.getItem("auth_token");
+          if (token) {
+            uploadHeaders["Authorization"] = `Bearer ${token}`;
+          }
+
           // Upload images to server
           const uploadResponse = await fetch('/api/medical-images/upload', {
             method: 'POST',
             body: formData,
-            headers: {
-              'X-Tenant-Subdomain': getActiveSubdomain(),
-            },
+            headers: uploadHeaders,
             credentials: 'include',
           });
 
