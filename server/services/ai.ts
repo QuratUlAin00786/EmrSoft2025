@@ -1279,6 +1279,59 @@ Provide intelligent, contextually aware responses that demonstrate advanced lang
     }
   }
 
+  async generateAnatomicalTreatmentPlan(data: {
+    muscleGroup: string;
+    analysisType: string;
+    treatment: string;
+    treatmentIntensity: string;
+    sessionFrequency: string;
+    primarySymptoms: string;
+    severityScale: string;
+    followUpPlan: string;
+  }): Promise<string> {
+    try {
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: `You are a professional medical aesthetics and anatomical treatment specialist. Generate comprehensive, evidence-based treatment plans for facial muscle analysis and aesthetic procedures. Your plans should be professional, detailed, and include proper medical protocols, patient safety considerations, and expected outcomes.`
+          },
+          {
+            role: "user",
+            content: `Generate a professional anatomical treatment plan based on the following analysis:
+
+Target Muscle Group: ${data.muscleGroup.replace(/_/g, ' ')}
+Analysis Type: ${data.analysisType.replace(/_/g, ' ')}
+Primary Treatment: ${data.treatment.replace(/_/g, ' ')}
+Treatment Intensity: ${data.treatmentIntensity}
+Session Frequency: ${data.sessionFrequency}
+Primary Symptoms: ${data.primarySymptoms}
+Severity Scale: ${data.severityScale}
+Follow-up Plan: ${data.followUpPlan}
+
+Please provide a comprehensive treatment plan that includes:
+1. Clinical assessment of the targeted area
+2. Detailed treatment protocol with specific steps
+3. Expected outcomes and timeline
+4. Patient education and post-treatment care
+5. Safety considerations and potential side effects
+6. Follow-up and monitoring recommendations
+
+Make the plan professional, medically accurate, and suitable for clinical documentation.`
+          }
+        ],
+        max_tokens: 1500
+      });
+
+      const treatmentPlan = response.choices[0].message.content || "";
+      return treatmentPlan;
+    } catch (error) {
+      console.error("Treatment plan generation error:", error);
+      throw error; // Re-throw the error so routes.ts can handle fallback logic
+    }
+  }
+
   async analyzePrescription(medications: Array<{ name: string; dosage: string; frequency?: string; duration?: string }>, patientData: { age: number; allergies: string[]; conditions: string[] }): Promise<{
     interactions: Array<{
       severity: 'minor' | 'moderate' | 'major' | 'critical';

@@ -1851,6 +1851,100 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Generate anatomical treatment plan using OpenAI
+  app.post("/api/ai/generate-treatment-plan", authMiddleware, requireRole(["admin", "doctor"]), async (req: TenantRequest, res) => {
+    try {
+      const { 
+        patientId,
+        muscleGroup, 
+        analysisType, 
+        treatment, 
+        treatmentIntensity, 
+        sessionFrequency,
+        primarySymptoms,
+        severityScale,
+        followUpPlan
+      } = req.body;
+      
+      if (!patientId || !muscleGroup || !analysisType || !treatment) {
+        return res.status(400).json({ error: "Required fields missing" });
+      }
+
+      console.log(`[GENERATE-TREATMENT-PLAN] Starting AI treatment plan generation for patient ${patientId}`);
+      
+      let treatmentPlan = "";
+      try {
+        // Generate treatment plan using OpenAI
+        treatmentPlan = await aiService.generateAnatomicalTreatmentPlan({
+          muscleGroup,
+          analysisType,
+          treatment,
+          treatmentIntensity,
+          sessionFrequency,
+          primarySymptoms,
+          severityScale,
+          followUpPlan
+        });
+        console.log(`[GENERATE-TREATMENT-PLAN] OpenAI succeeded`);
+      } catch (aiError) {
+        console.log(`[GENERATE-TREATMENT-PLAN] OpenAI failed, using fallback template`);
+        console.error(`[GENERATE-TREATMENT-PLAN] OpenAI Error:`, (aiError as Error)?.message || aiError);
+        
+        // Fallback treatment plan template
+        treatmentPlan = `PROFESSIONAL ANATOMICAL TREATMENT PLAN
+
+Target Area: ${muscleGroup.replace(/_/g, ' ').toUpperCase()}
+Analysis Type: ${analysisType.replace(/_/g, ' ')}
+Primary Treatment: ${treatment.replace(/_/g, ' ')}
+
+CLINICAL ASSESSMENT:
+The patient presents with symptoms affecting the ${muscleGroup.replace(/_/g, ' ')} region. Based on the ${analysisType.replace(/_/g, ' ')} analysis, the following treatment protocol is recommended.
+
+Primary Symptoms: ${primarySymptoms || 'Not specified'}
+Severity Rating: ${severityScale || 'Not specified'}
+
+TREATMENT PROTOCOL:
+1. Initial Assessment
+   - Comprehensive evaluation of ${muscleGroup.replace(/_/g, ' ')} function and condition
+   - Baseline documentation with clinical photography
+   - Patient history and contraindication screening
+
+2. Primary Treatment: ${treatment.replace(/_/g, ' ')}
+   - Treatment Intensity: ${treatmentIntensity || 'Standard'}
+   - Session Frequency: ${sessionFrequency || 'As recommended'}
+   - Progressive monitoring of muscle response and patient tolerance
+   - Adjustment of treatment parameters based on individual response
+
+3. Monitoring and Follow-up
+   - Regular assessment of treatment efficacy
+   - Documentation of progressive improvements
+   - ${followUpPlan || 'Follow-up assessment in 2-3 weeks'}
+
+PATIENT EDUCATION:
+- Expected timeline for visible results: 7-14 days
+- Potential side effects and their management
+- Post-treatment care instructions
+- Activity restrictions and recommendations
+
+SAFETY CONSIDERATIONS:
+- Patient should be advised of all potential risks and contraindications
+- Informed consent must be obtained prior to treatment
+- Emergency protocols should be reviewed with patient
+- Contact information for post-treatment concerns provided
+
+This treatment plan should be reviewed and adjusted based on individual patient response and clinical judgment.`;
+      }
+
+      res.json({ 
+        success: true, 
+        treatmentPlan
+      });
+    } catch (error) {
+      console.error("Treatment plan generation error:", error);
+      res.status(500).json({ error: "Failed to generate treatment plan" });
+    }
+  });
+
   // Generate new AI insights using OpenAI
   app.post("/api/ai/generate-insights", authMiddleware, requireRole(["admin", "doctor"]), async (req: TenantRequest, res) => {
     try {

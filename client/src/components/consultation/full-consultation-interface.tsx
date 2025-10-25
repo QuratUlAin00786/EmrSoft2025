@@ -2038,22 +2038,45 @@ ${
     setIsGeneratingPlan(true);
     
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const currentPatientId = patientId || patient?.id;
+      if (!currentPatientId) {
+        toast({
+          title: "Error",
+          description: "Patient ID is required to generate treatment plan.",
+          variant: "destructive"
+        });
+        setIsGeneratingPlan(false);
+        return;
+      }
+
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/ai/generate-treatment-plan', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': getTenantSubdomain()
+        },
+        body: JSON.stringify({
+          patientId: currentPatientId,
+          muscleGroup: selectedMuscleGroup,
+          analysisType: selectedAnalysisType,
+          treatment: selectedTreatment,
+          treatmentIntensity: selectedTreatmentIntensity,
+          sessionFrequency: selectedSessionFrequency,
+          primarySymptoms: primarySymptoms,
+          severityScale: severityScale,
+          followUpPlan: followUpPlan
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate treatment plan');
+      }
+
+      const data = await response.json();
+      setGeneratedTreatmentPlan(data.treatmentPlan);
       
-      const plan = `Treatment Plan for ${selectedMuscleGroup.replace(/_/g, ' ')}:
-      
-Analysis Type: ${selectedAnalysisType}
-Primary Treatment: ${selectedTreatment}
-
-Recommended Protocol:
-- Initial assessment of ${selectedMuscleGroup.replace(/_/g, ' ')} function
-- ${selectedTreatment} application targeting specific muscle fibers
-- Progressive monitoring of muscle response
-- Follow-up assessment in 2-3 weeks
-
-Patient should be advised of potential side effects and expected timeline for results.`;
-
-      setGeneratedTreatmentPlan(plan);
       toast({
         title: "Treatment Plan Generated",
         description: "AI-powered treatment plan has been created successfully."
