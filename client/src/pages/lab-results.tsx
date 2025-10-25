@@ -732,7 +732,7 @@ export default function LabResultsPage() {
   const [testTypeOpen, setTestTypeOpen] = useState(false);
   const [editingStatusId, setEditingStatusId] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [activeTab, setActiveTab] = useState<"request" | "generated">("request");
+  const [activeTab, setActiveTab] = useState<"request" | "generate" | "generated">("request");
   const [showTestResults, setShowTestResults] = useState(false);
 
   // Helper function to generate random value within reference range
@@ -2163,6 +2163,8 @@ Report generated from Cura EMR System`;
         const matchesTab =
           activeTab === "request"
             ? result.labReportGenerated === false
+            : activeTab === "generate"
+            ? result.labReportGenerated === false && result.labRequestGenerated === true
             : result.labReportGenerated === true;
 
         return matchesSearch && matchesStatus && matchesTab;
@@ -2235,9 +2237,10 @@ Report generated from Cura EMR System`;
       />
 
       <div className="flex-1 overflow-auto p-6">
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "request" | "generated")} className="w-full">
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "request" | "generate" | "generated")} className="w-full">
           <TabsList className="mb-6">
             <TabsTrigger value="request">Request Report</TabsTrigger>
+            <TabsTrigger value="generate">Generate Reports</TabsTrigger>
             <TabsTrigger value="generated">Generated Reports</TabsTrigger>
           </TabsList>
           <TabsContent value={activeTab} className="mt-0">
