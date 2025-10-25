@@ -292,6 +292,22 @@ const COUNTRY_DIGIT_LIMITS: Record<string, number> = {
   "+379": 10, "+58": 10, "+84": 10, "+967": 9, "+260": 9, "+263": 9
 };
 
+// Plan types for patient insurance
+const PLAN_TYPES = [
+  { value: "Individual Plan", description: "Covers a single person — the most basic private insurance plan." },
+  { value: "Couple Plan", description: "Covers two adults (usually partners or spouses) under one policy." },
+  { value: "Family Plan", description: "Covers two adults and their children. Offers better value for multiple family members." },
+  { value: "Company / Corporate Plan", description: "Provided by an employer as part of employee benefits. Often includes extended or premium coverage." },
+  { value: "Self-Employed Plan", description: "Tailored for freelancers or business owners who don't have employer coverage." },
+  { value: "Comprehensive Plan", description: "Offers full private medical coverage, including inpatient, outpatient, diagnostic tests, specialist visits, and sometimes dental/optical." },
+  { value: "Treatment-Only Plan", description: "Covers inpatient and day-patient treatments only — cheaper than full plans." },
+  { value: "Inpatient-Only Plan", description: "Covers hospital stays and surgeries, but not outpatient appointments." },
+  { value: "Outpatient-Only Plan", description: "Covers diagnostics, consultations, and follow-ups, but not inpatient care." },
+  { value: "Cash Plan", description: "Pays a fixed cash amount for treatments like dental, optical, physiotherapy, or GP visits — good for small, routine expenses." },
+  { value: "Dental Plan", description: "Covers private dental care (check-ups, fillings, orthodontics, etc.)." },
+  { value: "Travel Health Plan", description: "Covers medical emergencies abroad — often used for frequent travelers or expats." }
+];
+
 const userSchema = z.object({
   email: z.string().min(1, "Email address is required").email("Please enter a valid email address"),
   firstName: z.string().min(2, "First name must be at least 2 characters").max(50, "First name must not exceed 50 characters"),
@@ -843,6 +859,10 @@ export default function UserManagement() {
   // Insurance Provider and NHS Number states
   const [insuranceProvider, setInsuranceProvider] = useState<string>("");
   const [nhsNumberError, setNhsNumberError] = useState<string>("");
+  
+  // Plan Type state (for Patient role)
+  const [selectedPlanType, setSelectedPlanType] = useState<string>("");
+  const [planTypeOpen, setPlanTypeOpen] = useState(false);
   
   // Phone country code states
   const [selectedPhoneCountryCode, setSelectedPhoneCountryCode] = useState("+44");
@@ -1989,6 +2009,8 @@ export default function UserManagement() {
         };
         // Set insurance provider state for conditional NHS Number display
         setInsuranceProvider(user.insuranceVerification.provider || "");
+        // Set plan type state
+        setSelectedPlanType(user.insuranceVerification.planType || "");
       } else {
         console.log("⚠️ No insurance verification found, using insuranceInfo from patients table");
         userData.insuranceInfo = {
@@ -2000,6 +2022,8 @@ export default function UserManagement() {
         };
         // Set insurance provider state for conditional NHS Number display
         setInsuranceProvider(user.insuranceInfo?.provider || "");
+        // Set plan type state
+        setSelectedPlanType(user.insuranceInfo?.planType || "");
       }
       
       console.log("📊 Complete patient data loaded:", {
@@ -2314,6 +2338,9 @@ export default function UserManagement() {
               setDobMonth("");
               setDobYear("");
               setDobErrors({});
+              // Reset Plan Type state when closing modal
+              setSelectedPlanType("");
+              setPlanTypeOpen(false);
               // Reset Insurance Provider and NHS Number state
               setInsuranceProvider("");
               setNhsNumberError("");
@@ -2448,6 +2475,10 @@ export default function UserManagement() {
                         // Clear sample taker subcategory when switching from sample taker
                         if (value.toLowerCase() !== 'sample taker') {
                           setSelectedSampleTakerSubcategory("");
+                        }
+                        // Clear plan type when switching from patient
+                        if (value.toLowerCase() !== 'patient') {
+                          setSelectedPlanType("");
                         }
                       }} defaultValue={form.getValues("role")}>
                         <SelectTrigger>
@@ -3210,12 +3241,53 @@ export default function UserManagement() {
                           </div>
                           <div className="space-y-2">
                             <Label htmlFor="planType">Plan Type</Label>
-                            <Input
-                              id="planType"
-                              {...form.register("insuranceInfo.planType")}
-                              placeholder="Select plan type"
-                              data-testid="input-plan-type"
-                            />
+                            <Popover open={planTypeOpen} onOpenChange={setPlanTypeOpen}>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  role="combobox"
+                                  aria-expanded={planTypeOpen}
+                                  className="w-full justify-between"
+                                  data-testid="dropdown-plan-type"
+                                >
+                                  {selectedPlanType || "Select plan type"}
+                                  <span className="ml-2 h-4 w-4 shrink-0 opacity-50">▼</span>
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-full p-0" align="start">
+                                <Command>
+                                  <CommandInput placeholder="Search plan types..." />
+                                  <CommandEmpty>No plan type found.</CommandEmpty>
+                                  <CommandGroup>
+                                    <CommandList>
+                                      {PLAN_TYPES.map((plan) => (
+                                        <CommandItem
+                                          key={plan.value}
+                                          value={plan.value}
+                                          onSelect={(currentValue) => {
+                                            setSelectedPlanType(currentValue === selectedPlanType ? "" : currentValue);
+                                            form.setValue("insuranceInfo.planType", currentValue === selectedPlanType ? "" : currentValue);
+                                            setPlanTypeOpen(false);
+                                          }}
+                                        >
+                                          <Check
+                                            className={`mr-2 h-4 w-4 ${
+                                              selectedPlanType === plan.value ? "opacity-100" : "opacity-0"
+                                            }`}
+                                          />
+                                          {plan.value}
+                                        </CommandItem>
+                                      ))}
+                                    </CommandList>
+                                  </CommandGroup>
+                                </Command>
+                              </PopoverContent>
+                            </Popover>
+                            {selectedPlanType && (
+                              <p className="text-sm text-green-600 dark:text-green-500">
+                                {PLAN_TYPES.find((p) => p.value === selectedPlanType)?.description}
+                              </p>
+                            )}
                           </div>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
@@ -3351,6 +3423,9 @@ export default function UserManagement() {
                       if (emailCheckTimeout) {
                         clearTimeout(emailCheckTimeout);
                       }
+                      // Reset Plan Type state
+                      setSelectedPlanType("");
+                      setPlanTypeOpen(false);
                     }}
                   >
                     Cancel
