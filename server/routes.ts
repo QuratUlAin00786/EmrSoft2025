@@ -3086,6 +3086,26 @@ This treatment plan should be reviewed and adjusted based on individual patient 
         }
       }
 
+      // Save communication to database
+      const communicationData = {
+        organizationId: req.tenant!.id,
+        patientId,
+        sentBy: req.user!.id,
+        type: reminderData.type,
+        method: reminderData.method,
+        status: messageSent ? 'sent' : 'pending',
+        message: reminderData.message || `Hi ${patient.firstName}, this is a reminder from your healthcare provider.`,
+        sentAt: messageSent ? new Date() : null,
+        errorMessage: messageSent ? null : (messageResult?.error || null),
+        metadata: {
+          reminderType: reminderData.type,
+          messageSent,
+          provider: reminderData.method === 'sms' || reminderData.method === 'whatsapp' ? 'Twilio' : reminderData.method === 'email' ? 'SendGrid' : 'System'
+        }
+      };
+
+      const savedCommunication = await storage.createPatientCommunication(communicationData);
+
       res.json({ 
         success: true, 
         message: messageSent ? 
@@ -3094,7 +3114,8 @@ This treatment plan should be reviewed and adjusted based on individual patient 
         patientId,
         reminderType: reminderData.type,
         messageSent,
-        messageDetails: messageResult
+        messageDetails: messageResult,
+        communicationId: savedCommunication.id
       });
     } catch (error) {
       console.error("Send reminder error:", error);
@@ -3207,8 +3228,9 @@ This treatment plan should be reviewed and adjusted based on individual patient 
   // Get patient communications
   app.get("/api/patients/:id/communications", authMiddleware, async (req: TenantRequest, res) => {
     try {
-      // Return empty array since communications table doesn't exist
-      res.json([]);
+      const patientId = parseInt(req.params.id);
+      const communications = await storage.getPatientCommunications(patientId, req.tenant!.id);
+      res.json(communications);
     } catch (error) {
       console.error('Error fetching patient communications:', error);
       res.status(500).json({ error: 'Failed to fetch communications' });
