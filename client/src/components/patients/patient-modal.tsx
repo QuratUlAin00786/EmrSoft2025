@@ -334,6 +334,9 @@ export function PatientModal({ open, onOpenChange, editMode = false, editPatient
   // Success modal state
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  
+  // Postcode lookup message state
+  const [postcodeLookupMessage, setPostcodeLookupMessage] = useState("");
 
   // Function to calculate age from date of birth
   const calculateAge = (dateOfBirth: string): string => {
@@ -692,11 +695,7 @@ export function PatientModal({ open, onOpenChange, editMode = false, editPatient
         response = await fetch(`https://api.postcodes.io/postcodes/${cleanedPostcode}`);
         
         if (!response.ok) {
-          toast({
-            title: "Postcode not found",
-            description: "Please check the UK postcode and try again.",
-            variant: "destructive"
-          });
+          setPostcodeLookupMessage(`Please check the UK postcode and try again.`);
           return;
         }
 
@@ -707,33 +706,21 @@ export function PatientModal({ open, onOpenChange, editMode = false, editPatient
           const city = result.admin_district || result.region || '';
           
           form.setValue('address.city', city);
-          
-          toast({
-            title: "Address auto-filled",
-            description: `Found: ${city}, United Kingdom`,
-          });
+          setPostcodeLookupMessage(`Found: ${city}, United Kingdom`);
         }
       } else {
         // Use Zippopotam API for other countries
         const countryCode = countryCodeMap[selectedCountry];
         
         if (!countryCode) {
-          toast({
-            title: "Country not supported",
-            description: `Please select a country first, or enter address details manually.`,
-            variant: "destructive"
-          });
+          setPostcodeLookupMessage(`Please select a country first, or enter address details manually.`);
           return;
         }
 
         response = await fetch(`https://api.zippopotam.us/${countryCode}/${cleanedPostcode}`);
         
         if (!response.ok) {
-          toast({
-            title: "Postal code not found",
-            description: `No location found for postal code ${postcode} in ${selectedCountry}.`,
-            variant: "destructive"
-          });
+          setPostcodeLookupMessage(`No location found for postal code ${postcode} in ${selectedCountry}.`);
           return;
         }
 
@@ -746,22 +733,14 @@ export function PatientModal({ open, onOpenChange, editMode = false, editPatient
           
           // Auto-fill city field
           form.setValue('address.city', city);
-          
-          toast({
-            title: "Address auto-filled",
-            description: state 
-              ? `Found: ${city}, ${state}, ${selectedCountry}`
-              : `Found: ${city}, ${selectedCountry}`,
-          });
+          setPostcodeLookupMessage(state 
+            ? `Found: ${city}, ${state}, ${selectedCountry}`
+            : `Found: ${city}, ${selectedCountry}`);
         }
       }
     } catch (error) {
       console.error('Postcode lookup error:', error);
-      toast({
-        title: "Lookup failed",
-        description: "Could not connect to postal code service. Please enter manually.",
-        variant: "destructive"
-      });
+      setPostcodeLookupMessage(`Could not connect to postal code service. Please enter manually.`);
     }
   };
 
@@ -1096,6 +1075,11 @@ export function PatientModal({ open, onOpenChange, editMode = false, editPatient
                           <FormControl>
                             <Input {...field} placeholder="Enter street address" data-testid="input-street" />
                           </FormControl>
+                          {postcodeLookupMessage && (
+                            <p className="text-sm text-green-600 dark:text-green-400 mt-1">
+                              {postcodeLookupMessage}
+                            </p>
+                          )}
                           <FormMessage />
                         </FormItem>
                       )}
