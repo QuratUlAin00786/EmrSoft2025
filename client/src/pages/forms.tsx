@@ -72,6 +72,7 @@ import {
   ChevronUp,
   Edit,
   AlertCircle,
+  CheckCircle,
 } from "lucide-react";
 
 // View Clinic Info Component
@@ -396,6 +397,8 @@ export default function Forms() {
   const [showEmptyContentDialog, setShowEmptyContentDialog] = useState(false);
   const [showDocumentPreviewDialog, setShowDocumentPreviewDialog] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
+  const [showTemplateSaveSuccessModal, setShowTemplateSaveSuccessModal] = useState(false);
+  const [savedTemplateName, setSavedTemplateName] = useState("");
   const [selectedDoctorId, setSelectedDoctorId] = useState("");
   const [shareFormData, setShareFormData] = useState({
     subject: "",
@@ -4152,11 +4155,9 @@ Coverage Details: [Insurance Coverage]`;
         refetchType: 'active'
       });
 
-      toast({
-        title: "✓ Template Saved",
-        description: `Template saved successfully as "${documentName}" and is now available for reuse`,
-        duration: 3000,
-      });
+      // Show success modal
+      setSavedTemplateName(documentName);
+      setShowTemplateSaveSuccessModal(true);
     } catch (error) {
       console.error("Save error:", error);
       toast({
@@ -7537,6 +7538,35 @@ Registration No: [Number]`
                 e.currentTarget.style.borderColor = "#e5e7eb";
               }}
               data-testid="button-close-empty-dialog"
+            >
+              OK
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Template Save Success Modal */}
+      <Dialog
+        open={showTemplateSaveSuccessModal}
+        onOpenChange={setShowTemplateSaveSuccessModal}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CheckCircle className="h-6 w-6 text-green-500" />
+              Success
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-gray-600">
+              Template saved successfully as "<span className="font-semibold text-gray-900">{savedTemplateName}</span>" and is now available for reuse.
+            </p>
+          </div>
+          <div className="flex justify-end">
+            <Button
+              onClick={() => setShowTemplateSaveSuccessModal(false)}
+              className="bg-green-600 hover:bg-green-700 text-white"
+              data-testid="button-close-success-modal"
             >
               OK
             </Button>
