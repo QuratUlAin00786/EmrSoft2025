@@ -11651,7 +11651,7 @@ This treatment plan should be reviewed and adjusted based on individual patient 
           const result = {
             ...image,
             patientName: patient ? `${patient.firstName} ${patient.lastName}` : "Unknown Patient",
-            patientId: patient?.patientId || "Unknown",
+            patientIdentifier: patient?.patientId || "Unknown",
             uploadedByName: uploader ? `${uploader.firstName} ${uploader.lastName}` : "Unknown User"
           };
           
