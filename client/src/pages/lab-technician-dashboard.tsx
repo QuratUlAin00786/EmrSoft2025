@@ -452,9 +452,7 @@ export default function LabTechnicianDashboard() {
 
       console.log("📤 Sending PDF generation request:", JSON.stringify(payload, null, 2));
 
-      const response = await apiRequest("POST", "/api/lab-results/generate", {
-        body: JSON.stringify(payload)
-      });
+      const response = await apiRequest("POST", "/api/lab-results/generate", payload);
 
       if (response.ok) {
         const result = await response.json();
