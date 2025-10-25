@@ -1082,7 +1082,7 @@ export default function LabResultsPage() {
       if (pendingOrderData?.testId) {
         try {
           await apiRequest("PATCH", `/api/lab-results/${pendingOrderData.testId}`, {
-            Lab_Request_Generated: true
+            labRequestGenerated: true
           });
         } catch (error) {
           console.error("Failed to update Lab_Request_Generated:", error);
@@ -3538,7 +3538,7 @@ Report generated from Cura EMR System`;
                       if (pendingOrderData?.testId) {
                         try {
                           await apiRequest("PATCH", `/api/lab-results/${pendingOrderData.testId}`, {
-                            Lab_Request_Generated: true
+                            labRequestGenerated: true
                           });
                         } catch (error) {
                           console.error("Failed to update Lab_Request_Generated:", error);
