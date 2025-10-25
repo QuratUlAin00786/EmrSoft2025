@@ -14907,7 +14907,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }, "Service amount must be a valid number greater than 0"),
         insuranceProvider: z.string().optional(),
         nhsNumber: z.string().optional(),
-        notes: z.string().optional()
+        notes: z.string().optional(),
+        serviceId: z.number().optional(),
+        serviceType: z.string().optional()
       }).parse(req.body);
 
       // Get patient name for the invoice
@@ -14961,7 +14963,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ],
         notes: invoiceData.notes || null,
         insurance: insuranceData,
-        payments: []
+        payments: [],
+        serviceId: invoiceData.serviceId || null,
+        serviceType: invoiceData.serviceType || null
       });
 
       console.log("📝 Creating patient invoice in database:", invoiceNumber);
