@@ -849,6 +849,9 @@ export default function UserManagement() {
   const [selectedEmergencyPhoneCountryCode, setSelectedEmergencyPhoneCountryCode] = useState("+44");
   const [countryCodePopoverOpen, setCountryCodePopoverOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  
+  // Postcode auto-detection state
+  const [isDetectingCountry, setIsDetectingCountry] = useState(false);
 
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -981,6 +984,63 @@ export default function UserManagement() {
     }
     
     validateDOB(dobDay, dobMonth, value);
+  };
+  
+  // Auto-detect country from postcode using Zippopotam.us API
+  const detectCountryFromPostcode = async (postcode: string) => {
+    // Only auto-detect for patient role
+    if (selectedRole !== 'patient' || !postcode || postcode.trim().length < 3) {
+      return;
+    }
+
+    setIsDetectingCountry(true);
+    
+    // Remove spaces and normalize postcode
+    const normalizedPostcode = postcode.trim().replace(/\s+/g, '');
+    
+    // List of countries to try with their ISO codes and full names
+    const countriesToTry = [
+      { iso: 'gb', name: 'United Kingdom' },
+      { iso: 'us', name: 'United States' },
+      { iso: 'ca', name: 'Canada' },
+      { iso: 'au', name: 'Australia' },
+      { iso: 'de', name: 'Germany' },
+      { iso: 'fr', name: 'France' },
+      { iso: 'es', name: 'Spain' },
+      { iso: 'it', name: 'Italy' },
+      { iso: 'nl', name: 'Netherlands' },
+      { iso: 'ie', name: 'Ireland' },
+    ];
+
+    // Try each country until we find a match
+    for (const country of countriesToTry) {
+      try {
+        const response = await fetch(`https://api.zippopotam.us/${country.iso}/${normalizedPostcode}`);
+        
+        if (response.ok) {
+          const data = await response.json();
+          // Successfully found the country
+          form.setValue("address.country", country.name);
+          
+          // Also auto-fill city if available
+          if (data.places && data.places.length > 0 && data.places[0]['place name']) {
+            const currentCity = form.watch("address.city");
+            if (!currentCity || currentCity.trim() === '') {
+              form.setValue("address.city", data.places[0]['place name']);
+            }
+          }
+          
+          setIsDetectingCountry(false);
+          return;
+        }
+      } catch (error) {
+        // Continue to next country
+        continue;
+      }
+    }
+    
+    // No match found
+    setIsDetectingCountry(false);
   };
   
   // NHS Number validation function - only allows 10 digits
@@ -2829,11 +2889,21 @@ export default function UserManagement() {
                               {...form.register("address.postcode")}
                               placeholder="SW1A 1AA"
                               data-testid="input-postcode"
+                              onChange={(e) => {
+                                form.setValue("address.postcode", e.target.value);
+                                detectCountryFromPostcode(e.target.value);
+                              }}
                             />
+                            {isDetectingCountry && (
+                              <p className="text-xs text-gray-500">Detecting country...</p>
+                            )}
                           </div>
                           <div className="space-y-2">
                             <Label htmlFor="country">Country</Label>
-                            <Select onValueChange={(value) => form.setValue("address.country", value)} defaultValue="United Kingdom">
+                            <Select 
+                              onValueChange={(value) => form.setValue("address.country", value)} 
+                              value={form.watch("address.country") || "United Kingdom"}
+                            >
                               <SelectTrigger data-testid="select-country">
                                 <SelectValue placeholder="Select country" />
                               </SelectTrigger>
@@ -2843,6 +2913,11 @@ export default function UserManagement() {
                                 <SelectItem value="United States">United States</SelectItem>
                                 <SelectItem value="Canada">Canada</SelectItem>
                                 <SelectItem value="Australia">Australia</SelectItem>
+                                <SelectItem value="Germany">Germany</SelectItem>
+                                <SelectItem value="France">France</SelectItem>
+                                <SelectItem value="Spain">Spain</SelectItem>
+                                <SelectItem value="Italy">Italy</SelectItem>
+                                <SelectItem value="Netherlands">Netherlands</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
