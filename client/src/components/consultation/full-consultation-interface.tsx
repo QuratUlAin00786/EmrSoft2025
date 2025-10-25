@@ -4331,19 +4331,31 @@ ${
                 <div className="flex justify-center pt-4">
                   <Button
                     onClick={async () => {
-                      const currentPatientId = patientId || patient?.id;
-                      if (currentPatientId) {
+                      try {
+                        const currentPatientId = patientId || patient?.id;
+                        if (!currentPatientId) return;
+
                         const token = localStorage.getItem('auth_token');
-                        const orgId = (await fetch('/api/me', {
+                        const meResponse = await fetch('/api/me', {
                           headers: {
                             'Authorization': `Bearer ${token}`,
                             'X-Tenant-Subdomain': getTenantSubdomain()
                           }
-                        }).then(r => r.json())).organizationId;
+                        });
+
+                        if (!meResponse.ok) {
+                          console.error('Failed to fetch user info');
+                          return;
+                        }
+
+                        const userData = await meResponse.json();
+                        const orgId = userData.organizationId;
                         
                         const imagePath = `/uploads/anatomical_analysis_img/${orgId}/${currentPatientId}/${currentPatientId}.png`;
                         setSavedAnatomicalImage(imagePath);
                         setShowViewAnatomicalDialog(true);
+                      } catch (error) {
+                        console.error('Error viewing anatomical analysis:', error);
                       }
                     }}
                     className="bg-purple-600 hover:bg-purple-700 px-4 py-2 min-w-fit"
@@ -4686,19 +4698,31 @@ ${
                   </Button>
                   <Button
                     onClick={async () => {
-                      const currentPatientId = patientId || patient?.id;
-                      if (currentPatientId) {
+                      try {
+                        const currentPatientId = patientId || patient?.id;
+                        if (!currentPatientId) return;
+
                         const token = localStorage.getItem('auth_token');
-                        const orgId = (await fetch('/api/me', {
+                        const meResponse = await fetch('/api/me', {
                           headers: {
                             'Authorization': `Bearer ${token}`,
                             'X-Tenant-Subdomain': getTenantSubdomain()
                           }
-                        }).then(r => r.json())).organizationId;
+                        });
+
+                        if (!meResponse.ok) {
+                          console.error('Failed to fetch user info');
+                          return;
+                        }
+
+                        const userData = await meResponse.json();
+                        const orgId = userData.organizationId;
                         
                         const imagePath = `/uploads/anatomical_analysis_img/${orgId}/${currentPatientId}/${currentPatientId}.png`;
                         setSavedAnatomicalImage(imagePath);
                         setShowViewAnatomicalDialog(true);
+                      } catch (error) {
+                        console.error('Error viewing anatomical analysis:', error);
                       }
                     }}
                     className="bg-purple-600 hover:bg-purple-700 px-6"
