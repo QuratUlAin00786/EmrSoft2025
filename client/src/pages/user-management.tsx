@@ -988,11 +988,19 @@ export default function UserManagement() {
   
   // Auto-detect country from postcode using Zippopotam.us API
   const detectCountryFromPostcode = async (postcode: string) => {
-    // Only auto-detect for patient role
-    if (selectedRole !== 'patient' || !postcode || postcode.trim().length < 3) {
+    console.log('🌍 Auto-detect triggered:', { selectedRole, postcode, postcodeLength: postcode?.trim().length });
+    
+    // Only auto-detect for patient role (case-insensitive)
+    if (!selectedRole || selectedRole.toLowerCase() !== 'patient' || !postcode || postcode.trim().length < 3) {
+      console.log('🌍 Auto-detect skipped:', { 
+        isPatientRole: selectedRole?.toLowerCase() === 'patient',
+        hasPostcode: !!postcode,
+        postcodeLength: postcode?.trim().length 
+      });
       return;
     }
 
+    console.log('🌍 Starting country detection...');
     setIsDetectingCountry(true);
     
     // Remove spaces and normalize postcode
@@ -1015,10 +1023,13 @@ export default function UserManagement() {
     // Try each country until we find a match
     for (const country of countriesToTry) {
       try {
+        console.log(`🌍 Trying country: ${country.name} (${country.iso})`);
         const response = await fetch(`https://api.zippopotam.us/${country.iso}/${normalizedPostcode}`);
         
         if (response.ok) {
           const data = await response.json();
+          console.log(`🌍 ✅ Country detected: ${country.name}`, data);
+          
           // Successfully found the country
           form.setValue("address.country", country.name);
           
@@ -1027,6 +1038,7 @@ export default function UserManagement() {
             const currentCity = form.watch("address.city");
             if (!currentCity || currentCity.trim() === '') {
               form.setValue("address.city", data.places[0]['place name']);
+              console.log(`🌍 City also detected: ${data.places[0]['place name']}`);
             }
           }
           
@@ -1034,12 +1046,14 @@ export default function UserManagement() {
           return;
         }
       } catch (error) {
+        console.log(`🌍 ❌ Failed for ${country.name}:`, error);
         // Continue to next country
         continue;
       }
     }
     
     // No match found
+    console.log('🌍 ❌ No match found for postcode:', normalizedPostcode);
     setIsDetectingCountry(false);
   };
   
