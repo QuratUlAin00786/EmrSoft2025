@@ -565,7 +565,6 @@ export function SampleTakerDashboard() {
                     <th className="text-left p-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Amount</th>
                     <th className="text-left p-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Status</th>
                     <th className="text-left p-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Invoice Date</th>
-                    <th className="text-left p-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Service Date</th>
                     <th className="text-left p-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Sample Collected</th>
                   </tr>
                 </thead>
@@ -599,9 +598,6 @@ export function SampleTakerDashboard() {
                       </td>
                       <td className="p-3 text-sm text-gray-600 dark:text-gray-400">
                         {new Date(invoice.invoiceDate).toLocaleDateString()}
-                      </td>
-                      <td className="p-3 text-sm text-gray-600 dark:text-gray-400">
-                        {new Date(invoice.serviceDate).toLocaleDateString()}
                       </td>
                       <td className="p-3">
                         {invoice.Sample_Collected ? (
@@ -659,7 +655,6 @@ export function SampleTakerDashboard() {
                     <th className="text-left p-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Amount</th>
                     <th className="text-left p-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Status</th>
                     <th className="text-left p-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Invoice Date</th>
-                    <th className="text-left p-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Service Date</th>
                     <th className="text-left p-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Doctor</th>
                     <th className="text-left p-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Priority</th>
                     <th className="text-left p-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Sample Collected</th>
@@ -695,9 +690,6 @@ export function SampleTakerDashboard() {
                       </td>
                       <td className="p-3 text-sm text-gray-600 dark:text-gray-400">
                         {new Date(invoice.invoiceDate).toLocaleDateString()}
-                      </td>
-                      <td className="p-3 text-sm text-gray-600 dark:text-gray-400">
-                        {new Date(invoice.serviceDate).toLocaleDateString()}
                       </td>
                       <td className="p-3 text-sm text-gray-600 dark:text-gray-400">
                         {invoice.doctorName || 'N/A'}
