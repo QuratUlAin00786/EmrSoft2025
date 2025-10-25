@@ -1168,10 +1168,10 @@ export default function PrescriptionsPage() {
             
             currentY += 10;
             
-            // Signature box with border for professional look
+            // Signature box with border - only around signature area
             pdf.setDrawColor(200, 200, 200);
             pdf.setFillColor(250, 250, 255);
-            pdf.rect(15, currentY - 5, 85, 55, "FD");
+            pdf.rect(15, currentY - 5, 85, 38, "FD");
             
             pdf.setFontSize(11);
             pdf.setFont("helvetica", "bold");
@@ -1203,10 +1203,10 @@ export default function PrescriptionsPage() {
               console.log("[PDF GENERATION] No signature image data available");
             }
 
-            // Add e-signed by info
+            // Add e-signed by info - OUTSIDE the signature box
             pdf.setFontSize(9);
             pdf.setTextColor(34, 139, 34); // Green color for e-sign
-            pdf.text(`✓ E-Signed by`, 20, currentY + 35);
+            pdf.text(`✓ E-Signed by`, 20, currentY + 42);
 
             const signedDate = prescriptionData.signature.signedAt
               ? new Date(
@@ -1220,7 +1220,7 @@ export default function PrescriptionsPage() {
                 })
               : "";
             pdf.setTextColor(80, 80, 80);
-            pdf.text(signedDate, 20, currentY + 41);
+            pdf.text(signedDate, 20, currentY + 48);
             console.log("[PDF GENERATION] E-signature section added to PDF");
           } else {
             console.log(
