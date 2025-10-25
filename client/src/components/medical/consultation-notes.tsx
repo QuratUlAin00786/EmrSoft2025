@@ -244,7 +244,9 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
     queryFn: async () => {
       const token = localStorage.getItem('auth_token');
       const headers: Record<string, string> = {
-        'X-Tenant-Subdomain': getTenantSubdomain()
+        'X-Tenant-Subdomain': getTenantSubdomain(),
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache'
       };
       
       if (token) {
@@ -253,15 +255,20 @@ export default function ConsultationNotes({ patientId, patientName, patientNumbe
 
       const response = await fetch(`/api/patients/${patientId}/records`, {
         headers,
-        credentials: 'include'
+        credentials: 'include',
+        cache: 'no-store'
       });
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
 
-      return response.json();
+      const data = await response.json();
+      console.log('[ConsultationNotes] Fetched medical records:', data);
+      return data;
     },
+    staleTime: 0,
+    gcTime: 0,
     enabled: !!patientId
   });
 
