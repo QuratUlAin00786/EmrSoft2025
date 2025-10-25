@@ -2241,7 +2241,7 @@ Report generated from Cura EMR System`;
           <TabsList className="mb-6">
             <TabsTrigger value="request">Request Report</TabsTrigger>
             <TabsTrigger value="generate">Generate Reports</TabsTrigger>
-            <TabsTrigger value="generated">Generated Reports</TabsTrigger>
+            <TabsTrigger value="generated"> Lab Results</TabsTrigger>
           </TabsList>
           <TabsContent value={activeTab} className="mt-0">
             <div className="space-y-6">
@@ -2973,7 +2973,7 @@ Report generated from Cura EMR System`;
                             className="bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600"
                           >
                             <Download className="h-4 w-4 mr-2" />
-                            Download PDF
+              
                           </Button>
                         </>
                       ) : activeTab === "generate" ? (
@@ -5491,7 +5491,18 @@ Report generated from Cura EMR System`;
                   </div>
                   <div>
                     <span className="text-sm text-gray-600 dark:text-gray-400">Test Name:</span>
-                    <p className="font-medium text-gray-900 dark:text-white">{selectedLabOrder.testType}</p>
+                    <p 
+                      className="font-medium text-gray-900 dark:text-white cursor-default" 
+                      title={selectedLabOrder.testType}
+                    >
+                      {(() => {
+                        const tests = selectedLabOrder.testType.split(' | ').map((t: string) => t.trim());
+                        if (tests.length > 2) {
+                          return tests.slice(0, 2).join(', ') + '...';
+                        }
+                        return selectedLabOrder.testType;
+                      })()}
+                    </p>
                   </div>
                   <div>
                     <span className="text-sm text-gray-600 dark:text-gray-400">Test ID:</span>
