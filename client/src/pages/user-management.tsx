@@ -305,7 +305,8 @@ const PLAN_TYPES = [
   { value: "Outpatient-Only Plan", description: "Covers diagnostics, consultations, and follow-ups, but not inpatient care." },
   { value: "Cash Plan", description: "Pays a fixed cash amount for treatments like dental, optical, physiotherapy, or GP visits — good for small, routine expenses." },
   { value: "Dental Plan", description: "Covers private dental care (check-ups, fillings, orthodontics, etc.)." },
-  { value: "Travel Health Plan", description: "Covers medical emergencies abroad — often used for frequent travelers or expats." }
+  { value: "Travel Health Plan", description: "Covers medical emergencies abroad — often used for frequent travelers or expats." },
+  { value: "Other", description: "Other" }
 ];
 
 const userSchema = z.object({
