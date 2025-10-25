@@ -1328,6 +1328,8 @@ export default function ImagingPage() {
 
       console.log("📷 IMAGING: Generating PDF with fileName:", study.fileName);
 
+      let uploadedImageFileNames: string[] = [];
+
       // Upload selected images first if any
       if (selectedFiles.length > 0) {
         try {
@@ -1378,6 +1380,12 @@ export default function ImagingPage() {
           const uploadResult = await uploadResponse.json();
           console.log('📷 CLIENT: Images uploaded successfully:', uploadResult);
 
+          // Extract filenames from uploaded images
+          if (uploadResult.images && Array.isArray(uploadResult.images)) {
+            uploadedImageFileNames = uploadResult.images.map((img: any) => img.fileName);
+            console.log('📷 CLIENT: Extracted uploaded image filenames:', uploadedImageFileNames);
+          }
+
           toast({
             title: "Images Uploaded",
             description: `${selectedFiles.length} image(s) uploaded successfully`,
@@ -1395,7 +1403,7 @@ export default function ImagingPage() {
         }
       }
 
-      // Call server-side PDF generation endpoint with fileName
+      // Call server-side PDF generation endpoint with fileName and uploaded image filenames
       const response = await apiRequest(
         "POST",
         "/api/imaging/generate-report",
@@ -1406,6 +1414,7 @@ export default function ImagingPage() {
             impression: reportImpression,
             radiologist: reportRadiologist,
           },
+          uploadedImageFileNames,
         },
       );
 

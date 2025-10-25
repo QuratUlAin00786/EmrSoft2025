@@ -16353,7 +16353,7 @@ Cura EMR Team
         return res.status(401).json({ error: "User not authenticated" });
       }
 
-      const { study, reportFormData, imageData } = req.body;
+      const { study, reportFormData, imageData, uploadedImageFileNames } = req.body;
       
       if (!study || !study.patientName) {
         return res.status(400).json({ error: "Study data is required" });
@@ -16649,176 +16649,229 @@ Cura EMR Team
       // Medical Image Section (moved after radiologist report)
       let imageHeight = 0;
       
-      // Check for image data from database fileName and filesystem
-      let imageBuffer: Buffer | null = null;
-      let actualMimeType = 'image/jpeg';
+      // Check for image data from uploaded image filenames or database fileName and filesystem
+      let imageBuffers: Array<{ buffer: Buffer; mimeType: string }> = [];
       
-      // Get fileName from the database study
-      const fileName = study.fileName;
-      
-      if (fileName && fileName.trim() !== '') {
-        try {
-          // Ensure the Imaging_Images directory exists
-          const imagingImagesDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Images');
-          await fse.ensureDir(imagingImagesDir);
-          console.log("📷 SERVER: Ensured directory exists:", imagingImagesDir);
-          
-          // Construct the full path to the image file
-          const imageFilePath = path.join(imagingImagesDir, fileName);
-          console.log("📷 SERVER: Checking for image file at:", imageFilePath);
-          
-          // Check if the image file exists on the server filesystem
-          if (await fse.pathExists(imageFilePath)) {
-            console.log("📷 SERVER: Image file exists, reading from filesystem:", fileName);
-            
-            // Read the image file directly as Buffer (no base64 conversion needed)
-            imageBuffer = await readFile(imageFilePath);
-            
-            // Determine MIME type from file extension
-            const fileExtension = path.extname(fileName).toLowerCase();
-            if (fileExtension === '.png') {
-              actualMimeType = 'image/png';
-            } else if (fileExtension === '.jpg' || fileExtension === '.jpeg') {
-              actualMimeType = 'image/jpeg';
-            } else {
-              // Default to jpeg for unknown extensions
-              actualMimeType = 'image/jpeg';
-            }
-            
-            console.log("📷 SERVER: Successfully loaded image from filesystem, mimeType:", actualMimeType);
-          } else {
-            console.log("📷 SERVER: Image file not found at path:", imageFilePath);
-          }
-        } catch (error) {
-          console.error("📷 SERVER: Error accessing image file from filesystem:", error);
-        }
-      }
-      
-      // Fallback to existing methods if filesystem image not found
-      if (!imageBuffer) {
-        if (imageData) {
-          // Use imageData from request body (includes data:image prefix)
-          console.log("📷 SERVER: Fallback - Using imageData from request body");
-          const base64Data = imageData.split(',')[1]; // Remove data:image/jpeg;base64, prefix
-          imageBuffer = Buffer.from(base64Data, 'base64');
-          if (imageData.includes('image/png')) {
-            actualMimeType = 'image/png';
-          } else if (imageData.includes('image/jpeg') || imageData.includes('image/jpg')) {
-            actualMimeType = 'image/jpeg';
-          }
-        } else if (study.images && study.images[0] && study.images[0].imageData) {
-          // Use imageData from study
-          console.log("📷 SERVER: Fallback - Using imageData from study");
-          imageBuffer = Buffer.from(study.images[0].imageData, 'base64');
-          actualMimeType = study.images[0].mimeType || 'image/jpeg';
-        }
-      }
-      
-      if (imageBuffer) {
-        try {
-          console.log("📷 SERVER: Processing image for PDF, mimeType:", actualMimeType);
-          
-          // Embed image based on MIME type with robust error handling
-          let image;
-          let embedSuccess = false;
-          let primaryError: any = null;
-          
-          // Try primary format first
+      // Priority 1: Use uploaded image filenames if provided
+      if (uploadedImageFileNames && Array.isArray(uploadedImageFileNames) && uploadedImageFileNames.length > 0) {
+        console.log("📷 SERVER: Processing uploaded images:", uploadedImageFileNames);
+        
+        const imagingImagesDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Images');
+        await fse.ensureDir(imagingImagesDir);
+        
+        for (const fileName of uploadedImageFileNames) {
           try {
-            if (actualMimeType.includes('jpeg') || actualMimeType.includes('jpg')) {
-              image = await pdfDoc.embedJpg(imageBuffer);
-              embedSuccess = true;
-              console.log("📷 SERVER: Successfully embedded as JPEG");
-            } else if (actualMimeType.includes('png')) {
-              image = await pdfDoc.embedPng(imageBuffer);
-              embedSuccess = true;
-              console.log("📷 SERVER: Successfully embedded as PNG");
+            const imageFilePath = path.join(imagingImagesDir, fileName);
+            
+            if (await fse.pathExists(imageFilePath)) {
+              console.log("📷 SERVER: Loading uploaded image:", fileName);
+              
+              const imageBuffer = await readFile(imageFilePath);
+              
+              // Determine MIME type from file extension
+              const fileExtension = path.extname(fileName).toLowerCase();
+              let mimeType = 'image/jpeg';
+              if (fileExtension === '.png') {
+                mimeType = 'image/png';
+              } else if (fileExtension === '.jpg' || fileExtension === '.jpeg') {
+                mimeType = 'image/jpeg';
+              }
+              
+              imageBuffers.push({ buffer: imageBuffer, mimeType });
+              console.log("📷 SERVER: Successfully loaded uploaded image:", fileName, "mimeType:", mimeType);
+            } else {
+              console.log("📷 SERVER: Uploaded image file not found:", fileName);
             }
           } catch (error) {
-            primaryError = error;
-            console.log("📷 SERVER: Primary embedding failed, trying fallback:", error.message);
+            console.error("📷 SERVER: Error loading uploaded image:", fileName, error);
           }
-          
-          // If primary failed, try fallback format
-          if (!embedSuccess) {
-            try {
-              if (actualMimeType.includes('png')) {
-                // Try JPEG if PNG failed
-                image = await pdfDoc.embedJpg(imageBuffer);
-                embedSuccess = true;
-                console.log("📷 SERVER: ✅ Successfully embedded PNG file as JPEG (fallback)");
+        }
+      }
+      
+      // Priority 2: Fallback to study.fileName if no uploaded images
+      if (imageBuffers.length === 0) {
+        let imageBuffer: Buffer | null = null;
+        let actualMimeType = 'image/jpeg';
+        
+        // Get fileName from the database study
+        const fileName = study.fileName;
+        
+        if (fileName && fileName.trim() !== '') {
+          try {
+            // Ensure the Imaging_Images directory exists
+            const imagingImagesDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Images');
+            await fse.ensureDir(imagingImagesDir);
+            console.log("📷 SERVER: Ensured directory exists:", imagingImagesDir);
+            
+            // Construct the full path to the image file
+            const imageFilePath = path.join(imagingImagesDir, fileName);
+            console.log("📷 SERVER: Checking for image file at:", imageFilePath);
+            
+            // Check if the image file exists on the server filesystem
+            if (await fse.pathExists(imageFilePath)) {
+              console.log("📷 SERVER: Image file exists, reading from filesystem:", fileName);
+              
+              // Read the image file directly as Buffer (no base64 conversion needed)
+              imageBuffer = await readFile(imageFilePath);
+              
+              // Determine MIME type from file extension
+              const fileExtension = path.extname(fileName).toLowerCase();
+              if (fileExtension === '.png') {
+                actualMimeType = 'image/png';
+              } else if (fileExtension === '.jpg' || fileExtension === '.jpeg') {
+                actualMimeType = 'image/jpeg';
               } else {
-                // Try PNG if JPEG failed  
-                image = await pdfDoc.embedPng(imageBuffer);
-                embedSuccess = true;
-                console.log("📷 SERVER: ✅ Successfully embedded JPEG file as PNG (fallback)");
+                // Default to jpeg for unknown extensions
+                actualMimeType = 'image/jpeg';
               }
-            } catch (fallbackError) {
-              console.error("📷 SERVER: ❌ Both embedding methods failed - PNG and JPEG");
-              console.error("📷 SERVER: Primary error:", primaryError?.message);
-              console.error("📷 SERVER: Fallback error:", fallbackError.message);
+              
+              console.log("📷 SERVER: Successfully loaded image from filesystem, mimeType:", actualMimeType);
+            } else {
+              console.log("📷 SERVER: Image file not found at path:", imageFilePath);
             }
+          } catch (error) {
+            console.error("📷 SERVER: Error accessing image file from filesystem:", error);
           }
+        }
+        
+        // Fallback to existing methods if filesystem image not found
+        if (!imageBuffer) {
+          if (imageData) {
+            // Use imageData from request body (includes data:image prefix)
+            console.log("📷 SERVER: Fallback - Using imageData from request body");
+            const base64Data = imageData.split(',')[1]; // Remove data:image/jpeg;base64, prefix
+            imageBuffer = Buffer.from(base64Data, 'base64');
+            if (imageData.includes('image/png')) {
+              actualMimeType = 'image/png';
+            } else if (imageData.includes('image/jpeg') || imageData.includes('image/jpg')) {
+              actualMimeType = 'image/jpeg';
+            }
+          } else if (study.images && study.images[0] && study.images[0].imageData) {
+            // Use imageData from study
+            console.log("📷 SERVER: Fallback - Using imageData from study");
+            imageBuffer = Buffer.from(study.images[0].imageData, 'base64');
+            actualMimeType = study.images[0].mimeType || 'image/jpeg';
+          }
+        }
+        
+        if (imageBuffer) {
+          imageBuffers.push({ buffer: imageBuffer, mimeType: actualMimeType });
+        }
+      }
+      
+      // Embed all images in the PDF
+      if (imageBuffers.length > 0) {
+        console.log(`📷 SERVER: Embedding ${imageBuffers.length} image(s) in PDF`);
+        
+        for (let imgIndex = 0; imgIndex < imageBuffers.length; imgIndex++) {
+          const { buffer: currentBuffer, mimeType: currentMimeType } = imageBuffers[imgIndex];
           
-          if (image) {
-            // Calculate image dimensions to fit nicely in the PDF
-            const maxImageWidth = 200;
-            const maxImageHeight = 150;
-            const imageAspectRatio = image.width / image.height;
+          try {
+            console.log(`📷 SERVER: Processing image ${imgIndex + 1}/${imageBuffers.length} for PDF, mimeType:`, currentMimeType);
             
-            let drawWidth = maxImageWidth;
-            let drawHeight = maxImageWidth / imageAspectRatio;
+            // Embed image based on MIME type with robust error handling
+            let image;
+            let embedSuccess = false;
+            let primaryError: any = null;
             
-            if (drawHeight > maxImageHeight) {
-              drawHeight = maxImageHeight;
-              drawWidth = maxImageHeight * imageAspectRatio;
+            // Try primary format first
+            try {
+              if (currentMimeType.includes('jpeg') || currentMimeType.includes('jpg')) {
+                image = await pdfDoc.embedJpg(currentBuffer);
+                embedSuccess = true;
+                console.log("📷 SERVER: Successfully embedded as JPEG");
+              } else if (currentMimeType.includes('png')) {
+                image = await pdfDoc.embedPng(currentBuffer);
+                embedSuccess = true;
+                console.log("📷 SERVER: Successfully embedded as PNG");
+              }
+            } catch (error) {
+              primaryError = error;
+              console.log("📷 SERVER: Primary embedding failed, trying fallback:", error.message);
             }
             
-            imageHeight = drawHeight + 60;
+            // If primary failed, try fallback format
+            if (!embedSuccess) {
+              try {
+                if (currentMimeType.includes('png')) {
+                  // Try JPEG if PNG failed
+                  image = await pdfDoc.embedJpg(currentBuffer);
+                  embedSuccess = true;
+                  console.log("📷 SERVER: ✅ Successfully embedded PNG file as JPEG (fallback)");
+                } else {
+                  // Try PNG if JPEG failed  
+                  image = await pdfDoc.embedPng(currentBuffer);
+                  embedSuccess = true;
+                  console.log("📷 SERVER: ✅ Successfully embedded JPEG file as PNG (fallback)");
+                }
+              } catch (fallbackError) {
+                console.error("📷 SERVER: ❌ Both embedding methods failed - PNG and JPEG");
+                console.error("📷 SERVER: Primary error:", primaryError?.message);
+                console.error("📷 SERVER: Fallback error:", fallbackError.message);
+              }
+            }
             
-            // Image Section with border
-            drawSectionBox(30, yPosition + 10, width - 60, imageHeight);
-            page.drawText('MEDICAL IMAGE', {
-              x: 40,
-              y: yPosition - 5,
-              size: 12,
-              font: boldFont,
-              color: primaryBlue
-            });
-            
-            // Draw the medical image
-            page.drawImage(image, {
-              x: (width - drawWidth) / 2, // Center the image
-              y: yPosition - drawHeight - 40,
-              width: drawWidth,
-              height: drawHeight
-            });
-            
-            // Image Series information
-            const fileSize = study.images[0].fileSize ? (study.images[0].fileSize / (1024 * 1024)).toFixed(2) : '0.00';
-            const imageSeries = `${study.modality || 'X-Ray'} x ${study.images.length} images • ${fileSize} MB • ${(study.images[0].mimeType || 'image/jpeg').includes('jpeg') ? 'JPEG' : 'PNG'}`;
-            
-            page.drawText(`Image Series: ${imageSeries}`, {
-              x: 50,
-              y: yPosition - imageHeight + 25,
-              size: 9,
-              font,
-              color: darkGray
-            });
-            
-            page.drawText(`Series: ${study.images[0].seriesDescription || study.studyType || 'N/A'}`, {
-              x: 50,
-              y: yPosition - imageHeight + 10,
-              size: 9,
-              font,
-              color: darkGray
-            });
-            
-            yPosition -= imageHeight;
+            if (image) {
+              // Calculate image dimensions to fit nicely in the PDF
+              const maxImageWidth = 200;
+              const maxImageHeight = 150;
+              const imageAspectRatio = image.width / image.height;
+              
+              let drawWidth = maxImageWidth;
+              let drawHeight = maxImageWidth / imageAspectRatio;
+              
+              if (drawHeight > maxImageHeight) {
+                drawHeight = maxImageHeight;
+                drawWidth = maxImageHeight * imageAspectRatio;
+              }
+              
+              imageHeight = drawHeight + 60;
+              
+              // Image Section with border
+              drawSectionBox(30, yPosition + 10, width - 60, imageHeight);
+              const imageTitle = imageBuffers.length > 1 ? `MEDICAL IMAGE ${imgIndex + 1}/${imageBuffers.length}` : 'MEDICAL IMAGE';
+              page.drawText(imageTitle, {
+                x: 40,
+                y: yPosition - 5,
+                size: 12,
+                font: boldFont,
+                color: primaryBlue
+              });
+              
+              // Draw the medical image
+              page.drawImage(image, {
+                x: (width - drawWidth) / 2, // Center the image
+                y: yPosition - drawHeight - 40,
+                width: drawWidth,
+                height: drawHeight
+              });
+              
+              // Image Series information
+              const fileSize = study.images && study.images[0] && study.images[0].fileSize ? (study.images[0].fileSize / (1024 * 1024)).toFixed(2) : '0.00';
+              const imageSeries = `${study.modality || 'X-Ray'} • ${fileSize} MB • ${currentMimeType.includes('jpeg') ? 'JPEG' : 'PNG'}`;
+              
+              page.drawText(`Image Info: ${imageSeries}`, {
+                x: 50,
+                y: yPosition - imageHeight + 25,
+                size: 9,
+                font,
+                color: darkGray
+              });
+              
+              page.drawText(`Series: ${study.images && study.images[0] ? (study.images[0].seriesDescription || study.studyType || 'N/A') : study.studyType || 'N/A'}`, {
+                x: 50,
+                y: yPosition - imageHeight + 10,
+                size: 9,
+                font,
+                color: darkGray
+              });
+              
+              yPosition -= imageHeight + 10; // Add spacing between images
+            }
+          } catch (imageError) {
+            console.error(`📷 SERVER: ❌ Failed to add image ${imgIndex + 1} to PDF after all attempts:`, imageError.message);
+            // Continue with next image if there's an error
           }
-        } catch (imageError) {
-          console.error('📷 SERVER: ❌ Failed to add image to PDF after all attempts:', imageError.message);
-          // Continue without image if there's an error
         }
       }
       
