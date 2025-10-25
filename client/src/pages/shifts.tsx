@@ -648,7 +648,9 @@ export default function ShiftsPage() {
         range.push(i);
       }
       
-      const endTimeSlot = `${Math.floor(slotValue / 100).toString().padStart(2, '0')}:00`;
+      // Add 100 to get the actual end time (end of the selected hour)
+      const actualEndValue = slotValue + 100;
+      const endTimeSlot = `${Math.floor(actualEndValue / 100).toString().padStart(2, '0')}:00`;
       setSelectedEndTime(endTimeSlot);
       setSelectedTimeSlots(range);
       
