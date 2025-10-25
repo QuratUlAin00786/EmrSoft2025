@@ -635,51 +635,131 @@ export function PatientModal({ open, onOpenChange, editMode = false, editPatient
   };
 
   const handlePostcodeLookup = async (postcode: string) => {
-    if (!postcode || postcode.trim().length < 5) return;
+    if (!postcode || postcode.trim().length < 3) return;
     
+    const selectedCountry = form.getValues('address.country');
+    
+    // Country code mapping for Zippopotam API
+    const countryCodeMap: Record<string, string> = {
+      'United Kingdom': 'gb',
+      'United States': 'us',
+      'Canada': 'ca',
+      'Australia': 'au',
+      'Ireland': 'ie',
+      'France': 'fr',
+      'Germany': 'de',
+      'Spain': 'es',
+      'Italy': 'it',
+      'Netherlands': 'nl',
+      'Belgium': 'be',
+      'Switzerland': 'ch',
+      'Austria': 'at',
+      'Portugal': 'pt',
+      'Poland': 'pl',
+      'Sweden': 'se',
+      'Norway': 'no',
+      'Denmark': 'dk',
+      'Finland': 'fi',
+      'Greece': 'gr',
+      'Czech Republic': 'cz',
+      'Hungary': 'hu',
+      'Romania': 'ro',
+      'Bulgaria': 'bg',
+      'Croatia': 'hr',
+      'Slovakia': 'sk',
+      'Slovenia': 'si',
+      'Lithuania': 'lt',
+      'Latvia': 'lv',
+      'Estonia': 'ee',
+      'India': 'in',
+      'Japan': 'jp',
+      'South Korea': 'kr',
+      'Mexico': 'mx',
+      'Brazil': 'br',
+      'Argentina': 'ar',
+      'Turkey': 'tr',
+      'South Africa': 'za',
+      'New Zealand': 'nz'
+    };
+
     try {
       const cleanedPostcode = postcode.trim().replace(/\s+/g, '');
-      const response = await fetch(`https://api.postcodes.io/postcodes/${cleanedPostcode}`);
-      
-      if (!response.ok) {
-        toast({
-          title: "Postcode not found",
-          description: "Please check the postcode and try again.",
-          variant: "destructive"
-        });
-        return;
-      }
+      let response;
+      let data;
 
-      const data = await response.json();
-      
-      if (data.status === 200 && data.result) {
-        const result = data.result;
+      // Use UK-specific API for United Kingdom
+      if (selectedCountry === 'United Kingdom') {
+        response = await fetch(`https://api.postcodes.io/postcodes/${cleanedPostcode}`);
         
-        // Map country from API response (England, Scotland, Wales, Northern Ireland all map to UK)
-        const countryMap: Record<string, string> = {
-          'England': 'United Kingdom',
-          'Scotland': 'United Kingdom',
-          'Wales': 'United Kingdom',
-          'Northern Ireland': 'United Kingdom'
-        };
+        if (!response.ok) {
+          toast({
+            title: "Postcode not found",
+            description: "Please check the UK postcode and try again.",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        data = await response.json();
         
-        const country = countryMap[result.country] || result.country;
-        const city = result.admin_district || result.region || '';
+        if (data.status === 200 && data.result) {
+          const result = data.result;
+          const city = result.admin_district || result.region || '';
+          
+          form.setValue('address.city', city);
+          
+          toast({
+            title: "Address auto-filled",
+            description: `Found: ${city}, United Kingdom`,
+          });
+        }
+      } else {
+        // Use Zippopotam API for other countries
+        const countryCode = countryCodeMap[selectedCountry];
         
-        // Auto-fill the country and city fields
-        form.setValue('address.country', country);
-        form.setValue('address.city', city);
+        if (!countryCode) {
+          toast({
+            title: "Country not supported",
+            description: `Please select a country first, or enter address details manually.`,
+            variant: "destructive"
+          });
+          return;
+        }
+
+        response = await fetch(`https://api.zippopotam.us/${countryCode}/${cleanedPostcode}`);
         
-        toast({
-          title: "Address auto-filled",
-          description: `Found: ${city}, ${country}`,
-        });
+        if (!response.ok) {
+          toast({
+            title: "Postal code not found",
+            description: `No location found for postal code ${postcode} in ${selectedCountry}.`,
+            variant: "destructive"
+          });
+          return;
+        }
+
+        data = await response.json();
+        
+        if (data.places && data.places.length > 0) {
+          const place = data.places[0];
+          const city = place['place name'] || '';
+          const state = place['state'] || '';
+          
+          // Auto-fill city field
+          form.setValue('address.city', city);
+          
+          toast({
+            title: "Address auto-filled",
+            description: state 
+              ? `Found: ${city}, ${state}, ${selectedCountry}`
+              : `Found: ${city}, ${selectedCountry}`,
+          });
+        }
       }
     } catch (error) {
       console.error('Postcode lookup error:', error);
       toast({
         title: "Lookup failed",
-        description: "Could not connect to postcode service. Please enter manually.",
+        description: "Could not connect to postal code service. Please enter manually.",
         variant: "destructive"
       });
     }
@@ -909,15 +989,79 @@ export function PatientModal({ open, onOpenChange, editMode = false, editPatient
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
+                      name="address.country"
+                      render={({ field }) => (
+                        <FormItem className="md:col-span-2">
+                          <FormLabel>Country</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger data-testid="select-country">
+                                <SelectValue placeholder="Select country first for auto-lookup" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent className="max-h-[300px]">
+                              <SelectItem value="United Kingdom">🇬🇧 United Kingdom</SelectItem>
+                              <SelectItem value="United States">🇺🇸 United States</SelectItem>
+                              <SelectItem value="Canada">🇨🇦 Canada</SelectItem>
+                              <SelectItem value="Australia">🇦🇺 Australia</SelectItem>
+                              <SelectItem value="Ireland">🇮🇪 Ireland</SelectItem>
+                              <SelectItem value="France">🇫🇷 France</SelectItem>
+                              <SelectItem value="Germany">🇩🇪 Germany</SelectItem>
+                              <SelectItem value="Spain">🇪🇸 Spain</SelectItem>
+                              <SelectItem value="Italy">🇮🇹 Italy</SelectItem>
+                              <SelectItem value="Netherlands">🇳🇱 Netherlands</SelectItem>
+                              <SelectItem value="Belgium">🇧🇪 Belgium</SelectItem>
+                              <SelectItem value="Switzerland">🇨🇭 Switzerland</SelectItem>
+                              <SelectItem value="Austria">🇦🇹 Austria</SelectItem>
+                              <SelectItem value="Portugal">🇵🇹 Portugal</SelectItem>
+                              <SelectItem value="Poland">🇵🇱 Poland</SelectItem>
+                              <SelectItem value="Sweden">🇸🇪 Sweden</SelectItem>
+                              <SelectItem value="Norway">🇳🇴 Norway</SelectItem>
+                              <SelectItem value="Denmark">🇩🇰 Denmark</SelectItem>
+                              <SelectItem value="Finland">🇫🇮 Finland</SelectItem>
+                              <SelectItem value="Greece">🇬🇷 Greece</SelectItem>
+                              <SelectItem value="Czech Republic">🇨🇿 Czech Republic</SelectItem>
+                              <SelectItem value="Hungary">🇭🇺 Hungary</SelectItem>
+                              <SelectItem value="Romania">🇷🇴 Romania</SelectItem>
+                              <SelectItem value="Bulgaria">🇧🇬 Bulgaria</SelectItem>
+                              <SelectItem value="Croatia">🇭🇷 Croatia</SelectItem>
+                              <SelectItem value="Slovakia">🇸🇰 Slovakia</SelectItem>
+                              <SelectItem value="Slovenia">🇸🇮 Slovenia</SelectItem>
+                              <SelectItem value="Lithuania">🇱🇹 Lithuania</SelectItem>
+                              <SelectItem value="Latvia">🇱🇻 Latvia</SelectItem>
+                              <SelectItem value="Estonia">🇪🇪 Estonia</SelectItem>
+                              <SelectItem value="India">🇮🇳 India</SelectItem>
+                              <SelectItem value="Japan">🇯🇵 Japan</SelectItem>
+                              <SelectItem value="South Korea">🇰🇷 South Korea</SelectItem>
+                              <SelectItem value="Mexico">🇲🇽 Mexico</SelectItem>
+                              <SelectItem value="Brazil">🇧🇷 Brazil</SelectItem>
+                              <SelectItem value="Argentina">🇦🇷 Argentina</SelectItem>
+                              <SelectItem value="Turkey">🇹🇷 Turkey</SelectItem>
+                              <SelectItem value="South Africa">🇿🇦 South Africa</SelectItem>
+                              <SelectItem value="New Zealand">🇳🇿 New Zealand</SelectItem>
+                              <SelectItem value="Other">🌍 Other</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Select country first to enable postal code auto-lookup
+                          </p>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
                       name="address.postcode"
                       render={({ field }) => (
                         <FormItem className="md:col-span-2">
-                          <FormLabel>Postcode (Auto-lookup)</FormLabel>
+                          <FormLabel>Postal Code / ZIP Code (Auto-lookup)</FormLabel>
                           <FormControl>
                             <div className="flex gap-2">
                               <Input 
                                 {...field} 
-                                placeholder="Enter postcode (e.g., SW1A 1AA)"
+                                placeholder="Enter postal code"
+                                data-testid="input-postcode"
                                 onChange={(e) => {
                                   field.onChange(e);
                                   handlePostcodeLookup(e.target.value);
@@ -928,12 +1072,16 @@ export function PatientModal({ open, onOpenChange, editMode = false, editPatient
                                 variant="outline" 
                                 size="sm"
                                 onClick={() => handlePostcodeLookup(field.value)}
-                                disabled={!field.value || field.value.length < 5}
+                                disabled={!field.value || field.value.length < 3}
+                                data-testid="button-lookup-postcode"
                               >
                                 Lookup
                               </Button>
                             </div>
                           </FormControl>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Works for 35+ countries - automatically fills city/town
+                          </p>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -946,7 +1094,7 @@ export function PatientModal({ open, onOpenChange, editMode = false, editPatient
                         <FormItem className="md:col-span-2">
                           <FormLabel>Street Address</FormLabel>
                           <FormControl>
-                            <Input {...field} placeholder="Enter street address" />
+                            <Input {...field} placeholder="Enter street address" data-testid="input-street" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -960,35 +1108,8 @@ export function PatientModal({ open, onOpenChange, editMode = false, editPatient
                         <FormItem>
                           <FormLabel>City/Town</FormLabel>
                           <FormControl>
-                            <Input {...field} placeholder="Enter city" />
+                            <Input {...field} placeholder="Auto-filled or enter manually" data-testid="input-city" />
                           </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-
-                    <FormField
-                      control={form.control}
-                      name="address.country"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Country</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select country" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="United Kingdom">United Kingdom</SelectItem>
-                              <SelectItem value="Ireland">Ireland</SelectItem>
-                              <SelectItem value="United States">United States</SelectItem>
-                              <SelectItem value="Canada">Canada</SelectItem>
-                              <SelectItem value="Australia">Australia</SelectItem>
-                              <SelectItem value="Other">Other</SelectItem>
-                            </SelectContent>
-                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}
