@@ -6944,6 +6944,43 @@ This treatment plan should be reviewed and adjusted based on individual patient 
     }
   });
 
+  // General PATCH endpoint for lab results (by testId)
+  app.patch("/api/lab-results/:testId", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const testId = req.params.testId;
+      const updateData = req.body;
+
+      // Fetch all lab results for the organization
+      const labResults = await storage.getLabResults(req.tenant!.id);
+      
+      // Find the lab result by testId
+      const labResult = labResults.find(lr => lr.testId === testId);
+      
+      if (!labResult) {
+        return res.status(404).json({ error: "Lab result not found" });
+      }
+
+      // Update the lab result
+      const updatedLabResult = await storage.updateLabResult(labResult.id, req.tenant!.id, updateData);
+
+      if (!updatedLabResult) {
+        return res.status(404).json({ error: "Failed to update lab result" });
+      }
+
+      res.json({ 
+        success: true, 
+        labResult: updatedLabResult 
+      });
+    } catch (error) {
+      console.error("Error updating lab result:", error);
+      res.status(500).json({ error: "Failed to update lab result" });
+    }
+  });
+
   // Get invoices with polymorphic joins (lab_results OR medical_images)
   app.get("/api/invoices/with-services", authMiddleware, async (req: TenantRequest, res) => {
     try {
