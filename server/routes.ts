@@ -7506,78 +7506,223 @@ This treatment plan should be reviewed and adjusted based on individual patient 
     }
   });
 
-  // Generate and save lab test results
+  // Generate and save lab test results as PDF
   app.post("/api/lab-results/generate", authMiddleware, async (req: TenantRequest, res) => {
     try {
       if (!req.user) {
         return res.status(401).json({ error: "User not authenticated" });
       }
 
-      const { labResultId, testId, patientId, testData, testTypes } = req.body;
+      const { labResultId, testId, patientId, testData, testTypes, testFieldDefinitions } = req.body;
       const organizationId = req.tenant!.id;
 
       if (!labResultId || !testId || !patientId || !testData) {
         return res.status(400).json({ error: "Missing required fields" });
       }
 
-      // Create directory structure: uploads/Lab_TestResults/{organization_id}/{patient_id}/
+      // Fetch lab result details
+      const labResults = await storage.getLabResults(organizationId);
+      const labResult = labResults.find(result => result.id === labResultId);
+      
+      if (!labResult) {
+        return res.status(404).json({ error: "Lab result not found" });
+      }
+
+      // Fetch patient details
+      const patients = await storage.getPatientsByOrganization(organizationId);
+      const patient = patients.find((p: any) => p.id === patientId);
+
+      // Fetch doctor details
+      const users = await storage.getUsersByOrganization(organizationId);
+      const doctor = users.find((u: any) => u.id === labResult.orderedBy);
+
+      // Fetch clinic header and footer
+      const clinicHeaders = await db
+        .select()
+        .from(schema.clinicHeaders)
+        .where(eq(schema.clinicHeaders.organizationId, organizationId))
+        .limit(1);
+      
+      const clinicFooters = await db
+        .select()
+        .from(schema.clinicFooters)
+        .where(eq(schema.clinicFooters.organizationId, organizationId))
+        .limit(1);
+
+      const clinicHeader = clinicHeaders[0];
+      const clinicFooter = clinicFooters[0];
+
+      // Create directory structure
       const dirPath = path.join(process.cwd(), `uploads/Lab_TestResults/${organizationId}/${patientId}`);
       await fse.ensureDir(dirPath);
 
-      // Generate filename with timestamp
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const fileName = `${testId}_${timestamp}.txt`;
+      // Generate filename
+      const fileName = `${testId}.pdf`;
       const filePath = path.join(dirPath, fileName);
 
-      // Format test results as text
-      let fileContent = `LAB TEST RESULT\n`;
-      fileContent += `${'='.repeat(60)}\n\n`;
-      fileContent += `Test ID: ${testId}\n`;
-      fileContent += `Patient ID: ${patientId}\n`;
-      fileContent += `Organization ID: ${organizationId}\n`;
-      fileContent += `Generated: ${new Date().toLocaleString()}\n`;
-      fileContent += `\n${'='.repeat(60)}\n\n`;
+      // Import PDF library
+      const { default: PDFDocument } = await import('pdfkit');
+      const doc = new PDFDocument({ margin: 50, size: 'A4' });
+      
+      // Create write stream
+      const stream = fse.createWriteStream(filePath);
+      doc.pipe(stream);
 
-      // Add test results
+      let yPosition = 50;
+
+      // Add Header
+      if (clinicHeader) {
+        // Add logo if present
+        if (clinicHeader.logoBase64) {
+          try {
+            const base64Data = clinicHeader.logoBase64.replace(/^data:image\/\w+;base64,/, '');
+            const logoBuffer = Buffer.from(base64Data, 'base64');
+            doc.image(logoBuffer, 50, yPosition, { width: 80, height: 80 });
+          } catch (err) {
+            console.error('Error adding logo:', err);
+          }
+        }
+
+        // Add clinic info next to logo
+        doc.fontSize(16).font('Helvetica-Bold').text(clinicHeader.clinicName, 150, yPosition);
+        yPosition += 20;
+        
+        if (clinicHeader.address) {
+          doc.fontSize(10).font('Helvetica').text(clinicHeader.address, 150, yPosition);
+          yPosition += 15;
+        }
+        if (clinicHeader.phone) {
+          doc.text(clinicHeader.phone, 150, yPosition);
+          yPosition += 15;
+        }
+        if (clinicHeader.email) {
+          doc.text(clinicHeader.email, 150, yPosition);
+          yPosition += 15;
+        }
+      }
+
+      yPosition += 30;
+
+      // Lab Order Information Section
+      doc.fontSize(14).font('Helvetica-Bold').text('Lab Order Information', 50, yPosition);
+      yPosition += 25;
+
+      // Two column layout for lab order info
+      const leftCol = 50;
+      const rightCol = 320;
+
+      doc.fontSize(10).font('Helvetica-Bold').text('Patient Name:', leftCol, yPosition);
+      doc.font('Helvetica').text(patient ? `${patient.firstName} ${patient.lastName}` : 'N/A', leftCol + 100, yPosition);
+      
+      doc.font('Helvetica-Bold').text('Ordered By:', rightCol, yPosition);
+      doc.font('Helvetica').text(doctor ? `${doctor.firstName} ${doctor.lastName}` : 'N/A', rightCol + 80, yPosition);
+      yPosition += 20;
+
+      doc.font('Helvetica-Bold').text('Test ID:', leftCol, yPosition);
+      doc.font('Helvetica').text(testId, leftCol + 100, yPosition);
+      
+      doc.font('Helvetica-Bold').text('Priority:', rightCol, yPosition);
+      doc.font('Helvetica').text(labResult.priority || 'routine', rightCol + 80, yPosition);
+      yPosition += 20;
+
+      doc.font('Helvetica-Bold').text('Ordered Date:', leftCol, yPosition);
+      doc.font('Helvetica').text(labResult.orderedAt ? new Date(labResult.orderedAt).toLocaleDateString('en-GB') : 'N/A', leftCol + 100, yPosition);
+      yPosition += 35;
+
+      // Test Results
       if (testTypes && Array.isArray(testTypes)) {
-        testTypes.forEach((testType: string, idx: number) => {
-          fileContent += `${idx + 1}. ${testType}\n`;
-          fileContent += `${'-'.repeat(60)}\n`;
+        for (let idx = 0; idx < testTypes.length; idx++) {
+          const testType = testTypes[idx];
           
+          // Check if we need a new page
+          if (yPosition > 700) {
+            doc.addPage();
+            yPosition = 50;
+          }
+
+          // Test type header with blue background
+          doc.rect(50, yPosition, 495, 25).fill('#4A7DFF');
+          doc.fontSize(12).font('Helvetica-Bold').fillColor('#FFFFFF').text(`${idx + 1}. ${testType}`, 55, yPosition + 7);
+          yPosition += 30;
+
+          // Table headers
+          doc.fillColor('#000000').fontSize(9).font('Helvetica-Bold');
+          doc.text('Parameter', 55, yPosition);
+          doc.text('Value', 230, yPosition);
+          doc.text('Unit', 330, yPosition);
+          doc.text('Reference Range', 410, yPosition);
+          yPosition += 20;
+
           // Find all fields for this test type
-          const fields = Object.keys(testData).filter(key => key.startsWith(`${testType}_`));
+          const fields = Object.keys(testData).filter(key => key.startsWith(`${testType}_`) && testData[key]);
           
           if (fields.length > 0) {
+            doc.fontSize(9).font('Helvetica');
+            
             fields.forEach(fieldKey => {
               const fieldName = fieldKey.replace(`${testType}_`, '');
               const fieldValue = testData[fieldKey];
-              if (fieldValue) {
-                fileContent += `  ${fieldName}: ${fieldValue}\n`;
+              
+              // Find matching field definition for unit and reference range
+              const fieldDef = testFieldDefinitions && testFieldDefinitions[testType] 
+                ? testFieldDefinitions[testType].find((f: any) => f.name === fieldName)
+                : null;
+              
+              const unit = fieldDef?.unit || '';
+              const referenceRange = fieldDef?.referenceRange || '';
+              
+              // Check if we need a new page
+              if (yPosition > 720) {
+                doc.addPage();
+                yPosition = 50;
               }
+
+              // Draw table row
+              doc.text(fieldName, 55, yPosition, { width: 170 });
+              doc.text(fieldValue, 230, yPosition, { width: 95 });
+              doc.text(unit, 330, yPosition, { width: 75 });
+              doc.text(referenceRange, 410, yPosition, { width: 135 });
+              yPosition += 18;
             });
           } else {
-            fileContent += `  No data entered for this test type.\n`;
+            doc.fontSize(9).font('Helvetica-Oblique').text('No data entered for this test type.', 55, yPosition);
+            yPosition += 20;
           }
-          
-          fileContent += `\n`;
-        });
+
+          yPosition += 15;
+        }
       }
 
-      // Add clinical notes if present
+      // Clinical Notes
       if (testData.clinicalNotes) {
-        fileContent += `${'='.repeat(60)}\n`;
-        fileContent += `CLINICAL NOTES\n`;
-        fileContent += `${'='.repeat(60)}\n`;
-        fileContent += `${testData.clinicalNotes}\n\n`;
+        if (yPosition > 650) {
+          doc.addPage();
+          yPosition = 50;
+        }
+
+        doc.fontSize(12).font('Helvetica-Bold').text('Clinical Notes (Optional)', 50, yPosition);
+        yPosition += 20;
+        doc.fontSize(10).font('Helvetica').text(testData.clinicalNotes, 50, yPosition, { width: 495 });
       }
 
-      fileContent += `${'='.repeat(60)}\n`;
-      fileContent += `End of Report\n`;
+      // Add Footer
+      if (clinicFooter) {
+        doc.rect(0, 750, 595, 92).fill(clinicFooter.backgroundColor || '#4A7DFF');
+        doc.fontSize(10).font('Helvetica')
+          .fillColor(clinicFooter.textColor || '#FFFFFF')
+          .text(clinicFooter.footerText, 50, 770, { align: 'center', width: 495 });
+      }
 
-      // Write file to disk
-      await fse.writeFile(filePath, fileContent, 'utf-8');
+      // Finalize PDF
+      doc.end();
 
-      console.log(`Lab result file generated successfully at: ${filePath}`);
+      // Wait for file to be written
+      await new Promise((resolve, reject) => {
+        stream.on('finish', resolve);
+        stream.on('error', reject);
+      });
+
+      console.log(`Lab result PDF generated successfully at: ${filePath}`);
 
       // Return relative path
       const relativePath = `uploads/Lab_TestResults/${organizationId}/${patientId}/${fileName}`;

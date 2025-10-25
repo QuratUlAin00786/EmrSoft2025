@@ -53,6 +53,7 @@
     "@types/memoizee": "^0.4.12",
     "@types/multer": "^2.0.0",
     "@types/nodemailer": "^6.4.17",
+    "@types/pdfkit": "^0.17.3",
     "@types/react-beautiful-dnd": "^13.1.8",
     "bcrypt": "^6.0.0",
     "canvas": "^3.2.0",

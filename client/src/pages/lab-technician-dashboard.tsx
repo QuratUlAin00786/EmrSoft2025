@@ -427,13 +427,28 @@ export default function LabTechnicianDashboard() {
 
     setIsSaving(true);
     try {
+      // Prepare test field definitions for the backend
+      const testTypes = parseTestTypes(selectedTest.testType);
+      const testFieldDefinitions: Record<string, Array<{
+        name: string;
+        unit: string;
+        referenceRange: string;
+      }>> = {};
+      
+      testTypes.forEach(testType => {
+        if (TEST_FIELD_DEFINITIONS[testType]) {
+          testFieldDefinitions[testType] = TEST_FIELD_DEFINITIONS[testType];
+        }
+      });
+
       const response = await apiRequest("POST", "/api/lab-results/generate", {
         body: JSON.stringify({
           labResultId: selectedTest.id,
           testId: selectedTest.testId,
           patientId: selectedTest.patientId,
           testData: generateFormData,
-          testTypes: parseTestTypes(selectedTest.testType)
+          testTypes: testTypes,
+          testFieldDefinitions: testFieldDefinitions
         })
       });
 
