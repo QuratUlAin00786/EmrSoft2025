@@ -2930,7 +2930,16 @@ export default function UserManagement() {
                         <div className="space-y-2">
                           <Label htmlFor="country">Country</Label>
                           <Select 
-                            onValueChange={(value) => form.setValue("address.country", value)} 
+                            onValueChange={(value) => {
+                              form.setValue("address.country", value);
+                              // Re-fetch city if postal code is already entered
+                              const currentPostcode = form.watch("address.postcode");
+                              if (currentPostcode && currentPostcode.trim().length >= 3) {
+                                setTimeout(() => {
+                                  detectCountryFromPostcode(currentPostcode);
+                                }, 100);
+                              }
+                            }} 
                             value={form.watch("address.country") || "United Kingdom"}
                           >
                             <SelectTrigger data-testid="select-country">
@@ -2978,7 +2987,7 @@ export default function UserManagement() {
                         
                         {/* Postcode - Step 2 */}
                         <div className="space-y-2">
-                          <Label htmlFor="postcode">Postcode (Auto-lookup)</Label>
+                          <Label htmlFor="postcode">Postal Code / ZIP Code (Auto-lookup)</Label>
                           <Input
                             id="postcode"
                             {...form.register("address.postcode")}
