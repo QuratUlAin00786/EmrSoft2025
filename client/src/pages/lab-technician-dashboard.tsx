@@ -580,10 +580,14 @@ export default function LabTechnicianDashboard() {
 
                     {/* Badges Row */}
                     <div className="flex flex-wrap gap-2">
-                      {test.sampleCollected && (
+                      {test.sampleCollected ? (
                         <Badge className="bg-green-600 hover:bg-green-700">
                           <CheckCircle2 className="h-3 w-3 mr-1" />
                           Sample Collected
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-gray-500 hover:bg-gray-600">
+                          Not Sample Collected
                         </Badge>
                       )}
                       {test.invoiceStatus === 'paid' ? (
@@ -607,10 +611,10 @@ export default function LabTechnicianDashboard() {
                     </div>
 
                     {/* Test Type */}
-                    <div>
+                    <div className="group relative">
                       <p className="text-sm text-muted-foreground">Test Type</p>
-                      <p className="font-medium text-sm">
-                        {parseTestTypes(test.testType).join(', ')}
+                      <p className="font-medium text-sm line-clamp-2 group-hover:line-clamp-none transition-all">
+                        {parseTestTypes(test.testType).join(' | ')}
                       </p>
                     </div>
 
@@ -662,15 +666,23 @@ export default function LabTechnicianDashboard() {
                         }>
                           {test.priority || 'routine'}
                         </Badge>
-                        {test.sampleCollected && (
+                        {test.sampleCollected ? (
                           <Badge className="bg-green-600 hover:bg-green-700">
                             <CheckCircle2 className="h-3 w-3 mr-1" />
                             Sample Collected
                           </Badge>
+                        ) : (
+                          <Badge className="bg-gray-500 hover:bg-gray-600">
+                            Not Sample Collected
+                          </Badge>
                         )}
-                        {test.invoiceStatus === 'paid' && (
+                        {test.invoiceStatus === 'paid' ? (
                           <Badge className="bg-blue-600 hover:bg-blue-700">
                             Paid
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-orange-600 hover:bg-orange-700">
+                            Unpaid
                           </Badge>
                         )}
                         {test.invoiceNumber && (
@@ -684,9 +696,11 @@ export default function LabTechnicianDashboard() {
                           <p className="text-muted-foreground">Patient</p>
                           <p className="font-medium">{test.patientName}</p>
                         </div>
-                        <div>
+                        <div className="group relative">
                           <p className="text-muted-foreground">Test Type</p>
-                          <p className="font-medium truncate">{parseTestTypes(test.testType)[0]}</p>
+                          <p className="font-medium line-clamp-1 group-hover:line-clamp-none transition-all">
+                            {parseTestTypes(test.testType).join(' | ')}
+                          </p>
                         </div>
                         <div>
                           <p className="text-muted-foreground">Ordered By</p>
