@@ -536,7 +536,7 @@ export default function ImagingPage() {
     );
     if (!study) return null;
 
-    console.log('📷 FRONTEND: Raw study data from API:', { id: study.id, imageId: study.imageId, fileName: study.fileName, file_name: study.file_name });
+    console.log('📷 FRONTEND: Raw study data from API:', { id: study.id, imageId: study.imageId, fileName: study.fileName, patientId: study.patientId });
     const mapped: ImagingStudy = {
       id: String(study.id),
       imageId: study.imageId, // Include imageId from medical_images table for PDF naming
