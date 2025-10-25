@@ -7516,7 +7516,17 @@ This treatment plan should be reviewed and adjusted based on individual patient 
       const { labResultId, testId, patientId, testData, testTypes, testFieldDefinitions } = req.body;
       const organizationId = req.tenant!.id;
 
+      console.log("📥 PDF generation request received:", JSON.stringify({
+        labResultId,
+        testId,
+        patientId,
+        testDataKeys: Object.keys(testData || {}),
+        testTypes,
+        hasTestFieldDefinitions: !!testFieldDefinitions
+      }, null, 2));
+
       if (!labResultId || !testId || !patientId || !testData) {
+        console.error("❌ Missing required fields:", { labResultId, testId, patientId, hasTestData: !!testData });
         return res.status(400).json({ error: "Missing required fields" });
       }
 

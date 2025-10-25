@@ -441,15 +441,19 @@ export default function LabTechnicianDashboard() {
         }
       });
 
+      const payload = {
+        labResultId: selectedTest.id,
+        testId: selectedTest.testId,
+        patientId: selectedTest.patientId,
+        testData: generateFormData,
+        testTypes: testTypes,
+        testFieldDefinitions: testFieldDefinitions
+      };
+
+      console.log("📤 Sending PDF generation request:", JSON.stringify(payload, null, 2));
+
       const response = await apiRequest("POST", "/api/lab-results/generate", {
-        body: JSON.stringify({
-          labResultId: selectedTest.id,
-          testId: selectedTest.testId,
-          patientId: selectedTest.patientId,
-          testData: generateFormData,
-          testTypes: testTypes,
-          testFieldDefinitions: testFieldDefinitions
-        })
+        body: JSON.stringify(payload)
       });
 
       if (response.ok) {
