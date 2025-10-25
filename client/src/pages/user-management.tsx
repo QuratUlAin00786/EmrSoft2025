@@ -2885,6 +2885,37 @@ export default function UserManagement() {
                     <div className="p-4 rounded-lg border border-gray-200 dark:border-gray-700">
                       <h5 className="font-medium text-blue-600 dark:text-blue-400 mb-4">Address Information</h5>
                       <div className="space-y-4">
+                        {/* Postcode first for auto-detection */}
+                        <div className="space-y-2">
+                          <Label htmlFor="postcode">Postcode</Label>
+                          <Input
+                            id="postcode"
+                            {...form.register("address.postcode")}
+                            placeholder="SW1A 1AA"
+                            data-testid="input-postcode"
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              form.setValue("address.postcode", value);
+                              
+                              // Clear existing timeout
+                              if (detectionTimeout) {
+                                clearTimeout(detectionTimeout);
+                              }
+                              
+                              // Debounce: wait 600ms after user stops typing
+                              const timeout = setTimeout(() => {
+                                detectCountryFromPostcode(value);
+                              }, 600);
+                              
+                              setDetectionTimeout(timeout);
+                            }}
+                          />
+                          {isDetectingCountry && (
+                            <p className="text-xs text-blue-500 dark:text-blue-400">🌍 Auto-detecting country...</p>
+                          )}
+                        </div>
+                        
+                        {/* Street Address */}
                         <div className="space-y-2">
                           <Label htmlFor="street">Street Address</Label>
                           <Input
@@ -2894,8 +2925,9 @@ export default function UserManagement() {
                             data-testid="input-street-address"
                           />
                         </div>
-                        {/* City/Town, Postcode, Country in one row */}
-                        <div className="grid grid-cols-3 gap-4">
+                        
+                        {/* City/Town and Country in one row */}
+                        <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <Label htmlFor="city">City/Town</Label>
                             <Input
@@ -2904,34 +2936,6 @@ export default function UserManagement() {
                               placeholder="Enter city"
                               data-testid="input-city"
                             />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="postcode">Postcode</Label>
-                            <Input
-                              id="postcode"
-                              {...form.register("address.postcode")}
-                              placeholder="SW1A 1AA"
-                              data-testid="input-postcode"
-                              onChange={(e) => {
-                                const value = e.target.value;
-                                form.setValue("address.postcode", value);
-                                
-                                // Clear existing timeout
-                                if (detectionTimeout) {
-                                  clearTimeout(detectionTimeout);
-                                }
-                                
-                                // Debounce: wait 600ms after user stops typing
-                                const timeout = setTimeout(() => {
-                                  detectCountryFromPostcode(value);
-                                }, 600);
-                                
-                                setDetectionTimeout(timeout);
-                              }}
-                            />
-                            {isDetectingCountry && (
-                              <p className="text-xs text-blue-500 dark:text-blue-400">🌍 Auto-detecting country...</p>
-                            )}
                           </div>
                           <div className="space-y-2">
                             <Label htmlFor="country">Country</Label>
