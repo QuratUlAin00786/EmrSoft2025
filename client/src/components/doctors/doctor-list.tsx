@@ -146,6 +146,9 @@ export function DoctorList({
   
   // Role filter state
   const [selectedRole, setSelectedRole] = useState<string>("all");
+  
+  // Search state for admin
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -191,7 +194,7 @@ export function DoctorList({
     enabled: isBookingOpen,
   });
 
-  // Fetch roles from database (excluding patient role)
+  // Fetch roles from database (excluding patient and admin roles)
   const { data: rolesData } = useQuery({
     queryKey: ["/api/roles"],
     queryFn: async () => {
@@ -199,11 +202,13 @@ export function DoctorList({
       const data = await response.json();
       return data;
     },
-    enabled: user?.role === 'patient',
+    enabled: user?.role === 'patient' || user?.role === 'admin',
   });
 
-  // Filter roles to exclude patient role
-  const availableRoles = rolesData?.filter((role: any) => role.name !== 'patient') || [];
+  // Filter roles to exclude patient and admin roles
+  const availableRoles = rolesData?.filter((role: any) => 
+    role.name !== 'patient' && role.name !== 'admin'
+  ) || [];
 
   // Fetch all shifts for the selected doctor to determine available dates
   const { data: allDoctorShifts } = useQuery({
@@ -757,7 +762,7 @@ export function DoctorList({
   
   // For doctors: extract unique patients from their appointments
   const doctorPatients = useMemo(() => {
-    if (!isDoctorLike(user?.role) || !doctorAppointments || !patients) {
+    if (!isDoctorLike(user?.role) || !user || !doctorAppointments || !patients) {
       return [];
     }
 
@@ -794,7 +799,43 @@ export function DoctorList({
       });
     }
     
-    // For admin and other roles: show only doctors who are available today
+    // For admin role: show all users except patient role, with role filter and search
+    if (user?.role === 'admin') {
+      return medicalStaff.filter((staff: Doctor) => {
+        // Exclude patient role
+        if (staff.role === 'patient') {
+          return false;
+        }
+        
+        // Apply role filter if a specific role is selected
+        if (selectedRole !== 'all' && staff.role !== selectedRole) {
+          return false;
+        }
+        
+        // Apply search filter
+        if (searchQuery.trim()) {
+          const query = searchQuery.toLowerCase();
+          const fullName = `${staff.firstName} ${staff.lastName}`.toLowerCase();
+          const email = (staff.email || '').toLowerCase();
+          const specialization = (staff.medicalSpecialtyCategory || '').toLowerCase();
+          const department = (staff.department || '').toLowerCase();
+          
+          const matches = 
+            fullName.includes(query) ||
+            email.includes(query) ||
+            specialization.includes(query) ||
+            department.includes(query);
+            
+          if (!matches) {
+            return false;
+          }
+        }
+        
+        return true;
+      });
+    }
+    
+    // For other roles: show only doctors who are available today
     return medicalStaff.filter((doctor: Doctor) => {
       if (!isDoctorLike(doctor.role)) {
         return false;
@@ -806,7 +847,7 @@ export function DoctorList({
       // If working days are set, check if today is included
       return doctor.workingDays.includes(today);
     });
-  }, [user, doctorPatients, medicalStaff, selectedRole, today]);
+  }, [user, doctorPatients, medicalStaff, selectedRole, searchQuery, today]);
 
   if (isLoading) {
     return (
@@ -834,11 +875,11 @@ export function DoctorList({
   if (availableStaff.length === 0) {
     return (
       <Card>
-        <div className="flex items-center justify-between p-4">
+        <div className="flex items-center justify-between gap-4 p-4">
 
-          {user?.role === 'patient' && (
+          {(user?.role === 'patient' || user?.role === 'admin') && (
             <Select value={selectedRole} onValueChange={setSelectedRole}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-[180px]" data-testid="select-role-filter">
                 <SelectValue placeholder="Filter by role" />
               </SelectTrigger>
               <SelectContent>
@@ -850,6 +891,17 @@ export function DoctorList({
                 ))}
               </SelectContent>
             </Select>
+          )}
+          
+          {user?.role === 'admin' && (
+            <Input
+              type="text"
+              placeholder="Search by name, email, specialization, department..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="flex-1"
+              data-testid="input-search-staff"
+            />
           )}
         </div>
         <CardContent>
@@ -879,11 +931,11 @@ export function DoctorList({
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
        
-          {user?.role === 'patient' && (
+          {(user?.role === 'patient' || user?.role === 'admin') && (
             <Select value={selectedRole} onValueChange={setSelectedRole}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-[180px]" data-testid="select-role-filter">
                 <SelectValue placeholder="Filter by role" />
               </SelectTrigger>
               <SelectContent>
@@ -895,6 +947,17 @@ export function DoctorList({
                 ))}
               </SelectContent>
             </Select>
+          )}
+          
+          {user?.role === 'admin' && (
+            <Input
+              type="text"
+              placeholder="Search by name, email, specialization, department..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="flex-1 min-w-[300px]"
+              data-testid="input-search-staff"
+            />
           )}
         </div>
       </CardHeader>
