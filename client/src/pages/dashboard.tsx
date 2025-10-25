@@ -4,9 +4,20 @@ import { useAuth } from "@/hooks/use-auth";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useQuery } from "@tanstack/react-query";
 import { getActiveSubdomain } from "@/lib/subdomain-utils";
+import { useEffect } from "react";
+import { useLocation } from "wouter";
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
+
+  // Redirect lab_technician role to their dedicated dashboard
+  useEffect(() => {
+    if (user?.role === 'lab_technician') {
+      const subdomain = getActiveSubdomain();
+      setLocation(`/${subdomain}/lab-technician-dashboard`);
+    }
+  }, [user, setLocation]);
 
   // Function to count active patients
   const { data: activePatients, isLoading: activePatientsLoading } = useQuery({
