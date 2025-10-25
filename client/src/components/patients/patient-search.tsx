@@ -165,29 +165,6 @@ export function PatientSearch({ onSearch, onClear }: PatientSearchProps) {
                 </SelectContent>
               </Select>
             </div>
-
-            <div>
-              <label className="text-sm font-medium text-gray-600 mb-2 block">Last Visit</label>
-              <Select 
-                value={filters.lastVisit || 'all'} 
-                onValueChange={(value) => {
-                  const newFilters = { ...filters, lastVisit: value === 'all' ? undefined : value as SearchFilters['lastVisit'] };
-                  setFilters(newFilters);
-                  onSearch(query, newFilters);
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Any time" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Any time</SelectItem>
-                  <SelectItem value="week">Past week</SelectItem>
-                  <SelectItem value="month">Past month</SelectItem>
-                  <SelectItem value="quarter">Past 3 months</SelectItem>
-                  <SelectItem value="year">Past year</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
           </div>
 
           <div className="flex gap-4">
