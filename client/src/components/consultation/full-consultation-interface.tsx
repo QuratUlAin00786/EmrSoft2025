@@ -1241,6 +1241,8 @@ ${
   const [showRespiratoryExamModal, setShowRespiratoryExamModal] = useState(false);
   const [showNeurologicalExamModal, setShowNeurologicalExamModal] = useState(false);
   const [showPhysicalExamModal, setShowPhysicalExamModal] = useState(false);
+  const [showViewAnatomicalDialog, setShowViewAnatomicalDialog] = useState(false);
+  const [savedAnatomicalImage, setSavedAnatomicalImage] = useState<string | null>(null);
 
   // Anatomical analysis state
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<string>("");
@@ -4279,6 +4281,27 @@ Patient should be advised of potential side effects and expected timeline for re
                     {isSavingAnalysis ? "Saving..." : "Save Analysis"}
                   </Button>
                   <Button
+                    onClick={async () => {
+                      const currentPatientId = patientId || patient?.id;
+                      if (currentPatientId) {
+                        const token = localStorage.getItem('auth_token');
+                        const orgId = (await fetch('/api/me', {
+                          headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'X-Tenant-Subdomain': getTenantSubdomain()
+                          }
+                        }).then(r => r.json())).organizationId;
+                        
+                        const imagePath = `/uploads/anatomical_analysis_img/${orgId}/${currentPatientId}/${currentPatientId}.png`;
+                        setSavedAnatomicalImage(imagePath);
+                        setShowViewAnatomicalDialog(true);
+                      }
+                    }}
+                    className="bg-purple-600 hover:bg-purple-700 px-4 py-2 min-w-fit"
+                  >
+                    View Anatomical Analysis
+                  </Button>
+                  <Button
                     onClick={() => setShowAnatomicalModal(false)}
                     variant="outline"
                     className="px-4 py-2 min-w-fit"
@@ -4634,6 +4657,27 @@ Patient should be advised of potential side effects and expected timeline for re
                     {isSavingAnalysis ? "Saving..." : "Save Analysis"}
                   </Button>
                   <Button
+                    onClick={async () => {
+                      const currentPatientId = patientId || patient?.id;
+                      if (currentPatientId) {
+                        const token = localStorage.getItem('auth_token');
+                        const orgId = (await fetch('/api/me', {
+                          headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'X-Tenant-Subdomain': getTenantSubdomain()
+                          }
+                        }).then(r => r.json())).organizationId;
+                        
+                        const imagePath = `/uploads/anatomical_analysis_img/${orgId}/${currentPatientId}/${currentPatientId}.png`;
+                        setSavedAnatomicalImage(imagePath);
+                        setShowViewAnatomicalDialog(true);
+                      }
+                    }}
+                    className="bg-purple-600 hover:bg-purple-700 px-6"
+                  >
+                    View Anatomical Analysis
+                  </Button>
+                  <Button
                     onClick={() => setShowAnatomicalModal(false)}
                     variant="outline"
                     className="px-6"
@@ -4658,6 +4702,220 @@ Patient should be advised of potential side effects and expected timeline for re
               )}
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* View Anatomical Analysis Dialog */}
+      <Dialog open={showViewAnatomicalDialog} onOpenChange={setShowViewAnatomicalDialog}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold flex items-center gap-3">
+              <Eye className="w-5 h-5 text-purple-600" />
+              View Anatomical Analysis
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-6">
+            {/* Saved Image */}
+            {savedAnatomicalImage && (
+              <div className="border rounded-lg p-4 bg-gray-50">
+                <h3 className="font-semibold text-lg mb-3">Saved Analysis Image</h3>
+                <div className="flex justify-center">
+                  <img
+                    src={savedAnatomicalImage}
+                    alt="Anatomical Analysis"
+                    className="max-w-full max-h-96 object-contain rounded-lg border"
+                    onError={(e) => {
+                      e.currentTarget.src = '';
+                      e.currentTarget.alt = 'Image not found - Please save an image first';
+                      e.currentTarget.className = 'text-gray-500 italic';
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Analysis Details */}
+            <div className="border rounded-lg p-4 bg-white">
+              <h3 className="font-semibold text-lg mb-4">Analysis Details</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-gray-600">Target Muscle Group</Label>
+                  <p className="font-medium">{selectedMuscleGroup ? selectedMuscleGroup.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Not specified'}</p>
+                </div>
+                <div>
+                  <Label className="text-gray-600">Analysis Type</Label>
+                  <p className="font-medium">{selectedAnalysisType ? selectedAnalysisType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Not specified'}</p>
+                </div>
+                <div>
+                  <Label className="text-gray-600">Primary Treatment</Label>
+                  <p className="font-medium">{selectedTreatment ? selectedTreatment.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Not specified'}</p>
+                </div>
+                <div>
+                  <Label className="text-gray-600">Treatment Intensity</Label>
+                  <p className="font-medium">{selectedTreatmentIntensity || 'Not specified'}</p>
+                </div>
+                <div>
+                  <Label className="text-gray-600">Session Frequency</Label>
+                  <p className="font-medium">{selectedSessionFrequency || 'Not specified'}</p>
+                </div>
+                <div>
+                  <Label className="text-gray-600">Severity Scale</Label>
+                  <p className="font-medium">{severityScale || 'Not specified'}</p>
+                </div>
+                <div className="col-span-2">
+                  <Label className="text-gray-600">Primary Symptoms</Label>
+                  <p className="font-medium">{primarySymptoms || 'Not specified'}</p>
+                </div>
+                <div className="col-span-2">
+                  <Label className="text-gray-600">Follow-up Plan</Label>
+                  <p className="font-medium">{followUpPlan || 'Not specified'}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Generated Treatment Plan */}
+            {generatedTreatmentPlan && (
+              <div className="border rounded-lg p-4 bg-white">
+                <h3 className="font-semibold text-lg mb-3">Generated Treatment Plan</h3>
+                <pre className="whitespace-pre-wrap text-sm bg-gray-50 p-4 rounded border">
+                  {generatedTreatmentPlan}
+                </pre>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex justify-end gap-3 pt-4 border-t">
+              <Button
+                onClick={async () => {
+                  try {
+                    const currentPatientId = patientId || patient?.id;
+                    if (!currentPatientId) return;
+
+                    // Fetch clinic header and footer
+                    const token = localStorage.getItem('auth_token');
+                    const headers = {
+                      'Authorization': `Bearer ${token}`,
+                      'X-Tenant-Subdomain': getTenantSubdomain()
+                    };
+
+                    const [headerRes, footerRes] = await Promise.all([
+                      fetch('/api/clinic-headers', { headers }),
+                      fetch('/api/clinic-footers', { headers })
+                    ]);
+
+                    const clinicHeader = await headerRes.json();
+                    const clinicFooter = await footerRes.json();
+
+                    // Generate PDF with jsPDF
+                    const { jsPDF } = await import('jspdf');
+                    const doc = new jsPDF();
+
+                    let yPos = 20;
+
+                    // Add clinic header if available
+                    if (clinicHeader && clinicHeader.clinicName) {
+                      doc.setFontSize(16);
+                      doc.setFont('helvetica', 'bold');
+                      doc.text(clinicHeader.clinicName, 105, yPos, { align: 'center' });
+                      yPos += 10;
+
+                      doc.setFontSize(10);
+                      doc.setFont('helvetica', 'normal');
+                      if (clinicHeader.address) doc.text(clinicHeader.address, 105, yPos, { align: 'center' });
+                      yPos += 5;
+                      if (clinicHeader.phone || clinicHeader.email) {
+                        doc.text(`${clinicHeader.phone || ''} | ${clinicHeader.email || ''}`, 105, yPos, { align: 'center' });
+                        yPos += 10;
+                      }
+                    }
+
+                    // Title
+                    doc.setFontSize(14);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('Professional Anatomical Analysis Report', 105, yPos, { align: 'center' });
+                    yPos += 15;
+
+                    // Analysis Details
+                    doc.setFontSize(12);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('Analysis Details:', 20, yPos);
+                    yPos += 10;
+
+                    doc.setFontSize(10);
+                    doc.setFont('helvetica', 'normal');
+                    const details = [
+                      `Target Muscle Group: ${selectedMuscleGroup ? selectedMuscleGroup.replace(/_/g, ' ') : 'Not specified'}`,
+                      `Analysis Type: ${selectedAnalysisType ? selectedAnalysisType.replace(/_/g, ' ') : 'Not specified'}`,
+                      `Primary Treatment: ${selectedTreatment ? selectedTreatment.replace(/_/g, ' ') : 'Not specified'}`,
+                      `Treatment Intensity: ${selectedTreatmentIntensity || 'Not specified'}`,
+                      `Session Frequency: ${selectedSessionFrequency || 'Not specified'}`,
+                      `Severity Scale: ${severityScale || 'Not specified'}`,
+                      `Primary Symptoms: ${primarySymptoms || 'Not specified'}`,
+                      `Follow-up Plan: ${followUpPlan || 'Not specified'}`
+                    ];
+
+                    details.forEach(detail => {
+                      doc.text(detail, 20, yPos);
+                      yPos += 7;
+                    });
+
+                    // Treatment Plan
+                    if (generatedTreatmentPlan) {
+                      yPos += 10;
+                      doc.setFontSize(12);
+                      doc.setFont('helvetica', 'bold');
+                      doc.text('Generated Treatment Plan:', 20, yPos);
+                      yPos += 10;
+
+                      doc.setFontSize(10);
+                      doc.setFont('helvetica', 'normal');
+                      const lines = doc.splitTextToSize(generatedTreatmentPlan, 170);
+                      lines.forEach((line: string) => {
+                        if (yPos > 270) {
+                          doc.addPage();
+                          yPos = 20;
+                        }
+                        doc.text(line, 20, yPos);
+                        yPos += 5;
+                      });
+                    }
+
+                    // Add clinic footer if available
+                    if (clinicFooter && clinicFooter.footerText) {
+                      doc.setFontSize(8);
+                      doc.setFont('helvetica', 'italic');
+                      doc.text(clinicFooter.footerText, 105, 285, { align: 'center' });
+                    }
+
+                    // Save PDF
+                    doc.save(`Anatomical_Analysis_Patient_${currentPatientId}_${new Date().toISOString().split('T')[0]}.pdf`);
+
+                    toast({
+                      title: "PDF Generated",
+                      description: "Treatment plan PDF has been downloaded successfully."
+                    });
+                  } catch (error) {
+                    console.error('PDF generation error:', error);
+                    toast({
+                      title: "Error",
+                      description: "Failed to generate PDF. Please try again.",
+                      variant: "destructive"
+                    });
+                  }
+                }}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Generate Treatment Plan PDF
+              </Button>
+              <Button
+                onClick={() => setShowViewAnatomicalDialog(false)}
+                variant="outline"
+              >
+                Close
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 
