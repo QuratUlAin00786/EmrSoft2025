@@ -4367,14 +4367,12 @@ ${
                         let clinicFooter = null;
 
                         if (headerRes.ok) {
-                          const headerData = await headerRes.json();
-                          console.log('[ANATOMICAL PDF STEP1] Header data:', headerData);
-                          clinicHeader = Array.isArray(headerData) && headerData.length > 0 ? headerData[0] : null;
+                          clinicHeader = await headerRes.json();
+                          console.log('[ANATOMICAL PDF STEP1] Header data:', clinicHeader);
                         }
                         if (footerRes.ok) {
-                          const footerData = await footerRes.json();
-                          console.log('[ANATOMICAL PDF STEP1] Footer data:', footerData);
-                          clinicFooter = Array.isArray(footerData) && footerData.length > 0 ? footerData[0] : null;
+                          clinicFooter = await footerRes.json();
+                          console.log('[ANATOMICAL PDF STEP1] Footer data:', clinicFooter);
                         }
 
                         // Generate PDF with jsPDF
@@ -4383,20 +4381,13 @@ ${
 
                         let yPos = 20;
 
-                        // Add clinic header if available
-                        if (clinicHeader && clinicHeader.clinicName) {
-                          doc.setFontSize(16);
-                          doc.setFont('helvetica', 'bold');
-                          doc.text(clinicHeader.clinicName, 105, yPos, { align: 'center' });
-                          yPos += 10;
-
-                          doc.setFontSize(10);
-                          doc.setFont('helvetica', 'normal');
-                          if (clinicHeader.address) doc.text(clinicHeader.address, 105, yPos, { align: 'center' });
-                          yPos += 5;
-                          if (clinicHeader.phone || clinicHeader.email) {
-                            doc.text(`${clinicHeader.phone || ''} | ${clinicHeader.email || ''}`, 105, yPos, { align: 'center' });
-                            yPos += 10;
+                        // Add clinic logo header if available
+                        if (clinicHeader && clinicHeader.logoBase64) {
+                          try {
+                            doc.addImage(clinicHeader.logoBase64, 'PNG', 85, yPos, 40, 15);
+                            yPos += 20;
+                          } catch (logoError) {
+                            console.log('[ANATOMICAL PDF STEP1] Error adding logo:', logoError);
                           }
                         }
 
@@ -4889,14 +4880,12 @@ ${
                         let clinicFooter = null;
 
                         if (headerRes.ok) {
-                          const headerData = await headerRes.json();
-                          console.log('[ANATOMICAL PDF STEP3] Header data:', headerData);
-                          clinicHeader = Array.isArray(headerData) && headerData.length > 0 ? headerData[0] : null;
+                          clinicHeader = await headerRes.json();
+                          console.log('[ANATOMICAL PDF STEP3] Header data:', clinicHeader);
                         }
                         if (footerRes.ok) {
-                          const footerData = await footerRes.json();
-                          console.log('[ANATOMICAL PDF STEP3] Footer data:', footerData);
-                          clinicFooter = Array.isArray(footerData) && footerData.length > 0 ? footerData[0] : null;
+                          clinicFooter = await footerRes.json();
+                          console.log('[ANATOMICAL PDF STEP3] Footer data:', clinicFooter);
                         }
 
                         // Generate PDF with jsPDF
@@ -4905,20 +4894,13 @@ ${
 
                         let yPos = 20;
 
-                        // Add clinic header if available
-                        if (clinicHeader && clinicHeader.clinicName) {
-                          doc.setFontSize(16);
-                          doc.setFont('helvetica', 'bold');
-                          doc.text(clinicHeader.clinicName, 105, yPos, { align: 'center' });
-                          yPos += 10;
-
-                          doc.setFontSize(10);
-                          doc.setFont('helvetica', 'normal');
-                          if (clinicHeader.address) doc.text(clinicHeader.address, 105, yPos, { align: 'center' });
-                          yPos += 5;
-                          if (clinicHeader.phone || clinicHeader.email) {
-                            doc.text(`${clinicHeader.phone || ''} | ${clinicHeader.email || ''}`, 105, yPos, { align: 'center' });
-                            yPos += 10;
+                        // Add clinic logo header if available
+                        if (clinicHeader && clinicHeader.logoBase64) {
+                          try {
+                            doc.addImage(clinicHeader.logoBase64, 'PNG', 85, yPos, 40, 15);
+                            yPos += 20;
+                          } catch (logoError) {
+                            console.log('[ANATOMICAL PDF STEP3] Error adding logo:', logoError);
                           }
                         }
 
