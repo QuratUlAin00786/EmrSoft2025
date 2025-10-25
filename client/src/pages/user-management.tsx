@@ -852,6 +852,7 @@ export default function UserManagement() {
   
   // Postcode auto-detection state
   const [isDetectingCountry, setIsDetectingCountry] = useState(false);
+  const [detectionTimeout, setDetectionTimeout] = useState<NodeJS.Timeout | null>(null);
 
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -986,7 +987,7 @@ export default function UserManagement() {
     validateDOB(dobDay, dobMonth, value);
   };
   
-  // Auto-detect country from postcode using Zippopotam.us API
+  // Auto-detect country from postcode using Zippopotam.us API (optimized with parallel requests)
   const detectCountryFromPostcode = async (postcode: string) => {
     console.log('🌍 Auto-detect triggered:', { selectedRole, postcode, postcodeLength: postcode?.trim().length });
     
@@ -1000,7 +1001,7 @@ export default function UserManagement() {
       return;
     }
 
-    console.log('🌍 Starting country detection...');
+    console.log('🌍 Starting FAST country detection (parallel)...');
     setIsDetectingCountry(true);
     
     // Remove spaces and normalize postcode
@@ -1020,41 +1021,49 @@ export default function UserManagement() {
       { iso: 'ie', name: 'Ireland' },
     ];
 
-    // Try each country until we find a match
-    for (const country of countriesToTry) {
+    // Try ALL countries in parallel for maximum speed
+    const promises = countriesToTry.map(async (country) => {
       try {
-        console.log(`🌍 Trying country: ${country.name} (${country.iso})`);
         const response = await fetch(`https://api.zippopotam.us/${country.iso}/${normalizedPostcode}`);
         
         if (response.ok) {
           const data = await response.json();
-          console.log(`🌍 ✅ Country detected: ${country.name}`, data);
-          
-          // Successfully found the country
-          form.setValue("address.country", country.name);
-          
-          // Also auto-fill city if available
-          if (data.places && data.places.length > 0 && data.places[0]['place name']) {
-            const currentCity = form.watch("address.city");
-            if (!currentCity || currentCity.trim() === '') {
-              form.setValue("address.city", data.places[0]['place name']);
-              console.log(`🌍 City also detected: ${data.places[0]['place name']}`);
-            }
-          }
-          
-          setIsDetectingCountry(false);
-          return;
+          return { country, data };
         }
+        return null;
       } catch (error) {
-        console.log(`🌍 ❌ Failed for ${country.name}:`, error);
-        // Continue to next country
-        continue;
+        return null;
       }
+    });
+
+    try {
+      // Wait for all requests and find the first successful one
+      const results = await Promise.all(promises);
+      const successfulResult = results.find(result => result !== null);
+      
+      if (successfulResult) {
+        const { country, data } = successfulResult;
+        console.log(`🌍 ✅ Country detected: ${country.name}`, data);
+        
+        // Successfully found the country
+        form.setValue("address.country", country.name);
+        
+        // Also auto-fill city if available
+        if (data.places && data.places.length > 0 && data.places[0]['place name']) {
+          const currentCity = form.watch("address.city");
+          if (!currentCity || currentCity.trim() === '') {
+            form.setValue("address.city", data.places[0]['place name']);
+            console.log(`🌍 City also detected: ${data.places[0]['place name']}`);
+          }
+        }
+      } else {
+        console.log('🌍 ❌ No match found for postcode:', normalizedPostcode);
+      }
+    } catch (error) {
+      console.log('🌍 ❌ Detection error:', error);
+    } finally {
+      setIsDetectingCountry(false);
     }
-    
-    // No match found
-    console.log('🌍 ❌ No match found for postcode:', normalizedPostcode);
-    setIsDetectingCountry(false);
   };
   
   // NHS Number validation function - only allows 10 digits
@@ -2904,12 +2913,24 @@ export default function UserManagement() {
                               placeholder="SW1A 1AA"
                               data-testid="input-postcode"
                               onChange={(e) => {
-                                form.setValue("address.postcode", e.target.value);
-                                detectCountryFromPostcode(e.target.value);
+                                const value = e.target.value;
+                                form.setValue("address.postcode", value);
+                                
+                                // Clear existing timeout
+                                if (detectionTimeout) {
+                                  clearTimeout(detectionTimeout);
+                                }
+                                
+                                // Debounce: wait 600ms after user stops typing
+                                const timeout = setTimeout(() => {
+                                  detectCountryFromPostcode(value);
+                                }, 600);
+                                
+                                setDetectionTimeout(timeout);
                               }}
                             />
                             {isDetectingCountry && (
-                              <p className="text-xs text-gray-500">Detecting country...</p>
+                              <p className="text-xs text-blue-500 dark:text-blue-400">🌍 Auto-detecting country...</p>
                             )}
                           </div>
                           <div className="space-y-2">
