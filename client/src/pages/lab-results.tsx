@@ -2842,7 +2842,7 @@ Report generated from Cura EMR System`;
                     </div>
 
                     {/* Test Results section (if available) - with right margin for blue box */}
-                    {result.results && result.results.length > 0 && (
+                    {result.results && result.results.length > 0 && activeTab !== "generate" && (
                       <div className="mt-6 mr-72">
                         <button
                           onClick={() => {
