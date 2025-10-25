@@ -2289,60 +2289,82 @@ Report generated from Cura EMR System`;
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm">
                               <div className="flex items-center gap-2">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleViewResult(result)}
-                                  className="h-8 w-8 p-0"
-                                  data-testid={`button-view-${result.id}`}
-                                >
-                                  <Eye className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                                </Button>
-                                {user?.role !== 'patient' && (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => handleViewResult(result)}
-                                    className="h-8 w-8 p-0"
-                                    data-testid={`button-edit-${result.id}`}
-                                  >
-                                    <Edit className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                                  </Button>
-                                )}
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleGeneratePrescription(result)}
-                                  className="h-8 w-8 p-0"
-                                  data-testid={`button-prescription-${result.id}`}
-                                >
-                                  <FileText className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={async () => {
-                                    setSelectedResult(result);
-                                    setShowPrescriptionDialog(true);
-                                    await new Promise((resolve) => setTimeout(resolve, 100));
-                                    await handleGeneratePDF();
-                                    setShowPrescriptionDialog(false);
-                                  }}
-                                  className="h-8 w-8 p-0"
-                                  data-testid={`button-download-${result.id}`}
-                                >
-                                  <Download className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                                </Button>
-                                {user?.role === 'admin' && (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => handleCreateInvoiceForTest(result)}
-                                    className="h-8 w-8 p-0"
-                                    data-testid={`button-create-invoice-${result.id}`}
-                                  >
-                                    <Receipt className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                                  </Button>
+                                {activeTab === "request" ? (
+                                  <>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleViewResult(result)}
+                                      className="h-8 w-8 p-0"
+                                      data-testid={`button-view-${result.id}`}
+                                    >
+                                      <Eye className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                                    </Button>
+                                    {user?.role !== 'patient' && (
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => handleViewResult(result)}
+                                        className="h-8 w-8 p-0"
+                                        data-testid={`button-edit-${result.id}`}
+                                      >
+                                        <Edit className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                                      </Button>
+                                    )}
+                                    {user?.role === 'admin' && (
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => handleCreateInvoiceForTest(result)}
+                                        className="h-8 w-8 p-0"
+                                        data-testid={`button-create-invoice-${result.id}`}
+                                      >
+                                        <Receipt className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                                      </Button>
+                                    )}
+                                  </>
+                                ) : (
+                                  <>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleGeneratePrescription(result)}
+                                      className="h-8 w-8 p-0"
+                                      data-testid={`button-prescription-${result.id}`}
+                                    >
+                                      <FileText className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={async () => {
+                                        setSelectedResult(result);
+                                        setShowPrescriptionDialog(true);
+                                        await new Promise((resolve) => setTimeout(resolve, 100));
+                                        await handleGeneratePDF();
+                                        setShowPrescriptionDialog(false);
+                                      }}
+                                      className="h-8 w-8 p-0"
+                                      data-testid={`button-print-${result.id}`}
+                                    >
+                                      <Printer className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={async () => {
+                                        setSelectedResult(result);
+                                        setShowPrescriptionDialog(true);
+                                        await new Promise((resolve) => setTimeout(resolve, 100));
+                                        await handleGeneratePDF();
+                                        setShowPrescriptionDialog(false);
+                                      }}
+                                      className="h-8 w-8 p-0"
+                                      data-testid={`button-download-${result.id}`}
+                                    >
+                                      <Download className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                                    </Button>
+                                  </>
                                 )}
                               </div>
                             </td>
@@ -2594,74 +2616,49 @@ Report generated from Cura EMR System`;
 
                     {/* Action buttons at bottom - with right margin for blue box */}
                       <div className="flex justify-end gap-2 mt-6 pt-4 border-t border-gray-200">
-    {user?.role !== 'patient' && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleViewResult(result)}
-                        >
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit
-                        </Button>
-                      )}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleGeneratePrescription(result)}
-                        className="bg-white hover:bg-gray-50 text-gray-900 border-gray-300"
-                      >
-                        <FileText className="h-4 w-4 mr-2" />
-                        {user?.role === 'patient' ? 'View Prescription' : 'Generate Prescription'}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={async () => {
-                          setSelectedResult(result);
-                          // Temporarily open the prescription dialog to render content
-                          setShowPrescriptionDialog(true);
-                          // Wait for the content to render
-                          await new Promise((resolve) =>
-                            setTimeout(resolve, 100),
-                          );
-                          // Generate the PDF
-                          await handleGeneratePDF();
-                          // Close the dialog
-                          setShowPrescriptionDialog(false);
-                        }}
-                        className="bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600"
-                      >
-                        <Download className="h-4 w-4 mr-2" />
-                        Download PDF
-                      </Button>
-                      {user?.role !== 'patient' && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleShareResult(result)}
-                        >
-                          <User className="h-4 w-4 mr-2" />
-                          Review
-                        </Button>
-                      )}
-                      {user?.role !== 'patient' && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedLabOrder(result);
-                            setShowFillResultDialog(true);
-                          }}
-                          className="bg-green-50 hover:bg-green-100 dark:bg-green-900/30 dark:hover:bg-green-900/50 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800"
-                          data-testid="button-generate-lab-result"
-                        >
-                          <FileText className="h-4 w-4 mr-2" />
-                          Generate Test Result
-                        </Button>
-                      )}
-                      {fileExistenceMap[result.id] && (
+                      {activeTab === "request" ? (
                         <>
-                          <Button
+                          {user?.role !== 'patient' && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleViewResult(result)}
+                            >
+                              <Edit className="h-4 w-4 mr-2" />
+                              Edit
+                            </Button>
+                          )}
+                          {user?.role !== 'patient' && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleShareResult(result)}
+                            >
+                              <User className="h-4 w-4 mr-2" />
+                              Review
+                            </Button>
+                          )}
+                          {user?.role !== 'patient' && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedLabOrder(result);
+                                setShowFillResultDialog(true);
+                              }}
+                              className="bg-green-50 hover:bg-green-100 dark:bg-green-900/30 dark:hover:bg-green-900/50 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800"
+                              data-testid="button-generate-lab-result"
+                            >
+                              <FileText className="h-4 w-4 mr-2" />
+                              Generate Test Result
+                            </Button>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          {fileExistenceMap[result.id] && (
+                          <>
+                            <Button
                             variant="outline"
                             size="sm"
                             onClick={async () => {
@@ -2798,21 +2795,10 @@ Report generated from Cura EMR System`;
                           >
                             <Download className="h-4 w-4 mr-2" />
                           
-                          </Button>
+                            </Button>
+                          </>
+                          )}
                         </>
-                      )}
-                      {user?.role !== 'patient' && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() =>
-                            deleteLabResultMutation.mutate(result.id)
-                          }
-                          disabled={deleteLabResultMutation.isPending}
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete
-                        </Button>
                       )}
                     </div>
                   </CardContent>
