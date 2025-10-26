@@ -16645,6 +16645,26 @@ This treatment plan should be reviewed and adjusted based on individual patient 
           ? parseFloat(invoice.totalAmount) 
           : invoice.totalAmount;
 
+        // Build services table HTML
+        const servicesTableRows = invoice.items.map((item: any) => `
+          <tr>
+            <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${item.code || 'N/A'}</td>
+            <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${item.description}</td>
+            <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; text-align: center;">${item.quantity}</td>
+            <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; text-align: right;">£${parseFloat(item.unitPrice || 0).toFixed(2)}</td>
+            <td style="padding: 10px; border-bottom: 1px solid #e5e7eb; text-align: right; font-weight: 600;">£${parseFloat(item.total || 0).toFixed(2)}</td>
+          </tr>
+        `).join('');
+
+        // Build payment history HTML
+        const paymentHistoryRows = invoice.payments && invoice.payments.length > 0 
+          ? invoice.payments.map((payment: any) => `
+            <div style="padding: 12px; background-color: #f0fdf4; border-left: 4px solid #4ade80; margin-bottom: 10px; border-radius: 4px;">
+              Payment of £${parseFloat(payment.amount || 0).toFixed(2)} received on ${formatDate(payment.date)}
+            </div>
+          `).join('')
+          : '<div style="padding: 12px; background-color: #fef2f2; border-left: 4px solid #f87171; border-radius: 4px;">No payments recorded</div>';
+
         // Generate invoice email template
         const subject = `Invoice ${invoice.invoiceNumber} - ${invoice.patientName}`;
         const html = `
@@ -16652,38 +16672,97 @@ This treatment plan should be reviewed and adjusted based on individual patient 
           <html>
           <head>
             <style>
-              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-              .header { background-color: #4A7DFF; color: white; padding: 20px; text-align: center; }
-              .content { padding: 20px; background-color: #f9f9f9; }
-              .invoice-details { background-color: white; padding: 15px; border-radius: 5px; margin: 20px 0; }
-              .footer { text-align: center; color: #666; font-size: 12px; }
+              body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; background-color: #f3f4f6; margin: 0; padding: 0; }
+              .container { max-width: 700px; margin: 20px auto; background-color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+              .header { background: linear-gradient(135deg, #4A7DFF 0%, #7279FB 100%); color: white; padding: 30px; text-align: center; }
+              .header h1 { margin: 0; font-size: 28px; }
+              .header h2 { margin: 10px 0 0 0; font-size: 18px; font-weight: 400; opacity: 0.95; }
+              .content { padding: 30px; }
+              .section { margin-bottom: 30px; }
+              .section-title { font-size: 18px; font-weight: 600; color: #1f2937; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #4A7DFF; }
+              .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+              .info-box { background-color: #f9fafb; padding: 15px; border-radius: 8px; }
+              .info-box h3 { margin: 0 0 12px 0; font-size: 14px; color: #6b7280; font-weight: 500; }
+              .info-box p { margin: 6px 0; font-size: 14px; }
+              .info-box strong { color: #1f2937; }
+              .status-badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; text-transform: uppercase; }
+              .status-paid { background-color: #d1fae5; color: #065f46; }
+              .status-pending { background-color: #fef3c7; color: #92400e; }
+              .status-partial { background-color: #dbeafe; color: #1e40af; }
+              table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+              th { background-color: #f3f4f6; padding: 12px; text-align: left; font-size: 13px; font-weight: 600; color: #4b5563; border-bottom: 2px solid #e5e7eb; }
+              td { font-size: 14px; }
+              .total-row { background-color: #f9fafb; font-weight: 600; }
+              .footer { background-color: #f9fafb; padding: 20px; text-align: center; font-size: 12px; color: #6b7280; border-top: 1px solid #e5e7eb; }
             </style>
           </head>
           <body>
             <div class="container">
               <div class="header">
                 <h1>Cura EMR</h1>
-                <h2>Invoice</h2>
+                <h2>Invoice Details - ${invoice.id}</h2>
               </div>
               <div class="content">
-                <p>Dear ${invoice.patientName},</p>
-                ${customMessage ? `<p>${customMessage}</p>` : '<p>Please find attached your invoice for services rendered.</p>'}
-                
-                <div class="invoice-details">
-                  <h3>Invoice Details</h3>
-                  <p><strong>Invoice Number:</strong> ${invoice.invoiceNumber}</p>
-                  <p><strong>Date:</strong> ${formatDate(invoice.invoiceDate)}</p>
-                  <p><strong>Due Date:</strong> ${formatDate(invoice.dueDate)}</p>
-                  <p><strong>Total Amount:</strong> £${totalAmount.toFixed(2)}</p>
+                <div class="section">
+                  <p style="font-size: 16px; color: #374151;">Dear ${invoice.patientName},</p>
+                  ${customMessage ? `<p style="font-size: 14px; color: #6b7280;">${customMessage}</p>` : '<p style="font-size: 14px; color: #6b7280;">Please find below your invoice details for services rendered. A PDF copy is attached for your records.</p>'}
                 </div>
-                
-                <p>Thank you for choosing our healthcare services.</p>
-                
-                <p>Best regards,<br>Cura EMR Team</p>
+
+                <div class="info-grid">
+                  <div class="info-box">
+                    <h3>Patient Information</h3>
+                    <p><strong>Name:</strong> ${invoice.patientName}</p>
+                    <p><strong>Patient ID:</strong> ${invoice.patientId}</p>
+                    <p><strong>Service Date:</strong> ${formatDate(invoice.dateOfService)}</p>
+                    <p><strong>Invoice Date:</strong> ${formatDate(invoice.invoiceDate)}</p>
+                    <p><strong>Due Date:</strong> ${formatDate(invoice.dueDate)}</p>
+                  </div>
+                  
+                  <div class="info-box">
+                    <h3>Billing Summary</h3>
+                    <p><strong>Invoice ID:</strong> ${invoice.invoiceNumber}</p>
+                    <p><strong>Status:</strong> <span class="status-badge status-${invoice.status}">${invoice.status}</span></p>
+                    <p><strong>Total Amount:</strong> £${totalAmount.toFixed(2)}</p>
+                    <p><strong>Paid Amount:</strong> £${parseFloat(invoice.paidAmount || 0).toFixed(2)}</p>
+                    <p><strong>Outstanding:</strong> £${(totalAmount - parseFloat(invoice.paidAmount || 0)).toFixed(2)}</p>
+                  </div>
+                </div>
+
+                <div class="section">
+                  <div class="section-title">Services & Procedures</div>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Code</th>
+                        <th>Description</th>
+                        <th style="text-align: center;">Qty</th>
+                        <th style="text-align: right;">Unit Price</th>
+                        <th style="text-align: right;">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${servicesTableRows}
+                      <tr class="total-row">
+                        <td colspan="4" style="padding: 12px; text-align: right;">Total Amount:</td>
+                        <td style="padding: 12px; text-align: right; color: #4A7DFF; font-size: 16px;">£${totalAmount.toFixed(2)}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div class="section">
+                  <div class="section-title">Payment History</div>
+                  ${paymentHistoryRows}
+                </div>
+
+                <div style="margin-top: 30px; padding: 20px; background-color: #f0f9ff; border-left: 4px solid #4A7DFF; border-radius: 4px;">
+                  <p style="margin: 0; font-size: 14px; color: #374151;">Thank you for choosing our healthcare services. If you have any questions about this invoice, please don't hesitate to contact us.</p>
+                </div>
+
+                <p style="margin-top: 30px; font-size: 14px; color: #374151;">Best regards,<br><strong>Cura EMR Team</strong></p>
               </div>
               <div class="footer">
-                <p>© 2025 Cura EMR by Cura Software Limited. All rights reserved.</p>
+                <p style="margin: 0;">© 2025 Cura EMR by Cura Software Limited. All rights reserved.</p>
               </div>
             </div>
           </body>
