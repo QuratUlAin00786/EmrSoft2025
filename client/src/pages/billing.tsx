@@ -1780,18 +1780,29 @@ export default function BillingPage() {
   };
 
   const handleDownloadInvoice = (invoiceId: string) => {
+    console.log('🔽 Download button clicked for invoice:', invoiceId);
+    
     const invoice = Array.isArray(invoices) ? invoices.find((inv: any) => inv.id === invoiceId) : null;
-    if (!invoice) return;
+    
+    if (!invoice) {
+      console.error('❌ Invoice not found:', invoiceId);
+      toast({
+        title: "Error",
+        description: "Invoice not found",
+        variant: "destructive"
+      });
+      return;
+    }
 
-    // Show download success modal
-    setDownloadedInvoiceNumber(invoice.invoiceNumber || invoiceId);
-    setShowDownloadModal(true);
+    console.log('✅ Invoice found:', invoice);
 
-    // Helper to safely convert to number and format
-    const toNum = (val: any) => typeof val === 'string' ? parseFloat(val) : val;
+    try {
+      // Helper to safely convert to number and format
+      const toNum = (val: any) => typeof val === 'string' ? parseFloat(val) : val;
 
-    // Create new PDF document
-    const doc = new jsPDF();
+      // Create new PDF document
+      console.log('📄 Creating PDF document...');
+      const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
     const margin = 20;
@@ -1975,11 +1986,27 @@ export default function BillingPage() {
       doc.text(`£${balanceDue.toFixed(2)}`, pageWidth - margin - 2, yPosition, { align: 'right' });
     }
 
-    // Add footer to first (and possibly only) page
-    addFooter(1);
+      // Add footer to first (and possibly only) page
+      addFooter(1);
 
-    // Save the PDF
-    doc.save(`invoice-${invoice.id}.pdf`);
+      // Save the PDF
+      console.log('💾 Saving PDF...');
+      doc.save(`invoice-${invoice.invoiceNumber || invoice.id}.pdf`);
+      
+      console.log('✅ PDF download triggered successfully');
+      
+      // Show download success modal
+      setDownloadedInvoiceNumber(invoice.invoiceNumber || invoiceId);
+      setShowDownloadModal(true);
+      
+    } catch (error) {
+      console.error('❌ PDF generation failed:', error);
+      toast({
+        title: "Download Failed",
+        description: "Failed to generate PDF. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const [sendInvoiceDialog, setSendInvoiceDialog] = useState(false);
