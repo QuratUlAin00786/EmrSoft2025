@@ -40,7 +40,8 @@ import {
   ArrowLeft,
   MoreVertical,
   Forward,
-  Tag
+  Tag,
+  X
 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -152,6 +153,11 @@ export default function MessagingPage() {
     content: "",
     template: "default"
   });
+  const [recipientFilter, setRecipientFilter] = useState({
+    role: "all",
+    searchName: ""
+  });
+  const [selectedRecipients, setSelectedRecipients] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState({
     recipient: "",
     subject: "",
@@ -761,10 +767,16 @@ export default function MessagingPage() {
     enabled: showUseTemplate,
   });
 
+  // Fetch roles for filter
+  const { data: allRoles = [] } = useQuery<any[]>({
+    queryKey: ['/api/roles'],
+    enabled: showUseTemplate,
+  });
+
   const useTemplateMutation = useMutation({
-    mutationFn: async (templateId: number) => {
+    mutationFn: async ({ templateId, recipients }: { templateId: number, recipients: string[] }) => {
       const token = localStorage.getItem('auth_token');
-      const response = await fetch(`/api/messaging/templates/${templateId}/send-to-all`, {
+      const response = await fetch(`/api/messaging/templates/${templateId}/send-to-selected`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -772,6 +784,7 @@ export default function MessagingPage() {
           'Content-Type': 'application/json'
         },
         credentials: 'include',
+        body: JSON.stringify({ recipients }),
       });
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: response.statusText }));
@@ -783,9 +796,11 @@ export default function MessagingPage() {
       queryClient.invalidateQueries({ queryKey: ['/api/messaging/templates'] });
       setShowUseTemplate(false);
       setSelectedTemplate(null);
+      setSelectedRecipients([]);
+      setRecipientFilter({ role: "all", searchName: "" });
       toast({
         title: "Template Sent",
-        description: data.message || `Email sent successfully to ${data.successCount} users.`,
+        description: data.message || `Email sent successfully to ${data.successCount} recipients.`,
       });
     },
     onError: (error: any) => {
@@ -885,6 +900,8 @@ export default function MessagingPage() {
 
   const handleUseTemplate = (template: any) => {
     setSelectedTemplate(template);
+    setSelectedRecipients(allUsers);
+    setRecipientFilter({ role: "all", searchName: "" });
     setShowUseTemplate(true);
   };
 
@@ -904,9 +921,50 @@ export default function MessagingPage() {
   };
 
   const handleConfirmUseTemplate = () => {
-    if (selectedTemplate) {
-      useTemplateMutation.mutate(selectedTemplate.id);
+    if (selectedTemplate && selectedRecipients.length > 0) {
+      const recipientEmails = selectedRecipients.map(user => user.email);
+      useTemplateMutation.mutate({ 
+        templateId: selectedTemplate.id, 
+        recipients: recipientEmails 
+      });
+    } else {
+      toast({
+        title: "No Recipients Selected",
+        description: "Please select at least one recipient to send the email.",
+        variant: "destructive"
+      });
     }
+  };
+
+  const handleAddRecipient = (user: any) => {
+    if (!selectedRecipients.find(r => r.id === user.id)) {
+      setSelectedRecipients([...selectedRecipients, user]);
+    }
+  };
+
+  const handleRemoveRecipient = (userId: number) => {
+    setSelectedRecipients(selectedRecipients.filter(r => r.id !== userId));
+  };
+
+  const handleSelectAllFiltered = () => {
+    const filtered = getFilteredUsers();
+    const newRecipients = [...selectedRecipients];
+    filtered.forEach((user: any) => {
+      if (!newRecipients.find(r => r.id === user.id)) {
+        newRecipients.push(user);
+      }
+    });
+    setSelectedRecipients(newRecipients);
+  };
+
+  const getFilteredUsers = () => {
+    return allUsers.filter((user: any) => {
+      const matchesRole = recipientFilter.role === "all" || user.role === recipientFilter.role;
+      const matchesName = !recipientFilter.searchName || 
+        `${user.firstName} ${user.lastName}`.toLowerCase().includes(recipientFilter.searchName.toLowerCase()) ||
+        user.email.toLowerCase().includes(recipientFilter.searchName.toLowerCase());
+      return matchesRole && matchesName;
+    });
   };
 
   const handleConfirmEditTemplate = () => {
@@ -2889,9 +2947,9 @@ export default function MessagingPage() {
 
           {/* Use Template Dialog */}
           <Dialog open={showUseTemplate} onOpenChange={setShowUseTemplate}>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Send Template to All Users</DialogTitle>
+                <DialogTitle>Send Template to Selected Users</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-md">
@@ -2905,37 +2963,141 @@ export default function MessagingPage() {
                     </>
                   )}
                 </div>
-                
-                <div className="bg-gray-50 dark:bg-slate-800 p-4 rounded-md">
-                  <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">Email Recipients ({allUsers?.length || 0} users)</h4>
-                  <div className="max-h-48 overflow-y-auto space-y-1">
-                    {allUsers && allUsers.length > 0 ? (
-                      allUsers.map((user: any) => (
-                        <div key={user.id} className="flex items-center justify-between text-sm py-1 px-2 bg-white dark:bg-slate-700 rounded">
-                          <span className="text-gray-700 dark:text-gray-200">{user.firstName} {user.lastName}</span>
-                          <span className="text-gray-500 dark:text-gray-400 text-xs">{user.email}</span>
+
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Available Users Panel */}
+                  <div className="border rounded-md p-4">
+                    <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-3">Available Users</h4>
+                    
+                    {/* Filters */}
+                    <div className="space-y-3 mb-3">
+                      <div className="space-y-2">
+                        <Label htmlFor="filterRole" className="text-xs">Filter by Role</Label>
+                        <Select
+                          value={recipientFilter.role}
+                          onValueChange={(value) => setRecipientFilter({ ...recipientFilter, role: value })}
+                        >
+                          <SelectTrigger id="filterRole" className="h-9" data-testid="select-filter-role">
+                            <SelectValue placeholder="All Roles" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Roles</SelectItem>
+                            {allRoles.map((role: any) => (
+                              <SelectItem key={role.id} value={role.name}>{role.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="filterName" className="text-xs">Search by Name or Email</Label>
+                        <Input
+                          id="filterName"
+                          placeholder="Search name or email..."
+                          value={recipientFilter.searchName}
+                          onChange={(e) => setRecipientFilter({ ...recipientFilter, searchName: e.target.value })}
+                          className="h-9"
+                          data-testid="input-filter-name"
+                        />
+                      </div>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleSelectAllFiltered}
+                        className="w-full"
+                        data-testid="button-add-all-filtered"
+                      >
+                        Add All Filtered ({getFilteredUsers().length})
+                      </Button>
+                    </div>
+
+                    {/* Available Users List */}
+                    <div className="max-h-60 overflow-y-auto space-y-1">
+                      {getFilteredUsers().length > 0 ? (
+                        getFilteredUsers().map((user: any) => (
+                          <div 
+                            key={user.id} 
+                            className="flex items-center justify-between text-sm py-2 px-2 bg-gray-50 dark:bg-slate-700 rounded hover:bg-gray-100 dark:hover:bg-slate-600"
+                          >
+                            <div className="flex-1">
+                              <p className="text-gray-700 dark:text-gray-200 font-medium">{user.firstName} {user.lastName}</p>
+                              <p className="text-gray-500 dark:text-gray-400 text-xs">{user.email}</p>
+                              <p className="text-gray-500 dark:text-gray-400 text-xs">Role: {user.role}</p>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleAddRecipient(user)}
+                              disabled={selectedRecipients.find(r => r.id === user.id)}
+                              data-testid={`button-add-recipient-${user.id}`}
+                            >
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-gray-500 text-center py-4">No users match your filters</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Selected Recipients Panel */}
+                  <div className="border rounded-md p-4 bg-green-50 dark:bg-green-900/10">
+                    <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-3">
+                      Email Recipients ({selectedRecipients.length} selected)
+                    </h4>
+                    
+                    <div className="max-h-[400px] overflow-y-auto space-y-1">
+                      {selectedRecipients.length > 0 ? (
+                        selectedRecipients.map((user: any) => (
+                          <div 
+                            key={user.id} 
+                            className="flex items-center justify-between text-sm py-2 px-2 bg-white dark:bg-slate-700 rounded"
+                          >
+                            <div className="flex-1">
+                              <p className="text-gray-700 dark:text-gray-200 font-medium">{user.firstName} {user.lastName}</p>
+                              <p className="text-gray-500 dark:text-gray-400 text-xs">{user.email}</p>
+                              <p className="text-gray-500 dark:text-gray-400 text-xs">Role: {user.role}</p>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleRemoveRecipient(user.id)}
+                              data-testid={`button-remove-recipient-${user.id}`}
+                            >
+                              <X className="h-4 w-4 text-red-500" />
+                            </Button>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-center py-8">
+                          <p className="text-sm text-gray-500 mb-2">No recipients selected</p>
+                          <p className="text-xs text-gray-400">Add users from the left panel</p>
                         </div>
-                      ))
-                    ) : (
-                      <p className="text-sm text-gray-500">Loading users...</p>
-                    )}
+                      )}
+                    </div>
                   </div>
                 </div>
 
                 <div className="flex justify-end gap-3">
                   <Button 
                     variant="outline" 
-                    onClick={() => setShowUseTemplate(false)}
+                    onClick={() => {
+                      setShowUseTemplate(false);
+                      setSelectedRecipients([]);
+                      setRecipientFilter({ role: "all", searchName: "" });
+                    }}
                     data-testid="button-cancel-use-template"
                   >
                     Cancel
                   </Button>
                   <Button 
                     onClick={handleConfirmUseTemplate}
-                    disabled={useTemplateMutation.isPending}
+                    disabled={useTemplateMutation.isPending || selectedRecipients.length === 0}
                     data-testid="button-send-template"
                   >
-                    {useTemplateMutation.isPending ? "Sending..." : "Send to All Users"}
+                    {useTemplateMutation.isPending ? "Sending..." : `Send to ${selectedRecipients.length} Recipients`}
                   </Button>
                 </div>
               </div>

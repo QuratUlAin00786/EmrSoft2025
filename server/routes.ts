@@ -9448,6 +9448,72 @@ This treatment plan should be reviewed and adjusted based on individual patient 
     }
   });
 
+  app.post("/api/messaging/templates/:id/send-to-selected", authMiddleware, requireRole(["admin", "doctor"]), async (req: TenantRequest, res) => {
+    try {
+      const templateId = parseInt(req.params.id);
+      const { recipients } = req.body;
+
+      if (!recipients || !Array.isArray(recipients) || recipients.length === 0) {
+        return res.status(400).json({ error: "Recipients array is required and must not be empty" });
+      }
+      
+      // Get template
+      const templates = await storage.getMessageTemplates(req.tenant!.id);
+      const template = templates.find(t => t.id === templateId);
+      
+      if (!template) {
+        return res.status(404).json({ error: "Template not found" });
+      }
+
+      // Get all users in organization
+      const allUsers = await storage.getUsersByOrganization(req.tenant!.id);
+      
+      // Filter users based on provided recipient emails
+      const selectedUsers = allUsers.filter(user => recipients.includes(user.email));
+      
+      if (selectedUsers.length === 0) {
+        return res.status(400).json({ error: "No valid recipients found" });
+      }
+      
+      // Send email to each selected user
+      let successCount = 0;
+      let failCount = 0;
+      
+      for (const user of selectedUsers) {
+        if (user.email) {
+          try {
+            await emailService.sendTemplateEmail(
+              user.email,
+              template.subject,
+              template.content,
+              {
+                userName: `${user.firstName} ${user.lastName}`,
+                organizationName: req.tenant?.name || 'Healthcare Organization'
+              }
+            );
+            successCount++;
+          } catch (error) {
+            console.error(`Failed to send email to ${user.email}:`, error);
+            failCount++;
+          }
+        }
+      }
+
+      // Update template usage count
+      await storage.updateMessageTemplate(templateId, { usageCount: (template.usageCount || 0) + 1 }, req.tenant!.id);
+
+      res.json({
+        message: `Email sent to ${successCount} recipients`,
+        successCount,
+        failCount,
+        totalRecipients: selectedUsers.length
+      });
+    } catch (error) {
+      console.error("Error sending template to selected recipients:", error);
+      res.status(500).json({ error: "Failed to send template" });
+    }
+  });
+
   app.post("/api/messaging/templates/:id/send-to-all", authMiddleware, requireRole(["admin", "doctor"]), async (req: TenantRequest, res) => {
     try {
       const templateId = parseInt(req.params.id);
