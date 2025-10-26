@@ -1673,7 +1673,7 @@ ${
 
       // Set the saved anatomical image path for viewing in the dialog
       const organizationId = tenant?.id || 0;
-      const imagePath = `/uploads/${organizationId}/anatomical_analysis_img/${organizationId}/${currentPatientId}/${currentPatientId}.png`;
+      const imagePath = `/uploads/anatomical_analysis_img/${organizationId}/${currentPatientId}/${currentPatientId}.png`;
       setSavedAnatomicalImage(imagePath);
 
       toast({
@@ -1830,7 +1830,7 @@ ${
       const currentPatientId = patientId || patient?.id;
       if (currentPatientId && tenant?.id) {
         const organizationId = tenant.id;
-        const imagePath = `/uploads/${organizationId}/anatomical_analysis_img/${organizationId}/${currentPatientId}/${currentPatientId}.png`;
+        const imagePath = `/uploads/anatomical_analysis_img/${organizationId}/${currentPatientId}/${currentPatientId}.png`;
         setSavedAnatomicalImage(imagePath);
       }
     }
