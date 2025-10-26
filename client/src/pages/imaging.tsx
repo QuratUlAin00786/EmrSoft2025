@@ -1755,7 +1755,7 @@ export default function ImagingPage() {
                     <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
                       Today's Studies
                     </p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                    <p className="text-2xl font-bold text-gray-900 dark:text-gray-100" data-testid="text-today-studies-count">
                       {medicalImages.filter((image: any) => {
                         const createdDate = new Date(image.createdAt);
                         const today = new Date();
@@ -1763,6 +1763,7 @@ export default function ImagingPage() {
                       }).length}
                     </p>
                   </div>
+                  <Camera className="h-8 w-8 text-blue-600" />
                 </div>
               </CardContent>
             </Card>
