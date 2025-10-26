@@ -1453,7 +1453,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("[QUICKBOOKS] Realm ID:", realmId);
       
       // Exchange authorization code for access and refresh tokens manually
-      const redirectUri = process.env.QB_REDIRECT_URI || `${process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : 'http://localhost:5000'}/api/quickbooks/auth/callback`;
+      const redirectUri = process.env.QUICKBOOKS_REDIRECT_URI || `${process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : 'http://localhost:5000'}/api/quickbooks/auth/callback`;
       
       console.log("[QUICKBOOKS] Exchanging authorization code for tokens...");
       console.log("[QUICKBOOKS] Redirect URI:", redirectUri);
@@ -1502,7 +1502,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .limit(1);
 
       // Determine baseUrl based on environment
-      const baseUrl = process.env.QB_ENVIRONMENT === 'production' 
+      const baseUrl = process.env.QUICKBOOKS_ENVIRONMENT === 'production' 
         ? 'https://quickbooks.api.intuit.com' 
         : 'https://sandbox-quickbooks.api.intuit.com';
 
@@ -18618,7 +18618,7 @@ Cura EMR Team
       console.log("[QUICKBOOKS] OAuth URL endpoint reached!");
       const clientId = process.env.QUICKBOOKS_CLIENT_ID;
       console.log("[QUICKBOOKS] Client ID exists:", !!clientId);
-      const redirectUri = process.env.QB_REDIRECT_URI || `${process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : 'http://localhost:5000'}/api/quickbooks/auth/callback`;
+      const redirectUri = process.env.QUICKBOOKS_REDIRECT_URI || `${process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : 'http://localhost:5000'}/api/quickbooks/auth/callback`;
       console.log("[QUICKBOOKS] Redirect URI:", redirectUri);
       
       if (!clientId) {
