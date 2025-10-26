@@ -196,6 +196,11 @@ export default function CalendarPage() {
   const [filterRole, setFilterRole] = useState("");
   const [filterProvider, setFilterProvider] = useState("");
   
+  // Staff filter visibility state
+  const [showStaffFilter, setShowStaffFilter] = useState(false);
+  const [staffFilterRole, setStaffFilterRole] = useState("");
+  const [staffFilterSearch, setStaffFilterSearch] = useState("");
+  
   // Calendar view state
   const [calendarView, setCalendarView] = useState<"month" | "week" | "day">("month");
   const [bookingForm, setBookingForm] = useState({
@@ -1506,10 +1511,42 @@ export default function CalendarPage() {
             {/* Doctor List - 1 column */}
             <div>
               <div className="mb-4">
-                <h4 className="font-medium text-gray-900 dark:text-white flex items-center gap-2 mb-3">
-                  <Users className="h-4 w-4 text-gray-900 dark:text-white" />
-                  {isDoctorLike(user?.role) ? "Available Patient" : "Available Staff"}
-                </h4>
+                <div className="flex items-center gap-2 mb-3">
+                  <h4 className="font-medium text-gray-900 dark:text-white flex items-center gap-2">
+                    <Users className="h-4 w-4 text-gray-900 dark:text-white" />
+                    {isDoctorLike(user?.role) ? "Available Patient" : "Available Staff"}
+                  </h4>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowStaffFilter(!showStaffFilter)}
+                    className="h-6 w-6 p-0"
+                  >
+                    <Filter className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                  </Button>
+                </div>
+                
+                {showStaffFilter && (
+                  <div className="space-y-3 mb-4">
+                    <Select value={staffFilterRole} onValueChange={setStaffFilterRole}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="All Roles" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Roles</SelectItem>
+                        <SelectItem value="doctor">Doctor</SelectItem>
+                        <SelectItem value="nurse">Nurse</SelectItem>
+                        <SelectItem value="receptionist">Receptionist</SelectItem>
+                        <SelectItem value="admin">Admin</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      placeholder="Search by name, email, specialization, department.."
+                      value={staffFilterSearch}
+                      onChange={(e) => setStaffFilterSearch(e.target.value)}
+                    />
+                  </div>
+                )}
               </div>
               <DoctorList 
                 onSelectDoctor={(doctor) => {
