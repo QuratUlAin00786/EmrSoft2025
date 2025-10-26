@@ -4403,119 +4403,44 @@ ${
                           const logoPosition = clinicHeader.logoPosition || 'center';
                           const hasLogo = clinicHeader.logoBase64;
                           
-                          if (logoPosition === 'center' && hasLogo) {
-                            // Center: Logo and info side by side
+                          // Add logo based on position
+                          if (hasLogo) {
                             try {
-                              // Logo on left side of center
-                              doc.addImage(clinicHeader.logoBase64, 'PNG', 70, yPos, 30, 15);
-                              
-                              // Clinic info on right side of center
-                              doc.setFontSize(10);
-                              doc.setFont('helvetica', 'bold');
-                              let infoY = yPos + 2;
-                              if (clinicHeader.clinicName) {
-                                doc.text(clinicHeader.clinicName, 105, infoY);
-                                infoY += 5;
+                              if (logoPosition === 'center') {
+                                doc.addImage(clinicHeader.logoBase64, 'PNG', 85, yPos, 40, 15);
+                              } else if (logoPosition === 'left') {
+                                doc.addImage(clinicHeader.logoBase64, 'PNG', 20, yPos, 30, 15);
+                              } else if (logoPosition === 'right') {
+                                doc.addImage(clinicHeader.logoBase64, 'PNG', 160, yPos, 30, 15);
                               }
-                              doc.setFontSize(8);
-                              doc.setFont('helvetica', 'normal');
-                              if (clinicHeader.address) {
-                                doc.text(clinicHeader.address, 105, infoY);
-                                infoY += 4;
-                              }
-                              if (clinicHeader.phone) {
-                                doc.text(clinicHeader.phone, 105, infoY);
-                                infoY += 4;
-                              }
-                              if (clinicHeader.email) {
-                                doc.text(clinicHeader.email, 105, infoY);
-                              }
-                              yPos += 20;
+                              yPos += 18;
                             } catch (logoError) {
-                              console.log('[ANATOMICAL PDF STEP1] Error adding centered header:', logoError);
+                              console.log('[ANATOMICAL PDF STEP1] Error adding logo:', logoError);
                             }
-                          } else if (logoPosition === 'left' && hasLogo) {
-                            // Left: Logo on left, info on right
-                            try {
-                              doc.addImage(clinicHeader.logoBase64, 'PNG', 20, yPos, 30, 15);
-                              
-                              doc.setFontSize(10);
-                              doc.setFont('helvetica', 'bold');
-                              let infoY = yPos + 2;
-                              if (clinicHeader.clinicName) {
-                                doc.text(clinicHeader.clinicName, 55, infoY);
-                                infoY += 5;
-                              }
-                              doc.setFontSize(8);
-                              doc.setFont('helvetica', 'normal');
-                              if (clinicHeader.address) {
-                                doc.text(clinicHeader.address, 55, infoY);
-                                infoY += 4;
-                              }
-                              if (clinicHeader.phone) {
-                                doc.text(clinicHeader.phone, 55, infoY);
-                                infoY += 4;
-                              }
-                              if (clinicHeader.email) {
-                                doc.text(clinicHeader.email, 55, infoY);
-                              }
-                              yPos += 20;
-                            } catch (logoError) {
-                              console.log('[ANATOMICAL PDF STEP1] Error adding left header:', logoError);
-                            }
-                          } else if (logoPosition === 'right' && hasLogo) {
-                            // Right: Info on left, logo on right
-                            try {
-                              doc.setFontSize(10);
-                              doc.setFont('helvetica', 'bold');
-                              let infoY = yPos + 2;
-                              if (clinicHeader.clinicName) {
-                                doc.text(clinicHeader.clinicName, 20, infoY);
-                                infoY += 5;
-                              }
-                              doc.setFontSize(8);
-                              doc.setFont('helvetica', 'normal');
-                              if (clinicHeader.address) {
-                                doc.text(clinicHeader.address, 20, infoY);
-                                infoY += 4;
-                              }
-                              if (clinicHeader.phone) {
-                                doc.text(clinicHeader.phone, 20, infoY);
-                                infoY += 4;
-                              }
-                              if (clinicHeader.email) {
-                                doc.text(clinicHeader.email, 20, infoY);
-                              }
-                              
-                              doc.addImage(clinicHeader.logoBase64, 'PNG', 160, yPos, 30, 15);
-                              yPos += 20;
-                            } catch (logoError) {
-                              console.log('[ANATOMICAL PDF STEP1] Error adding right header:', logoError);
-                            }
-                          } else {
-                            // No logo, just text centered
-                            doc.setFontSize(10);
-                            doc.setFont('helvetica', 'bold');
-                            let infoY = yPos + 2;
-                            if (clinicHeader.clinicName) {
-                              doc.text(clinicHeader.clinicName, 105, infoY, { align: 'center' });
-                              infoY += 5;
-                            }
-                            doc.setFontSize(8);
-                            doc.setFont('helvetica', 'normal');
-                            if (clinicHeader.address) {
-                              doc.text(clinicHeader.address, 105, infoY, { align: 'center' });
-                              infoY += 4;
-                            }
-                            if (clinicHeader.phone) {
-                              doc.text(clinicHeader.phone, 105, infoY, { align: 'center' });
-                              infoY += 4;
-                            }
-                            if (clinicHeader.email) {
-                              doc.text(clinicHeader.email, 105, infoY, { align: 'center' });
-                            }
-                            yPos += 20;
                           }
+                          
+                          // All clinic details centered
+                          doc.setFontSize(10);
+                          doc.setFont('helvetica', 'bold');
+                          if (clinicHeader.clinicName) {
+                            doc.text(clinicHeader.clinicName, 105, yPos, { align: 'center' });
+                            yPos += 5;
+                          }
+                          doc.setFontSize(8);
+                          doc.setFont('helvetica', 'normal');
+                          if (clinicHeader.address) {
+                            doc.text(clinicHeader.address, 105, yPos, { align: 'center' });
+                            yPos += 4;
+                          }
+                          if (clinicHeader.phone) {
+                            doc.text(clinicHeader.phone, 105, yPos, { align: 'center' });
+                            yPos += 4;
+                          }
+                          if (clinicHeader.email) {
+                            doc.text(clinicHeader.email, 105, yPos, { align: 'center' });
+                            yPos += 4;
+                          }
+                          yPos += 5;
                         }
 
                         // Title
@@ -5036,119 +4961,44 @@ ${
                           const logoPosition = clinicHeader.logoPosition || 'center';
                           const hasLogo = clinicHeader.logoBase64;
                           
-                          if (logoPosition === 'center' && hasLogo) {
-                            // Center: Logo and info side by side
+                          // Add logo based on position
+                          if (hasLogo) {
                             try {
-                              // Logo on left side of center
-                              doc.addImage(clinicHeader.logoBase64, 'PNG', 70, yPos, 30, 15);
-                              
-                              // Clinic info on right side of center
-                              doc.setFontSize(10);
-                              doc.setFont('helvetica', 'bold');
-                              let infoY = yPos + 2;
-                              if (clinicHeader.clinicName) {
-                                doc.text(clinicHeader.clinicName, 105, infoY);
-                                infoY += 5;
+                              if (logoPosition === 'center') {
+                                doc.addImage(clinicHeader.logoBase64, 'PNG', 85, yPos, 40, 15);
+                              } else if (logoPosition === 'left') {
+                                doc.addImage(clinicHeader.logoBase64, 'PNG', 20, yPos, 30, 15);
+                              } else if (logoPosition === 'right') {
+                                doc.addImage(clinicHeader.logoBase64, 'PNG', 160, yPos, 30, 15);
                               }
-                              doc.setFontSize(8);
-                              doc.setFont('helvetica', 'normal');
-                              if (clinicHeader.address) {
-                                doc.text(clinicHeader.address, 105, infoY);
-                                infoY += 4;
-                              }
-                              if (clinicHeader.phone) {
-                                doc.text(clinicHeader.phone, 105, infoY);
-                                infoY += 4;
-                              }
-                              if (clinicHeader.email) {
-                                doc.text(clinicHeader.email, 105, infoY);
-                              }
-                              yPos += 20;
+                              yPos += 18;
                             } catch (logoError) {
-                              console.log('[ANATOMICAL PDF STEP3] Error adding centered header:', logoError);
+                              console.log('[ANATOMICAL PDF STEP3] Error adding logo:', logoError);
                             }
-                          } else if (logoPosition === 'left' && hasLogo) {
-                            // Left: Logo on left, info on right
-                            try {
-                              doc.addImage(clinicHeader.logoBase64, 'PNG', 20, yPos, 30, 15);
-                              
-                              doc.setFontSize(10);
-                              doc.setFont('helvetica', 'bold');
-                              let infoY = yPos + 2;
-                              if (clinicHeader.clinicName) {
-                                doc.text(clinicHeader.clinicName, 55, infoY);
-                                infoY += 5;
-                              }
-                              doc.setFontSize(8);
-                              doc.setFont('helvetica', 'normal');
-                              if (clinicHeader.address) {
-                                doc.text(clinicHeader.address, 55, infoY);
-                                infoY += 4;
-                              }
-                              if (clinicHeader.phone) {
-                                doc.text(clinicHeader.phone, 55, infoY);
-                                infoY += 4;
-                              }
-                              if (clinicHeader.email) {
-                                doc.text(clinicHeader.email, 55, infoY);
-                              }
-                              yPos += 20;
-                            } catch (logoError) {
-                              console.log('[ANATOMICAL PDF STEP3] Error adding left header:', logoError);
-                            }
-                          } else if (logoPosition === 'right' && hasLogo) {
-                            // Right: Info on left, logo on right
-                            try {
-                              doc.setFontSize(10);
-                              doc.setFont('helvetica', 'bold');
-                              let infoY = yPos + 2;
-                              if (clinicHeader.clinicName) {
-                                doc.text(clinicHeader.clinicName, 20, infoY);
-                                infoY += 5;
-                              }
-                              doc.setFontSize(8);
-                              doc.setFont('helvetica', 'normal');
-                              if (clinicHeader.address) {
-                                doc.text(clinicHeader.address, 20, infoY);
-                                infoY += 4;
-                              }
-                              if (clinicHeader.phone) {
-                                doc.text(clinicHeader.phone, 20, infoY);
-                                infoY += 4;
-                              }
-                              if (clinicHeader.email) {
-                                doc.text(clinicHeader.email, 20, infoY);
-                              }
-                              
-                              doc.addImage(clinicHeader.logoBase64, 'PNG', 160, yPos, 30, 15);
-                              yPos += 20;
-                            } catch (logoError) {
-                              console.log('[ANATOMICAL PDF STEP3] Error adding right header:', logoError);
-                            }
-                          } else {
-                            // No logo, just text centered
-                            doc.setFontSize(10);
-                            doc.setFont('helvetica', 'bold');
-                            let infoY = yPos + 2;
-                            if (clinicHeader.clinicName) {
-                              doc.text(clinicHeader.clinicName, 105, infoY, { align: 'center' });
-                              infoY += 5;
-                            }
-                            doc.setFontSize(8);
-                            doc.setFont('helvetica', 'normal');
-                            if (clinicHeader.address) {
-                              doc.text(clinicHeader.address, 105, infoY, { align: 'center' });
-                              infoY += 4;
-                            }
-                            if (clinicHeader.phone) {
-                              doc.text(clinicHeader.phone, 105, infoY, { align: 'center' });
-                              infoY += 4;
-                            }
-                            if (clinicHeader.email) {
-                              doc.text(clinicHeader.email, 105, infoY, { align: 'center' });
-                            }
-                            yPos += 20;
                           }
+                          
+                          // All clinic details centered
+                          doc.setFontSize(10);
+                          doc.setFont('helvetica', 'bold');
+                          if (clinicHeader.clinicName) {
+                            doc.text(clinicHeader.clinicName, 105, yPos, { align: 'center' });
+                            yPos += 5;
+                          }
+                          doc.setFontSize(8);
+                          doc.setFont('helvetica', 'normal');
+                          if (clinicHeader.address) {
+                            doc.text(clinicHeader.address, 105, yPos, { align: 'center' });
+                            yPos += 4;
+                          }
+                          if (clinicHeader.phone) {
+                            doc.text(clinicHeader.phone, 105, yPos, { align: 'center' });
+                            yPos += 4;
+                          }
+                          if (clinicHeader.email) {
+                            doc.text(clinicHeader.email, 105, yPos, { align: 'center' });
+                            yPos += 4;
+                          }
+                          yPos += 5;
                         }
 
                         // Title
