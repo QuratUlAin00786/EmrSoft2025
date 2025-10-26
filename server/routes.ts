@@ -9496,10 +9496,13 @@ This treatment plan should be reviewed and adjusted based on individual patient 
       let successCount = 0;
       let failCount = 0;
       
+      console.log(`[TEMPLATE-EMAIL] Sending template "${template.name}" to ${selectedUsers.length} recipients`);
+      
       for (const user of selectedUsers) {
         if (user.email) {
           try {
-            await emailService.sendEmail({
+            console.log(`[TEMPLATE-EMAIL] Attempting to send to: ${user.email} (${user.firstName} ${user.lastName})`);
+            const emailSent = await emailService.sendEmail({
               to: user.email,
               subject: template.subject,
               html: `
@@ -9515,13 +9518,25 @@ This treatment plan should be reviewed and adjusted based on individual patient 
                 </div>
               `
             });
-            successCount++;
+            
+            if (emailSent) {
+              successCount++;
+              console.log(`[TEMPLATE-EMAIL] ✅ Successfully sent to ${user.email}`);
+            } else {
+              failCount++;
+              console.log(`[TEMPLATE-EMAIL] ❌ Failed to send to ${user.email} - email service returned false`);
+            }
           } catch (error) {
-            console.error(`Failed to send email to ${user.email}:`, error);
+            console.error(`[TEMPLATE-EMAIL] ❌ Exception sending to ${user.email}:`, error);
             failCount++;
           }
+        } else {
+          console.log(`[TEMPLATE-EMAIL] ⚠️ Skipping user ${user.id} - no email address`);
+          failCount++;
         }
       }
+      
+      console.log(`[TEMPLATE-EMAIL] Results: ${successCount} succeeded, ${failCount} failed out of ${selectedUsers.length} total`)
 
       // Update template usage count
       await storage.updateMessageTemplate(templateId, { usageCount: (template.usageCount || 0) + 1 }, req.tenant!.id);
@@ -9564,10 +9579,13 @@ This treatment plan should be reviewed and adjusted based on individual patient 
       let successCount = 0;
       let failCount = 0;
       
+      console.log(`[TEMPLATE-EMAIL-ALL] Sending template "${template.name}" to all ${users.length} users`);
+      
       for (const user of users) {
         if (user.email) {
           try {
-            await emailService.sendEmail({
+            console.log(`[TEMPLATE-EMAIL-ALL] Attempting to send to: ${user.email} (${user.firstName} ${user.lastName})`);
+            const emailSent = await emailService.sendEmail({
               to: user.email,
               subject: template.subject,
               html: `
@@ -9583,13 +9601,25 @@ This treatment plan should be reviewed and adjusted based on individual patient 
                 </div>
               `
             });
-            successCount++;
+            
+            if (emailSent) {
+              successCount++;
+              console.log(`[TEMPLATE-EMAIL-ALL] ✅ Successfully sent to ${user.email}`);
+            } else {
+              failCount++;
+              console.log(`[TEMPLATE-EMAIL-ALL] ❌ Failed to send to ${user.email} - email service returned false`);
+            }
           } catch (emailError) {
-            console.error(`Failed to send email to ${user.email}:`, emailError);
+            console.error(`[TEMPLATE-EMAIL-ALL] ❌ Exception sending to ${user.email}:`, emailError);
             failCount++;
           }
+        } else {
+          console.log(`[TEMPLATE-EMAIL-ALL] ⚠️ Skipping user ${user.id} - no email address`);
+          failCount++;
         }
       }
+      
+      console.log(`[TEMPLATE-EMAIL-ALL] Results: ${successCount} succeeded, ${failCount} failed out of ${users.length} total`)
 
       // Update usage count
       await storage.updateMessageTemplate(templateId, { usageCount: template.usageCount + 1 }, req.tenant!.id);

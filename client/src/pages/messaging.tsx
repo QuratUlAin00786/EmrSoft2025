@@ -902,7 +902,7 @@ export default function MessagingPage() {
 
   const handleUseTemplate = (template: any) => {
     setSelectedTemplate(template);
-    setSelectedRecipients(allUsers);
+    setSelectedRecipients([]);  // Start with no recipients selected
     setRecipientFilter({ role: "all", searchName: "" });
     setShowUseTemplate(true);
   };
