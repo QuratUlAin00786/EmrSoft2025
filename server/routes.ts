@@ -16711,21 +16711,30 @@ Cura EMR Team
         const fileName = `${invoice.invoiceNumber}.pdf`;
         const filePath = path.join(process.cwd(), 'uploads', 'Invoices', req.tenant!.id.toString(), invoice.patientId, fileName);
         
-        let attachments = [];
+        console.log(`📎 Checking for PDF file at: ${filePath}`);
+        console.log(`📋 Invoice details - Number: ${invoice.invoiceNumber}, Patient: ${invoice.patientId}, Org: ${req.tenant!.id}`);
+        
+        let attachments: any[] = [];
         try {
           // Check if file exists
           await fse.access(filePath);
+          console.log('✅ PDF file found! Reading file...');
+          
           // Read the PDF file
           const pdfBuffer = await fse.readFile(filePath);
+          console.log(`📄 PDF file size: ${pdfBuffer.length} bytes`);
+          
           attachments.push({
             content: pdfBuffer.toString('base64'),
             filename: `invoice-${invoice.invoiceNumber}.pdf`,
             type: 'application/pdf',
             disposition: 'attachment'
           });
-        } catch (error) {
+          console.log('📧 PDF attachment prepared successfully');
+        } catch (error: any) {
           // File doesn't exist - send email without attachment
-          console.log('No saved PDF found for invoice, sending email without attachment');
+          console.log('❌ No saved PDF found for invoice, sending email without attachment');
+          console.log(`Error details: ${error.message}`);
         }
         
         // Send email using the email service
