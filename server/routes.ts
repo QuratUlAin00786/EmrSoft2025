@@ -6644,7 +6644,25 @@ This treatment plan should be reviewed and adjusted based on individual patient 
           doctorName: doctor ? (doctor.firstName && doctor.lastName ? `${doctor.firstName} ${doctor.lastName}` : doctor.email) : (lr.doctorName || `Doctor ${lr.orderedBy}`),
           testDate: lr.orderedAt,
           results: lr.results,
-          criticalValues: lr.criticalValues
+          criticalValues: lr.criticalValues,
+          // Tab filtering fields
+          labRequestGenerated: lr.labRequestGenerated || false,
+          labReportGenerated: lr.labReportGenerated || false,
+          sampleCollected: lr.sampleCollected || false,
+          reviewed: lr.reviewed || false,
+          // Additional fields for the lab results page
+          reportStatus: lr.reportStatus,
+          status: lr.status,
+          notes: lr.notes,
+          priority: lr.priority,
+          orderedAt: lr.orderedAt,
+          collectedAt: lr.collectedAt,
+          completedAt: lr.completedAt,
+          signatureData: lr.signatureData,
+          orderedBy: lr.orderedBy,
+          doctorName: doctor ? (doctor.firstName && doctor.lastName ? `${doctor.firstName} ${doctor.lastName}` : doctor.email) : (lr.doctorName || `Doctor ${lr.orderedBy}`),
+          mainSpecialty: lr.mainSpecialty,
+          subSpecialty: lr.subSpecialty
         };
       });
       
