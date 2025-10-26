@@ -9479,6 +9479,12 @@ This treatment plan should be reviewed and adjusted based on individual patient 
       // Get all users in organization
       const allUsers = await storage.getUsersByOrganization(req.tenant!.id);
       
+      // Get sender's full user details
+      const senderUser = allUsers.find(u => u.id === req.user!.id);
+      const senderName = senderUser 
+        ? `${senderUser.firstName} ${senderUser.lastName}`.trim() || senderUser.email 
+        : req.user!.email;
+      
       // Filter users based on provided recipient emails
       const selectedUsers = allUsers.filter(user => recipients.includes(user.email));
       
@@ -9493,15 +9499,22 @@ This treatment plan should be reviewed and adjusted based on individual patient 
       for (const user of selectedUsers) {
         if (user.email) {
           try {
-            await emailService.sendTemplateEmail(
-              user.email,
-              template.subject,
-              template.content,
-              {
-                userName: `${user.firstName} ${user.lastName}`,
-                organizationName: req.tenant?.name || 'Healthcare Organization'
-              }
-            );
+            await emailService.sendEmail({
+              to: user.email,
+              subject: template.subject,
+              html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                  <h2>Message from ${senderName}</h2>
+                  <div style="margin-top: 20px;">
+                    ${template.content.replace(/\n/g, '<br>')}
+                  </div>
+                  <hr style="margin-top: 30px; border: none; border-top: 1px solid #eee;">
+                  <p style="color: #666; font-size: 12px;">
+                    This is an automated message from ${req.tenant!.name}.
+                  </p>
+                </div>
+              `
+            });
             successCount++;
           } catch (error) {
             console.error(`Failed to send email to ${user.email}:`, error);
@@ -9537,6 +9550,13 @@ This treatment plan should be reviewed and adjusted based on individual patient 
         return res.status(404).json({ error: "Template not found" });
       }
 
+      // Get sender's full user details
+      const allOrgUsers = await storage.getUsersByOrganization(req.tenant!.id);
+      const senderUser = allOrgUsers.find(u => u.id === req.user!.id);
+      const senderName = senderUser 
+        ? `${senderUser.firstName} ${senderUser.lastName}`.trim() || senderUser.email 
+        : req.user!.email;
+
       // Get all users in organization
       const users = await storage.getUsersByOrganization(req.tenant!.id);
       
@@ -9552,7 +9572,7 @@ This treatment plan should be reviewed and adjusted based on individual patient 
               subject: template.subject,
               html: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                  <h2>Message from ${req.user!.firstName} ${req.user!.lastName}</h2>
+                  <h2>Message from ${senderName}</h2>
                   <div style="margin-top: 20px;">
                     ${template.content.replace(/\n/g, '<br>')}
                   </div>
