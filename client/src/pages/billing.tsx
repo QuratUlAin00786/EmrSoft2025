@@ -1782,7 +1782,7 @@ export default function BillingPage() {
   const handleSaveInvoice = async (invoiceId: string) => {
     console.log('💾 Save Invoice button clicked for invoice:', invoiceId);
     
-    const invoice = Array.isArray(invoices) ? invoices.find((inv: any) => inv.id === invoiceId) : null;
+    const invoice = Array.isArray(invoices) ? invoices.find((inv: any) => inv.id === Number(invoiceId)) : null;
     
     if (!invoice) {
       console.error('❌ Invoice not found:', invoiceId);
@@ -1990,7 +1990,7 @@ export default function BillingPage() {
   const handleDownloadInvoice = (invoiceId: string) => {
     console.log('🔽 Download button clicked for invoice:', invoiceId);
     
-    const invoice = Array.isArray(invoices) ? invoices.find((inv: any) => inv.id === invoiceId) : null;
+    const invoice = Array.isArray(invoices) ? invoices.find((inv: any) => inv.id === Number(invoiceId)) : null;
     
     if (!invoice) {
       console.error('❌ Invoice not found:', invoiceId);
