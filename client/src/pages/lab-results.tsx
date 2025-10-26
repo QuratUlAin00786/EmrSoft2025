@@ -2447,18 +2447,20 @@ Report generated from Cura EMR System`;
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
                               <div className="space-y-1">
                                 <div>{result.testId}</div>
-                                <Button
-                                  variant="link"
-                                  size="sm"
-                                  onClick={() => {
-                                    setSelectedResult(result);
-                                    setShowPrescriptionDialog(true);
-                                  }}
-                                  className="h-auto p-0 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
-                                  data-testid={`link-view-prescription-${result.id}`}
-                                >
-                                  View Prescription
-                                </Button>
+                                {activeTab !== "request" && (
+                                  <Button
+                                    variant="link"
+                                    size="sm"
+                                    onClick={() => {
+                                      setSelectedResult(result);
+                                      setShowPrescriptionDialog(true);
+                                    }}
+                                    className="h-auto p-0 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                                    data-testid={`link-view-prescription-${result.id}`}
+                                  >
+                                    View Prescription
+                                  </Button>
+                                )}
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
@@ -2842,18 +2844,20 @@ Report generated from Cura EMR System`;
                           <div className="text-sm text-gray-600 dark:text-gray-300">
                             <span className="font-medium">Test ID:</span>{" "}
                             {result.testId}
-                            <Button
-                              variant="link"
-                              size="sm"
-                              onClick={() => {
-                                setSelectedResult(result);
-                                setShowPrescriptionDialog(true);
-                              }}
-                              className="h-auto p-0 ml-2 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
-                              data-testid={`link-view-prescription-card-${result.id}`}
-                            >
-                              View Prescription
-                            </Button>
+                            {activeTab !== "request" && (
+                              <Button
+                                variant="link"
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedResult(result);
+                                  setShowPrescriptionDialog(true);
+                                }}
+                                className="h-auto p-0 ml-2 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                                data-testid={`link-view-prescription-card-${result.id}`}
+                              >
+                                View Prescription
+                              </Button>
+                            )}
                           </div>
                           {result.completedAt && (
                             <div className="text-sm text-gray-600 dark:text-gray-300">
