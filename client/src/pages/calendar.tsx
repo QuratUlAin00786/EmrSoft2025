@@ -1554,6 +1554,8 @@ export default function CalendarPage() {
                   setSelectedDoctor(doctor);
                 }}
                 showAppointmentButton={true}
+                filterRole={staffFilterRole}
+                filterSearch={staffFilterSearch}
               />
             </div>
           </div>

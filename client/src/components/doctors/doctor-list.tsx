@@ -57,6 +57,8 @@ import { format } from "date-fns";
 interface DoctorListProps {
   onSelectDoctor?: (doctor: Doctor) => void;
   showAppointmentButton?: boolean;
+  filterRole?: string;
+  filterSearch?: string;
 }
 
 const departmentColors = {
@@ -112,6 +114,8 @@ function getInitials(firstName: string, lastName: string): string {
 export function DoctorList({
   onSelectDoctor,
   showAppointmentButton = false,
+  filterRole = "all",
+  filterSearch = "",
 }: DoctorListProps) {
   const [, setLocation] = useLocation();
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
@@ -143,12 +147,6 @@ export function DoctorList({
   
   // Track currently booking slot to prevent duplicates
   const [bookingInProgress, setBookingInProgress] = useState<string | null>(null);
-  
-  // Role filter state
-  const [selectedRole, setSelectedRole] = useState<string>("all");
-  
-  // Search state for admin
-  const [searchQuery, setSearchQuery] = useState<string>("");
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -193,22 +191,6 @@ export function DoctorList({
     },
     enabled: isBookingOpen,
   });
-
-  // Fetch roles from database (excluding patient and admin roles)
-  const { data: rolesData } = useQuery({
-    queryKey: ["/api/roles"],
-    queryFn: async () => {
-      const response = await apiRequest("GET", "/api/roles");
-      const data = await response.json();
-      return data;
-    },
-    enabled: user?.role === 'patient' || user?.role === 'admin',
-  });
-
-  // Filter roles to exclude patient and admin roles
-  const availableRoles = rolesData?.filter((role: any) => 
-    role.name !== 'patient' && role.name !== 'admin'
-  ) || [];
 
   // Fetch all shifts for the selected doctor to determine available dates
   const { data: allDoctorShifts } = useQuery({
@@ -791,7 +773,7 @@ export function DoctorList({
         }
         
         // Apply role filter if a specific role is selected
-        if (selectedRole !== 'all' && doctor.role !== selectedRole) {
+        if (filterRole !== 'all' && filterRole !== '' && doctor.role !== filterRole) {
           return false;
         }
         
@@ -808,13 +790,13 @@ export function DoctorList({
         }
         
         // Apply role filter if a specific role is selected
-        if (selectedRole !== 'all' && staff.role !== selectedRole) {
+        if (filterRole !== 'all' && filterRole !== '' && staff.role !== filterRole) {
           return false;
         }
         
         // Apply search filter
-        if (searchQuery.trim()) {
-          const query = searchQuery.toLowerCase();
+        if (filterSearch.trim()) {
+          const query = filterSearch.toLowerCase();
           const fullName = `${staff.firstName} ${staff.lastName}`.toLowerCase();
           const email = (staff.email || '').toLowerCase();
           const specialization = (staff.medicalSpecialtyCategory || '').toLowerCase();
@@ -847,7 +829,7 @@ export function DoctorList({
       // If working days are set, check if today is included
       return doctor.workingDays.includes(today);
     });
-  }, [user, doctorPatients, medicalStaff, selectedRole, searchQuery, today]);
+  }, [user, doctorPatients, medicalStaff, filterRole, filterSearch, today]);
 
   if (isLoading) {
     return (
@@ -875,35 +857,6 @@ export function DoctorList({
   if (availableStaff.length === 0) {
     return (
       <Card>
-        <div className="flex items-center justify-between gap-4 p-4">
-
-          {(user?.role === 'patient' || user?.role === 'admin') && (
-            <Select value={selectedRole} onValueChange={setSelectedRole}>
-              <SelectTrigger className="w-[180px]" data-testid="select-role-filter">
-                <SelectValue placeholder="Filter by role" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Roles</SelectItem>
-                {availableRoles.map((role: any) => (
-                  <SelectItem key={role.id} value={role.name}>
-                    {role.displayName || role.name.charAt(0).toUpperCase() + role.name.slice(1).replace('_', ' ')}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-          
-          {user?.role === 'admin' && (
-            <Input
-              type="text"
-              placeholder="Search by name, email, specialization, department..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1"
-              data-testid="input-search-staff"
-            />
-          )}
-        </div>
         <CardContent>
           <div className="text-center py-8 text-gray-500">
             <User className="h-12 w-12 mx-auto mb-4 text-gray-300" />
@@ -930,37 +883,6 @@ export function DoctorList({
 
   return (
     <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-       
-          {(user?.role === 'patient' || user?.role === 'admin') && (
-            <Select value={selectedRole} onValueChange={setSelectedRole}>
-              <SelectTrigger className="w-[180px]" data-testid="select-role-filter">
-                <SelectValue placeholder="Filter by role" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Roles</SelectItem>
-                {availableRoles.map((role: any) => (
-                  <SelectItem key={role.id} value={role.name}>
-                    {role.displayName || role.name.charAt(0).toUpperCase() + role.name.slice(1).replace('_', ' ')}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-          
-          {user?.role === 'admin' && (
-            <Input
-              type="text"
-              placeholder="Search by name, email, specialization, department..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 min-w-[300px]"
-              data-testid="input-search-staff"
-            />
-          )}
-        </div>
-      </CardHeader>
       <CardContent>
         <div className="space-y-4">
           {availableStaff.map((item: any) => (
