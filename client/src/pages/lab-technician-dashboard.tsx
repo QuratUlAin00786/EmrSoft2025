@@ -328,6 +328,7 @@ export default function LabTechnicianDashboard() {
   const [viewMode, setViewMode] = useState<"card" | "list">("card");
   const [showPaidOnly, setShowPaidOnly] = useState(false);
   const [showCollectedOnly, setShowCollectedOnly] = useState(false);
+  const [showReportGeneratedOnly, setShowReportGeneratedOnly] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   // Fetch lab tests for lab technician
@@ -359,7 +360,10 @@ export default function LabTechnicianDashboard() {
     // Sample collected filter (toggle)
     const matchesSampleCollected = !showCollectedOnly || test.sampleCollected === true;
 
-    return matchesSearch && matchesInvoiceStatus && matchesSampleCollected;
+    // Report generated filter (toggle)
+    const matchesReportGenerated = !showReportGeneratedOnly || test.labReportGenerated === true;
+
+    return matchesSearch && matchesInvoiceStatus && matchesSampleCollected && matchesReportGenerated;
   });
 
   // Parse test types from testType string (could be JSON array or pipe-separated)
@@ -654,6 +658,19 @@ export default function LabTechnicianDashboard() {
             />
             <Label htmlFor="collected-toggle" className="cursor-pointer">
               Show Sample Collected Only
+            </Label>
+          </div>
+
+          {/* Reports Generated Toggle */}
+          <div className="flex items-center gap-3">
+            <Switch
+              id="report-generated-toggle"
+              checked={showReportGeneratedOnly}
+              onCheckedChange={setShowReportGeneratedOnly}
+              data-testid="toggle-report-generated-only"
+            />
+            <Label htmlFor="report-generated-toggle" className="cursor-pointer">
+              Reports Generated
             </Label>
           </div>
         </div>
