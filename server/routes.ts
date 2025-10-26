@@ -16567,42 +16567,49 @@ Cura EMR Team
       
       yPosition -= headerHeight + 20;
       
-      // Patient Information Section
-      drawSectionBox(30, yPosition + 5, (width - 80) / 2, 120);
+      // Save starting position for both sections (equal alignment)
+      const sectionsStartY = yPosition;
+      
+      // Patient Information Section (Left side)
+      drawSectionBox(30, sectionsStartY + 5, (width - 80) / 2, 120);
       page.drawText('PATIENT INFORMATION', {
         x: 40,
-        y: yPosition - 10,
+        y: sectionsStartY - 10,
         size: 12,
         font: boldFont,
         color: primaryBlue
       });
       
-      yPosition -= 30;
-      page.drawText(`Name: ${study.patientName}`, { x: 50, y: yPosition, size: 10, font });
-      yPosition -= 15;
-      page.drawText(`ID: ${study.patientId || 'N/A'}`, { x: 50, y: yPosition, size: 10, font });
-      yPosition -= 15;
-      page.drawText(`DOB: ${study.patientDOB || 'N/A'}`, { x: 50, y: yPosition, size: 10, font });
-      yPosition -= 15;
-      page.drawText(`Study Date: ${new Date().toLocaleDateString()}`, { x: 50, y: yPosition, size: 10, font });
+      let leftColumnY = sectionsStartY - 30;
+      page.drawText(`Name: ${study.patientName}`, { x: 50, y: leftColumnY, size: 10, font });
+      leftColumnY -= 15;
+      page.drawText(`ID: ${study.patientId || 'N/A'}`, { x: 50, y: leftColumnY, size: 10, font });
+      leftColumnY -= 15;
+      page.drawText(`DOB: ${study.patientDOB || 'N/A'}`, { x: 50, y: leftColumnY, size: 10, font });
+      leftColumnY -= 15;
+      page.drawText(`Study Date: ${new Date().toLocaleDateString()}`, { x: 50, y: leftColumnY, size: 10, font });
       
-      // Study Information Section (Right side)
+      // Study Information Section (Right side) - SAME Y POSITION for equal alignment
       const rightColumnX = width / 2 + 10;
-      drawSectionBox(rightColumnX, yPosition + 60, (width - 80) / 2, 120);
+      drawSectionBox(rightColumnX, sectionsStartY + 5, (width - 80) / 2, 120);
       page.drawText('STUDY INFORMATION', {
         x: rightColumnX + 10,
-        y: yPosition + 50,
+        y: sectionsStartY - 10,
         size: 12,
         font: boldFont,
         color: primaryBlue
       });
       
-      page.drawText(`Study Type: ${study.studyType}`, { x: rightColumnX + 20, y: yPosition + 30, size: 10, font });
-      page.drawText(`Body Part: ${study.bodyPart}`, { x: rightColumnX + 20, y: yPosition + 15, size: 10, font });
-      page.drawText(`Modality: ${study.modality}`, { x: rightColumnX + 20, y: yPosition, size: 10, font });
-      page.drawText(`Status: ${study.status || 'Complete'}`, { x: rightColumnX + 20, y: yPosition - 15, size: 10, font });
+      let rightColumnY = sectionsStartY - 30;
+      page.drawText(`Study Type: ${study.studyType}`, { x: rightColumnX + 20, y: rightColumnY, size: 10, font });
+      rightColumnY -= 15;
+      page.drawText(`Body Part: ${study.bodyPart}`, { x: rightColumnX + 20, y: rightColumnY, size: 10, font });
+      rightColumnY -= 15;
+      page.drawText(`Modality: ${study.modality}`, { x: rightColumnX + 20, y: rightColumnY, size: 10, font });
+      rightColumnY -= 15;
+      page.drawText(`Status: ${study.status || 'Complete'}`, { x: rightColumnX + 20, y: rightColumnY, size: 10, font });
       
-      yPosition -= 50;
+      yPosition = sectionsStartY - 130;
       
       if (reportFormData) {
         yPosition -= 20;
