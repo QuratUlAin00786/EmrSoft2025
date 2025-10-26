@@ -763,15 +763,17 @@ export default function LabTechnicianDashboard() {
 
                     {/* Action Buttons */}
                     <div className="flex gap-2">
-                      <Button
-                        onClick={() => handleViewReportFromCard(test)}
-                        variant="outline"
-                        className="flex-1"
-                        data-testid={`button-view-report-${test.id}`}
-                      >
-                        <FileText className="h-4 w-4 mr-2" />
-                        View Report
-                      </Button>
+                      {test.labReportGenerated && (
+                        <Button
+                          onClick={() => handleViewReportFromCard(test)}
+                          variant="outline"
+                          className="flex-1"
+                          data-testid={`button-view-report-${test.id}`}
+                        >
+                          <FileText className="h-4 w-4 mr-2" />
+                          View Report
+                        </Button>
+                      )}
                       <Button
                         onClick={() => handleGenerateClick(test)}
                         className="flex-1 bg-green-600 hover:bg-green-700"
@@ -859,14 +861,16 @@ export default function LabTechnicianDashboard() {
                     </div>
                     {/* Action Buttons */}
                     <div className="flex gap-2">
-                      <Button
-                        onClick={() => handleViewReportFromCard(test)}
-                        variant="outline"
-                        data-testid={`button-view-report-${test.id}`}
-                      >
-                        <FileText className="h-4 w-4 mr-2" />
-                        View Report
-                      </Button>
+                      {test.labReportGenerated && (
+                        <Button
+                          onClick={() => handleViewReportFromCard(test)}
+                          variant="outline"
+                          data-testid={`button-view-report-${test.id}`}
+                        >
+                          <FileText className="h-4 w-4 mr-2" />
+                          View Report
+                        </Button>
+                      )}
                       <Button
                         onClick={() => handleGenerateClick(test)}
                         className="bg-green-600 hover:bg-green-700"
@@ -999,15 +1003,17 @@ export default function LabTechnicianDashboard() {
                 >
                   Cancel
                 </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleViewReport}
-                  className="flex-1"
-                  data-testid="button-view-report"
-                >
-                  <FileText className="h-4 w-4 mr-2" />
-                  View Report
-                </Button>
+                {selectedTest?.labReportGenerated && (
+                  <Button
+                    variant="outline"
+                    onClick={handleViewReport}
+                    className="flex-1"
+                    data-testid="button-view-report"
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    View Report
+                  </Button>
+                )}
                 <Button
                   className="flex-1 bg-green-600 hover:bg-green-700"
                   onClick={handleGenerateLabResult}
