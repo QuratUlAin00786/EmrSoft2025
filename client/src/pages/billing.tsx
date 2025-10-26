@@ -1693,6 +1693,7 @@ export default function BillingPage() {
   const [isInvoiceSaved, setIsInvoiceSaved] = useState(false);
   const [clinicHeader, setClinicHeader] = useState<any>(null);
   const [clinicFooter, setClinicFooter] = useState<any>(null);
+  const [savedInvoiceIds, setSavedInvoiceIds] = useState<Set<number>>(new Set());
   
   // Check if user is admin
   const isAdmin = user?.role === 'admin';
@@ -1709,8 +1710,12 @@ export default function BillingPage() {
         const headerData = await headerResponse.json();
         const footerData = await footerResponse.json();
         
-        setClinicHeader(headerData);
-        setClinicFooter(footerData);
+        // If data is array, get first element
+        const header = Array.isArray(headerData) ? headerData[0] : headerData;
+        const footer = Array.isArray(footerData) ? footerData[0] : footerData;
+        
+        setClinicHeader(header);
+        setClinicFooter(footer);
       } catch (error) {
         console.error('Failed to fetch clinic branding:', error);
       }
@@ -1834,32 +1839,25 @@ export default function BillingPage() {
 
       // Function to add header to page
       const addHeader = () => {
-        // Use clinic header if available, otherwise default
-        if (clinicHeader && clinicHeader.logoBase64) {
-          try {
-            // Add logo
-            const logoPosition = clinicHeader.logoPosition || 'left';
-            let logoX = margin;
-            if (logoPosition === 'center') logoX = (pageWidth - 40) / 2;
-            if (logoPosition === 'right') logoX = pageWidth - margin - 40;
-            doc.addImage(clinicHeader.logoBase64, 'PNG', logoX, 5, 40, 30);
-          } catch (error) {
-            console.error('Failed to add logo to PDF:', error);
-          }
-        }
-        
+        // Purple header background
         doc.setFillColor(79, 70, 229);
         doc.rect(0, 0, pageWidth, 40, 'F');
+        
+        // Clinic name
         doc.setTextColor(255, 255, 255);
-        doc.setFontSize(20);
-        doc.setFont('helvetica', 'bold');
-        doc.text(clinicHeader?.clinicName || 'Cura Medical Practice', margin, 15);
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'normal');
-        doc.text(clinicHeader?.tagline || 'Excellence in Healthcare', margin, 25);
         doc.setFontSize(24);
         doc.setFont('helvetica', 'bold');
-        doc.text('INVOICE', pageWidth - margin - 45, 25);
+        doc.text(clinicHeader?.clinicName || 'nhjn', margin, 18);
+        
+        // Tagline
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.text(clinicHeader?.tagline || 'Excellence in Healthcare', margin, 28);
+        
+        // INVOICE text on right
+        doc.setFontSize(32);
+        doc.setFont('helvetica', 'bold');
+        doc.text('INVOICE', pageWidth - margin - 55, 28);
       };
 
       // Function to add footer to page
@@ -2014,10 +2012,11 @@ export default function BillingPage() {
       console.log('✅ Invoice saved successfully:', result);
 
       setIsInvoiceSaved(true);
+      setSavedInvoiceIds(prev => new Set(prev).add(Number(invoiceId)));
 
       toast({
         title: "Success",
-        description: `Invoice saved to ${result.filePath}`,
+        description: `Invoice saved successfully`,
       });
 
     } catch (error) {
@@ -2061,39 +2060,25 @@ export default function BillingPage() {
 
     // Function to add header to page
     const addHeader = () => {
-      // Use clinic header if available, otherwise default
-      if (clinicHeader && clinicHeader.logoBase64) {
-        try {
-          // Add logo
-          const logoPosition = clinicHeader.logoPosition || 'left';
-          let logoX = margin;
-          if (logoPosition === 'center') logoX = (pageWidth - 40) / 2;
-          if (logoPosition === 'right') logoX = pageWidth - margin - 40;
-          doc.addImage(clinicHeader.logoBase64, 'PNG', logoX, 5, 40, 30);
-        } catch (error) {
-          console.error('Failed to add logo to PDF:', error);
-        }
-      }
-      
-      // Header background with gradient effect (simulated with rectangle)
+      // Purple header background
       doc.setFillColor(79, 70, 229);
       doc.rect(0, 0, pageWidth, 40, 'F');
       
-      // Hospital name
+      // Clinic name
       doc.setTextColor(255, 255, 255);
-      doc.setFontSize(20);
-      doc.setFont('helvetica', 'bold');
-      doc.text(clinicHeader?.clinicName || 'Cura Medical Practice', margin, 15);
-      
-      // Subtitle
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      doc.text(clinicHeader?.tagline || 'Excellence in Healthcare', margin, 25);
-      
-      // INVOICE title on right
       doc.setFontSize(24);
       doc.setFont('helvetica', 'bold');
-      doc.text('INVOICE', pageWidth - margin - 45, 25);
+      doc.text(clinicHeader?.clinicName || 'nhjn', margin, 18);
+      
+      // Tagline
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.text(clinicHeader?.tagline || 'Excellence in Healthcare', margin, 28);
+      
+      // INVOICE text on right
+      doc.setFontSize(32);
+      doc.setFont('helvetica', 'bold');
+      doc.text('INVOICE', pageWidth - margin - 55, 28);
     };
 
     // Function to add footer to page
@@ -2744,9 +2729,11 @@ export default function BillingPage() {
                                     <Button variant="ghost" size="sm" onClick={() => handleViewInvoice(invoice)} data-testid="button-view-invoice" title="View">
                                       <Eye className="h-4 w-4" />
                                     </Button>
-                                    <Button variant="ghost" size="sm" onClick={() => handleDownloadInvoice(invoice.id.toString())} data-testid="button-download-invoice" title="Download">
-                                      <Download className="h-4 w-4" />
-                                    </Button>
+                                    {savedInvoiceIds.has(invoice.id) && (
+                                      <Button variant="ghost" size="sm" onClick={() => handleDownloadInvoice(invoice.id.toString())} data-testid="button-download-invoice" title="Download">
+                                        <Download className="h-4 w-4" />
+                                      </Button>
+                                    )}
                                     {!isAdmin && invoice.status !== 'draft' && invoice.status !== 'paid' && invoice.status !== 'cancelled' && (
                                       <Button 
                                         variant="default" 
@@ -2871,9 +2858,11 @@ export default function BillingPage() {
                               <Button variant="outline" size="sm" onClick={() => handleViewInvoice(invoice)} data-testid="button-view-invoice">
                                 <Eye className="h-4 w-4" />
                               </Button>
-                              <Button variant="outline" size="sm" onClick={() => handleDownloadInvoice(invoice.id.toString())} data-testid="button-download-invoice">
-                                <Download className="h-4 w-4" />
-                              </Button>
+                              {savedInvoiceIds.has(invoice.id) && (
+                                <Button variant="outline" size="sm" onClick={() => handleDownloadInvoice(invoice.id.toString())} data-testid="button-download-invoice">
+                                  <Download className="h-4 w-4" />
+                                </Button>
+                              )}
                               {!isAdmin && invoice.status !== 'draft' && invoice.status !== 'paid' && invoice.status !== 'cancelled' && (
                                 <Button 
                                   variant="default" 
