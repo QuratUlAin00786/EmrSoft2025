@@ -178,6 +178,7 @@ function PricingManagementDashboard() {
   const [doctorRoleError, setDoctorRoleError] = useState("");
   const [doctorNameError, setDoctorNameError] = useState("");
   const [labTestError, setLabTestError] = useState("");
+  const [imagingError, setImagingError] = useState("");
 
   const { data: users = [] } = useQuery({
     queryKey: ["/api/users"],
@@ -341,14 +342,13 @@ function PricingManagementDashboard() {
         if (validServices.length === 0) {
           if (pricingTab === "lab-tests") {
             setLabTestError("Please add at least one test with name and price");
-          }
-          // For doctors and imaging, still use toast as they don't have dedicated error states
-          if (pricingTab === "doctors" || pricingTab === "imaging") {
+          } else if (pricingTab === "imaging") {
+            setImagingError("Please add at least one imaging service with name and price");
+          } else if (pricingTab === "doctors") {
+            // For doctors, still use toast as it doesn't have dedicated error state
             toast({
               title: "Error",
-              description: pricingTab === "doctors" 
-                ? "Please add at least one service with name and price"
-                : "Please add at least one imaging service with name and price",
+              description: "Please add at least one service with name and price",
               variant: "destructive"
             });
           }
@@ -356,9 +356,11 @@ function PricingManagementDashboard() {
           return;
         }
         
-        // Clear lab test error if validation passes
+        // Clear validation errors if validation passes
         if (pricingTab === "lab-tests") {
           setLabTestError("");
+        } else if (pricingTab === "imaging") {
+          setImagingError("");
         }
         
         // Create all services/tests/imaging
@@ -509,6 +511,7 @@ function PricingManagementDashboard() {
     setDoctorRoleError("");
     setDoctorNameError("");
     setLabTestError("");
+    setImagingError("");
     
     // Pre-populate with predefined services for doctors fees
     if (pricingTab === "doctors") {
@@ -1561,6 +1564,9 @@ function PricingManagementDashboard() {
                       </tbody>
                     </table>
                   </div>
+                  {imagingError && (
+                    <p className="text-sm text-red-500 mt-2">{imagingError}</p>
+                  )}
                 </div>
               </>
             )}
