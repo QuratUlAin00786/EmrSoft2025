@@ -1556,7 +1556,7 @@ export default function ClinicalDecisionSupport() {
                         <p className="text-gray-600 dark:text-gray-400">Analyzing lab results with AI...</p>
                       </div>
                     </div>
-                  ) : assessmentResult ? (
+                  ) : assessmentResult?.assessment ? (
                     <div className="space-y-6">
                       {/* Lab Result Details */}
                       {selectedLabResult && (
