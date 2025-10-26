@@ -5382,9 +5382,9 @@ Report generated from Cura EMR System`;
               </div>
             )}
 
-            {/* Critical Value Checkboxes */}
+            {/* Lab Test Status */}
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Critical Status</Label>
+              <Label className="text-sm font-medium">Lab Test Status</Label>
               <div className="flex gap-6">
                 <div className="flex items-center space-x-2">
                   <Checkbox
@@ -5765,6 +5765,55 @@ Report generated from Cura EMR System`;
                   </div>
                 );
               })()}
+
+              {/* Lab Test Status */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Lab Test Status</Label>
+                <div className="flex gap-6">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="fill-critical-normal"
+                      checked={fillResultFormData.criticalValues === false}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setFillResultFormData((prev: any) => ({
+                            ...prev,
+                            criticalValues: false,
+                          }));
+                        }
+                      }}
+                      data-testid="checkbox-fill-normal"
+                    />
+                    <Label
+                      htmlFor="fill-critical-normal"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                    >
+                      Normal
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="fill-critical-critical"
+                      checked={fillResultFormData.criticalValues === true}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setFillResultFormData((prev: any) => ({
+                            ...prev,
+                            criticalValues: true,
+                          }));
+                        }
+                      }}
+                      data-testid="checkbox-fill-critical"
+                    />
+                    <Label
+                      htmlFor="fill-critical-critical"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                    >
+                      Critical
+                    </Label>
+                  </div>
+                </div>
+              </div>
 
               {/* Clinical Notes */}
               <div className="space-y-2">
@@ -6195,7 +6244,7 @@ Report generated from Cura EMR System`;
                       status: "completed",
                       results: results,
                       notes: fillResultFormData.notes || selectedLabOrder.notes || "",
-                      criticalValues: false,
+                      criticalValues: fillResultFormData.criticalValues || false,
                     });
 
                     // Generate PDF matching the image format
