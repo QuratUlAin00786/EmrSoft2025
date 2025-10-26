@@ -1001,6 +1001,28 @@ export const labResults = pgTable("lab_results", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Risk Assessments
+export const riskAssessments = pgTable("risk_assessments", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
+  patientId: integer("patient_id").notNull().references(() => patients.id),
+  category: text("category").notNull(), // Cardiovascular Disease, Diabetes, etc.
+  riskScore: decimal("risk_score", { precision: 5, scale: 2 }).notNull(), // Percentage 0.00-100.00
+  riskLevel: varchar("risk_level", { length: 20 }).notNull(), // low, moderate, high, critical
+  riskFactors: jsonb("risk_factors").$type<string[]>().default([]),
+  recommendations: jsonb("recommendations").$type<string[]>().default([]),
+  basedOnLabResults: jsonb("based_on_lab_results").$type<Array<{
+    testId: string;
+    testName: string;
+    value: string;
+    status: string;
+    flag?: string;
+  }>>().default([]),
+  hasCriticalValues: boolean("has_critical_values").notNull().default(false),
+  assessmentDate: timestamp("assessment_date").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Financial Claims
 export const claims = pgTable("claims", {
   id: serial("id").primaryKey(),
@@ -1676,6 +1698,18 @@ export const labResultsRelations = relations(labResults, ({ one }) => ({
   }),
 }));
 
+// Risk Assessments Relations
+export const riskAssessmentsRelations = relations(riskAssessments, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [riskAssessments.organizationId],
+    references: [organizations.id],
+  }),
+  patient: one(patients, {
+    fields: [riskAssessments.patientId],
+    references: [patients.id],
+  }),
+}));
+
 // Claims Relations
 export const claimsRelations = relations(claims, ({ one }) => ({
   organization: one(organizations, {
@@ -2221,6 +2255,11 @@ export const insertLabResultSchema = createInsertSchema(labResults).omit({
   createdAt: true,
 });
 
+export const insertRiskAssessmentSchema = createInsertSchema(riskAssessments).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertClaimSchema = createInsertSchema(claims).omit({
   id: true,
   createdAt: true,
@@ -2513,6 +2552,9 @@ export type InsertClinicalPhoto = z.infer<typeof insertClinicalPhotoSchema>;
 
 export type LabResult = typeof labResults.$inferSelect;
 export type InsertLabResult = z.infer<typeof insertLabResultSchema>;
+
+export type RiskAssessment = typeof riskAssessments.$inferSelect;
+export type InsertRiskAssessment = z.infer<typeof insertRiskAssessmentSchema>;
 
 export type Claim = typeof claims.$inferSelect;
 export type InsertClaim = z.infer<typeof insertClaimSchema>;

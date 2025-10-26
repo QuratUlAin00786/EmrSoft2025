@@ -6229,6 +6229,212 @@ This treatment plan should be reviewed and adjusted based on individual patient 
     }
   });
 
+  // Risk Assessment endpoint - analyzes lab results and generates patient risk assessments
+  app.get("/api/clinical/risk-assessments", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const organizationId = req.tenant!.id;
+      
+      // Fetch all lab results with patient data
+      const labResults = await storage.getLabResultsByOrganization(organizationId);
+      const patients = await storage.getPatientsByOrganization(organizationId);
+      
+      // Group lab results by patient
+      const patientResultsMap = new Map<number, any[]>();
+      labResults.forEach(result => {
+        if (!patientResultsMap.has(result.patientId)) {
+          patientResultsMap.set(result.patientId, []);
+        }
+        patientResultsMap.get(result.patientId)!.push(result);
+      });
+      
+      const allAssessments = [];
+      
+      // Analyze each patient's lab results
+      for (const [patientId, results] of patientResultsMap.entries()) {
+        const patient = patients.find(p => p.id === patientId);
+        if (!patient) continue;
+        
+        // Aggregate all test results from all lab orders
+        const allTests: any[] = [];
+        let hasCritical = false;
+        
+        results.forEach(labResult => {
+          if (labResult.criticalValues) {
+            hasCritical = true;
+          }
+          if (labResult.results && Array.isArray(labResult.results)) {
+            labResult.results.forEach((test: any) => {
+              allTests.push({
+                testId: labResult.testId,
+                testName: test.name,
+                value: test.value,
+                unit: test.unit,
+                status: test.status,
+                flag: test.flag,
+                referenceRange: test.referenceRange
+              });
+            });
+          }
+        });
+        
+        // Cardiovascular Disease Risk Assessment
+        const cvdFactors = [];
+        const cvdRecommendations = [];
+        let cvdScore = 0;
+        
+        const cholesterolTest = allTests.find(t => t.testName?.toLowerCase().includes('cholesterol'));
+        const glucoseTest = allTests.find(t => t.testName?.toLowerCase().includes('glucose'));
+        const hemoglobinA1cTest = allTests.find(t => t.testName?.toLowerCase().includes('hemoglobin a1c') || t.testName?.toLowerCase().includes('a1c'));
+        
+        if (cholesterolTest && (cholesterolTest.status === 'abnormal_high' || cholesterolTest.flag === 'HIGH')) {
+          cvdFactors.push('High cholesterol');
+          cvdScore += 5;
+          cvdRecommendations.push('Statin therapy');
+        }
+        
+        if (glucoseTest && parseFloat(glucoseTest.value) > 100) {
+          cvdFactors.push('Elevated glucose');
+          cvdScore += 3;
+        }
+        
+        if (hasCritical) {
+          cvdFactors.push('Critical lab values detected');
+          cvdScore += 7;
+        }
+        
+        // Age factor (if patient > 65)
+        const age = patient.dateOfBirth ? Math.floor((Date.now() - new Date(patient.dateOfBirth).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : 0;
+        if (age > 65) {
+          cvdFactors.push('Age >65');
+          cvdScore += 5;
+        }
+        
+        if (cvdScore > 0) {
+          cvdRecommendations.push('Blood pressure control');
+          cvdRecommendations.push('Regular cardiovascular screening');
+        }
+        
+        // Diabetes Risk Assessment
+        const diabetesFactors = [];
+        const diabetesRecommendations = [];
+        let diabetesScore = 0;
+        
+        if (glucoseTest) {
+          const glucoseValue = parseFloat(glucoseTest.value);
+          if (glucoseValue >= 126 || glucoseTest.status === 'abnormal_high') {
+            diabetesFactors.push('High fasting glucose');
+            diabetesScore += 8;
+            diabetesRecommendations.push('Immediate diabetes workup');
+          } else if (glucoseValue >= 100) {
+            diabetesFactors.push('Prediabetes');
+            diabetesScore += 4;
+            diabetesRecommendations.push('Lifestyle modification');
+          }
+        }
+        
+        if (hemoglobinA1cTest) {
+          const a1cValue = parseFloat(hemoglobinA1cTest.value);
+          if (a1cValue >= 6.5 || hemoglobinA1cTest.status === 'abnormal_high') {
+            diabetesFactors.push('Elevated HbA1c');
+            diabetesScore += 8;
+            diabetesRecommendations.push('Diabetes management');
+          } else if (a1cValue >= 5.7) {
+            diabetesFactors.push('Borderline HbA1c');
+            diabetesScore += 4;
+          }
+        }
+        
+        if (diabetesScore > 0) {
+          diabetesRecommendations.push('Annual glucose screening');
+          diabetesRecommendations.push('Weight management');
+          diabetesRecommendations.push('Diet counseling');
+        }
+        
+        // Determine risk levels
+        const getCvdRiskLevel = (score: number): 'low' | 'moderate' | 'high' | 'critical' => {
+          if (score >= 15) return 'critical';
+          if (score >= 10) return 'high';
+          if (score >= 5) return 'moderate';
+          return 'low';
+        };
+        
+        const getDiabetesRiskLevel = (score: number): 'low' | 'moderate' | 'high' | 'critical' => {
+          if (score >= 12) return 'critical';
+          if (score >= 8) return 'high';
+          if (score >= 4) return 'moderate';
+          return 'low';
+        };
+        
+        // Save and return assessments if there are risk factors
+        if (cvdFactors.length > 0) {
+          const cvdAssessment = await storage.createRiskAssessment({
+            organizationId,
+            patientId,
+            category: 'Cardiovascular Disease',
+            riskScore: cvdScore.toString(),
+            riskLevel: getCvdRiskLevel(cvdScore),
+            riskFactors: cvdFactors,
+            recommendations: cvdRecommendations,
+            basedOnLabResults: allTests.slice(0, 5),
+            hasCriticalValues: hasCritical,
+            assessmentDate: new Date()
+          });
+          allAssessments.push({
+            ...cvdAssessment,
+            patientName: `${patient.firstName} ${patient.lastName}`
+          });
+        }
+        
+        if (diabetesFactors.length > 0) {
+          const diabetesAssessment = await storage.createRiskAssessment({
+            organizationId,
+            patientId,
+            category: 'Diabetes',
+            riskScore: diabetesScore.toString(),
+            riskLevel: getDiabetesRiskLevel(diabetesScore),
+            riskFactors: diabetesFactors,
+            recommendations: diabetesRecommendations,
+            basedOnLabResults: allTests.slice(0, 5),
+            hasCriticalValues: hasCritical,
+            assessmentDate: new Date()
+          });
+          allAssessments.push({
+            ...diabetesAssessment,
+            patientName: `${patient.firstName} ${patient.lastName}`
+          });
+        }
+      }
+      
+      // Fetch all existing assessments from database (including the ones just created)
+      const allSavedAssessments = await storage.getRiskAssessmentsByOrganization(organizationId);
+      
+      // Add patient names to saved assessments
+      const assessmentsWithNames = allSavedAssessments.map(assessment => {
+        const patient = patients.find(p => p.id === assessment.patientId);
+        return {
+          ...assessment,
+          patientName: patient ? `${patient.firstName} ${patient.lastName}` : `Patient ${assessment.patientId}`
+        };
+      });
+      
+      // Transform for frontend
+      const transformedAssessments = assessmentsWithNames.map((assessment: any) => ({
+        category: assessment.category,
+        score: parseFloat(assessment.riskScore),
+        risk: assessment.riskLevel,
+        factors: assessment.riskFactors || [],
+        recommendations: assessment.recommendations || [],
+        patientId: assessment.patientId,
+        patientName: assessment.patientName
+      }));
+      
+      res.json(transformedAssessments);
+    } catch (error) {
+      console.error("Risk assessments error:", error);
+      res.status(500).json({ error: "Failed to generate risk assessments" });
+    }
+  });
+
   // Organization settings routes
   app.get("/api/organization/settings", requireRole(["admin"]), async (req: TenantRequest, res) => {
     try {

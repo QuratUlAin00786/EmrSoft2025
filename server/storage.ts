@@ -1,6 +1,6 @@
 import { isDoctorLike } from './utils/role-utils.js';
 import { 
-  organizations, users, patients, medicalRecords, appointments, invoices, payments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages, clinicalPhotos, labResults, claims, revenueRecords, insuranceVerifications, clinicalProcedures, emergencyProtocols, medicationsDatabase, roles, staffShifts, doctorDefaultShifts, gdprConsents, gdprDataRequests, gdprAuditTrail, gdprProcessingActivities, conversations as conversationsTable, messages, voiceNotes, saasOwners, saasPackages, saasSubscriptions, saasPayments, saasInvoices, saasSettings, chatbotConfigs, chatbotSessions, chatbotMessages, chatbotAnalytics, musclePositions, userDocumentPreferences, letterDrafts, forecastModels, financialForecasts, quickbooksConnections, quickbooksSyncLogs, quickbooksCustomerMappings, quickbooksInvoiceMappings, quickbooksPaymentMappings, quickbooksAccountMappings, quickbooksItemMappings, quickbooksSyncConfigs, doctorsFee, labTestPricing, imagingPricing, clinicHeaders, clinicFooters, symptomChecks,
+  organizations, users, patients, medicalRecords, appointments, invoices, payments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages, clinicalPhotos, labResults, riskAssessments, claims, revenueRecords, insuranceVerifications, clinicalProcedures, emergencyProtocols, medicationsDatabase, roles, staffShifts, doctorDefaultShifts, gdprConsents, gdprDataRequests, gdprAuditTrail, gdprProcessingActivities, conversations as conversationsTable, messages, voiceNotes, saasOwners, saasPackages, saasSubscriptions, saasPayments, saasInvoices, saasSettings, chatbotConfigs, chatbotSessions, chatbotMessages, chatbotAnalytics, musclePositions, userDocumentPreferences, letterDrafts, forecastModels, financialForecasts, quickbooksConnections, quickbooksSyncLogs, quickbooksCustomerMappings, quickbooksInvoiceMappings, quickbooksPaymentMappings, quickbooksAccountMappings, quickbooksItemMappings, quickbooksSyncConfigs, doctorsFee, labTestPricing, imagingPricing, clinicHeaders, clinicFooters, symptomChecks,
   type Organization, type InsertOrganization,
   type User, type InsertUser,
   type Role, type InsertRole,
@@ -18,6 +18,7 @@ import {
   type MedicalImage, type InsertMedicalImage, type UpdateMedicalImageReportField,
   type ClinicalPhoto, type InsertClinicalPhoto,
   type LabResult, type InsertLabResult,
+  type RiskAssessment, type InsertRiskAssessment,
   type Claim, type InsertClaim,
   type RevenueRecord, type InsertRevenueRecord,
   type InsuranceVerification, type InsertInsuranceVerification,
@@ -350,6 +351,12 @@ export interface IStorage {
   getLabResultsByStatus(patientId: number, organizationId: number, status: string): Promise<LabResult[]>;
   createLabResult(labResult: InsertLabResult): Promise<LabResult>;
   updateLabResult(id: number, organizationId: number, updates: Partial<InsertLabResult>): Promise<LabResult | undefined>;
+
+  // Risk Assessments (Database-driven)
+  getRiskAssessmentsByPatient(patientId: number, organizationId: number): Promise<RiskAssessment[]>;
+  getRiskAssessmentsByOrganization(organizationId: number, limit?: number): Promise<RiskAssessment[]>;
+  createRiskAssessment(assessment: InsertRiskAssessment): Promise<RiskAssessment>;
+  updateRiskAssessment(id: number, organizationId: number, updates: Partial<InsertRiskAssessment>): Promise<RiskAssessment | undefined>;
 
   // Claims (Database-driven)
   getClaim(id: number, organizationId: number): Promise<Claim | undefined>;
@@ -4158,6 +4165,38 @@ export class DatabaseStorage implements IStorage {
       .delete(labResults)
       .where(and(eq(labResults.id, id), eq(labResults.organizationId, organizationId)));
     return (result.rowCount ?? 0) > 0;
+  }
+
+  // Risk Assessments (Database-driven)
+  async getRiskAssessmentsByPatient(patientId: number, organizationId: number): Promise<RiskAssessment[]> {
+    return await db.select()
+      .from(riskAssessments)
+      .where(and(eq(riskAssessments.patientId, patientId), eq(riskAssessments.organizationId, organizationId)))
+      .orderBy(desc(riskAssessments.assessmentDate));
+  }
+
+  async getRiskAssessmentsByOrganization(organizationId: number, limit: number = 100): Promise<RiskAssessment[]> {
+    return await db.select()
+      .from(riskAssessments)
+      .where(eq(riskAssessments.organizationId, organizationId))
+      .orderBy(desc(riskAssessments.assessmentDate))
+      .limit(limit);
+  }
+
+  async createRiskAssessment(assessment: InsertRiskAssessment): Promise<RiskAssessment> {
+    const [result] = await db
+      .insert(riskAssessments)
+      .values(assessment as any)
+      .returning();
+    return result;
+  }
+
+  async updateRiskAssessment(id: number, organizationId: number, updates: Partial<InsertRiskAssessment>): Promise<RiskAssessment | undefined> {
+    const [result] = await db.update(riskAssessments)
+      .set(updates as any)
+      .where(and(eq(riskAssessments.id, id), eq(riskAssessments.organizationId, organizationId)))
+      .returning();
+    return result || undefined;
   }
 
   // Claims (Database-driven)
