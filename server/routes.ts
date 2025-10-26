@@ -9407,6 +9407,94 @@ This treatment plan should be reviewed and adjusted based on individual patient 
     }
   });
 
+  app.put("/api/messaging/templates/:id", authMiddleware, requireRole(["admin", "doctor"]), async (req: TenantRequest, res) => {
+    try {
+      const templateId = parseInt(req.params.id);
+      
+      // Validate request body with Zod schema
+      const validationResult = insertMessageTemplateSchema.omit({ createdBy: true, organizationId: true }).safeParse(req.body);
+      
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: validationResult.error.errors 
+        });
+      }
+
+      const templateData = {
+        ...validationResult.data,
+        createdBy: req.user!.id
+      };
+      const template = await storage.updateMessageTemplate(templateId, templateData, req.tenant!.id);
+      res.json(template);
+    } catch (error) {
+      console.error("Error updating template:", error);
+      res.status(500).json({ error: "Failed to update template" });
+    }
+  });
+
+  app.post("/api/messaging/templates/:id/send-to-all", authMiddleware, requireRole(["admin", "doctor"]), async (req: TenantRequest, res) => {
+    try {
+      const templateId = parseInt(req.params.id);
+      
+      // Get template
+      const templates = await storage.getMessageTemplates(req.tenant!.id);
+      const template = templates.find(t => t.id === templateId);
+      
+      if (!template) {
+        return res.status(404).json({ error: "Template not found" });
+      }
+
+      // Get all users in organization
+      const users = await storage.getUsersByOrganization(req.tenant!.id);
+      
+      // Send email to each user
+      let successCount = 0;
+      let failCount = 0;
+      
+      for (const user of users) {
+        if (user.email) {
+          try {
+            await emailService.sendEmail({
+              to: user.email,
+              subject: template.subject,
+              html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                  <h2>Message from ${req.user!.firstName} ${req.user!.lastName}</h2>
+                  <div style="margin-top: 20px;">
+                    ${template.content.replace(/\n/g, '<br>')}
+                  </div>
+                  <hr style="margin-top: 30px; border: none; border-top: 1px solid #eee;">
+                  <p style="color: #666; font-size: 12px;">
+                    This is an automated message from ${req.tenant!.name}.
+                  </p>
+                </div>
+              `
+            });
+            successCount++;
+          } catch (emailError) {
+            console.error(`Failed to send email to ${user.email}:`, emailError);
+            failCount++;
+          }
+        }
+      }
+
+      // Update usage count
+      await storage.updateMessageTemplate(templateId, { usageCount: template.usageCount + 1 }, req.tenant!.id);
+
+      res.json({ 
+        success: true, 
+        totalUsers: users.length,
+        successCount,
+        failCount,
+        message: `Email sent successfully to ${successCount} out of ${users.length} users.`
+      });
+    } catch (error) {
+      console.error("Error sending template to all users:", error);
+      res.status(500).json({ error: "Failed to send template" });
+    }
+  });
+
   // Healthcare-specific messaging endpoints
   app.post("/api/messaging/appointment-reminder", authMiddleware, async (req: TenantRequest, res) => {
     try {

@@ -134,6 +134,15 @@ export default function MessagingPage() {
     subject: "",
     content: ""
   });
+  const [showUseTemplate, setShowUseTemplate] = useState(false);
+  const [showEditTemplate, setShowEditTemplate] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
+  const [editingTemplate, setEditingTemplate] = useState({
+    name: "",
+    category: "general" as "general" | "medical" | "preventive" | "urgent" | "onboarding",
+    subject: "",
+    content: ""
+  });
   const [newMessage, setNewMessage] = useState({
     recipient: "",
     subject: "",
@@ -735,6 +744,178 @@ export default function MessagingPage() {
     }
 
     createTemplateMutation.mutate(newTemplate);
+  };
+
+  // Fetch all users for Use Template dialog
+  const { data: allUsers } = useQuery({
+    queryKey: ['/api/users'],
+    enabled: showUseTemplate,
+  });
+
+  const useTemplateMutation = useMutation({
+    mutationFn: async (templateId: number) => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`/api/messaging/templates/${templateId}/send-to-all`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': localStorage.getItem('user_subdomain') || 'demo',
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: response.statusText }));
+        throw new Error(errorData.error || `${response.status}: ${response.statusText}`);
+      }
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/messaging/templates'] });
+      setShowUseTemplate(false);
+      setSelectedTemplate(null);
+      toast({
+        title: "Template Sent",
+        description: data.message || `Email sent successfully to ${data.successCount} users.`,
+      });
+    },
+    onError: (error: any) => {
+      console.error("Error sending template:", error);
+      toast({
+        title: "Failed to Send Template",
+        description: error.message || "An error occurred while sending the template. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const editTemplateMutation = useMutation({
+    mutationFn: async ({ templateId, templateData }: { templateId: number, templateData: any }) => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`/api/messaging/templates/${templateId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': localStorage.getItem('user_subdomain') || 'demo',
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify(templateData),
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: response.statusText }));
+        throw new Error(errorData.error || `${response.status}: ${response.statusText}`);
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/messaging/templates'] });
+      setShowEditTemplate(false);
+      setSelectedTemplate(null);
+      setEditingTemplate({
+        name: "",
+        category: "general",
+        subject: "",
+        content: ""
+      });
+      toast({
+        title: "Template Updated",
+        description: "Your message template has been updated successfully.",
+      });
+    },
+    onError: (error: any) => {
+      console.error("Error updating template:", error);
+      toast({
+        title: "Failed to Update Template",
+        description: error.message || "An error occurred while updating the template. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const copyTemplateMutation = useMutation({
+    mutationFn: async (template: any) => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/messaging/templates', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': localStorage.getItem('user_subdomain') || 'demo',
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          name: `${template.name} (Copy)`,
+          category: template.category,
+          subject: template.subject,
+          content: template.content
+        }),
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: response.statusText }));
+        throw new Error(errorData.error || `${response.status}: ${response.statusText}`);
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/messaging/templates'] });
+      toast({
+        title: "Template Copied",
+        description: "Template has been copied successfully.",
+      });
+    },
+    onError: (error: any) => {
+      console.error("Error copying template:", error);
+      toast({
+        title: "Failed to Copy Template",
+        description: error.message || "An error occurred while copying the template. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleUseTemplate = (template: any) => {
+    setSelectedTemplate(template);
+    setShowUseTemplate(true);
+  };
+
+  const handleEditTemplate = (template: any) => {
+    setSelectedTemplate(template);
+    setEditingTemplate({
+      name: template.name,
+      category: template.category,
+      subject: template.subject,
+      content: template.content
+    });
+    setShowEditTemplate(true);
+  };
+
+  const handleCopyTemplate = (template: any) => {
+    copyTemplateMutation.mutate(template);
+  };
+
+  const handleConfirmUseTemplate = () => {
+    if (selectedTemplate) {
+      useTemplateMutation.mutate(selectedTemplate.id);
+    }
+  };
+
+  const handleConfirmEditTemplate = () => {
+    if (!editingTemplate.name.trim() || !editingTemplate.subject.trim() || !editingTemplate.content.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (selectedTemplate) {
+      editTemplateMutation.mutate({
+        templateId: selectedTemplate.id,
+        templateData: editingTemplate
+      });
+    }
   };
 
   // Polling-based real-time messaging as WebSocket fallback
@@ -2444,13 +2625,30 @@ export default function MessagingPage() {
                       <span>Updated {new Date(template.updatedAt).toLocaleDateString()}</span>
                     </div>
                     <div className="flex items-center gap-2 pt-3 border-t mt-3">
-                      <Button variant="outline" size="sm" className="flex-1">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex-1"
+                        onClick={() => handleUseTemplate(template)}
+                        data-testid={`button-use-template-${template.id}`}
+                      >
                         Use Template
                       </Button>
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleEditTemplate(template)}
+                        data-testid={`button-edit-template-${template.id}`}
+                      >
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleCopyTemplate(template)}
+                        disabled={copyTemplateMutation.isPending}
+                        data-testid={`button-copy-template-${template.id}`}
+                      >
                         <Copy className="h-4 w-4" />
                       </Button>
                     </div>
@@ -2459,6 +2657,144 @@ export default function MessagingPage() {
               ))}
             </div>
           )}
+
+          {/* Use Template Dialog */}
+          <Dialog open={showUseTemplate} onOpenChange={setShowUseTemplate}>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Send Template to All Users</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-md">
+                  <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">Template Details</h4>
+                  {selectedTemplate && (
+                    <>
+                      <p className="text-sm text-blue-800 dark:text-blue-200"><strong>Name:</strong> {selectedTemplate.name}</p>
+                      <p className="text-sm text-blue-800 dark:text-blue-200"><strong>Subject:</strong> {selectedTemplate.subject}</p>
+                      <p className="text-sm text-blue-800 dark:text-blue-200 mt-2"><strong>Content Preview:</strong></p>
+                      <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">{selectedTemplate.content.substring(0, 200)}...</p>
+                    </>
+                  )}
+                </div>
+                
+                <div className="bg-gray-50 dark:bg-slate-800 p-4 rounded-md">
+                  <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">Email Recipients ({allUsers?.length || 0} users)</h4>
+                  <div className="max-h-48 overflow-y-auto space-y-1">
+                    {allUsers && allUsers.length > 0 ? (
+                      allUsers.map((user: any) => (
+                        <div key={user.id} className="flex items-center justify-between text-sm py-1 px-2 bg-white dark:bg-slate-700 rounded">
+                          <span className="text-gray-700 dark:text-gray-200">{user.firstName} {user.lastName}</span>
+                          <span className="text-gray-500 dark:text-gray-400 text-xs">{user.email}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm text-gray-500">Loading users...</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-3">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowUseTemplate(false)}
+                    data-testid="button-cancel-use-template"
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={handleConfirmUseTemplate}
+                    disabled={useTemplateMutation.isPending}
+                    data-testid="button-send-template"
+                  >
+                    {useTemplateMutation.isPending ? "Sending..." : "Send to All Users"}
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* Edit Template Dialog */}
+          <Dialog open={showEditTemplate} onOpenChange={setShowEditTemplate}>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Edit Template</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="editTemplateName">Template Name *</Label>
+                    <Input
+                      id="editTemplateName"
+                      placeholder="Enter template name"
+                      value={editingTemplate.name}
+                      onChange={(e) => setEditingTemplate({ ...editingTemplate, name: e.target.value })}
+                      data-testid="input-edit-template-name"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="editCategory">Category *</Label>
+                    <Select
+                      value={editingTemplate.category}
+                      onValueChange={(value) => setEditingTemplate({ ...editingTemplate, category: value as any })}
+                    >
+                      <SelectTrigger data-testid="select-edit-category">
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="general">General</SelectItem>
+                        <SelectItem value="medical">Medical</SelectItem>
+                        <SelectItem value="preventive">Preventive</SelectItem>
+                        <SelectItem value="urgent">Urgent</SelectItem>
+                        <SelectItem value="onboarding">Onboarding</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="editSubject">Subject *</Label>
+                  <Input
+                    id="editSubject"
+                    placeholder="Enter subject line"
+                    value={editingTemplate.subject}
+                    onChange={(e) => setEditingTemplate({ ...editingTemplate, subject: e.target.value })}
+                    data-testid="input-edit-template-subject"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="editContent">Message Content *</Label>
+                  <Textarea
+                    id="editContent"
+                    placeholder="Enter message content. Use {{variableName}} for dynamic content."
+                    rows={8}
+                    value={editingTemplate.content}
+                    onChange={(e) => setEditingTemplate({ ...editingTemplate, content: e.target.value })}
+                    data-testid="textarea-edit-template-content"
+                  />
+                  <p className="text-xs text-gray-500">Tip: Use placeholders like {'{{patientName}}'}, {'{{date}}'}, {'{{doctorName}}'} for dynamic content</p>
+                </div>
+
+                <div className="flex justify-end gap-3">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowEditTemplate(false)}
+                    data-testid="button-cancel-edit-template"
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={handleConfirmEditTemplate}
+                    disabled={editTemplateMutation.isPending}
+                    data-testid="button-save-edit-template"
+                  >
+                    {editTemplateMutation.isPending ? "Saving..." : "Save Changes"}
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-6">

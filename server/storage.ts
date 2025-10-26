@@ -304,6 +304,7 @@ export interface IStorage {
   createMessageCampaign(campaignData: any, organizationId: number): Promise<any>;
   getMessageTemplates(organizationId: number): Promise<any[]>;
   createMessageTemplate(templateData: any, organizationId: number): Promise<any>;
+  updateMessageTemplate(templateId: number, templateData: any, organizationId: number): Promise<any>;
   
   // Integrations
   getIntegrations(organizationId: number): Promise<any[]>;
@@ -3747,6 +3748,37 @@ export class DatabaseStorage implements IStorage {
       return template;
     } catch (error) {
       console.error("❌ Error creating template:", error);
+      throw error;
+    }
+  }
+
+  async updateMessageTemplate(templateId: number, templateData: any, organizationId: number): Promise<MessageTemplate> {
+    try {
+      const updateValues: any = {};
+      
+      if (templateData.name !== undefined) updateValues.name = templateData.name;
+      if (templateData.category !== undefined) updateValues.category = templateData.category;
+      if (templateData.subject !== undefined) updateValues.subject = templateData.subject;
+      if (templateData.content !== undefined) updateValues.content = templateData.content;
+      if (templateData.usageCount !== undefined) updateValues.usageCount = templateData.usageCount;
+      if (templateData.createdBy !== undefined) updateValues.createdBy = templateData.createdBy;
+      
+      const [template] = await db.update(messageTemplates)
+        .set(updateValues)
+        .where(and(
+          eq(messageTemplates.id, templateId),
+          eq(messageTemplates.organizationId, organizationId)
+        ))
+        .returning();
+      
+      if (!template) {
+        throw new Error(`Template ${templateId} not found for organization ${organizationId}`);
+      }
+      
+      console.log(`📝 Updated template "${template.name}" (ID: ${template.id}) for organization ${organizationId}`);
+      return template;
+    } catch (error) {
+      console.error("❌ Error updating template:", error);
       throw error;
     }
   }
