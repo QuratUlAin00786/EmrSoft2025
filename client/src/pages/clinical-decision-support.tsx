@@ -504,6 +504,8 @@ export default function ClinicalDecisionSupport() {
       return apiRequest("POST", `/api/lab-results/${labResultId}/assess`, {});
     },
     onSuccess: (data: any) => {
+      console.log("[ASSESSMENT] Received data:", data);
+      console.log("[ASSESSMENT] Assessment object:", data?.assessment);
       setAssessmentResult(data as AssessmentResponse);
       setIsGeneratingAssessment(false);
       toast({
@@ -529,6 +531,13 @@ export default function ClinicalDecisionSupport() {
     
     await generateAssessmentMutation.mutateAsync(labResult.id);
   };
+
+  // Debug: Log assessment result changes
+  React.useEffect(() => {
+    console.log("[ASSESSMENT-STATE] assessmentResult:", assessmentResult);
+    console.log("[ASSESSMENT-STATE] isGeneratingAssessment:", isGeneratingAssessment);
+    console.log("[ASSESSMENT-STATE] Has assessment:", !!assessmentResult?.assessment);
+  }, [assessmentResult, isGeneratingAssessment]);
 
   // Create new insight mutation
   const createInsightMutation = useMutation({
@@ -1547,6 +1556,9 @@ export default function ClinicalDecisionSupport() {
                 <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>AI-Powered Lab Result Assessment</DialogTitle>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      View AI-generated risk factors and clinical recommendations based on lab results
+                    </p>
                   </DialogHeader>
                   
                   {isGeneratingAssessment ? (
