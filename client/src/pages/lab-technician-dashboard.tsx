@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
@@ -339,6 +339,26 @@ export default function LabTechnicianDashboard() {
       return response.json();
     },
   });
+
+  // Run migration once on component mount to add testType to existing results
+  useEffect(() => {
+    const migrationKey = 'lab_results_testtype_migration_v1';
+    const hasMigrated = localStorage.getItem(migrationKey);
+    
+    if (!hasMigrated) {
+      apiRequest("POST", "/api/lab-results/migrate-test-types")
+        .then(response => response.json())
+        .then(data => {
+          console.log('Migration completed:', data);
+          localStorage.setItem(migrationKey, 'true');
+          // Refetch lab tests to get updated data
+          queryClient.invalidateQueries({ queryKey: ["/api/lab-technician/tests"] });
+        })
+        .catch(error => {
+          console.error('Migration failed:', error);
+        });
+    }
+  }, []);
 
   // Filter lab tests based on search query and filters
   const filteredTests = labTests.filter((test: LabTest) => {

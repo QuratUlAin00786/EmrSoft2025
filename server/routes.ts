@@ -7494,6 +7494,119 @@ This treatment plan should be reviewed and adjusted based on individual patient 
     }
   });
 
+  // Migrate lab results to add testType field to each result object
+  app.post("/api/lab-results/migrate-test-types", authMiddleware, requireNonPatientRole(), async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const organizationId = req.tenant!.id;
+      const labResultsList = await storage.getLabResults(organizationId);
+
+      let updatedCount = 0;
+      let alreadyMigratedCount = 0;
+
+      for (const labResult of labResultsList) {
+        if (!labResult.results || !labResult.testType) continue;
+
+        const results = typeof labResult.results === 'string' 
+          ? JSON.parse(labResult.results) 
+          : labResult.results;
+
+        if (!Array.isArray(results) || results.length === 0) continue;
+
+        // Check if already migrated (first result has testType field)
+        if (results[0]?.testType) {
+          alreadyMigratedCount++;
+          continue;
+        }
+
+        // Parse test types from testType field
+        const testTypesStr = labResult.testType;
+        let testTypes: string[] = [];
+        try {
+          const parsed = JSON.parse(testTypesStr);
+          testTypes = Array.isArray(parsed) ? parsed : [testTypesStr];
+        } catch {
+          testTypes = testTypesStr.split('|').map(t => t.trim()).filter(t => t.length > 0);
+        }
+
+        // Build a map of parameter names to test types
+        const TEST_FIELD_DEFINITIONS: Record<string, Array<{name: string}>> = {
+          "Complete Blood Count (CBC)": [
+            { name: "White Blood Cell Count (WBC)" },
+            { name: "Red Blood Cell Count (RBC)" },
+            { name: "Hemoglobin (Hb)" },
+            { name: "Hematocrit (Hct)" },
+            { name: "Mean Corpuscular Volume (MCV)" },
+            { name: "Mean Corpuscular Hemoglobin (MCH)" },
+            { name: "Mean Corpuscular Hemoglobin Concentration (MCHC)" },
+            { name: "Platelet Count" },
+            { name: "Red Cell Distribution Width (RDW)" },
+          ],
+          "Hormonal tests (Cortisol, ACTH)": [
+            { name: "Cortisol (AM)" },
+            { name: "Cortisol (PM)" },
+            { name: "ACTH (Adrenocorticotropic Hormone)" },
+            { name: "24-hour Urinary Free Cortisol" },
+          ],
+          "Viral Panels / PCR Tests (e.g. COVID-19, Influenza)": [
+            { name: "COVID-19 PCR" },
+            { name: "Influenza A PCR" },
+            { name: "Influenza B PCR" },
+            { name: "RSV PCR" },
+          ],
+          "Bacterial Culture/Sensitivity Testing": [
+            { name: "Culture Result" },
+            { name: "Gram Stain" },
+            { name: "AFB (Acid-Fast Bacilli)" },
+            { name: "Fungal Culture" },
+          ],
+        };
+
+        // Create parameter name to testType mapping
+        const paramToTestType: Record<string, string> = {};
+        testTypes.forEach(testType => {
+          const fields = TEST_FIELD_DEFINITIONS[testType];
+          if (fields) {
+            fields.forEach(field => {
+              paramToTestType[field.name] = testType;
+            });
+          }
+        });
+
+        // Update results array with testType field
+        const updatedResults = results.map((result: any) => {
+          const paramName = result.testName || result.name || '';
+          const testType = paramToTestType[paramName] || testTypes[0] || 'General Tests';
+          return {
+            ...result,
+            testType
+          };
+        });
+
+        // Update lab result in database
+        await storage.updateLabResult(labResult.id!, organizationId, {
+          results: JSON.stringify(updatedResults)
+        });
+
+        updatedCount++;
+      }
+
+      res.json({
+        success: true,
+        message: `Migration completed: ${updatedCount} lab results updated, ${alreadyMigratedCount} already migrated`,
+        updatedCount,
+        alreadyMigratedCount
+      });
+
+    } catch (error) {
+      console.error("Error migrating lab results:", error);
+      res.status(500).json({ error: "Failed to migrate lab results" });
+    }
+  });
+
   // Get Lab Result PDF Path
   app.get("/api/lab-results/:id/pdf-path", authMiddleware, async (req: TenantRequest, res) => {
     try {
