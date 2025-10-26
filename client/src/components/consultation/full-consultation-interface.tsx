@@ -1671,6 +1671,11 @@ ${
 
       const result = await response.json();
 
+      // Set the saved anatomical image path for viewing in the dialog
+      const organizationId = tenant?.id || 0;
+      const imagePath = `/uploads/${organizationId}/anatomical_analysis_img/${organizationId}/${currentPatientId}/${currentPatientId}.png`;
+      setSavedAnatomicalImage(imagePath);
+
       toast({
         title: "Image Saved to Server",
         description: `Image with ${musclePositions.length} yellow dot(s) for ${selectedMuscleGroup.replace(/_/g, ' ')} has been saved successfully.`
@@ -1818,6 +1823,18 @@ ${
       queryMusclePositionsFromDB();
     }
   }, [selectedMuscleGroup, toast]);
+
+  // Load saved anatomical image when view dialog opens
+  useEffect(() => {
+    if (showViewAnatomicalDialog) {
+      const currentPatientId = patientId || patient?.id;
+      if (currentPatientId && tenant?.id) {
+        const organizationId = tenant.id;
+        const imagePath = `/uploads/${organizationId}/anatomical_analysis_img/${organizationId}/${currentPatientId}/${currentPatientId}.png`;
+        setSavedAnatomicalImage(imagePath);
+      }
+    }
+  }, [showViewAnatomicalDialog, patientId, patient?.id, tenant?.id]);
 
   // Static muscle positions data - replaces database queries
   const getStaticMusclePositions = () => {
@@ -5179,48 +5196,105 @@ ${
                     }
 
                     // Title
-                    doc.setFontSize(14);
+                    doc.setFontSize(16);
                     doc.setFont('helvetica', 'bold');
                     doc.text('Professional Anatomical Analysis Report', 105, yPos, { align: 'center' });
-                    yPos += 15;
+                    yPos += 12;
 
-                    // Analysis Details
+                    // Add anatomical analysis image if available
+                    if (savedAnatomicalImage) {
+                      try {
+                        console.log('[PDF] Loading anatomical image from:', savedAnatomicalImage);
+                        const imageResponse = await fetch(savedAnatomicalImage);
+                        
+                        if (imageResponse.ok) {
+                          const imageBlob = await imageResponse.blob();
+                          const imageBase64 = await new Promise<string>((resolve) => {
+                            const reader = new FileReader();
+                            reader.onloadend = () => resolve(reader.result as string);
+                            reader.readAsDataURL(imageBlob);
+                          });
+                          
+                          // Add image with better sizing
+                          const imgWidth = 120;
+                          const imgHeight = 100;
+                          const imgX = (210 - imgWidth) / 2; // Center horizontally (A4 width is 210mm)
+                          
+                          doc.addImage(imageBase64, 'PNG', imgX, yPos, imgWidth, imgHeight);
+                          yPos += imgHeight + 10;
+                          console.log('[PDF] Anatomical image added successfully');
+                          
+                          // Add image caption
+                          doc.setFontSize(9);
+                          doc.setFont('helvetica', 'italic');
+                          doc.text('Anatomical Analysis with Marked Target Areas', 105, yPos, { align: 'center' });
+                          yPos += 10;
+                        } else {
+                          console.log('[PDF] Image not found, continuing without image');
+                        }
+                      } catch (imageError) {
+                        console.error('[PDF] Error loading anatomical image:', imageError);
+                      }
+                    }
+
+                    // Analysis Details Section
                     doc.setFontSize(12);
                     doc.setFont('helvetica', 'bold');
                     doc.text('Analysis Details:', 20, yPos);
-                    yPos += 10;
+                    yPos += 8;
+
+                    // Draw box around details
+                    doc.setDrawColor(200, 200, 200);
+                    doc.setLineWidth(0.5);
+                    const detailsStartY = yPos;
 
                     doc.setFontSize(10);
                     doc.setFont('helvetica', 'normal');
                     const details = [
-                      `Target Muscle Group: ${selectedMuscleGroup ? selectedMuscleGroup.replace(/_/g, ' ') : 'Not specified'}`,
-                      `Analysis Type: ${selectedAnalysisType ? selectedAnalysisType.replace(/_/g, ' ') : 'Not specified'}`,
-                      `Primary Treatment: ${selectedTreatment ? selectedTreatment.replace(/_/g, ' ') : 'Not specified'}`,
-                      `Treatment Intensity: ${selectedTreatmentIntensity || 'Not specified'}`,
-                      `Session Frequency: ${selectedSessionFrequency || 'Not specified'}`,
-                      `Severity Scale: ${severityScale || 'Not specified'}`,
-                      `Primary Symptoms: ${primarySymptoms || 'Not specified'}`,
-                      `Follow-up Plan: ${followUpPlan || 'Not specified'}`
+                      { label: 'Target Muscle Group', value: selectedMuscleGroup ? selectedMuscleGroup.replace(/_/g, ' ').toUpperCase() : 'Not specified' },
+                      { label: 'Analysis Type', value: selectedAnalysisType ? selectedAnalysisType.replace(/_/g, ' ') : 'Not specified' },
+                      { label: 'Primary Treatment', value: selectedTreatment ? selectedTreatment.replace(/_/g, ' ') : 'Not specified' },
+                      { label: 'Treatment Intensity', value: selectedTreatmentIntensity || 'Not specified' },
+                      { label: 'Session Frequency', value: selectedSessionFrequency || 'Not specified' },
+                      { label: 'Severity Scale', value: severityScale || 'Not specified' },
+                      { label: 'Primary Symptoms', value: primarySymptoms || 'Not specified' },
+                      { label: 'Follow-up Plan', value: followUpPlan || 'Not specified' }
                     ];
 
                     details.forEach(detail => {
-                      doc.text(detail, 20, yPos);
-                      yPos += 7;
+                      if (yPos > 270) {
+                        doc.addPage();
+                        yPos = 20;
+                      }
+                      doc.setFont('helvetica', 'bold');
+                      doc.text(`${detail.label}:`, 25, yPos);
+                      doc.setFont('helvetica', 'normal');
+                      doc.text(detail.value, 80, yPos);
+                      yPos += 6;
                     });
 
-                    // Treatment Plan
+                    // Draw box around details
+                    doc.rect(20, detailsStartY - 3, 170, (details.length * 6) + 3);
+                    yPos += 5;
+
+                    // Treatment Plan Section
                     if (generatedTreatmentPlan) {
-                      yPos += 10;
+                      if (yPos > 240) {
+                        doc.addPage();
+                        yPos = 20;
+                      }
+                      
+                      yPos += 5;
                       doc.setFontSize(12);
                       doc.setFont('helvetica', 'bold');
                       doc.text('Generated Treatment Plan:', 20, yPos);
-                      yPos += 10;
+                      yPos += 8;
 
                       doc.setFontSize(10);
                       doc.setFont('helvetica', 'normal');
                       const lines = doc.splitTextToSize(generatedTreatmentPlan, 170);
                       lines.forEach((line: string) => {
-                        if (yPos > 270) {
+                        if (yPos > 275) {
                           doc.addPage();
                           yPos = 20;
                         }
