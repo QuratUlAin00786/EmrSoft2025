@@ -1527,32 +1527,26 @@ export default function CalendarPage() {
                       </PopoverTrigger>
                       <PopoverContent className="w-64 p-4" align="start">
                         <div className="space-y-3">
-                          <div>
-                            <Label className="text-sm font-medium mb-2">Role</Label>
-                            <Select value={staffFilterRole} onValueChange={setStaffFilterRole}>
-                              <SelectTrigger className="w-full">
-                                <SelectValue placeholder="All Roles" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="all">All Roles</SelectItem>
-                                <SelectItem value="doctor">Doctor</SelectItem>
-                                <SelectItem value="nurse">Nurse</SelectItem>
-                                <SelectItem value="receptionist">Receptionist</SelectItem>
-                                <SelectItem value="admin">Admin</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div>
-                            <Label className="text-sm font-medium mb-2">Search</Label>
-                            <div className="relative">
-                              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                              <Input
-                                placeholder="Search staff..."
-                                value={staffFilterSearch}
-                                onChange={(e) => setStaffFilterSearch(e.target.value)}
-                                className="pl-9"
-                              />
-                            </div>
+                          <Select value={staffFilterRole} onValueChange={setStaffFilterRole}>
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="All Roles" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">All Roles</SelectItem>
+                              <SelectItem value="doctor">Doctor</SelectItem>
+                              <SelectItem value="nurse">Nurse</SelectItem>
+                              <SelectItem value="receptionist">Receptionist</SelectItem>
+                              <SelectItem value="admin">Admin</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <div className="relative">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Input
+                              placeholder="Search by name, email, specialization, department.."
+                              value={staffFilterSearch}
+                              onChange={(e) => setStaffFilterSearch(e.target.value)}
+                              className="pl-9"
+                            />
                           </div>
                         </div>
                       </PopoverContent>
