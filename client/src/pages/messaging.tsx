@@ -2075,7 +2075,7 @@ export default function MessagingPage() {
           </div>
         </TabsContent>
 
-        <TabsContent value="campaigns" className="space-y-6">
+        <TabsContent value="campaigns" className="space-y-6 p-6">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Messaging Campaigns</h2>
             <Dialog open={showCreateCampaign} onOpenChange={setShowCreateCampaign}>
