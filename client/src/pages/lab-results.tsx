@@ -2427,6 +2427,9 @@ Report generated from Cura EMR System`;
                             Priority
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            Test Status
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                             Status
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -2442,7 +2445,21 @@ Report generated from Cura EMR System`;
                             data-testid={`row-lab-result-${result.id}`}
                           >
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
-                              {result.testId}
+                              <div className="space-y-1">
+                                <div>{result.testId}</div>
+                                <Button
+                                  variant="link"
+                                  size="sm"
+                                  onClick={() => {
+                                    setSelectedResult(result);
+                                    setShowPrescriptionDialog(true);
+                                  }}
+                                  className="h-auto p-0 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                                  data-testid={`link-view-prescription-${result.id}`}
+                                >
+                                  View Prescription
+                                </Button>
+                              </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                               {getPatientName(result.patientId)}
@@ -2479,6 +2496,14 @@ Report generated from Cura EMR System`;
                                 className="text-xs"
                               >
                                 {result.priority || "routine"}
+                              </Badge>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                              <Badge
+                                variant={result.criticalValues ? "destructive" : "secondary"}
+                                className="text-xs"
+                              >
+                                {result.criticalValues ? "Critical" : "Normal"}
                               </Badge>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm">
@@ -2817,6 +2842,18 @@ Report generated from Cura EMR System`;
                           <div className="text-sm text-gray-600 dark:text-gray-300">
                             <span className="font-medium">Test ID:</span>{" "}
                             {result.testId}
+                            <Button
+                              variant="link"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedResult(result);
+                                setShowPrescriptionDialog(true);
+                              }}
+                              className="h-auto p-0 ml-2 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                              data-testid={`link-view-prescription-card-${result.id}`}
+                            >
+                              View Prescription
+                            </Button>
                           </div>
                           {result.completedAt && (
                             <div className="text-sm text-gray-600 dark:text-gray-300">
