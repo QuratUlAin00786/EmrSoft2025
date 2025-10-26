@@ -16741,17 +16741,13 @@ Cura EMR Team
 
       const organizationId = req.tenant!.id;
       
-      // Create directory structure: uploads/Invoices/{organization_id}/{patient_id}/
-      const dirPath = path.join(process.cwd(), 'uploads', 'Invoices', organizationId.toString(), patientId);
-      await fse.ensureDir(dirPath);
-      
-      // Save PDF file
+      // Create file path: uploads/Invoices/{organization_id}/{patient_id}/{invoice_number}.pdf
       const fileName = `${invoiceNumber}.pdf`;
-      const filePath = path.join(dirPath, fileName);
+      const filePath = path.join(process.cwd(), 'uploads', 'Invoices', organizationId.toString(), patientId, fileName);
       
-      // Convert base64 to buffer and save
+      // Convert base64 to buffer and save (outputFile creates directories automatically)
       const buffer = Buffer.from(pdfData, 'base64');
-      await fse.writeFile(filePath, buffer);
+      await fse.outputFile(filePath, buffer);
       
       res.json({ 
         success: true, 
