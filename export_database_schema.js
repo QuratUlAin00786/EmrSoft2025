@@ -22,6 +22,35 @@ SET row_security = off;
 `;
 
   try {
+    // Get all sequences first
+    console.log('Fetching sequences...');
+    const sequences = await sql`
+      SELECT 
+        sequence_name,
+        start_value,
+        increment,
+        maximum_value,
+        minimum_value,
+        data_type
+      FROM information_schema.sequences
+      WHERE sequence_schema = 'public'
+      ORDER BY sequence_name
+    `;
+    
+    console.log(`Found ${sequences.length} sequences`);
+    
+    if (sequences.length > 0) {
+      output += '\n-- Sequences\n';
+      sequences.forEach(seq => {
+        output += `CREATE SEQUENCE public.${seq.sequence_name}`;
+        output += `\n    START WITH ${seq.start_value}`;
+        output += `\n    INCREMENT BY ${seq.increment}`;
+        output += `\n    NO MINVALUE`;
+        output += `\n    NO MAXVALUE`;
+        output += `\n    CACHE 1;\n\n`;
+      });
+    }
+    
     // Get all tables
     console.log('Fetching tables...');
     const tables = await sql`
@@ -222,16 +251,44 @@ SET row_security = off;
       });
     }
 
+    // Get sequence ownership (link sequences to their columns)
+    console.log('Fetching sequence ownership...');
+    const sequenceOwnership = await sql`
+      SELECT 
+        s.sequence_name,
+        t.table_name,
+        c.column_name
+      FROM information_schema.sequences s
+      JOIN pg_depend d ON d.objid = (s.sequence_schema || '.' || s.sequence_name)::regclass
+      JOIN pg_class tc ON tc.oid = d.refobjid
+      JOIN information_schema.tables t ON t.table_name = tc.relname AND t.table_schema = s.sequence_schema
+      JOIN pg_attribute a ON a.attrelid = tc.oid AND a.attnum = d.refobjsubid
+      JOIN information_schema.columns c ON c.table_name = t.table_name 
+        AND c.column_name = a.attname 
+        AND c.table_schema = t.table_schema
+      WHERE s.sequence_schema = 'public'
+      ORDER BY s.sequence_name
+    `;
+
+    if (sequenceOwnership.length > 0) {
+      output += '\n-- Sequence Ownership\n';
+      sequenceOwnership.forEach(so => {
+        output += `ALTER SEQUENCE public.${so.sequence_name} OWNED BY public.${so.table_name}.${so.column_name};\n`;
+      });
+    }
+
     // Write to file
     const filename = 'database_schema_complete.sql';
     fs.writeFileSync(filename, output);
     
     console.log(`\n✅ Schema exported successfully to ${filename}`);
+    console.log(`   Sequences: ${sequences.length}`);
     console.log(`   Tables: ${tables.length}`);
     console.log(`   Primary Keys: ${Object.keys(primaryKeys.reduce((acc, pk) => ({...acc, [pk.table_name]: true}), {})).length}`);
     console.log(`   Foreign Keys: ${foreignKeys.length}`);
     console.log(`   Unique Constraints: ${Object.keys(uniqueConstraints.reduce((acc, uc) => ({...acc, [uc.constraint_name]: true}), {})).length}`);
     console.log(`   Indexes: ${indexes.length}`);
+    console.log(`   Sequence Ownership: ${sequenceOwnership.length}`);
     console.log(`   File size: ${(fs.statSync(filename).size / 1024).toFixed(2)} KB`);
     
   } catch (error) {

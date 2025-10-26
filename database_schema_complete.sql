@@ -1,5 +1,5 @@
 -- PostgreSQL Database Schema Export
--- Generated: 2025-10-26T15:02:24.033Z
+-- Generated: 2025-10-26T15:08:12.078Z
 -- Database: Cura EMR System
 
 SET statement_timeout = 0;
@@ -10,6 +10,519 @@ SET check_function_bodies = false;
 SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
+
+
+-- Sequences
+CREATE SEQUENCE public.ai_insights_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.appointments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.chatbot_analytics_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.chatbot_configs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.chatbot_messages_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.chatbot_sessions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.claims_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.clinic_footers_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.clinic_headers_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.clinical_photos_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.clinical_procedures_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.consultations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.doctor_default_shifts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.doctors_fee_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.documents_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.emergency_protocols_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.financial_forecasts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.forecast_models_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.gdpr_audit_trail_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.gdpr_consents_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.gdpr_data_requests_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.gdpr_processing_activities_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.imaging_pricing_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.insurance_verifications_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.inventory_batches_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.inventory_categories_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.inventory_items_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.inventory_purchase_order_items_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.inventory_purchase_orders_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.inventory_sale_items_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.inventory_sales_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.inventory_stock_alerts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.inventory_stock_movements_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.inventory_suppliers_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.invoices_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.lab_results_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.lab_test_pricing_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.letter_drafts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.medical_images_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.medical_records_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.medications_database_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.message_campaigns_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.message_templates_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.muscles_position_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.notifications_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.organizations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.patient_communications_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.patient_drug_interactions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.patients_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.payments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.prescriptions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.quickbooks_account_mappings_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.quickbooks_connections_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.quickbooks_customer_mappings_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.quickbooks_invoice_mappings_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.quickbooks_item_mappings_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.quickbooks_payment_mappings_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.quickbooks_sync_configs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.quickbooks_sync_logs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.revenue_records_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.risk_assessments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.roles_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.saas_invoices_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.saas_owners_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.saas_packages_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.saas_payments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.saas_settings_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.saas_subscriptions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.staff_shifts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.subscriptions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.symptom_checks_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.user_document_preferences_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE SEQUENCE public.users_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
 
 
 -- Table: ai_insights
@@ -1608,3 +2121,78 @@ CREATE UNIQUE INDEX saas_owners_username_unique ON public.saas_owners USING btre
 CREATE UNIQUE INDEX saas_payments_invoice_number_unique ON public.saas_payments USING btree (invoice_number);
 CREATE UNIQUE INDEX saas_settings_key_unique ON public.saas_settings USING btree (key);
 CREATE UNIQUE INDEX unique_user_document_preferences ON public.user_document_preferences USING btree (user_id, organization_id);
+
+-- Sequence Ownership
+ALTER SEQUENCE public.ai_insights_id_seq OWNED BY public.ai_insights.id;
+ALTER SEQUENCE public.appointments_id_seq OWNED BY public.appointments.id;
+ALTER SEQUENCE public.chatbot_analytics_id_seq OWNED BY public.chatbot_analytics.id;
+ALTER SEQUENCE public.chatbot_configs_id_seq OWNED BY public.chatbot_configs.id;
+ALTER SEQUENCE public.chatbot_messages_id_seq OWNED BY public.chatbot_messages.id;
+ALTER SEQUENCE public.chatbot_sessions_id_seq OWNED BY public.chatbot_sessions.id;
+ALTER SEQUENCE public.claims_id_seq OWNED BY public.claims.id;
+ALTER SEQUENCE public.clinic_footers_id_seq OWNED BY public.clinic_footers.id;
+ALTER SEQUENCE public.clinic_headers_id_seq OWNED BY public.clinic_headers.id;
+ALTER SEQUENCE public.clinical_photos_id_seq OWNED BY public.clinical_photos.id;
+ALTER SEQUENCE public.clinical_procedures_id_seq OWNED BY public.clinical_procedures.id;
+ALTER SEQUENCE public.consultations_id_seq OWNED BY public.consultations.id;
+ALTER SEQUENCE public.doctor_default_shifts_id_seq OWNED BY public.doctor_default_shifts.id;
+ALTER SEQUENCE public.doctors_fee_id_seq OWNED BY public.doctors_fee.id;
+ALTER SEQUENCE public.documents_id_seq OWNED BY public.documents.id;
+ALTER SEQUENCE public.emergency_protocols_id_seq OWNED BY public.emergency_protocols.id;
+ALTER SEQUENCE public.financial_forecasts_id_seq OWNED BY public.financial_forecasts.id;
+ALTER SEQUENCE public.forecast_models_id_seq OWNED BY public.forecast_models.id;
+ALTER SEQUENCE public.gdpr_audit_trail_id_seq OWNED BY public.gdpr_audit_trail.id;
+ALTER SEQUENCE public.gdpr_consents_id_seq OWNED BY public.gdpr_consents.id;
+ALTER SEQUENCE public.gdpr_data_requests_id_seq OWNED BY public.gdpr_data_requests.id;
+ALTER SEQUENCE public.gdpr_processing_activities_id_seq OWNED BY public.gdpr_processing_activities.id;
+ALTER SEQUENCE public.imaging_pricing_id_seq OWNED BY public.imaging_pricing.id;
+ALTER SEQUENCE public.insurance_verifications_id_seq OWNED BY public.insurance_verifications.id;
+ALTER SEQUENCE public.inventory_batches_id_seq OWNED BY public.inventory_batches.id;
+ALTER SEQUENCE public.inventory_categories_id_seq OWNED BY public.inventory_categories.id;
+ALTER SEQUENCE public.inventory_items_id_seq OWNED BY public.inventory_items.id;
+ALTER SEQUENCE public.inventory_purchase_order_items_id_seq OWNED BY public.inventory_purchase_order_items.id;
+ALTER SEQUENCE public.inventory_purchase_orders_id_seq OWNED BY public.inventory_purchase_orders.id;
+ALTER SEQUENCE public.inventory_sale_items_id_seq OWNED BY public.inventory_sale_items.id;
+ALTER SEQUENCE public.inventory_sales_id_seq OWNED BY public.inventory_sales.id;
+ALTER SEQUENCE public.inventory_stock_alerts_id_seq OWNED BY public.inventory_stock_alerts.id;
+ALTER SEQUENCE public.inventory_stock_movements_id_seq OWNED BY public.inventory_stock_movements.id;
+ALTER SEQUENCE public.inventory_suppliers_id_seq OWNED BY public.inventory_suppliers.id;
+ALTER SEQUENCE public.invoices_id_seq OWNED BY public.invoices.id;
+ALTER SEQUENCE public.lab_results_id_seq OWNED BY public.lab_results.id;
+ALTER SEQUENCE public.lab_test_pricing_id_seq OWNED BY public.lab_test_pricing.id;
+ALTER SEQUENCE public.letter_drafts_id_seq OWNED BY public.letter_drafts.id;
+ALTER SEQUENCE public.medical_images_id_seq OWNED BY public.medical_images.id;
+ALTER SEQUENCE public.medical_records_id_seq OWNED BY public.medical_records.id;
+ALTER SEQUENCE public.medications_database_id_seq OWNED BY public.medications_database.id;
+ALTER SEQUENCE public.message_campaigns_id_seq OWNED BY public.message_campaigns.id;
+ALTER SEQUENCE public.message_templates_id_seq OWNED BY public.message_templates.id;
+ALTER SEQUENCE public.muscles_position_id_seq OWNED BY public.muscles_position.id;
+ALTER SEQUENCE public.notifications_id_seq OWNED BY public.notifications.id;
+ALTER SEQUENCE public.organizations_id_seq OWNED BY public.organizations.id;
+ALTER SEQUENCE public.patient_communications_id_seq OWNED BY public.patient_communications.id;
+ALTER SEQUENCE public.patient_drug_interactions_id_seq OWNED BY public.patient_drug_interactions.id;
+ALTER SEQUENCE public.patients_id_seq OWNED BY public.patients.id;
+ALTER SEQUENCE public.payments_id_seq OWNED BY public.payments.id;
+ALTER SEQUENCE public.prescriptions_id_seq OWNED BY public.prescriptions.id;
+ALTER SEQUENCE public.quickbooks_account_mappings_id_seq OWNED BY public.quickbooks_account_mappings.id;
+ALTER SEQUENCE public.quickbooks_connections_id_seq OWNED BY public.quickbooks_connections.id;
+ALTER SEQUENCE public.quickbooks_customer_mappings_id_seq OWNED BY public.quickbooks_customer_mappings.id;
+ALTER SEQUENCE public.quickbooks_invoice_mappings_id_seq OWNED BY public.quickbooks_invoice_mappings.id;
+ALTER SEQUENCE public.quickbooks_item_mappings_id_seq OWNED BY public.quickbooks_item_mappings.id;
+ALTER SEQUENCE public.quickbooks_payment_mappings_id_seq OWNED BY public.quickbooks_payment_mappings.id;
+ALTER SEQUENCE public.quickbooks_sync_configs_id_seq OWNED BY public.quickbooks_sync_configs.id;
+ALTER SEQUENCE public.quickbooks_sync_logs_id_seq OWNED BY public.quickbooks_sync_logs.id;
+ALTER SEQUENCE public.revenue_records_id_seq OWNED BY public.revenue_records.id;
+ALTER SEQUENCE public.risk_assessments_id_seq OWNED BY public.risk_assessments.id;
+ALTER SEQUENCE public.roles_id_seq OWNED BY public.roles.id;
+ALTER SEQUENCE public.saas_invoices_id_seq OWNED BY public.saas_invoices.id;
+ALTER SEQUENCE public.saas_owners_id_seq OWNED BY public.saas_owners.id;
+ALTER SEQUENCE public.saas_packages_id_seq OWNED BY public.saas_packages.id;
+ALTER SEQUENCE public.saas_payments_id_seq OWNED BY public.saas_payments.id;
+ALTER SEQUENCE public.saas_settings_id_seq OWNED BY public.saas_settings.id;
+ALTER SEQUENCE public.saas_subscriptions_id_seq OWNED BY public.saas_subscriptions.id;
+ALTER SEQUENCE public.staff_shifts_id_seq OWNED BY public.staff_shifts.id;
+ALTER SEQUENCE public.subscriptions_id_seq OWNED BY public.subscriptions.id;
+ALTER SEQUENCE public.symptom_checks_id_seq OWNED BY public.symptom_checks.id;
+ALTER SEQUENCE public.user_document_preferences_id_seq OWNED BY public.user_document_preferences.id;
+ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
