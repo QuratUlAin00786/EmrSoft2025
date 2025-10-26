@@ -2310,6 +2310,13 @@ export default function BillingPage() {
     if (!invoiceToSend) return;
     
     try {
+      // First, save the PDF if sending via email (so we can attach it)
+      if (sendMethod === 'email') {
+        console.log('📄 Generating PDF for email attachment...');
+        await handleSaveInvoice(invoiceToSend.id.toString());
+      }
+      
+      // Now send the invoice (PDF will be attached automatically by backend)
       await apiRequest('POST', '/api/billing/send-invoice', {
         invoiceId: invoiceToSend.id,
         sendMethod,
