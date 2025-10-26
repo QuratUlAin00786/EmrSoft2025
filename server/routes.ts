@@ -6660,7 +6660,6 @@ This treatment plan should be reviewed and adjusted based on individual patient 
           completedAt: lr.completedAt,
           signatureData: lr.signatureData,
           orderedBy: lr.orderedBy,
-          doctorName: doctor ? (doctor.firstName && doctor.lastName ? `${doctor.firstName} ${doctor.lastName}` : doctor.email) : (lr.doctorName || `Doctor ${lr.orderedBy}`),
           mainSpecialty: lr.mainSpecialty,
           subSpecialty: lr.subSpecialty
         };
