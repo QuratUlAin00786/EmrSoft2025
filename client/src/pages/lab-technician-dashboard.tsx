@@ -310,6 +310,7 @@ interface LabTest {
   status: string;
   patientId: number;
   sampleCollected?: boolean;
+  labReportGenerated?: boolean;
   invoiceStatus?: string;
   invoiceNumber?: string;
   nhsNumber?: string;
@@ -671,6 +672,12 @@ export default function LabTechnicianDashboard() {
                           Unpaid
                         </Badge>
                       )}
+                      {test.labReportGenerated && (
+                        <Badge className="bg-purple-600 hover:bg-purple-700">
+                          <FileText className="h-3 w-3 mr-1" />
+                          Report Generated
+                        </Badge>
+                      )}
                     </div>
 
                     {/* Patient Info */}
@@ -771,6 +778,12 @@ export default function LabTechnicianDashboard() {
                         {test.invoiceNumber && (
                           <Badge variant="outline">
                             {test.invoiceNumber}
+                          </Badge>
+                        )}
+                        {test.labReportGenerated && (
+                          <Badge className="bg-purple-600 hover:bg-purple-700">
+                            <FileText className="h-3 w-3 mr-1" />
+                            Report Generated
                           </Badge>
                         )}
                       </div>

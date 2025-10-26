@@ -6728,6 +6728,7 @@ This treatment plan should be reviewed and adjusted based on individual patient 
           lr.status,
           lr.patient_id as "patientId",
           lr."Sample_Collected" as "sampleCollected",
+          lr."Lab_Report_Generated" as "labReportGenerated",
           CONCAT(p.first_name, ' ', p.last_name) as "patientName",
           p.nhs_number as "nhsNumber",
           p.email as "patientEmail",
