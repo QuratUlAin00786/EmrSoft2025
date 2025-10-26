@@ -54,6 +54,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAiInsightsEvents } from "@/hooks/use-ai-insights-events";
 import { useAuth } from "@/hooks/use-auth";
 import { Header } from "@/components/layout/header";
+import jsPDF from "jspdf";
 
 // Use the actual database schema for form validation, excluding server-managed fields
 const createInsightSchema = insertAiInsightSchema.omit({
@@ -1921,33 +1922,76 @@ export default function ClinicalDecisionSupport() {
                   variant="outline"
                   onClick={() => {
                     // Generate and download PDF of the guideline
-                    const pdfContent = `
-Clinical Guideline: ${selectedGuideline.title}
+                    const doc = new jsPDF();
+                    const pageWidth = doc.internal.pageSize.getWidth();
+                    const margin = 20;
+                    const contentWidth = pageWidth - 2 * margin;
+                    let yPosition = 20;
 
-Organization: ${selectedGuideline.organization}
-Last Updated: ${selectedGuideline.updated}
-Evidence Level: ${selectedGuideline.evidenceLevel}
-Category: ${selectedGuideline.category}
+                    // Title
+                    doc.setFontSize(16);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(selectedGuideline.title, margin, yPosition);
+                    yPosition += 10;
 
-Description: ${selectedGuideline.description}
+                    // Metadata
+                    doc.setFontSize(10);
+                    doc.setFont('helvetica', 'normal');
+                    doc.text(`Organization: ${selectedGuideline.organization}`, margin, yPosition);
+                    yPosition += 6;
+                    doc.text(`Last Updated: ${selectedGuideline.updated}`, margin, yPosition);
+                    yPosition += 6;
+                    doc.text(`Evidence Level: ${selectedGuideline.evidenceLevel}`, margin, yPosition);
+                    yPosition += 6;
+                    doc.text(`Category: ${selectedGuideline.category}`, margin, yPosition);
+                    yPosition += 10;
 
-${selectedGuideline.sections.map(section => `
-${section.title}:
-${section.content.map(item => `• ${item}`).join('\n')}
-`).join('\n')}
+                    // Description
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('Description:', margin, yPosition);
+                    yPosition += 6;
+                    doc.setFont('helvetica', 'normal');
+                    const descLines = doc.splitTextToSize(selectedGuideline.description, contentWidth);
+                    doc.text(descLines, margin, yPosition);
+                    yPosition += (descLines.length * 6) + 8;
 
-Generated on ${new Date().toLocaleDateString()}
-                    `;
-                    
-                    const blob = new Blob([pdfContent], { type: 'text/plain' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `${selectedGuideline.title.replace(/[^a-zA-Z0-9]/g, '_')}.txt`;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
+                    // Sections
+                    selectedGuideline.sections.forEach((section: any) => {
+                      if (yPosition > 270) {
+                        doc.addPage();
+                        yPosition = 20;
+                      }
+                      
+                      doc.setFont('helvetica', 'bold');
+                      doc.setFontSize(12);
+                      doc.text(section.title, margin, yPosition);
+                      yPosition += 8;
+                      
+                      doc.setFont('helvetica', 'normal');
+                      doc.setFontSize(10);
+                      section.content.forEach((item: string) => {
+                        if (yPosition > 270) {
+                          doc.addPage();
+                          yPosition = 20;
+                        }
+                        const itemLines = doc.splitTextToSize(`• ${item}`, contentWidth - 5);
+                        doc.text(itemLines, margin + 5, yPosition);
+                        yPosition += (itemLines.length * 6) + 2;
+                      });
+                      yPosition += 6;
+                    });
+
+                    // Footer
+                    if (yPosition > 270) {
+                      doc.addPage();
+                      yPosition = 20;
+                    }
+                    doc.setFontSize(8);
+                    doc.setFont('helvetica', 'italic');
+                    doc.text(`Generated on ${new Date().toLocaleDateString()}`, margin, yPosition);
+
+                    // Download PDF
+                    doc.save(`${selectedGuideline.title.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`);
                     
                     toast({ 
                       title: "Guideline downloaded", 
