@@ -4809,9 +4809,14 @@ Report generated from Cura EMR System`;
             >
               {/* Header */}
               <div className="border-b pb-4 pt-6">
-                <div className="flex items-start gap-4">
+                <div 
+                  className="flex items-start gap-4"
+                  style={{
+                    justifyContent: clinicHeader?.logoPosition === 'center' ? 'center' : 'flex-start'
+                  }}
+                >
                   {/* Logo on Left */}
-                  {clinicHeader?.logoBase64 && (
+                  {clinicHeader?.logoBase64 && (clinicHeader?.logoPosition === 'left' || clinicHeader?.logoPosition === 'center') && (
                     <img
                       src={clinicHeader.logoBase64}
                       alt="Clinic Logo"
@@ -4824,7 +4829,12 @@ Report generated from Cura EMR System`;
                   )}
 
                   {/* Header Content */}
-                  <div className="flex-1">
+                  <div 
+                    className="flex-1"
+                    style={{
+                      textAlign: clinicHeader?.logoPosition === 'center' ? 'center' : clinicHeader?.logoPosition === 'right' ? 'right' : 'left'
+                    }}
+                  >
                     <h1 
                       className="font-bold text-medical-blue mb-2"
                       style={{
@@ -4860,6 +4870,19 @@ Report generated from Cura EMR System`;
                       {clinicHeader?.website && <p>{clinicHeader.website}</p>}
                     </div>
                   </div>
+
+                  {/* Logo on Right */}
+                  {clinicHeader?.logoBase64 && clinicHeader?.logoPosition === 'right' && (
+                    <img
+                      src={clinicHeader.logoBase64}
+                      alt="Clinic Logo"
+                      style={{
+                        height: "100px",
+                        width: "100px",
+                        flexShrink: 0,
+                      }}
+                    />
+                  )}
                 </div>
               </div>
 
