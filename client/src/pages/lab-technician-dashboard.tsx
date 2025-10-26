@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { getActiveSubdomain } from "@/lib/subdomain-utils";
+import { getTenantSubdomain } from "@/lib/queryClient";
 
 // Test field definitions for dynamic lab result generation
 const TEST_FIELD_DEFINITIONS: Record<string, Array<{
@@ -432,7 +432,7 @@ export default function LabTechnicianDashboard() {
     try {
       const token = localStorage.getItem("auth_token");
       const headers: Record<string, string> = {
-        "X-Tenant-Subdomain": getActiveSubdomain(),
+        "X-Tenant-Subdomain": getTenantSubdomain(),
       };
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
@@ -463,7 +463,7 @@ export default function LabTechnicianDashboard() {
     try {
       const token = localStorage.getItem("auth_token");
       const headers: Record<string, string> = {
-        "X-Tenant-Subdomain": getActiveSubdomain(),
+        "X-Tenant-Subdomain": getTenantSubdomain(),
       };
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;

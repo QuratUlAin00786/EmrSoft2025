@@ -8,7 +8,7 @@ async function throwIfResNotOk(res: Response) {
 }
 
 // Helper function to get the correct tenant subdomain
-function getTenantSubdomain(): string {
+export function getTenantSubdomain(): string {
   // PRIORITY 1: Check for subdomain in URL path (e.g., /aaa/auth/login)
   const pathname = window.location.pathname;
   const pathParts = pathname.split('/').filter(Boolean);
