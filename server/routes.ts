@@ -6463,18 +6463,14 @@ This treatment plan should be reviewed and adjusted based on individual patient 
       const labResultId = parseInt(req.params.labResultId);
       
       // Fetch the lab result
-      const labResult = await storage.getLabResultById(labResultId);
+      const labResult = await storage.getLabResult(labResultId, organizationId);
       
       if (!labResult) {
         return res.status(404).json({ error: "Lab result not found" });
       }
       
-      if (labResult.organizationId !== organizationId) {
-        return res.status(403).json({ error: "Unauthorized access to lab result" });
-      }
-      
       // Get patient details
-      const patient = await storage.getPatient(labResult.patientId);
+      const patient = await storage.getPatient(labResult.patientId, organizationId);
       
       if (!patient) {
         return res.status(404).json({ error: "Patient not found" });
