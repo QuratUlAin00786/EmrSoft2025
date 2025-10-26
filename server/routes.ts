@@ -16716,8 +16716,14 @@ Cura EMR Team
         
         let attachments: any[] = [];
         try {
-          // Check if file exists
-          await fse.access(filePath);
+          // Check if file exists using pathExists
+          const fileExists = await fse.pathExists(filePath);
+          
+          if (!fileExists) {
+            console.log('❌ PDF file does not exist at path');
+            throw new Error('File not found');
+          }
+          
           console.log('✅ PDF file found! Reading file...');
           
           // Read the PDF file
