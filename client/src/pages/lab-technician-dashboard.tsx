@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
 import { Header } from "@/components/layout/header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -27,7 +28,7 @@ import {
   Filter,
 } from "lucide-react";
 import { format } from "date-fns";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 // Test field definitions for dynamic lab result generation
 const TEST_FIELD_DEFINITIONS: Record<string, Array<{
@@ -317,6 +318,7 @@ interface LabTest {
 
 export default function LabTechnicianDashboard() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [showGenerateDialog, setShowGenerateDialog] = useState(false);
   const [selectedTest, setSelectedTest] = useState<LabTest | null>(null);
@@ -427,46 +429,78 @@ export default function LabTechnicianDashboard() {
 
     setIsSaving(true);
     try {
-      // Prepare test field definitions for the backend
+      // Parse test types from the selected test
       const testTypes = parseTestTypes(selectedTest.testType);
-      const testFieldDefinitions: Record<string, Array<{
-        name: string;
-        unit: string;
-        referenceRange: string;
-      }>> = {};
       
-      testTypes.forEach(testType => {
-        if (TEST_FIELD_DEFINITIONS[testType]) {
-          testFieldDefinitions[testType] = TEST_FIELD_DEFINITIONS[testType];
+      // Build results array from test values
+      const results: any[] = [];
+      testTypes.forEach((testType: string) => {
+        const testFields = TEST_FIELD_DEFINITIONS[testType];
+        
+        if (testFields) {
+          testFields.forEach((field) => {
+            const key = `${testType}_${field.name}`;
+            const value = generateFormData[key];
+            if (value && value.trim() !== "") {
+              // Determine status based on reference range (simplified)
+              const numValue = parseFloat(value);
+              let status = "normal";
+              
+              results.push({
+                name: field.name,
+                value: value,
+                unit: field.unit,
+                referenceRange: field.referenceRange,
+                status: status,
+              });
+            }
+          });
         }
       });
 
-      const payload = {
-        labResultId: selectedTest.id,
-        testId: selectedTest.testId,
-        patientId: selectedTest.patientId,
-        testData: generateFormData,
-        testTypes: testTypes,
-        testFieldDefinitions: testFieldDefinitions
+      if (results.length === 0) {
+        toast({
+          title: "Validation Error",
+          description: "Please enter at least one test result value",
+          variant: "destructive",
+        });
+        setIsSaving(false);
+        return;
+      }
+
+      // Update the existing lab result with status and results
+      const labResultData = {
+        status: "completed",
+        results: results,
+        notes: generateFormData.clinicalNotes || "",
       };
 
-      console.log("📤 Sending PDF generation request:", JSON.stringify(payload, null, 2));
+      // Update lab result
+      const updatedResult = await apiRequest("PATCH", `/api/lab-results/${selectedTest.id}`, labResultData);
 
-      const response = await apiRequest("POST", "/api/lab-results/generate", payload);
-
-      if (response.ok) {
-        const result = await response.json();
-        setShowGenerateDialog(false);
-        setGenerateFormData({});
-        setSelectedTest(null);
-        // Show success message or toast
-        alert(`Lab result generated successfully! File saved at: ${result.filePath}`);
-      } else {
-        throw new Error("Failed to generate lab result");
+      // Generate PDF for the updated lab result
+      if (updatedResult?.id || selectedTest.id) {
+        await apiRequest("POST", `/api/lab-results/${selectedTest.id}/generate-pdf`);
       }
+
+      // Invalidate cache to refetch lab results
+      queryClient.invalidateQueries({ queryKey: ["/api/lab-results"] });
+
+      toast({
+        title: "Success",
+        description: "Lab result generated successfully and PDF saved",
+      });
+      
+      setShowGenerateDialog(false);
+      setGenerateFormData({});
+      setSelectedTest(null);
     } catch (error) {
       console.error("Error generating lab result:", error);
-      alert("Failed to generate lab result. Please try again.");
+      toast({
+        title: "Error",
+        description: "Failed to generate lab result. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsSaving(false);
     }
