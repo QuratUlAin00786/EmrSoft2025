@@ -16730,6 +16730,40 @@ Cura EMR Team
     }
   });
 
+  // Save invoice PDF to server
+  app.post("/api/billing/save-invoice-pdf", requireRole(["admin", "doctor", "nurse", "receptionist"]), async (req: TenantRequest, res) => {
+    try {
+      const { invoiceNumber, patientId, pdfData } = req.body;
+      
+      if (!invoiceNumber || !patientId || !pdfData) {
+        return res.status(400).json({ error: "Invoice number, patient ID, and PDF data are required" });
+      }
+
+      const organizationId = req.tenant!.id;
+      
+      // Create directory structure: uploads/Invoices/{organization_id}/{patient_id}/
+      const dirPath = path.join(process.cwd(), 'uploads', 'Invoices', organizationId.toString(), patientId);
+      await fse.ensureDir(dirPath);
+      
+      // Save PDF file
+      const fileName = `${invoiceNumber}.pdf`;
+      const filePath = path.join(dirPath, fileName);
+      
+      // Convert base64 to buffer and save
+      const buffer = Buffer.from(pdfData, 'base64');
+      await fse.writeFile(filePath, buffer);
+      
+      res.json({ 
+        success: true, 
+        message: "Invoice saved successfully",
+        filePath: `uploads/Invoices/${organizationId}/${patientId}/${fileName}`
+      });
+    } catch (error) {
+      console.error("Failed to save invoice PDF:", error);
+      res.status(500).json({ error: "Failed to save invoice PDF" });
+    }
+  });
+
   // SaaS routes already registered above before tenant middleware
 
   const httpServer = createServer(app);

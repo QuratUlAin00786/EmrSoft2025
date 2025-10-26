@@ -1779,6 +1779,214 @@ export default function BillingPage() {
     setShowPaymentModal(true);
   };
 
+  const handleSaveInvoice = async (invoiceId: string) => {
+    console.log('💾 Save Invoice button clicked for invoice:', invoiceId);
+    
+    const invoice = Array.isArray(invoices) ? invoices.find((inv: any) => inv.id === invoiceId) : null;
+    
+    if (!invoice) {
+      console.error('❌ Invoice not found:', invoiceId);
+      toast({
+        title: "Error",
+        description: "Invoice not found",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      // Helper to safely convert to number and format
+      const toNum = (val: any) => typeof val === 'string' ? parseFloat(val) : val;
+
+      // Create PDF document
+      console.log('📄 Creating PDF document for save...');
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 20;
+      const contentWidth = pageWidth - 2 * margin;
+
+      // Function to add header to page
+      const addHeader = () => {
+        doc.setFillColor(79, 70, 229);
+        doc.rect(0, 0, pageWidth, 40, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(20);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Cura Medical Practice', margin, 15);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Excellence in Healthcare', margin, 25);
+        doc.setFontSize(24);
+        doc.setFont('helvetica', 'bold');
+        doc.text('INVOICE', pageWidth - margin - 45, 25);
+      };
+
+      // Function to add footer to page
+      const addFooter = (pageNum: number) => {
+        const footerY = pageHeight - 20;
+        doc.setFillColor(248, 250, 252);
+        doc.rect(0, footerY - 5, pageWidth, 25, 'F');
+        doc.setDrawColor(229, 231, 235);
+        doc.line(margin, footerY - 5, pageWidth - margin, footerY - 5);
+        doc.setTextColor(107, 114, 128);
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Thank you for choosing Cura Medical Practice for your healthcare needs.', pageWidth / 2, footerY + 2, { align: 'center' });
+        doc.text('© 2025 Cura Software Limited - Powered by Halo Group & Averox Technologies', pageWidth / 2, footerY + 8, { align: 'center' });
+        doc.text(`Page ${pageNum}`, pageWidth - margin, footerY + 2, { align: 'right' });
+      };
+
+      // Start PDF content
+      addHeader();
+      
+      let yPosition = 50;
+
+      // Bill To and Invoice Details section
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.text('BILL TO', margin, yPosition);
+      doc.text('INVOICE DETAILS', pageWidth / 2 + 10, yPosition);
+      
+      yPosition += 7;
+      doc.setFont('helvetica', 'normal');
+      doc.text(invoice.patientName, margin, yPosition);
+      doc.text(`Invoice Number: ${invoice.invoiceNumber || invoice.id}`, pageWidth / 2 + 10, yPosition);
+      
+      yPosition += 5;
+      doc.setFontSize(9);
+      doc.text(`Patient ID: ${invoice.patientId}`, margin, yPosition);
+      doc.text(`Invoice Date: ${format(new Date(invoice.invoiceDate), 'dd/MM/yyyy')}`, pageWidth / 2 + 10, yPosition);
+      
+      yPosition += 5;
+      doc.text(`Due Date: ${format(new Date(invoice.dueDate), 'dd/MM/yyyy')}`, pageWidth / 2 + 10, yPosition);
+
+      yPosition += 10;
+
+      // Services table header
+      doc.setFillColor(79, 70, 229);
+      doc.rect(margin, yPosition, contentWidth, 8, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      yPosition += 6;
+      doc.text('Service Description', margin + 2, yPosition);
+      doc.text('Qty', pageWidth - margin - 80, yPosition, { align: 'right' });
+      doc.text('Rate', pageWidth - margin - 50, yPosition, { align: 'right' });
+      doc.text('Amount', pageWidth - margin - 2, yPosition, { align: 'right' });
+
+      yPosition += 5;
+
+      // Services table rows
+      doc.setTextColor(0, 0, 0);
+      doc.setFont('helvetica', 'normal');
+      let rowCount = 0;
+      invoice.items.forEach((item: any) => {
+        if (yPosition > pageHeight - 50) {
+          addFooter(1);
+          doc.addPage();
+          addHeader();
+          yPosition = 50;
+        }
+
+        if (rowCount % 2 === 0) {
+          doc.setFillColor(249, 250, 251);
+          doc.rect(margin, yPosition - 4, contentWidth, 10, 'F');
+        }
+
+        doc.setFont('helvetica', 'bold');
+        doc.text(item.description, margin + 2, yPosition);
+        yPosition += 4;
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(107, 114, 128);
+        doc.text('Professional medical consultation', margin + 2, yPosition);
+        
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(9);
+        yPosition -= 2;
+        doc.text(item.quantity.toString(), pageWidth - margin - 80, yPosition, { align: 'right' });
+        doc.text(`£${toNum(item.unitPrice).toFixed(2)}`, pageWidth - margin - 50, yPosition, { align: 'right' });
+        doc.text(`£${toNum(item.total).toFixed(2)}`, pageWidth - margin - 2, yPosition, { align: 'right' });
+        
+        yPosition += 8;
+        rowCount++;
+      });
+
+      yPosition += 5;
+
+      // Totals section
+      const totalsX = pageWidth - margin - 60;
+      doc.setFont('helvetica', 'normal');
+      doc.text('Subtotal:', totalsX, yPosition);
+      doc.text(`£${toNum(invoice.totalAmount).toFixed(2)}`, pageWidth - margin - 2, yPosition, { align: 'right' });
+      
+      yPosition += 6;
+      doc.text('VAT (0%):', totalsX, yPosition);
+      doc.text('£0.00', pageWidth - margin - 2, yPosition, { align: 'right' });
+      
+      yPosition += 8;
+      doc.setDrawColor(79, 70, 229);
+      doc.line(totalsX - 5, yPosition - 2, pageWidth - margin, yPosition - 2);
+      
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.text('Total Amount:', totalsX, yPosition);
+      doc.text(`£${toNum(invoice.totalAmount).toFixed(2)}`, pageWidth - margin - 2, yPosition, { align: 'right' });
+
+      if (toNum(invoice.paidAmount) > 0) {
+        yPosition += 8;
+        doc.setFontSize(9);
+        doc.setTextColor(5, 150, 105);
+        doc.text('Amount Paid:', totalsX, yPosition);
+        doc.text(`-£${toNum(invoice.paidAmount).toFixed(2)}`, pageWidth - margin - 2, yPosition, { align: 'right' });
+        
+        yPosition += 8;
+        const balanceDue = toNum(invoice.totalAmount) - toNum(invoice.paidAmount);
+        doc.setTextColor(balanceDue === 0 ? 5 : 220, balanceDue === 0 ? 150 : 38, balanceDue === 0 ? 105 : 38);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(11);
+        doc.text('Balance Due:', totalsX, yPosition);
+        doc.text(`£${balanceDue.toFixed(2)}`, pageWidth - margin - 2, yPosition, { align: 'right' });
+      }
+
+      addFooter(1);
+
+      // Get PDF as base64
+      console.log('📤 Converting PDF to base64...');
+      const pdfData = doc.output('datauristring').split(',')[1];
+      
+      // Send to backend
+      console.log('📡 Sending PDF to server...');
+      const response = await apiRequest('POST', '/api/billing/save-invoice-pdf', {
+        invoiceNumber: invoice.invoiceNumber || invoice.id.toString(),
+        patientId: invoice.patientId,
+        pdfData
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save invoice');
+      }
+
+      const result = await response.json();
+      console.log('✅ Invoice saved successfully:', result);
+
+      toast({
+        title: "Success",
+        description: `Invoice saved to ${result.filePath}`,
+      });
+
+    } catch (error) {
+      console.error('❌ Failed to save invoice:', error);
+      toast({
+        title: "Save Failed",
+        description: "Failed to save invoice. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleDownloadInvoice = (invoiceId: string) => {
     console.log('🔽 Download button clicked for invoice:', invoiceId);
     
@@ -4938,6 +5146,14 @@ export default function BillingPage() {
           <DialogFooter className="flex gap-2">
             <Button variant="outline" onClick={() => setSelectedInvoice(null)}>
               Close
+            </Button>
+            <Button variant="default" onClick={() => {
+              if (selectedInvoice) {
+                handleSaveInvoice(selectedInvoice.id.toString());
+              }
+            }} data-testid="button-save-invoice">
+              <Download className="h-4 w-4 mr-2" />
+              Save Invoice
             </Button>
             <Button onClick={() => {
               if (selectedInvoice) {
