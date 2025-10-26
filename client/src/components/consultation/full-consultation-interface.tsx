@@ -4414,7 +4414,39 @@ ${
                         doc.text('Professional Anatomical Analysis Report', 105, yPos, { align: 'center' });
                         yPos += 15;
 
-                        // Add anatomical analysis image if available
+                        // Two-column layout: Analysis Details (left) and Image (right)
+                        const leftColumnX = 20;
+                        const rightColumnX = 130;
+                        const startYPos = yPos;
+                        
+                        // Left Column: Analysis Details
+                        doc.setFontSize(11);
+                        doc.setFont('helvetica', 'bold');
+                        doc.text('Analysis Details:', leftColumnX, yPos);
+                        yPos += 8;
+
+                        doc.setFontSize(9);
+                        doc.setFont('helvetica', 'normal');
+                        const details = [
+                          `Target Muscle Group: ${selectedMuscleGroup ? selectedMuscleGroup.replace(/_/g, ' ') : 'Not specified'}`,
+                          `Analysis Type: ${selectedAnalysisType ? selectedAnalysisType.replace(/_/g, ' ') : 'Not specified'}`,
+                          `Primary Treatment: ${selectedTreatment ? selectedTreatment.replace(/_/g, ' ') : 'Not specified'}`,
+                          `Treatment Intensity: ${selectedTreatmentIntensity || 'Not specified'}`,
+                          `Session Frequency: ${selectedSessionFrequency || 'Not specified'}`,
+                          `Severity Scale: ${severityScale || 'Not specified'}`,
+                          `Primary Symptoms: ${primarySymptoms || 'Not specified'}`,
+                          `Follow-up Plan: ${followUpPlan || 'Not specified'}`
+                        ];
+
+                        details.forEach(detail => {
+                          const lines = doc.splitTextToSize(detail, 100);
+                          lines.forEach((line: string) => {
+                            doc.text(line, leftColumnX, yPos);
+                            yPos += 6;
+                          });
+                        });
+
+                        // Right Column: Image (smaller size)
                         const organizationId = tenant?.id || 0;
                         const imagePath = `/uploads/anatomical_analysis_img/${organizationId}/${currentPatientId}/${currentPatientId}.png`;
                         console.log('[ANATOMICAL PDF STEP1] Fetching image from:', imagePath);
@@ -4431,57 +4463,37 @@ ${
                               reader.readAsDataURL(imageBlob);
                             });
                             
-                            console.log('[ANATOMICAL PDF STEP1] Adding image at yPos:', yPos);
-                            console.log('[ANATOMICAL PDF STEP1] Base64 preview:', imageBase64.substring(0, 100));
-                            const imgWidth = 170;
-                            const imgHeight = 120;
+                            console.log('[ANATOMICAL PDF STEP1] Adding image to right column');
+                            const imgWidth = 60;
+                            const imgHeight = 60;
                             
                             try {
-                              doc.addImage(imageBase64, 'PNG', 20, yPos, imgWidth, imgHeight);
-                              yPos += imgHeight + 10;
+                              doc.addImage(imageBase64, 'PNG', rightColumnX, startYPos, imgWidth, imgHeight);
                               console.log('[ANATOMICAL PDF STEP1] Image added successfully');
                             } catch (addImgError) {
                               console.error('[ANATOMICAL PDF STEP1] addImage error:', addImgError, 'Message:', addImgError?.message);
-                              // Continue without image
                             }
                           }
                         } catch (imageError) {
                           console.error('[ANATOMICAL PDF STEP1] Image fetch error:', imageError);
                         }
 
-                        // Analysis Details
-                        doc.setFontSize(12);
-                        doc.setFont('helvetica', 'bold');
-                        doc.text('Analysis Details:', 20, yPos);
-                        yPos += 10;
+                        // Add extra space after the two-column section
+                        yPos += 5;
 
-                        doc.setFontSize(10);
-                        doc.setFont('helvetica', 'normal');
-                        const details = [
-                          `Target Muscle Group: ${selectedMuscleGroup ? selectedMuscleGroup.replace(/_/g, ' ') : 'Not specified'}`,
-                          `Analysis Type: ${selectedAnalysisType ? selectedAnalysisType.replace(/_/g, ' ') : 'Not specified'}`,
-                          `Primary Treatment: ${selectedTreatment ? selectedTreatment.replace(/_/g, ' ') : 'Not specified'}`,
-                          `Treatment Intensity: ${selectedTreatmentIntensity || 'Not specified'}`,
-                          `Session Frequency: ${selectedSessionFrequency || 'Not specified'}`,
-                          `Severity Scale: ${severityScale || 'Not specified'}`,
-                          `Primary Symptoms: ${primarySymptoms || 'Not specified'}`,
-                          `Follow-up Plan: ${followUpPlan || 'Not specified'}`
-                        ];
-
-                        details.forEach(detail => {
-                          doc.text(detail, 20, yPos);
-                          yPos += 7;
-                        });
-
-                        // Treatment Plan
+                        // Treatment Plan (with smaller font and better formatting)
                         if (generatedTreatmentPlan) {
-                          yPos += 10;
-                          doc.setFontSize(12);
+                          yPos += 8;
+                          doc.setFontSize(11);
                           doc.setFont('helvetica', 'bold');
-                          doc.text('Generated Treatment Plan:', 20, yPos);
-                          yPos += 10;
+                          doc.text('Generated Treatment Plan', leftColumnX, yPos);
+                          yPos += 8;
 
-                          doc.setFontSize(10);
+                          // Add a light background effect by drawing a rectangle
+                          doc.setDrawColor(230, 230, 230);
+                          doc.setFillColor(250, 250, 250);
+                          
+                          doc.setFontSize(8);
                           doc.setFont('helvetica', 'normal');
                           const lines = doc.splitTextToSize(generatedTreatmentPlan, 170);
                           lines.forEach((line: string) => {
@@ -4489,8 +4501,8 @@ ${
                               doc.addPage();
                               yPos = 20;
                             }
-                            doc.text(line, 20, yPos);
-                            yPos += 5;
+                            doc.text(line, leftColumnX, yPos);
+                            yPos += 4;
                           });
                         }
 
@@ -4925,7 +4937,39 @@ ${
                         doc.text('Professional Anatomical Analysis Report', 105, yPos, { align: 'center' });
                         yPos += 15;
 
-                        // Add anatomical analysis image if available
+                        // Two-column layout: Analysis Details (left) and Image (right)
+                        const leftColumnX = 20;
+                        const rightColumnX = 130;
+                        const startYPos = yPos;
+                        
+                        // Left Column: Analysis Details
+                        doc.setFontSize(11);
+                        doc.setFont('helvetica', 'bold');
+                        doc.text('Analysis Details:', leftColumnX, yPos);
+                        yPos += 8;
+
+                        doc.setFontSize(9);
+                        doc.setFont('helvetica', 'normal');
+                        const details = [
+                          `Target Muscle Group: ${selectedMuscleGroup ? selectedMuscleGroup.replace(/_/g, ' ') : 'Not specified'}`,
+                          `Analysis Type: ${selectedAnalysisType ? selectedAnalysisType.replace(/_/g, ' ') : 'Not specified'}`,
+                          `Primary Treatment: ${selectedTreatment ? selectedTreatment.replace(/_/g, ' ') : 'Not specified'}`,
+                          `Treatment Intensity: ${selectedTreatmentIntensity || 'Not specified'}`,
+                          `Session Frequency: ${selectedSessionFrequency || 'Not specified'}`,
+                          `Severity Scale: ${severityScale || 'Not specified'}`,
+                          `Primary Symptoms: ${primarySymptoms || 'Not specified'}`,
+                          `Follow-up Plan: ${followUpPlan || 'Not specified'}`
+                        ];
+
+                        details.forEach(detail => {
+                          const lines = doc.splitTextToSize(detail, 100);
+                          lines.forEach((line: string) => {
+                            doc.text(line, leftColumnX, yPos);
+                            yPos += 6;
+                          });
+                        });
+
+                        // Right Column: Image (smaller size)
                         const organizationId = tenant?.id || 0;
                         const imagePath = `/uploads/anatomical_analysis_img/${organizationId}/${currentPatientId}/${currentPatientId}.png`;
                         console.log('[ANATOMICAL PDF STEP1] Fetching image from:', imagePath);
@@ -4942,57 +4986,37 @@ ${
                               reader.readAsDataURL(imageBlob);
                             });
                             
-                            console.log('[ANATOMICAL PDF STEP1] Adding image at yPos:', yPos);
-                            console.log('[ANATOMICAL PDF STEP1] Base64 preview:', imageBase64.substring(0, 100));
-                            const imgWidth = 170;
-                            const imgHeight = 120;
+                            console.log('[ANATOMICAL PDF STEP1] Adding image to right column');
+                            const imgWidth = 60;
+                            const imgHeight = 60;
                             
                             try {
-                              doc.addImage(imageBase64, 'PNG', 20, yPos, imgWidth, imgHeight);
-                              yPos += imgHeight + 10;
+                              doc.addImage(imageBase64, 'PNG', rightColumnX, startYPos, imgWidth, imgHeight);
                               console.log('[ANATOMICAL PDF STEP1] Image added successfully');
                             } catch (addImgError) {
                               console.error('[ANATOMICAL PDF STEP1] addImage error:', addImgError, 'Message:', addImgError?.message);
-                              // Continue without image
                             }
                           }
                         } catch (imageError) {
                           console.error('[ANATOMICAL PDF STEP1] Image fetch error:', imageError);
                         }
 
-                        // Analysis Details
-                        doc.setFontSize(12);
-                        doc.setFont('helvetica', 'bold');
-                        doc.text('Analysis Details:', 20, yPos);
-                        yPos += 10;
+                        // Add extra space after the two-column section
+                        yPos += 5;
 
-                        doc.setFontSize(10);
-                        doc.setFont('helvetica', 'normal');
-                        const details = [
-                          `Target Muscle Group: ${selectedMuscleGroup ? selectedMuscleGroup.replace(/_/g, ' ') : 'Not specified'}`,
-                          `Analysis Type: ${selectedAnalysisType ? selectedAnalysisType.replace(/_/g, ' ') : 'Not specified'}`,
-                          `Primary Treatment: ${selectedTreatment ? selectedTreatment.replace(/_/g, ' ') : 'Not specified'}`,
-                          `Treatment Intensity: ${selectedTreatmentIntensity || 'Not specified'}`,
-                          `Session Frequency: ${selectedSessionFrequency || 'Not specified'}`,
-                          `Severity Scale: ${severityScale || 'Not specified'}`,
-                          `Primary Symptoms: ${primarySymptoms || 'Not specified'}`,
-                          `Follow-up Plan: ${followUpPlan || 'Not specified'}`
-                        ];
-
-                        details.forEach(detail => {
-                          doc.text(detail, 20, yPos);
-                          yPos += 7;
-                        });
-
-                        // Treatment Plan
+                        // Treatment Plan (with smaller font and better formatting)
                         if (generatedTreatmentPlan) {
-                          yPos += 10;
-                          doc.setFontSize(12);
+                          yPos += 8;
+                          doc.setFontSize(11);
                           doc.setFont('helvetica', 'bold');
-                          doc.text('Generated Treatment Plan:', 20, yPos);
-                          yPos += 10;
+                          doc.text('Generated Treatment Plan', leftColumnX, yPos);
+                          yPos += 8;
 
-                          doc.setFontSize(10);
+                          // Add a light background effect by drawing a rectangle
+                          doc.setDrawColor(230, 230, 230);
+                          doc.setFillColor(250, 250, 250);
+                          
+                          doc.setFontSize(8);
                           doc.setFont('helvetica', 'normal');
                           const lines = doc.splitTextToSize(generatedTreatmentPlan, 170);
                           lines.forEach((line: string) => {
@@ -5000,8 +5024,8 @@ ${
                               doc.addPage();
                               yPos = 20;
                             }
-                            doc.text(line, 20, yPos);
-                            yPos += 5;
+                            doc.text(line, leftColumnX, yPos);
+                            yPos += 4;
                           });
                         }
 
