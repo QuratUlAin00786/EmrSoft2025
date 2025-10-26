@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { getActiveSubdomain } from "@/lib/subdomain-utils";
 
 // Test field definitions for dynamic lab result generation
 const TEST_FIELD_DEFINITIONS: Record<string, Array<{
@@ -328,8 +329,6 @@ export default function LabTechnicianDashboard() {
   const [showPaidOnly, setShowPaidOnly] = useState(false);
   const [showCollectedOnly, setShowCollectedOnly] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [showPdfViewerDialog, setShowPdfViewerDialog] = useState(false);
-  const [pdfViewerUrl, setPdfViewerUrl] = useState<string | null>(null);
 
   // Fetch lab tests for lab technician
   const { data: labTests = [], isLoading } = useQuery({
@@ -427,20 +426,67 @@ export default function LabTechnicianDashboard() {
   };
 
   // Handle view report from dialog
-  const handleViewReport = () => {
+  const handleViewReport = async () => {
     if (!selectedTest) return;
     
-    // Construct PDF URL using the test ID
-    const pdfUrl = `/api/lab-results/${selectedTest.id}/pdf`;
-    setPdfViewerUrl(pdfUrl);
-    setShowPdfViewerDialog(true);
+    try {
+      const token = localStorage.getItem("auth_token");
+      const headers: Record<string, string> = {
+        "X-Tenant-Subdomain": getActiveSubdomain(),
+      };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`/api/files/${selectedTest.id}/signed-url`, {
+        headers,
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to generate signed URL");
+      }
+
+      const data = await response.json();
+      window.open(data.signedUrl, "_blank");
+    } catch (error) {
+      console.error("Error viewing PDF:", error);
+      toast({
+        title: "Error",
+        description: "Failed to view lab report. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   // Handle view report from card
-  const handleViewReportFromCard = (test: LabTest) => {
-    const pdfUrl = `/api/lab-results/${test.id}/pdf`;
-    setPdfViewerUrl(pdfUrl);
-    setShowPdfViewerDialog(true);
+  const handleViewReportFromCard = async (test: LabTest) => {
+    try {
+      const token = localStorage.getItem("auth_token");
+      const headers: Record<string, string> = {
+        "X-Tenant-Subdomain": getActiveSubdomain(),
+      };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`/api/files/${test.id}/signed-url`, {
+        headers,
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to generate signed URL");
+      }
+
+      const data = await response.json();
+      window.open(data.signedUrl, "_blank");
+    } catch (error) {
+      console.error("Error viewing PDF:", error);
+      toast({
+        title: "Error",
+        description: "Failed to view lab report. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   // Handle generate and save lab result
@@ -977,23 +1023,6 @@ export default function LabTechnicianDashboard() {
         </DialogContent>
       </Dialog>
 
-      {/* PDF Viewer Dialog */}
-      <Dialog open={showPdfViewerDialog} onOpenChange={setShowPdfViewerDialog}>
-        <DialogContent className="max-w-6xl h-[90vh] p-0">
-          <DialogHeader className="p-6 pb-0">
-            <DialogTitle>Lab Result Report</DialogTitle>
-          </DialogHeader>
-          <div className="flex-1 p-6 pt-0">
-            {pdfViewerUrl && (
-              <iframe
-                src={pdfViewerUrl}
-                className="w-full h-full border rounded"
-                title="Lab Result PDF"
-              />
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
