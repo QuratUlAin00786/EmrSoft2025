@@ -475,10 +475,10 @@ export default function LabTechnicianDashboard() {
         notes: generateFormData.clinicalNotes || "",
       };
 
-      // Update lab result
-      const updatedResult = await apiRequest("PATCH", `/api/lab-results/${selectedTest.id}`, labResultData);
+      // Update lab result using testId (not numeric id)
+      const updatedResult = await apiRequest("PATCH", `/api/lab-results/${selectedTest.testId}`, labResultData);
 
-      // Generate PDF for the updated lab result
+      // Generate PDF for the updated lab result using numeric id
       if (updatedResult?.id || selectedTest.id) {
         await apiRequest("POST", `/api/lab-results/${selectedTest.id}/generate-pdf`);
       }
