@@ -6,6 +6,7 @@ import Stripe from "stripe";
 import crypto from "crypto";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import OpenAI from "openai";
 import { storage } from "./storage";
 import { authService } from "./services/auth";
 import { aiService } from "./services/ai";
@@ -37,6 +38,11 @@ const stripe = process.env.STRIPE_SECRET_KEY
       apiVersion: '2025-07-30.basil',
     })
   : null;
+
+// Initialize OpenAI client (same configuration as aiService)
+const openai = new OpenAI({ 
+  apiKey: process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY_ENV_VAR || "default_key" 
+});
 
 /**
  * Helper to validate organizationId after multiTenantEnforcer middleware
@@ -6481,42 +6487,28 @@ This treatment plan should be reviewed and adjusted based on individual patient 
         `${result.name}: ${result.value} ${result.unit} (Reference: ${result.referenceRange}, Status: ${result.status})`
       ).join('\n');
       
-      // Call OpenAI API for analysis
-      const openaiApiKey = process.env.OPENAI_API_KEY;
-      if (!openaiApiKey) {
+      // Call OpenAI API for analysis using SDK (same as aiService)
+      if (!process.env.OPENAI_API_KEY) {
         return res.status(500).json({ error: "OpenAI API key not configured" });
       }
       
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${openaiApiKey}`
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o',
-          messages: [
-            {
-              role: 'system',
-              content: 'You are a medical AI assistant specializing in analyzing lab results and identifying health risks. Provide concise, evidence-based risk factors and recommendations.'
-            },
-            {
-              role: 'user',
-              content: `Analyze the following lab results for a ${patient.genderAtBirth || 'patient'} patient and identify potential health risks and recommendations:\n\nLab Results:\n${labResultsText}\n\nProvide your analysis in the following JSON format:\n{\n  "riskFactors": ["factor1", "factor2", ...],\n  "recommendations": ["recommendation1", "recommendation2", ...],\n  "riskCategory": "Cardiovascular Disease|Diabetes|Kidney Disease|Liver Disease|Thyroid Disorder|Other",\n  "riskLevel": "low|moderate|high|critical",\n  "riskScore": number (0-100)\n}`
-            }
-          ],
-          temperature: 0.3,
-          max_tokens: 1000
-        })
+      const completion = await openai.chat.completions.create({
+        model: 'gpt-4o',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a medical AI assistant specializing in analyzing lab results and identifying health risks. Provide concise, evidence-based risk factors and recommendations.'
+          },
+          {
+            role: 'user',
+            content: `Analyze the following lab results for a ${patient.genderAtBirth || 'patient'} patient and identify potential health risks and recommendations:\n\nLab Results:\n${labResultsText}\n\nProvide your analysis in the following JSON format:\n{\n  "riskFactors": ["factor1", "factor2", ...],\n  "recommendations": ["recommendation1", "recommendation2", ...],\n  "riskCategory": "Cardiovascular Disease|Diabetes|Kidney Disease|Liver Disease|Thyroid Disorder|Other",\n  "riskLevel": "low|moderate|high|critical",\n  "riskScore": number (0-100)\n}`
+          }
+        ],
+        temperature: 0.3,
+        max_tokens: 1000
       });
       
-      if (!response.ok) {
-        console.error("OpenAI API error:", await response.text());
-        return res.status(500).json({ error: "Failed to analyze lab results with AI" });
-      }
-      
-      const aiResponse = await response.json();
-      const aiContent = aiResponse.choices[0].message.content;
+      const aiContent = completion.choices[0].message.content;
       
       // Parse AI response
       let analysis;
