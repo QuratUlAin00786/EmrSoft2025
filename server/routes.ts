@@ -30,7 +30,7 @@ import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs';
 import * as fse from 'fs-extra';
-import { readFile } from 'fs/promises';
+import { readFile, access } from 'fs/promises';
 
 // Initialize Stripe with secret key only if provided (conditional to avoid crashes)
 const stripe = process.env.STRIPE_SECRET_KEY 
@@ -16716,18 +16716,12 @@ Cura EMR Team
         
         let attachments: any[] = [];
         try {
-          // Check if file exists using pathExists
-          const fileExists = await fse.pathExists(filePath);
-          
-          if (!fileExists) {
-            console.log('❌ PDF file does not exist at path');
-            throw new Error('File not found');
-          }
-          
+          // Check if file exists using fs.promises.access
+          await access(filePath, fs.constants.F_OK);
           console.log('✅ PDF file found! Reading file...');
           
-          // Read the PDF file
-          const pdfBuffer = await fse.readFile(filePath);
+          // Read the PDF file using fs/promises
+          const pdfBuffer = await readFile(filePath);
           console.log(`📄 PDF file size: ${pdfBuffer.length} bytes`);
           
           attachments.push({
