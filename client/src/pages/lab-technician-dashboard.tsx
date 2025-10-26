@@ -493,6 +493,7 @@ export default function LabTechnicianDashboard() {
         status: "completed",
         results: results,
         notes: generateFormData.clinicalNotes || "",
+        Lab_Report_Generated: true,
       };
 
       // Update lab result using testId (not numeric id)
