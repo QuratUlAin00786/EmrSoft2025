@@ -6575,7 +6575,7 @@ This treatment plan should be reviewed and adjusted based on individual patient 
       const organizationId = req.tenant!.id;
       
       // Get all patients for this organization
-      const patients = await storage.getAllPatients(organizationId);
+      const patients = await storage.getPatientsByOrganization(organizationId);
       const patientIds = patients.map(p => p.id);
       
       // Get lab results for all patients
@@ -6586,7 +6586,7 @@ This treatment plan should be reviewed and adjusted based on individual patient 
       }
       
       // Get users (doctors) to map testOrderedBy
-      const users = await storage.getAllUsers(organizationId);
+      const users = await storage.getUsersByOrganization(organizationId);
       
       // Enrich with patient and doctor names
       const enrichedResults = allLabResults.map(lr => {
@@ -6599,7 +6599,7 @@ This treatment plan should be reviewed and adjusted based on individual patient 
           testType: lr.testType,
           patientId: lr.patientId,
           patientName: patient ? `${patient.firstName} ${patient.lastName}` : `Patient ${lr.patientId}`,
-          doctorName: doctor ? doctor.name || doctor.email : `Doctor ${lr.testOrderedBy}`,
+          doctorName: doctor ? (doctor.firstName && doctor.lastName ? `${doctor.firstName} ${doctor.lastName}` : doctor.email) : `Doctor ${lr.testOrderedBy}`,
           testDate: lr.testDate,
           results: lr.results,
           criticalValues: lr.criticalValues
