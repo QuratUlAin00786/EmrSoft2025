@@ -327,6 +327,8 @@ export default function LabTechnicianDashboard() {
   const [showPaidOnly, setShowPaidOnly] = useState(false);
   const [showCollectedOnly, setShowCollectedOnly] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [showPdfViewerDialog, setShowPdfViewerDialog] = useState(false);
+  const [pdfViewerUrl, setPdfViewerUrl] = useState<string | null>(null);
 
   // Fetch lab tests for lab technician
   const { data: labTests = [], isLoading } = useQuery({
@@ -423,6 +425,16 @@ export default function LabTechnicianDashboard() {
     }));
   };
 
+  // Handle view report
+  const handleViewReport = () => {
+    if (!selectedTest) return;
+    
+    // Construct PDF URL using the test ID
+    const pdfUrl = `/api/lab-results/${selectedTest.id}/pdf`;
+    setPdfViewerUrl(pdfUrl);
+    setShowPdfViewerDialog(true);
+  };
+
   // Handle generate and save lab result
   const handleGenerateLabResult = async () => {
     if (!selectedTest) return;
@@ -485,6 +497,7 @@ export default function LabTechnicianDashboard() {
 
       // Invalidate cache to refetch lab results
       queryClient.invalidateQueries({ queryKey: ["/api/lab-results"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/lab-technician/tests"] });
 
       toast({
         title: "Success",
@@ -900,11 +913,12 @@ export default function LabTechnicianDashboard() {
                 </Button>
                 <Button
                   variant="outline"
+                  onClick={handleViewReport}
                   className="flex-1"
-                  data-testid="button-preview-result"
+                  data-testid="button-view-report"
                 >
                   <FileText className="h-4 w-4 mr-2" />
-                  Preview
+                  View Report
                 </Button>
                 <Button
                   className="flex-1 bg-green-600 hover:bg-green-700"
@@ -918,6 +932,24 @@ export default function LabTechnicianDashboard() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* PDF Viewer Dialog */}
+      <Dialog open={showPdfViewerDialog} onOpenChange={setShowPdfViewerDialog}>
+        <DialogContent className="max-w-6xl h-[90vh] p-0">
+          <DialogHeader className="p-6 pb-0">
+            <DialogTitle>Lab Result Report</DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 p-6 pt-0">
+            {pdfViewerUrl && (
+              <iframe
+                src={pdfViewerUrl}
+                className="w-full h-full border rounded"
+                title="Lab Result PDF"
+              />
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </div>
