@@ -3289,6 +3289,26 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async deleteMessageCampaign(campaignId: number, organizationId: number): Promise<void> {
+    try {
+      const result = await db.delete(messageCampaigns)
+        .where(and(
+          eq(messageCampaigns.id, campaignId),
+          eq(messageCampaigns.organizationId, organizationId)
+        ))
+        .returning();
+      
+      if (result.length === 0) {
+        throw new Error(`Campaign ${campaignId} not found for organization ${organizationId}`);
+      }
+      
+      console.log(`🗑️ Deleted campaign (ID: ${campaignId}) for organization ${organizationId}`);
+    } catch (error) {
+      console.error("❌ Error deleting campaign:", error);
+      throw error;
+    }
+  }
+
   // Integration implementations
   async getIntegrations(organizationId: number): Promise<any[]> {
     // Mock integrations data

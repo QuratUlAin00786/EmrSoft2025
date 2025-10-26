@@ -1112,6 +1112,46 @@ export default function MessagingPage() {
     }
   };
 
+  const deleteCampaignMutation = useMutation({
+    mutationFn: async (campaignId: number) => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`/api/messaging/campaigns/${campaignId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': localStorage.getItem('user_subdomain') || 'demo',
+        },
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: response.statusText }));
+        throw new Error(errorData.error || `${response.status}: ${response.statusText}`);
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/messaging/campaigns'] });
+      toast({
+        title: "Campaign Deleted",
+        description: "Campaign has been deleted successfully.",
+      });
+    },
+    onError: (error: any) => {
+      console.error("Error deleting campaign:", error);
+      toast({
+        title: "Failed to Delete Campaign",
+        description: error.message || "An error occurred while deleting the campaign. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleDeleteCampaign = (campaign: any) => {
+    if (window.confirm(`Are you sure you want to delete the campaign "${campaign.name}"? This action cannot be undone.`)) {
+      deleteCampaignMutation.mutate(campaign.id);
+    }
+  };
+
   // Polling-based real-time messaging as WebSocket fallback
   useEffect(() => {
     if (!currentUser) {
@@ -2681,8 +2721,14 @@ export default function MessagingPage() {
                         >
                           Duplicate
                         </Button>
-                        <Button variant="outline" size="sm">
-                          <Archive className="h-4 w-4" />
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleDeleteCampaign(campaign)}
+                          disabled={deleteCampaignMutation.isPending}
+                          data-testid={`button-delete-campaign-${campaign.id}`}
+                        >
+                          <Trash2 className="h-4 w-4 text-red-500" />
                         </Button>
                       </div>
                     </div>

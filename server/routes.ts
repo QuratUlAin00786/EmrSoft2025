@@ -9388,6 +9388,17 @@ This treatment plan should be reviewed and adjusted based on individual patient 
     }
   });
 
+  app.delete("/api/messaging/campaigns/:id", authMiddleware, requireRole(["admin", "doctor"]), async (req: TenantRequest, res) => {
+    try {
+      const campaignId = parseInt(req.params.id);
+      await storage.deleteMessageCampaign(campaignId, req.tenant!.id);
+      res.json({ success: true, message: "Campaign deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting campaign:", error);
+      res.status(500).json({ error: "Failed to delete campaign" });
+    }
+  });
+
   app.get("/api/messaging/templates", authMiddleware, async (req: TenantRequest, res) => {
     try {
       const templates = await storage.getMessageTemplates(req.tenant!.id);
