@@ -501,10 +501,10 @@ export default function ClinicalDecisionSupport() {
   // Generate AI assessment for lab result
   const generateAssessmentMutation = useMutation({
     mutationFn: async (labResultId: number) => {
-      return apiRequest<AssessmentResponse>("POST", `/api/lab-results/${labResultId}/assess`, {});
+      return apiRequest("POST", `/api/lab-results/${labResultId}/assess`, {});
     },
-    onSuccess: (data) => {
-      setAssessmentResult(data);
+    onSuccess: (data: any) => {
+      setAssessmentResult(data as AssessmentResponse);
       setIsGeneratingAssessment(false);
       toast({
         title: "Assessment Generated",
