@@ -1,1309 +1,1420 @@
--- =====================================================
--- Averox Healthcare Management System - Database Schema
--- Multi-tenant Healthcare Application
--- PostgreSQL Database Schema
--- =====================================================
+-- Database Schema Export
+-- Generated: 2025-10-26T14:22:13.565Z
 
--- SaaS Platform Tables
--- =====================================================
-
--- SaaS Owners (Platform Administrators)
-CREATE TABLE saas_owners (
-    id SERIAL PRIMARY KEY,
-    username VARCHAR(50) NOT NULL UNIQUE,
-    password TEXT NOT NULL,
-    email TEXT NOT NULL UNIQUE,
-    first_name TEXT NOT NULL,
-    last_name TEXT NOT NULL,
-    is_active BOOLEAN NOT NULL DEFAULT true,
-    last_login_at TIMESTAMP,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
-);
-
--- SaaS Packages
-CREATE TABLE saas_packages (
-    id SERIAL PRIMARY KEY,
-    name TEXT NOT NULL,
-    description TEXT,
-    price DECIMAL(10, 2) NOT NULL,
-    billing_cycle VARCHAR(20) NOT NULL DEFAULT 'monthly', -- monthly, yearly
-    features JSONB DEFAULT '{}',
-    is_active BOOLEAN NOT NULL DEFAULT true,
-    show_on_website BOOLEAN NOT NULL DEFAULT false,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
-);
-
--- SaaS Subscriptions
-CREATE TABLE saas_subscriptions (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    package_id INTEGER NOT NULL,
-    status VARCHAR(20) NOT NULL DEFAULT 'active', -- active, cancelled, suspended, past_due
-    current_period_start TIMESTAMP NOT NULL,
-    current_period_end TIMESTAMP NOT NULL,
-    cancel_at_period_end BOOLEAN NOT NULL DEFAULT false,
-    trial_end TIMESTAMP,
-    metadata JSONB DEFAULT '{}',
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
-);
-
--- SaaS Payments
-CREATE TABLE saas_payments (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    subscription_id INTEGER,
-    invoice_number VARCHAR(50) NOT NULL UNIQUE,
-    amount DECIMAL(10, 2) NOT NULL,
-    currency VARCHAR(3) NOT NULL DEFAULT 'GBP',
-    payment_method VARCHAR(20) NOT NULL, -- cash, stripe, paypal, bank_transfer
-    payment_status VARCHAR(20) NOT NULL DEFAULT 'pending', -- pending, completed, failed, refunded
-    payment_date TIMESTAMP,
-    due_date TIMESTAMP NOT NULL,
-    period_start TIMESTAMP NOT NULL,
-    period_end TIMESTAMP NOT NULL,
-    payment_provider VARCHAR(50),
-    provider_transaction_id TEXT,
-    description TEXT,
-    metadata JSONB DEFAULT '{}',
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
-);
-
--- SaaS Settings
-CREATE TABLE saas_settings (
-    id SERIAL PRIMARY KEY,
-    key VARCHAR(100) NOT NULL UNIQUE,
-    value JSONB,
-    description TEXT,
-    category VARCHAR(50) NOT NULL DEFAULT 'system',
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
-);
-
--- SaaS Invoices
-CREATE TABLE saas_invoices (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    subscription_id INTEGER NOT NULL,
-    invoice_number VARCHAR(50) NOT NULL UNIQUE,
-    amount DECIMAL(10, 2) NOT NULL,
-    currency VARCHAR(3) NOT NULL DEFAULT 'GBP',
-    status VARCHAR(20) NOT NULL DEFAULT 'draft', -- draft, sent, paid, overdue, cancelled
-    issue_date TIMESTAMP NOT NULL,
-    due_date TIMESTAMP NOT NULL,
-    paid_date TIMESTAMP,
-    period_start TIMESTAMP NOT NULL,
-    period_end TIMESTAMP NOT NULL,
-    line_items JSONB DEFAULT '[]',
-    notes TEXT,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
-);
-
--- Core Organization & User Tables
--- =====================================================
-
--- Organizations (Tenants)
-CREATE TABLE organizations (
-    id SERIAL PRIMARY KEY,
-    name TEXT NOT NULL,
-    subdomain VARCHAR(50) NOT NULL UNIQUE,
-    email TEXT NOT NULL,
-    region VARCHAR(10) NOT NULL DEFAULT 'UK', -- UK, EU, ME, SA, US
-    brand_name TEXT NOT NULL,
-    settings JSONB DEFAULT '{}',
-    features JSONB DEFAULT '{}',
-    access_level VARCHAR(50) DEFAULT 'full',
-    subscription_status VARCHAR(20) NOT NULL DEFAULT 'trial', -- trial, active, suspended, cancelled
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
-);
-
--- Users
-CREATE TABLE users (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    email TEXT NOT NULL,
-    username TEXT NOT NULL,
-    password_hash TEXT NOT NULL,
-    first_name TEXT NOT NULL,
-    last_name TEXT NOT NULL,
-    role VARCHAR(20) NOT NULL DEFAULT 'doctor', -- admin, doctor, nurse, receptionist, patient, sample_taker
-    department TEXT,
-    medical_specialty_category TEXT,
-    sub_specialty TEXT,
-    working_days JSONB DEFAULT '[]',
-    working_hours JSONB DEFAULT '{}',
-    permissions JSONB DEFAULT '{}',
-    is_active BOOLEAN NOT NULL DEFAULT true,
-    is_saas_owner BOOLEAN NOT NULL DEFAULT false,
-    last_login_at TIMESTAMP,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
--- User Document Preferences
-CREATE TABLE user_document_preferences (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    user_id INTEGER NOT NULL,
-    clinic_info JSONB DEFAULT '{}',
-    header_preferences JSONB DEFAULT '{}',
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW(),
-    CONSTRAINT unique_user_document_preferences UNIQUE (user_id, organization_id)
-);
-
--- Roles
-CREATE TABLE roles (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    name VARCHAR(50) NOT NULL,
-    display_name TEXT NOT NULL,
-    description TEXT NOT NULL,
-    permissions JSONB NOT NULL,
-    is_system BOOLEAN NOT NULL DEFAULT false,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
--- Staff Management
--- =====================================================
-
--- Staff Shifts and Availability
-CREATE TABLE staff_shifts (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    staff_id INTEGER NOT NULL,
-    date TIMESTAMP NOT NULL,
-    shift_type VARCHAR(20) NOT NULL DEFAULT 'regular', -- regular, overtime, on_call, absent
-    start_time VARCHAR(5) NOT NULL,
-    end_time VARCHAR(5) NOT NULL,
-    status VARCHAR(20) NOT NULL DEFAULT 'scheduled', -- scheduled, completed, cancelled, absent
-    notes TEXT,
-    is_available BOOLEAN NOT NULL DEFAULT true,
-    created_by INTEGER,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
-);Everything about the structure, such as:
-
-All tables (with column definitions, data types, defaults)
-
-All primary keys, foreign keys, and unique constraints
-
-All indexes
-
-All sequences (for auto-increment IDs)
-
-All views, functions, triggers, and extensions
-
-All constraints (check constraints, not null, etc.)
-
--- Doctor Default Shifts
-CREATE TABLE doctor_default_shifts (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    user_id INTEGER NOT NULL,
-    start_time VARCHAR(5) NOT NULL DEFAULT '09:00',
-    end_time VARCHAR(5) NOT NULL DEFAULT '17:00',
-    working_days TEXT[] NOT NULL DEFAULT ARRAY['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
--- Patient Management
--- =====================================================
-
--- Patients
-CREATE TABLE patients (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    user_id INTEGER,
-    patient_id TEXT NOT NULL,
-    first_name TEXT NOT NULL,
-    last_name TEXT NOT NULL,
-    date_of_birth DATE,
-    gender_at_birth VARCHAR(20),
-    email TEXT,
-    phone TEXT,
-    nhs_number TEXT,
-    address JSONB DEFAULT '{}',
-    insurance_info JSONB DEFAULT '{}',
-    emergency_contact JSONB DEFAULT '{}',
-    medical_history JSONB DEFAULT '{}',
-    risk_level VARCHAR(10) NOT NULL DEFAULT 'low', -- low, medium, high
-    flags TEXT[] DEFAULT '{}',
-    communication_preferences JSONB DEFAULT '{}',
-    is_active BOOLEAN NOT NULL DEFAULT true,
-    is_insured BOOLEAN NOT NULL DEFAULT false,
-    created_by INTEGER,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
--- Medical Records
-CREATE TABLE medical_records (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    patient_id INTEGER NOT NULL,
-    provider_id INTEGER NOT NULL,
-    type VARCHAR(20) NOT NULL, -- consultation, prescription, lab_result, imaging
-    title TEXT NOT NULL,
-    notes TEXT,
-    diagnosis TEXT,
-    treatment TEXT,
-    prescription JSONB DEFAULT '{}',
-    attachments JSONB DEFAULT '[]',
-    ai_suggestions JSONB DEFAULT '{}',
-    created_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
--- Appointments
-CREATE TABLE appointments (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    patient_id INTEGER NOT NULL,
-    provider_id INTEGER NOT NULL,
-    assigned_role VARCHAR(50),
-    title TEXT NOT NULL,
-    description TEXT,
-    scheduled_at TIMESTAMP NOT NULL,
-    duration INTEGER NOT NULL DEFAULT 30,
-    status VARCHAR(20) NOT NULL DEFAULT 'scheduled', -- scheduled, completed, cancelled, no_show, rescheduled
-    type VARCHAR(20) NOT NULL DEFAULT 'consultation', -- consultation, follow_up, procedure, emergency, routine_checkup
-    location TEXT,
-    is_virtual BOOLEAN NOT NULL DEFAULT false,
-    created_by INTEGER,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
--- Billing & Financial Management
--- =====================================================
-
--- Patient Invoices
-CREATE TABLE invoices (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    invoice_number VARCHAR(50) NOT NULL UNIQUE,
-    patient_id TEXT NOT NULL,
-    patient_name TEXT NOT NULL,
-    nhs_number VARCHAR(10),
-    date_of_service TIMESTAMP NOT NULL,
-    invoice_date TIMESTAMP NOT NULL,
-    due_date TIMESTAMP NOT NULL,
-    status VARCHAR(20) NOT NULL DEFAULT 'draft', -- draft, sent, paid, overdue, cancelled
-    invoice_type VARCHAR(50) NOT NULL DEFAULT 'payment', -- payment, insurance_claim
-    subtotal DECIMAL(10, 2) NOT NULL,
-    tax DECIMAL(10, 2) NOT NULL DEFAULT 0,
-    discount DECIMAL(10, 2) NOT NULL DEFAULT 0,
-    total_amount DECIMAL(10, 2) NOT NULL,
-    paid_amount DECIMAL(10, 2) NOT NULL DEFAULT 0,
-    items JSONB NOT NULL,
-    insurance JSONB,
-    payments JSONB NOT NULL DEFAULT '[]',
-    notes TEXT,
-    created_by INTEGER,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
-);
-
--- Payments
-CREATE TABLE payments (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    invoice_id INTEGER NOT NULL,
-    patient_id TEXT NOT NULL,
-    transaction_id TEXT NOT NULL UNIQUE,
-    amount DECIMAL(10, 2) NOT NULL,
-    currency VARCHAR(3) NOT NULL DEFAULT 'GBP',
-    payment_method VARCHAR(20) NOT NULL, -- online, cash, card, bank_transfer
-    payment_provider VARCHAR(50),
-    payment_status VARCHAR(20) NOT NULL DEFAULT 'completed', -- completed, pending, failed, refunded
-    payment_date TIMESTAMP NOT NULL DEFAULT NOW(),
-    metadata JSONB DEFAULT '{}',
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
-);
-
--- Revenue Records
-CREATE TABLE revenue_records (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    month VARCHAR(7) NOT NULL, -- YYYY-MM
-    revenue DECIMAL(12, 2) NOT NULL,
-    expenses DECIMAL(12, 2) NOT NULL,
-    profit DECIMAL(12, 2) NOT NULL,
-    collections DECIMAL(12, 2) NOT NULL,
-    target DECIMAL(12, 2) NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
--- Insurance Management
--- =====================================================
-
--- Insurance Verifications
-CREATE TABLE insurance_verifications (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    patient_id INTEGER NOT NULL,
-    patient_name TEXT NOT NULL,
-    provider TEXT NOT NULL,
-    policy_number TEXT NOT NULL,
-    group_number TEXT,
-    member_number TEXT,
-    nhs_number TEXT,
-    plan_type TEXT,
-    coverage_type VARCHAR(20) NOT NULL DEFAULT 'primary', -- primary, secondary
-    status VARCHAR(20) NOT NULL DEFAULT 'active', -- active, inactive, pending, expired
-    eligibility_status VARCHAR(20) NOT NULL DEFAULT 'pending', -- verified, pending, invalid
-    effective_date DATE,
-    expiration_date DATE,
-    last_verified DATE,
-    benefits JSONB DEFAULT '{}',
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
-);
-
--- Claims
-CREATE TABLE claims (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    patient_id INTEGER NOT NULL,
-    invoice_id INTEGER NOT NULL,
-    claim_number VARCHAR(50) NOT NULL UNIQUE,
-    insurance_provider TEXT NOT NULL,
-    total_billed DECIMAL(10, 2) NOT NULL,
-    total_approved DECIMAL(10, 2),
-    total_paid DECIMAL(10, 2),
-    status VARCHAR(20) NOT NULL DEFAULT 'submitted', -- submitted, approved, denied, pending
-    submission_date TIMESTAMP NOT NULL,
-    response_date TIMESTAMP,
-    denial_reason TEXT,
-    notes TEXT,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
--- Financial Forecasting
--- =====================================================
-
--- Forecast Models
-CREATE TABLE forecast_models (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    name TEXT NOT NULL,
-    type VARCHAR(30) NOT NULL, -- revenue, expenses, collections, claims
-    algorithm VARCHAR(20) NOT NULL DEFAULT 'linear', -- linear, seasonal, exponential
-    parameters JSONB DEFAULT '{}',
-    accuracy DECIMAL(5, 2),
-    is_active BOOLEAN NOT NULL DEFAULT true,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
-);
-
--- Financial Forecasts
-CREATE TABLE financial_forecasts (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    category TEXT NOT NULL,
-    forecast_period VARCHAR(7) NOT NULL, -- YYYY-MM
-    generated_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    current_value DECIMAL(12, 2) NOT NULL,
-    projected_value DECIMAL(12, 2) NOT NULL,
-    variance DECIMAL(12, 2) NOT NULL,
-    trend VARCHAR(10) NOT NULL, -- up, down, stable
-    confidence INTEGER NOT NULL,
-    methodology VARCHAR(30) NOT NULL DEFAULT 'historical_trend',
-    key_factors JSONB DEFAULT '[]',
-    model_id INTEGER,
-    metadata JSONB DEFAULT '{}',
-    is_active BOOLEAN NOT NULL DEFAULT true,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
-);
-
--- AI & Clinical Decision Support
--- =====================================================
-
--- AI Insights
+-- Table: ai_insights
 CREATE TABLE ai_insights (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    patient_id INTEGER,
-    type VARCHAR(30) NOT NULL, -- risk_alert, drug_interaction, treatment_suggestion, preventive_care
-    title TEXT NOT NULL,
-    description TEXT NOT NULL,
-    severity VARCHAR(10) NOT NULL DEFAULT 'medium', -- low, medium, high, critical
-    action_required BOOLEAN NOT NULL DEFAULT false,
-    confidence VARCHAR(10),
-    metadata JSONB DEFAULT '{}',
-    status VARCHAR(20) NOT NULL DEFAULT 'active', -- active, dismissed, resolved
-    ai_status VARCHAR(20) DEFAULT 'pending', -- pending, reviewed, implemented, dismissed
-    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+  id integer NOT NULL DEFAULT nextval('ai_insights_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  patient_id integer,
+  type character varying(30) NOT NULL,
+  title text NOT NULL,
+  description text NOT NULL,
+  severity character varying(10) NOT NULL DEFAULT 'medium'::character varying,
+  action_required boolean NOT NULL DEFAULT false,
+  confidence character varying(10),
+  metadata jsonb DEFAULT '{}'::jsonb,
+  status character varying(20) NOT NULL DEFAULT 'active'::character varying,
+  ai_status character varying(20) DEFAULT 'pending'::character varying,
+  created_at timestamp without time zone NOT NULL DEFAULT now()
 );
 
--- Clinical Procedures
-CREATE TABLE clinical_procedures (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    name TEXT NOT NULL,
-    category VARCHAR(50) NOT NULL,
-    duration TEXT NOT NULL,
-    complexity VARCHAR(20) NOT NULL, -- low, medium, high
-    prerequisites JSONB DEFAULT '[]',
-    steps JSONB DEFAULT '[]',
-    complications JSONB DEFAULT '[]',
-    is_active BOOLEAN NOT NULL DEFAULT true,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+-- Table: appointments
+CREATE TABLE appointments (
+  id integer NOT NULL DEFAULT nextval('appointments_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  patient_id integer NOT NULL,
+  provider_id integer NOT NULL,
+  assigned_role character varying(50),
+  title text NOT NULL,
+  description text,
+  scheduled_at timestamp without time zone NOT NULL,
+  duration integer NOT NULL DEFAULT 30,
+  status character varying(20) NOT NULL DEFAULT 'scheduled'::character varying,
+  type character varying(20) NOT NULL DEFAULT 'consultation'::character varying,
+  location text,
+  is_virtual boolean NOT NULL DEFAULT false,
+  created_by integer,
+  created_at timestamp without time zone NOT NULL DEFAULT now()
 );
 
--- Emergency Protocols
-CREATE TABLE emergency_protocols (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    title TEXT NOT NULL,
-    priority VARCHAR(20) NOT NULL, -- low, medium, high, critical
-    steps JSONB DEFAULT '[]',
-    is_active BOOLEAN NOT NULL DEFAULT true,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
--- Medications & Drug Interactions
--- =====================================================
-
--- Medications Database
-CREATE TABLE medications_database (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    name TEXT NOT NULL,
-    category TEXT NOT NULL,
-    dosage TEXT NOT NULL,
-    interactions JSONB DEFAULT '[]',
-    warnings JSONB DEFAULT '[]',
-    severity VARCHAR(20) NOT NULL, -- low, medium, high
-    is_active BOOLEAN NOT NULL DEFAULT true,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
--- Patient Drug Interactions
-CREATE TABLE patient_drug_interactions (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    patient_id INTEGER NOT NULL,
-    medication1_name TEXT NOT NULL,
-    medication1_dosage TEXT NOT NULL,
-    medication1_frequency TEXT,
-    medication2_name TEXT NOT NULL,
-    medication2_dosage TEXT NOT NULL,
-    medication2_frequency TEXT,
-    interaction_type VARCHAR(50), -- drug-drug, drug-food, drug-condition
-    severity VARCHAR(20) NOT NULL DEFAULT 'medium', -- low, medium, high
-    description TEXT,
-    warnings JSONB DEFAULT '[]',
-    recommendations JSONB DEFAULT '[]',
-    reported_by INTEGER,
-    reported_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    status VARCHAR(20) NOT NULL DEFAULT 'active', -- active, resolved, dismissed
-    notes TEXT,
-    is_active BOOLEAN NOT NULL DEFAULT true,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
--- Prescriptions & Lab Results
--- =====================================================
-
--- Prescriptions
-CREATE TABLE prescriptions (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    patient_id INTEGER NOT NULL,
-    provider_id INTEGER NOT NULL,
-    medication_name TEXT NOT NULL,
-    dosage TEXT NOT NULL,
-    frequency TEXT NOT NULL,
-    duration TEXT NOT NULL,
-    instructions TEXT,
-    refills INTEGER NOT NULL DEFAULT 0,
-    status VARCHAR(20) NOT NULL DEFAULT 'active', -- active, completed, cancelled
-    issued_date TIMESTAMP NOT NULL,
-    expiry_date TIMESTAMP,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
--- Lab Results
-CREATE TABLE lab_results (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    patient_id INTEGER NOT NULL,
-    test_name TEXT NOT NULL,
-    test_type VARCHAR(50) NOT NULL,
-    result_value TEXT NOT NULL,
-    unit TEXT,
-    reference_range TEXT,
-    status VARCHAR(20) NOT NULL DEFAULT 'pending', -- pending, completed, reviewed
-    abnormal_flag BOOLEAN NOT NULL DEFAULT false,
-    notes TEXT,
-    ordered_by INTEGER,
-    reviewed_by INTEGER,
-    ordered_at TIMESTAMP NOT NULL,
-    completed_at TIMESTAMP,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
--- Medical Imaging
--- =====================================================
-
--- Medical Images
-CREATE TABLE medical_images (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    patient_id INTEGER NOT NULL,
-    title TEXT NOT NULL,
-    image_type VARCHAR(50) NOT NULL, -- X-Ray, CT Scan, MRI, Ultrasound
-    modality VARCHAR(20) NOT NULL,
-    body_part TEXT NOT NULL,
-    image_url TEXT NOT NULL,
-    thumbnail_url TEXT,
-    file_size INTEGER,
-    dimensions JSONB,
-    dicom_metadata JSONB,
-    report JSONB DEFAULT '{}',
-    status VARCHAR(20) NOT NULL DEFAULT 'pending', -- pending, reported, reviewed
-    ordered_by INTEGER,
-    performed_by INTEGER,
-    reported_by INTEGER,
-    acquired_at TIMESTAMP NOT NULL,
-    reported_at TIMESTAMP,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
--- Clinical Photos
-CREATE TABLE clinical_photos (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    patient_id INTEGER NOT NULL,
-    title TEXT NOT NULL,
-    description TEXT,
-    body_part TEXT,
-    photo_url TEXT NOT NULL,
-    thumbnail_url TEXT,
-    taken_by INTEGER NOT NULL,
-    taken_at TIMESTAMP NOT NULL,
-    metadata JSONB DEFAULT '{}',
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
--- Communications & Messaging
--- =====================================================
-
--- Patient Communications
-CREATE TABLE patient_communications (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    patient_id INTEGER NOT NULL,
-    sent_by INTEGER NOT NULL,
-    channel VARCHAR(20) NOT NULL, -- email, sms, phone, portal
-    message_type VARCHAR(20) NOT NULL, -- appointment_reminder, prescription_ready, test_result, general
-    subject TEXT,
-    message TEXT NOT NULL,
-    status VARCHAR(20) NOT NULL DEFAULT 'sent', -- sent, delivered, failed, read
-    scheduled_at TIMESTAMP,
-    sent_at TIMESTAMP,
-    delivered_at TIMESTAMP,
-    read_at TIMESTAMP,
-    metadata JSONB DEFAULT '{}',
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
--- Conversations
-CREATE TABLE conversations (
-    id VARCHAR(50) PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    participants JSONB NOT NULL,
-    last_message JSONB,
-    unread_count INTEGER NOT NULL DEFAULT 0,
-    is_patient_conversation BOOLEAN NOT NULL DEFAULT false,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
-);
-
--- Messages
-CREATE TABLE messages (
-    id VARCHAR(50) PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    conversation_id VARCHAR(50) NOT NULL,
-    sender_id INTEGER NOT NULL,
-    sender_name TEXT NOT NULL,
-    sender_role VARCHAR(20) NOT NULL,
-    recipient_id TEXT,
-    recipient_name TEXT,
-    subject TEXT NOT NULL,
-    content TEXT NOT NULL,
-    timestamp TIMESTAMP NOT NULL DEFAULT NOW(),
-    is_read BOOLEAN NOT NULL DEFAULT false,
-    priority VARCHAR(10) NOT NULL DEFAULT 'normal', -- low, normal, high, urgent
-    type VARCHAR(20) NOT NULL DEFAULT 'internal', -- internal, patient, broadcast
-    is_starred BOOLEAN NOT NULL DEFAULT false,
-    phone_number VARCHAR(20),
-    message_type VARCHAR(10), -- sms, email, internal
-    delivery_status VARCHAR(20) NOT NULL DEFAULT 'pending', -- pending, sent, delivered, failed
-    external_message_id TEXT,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
--- Notifications
-CREATE TABLE notifications (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    user_id INTEGER NOT NULL,
-    type VARCHAR(30) NOT NULL, -- appointment, message, alert, reminder
-    title TEXT NOT NULL,
-    message TEXT NOT NULL,
-    priority VARCHAR(10) NOT NULL DEFAULT 'normal', -- low, normal, high, urgent
-    action_url TEXT,
-    is_read BOOLEAN NOT NULL DEFAULT false,
-    read_at TIMESTAMP,
-    metadata JSONB DEFAULT '{}',
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
--- Telehealth & Consultations
--- =====================================================
-
--- Subscriptions
-CREATE TABLE subscriptions (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    patient_id INTEGER NOT NULL,
-    plan_name TEXT NOT NULL,
-    status VARCHAR(20) NOT NULL DEFAULT 'active', -- active, cancelled, expired
-    start_date TIMESTAMP NOT NULL,
-    end_date TIMESTAMP,
-    amount DECIMAL(10, 2) NOT NULL,
-    billing_cycle VARCHAR(20) NOT NULL, -- monthly, yearly
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
-);
-
--- Consultations
-CREATE TABLE consultations (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    patient_id INTEGER NOT NULL,
-    provider_id INTEGER NOT NULL,
-    consultation_type VARCHAR(30) NOT NULL, -- video, phone, in_person
-    status VARCHAR(20) NOT NULL DEFAULT 'scheduled', -- scheduled, in_progress, completed, cancelled
-    scheduled_at TIMESTAMP NOT NULL,
-    started_at TIMESTAMP,
-    ended_at TIMESTAMP,
-    duration INTEGER,
-    notes TEXT,
-    diagnosis TEXT,
-    prescription JSONB,
-    follow_up_required BOOLEAN NOT NULL DEFAULT false,
-    follow_up_date TIMESTAMP,
-    recording_url TEXT,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
--- Symptom Checks
-CREATE TABLE symptom_checks (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    patient_id INTEGER,
-    symptoms JSONB NOT NULL,
-    severity VARCHAR(10) NOT NULL, -- mild, moderate, severe
-    ai_assessment TEXT,
-    recommendations JSONB DEFAULT '[]',
-    urgency_level VARCHAR(20) NOT NULL, -- routine, urgent, emergency
-    follow_up_required BOOLEAN NOT NULL DEFAULT false,
-    status VARCHAR(20) NOT NULL DEFAULT 'pending', -- pending, reviewed, resolved
-    reviewed_by INTEGER,
-    reviewed_at TIMESTAMP,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
--- GDPR & Compliance
--- =====================================================
-
--- GDPR Consents
-CREATE TABLE gdpr_consents (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    patient_id INTEGER NOT NULL,
-    consent_type VARCHAR(50) NOT NULL, -- data_processing, marketing, research, third_party_sharing
-    consent_given BOOLEAN NOT NULL,
-    consent_text TEXT NOT NULL,
-    consent_version VARCHAR(20) NOT NULL,
-    consented_at TIMESTAMP NOT NULL,
-    withdrawn_at TIMESTAMP,
-    ip_address VARCHAR(45),
-    user_agent TEXT,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
--- GDPR Data Requests
-CREATE TABLE gdpr_data_requests (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    patient_id INTEGER NOT NULL,
-    request_type VARCHAR(30) NOT NULL, -- access, erasure, portability, rectification
-    status VARCHAR(20) NOT NULL DEFAULT 'pending', -- pending, processing, completed, rejected
-    request_details TEXT,
-    requested_at TIMESTAMP NOT NULL,
-    completed_at TIMESTAMP,
-    rejection_reason TEXT,
-    processed_by INTEGER,
-    data_package_url TEXT,
-    notes TEXT,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
--- GDPR Audit Trail
-CREATE TABLE gdpr_audit_trail (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    user_id INTEGER,
-    patient_id INTEGER,
-    action VARCHAR(50) NOT NULL, -- view, create, update, delete, export, share
-    resource_type VARCHAR(50) NOT NULL, -- patient, medical_record, prescription, etc.
-    resource_id INTEGER,
-    ip_address VARCHAR(45),
-    user_agent TEXT,
-    details JSONB,
-    timestamp TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
--- GDPR Processing Activities
-CREATE TABLE gdpr_processing_activities (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    activity_name TEXT NOT NULL,
-    purpose TEXT NOT NULL,
-    legal_basis VARCHAR(50) NOT NULL, -- consent, contract, legal_obligation, vital_interest, public_task, legitimate_interest
-    data_categories JSONB NOT NULL,
-    recipients JSONB,
-    retention_period TEXT NOT NULL,
-    security_measures TEXT,
-    is_active BOOLEAN NOT NULL DEFAULT true,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
--- Inventory Management
--- =====================================================
-
--- Inventory Categories
-CREATE TABLE inventory_categories (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    name TEXT NOT NULL,
-    description TEXT,
-    parent_category_id INTEGER,
-    is_active BOOLEAN NOT NULL DEFAULT true,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
--- Inventory Items
-CREATE TABLE inventory_items (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    category_id INTEGER NOT NULL,
-    name TEXT NOT NULL,
-    description TEXT,
-    sku VARCHAR(100) NOT NULL,
-    barcode VARCHAR(100),
-    generic_name TEXT,
-    brand_name TEXT,
-    manufacturer TEXT,
-    unit_of_measurement VARCHAR(20) NOT NULL DEFAULT 'pieces',
-    pack_size INTEGER NOT NULL DEFAULT 1,
-    purchase_price DECIMAL(10, 2) NOT NULL,
-    sale_price DECIMAL(10, 2) NOT NULL,
-    mrp DECIMAL(10, 2),
-    tax_rate DECIMAL(5, 2) NOT NULL DEFAULT 0.00,
-    current_stock INTEGER NOT NULL DEFAULT 0,
-    minimum_stock INTEGER NOT NULL DEFAULT 10,
-    maximum_stock INTEGER NOT NULL DEFAULT 1000,
-    reorder_point INTEGER NOT NULL DEFAULT 20,
-    expiry_tracking BOOLEAN NOT NULL DEFAULT false,
-    batch_tracking BOOLEAN NOT NULL DEFAULT false,
-    prescription_required BOOLEAN NOT NULL DEFAULT false,
-    storage_conditions TEXT,
-    side_effects TEXT,
-    contraindications TEXT,
-    dosage_instructions TEXT,
-    is_active BOOLEAN NOT NULL DEFAULT true,
-    is_discontinued BOOLEAN NOT NULL DEFAULT false,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
--- Inventory Suppliers
-CREATE TABLE inventory_suppliers (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    name TEXT NOT NULL,
-    contact_person TEXT,
-    email TEXT,
-    phone VARCHAR(20),
-    address TEXT,
-    city TEXT,
-    country TEXT NOT NULL DEFAULT 'UK',
-    tax_id VARCHAR(50),
-    payment_terms VARCHAR(100) DEFAULT 'Net 30',
-    is_active BOOLEAN NOT NULL DEFAULT true,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
--- Inventory Purchase Orders
-CREATE TABLE inventory_purchase_orders (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    po_number VARCHAR(100) NOT NULL UNIQUE,
-    supplier_id INTEGER NOT NULL,
-    order_date TIMESTAMP NOT NULL DEFAULT NOW(),
-    expected_delivery_date TIMESTAMP,
-    status VARCHAR(20) NOT NULL DEFAULT 'pending', -- pending, sent, received, cancelled
-    total_amount DECIMAL(12, 2) NOT NULL,
-    tax_amount DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
-    discount_amount DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
-    notes TEXT,
-    created_by INTEGER NOT NULL,
-    approved_by INTEGER,
-    approved_at TIMESTAMP,
-    email_sent BOOLEAN NOT NULL DEFAULT false,
-    email_sent_at TIMESTAMP,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
--- Inventory Purchase Order Items
-CREATE TABLE inventory_purchase_order_items (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    purchase_order_id INTEGER NOT NULL,
-    item_id INTEGER NOT NULL,
-    quantity INTEGER NOT NULL,
-    unit_price DECIMAL(10, 2) NOT NULL,
-    total_price DECIMAL(12, 2) NOT NULL,
-    received_quantity INTEGER NOT NULL DEFAULT 0,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
--- Inventory Batches
-CREATE TABLE inventory_batches (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    item_id INTEGER NOT NULL,
-    batch_number VARCHAR(100) NOT NULL,
-    expiry_date TIMESTAMP,
-    manufacture_date TIMESTAMP,
-    quantity INTEGER NOT NULL,
-    remaining_quantity INTEGER NOT NULL DEFAULT 0,
-    purchase_price DECIMAL(10, 2) NOT NULL,
-    supplier_id INTEGER,
-    received_date TIMESTAMP NOT NULL DEFAULT NOW(),
-    status VARCHAR(20) NOT NULL DEFAULT 'active',
-    is_expired BOOLEAN NOT NULL DEFAULT false,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
--- Inventory Sales
-CREATE TABLE inventory_sales (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    patient_id INTEGER,
-    sale_number VARCHAR(100) NOT NULL UNIQUE,
-    sale_date TIMESTAMP NOT NULL DEFAULT NOW(),
-    total_amount DECIMAL(12, 2) NOT NULL,
-    tax_amount DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
-    discount_amount DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
-    payment_method VARCHAR(50) NOT NULL DEFAULT 'cash', -- cash, card, insurance
-    payment_status VARCHAR(20) NOT NULL DEFAULT 'paid', -- paid, pending, partial
-    prescription_id INTEGER,
-    sold_by INTEGER NOT NULL,
-    notes TEXT,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
--- Inventory Sale Items
-CREATE TABLE inventory_sale_items (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    sale_id INTEGER NOT NULL,
-    item_id INTEGER NOT NULL,
-    batch_id INTEGER,
-    quantity INTEGER NOT NULL,
-    unit_price DECIMAL(10, 2) NOT NULL,
-    total_price DECIMAL(12, 2) NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
--- Inventory Stock Movements
-CREATE TABLE inventory_stock_movements (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    item_id INTEGER NOT NULL,
-    batch_id INTEGER,
-    movement_type VARCHAR(20) NOT NULL, -- purchase, sale, adjustment, transfer, expired
-    quantity INTEGER NOT NULL,
-    previous_stock INTEGER NOT NULL,
-    new_stock INTEGER NOT NULL,
-    unit_cost DECIMAL(10, 2),
-    reference_type VARCHAR(50),
-    reference_id INTEGER,
-    notes TEXT,
-    created_by INTEGER NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
--- Inventory Stock Alerts
-CREATE TABLE inventory_stock_alerts (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    item_id INTEGER NOT NULL,
-    alert_type VARCHAR(20) NOT NULL, -- low_stock, expired, expiring_soon
-    threshold_value INTEGER NOT NULL,
-    current_value INTEGER NOT NULL,
-    status VARCHAR(20) NOT NULL DEFAULT 'active', -- active, resolved
-    message TEXT,
-    is_read BOOLEAN NOT NULL DEFAULT false,
-    is_resolved BOOLEAN NOT NULL DEFAULT false,
-    resolved_by INTEGER,
-    resolved_at TIMESTAMP,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
--- Documents & Forms
--- =====================================================
-
--- Documents
-CREATE TABLE documents (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    user_id INTEGER NOT NULL,
-    name TEXT NOT NULL,
-    type VARCHAR(50) NOT NULL DEFAULT 'medical_form',
-    content TEXT NOT NULL,
-    metadata JSONB DEFAULT '{}',
-    is_template BOOLEAN NOT NULL DEFAULT false,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
-);
-
--- Letter Drafts
-CREATE TABLE letter_drafts (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    user_id INTEGER NOT NULL,
-    patient_id INTEGER,
-    letter_type VARCHAR(50) NOT NULL, -- referral, medical_certificate, sick_note, etc.
-    subject TEXT,
-    recipient TEXT,
-    recipient_address TEXT,
-    salutation TEXT,
-    body TEXT NOT NULL,
-    closing TEXT,
-    signature_name TEXT,
-    signature_title TEXT,
-    template_used VARCHAR(50),
-    header_type VARCHAR(20),
-    status VARCHAR(20) NOT NULL DEFAULT 'draft', -- draft, finalized, sent
-    finalized_at TIMESTAMP,
-    sent_at TIMESTAMP,
-    metadata JSONB DEFAULT '{}',
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
--- Voice Documentation
--- =====================================================
-
--- Voice Notes
-CREATE TABLE voice_notes (
-    id VARCHAR PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    patient_id VARCHAR NOT NULL,
-    patient_name TEXT NOT NULL,
-    provider_id VARCHAR NOT NULL,
-    provider_name TEXT NOT NULL,
-    type VARCHAR(50) NOT NULL, -- consultation, procedure_note, clinical_note
-    status VARCHAR(20) NOT NULL DEFAULT 'completed',
-    recording_duration INTEGER, -- in seconds
-    transcript TEXT,
-    confidence REAL,
-    medical_terms JSONB DEFAULT '[]',
-    structured_data JSONB DEFAULT '{}',
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
-);
-
--- Clinical Analysis
--- =====================================================
-
--- Muscle Positions (Facial Analysis)
-CREATE TABLE muscles_position (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    patient_id INTEGER NOT NULL,
-    consultation_id INTEGER,
-    position INTEGER NOT NULL, -- 1-15
-    value TEXT NOT NULL,
-    coordinates JSONB,
-    is_detected BOOLEAN NOT NULL DEFAULT false,
-    detected_at TIMESTAMP,
-    notes TEXT,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
--- Chatbot & AI Assistant
--- =====================================================
-
--- Chatbot Configs
-CREATE TABLE chatbot_configs (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    name TEXT NOT NULL DEFAULT 'Healthcare Assistant',
-    description TEXT DEFAULT 'AI-powered healthcare assistant',
-    is_active BOOLEAN NOT NULL DEFAULT true,
-    primary_color TEXT DEFAULT '#4A7DFF',
-    welcome_message TEXT DEFAULT 'Hello! I can help with appointments and prescriptions.',
-    appointment_booking_enabled BOOLEAN NOT NULL DEFAULT true,
-    prescription_requests_enabled BOOLEAN NOT NULL DEFAULT true,
-    api_key TEXT NOT NULL,
-    embed_code TEXT,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
--- Chatbot Sessions
-CREATE TABLE chatbot_sessions (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    config_id INTEGER NOT NULL,
-    session_id TEXT NOT NULL UNIQUE,
-    visitor_id TEXT,
-    patient_id INTEGER,
-    status VARCHAR(20) NOT NULL DEFAULT 'active',
-    current_intent TEXT,
-    extracted_patient_name TEXT,
-    extracted_phone TEXT,
-    extracted_email TEXT,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
--- Chatbot Messages
-CREATE TABLE chatbot_messages (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    session_id INTEGER NOT NULL,
-    message_id TEXT NOT NULL UNIQUE,
-    sender VARCHAR(10) NOT NULL,
-    message_type VARCHAR(20) NOT NULL DEFAULT 'text',
-    content TEXT NOT NULL,
-    intent TEXT,
-    confidence REAL,
-    ai_processed BOOLEAN NOT NULL DEFAULT false,
-    is_read BOOLEAN NOT NULL DEFAULT false,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
--- Chatbot Analytics
+-- Table: chatbot_analytics
 CREATE TABLE chatbot_analytics (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    config_id INTEGER NOT NULL,
-    date TIMESTAMP NOT NULL,
-    total_sessions INTEGER DEFAULT 0,
-    completed_sessions INTEGER DEFAULT 0,
-    total_messages INTEGER DEFAULT 0,
-    appointments_booked INTEGER DEFAULT 0,
-    prescription_requests INTEGER DEFAULT 0,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+  id integer NOT NULL DEFAULT nextval('chatbot_analytics_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  config_id integer NOT NULL,
+  date timestamp without time zone NOT NULL,
+  total_sessions integer DEFAULT 0,
+  completed_sessions integer DEFAULT 0,
+  total_messages integer DEFAULT 0,
+  appointments_booked integer DEFAULT 0,
+  prescription_requests integer DEFAULT 0,
+  created_at timestamp without time zone NOT NULL DEFAULT now()
 );
 
--- QuickBooks Integration
--- =====================================================
-
--- QuickBooks Connections
-CREATE TABLE quickbooks_connections (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL UNIQUE,
-    realm_id TEXT NOT NULL,
-    access_token TEXT NOT NULL,
-    refresh_token TEXT NOT NULL,
-    token_expires_at TIMESTAMP NOT NULL,
-    refresh_token_expires_at TIMESTAMP NOT NULL,
-    is_active BOOLEAN NOT NULL DEFAULT true,
-    last_sync_at TIMESTAMP,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+-- Table: chatbot_configs
+CREATE TABLE chatbot_configs (
+  id integer NOT NULL DEFAULT nextval('chatbot_configs_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  name text NOT NULL DEFAULT 'Healthcare Assistant'::text,
+  description text DEFAULT 'AI-powered healthcare assistant'::text,
+  is_active boolean NOT NULL DEFAULT true,
+  primary_color text DEFAULT '#4A7DFF'::text,
+  welcome_message text DEFAULT 'Hello! I can help with appointments and prescriptions.'::text,
+  appointment_booking_enabled boolean NOT NULL DEFAULT true,
+  prescription_requests_enabled boolean NOT NULL DEFAULT true,
+  api_key text NOT NULL,
+  embed_code text,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone NOT NULL DEFAULT now()
 );
 
--- QuickBooks Sync Logs
-CREATE TABLE quickbooks_sync_logs (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    sync_type VARCHAR(50) NOT NULL, -- customer, invoice, payment, item
-    direction VARCHAR(20) NOT NULL, -- to_quickbooks, from_quickbooks
-    status VARCHAR(20) NOT NULL DEFAULT 'pending', -- pending, success, failed
-    entity_type VARCHAR(50) NOT NULL,
-    entity_id INTEGER,
-    quickbooks_id TEXT,
-    error_message TEXT,
-    request_payload JSONB,
-    response_payload JSONB,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+-- Table: chatbot_messages
+CREATE TABLE chatbot_messages (
+  id integer NOT NULL DEFAULT nextval('chatbot_messages_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  session_id integer NOT NULL,
+  message_id text NOT NULL,
+  sender character varying(10) NOT NULL,
+  message_type character varying(20) NOT NULL DEFAULT 'text'::character varying,
+  content text NOT NULL,
+  intent text,
+  confidence real,
+  ai_processed boolean NOT NULL DEFAULT false,
+  is_read boolean NOT NULL DEFAULT false,
+  created_at timestamp without time zone NOT NULL DEFAULT now()
 );
 
--- QuickBooks Customer Mappings
-CREATE TABLE quickbooks_customer_mappings (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    patient_id INTEGER NOT NULL UNIQUE,
-    quickbooks_customer_id TEXT NOT NULL,
-    sync_status VARCHAR(20) NOT NULL DEFAULT 'synced', -- synced, pending, error
-    last_synced_at TIMESTAMP,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+-- Table: chatbot_sessions
+CREATE TABLE chatbot_sessions (
+  id integer NOT NULL DEFAULT nextval('chatbot_sessions_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  config_id integer NOT NULL,
+  session_id text NOT NULL,
+  visitor_id text,
+  patient_id integer,
+  status character varying(20) NOT NULL DEFAULT 'active'::character varying,
+  current_intent text,
+  extracted_patient_name text,
+  extracted_phone text,
+  extracted_email text,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone NOT NULL DEFAULT now()
 );
 
--- QuickBooks Invoice Mappings
-CREATE TABLE quickbooks_invoice_mappings (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    local_invoice_id INTEGER NOT NULL UNIQUE,
-    quickbooks_invoice_id TEXT NOT NULL,
-    quickbooks_invoice_number TEXT,
-    sync_status VARCHAR(20) NOT NULL DEFAULT 'synced',
-    last_synced_at TIMESTAMP,
-    metadata JSONB DEFAULT '{}',
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+-- Table: claims
+CREATE TABLE claims (
+  id integer NOT NULL DEFAULT nextval('claims_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  patient_id integer NOT NULL,
+  claim_number character varying(50) NOT NULL,
+  service_date timestamp without time zone NOT NULL,
+  submission_date timestamp without time zone NOT NULL,
+  amount numeric NOT NULL,
+  status character varying(20) NOT NULL DEFAULT 'pending'::character varying,
+  payment_amount numeric,
+  payment_date timestamp without time zone,
+  denial_reason text,
+  insurance_provider text NOT NULL,
+  procedures jsonb DEFAULT '[]'::jsonb,
+  created_at timestamp without time zone NOT NULL DEFAULT now()
 );
 
--- QuickBooks Payment Mappings
-CREATE TABLE quickbooks_payment_mappings (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    local_payment_id INTEGER NOT NULL UNIQUE,
-    quickbooks_payment_id TEXT NOT NULL,
-    sync_status VARCHAR(20) NOT NULL DEFAULT 'synced',
-    last_synced_at TIMESTAMP,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+-- Table: clinic_footers
+CREATE TABLE clinic_footers (
+  id integer NOT NULL DEFAULT nextval('clinic_footers_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  footer_text text NOT NULL,
+  background_color character varying(7) NOT NULL DEFAULT '#4A7DFF'::character varying,
+  text_color character varying(7) NOT NULL DEFAULT '#FFFFFF'::character varying,
+  show_social boolean NOT NULL DEFAULT false,
+  facebook text,
+  twitter text,
+  linkedin text,
+  is_active boolean NOT NULL DEFAULT true,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone DEFAULT now()
 );
 
--- QuickBooks Account Mappings
+-- Table: clinic_headers
+CREATE TABLE clinic_headers (
+  id integer NOT NULL DEFAULT nextval('clinic_headers_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  logo_base64 text,
+  logo_position character varying(20) NOT NULL DEFAULT 'center'::character varying,
+  clinic_name text NOT NULL,
+  address text,
+  phone character varying(50),
+  email text,
+  website text,
+  is_active boolean NOT NULL DEFAULT true,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone DEFAULT now(),
+  font_size character varying(20) NOT NULL DEFAULT '12pt'::character varying,
+  font_family character varying(50) NOT NULL DEFAULT 'verdana'::character varying,
+  font_weight character varying(20) NOT NULL DEFAULT 'normal'::character varying,
+  font_style character varying(20) NOT NULL DEFAULT 'normal'::character varying,
+  text_decoration character varying(20) NOT NULL DEFAULT 'none'::character varying,
+  clinic_name_font_size character varying(20) NOT NULL DEFAULT '24pt'::character varying
+);
+
+-- Table: clinical_photos
+CREATE TABLE clinical_photos (
+  id integer NOT NULL DEFAULT nextval('clinical_photos_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  patient_id integer NOT NULL,
+  captured_by integer NOT NULL,
+  type character varying(50) NOT NULL,
+  description text NOT NULL,
+  file_name text NOT NULL,
+  file_path text NOT NULL,
+  file_size integer NOT NULL,
+  mime_type character varying(100) NOT NULL DEFAULT 'image/png'::character varying,
+  metadata jsonb DEFAULT '{}'::jsonb,
+  ai_analysis jsonb,
+  status character varying(20) NOT NULL DEFAULT 'active'::character varying,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone NOT NULL DEFAULT now()
+);
+
+-- Table: clinical_procedures
+CREATE TABLE clinical_procedures (
+  id integer NOT NULL DEFAULT nextval('clinical_procedures_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  name text NOT NULL,
+  category character varying(50) NOT NULL,
+  duration text NOT NULL,
+  complexity character varying(20) NOT NULL,
+  prerequisites jsonb DEFAULT '[]'::jsonb,
+  steps jsonb DEFAULT '[]'::jsonb,
+  complications jsonb DEFAULT '[]'::jsonb,
+  is_active boolean NOT NULL DEFAULT true,
+  created_at timestamp without time zone NOT NULL DEFAULT now()
+);
+
+-- Table: consultations
+CREATE TABLE consultations (
+  id integer NOT NULL DEFAULT nextval('consultations_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  appointment_id integer,
+  patient_id integer NOT NULL,
+  provider_id integer NOT NULL,
+  consultation_type character varying(20) NOT NULL,
+  chief_complaint text,
+  history_of_present_illness text,
+  vitals jsonb DEFAULT '{}'::jsonb,
+  physical_exam text,
+  assessment text,
+  diagnosis ARRAY,
+  treatment_plan text,
+  prescriptions ARRAY,
+  follow_up_instructions text,
+  consultation_notes text,
+  status character varying(20) NOT NULL DEFAULT 'in_progress'::character varying,
+  start_time timestamp without time zone NOT NULL,
+  end_time timestamp without time zone,
+  duration integer,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone NOT NULL DEFAULT now()
+);
+
+-- Table: conversations
+CREATE TABLE conversations (
+  id character varying(50) NOT NULL,
+  organization_id integer NOT NULL,
+  participants jsonb NOT NULL,
+  last_message jsonb,
+  unread_count integer NOT NULL DEFAULT 0,
+  is_patient_conversation boolean NOT NULL DEFAULT false,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone DEFAULT now()
+);
+
+-- Table: doctor_default_shifts
+CREATE TABLE doctor_default_shifts (
+  id integer NOT NULL DEFAULT nextval('doctor_default_shifts_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  user_id integer NOT NULL,
+  start_time character varying(5) NOT NULL DEFAULT '09:00'::character varying,
+  end_time character varying(5) NOT NULL DEFAULT '17:00'::character varying,
+  working_days ARRAY NOT NULL DEFAULT '{Monday,Tuesday,Wednesday,Thursday,Friday}'::text[],
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone NOT NULL DEFAULT now()
+);
+
+-- Table: doctors_fee
+CREATE TABLE doctors_fee (
+  id integer NOT NULL DEFAULT nextval('doctors_fee_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  doctor_id integer,
+  doctor_name text,
+  doctor_role character varying(50),
+  service_name text NOT NULL,
+  service_code character varying(50),
+  category character varying(100),
+  base_price numeric NOT NULL,
+  currency character varying(3) NOT NULL DEFAULT 'GBP'::character varying,
+  version integer NOT NULL DEFAULT 1,
+  effective_date timestamp without time zone NOT NULL DEFAULT now(),
+  expiry_date timestamp without time zone,
+  is_active boolean NOT NULL DEFAULT true,
+  created_by integer NOT NULL,
+  notes text,
+  metadata jsonb DEFAULT '{}'::jsonb,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone NOT NULL DEFAULT now()
+);
+
+-- Table: documents
+CREATE TABLE documents (
+  id integer NOT NULL DEFAULT nextval('documents_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  user_id integer NOT NULL,
+  name text NOT NULL,
+  type character varying(50) NOT NULL DEFAULT 'medical_form'::character varying,
+  content text NOT NULL,
+  metadata jsonb DEFAULT '{}'::jsonb,
+  is_template boolean NOT NULL DEFAULT false,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone DEFAULT now()
+);
+
+-- Table: emergency_protocols
+CREATE TABLE emergency_protocols (
+  id integer NOT NULL DEFAULT nextval('emergency_protocols_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  title text NOT NULL,
+  priority character varying(20) NOT NULL,
+  steps jsonb DEFAULT '[]'::jsonb,
+  is_active boolean NOT NULL DEFAULT true,
+  created_at timestamp without time zone NOT NULL DEFAULT now()
+);
+
+-- Table: financial_forecasts
+CREATE TABLE financial_forecasts (
+  id integer NOT NULL DEFAULT nextval('financial_forecasts_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  category text NOT NULL,
+  forecast_period character varying(7) NOT NULL,
+  generated_at timestamp without time zone NOT NULL DEFAULT now(),
+  current_value numeric NOT NULL,
+  projected_value numeric NOT NULL,
+  variance numeric NOT NULL,
+  trend character varying(10) NOT NULL,
+  confidence integer NOT NULL,
+  methodology character varying(30) NOT NULL DEFAULT 'historical_trend'::character varying,
+  key_factors jsonb DEFAULT '[]'::jsonb,
+  model_id integer,
+  metadata jsonb DEFAULT '{}'::jsonb,
+  is_active boolean NOT NULL DEFAULT true,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone DEFAULT now()
+);
+
+-- Table: forecast_models
+CREATE TABLE forecast_models (
+  id integer NOT NULL DEFAULT nextval('forecast_models_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  name text NOT NULL,
+  type character varying(30) NOT NULL,
+  algorithm character varying(20) NOT NULL DEFAULT 'linear'::character varying,
+  parameters jsonb DEFAULT '{}'::jsonb,
+  accuracy numeric,
+  is_active boolean NOT NULL DEFAULT true,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone DEFAULT now()
+);
+
+-- Table: gdpr_audit_trail
+CREATE TABLE gdpr_audit_trail (
+  id integer NOT NULL DEFAULT nextval('gdpr_audit_trail_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  user_id integer,
+  patient_id integer,
+  action character varying(50) NOT NULL,
+  resource_type character varying(30) NOT NULL,
+  resource_id integer,
+  data_categories jsonb DEFAULT '[]'::jsonb,
+  legal_basis character varying(50),
+  purpose text,
+  changes jsonb DEFAULT '[]'::jsonb,
+  ip_address character varying(45),
+  user_agent text,
+  session_id character varying(100),
+  timestamp timestamp without time zone NOT NULL DEFAULT now(),
+  metadata jsonb DEFAULT '{}'::jsonb
+);
+
+-- Table: gdpr_consents
+CREATE TABLE gdpr_consents (
+  id integer NOT NULL DEFAULT nextval('gdpr_consents_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  patient_id integer NOT NULL,
+  consent_type character varying(50) NOT NULL,
+  status character varying(20) NOT NULL DEFAULT 'pending'::character varying,
+  granted_at timestamp without time zone,
+  withdrawn_at timestamp without time zone,
+  expires_at timestamp without time zone,
+  purpose text NOT NULL,
+  legal_basis character varying(50) NOT NULL,
+  data_categories jsonb DEFAULT '[]'::jsonb,
+  retention_period integer,
+  ip_address character varying(45),
+  user_agent text,
+  consent_method character varying(30) NOT NULL DEFAULT 'digital'::character varying,
+  metadata jsonb DEFAULT '{}'::jsonb,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone NOT NULL DEFAULT now()
+);
+
+-- Table: gdpr_data_requests
+CREATE TABLE gdpr_data_requests (
+  id integer NOT NULL DEFAULT nextval('gdpr_data_requests_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  patient_id integer NOT NULL,
+  request_type character varying(30) NOT NULL,
+  status character varying(20) NOT NULL DEFAULT 'pending'::character varying,
+  request_reason text,
+  identity_verified boolean NOT NULL DEFAULT false,
+  processed_by integer,
+  requested_at timestamp without time zone NOT NULL DEFAULT now(),
+  completed_at timestamp without time zone,
+  due_date timestamp without time zone NOT NULL,
+  response_data jsonb DEFAULT '{}'::jsonb,
+  rejection_reason text,
+  communication_log jsonb DEFAULT '[]'::jsonb,
+  metadata jsonb DEFAULT '{}'::jsonb,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone NOT NULL DEFAULT now()
+);
+
+-- Table: gdpr_processing_activities
+CREATE TABLE gdpr_processing_activities (
+  id integer NOT NULL DEFAULT nextval('gdpr_processing_activities_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  activity_name text NOT NULL,
+  purpose text NOT NULL,
+  legal_basis character varying(50) NOT NULL,
+  data_categories jsonb DEFAULT '[]'::jsonb,
+  data_subjects jsonb DEFAULT '[]'::jsonb,
+  recipients jsonb DEFAULT '[]'::jsonb,
+  international_transfers jsonb DEFAULT '[]'::jsonb,
+  retention_period integer,
+  security_measures jsonb DEFAULT '[]'::jsonb,
+  dpia_required boolean NOT NULL DEFAULT false,
+  status character varying(20) NOT NULL DEFAULT 'active'::character varying,
+  review_date timestamp without time zone,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone NOT NULL DEFAULT now()
+);
+
+-- Table: imaging_pricing
+CREATE TABLE imaging_pricing (
+  id integer NOT NULL DEFAULT nextval('imaging_pricing_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  imaging_type text NOT NULL,
+  imaging_code character varying(50),
+  modality character varying(50),
+  body_part character varying(100),
+  category character varying(100),
+  base_price numeric NOT NULL,
+  currency character varying(3) NOT NULL DEFAULT 'GBP'::character varying,
+  version integer NOT NULL DEFAULT 1,
+  effective_date timestamp without time zone NOT NULL DEFAULT now(),
+  expiry_date timestamp without time zone,
+  is_active boolean NOT NULL DEFAULT true,
+  created_by integer NOT NULL,
+  notes text,
+  metadata jsonb DEFAULT '{}'::jsonb,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone NOT NULL DEFAULT now()
+);
+
+-- Table: insurance_verifications
+CREATE TABLE insurance_verifications (
+  id integer NOT NULL DEFAULT nextval('insurance_verifications_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  patient_id integer NOT NULL,
+  patient_name text NOT NULL,
+  provider text NOT NULL,
+  policy_number text NOT NULL,
+  group_number text,
+  member_number text,
+  nhs_number text,
+  plan_type text,
+  coverage_type character varying(20) NOT NULL DEFAULT 'primary'::character varying,
+  status character varying(20) NOT NULL DEFAULT 'active'::character varying,
+  eligibility_status character varying(20) NOT NULL DEFAULT 'pending'::character varying,
+  effective_date date,
+  expiration_date date,
+  last_verified date,
+  benefits jsonb DEFAULT '{}'::jsonb,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone DEFAULT now()
+);
+
+-- Table: inventory_batches
+CREATE TABLE inventory_batches (
+  id integer NOT NULL DEFAULT nextval('inventory_batches_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  item_id integer NOT NULL,
+  batch_number character varying(100) NOT NULL,
+  expiry_date timestamp without time zone,
+  manufacture_date timestamp without time zone,
+  quantity integer NOT NULL,
+  remaining_quantity integer NOT NULL DEFAULT 0,
+  purchase_price numeric NOT NULL,
+  supplier_id integer,
+  received_date timestamp without time zone NOT NULL DEFAULT now(),
+  status character varying(20) NOT NULL DEFAULT 'active'::character varying,
+  is_expired boolean NOT NULL DEFAULT false,
+  created_at timestamp without time zone NOT NULL DEFAULT now()
+);
+
+-- Table: inventory_categories
+CREATE TABLE inventory_categories (
+  id integer NOT NULL DEFAULT nextval('inventory_categories_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  name text NOT NULL,
+  description text,
+  parent_category_id integer,
+  is_active boolean NOT NULL DEFAULT true,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone NOT NULL DEFAULT now()
+);
+
+-- Table: inventory_items
+CREATE TABLE inventory_items (
+  id integer NOT NULL DEFAULT nextval('inventory_items_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  category_id integer NOT NULL,
+  name text NOT NULL,
+  description text,
+  sku character varying(100) NOT NULL,
+  barcode character varying(100),
+  generic_name text,
+  brand_name text,
+  manufacturer text,
+  unit_of_measurement character varying(20) NOT NULL DEFAULT 'pieces'::character varying,
+  pack_size integer NOT NULL DEFAULT 1,
+  purchase_price numeric NOT NULL,
+  sale_price numeric NOT NULL,
+  mrp numeric,
+  tax_rate numeric NOT NULL DEFAULT 0.00,
+  current_stock integer NOT NULL DEFAULT 0,
+  minimum_stock integer NOT NULL DEFAULT 10,
+  maximum_stock integer NOT NULL DEFAULT 1000,
+  reorder_point integer NOT NULL DEFAULT 20,
+  expiry_tracking boolean NOT NULL DEFAULT false,
+  batch_tracking boolean NOT NULL DEFAULT false,
+  prescription_required boolean NOT NULL DEFAULT false,
+  storage_conditions text,
+  side_effects text,
+  contraindications text,
+  dosage_instructions text,
+  is_active boolean NOT NULL DEFAULT true,
+  is_discontinued boolean NOT NULL DEFAULT false,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone NOT NULL DEFAULT now()
+);
+
+-- Table: inventory_purchase_order_items
+CREATE TABLE inventory_purchase_order_items (
+  id integer NOT NULL DEFAULT nextval('inventory_purchase_order_items_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  purchase_order_id integer NOT NULL,
+  item_id integer NOT NULL,
+  quantity integer NOT NULL,
+  unit_price numeric NOT NULL,
+  total_price numeric NOT NULL,
+  received_quantity integer NOT NULL DEFAULT 0,
+  created_at timestamp without time zone NOT NULL DEFAULT now()
+);
+
+-- Table: inventory_purchase_orders
+CREATE TABLE inventory_purchase_orders (
+  id integer NOT NULL DEFAULT nextval('inventory_purchase_orders_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  po_number character varying(100) NOT NULL,
+  supplier_id integer NOT NULL,
+  order_date timestamp without time zone NOT NULL DEFAULT now(),
+  expected_delivery_date timestamp without time zone,
+  status character varying(20) NOT NULL DEFAULT 'pending'::character varying,
+  total_amount numeric NOT NULL,
+  tax_amount numeric NOT NULL DEFAULT 0.00,
+  discount_amount numeric NOT NULL DEFAULT 0.00,
+  notes text,
+  created_by integer NOT NULL,
+  approved_by integer,
+  approved_at timestamp without time zone,
+  email_sent boolean NOT NULL DEFAULT false,
+  email_sent_at timestamp without time zone,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone NOT NULL DEFAULT now()
+);
+
+-- Table: inventory_sale_items
+CREATE TABLE inventory_sale_items (
+  id integer NOT NULL DEFAULT nextval('inventory_sale_items_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  sale_id integer NOT NULL,
+  item_id integer NOT NULL,
+  batch_id integer,
+  quantity integer NOT NULL,
+  unit_price numeric NOT NULL,
+  total_price numeric NOT NULL,
+  created_at timestamp without time zone NOT NULL DEFAULT now()
+);
+
+-- Table: inventory_sales
+CREATE TABLE inventory_sales (
+  id integer NOT NULL DEFAULT nextval('inventory_sales_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  patient_id integer,
+  sale_number character varying(100) NOT NULL,
+  sale_date timestamp without time zone NOT NULL DEFAULT now(),
+  total_amount numeric NOT NULL,
+  tax_amount numeric NOT NULL DEFAULT 0.00,
+  discount_amount numeric NOT NULL DEFAULT 0.00,
+  payment_method character varying(50) NOT NULL DEFAULT 'cash'::character varying,
+  payment_status character varying(20) NOT NULL DEFAULT 'paid'::character varying,
+  prescription_id integer,
+  sold_by integer NOT NULL,
+  notes text,
+  created_at timestamp without time zone NOT NULL DEFAULT now()
+);
+
+-- Table: inventory_stock_alerts
+CREATE TABLE inventory_stock_alerts (
+  id integer NOT NULL DEFAULT nextval('inventory_stock_alerts_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  item_id integer NOT NULL,
+  alert_type character varying(20) NOT NULL,
+  threshold_value integer NOT NULL,
+  current_value integer NOT NULL,
+  status character varying(20) NOT NULL DEFAULT 'active'::character varying,
+  message text,
+  is_read boolean NOT NULL DEFAULT false,
+  is_resolved boolean NOT NULL DEFAULT false,
+  resolved_by integer,
+  resolved_at timestamp without time zone,
+  created_at timestamp without time zone NOT NULL DEFAULT now()
+);
+
+-- Table: inventory_stock_movements
+CREATE TABLE inventory_stock_movements (
+  id integer NOT NULL DEFAULT nextval('inventory_stock_movements_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  item_id integer NOT NULL,
+  batch_id integer,
+  movement_type character varying(20) NOT NULL,
+  quantity integer NOT NULL,
+  previous_stock integer NOT NULL,
+  new_stock integer NOT NULL,
+  unit_cost numeric,
+  reference_type character varying(50),
+  reference_id integer,
+  notes text,
+  created_by integer NOT NULL,
+  created_at timestamp without time zone NOT NULL DEFAULT now()
+);
+
+-- Table: inventory_suppliers
+CREATE TABLE inventory_suppliers (
+  id integer NOT NULL DEFAULT nextval('inventory_suppliers_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  name text NOT NULL,
+  contact_person text,
+  email text,
+  phone character varying(20),
+  address text,
+  city text,
+  country text NOT NULL DEFAULT 'UK'::text,
+  tax_id character varying(50),
+  payment_terms character varying(100) DEFAULT 'Net 30'::character varying,
+  is_active boolean NOT NULL DEFAULT true,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone NOT NULL DEFAULT now()
+);
+
+-- Table: invoices
+CREATE TABLE invoices (
+  id integer NOT NULL DEFAULT nextval('invoices_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  invoice_number character varying(50) NOT NULL,
+  patient_id text NOT NULL,
+  patient_name text NOT NULL,
+  nhs_number character varying(10),
+  date_of_service timestamp without time zone NOT NULL,
+  invoice_date timestamp without time zone NOT NULL,
+  due_date timestamp without time zone NOT NULL,
+  status character varying(20) NOT NULL DEFAULT 'draft'::character varying,
+  invoice_type character varying(50) NOT NULL DEFAULT 'payment'::character varying,
+  subtotal numeric NOT NULL,
+  tax numeric NOT NULL DEFAULT '0'::numeric,
+  discount numeric NOT NULL DEFAULT '0'::numeric,
+  total_amount numeric NOT NULL,
+  paid_amount numeric NOT NULL DEFAULT '0'::numeric,
+  items jsonb NOT NULL,
+  insurance jsonb,
+  payments jsonb NOT NULL DEFAULT '[]'::jsonb,
+  notes text,
+  created_by integer,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone DEFAULT now(),
+  service_type character varying(50),
+  service_id text
+);
+
+-- Table: lab_results
+CREATE TABLE lab_results (
+  id integer NOT NULL DEFAULT nextval('lab_results_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  patient_id integer NOT NULL,
+  test_id character varying(50) NOT NULL,
+  test_type text NOT NULL,
+  ordered_by integer NOT NULL,
+  doctor_name text,
+  main_specialty text,
+  sub_specialty text,
+  priority character varying(20) DEFAULT 'routine'::character varying,
+  ordered_at timestamp without time zone NOT NULL,
+  collected_at timestamp without time zone,
+  completed_at timestamp without time zone,
+  status character varying(20) NOT NULL DEFAULT 'pending'::character varying,
+  results jsonb DEFAULT '[]'::jsonb,
+  critical_values boolean NOT NULL DEFAULT false,
+  notes text,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  report_status character varying(50),
+  Lab_Request_Generated boolean NOT NULL DEFAULT false,
+  Sample_Collected boolean NOT NULL DEFAULT false,
+  Lab_Report_Generated boolean NOT NULL DEFAULT false,
+  Reviewed boolean NOT NULL DEFAULT false,
+  signature_data text
+);
+
+-- Table: lab_test_pricing
+CREATE TABLE lab_test_pricing (
+  id integer NOT NULL DEFAULT nextval('lab_test_pricing_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  doctor_id integer,
+  doctor_name text,
+  doctor_role character varying(50),
+  test_name text NOT NULL,
+  test_code character varying(50),
+  category character varying(100),
+  base_price numeric NOT NULL,
+  currency character varying(3) NOT NULL DEFAULT 'GBP'::character varying,
+  version integer NOT NULL DEFAULT 1,
+  effective_date timestamp without time zone NOT NULL DEFAULT now(),
+  expiry_date timestamp without time zone,
+  is_active boolean NOT NULL DEFAULT true,
+  created_by integer NOT NULL,
+  notes text,
+  metadata jsonb DEFAULT '{}'::jsonb,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone NOT NULL DEFAULT now()
+);
+
+-- Table: letter_drafts
+CREATE TABLE letter_drafts (
+  id integer NOT NULL DEFAULT nextval('letter_drafts_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  user_id integer NOT NULL,
+  subject text NOT NULL,
+  recipient text NOT NULL,
+  doctor_email text,
+  location text,
+  copied_recipients text,
+  header text,
+  document_content text NOT NULL,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone NOT NULL DEFAULT now()
+);
+
+-- Table: medical_images
+CREATE TABLE medical_images (
+  id integer NOT NULL DEFAULT nextval('medical_images_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  patient_id integer NOT NULL,
+  uploaded_by integer NOT NULL,
+  study_type text NOT NULL,
+  modality character varying(50) NOT NULL,
+  body_part text,
+  indication text,
+  priority character varying(20) NOT NULL DEFAULT 'routine'::character varying,
+  file_name text NOT NULL,
+  file_size integer NOT NULL,
+  mime_type character varying(100) NOT NULL,
+  image_data text,
+  status character varying(20) NOT NULL DEFAULT 'uploaded'::character varying,
+  findings text,
+  impression text,
+  radiologist text,
+  report_file_name text,
+  report_file_path text,
+  metadata jsonb DEFAULT '{}'::jsonb,
+  scheduled_at timestamp without time zone,
+  performed_at timestamp without time zone,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone NOT NULL DEFAULT now(),
+  image_id text NOT NULL
+);
+
+-- Table: medical_records
+CREATE TABLE medical_records (
+  id integer NOT NULL DEFAULT nextval('medical_records_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  patient_id integer NOT NULL,
+  provider_id integer NOT NULL,
+  type character varying(20) NOT NULL,
+  title text NOT NULL,
+  notes text,
+  diagnosis text,
+  treatment text,
+  prescription jsonb DEFAULT '{}'::jsonb,
+  attachments jsonb DEFAULT '[]'::jsonb,
+  ai_suggestions jsonb DEFAULT '{}'::jsonb,
+  created_at timestamp without time zone NOT NULL DEFAULT now()
+);
+
+-- Table: medications_database
+CREATE TABLE medications_database (
+  id integer NOT NULL DEFAULT nextval('medications_database_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  name text NOT NULL,
+  category text NOT NULL,
+  dosage text NOT NULL,
+  interactions jsonb DEFAULT '[]'::jsonb,
+  warnings jsonb DEFAULT '[]'::jsonb,
+  severity character varying(20) NOT NULL,
+  is_active boolean NOT NULL DEFAULT true,
+  created_at timestamp without time zone NOT NULL DEFAULT now()
+);
+
+-- Table: message_campaigns
+CREATE TABLE message_campaigns (
+  id integer NOT NULL DEFAULT nextval('message_campaigns_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  name text NOT NULL,
+  type character varying(20) NOT NULL DEFAULT 'email'::character varying,
+  status character varying(20) NOT NULL DEFAULT 'draft'::character varying,
+  subject text NOT NULL,
+  content text NOT NULL,
+  template character varying(50) NOT NULL DEFAULT 'default'::character varying,
+  recipient_count integer NOT NULL DEFAULT 0,
+  sent_count integer NOT NULL DEFAULT 0,
+  open_rate integer NOT NULL DEFAULT 0,
+  click_rate integer NOT NULL DEFAULT 0,
+  scheduled_at timestamp without time zone,
+  sent_at timestamp without time zone,
+  created_by integer NOT NULL,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone DEFAULT now()
+);
+
+-- Table: message_templates
+CREATE TABLE message_templates (
+  id integer NOT NULL DEFAULT nextval('message_templates_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  name character varying(255) NOT NULL,
+  category character varying(100) NOT NULL DEFAULT 'general'::character varying,
+  subject character varying(500) NOT NULL,
+  content text NOT NULL,
+  usage_count integer NOT NULL DEFAULT 0,
+  created_by integer NOT NULL,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone NOT NULL DEFAULT now()
+);
+
+-- Table: messages
+CREATE TABLE messages (
+  id character varying(50) NOT NULL,
+  organization_id integer NOT NULL,
+  conversation_id character varying(50) NOT NULL,
+  sender_id integer NOT NULL,
+  sender_name text NOT NULL,
+  sender_role character varying(20) NOT NULL,
+  recipient_id text,
+  recipient_name text,
+  subject text NOT NULL,
+  content text NOT NULL,
+  timestamp timestamp without time zone NOT NULL DEFAULT now(),
+  is_read boolean NOT NULL DEFAULT false,
+  priority character varying(10) NOT NULL DEFAULT 'normal'::character varying,
+  type character varying(20) NOT NULL DEFAULT 'internal'::character varying,
+  is_starred boolean NOT NULL DEFAULT false,
+  phone_number character varying(20),
+  message_type character varying(10),
+  delivery_status character varying(20) NOT NULL DEFAULT 'pending'::character varying,
+  external_message_id text,
+  created_at timestamp without time zone NOT NULL DEFAULT now()
+);
+
+-- Table: muscles_position
+CREATE TABLE muscles_position (
+  id integer NOT NULL DEFAULT nextval('muscles_position_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  patient_id integer NOT NULL,
+  consultation_id integer,
+  position integer NOT NULL,
+  value text NOT NULL,
+  coordinates jsonb,
+  is_detected boolean NOT NULL DEFAULT false,
+  detected_at timestamp without time zone,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone NOT NULL DEFAULT now()
+);
+
+-- Table: notifications
+CREATE TABLE notifications (
+  id integer NOT NULL DEFAULT nextval('notifications_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  user_id integer NOT NULL,
+  title text NOT NULL,
+  message text NOT NULL,
+  type character varying(50) NOT NULL,
+  priority character varying(20) NOT NULL DEFAULT 'normal'::character varying,
+  status character varying(20) NOT NULL DEFAULT 'unread'::character varying,
+  related_entity_type character varying(50),
+  related_entity_id integer,
+  action_url text,
+  is_actionable boolean NOT NULL DEFAULT false,
+  scheduled_for timestamp without time zone,
+  expires_at timestamp without time zone,
+  metadata jsonb DEFAULT '{}'::jsonb,
+  read_at timestamp without time zone,
+  dismissed_at timestamp without time zone,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone NOT NULL DEFAULT now()
+);
+
+-- Table: organizations
+CREATE TABLE organizations (
+  id integer NOT NULL DEFAULT nextval('organizations_id_seq'::regclass),
+  name text NOT NULL,
+  subdomain character varying(50) NOT NULL,
+  email text NOT NULL,
+  region character varying(10) NOT NULL DEFAULT 'UK'::character varying,
+  brand_name text NOT NULL,
+  settings jsonb DEFAULT '{}'::jsonb,
+  features jsonb DEFAULT '{}'::jsonb,
+  access_level character varying(50) DEFAULT 'full'::character varying,
+  subscription_status character varying(20) NOT NULL DEFAULT 'trial'::character varying,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone DEFAULT now()
+);
+
+-- Table: patient_communications
+CREATE TABLE patient_communications (
+  id integer NOT NULL DEFAULT nextval('patient_communications_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  patient_id integer NOT NULL,
+  sent_by integer NOT NULL,
+  type character varying(50) NOT NULL,
+  method character varying(20) NOT NULL,
+  status character varying(20) NOT NULL DEFAULT 'pending'::character varying,
+  message text NOT NULL,
+  scheduled_for timestamp without time zone,
+  sent_at timestamp without time zone,
+  delivered_at timestamp without time zone,
+  error_message text,
+  metadata jsonb DEFAULT '{}'::jsonb,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone NOT NULL DEFAULT now()
+);
+
+-- Table: patient_drug_interactions
+CREATE TABLE patient_drug_interactions (
+  id integer NOT NULL DEFAULT nextval('patient_drug_interactions_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  patient_id integer NOT NULL,
+  medication1_name text NOT NULL,
+  medication1_dosage text NOT NULL,
+  medication1_frequency text,
+  medication2_name text NOT NULL,
+  medication2_dosage text NOT NULL,
+  medication2_frequency text,
+  interaction_type character varying(50),
+  severity character varying(20) NOT NULL DEFAULT 'medium'::character varying,
+  description text,
+  warnings jsonb DEFAULT '[]'::jsonb,
+  recommendations jsonb DEFAULT '[]'::jsonb,
+  reported_by integer,
+  reported_at timestamp without time zone NOT NULL DEFAULT now(),
+  status character varying(20) NOT NULL DEFAULT 'active'::character varying,
+  notes text,
+  is_active boolean NOT NULL DEFAULT true,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone NOT NULL DEFAULT now()
+);
+
+-- Table: patients
+CREATE TABLE patients (
+  id integer NOT NULL DEFAULT nextval('patients_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  user_id integer,
+  patient_id text NOT NULL,
+  first_name text NOT NULL,
+  last_name text NOT NULL,
+  date_of_birth date,
+  gender_at_birth character varying(20),
+  email text,
+  phone text,
+  nhs_number text,
+  address jsonb DEFAULT '{}'::jsonb,
+  insurance_info jsonb DEFAULT '{}'::jsonb,
+  emergency_contact jsonb DEFAULT '{}'::jsonb,
+  medical_history jsonb DEFAULT '{}'::jsonb,
+  risk_level character varying(10) NOT NULL DEFAULT 'low'::character varying,
+  flags ARRAY DEFAULT '{}'::text[],
+  communication_preferences jsonb DEFAULT '{}'::jsonb,
+  is_active boolean NOT NULL DEFAULT true,
+  is_insured boolean NOT NULL DEFAULT false,
+  created_by integer,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone NOT NULL DEFAULT now()
+);
+
+-- Table: payments
+CREATE TABLE payments (
+  id integer NOT NULL DEFAULT nextval('payments_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  invoice_id integer NOT NULL,
+  patient_id text NOT NULL,
+  transaction_id text NOT NULL,
+  amount numeric NOT NULL,
+  currency character varying(3) NOT NULL DEFAULT 'GBP'::character varying,
+  payment_method character varying(20) NOT NULL,
+  payment_provider character varying(50),
+  payment_status character varying(20) NOT NULL DEFAULT 'completed'::character varying,
+  payment_date timestamp without time zone NOT NULL DEFAULT now(),
+  metadata jsonb DEFAULT '{}'::jsonb,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone DEFAULT now()
+);
+
+-- Table: prescriptions
+CREATE TABLE prescriptions (
+  id integer NOT NULL DEFAULT nextval('prescriptions_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  patient_id integer NOT NULL,
+  doctor_id integer NOT NULL,
+  prescription_created_by integer,
+  consultation_id integer,
+  prescription_number character varying(50),
+  status text NOT NULL DEFAULT 'active'::text,
+  diagnosis text,
+  medication_name text NOT NULL,
+  dosage text,
+  frequency text,
+  duration text,
+  instructions text,
+  issued_date timestamp without time zone DEFAULT now(),
+  medications jsonb DEFAULT '[]'::jsonb,
+  pharmacy jsonb DEFAULT '{}'::jsonb,
+  prescribed_at timestamp without time zone DEFAULT now(),
+  valid_until timestamp without time zone,
+  notes text,
+  is_electronic boolean NOT NULL DEFAULT true,
+  interactions jsonb DEFAULT '[]'::jsonb,
+  signature jsonb DEFAULT '{}'::jsonb,
+  created_at timestamp without time zone DEFAULT now(),
+  updated_at timestamp without time zone DEFAULT now()
+);
+
+-- Table: quickbooks_account_mappings
 CREATE TABLE quickbooks_account_mappings (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    account_type VARCHAR(50) NOT NULL, -- revenue, ar, deposit
-    local_account_name VARCHAR(100),
-    quickbooks_account_id TEXT NOT NULL,
-    quickbooks_account_name TEXT NOT NULL,
-    is_active BOOLEAN NOT NULL DEFAULT true,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+  id integer NOT NULL DEFAULT nextval('quickbooks_account_mappings_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  connection_id integer NOT NULL,
+  emr_account_type character varying(50) NOT NULL,
+  emr_account_name text NOT NULL,
+  quickbooks_account_id text NOT NULL,
+  quickbooks_account_name text NOT NULL,
+  account_type character varying(50) NOT NULL,
+  account_sub_type character varying(50),
+  is_active boolean NOT NULL DEFAULT true,
+  sync_status character varying(20) NOT NULL DEFAULT 'synced'::character varying,
+  last_sync_at timestamp without time zone,
+  error_message text,
+  metadata jsonb DEFAULT '{}'::jsonb,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone NOT NULL DEFAULT now()
 );
 
--- QuickBooks Item Mappings
+-- Table: quickbooks_connections
+CREATE TABLE quickbooks_connections (
+  id integer NOT NULL DEFAULT nextval('quickbooks_connections_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  company_id text NOT NULL,
+  company_name text NOT NULL,
+  access_token text NOT NULL,
+  refresh_token text NOT NULL,
+  token_expiry timestamp without time zone NOT NULL,
+  realm_id text NOT NULL,
+  base_url text NOT NULL,
+  is_active boolean NOT NULL DEFAULT true,
+  last_sync_at timestamp without time zone,
+  sync_settings jsonb DEFAULT '{}'::jsonb,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone NOT NULL DEFAULT now()
+);
+
+-- Table: quickbooks_customer_mappings
+CREATE TABLE quickbooks_customer_mappings (
+  id integer NOT NULL DEFAULT nextval('quickbooks_customer_mappings_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  connection_id integer NOT NULL,
+  patient_id integer NOT NULL,
+  quickbooks_customer_id text NOT NULL,
+  quickbooks_display_name text,
+  sync_status character varying(20) NOT NULL DEFAULT 'synced'::character varying,
+  last_sync_at timestamp without time zone,
+  error_message text,
+  metadata jsonb DEFAULT '{}'::jsonb,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone NOT NULL DEFAULT now()
+);
+
+-- Table: quickbooks_invoice_mappings
+CREATE TABLE quickbooks_invoice_mappings (
+  id integer NOT NULL DEFAULT nextval('quickbooks_invoice_mappings_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  connection_id integer NOT NULL,
+  emr_invoice_id text NOT NULL,
+  quickbooks_invoice_id text NOT NULL,
+  quickbooks_invoice_number text,
+  patient_id integer NOT NULL,
+  customer_id integer,
+  amount numeric NOT NULL,
+  status character varying(20) NOT NULL,
+  sync_status character varying(20) NOT NULL DEFAULT 'synced'::character varying,
+  last_sync_at timestamp without time zone,
+  error_message text,
+  metadata jsonb DEFAULT '{}'::jsonb,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone NOT NULL DEFAULT now()
+);
+
+-- Table: quickbooks_item_mappings
 CREATE TABLE quickbooks_item_mappings (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL,
-    service_code VARCHAR(50) NOT NULL,
-    service_description TEXT,
-    quickbooks_item_id TEXT NOT NULL,
-    quickbooks_item_name TEXT NOT NULL,
-    unit_price DECIMAL(10, 2),
-    is_active BOOLEAN NOT NULL DEFAULT true,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+  id integer NOT NULL DEFAULT nextval('quickbooks_item_mappings_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  connection_id integer NOT NULL,
+  emr_item_type character varying(50) NOT NULL,
+  emr_item_id text NOT NULL,
+  emr_item_name text NOT NULL,
+  quickbooks_item_id text NOT NULL,
+  quickbooks_item_name text NOT NULL,
+  item_type character varying(20) NOT NULL,
+  unit_price numeric,
+  description text,
+  income_account_id text,
+  expense_account_id text,
+  is_active boolean NOT NULL DEFAULT true,
+  sync_status character varying(20) NOT NULL DEFAULT 'synced'::character varying,
+  last_sync_at timestamp without time zone,
+  error_message text,
+  metadata jsonb DEFAULT '{}'::jsonb,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone NOT NULL DEFAULT now()
 );
 
--- QuickBooks Sync Configs
+-- Table: quickbooks_payment_mappings
+CREATE TABLE quickbooks_payment_mappings (
+  id integer NOT NULL DEFAULT nextval('quickbooks_payment_mappings_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  connection_id integer NOT NULL,
+  emr_payment_id text NOT NULL,
+  quickbooks_payment_id text NOT NULL,
+  invoice_mapping_id integer,
+  amount numeric NOT NULL,
+  payment_method character varying(50) NOT NULL,
+  payment_date timestamp without time zone NOT NULL,
+  sync_status character varying(20) NOT NULL DEFAULT 'synced'::character varying,
+  last_sync_at timestamp without time zone,
+  error_message text,
+  metadata jsonb DEFAULT '{}'::jsonb,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone NOT NULL DEFAULT now()
+);
+
+-- Table: quickbooks_sync_configs
 CREATE TABLE quickbooks_sync_configs (
-    id SERIAL PRIMARY KEY,
-    organization_id INTEGER NOT NULL UNIQUE,
-    auto_sync_enabled BOOLEAN NOT NULL DEFAULT false,
-    sync_customers BOOLEAN NOT NULL DEFAULT true,
-    sync_invoices BOOLEAN NOT NULL DEFAULT true,
-    sync_payments BOOLEAN NOT NULL DEFAULT true,
-    default_payment_method VARCHAR(50) DEFAULT 'Cash',
-    default_terms VARCHAR(50) DEFAULT 'Due on Receipt',
-    invoice_prefix VARCHAR(20),
-    settings JSONB DEFAULT '{}',
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+  id integer NOT NULL DEFAULT nextval('quickbooks_sync_configs_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  connection_id integer NOT NULL,
+  config_type character varying(50) NOT NULL,
+  config_name text NOT NULL,
+  config_value jsonb NOT NULL,
+  is_active boolean NOT NULL DEFAULT true,
+  description text,
+  created_by integer NOT NULL,
+  updated_by integer,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone NOT NULL DEFAULT now()
 );
 
--- =====================================================
--- Indexes for Performance Optimization
--- =====================================================
+-- Table: quickbooks_sync_logs
+CREATE TABLE quickbooks_sync_logs (
+  id integer NOT NULL DEFAULT nextval('quickbooks_sync_logs_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  connection_id integer NOT NULL,
+  sync_type character varying(50) NOT NULL,
+  operation character varying(20) NOT NULL,
+  status character varying(20) NOT NULL DEFAULT 'pending'::character varying,
+  records_processed integer DEFAULT 0,
+  records_successful integer DEFAULT 0,
+  records_failed integer DEFAULT 0,
+  start_time timestamp without time zone NOT NULL,
+  end_time timestamp without time zone,
+  error_message text,
+  error_details jsonb,
+  metadata jsonb DEFAULT '{}'::jsonb,
+  created_at timestamp without time zone NOT NULL DEFAULT now()
+);
 
--- Organization & User Indexes
-CREATE INDEX idx_users_organization_id ON users(organization_id);
-CREATE INDEX idx_users_email ON users(email);
-CREATE INDEX idx_patients_organization_id ON patients(organization_id);
-CREATE INDEX idx_patients_patient_id ON patients(patient_id);
+-- Table: revenue_records
+CREATE TABLE revenue_records (
+  id integer NOT NULL DEFAULT nextval('revenue_records_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  month character varying(7) NOT NULL,
+  revenue numeric NOT NULL,
+  expenses numeric NOT NULL,
+  profit numeric NOT NULL,
+  collections numeric NOT NULL,
+  target numeric NOT NULL,
+  created_at timestamp without time zone NOT NULL DEFAULT now()
+);
 
--- Appointment & Medical Record Indexes
-CREATE INDEX idx_appointments_organization_id ON appointments(organization_id);
-CREATE INDEX idx_appointments_patient_id ON appointments(patient_id);
-CREATE INDEX idx_appointments_provider_id ON appointments(provider_id);
-CREATE INDEX idx_appointments_scheduled_at ON appointments(scheduled_at);
-CREATE INDEX idx_medical_records_organization_id ON medical_records(organization_id);
-CREATE INDEX idx_medical_records_patient_id ON medical_records(patient_id);
+-- Table: risk_assessments
+CREATE TABLE risk_assessments (
+  id integer NOT NULL DEFAULT nextval('risk_assessments_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  patient_id integer NOT NULL,
+  category text NOT NULL,
+  risk_score text NOT NULL,
+  risk_level text NOT NULL,
+  risk_factors jsonb,
+  recommendations jsonb,
+  based_on_lab_results jsonb,
+  has_critical_values boolean,
+  assessment_date timestamp with time zone DEFAULT now(),
+  created_at timestamp with time zone DEFAULT now()
+);
 
--- Financial Indexes
-CREATE INDEX idx_invoices_organization_id ON invoices(organization_id);
-CREATE INDEX idx_invoices_patient_id ON invoices(patient_id);
-CREATE INDEX idx_payments_organization_id ON payments(organization_id);
-CREATE INDEX idx_payments_invoice_id ON payments(invoice_id);
+-- Table: roles
+CREATE TABLE roles (
+  id integer NOT NULL DEFAULT nextval('roles_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  name character varying(50) NOT NULL,
+  display_name text NOT NULL,
+  description text NOT NULL,
+  permissions jsonb NOT NULL,
+  is_system boolean NOT NULL DEFAULT false,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone NOT NULL DEFAULT now()
+);
 
--- Inventory Indexes
-CREATE INDEX idx_inventory_items_organization_id ON inventory_items(organization_id);
-CREATE INDEX idx_inventory_items_category_id ON inventory_items(category_id);
-CREATE INDEX idx_inventory_sales_organization_id ON inventory_sales(organization_id);
-CREATE INDEX idx_inventory_batches_item_id ON inventory_batches(item_id);
+-- Table: saas_invoices
+CREATE TABLE saas_invoices (
+  id integer NOT NULL DEFAULT nextval('saas_invoices_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  subscription_id integer NOT NULL,
+  invoice_number character varying(50) NOT NULL,
+  amount numeric NOT NULL,
+  currency character varying(3) NOT NULL DEFAULT 'GBP'::character varying,
+  status character varying(20) NOT NULL DEFAULT 'draft'::character varying,
+  issue_date timestamp without time zone NOT NULL,
+  due_date timestamp without time zone NOT NULL,
+  paid_date timestamp without time zone,
+  period_start timestamp without time zone NOT NULL,
+  period_end timestamp without time zone NOT NULL,
+  line_items jsonb DEFAULT '[]'::jsonb,
+  notes text,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone DEFAULT now()
+);
 
--- Messaging Indexes
-CREATE INDEX idx_messages_organization_id ON messages(organization_id);
-CREATE INDEX idx_messages_conversation_id ON messages(conversation_id);
-CREATE INDEX idx_conversations_organization_id ON conversations(organization_id);
+-- Table: saas_owners
+CREATE TABLE saas_owners (
+  id integer NOT NULL DEFAULT nextval('saas_owners_id_seq'::regclass),
+  username character varying(50) NOT NULL,
+  password text NOT NULL,
+  email text NOT NULL,
+  first_name text NOT NULL,
+  last_name text NOT NULL,
+  is_active boolean NOT NULL DEFAULT true,
+  last_login_at timestamp without time zone,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone DEFAULT now()
+);
 
--- GDPR Indexes
-CREATE INDEX idx_gdpr_audit_trail_organization_id ON gdpr_audit_trail(organization_id);
-CREATE INDEX idx_gdpr_audit_trail_patient_id ON gdpr_audit_trail(patient_id);
-CREATE INDEX idx_gdpr_audit_trail_timestamp ON gdpr_audit_trail(timestamp);
+-- Table: saas_packages
+CREATE TABLE saas_packages (
+  id integer NOT NULL DEFAULT nextval('saas_packages_id_seq'::regclass),
+  name text NOT NULL,
+  description text,
+  price numeric NOT NULL,
+  billing_cycle character varying(20) NOT NULL DEFAULT 'monthly'::character varying,
+  features jsonb DEFAULT '{}'::jsonb,
+  is_active boolean NOT NULL DEFAULT true,
+  show_on_website boolean NOT NULL DEFAULT false,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone DEFAULT now()
+);
 
--- =====================================================
--- Foreign Key Constraints (Optional - Add as needed)
--- =====================================================
+-- Table: saas_payments
+CREATE TABLE saas_payments (
+  id integer NOT NULL DEFAULT nextval('saas_payments_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  subscription_id integer,
+  invoice_number character varying(50) NOT NULL,
+  amount numeric NOT NULL,
+  currency character varying(3) NOT NULL DEFAULT 'GBP'::character varying,
+  payment_method character varying(20) NOT NULL,
+  payment_status character varying(20) NOT NULL DEFAULT 'pending'::character varying,
+  payment_date timestamp without time zone,
+  due_date timestamp without time zone NOT NULL,
+  period_start timestamp without time zone NOT NULL,
+  period_end timestamp without time zone NOT NULL,
+  payment_provider character varying(50),
+  provider_transaction_id text,
+  description text,
+  metadata jsonb DEFAULT '{}'::jsonb,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone DEFAULT now()
+);
 
--- Note: Foreign key constraints can be added based on specific requirements
--- Example:
--- ALTER TABLE users ADD CONSTRAINT fk_users_organization 
---   FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE;
--- 
--- ALTER TABLE patients ADD CONSTRAINT fk_patients_organization 
---   FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE;
+-- Table: saas_settings
+CREATE TABLE saas_settings (
+  id integer NOT NULL DEFAULT nextval('saas_settings_id_seq'::regclass),
+  key character varying(100) NOT NULL,
+  value jsonb,
+  description text,
+  category character varying(50) NOT NULL DEFAULT 'system'::character varying,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone DEFAULT now()
+);
 
--- =====================================================
--- END OF SCHEMA
--- =====================================================
+-- Table: saas_subscriptions
+CREATE TABLE saas_subscriptions (
+  id integer NOT NULL DEFAULT nextval('saas_subscriptions_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  package_id integer NOT NULL,
+  status character varying(20) NOT NULL DEFAULT 'active'::character varying,
+  current_period_start timestamp without time zone NOT NULL,
+  current_period_end timestamp without time zone NOT NULL,
+  cancel_at_period_end boolean NOT NULL DEFAULT false,
+  trial_end timestamp without time zone,
+  metadata jsonb DEFAULT '{}'::jsonb,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone DEFAULT now()
+);
+
+-- Table: staff_shifts
+CREATE TABLE staff_shifts (
+  id integer NOT NULL DEFAULT nextval('staff_shifts_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  staff_id integer NOT NULL,
+  date timestamp without time zone NOT NULL,
+  shift_type character varying(20) NOT NULL DEFAULT 'regular'::character varying,
+  start_time character varying(5) NOT NULL,
+  end_time character varying(5) NOT NULL,
+  status character varying(20) NOT NULL DEFAULT 'scheduled'::character varying,
+  notes text,
+  is_available boolean NOT NULL DEFAULT true,
+  created_by integer,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone NOT NULL DEFAULT now()
+);
+
+-- Table: subscriptions
+CREATE TABLE subscriptions (
+  id integer NOT NULL DEFAULT nextval('subscriptions_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  plan_name text NOT NULL,
+  plan character varying(20),
+  status character varying(20) NOT NULL DEFAULT 'trial'::character varying,
+  user_limit integer NOT NULL DEFAULT 5,
+  current_users integer NOT NULL DEFAULT 0,
+  monthly_price numeric,
+  trial_ends_at timestamp without time zone,
+  next_billing_at timestamp without time zone,
+  features jsonb DEFAULT '{}'::jsonb,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone NOT NULL DEFAULT now()
+);
+
+-- Table: symptom_checks
+CREATE TABLE symptom_checks (
+  id integer NOT NULL DEFAULT nextval('symptom_checks_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  patient_id integer,
+  user_id integer NOT NULL,
+  symptoms ARRAY NOT NULL,
+  symptom_description text NOT NULL,
+  duration text,
+  severity character varying(20),
+  ai_analysis jsonb DEFAULT '{}'::jsonb,
+  status character varying(20) NOT NULL DEFAULT 'pending'::character varying,
+  appointment_created boolean NOT NULL DEFAULT false,
+  appointment_id integer,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone NOT NULL DEFAULT now()
+);
+
+-- Table: user_document_preferences
+CREATE TABLE user_document_preferences (
+  id integer NOT NULL DEFAULT nextval('user_document_preferences_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  user_id integer NOT NULL,
+  clinic_info jsonb DEFAULT '{}'::jsonb,
+  header_preferences jsonb DEFAULT '{}'::jsonb,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone DEFAULT now()
+);
+
+-- Table: users
+CREATE TABLE users (
+  id integer NOT NULL DEFAULT nextval('users_id_seq'::regclass),
+  organization_id integer NOT NULL,
+  email text NOT NULL,
+  username text NOT NULL,
+  password_hash text NOT NULL,
+  first_name text NOT NULL,
+  last_name text NOT NULL,
+  role character varying(20) NOT NULL DEFAULT 'doctor'::character varying,
+  department text,
+  medical_specialty_category text,
+  sub_specialty text,
+  working_days jsonb DEFAULT '[]'::jsonb,
+  working_hours jsonb DEFAULT '{}'::jsonb,
+  permissions jsonb DEFAULT '{}'::jsonb,
+  is_active boolean NOT NULL DEFAULT true,
+  is_saas_owner boolean NOT NULL DEFAULT false,
+  last_login_at timestamp without time zone,
+  created_at timestamp without time zone NOT NULL DEFAULT now()
+);
+
+-- Table: voice_notes
+CREATE TABLE voice_notes (
+  id character varying NOT NULL,
+  organization_id integer NOT NULL,
+  patient_id character varying NOT NULL,
+  patient_name text NOT NULL,
+  provider_id character varying NOT NULL,
+  provider_name text NOT NULL,
+  type character varying(50) NOT NULL,
+  status character varying(20) NOT NULL DEFAULT 'completed'::character varying,
+  recording_duration integer,
+  transcript text,
+  confidence real,
+  medical_terms jsonb DEFAULT '[]'::jsonb,
+  structured_data jsonb DEFAULT '{}'::jsonb,
+  created_at timestamp without time zone NOT NULL DEFAULT now(),
+  updated_at timestamp without time zone DEFAULT now()
+);
+
+
