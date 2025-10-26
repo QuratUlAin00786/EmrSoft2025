@@ -526,14 +526,8 @@ function PricingManagementDashboard() {
       ];
       setMultipleServices(predefinedServices);
     } else if (pricingTab === "imaging") {
-      // Pre-populate with all imaging types and auto-generated codes
-      const predefinedImagingServices = IMAGING_TYPE_OPTIONS.map((imagingType) => ({
-        serviceName: imagingType,
-        serviceCode: generateImagingCode(imagingType),
-        category: "",
-        basePrice: ""
-      }));
-      setMultipleServices(predefinedImagingServices);
+      // Start with one blank row for custom imaging
+      setMultipleServices([{ serviceName: "", serviceCode: "", category: "", basePrice: "" }]);
     } else if (pricingTab === "lab-tests") {
       // Start with one blank row for custom tests
       setMultipleServices([{ serviceName: "", serviceCode: "", category: "", basePrice: "" }]);
@@ -1525,25 +1519,80 @@ function PricingManagementDashboard() {
 
             {pricingTab === "imaging" && !editingItem && (
               <>
+                {/* Existing Imaging in Database (Read-only) */}
+                {imaging.length > 0 && (
+                  <div className="space-y-2">
+                    <Label className="text-base font-semibold">Existing Imaging in Database</Label>
+                    <div className="border rounded-md overflow-hidden max-h-64 overflow-y-auto bg-gray-50 dark:bg-gray-900">
+                      <table className="w-full">
+                        <thead className="bg-gray-100 dark:bg-gray-800 sticky top-0">
+                          <tr>
+                            <th className="text-left p-2 text-sm font-medium">Imaging Type</th>
+                            <th className="text-left p-2 text-sm font-medium">Code</th>
+                            <th className="text-left p-2 text-sm font-medium">Price (£)</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {imaging.map((img: any) => (
+                            <tr key={img.id} className="border-t">
+                              <td className="p-2 text-sm">{img.imagingType}</td>
+                              <td className="p-2 text-sm">{img.imagingCode || '-'}</td>
+                              <td className="p-2 text-sm">{img.basePrice}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {/* Add Custom Imaging (Editable) */}
                 <div className="space-y-2">
-                  <Label>Imaging Services</Label>
+                  <Label className="text-base font-semibold">Add Custom Imaging</Label>
                   <div className="border rounded-md overflow-hidden max-h-96 overflow-y-auto">
                     <table className="w-full">
                       <thead className="bg-gray-50 dark:bg-gray-800 sticky top-0">
                         <tr>
-                          <th className="text-left p-2 text-sm font-medium">Imaging Type</th>
+                          <th className="text-left p-2 text-sm font-medium">Imaging Type *</th>
                           <th className="text-left p-2 text-sm font-medium">Code</th>
-                          <th className="text-left p-2 text-sm font-medium">Price (GBP)</th>
+                          <th className="text-left p-2 text-sm font-medium">Price (£) *</th>
+                          <th className="w-10"></th>
                         </tr>
                       </thead>
                       <tbody>
                         {multipleServices.map((service, index) => (
                           <tr key={index} className="border-t">
                             <td className="p-2">
-                              <div className="font-medium text-sm">{service.serviceName}</div>
+                              <Input
+                                value={service.serviceName}
+                                onChange={(e) => {
+                                  const updated = [...multipleServices];
+                                  updated[index].serviceName = e.target.value;
+                                  
+                                  // Auto-generate code from imaging type
+                                  if (e.target.value) {
+                                    updated[index].serviceCode = generateImagingCode(e.target.value);
+                                  }
+                                  
+                                  setMultipleServices(updated);
+                                  // Clear error when user starts typing
+                                  if (imagingError) setImagingError("");
+                                }}
+                                placeholder="e.g., CT Scan"
+                                data-testid={`input-imaging-type-${index}`}
+                              />
                             </td>
                             <td className="p-2">
-                              <div className="text-sm text-gray-600 dark:text-gray-400">{service.serviceCode}</div>
+                              <Input
+                                value={service.serviceCode}
+                                onChange={(e) => {
+                                  const updated = [...multipleServices];
+                                  updated[index].serviceCode = e.target.value;
+                                  setMultipleServices(updated);
+                                }}
+                                placeholder="e.g., CT001"
+                                data-testid={`input-imaging-code-${index}`}
+                              />
                             </td>
                             <td className="p-2">
                               <Input
@@ -1554,16 +1603,48 @@ function PricingManagementDashboard() {
                                   const updated = [...multipleServices];
                                   updated[index].basePrice = e.target.value;
                                   setMultipleServices(updated);
+                                  // Clear error when user starts typing
+                                  if (imagingError) setImagingError("");
                                 }}
                                 placeholder="0.00"
-                                className="w-full"
+                                data-testid={`input-imaging-price-${index}`}
                               />
+                            </td>
+                            <td className="p-2">
+                              {multipleServices.length > 1 && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    const updated = multipleServices.filter((_, i) => i !== index);
+                                    setMultipleServices(updated);
+                                  }}
+                                  data-testid={`button-remove-imaging-${index}`}
+                                >
+                                  <Trash2 className="h-4 w-4 text-red-500" />
+                                </Button>
+                              )}
                             </td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
                   </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setMultipleServices([
+                        ...multipleServices,
+                        { serviceName: "", serviceCode: "", category: "", basePrice: "" }
+                      ]);
+                    }}
+                    className="w-full"
+                    data-testid="button-add-more-imaging"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add More Imaging Service
+                  </Button>
                   {imagingError && (
                     <p className="text-sm text-red-500 mt-2">{imagingError}</p>
                   )}
