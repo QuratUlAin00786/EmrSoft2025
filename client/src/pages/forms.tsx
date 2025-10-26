@@ -9342,6 +9342,8 @@ Registration No: [Number]`
                     }
                     
                     setShowOtherTemplatePreviewDialog(false);
+                    setShowPatientDialog(false);
+                    setShowAllTemplatesDialog(false);
                     setAddLogo(false);
                     setAddClinicHeader(false);
                     setSelectedClinicHeaderType("");
