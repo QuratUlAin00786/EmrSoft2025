@@ -1534,10 +1534,14 @@ export default function CalendarPage() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">All Roles</SelectItem>
-                        <SelectItem value="doctor">Doctor</SelectItem>
-                        <SelectItem value="nurse">Nurse</SelectItem>
-                        <SelectItem value="receptionist">Receptionist</SelectItem>
-                        <SelectItem value="admin">Admin</SelectItem>
+                        {rolesData && Array.isArray(rolesData) && rolesData
+                          .filter((role: any) => role.name !== "patient" && role.name !== "admin")
+                          .map((role: any) => (
+                            <SelectItem key={role.id} value={role.name}>
+                              {role.displayName || role.name}
+                            </SelectItem>
+                          ))
+                        }
                       </SelectContent>
                     </Select>
                     <Input
