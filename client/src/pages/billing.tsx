@@ -4315,14 +4315,24 @@ export default function BillingPage() {
               Save Invoice
             </Button>
             {isInvoiceSaved && (
-              <Button onClick={() => {
-                if (selectedInvoice) {
-                  handleDownloadInvoice(selectedInvoice.id.toString());
-                }
-              }} data-testid="button-download-pdf">
-                <Download className="h-4 w-4 mr-2" />
-                Download PDF
-              </Button>
+              <>
+                <Button onClick={() => {
+                  if (selectedInvoice) {
+                    handleDownloadInvoice(selectedInvoice.id.toString());
+                  }
+                }} data-testid="button-download-pdf">
+                  <Download className="h-4 w-4 mr-2" />
+                  Download PDF
+                </Button>
+                <Button onClick={() => {
+                  if (selectedInvoice) {
+                    handleSendInvoice(selectedInvoice.id);
+                  }
+                }} data-testid="button-send-invoice">
+                  <Send className="h-4 w-4 mr-2" />
+                  Send Invoice
+                </Button>
+              </>
             )}
           </DialogFooter>
         </DialogContent>
