@@ -6591,7 +6591,7 @@ This treatment plan should be reviewed and adjusted based on individual patient 
       // Enrich with patient and doctor names
       const enrichedResults = allLabResults.map(lr => {
         const patient = patients.find(p => p.id === lr.patientId);
-        const doctor = users.find(u => u.id === lr.testOrderedBy);
+        const doctor = users.find(u => u.id === lr.orderedBy);
         
         return {
           id: lr.id,
@@ -6599,8 +6599,8 @@ This treatment plan should be reviewed and adjusted based on individual patient 
           testType: lr.testType,
           patientId: lr.patientId,
           patientName: patient ? `${patient.firstName} ${patient.lastName}` : `Patient ${lr.patientId}`,
-          doctorName: doctor ? (doctor.firstName && doctor.lastName ? `${doctor.firstName} ${doctor.lastName}` : doctor.email) : `Doctor ${lr.testOrderedBy}`,
-          testDate: lr.testDate,
+          doctorName: doctor ? (doctor.firstName && doctor.lastName ? `${doctor.firstName} ${doctor.lastName}` : doctor.email) : (lr.doctorName || `Doctor ${lr.orderedBy}`),
+          testDate: lr.orderedAt,
           results: lr.results,
           criticalValues: lr.criticalValues
         };
