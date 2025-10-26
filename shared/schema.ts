@@ -1441,6 +1441,27 @@ export const messages = pgTable("messages", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Message Campaigns - Database table for messaging campaigns
+export const messageCampaigns = pgTable("message_campaigns", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  name: text("name").notNull(),
+  type: varchar("type", { length: 20 }).notNull().default("email"), // email, sms, both
+  status: varchar("status", { length: 20 }).notNull().default("draft"), // draft, scheduled, sent, cancelled
+  subject: text("subject").notNull(),
+  content: text("content").notNull(),
+  template: varchar("template", { length: 50 }).notNull().default("default"),
+  recipientCount: integer("recipient_count").notNull().default(0),
+  sentCount: integer("sent_count").notNull().default(0),
+  openRate: integer("open_rate").notNull().default(0), // percentage
+  clickRate: integer("click_rate").notNull().default(0), // percentage
+  scheduledAt: timestamp("scheduled_at"),
+  sentAt: timestamp("sent_at"),
+  createdBy: integer("created_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // SaaS Relations
 export const saasSubscriptionsRelations = relations(saasSubscriptions, ({ one, many }) => ({
   organization: one(organizations, {
@@ -2015,6 +2036,18 @@ export const messagesRelations = relations(messages, ({ one }) => ({
   }),
 }));
 
+// Message Campaigns Relations
+export const messageCampaignsRelations = relations(messageCampaigns, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [messageCampaigns.organizationId],
+    references: [organizations.id],
+  }),
+  creator: one(users, {
+    fields: [messageCampaigns.createdBy],
+    references: [users.id],
+  }),
+}));
+
 // Insert schemas
 export const insertOrganizationSchema = createInsertSchema(organizations).omit({
   id: true,
@@ -2391,6 +2424,12 @@ export const insertMessageSchema = createInsertSchema(messages).omit({
   createdAt: true,
 });
 
+export const insertMessageCampaignSchema = createInsertSchema(messageCampaigns).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Chatbot Configuration - Each organization can configure their chatbot
 export const chatbotConfigs = pgTable("chatbot_configs", {
   id: serial("id").primaryKey(),
@@ -2710,6 +2749,9 @@ export type InsertConversation = z.infer<typeof insertConversationSchema>;
 
 export type Message = typeof messages.$inferSelect;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
+
+export type MessageCampaign = typeof messageCampaigns.$inferSelect;
+export type InsertMessageCampaign = z.infer<typeof insertMessageCampaignSchema>;
 
 export type VoiceNote = typeof voiceNotes.$inferSelect;
 export type InsertVoiceNote = z.infer<typeof insertVoiceNoteSchema>;

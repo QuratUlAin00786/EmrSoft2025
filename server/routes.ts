@@ -9361,7 +9361,11 @@ This treatment plan should be reviewed and adjusted based on individual patient 
 
   app.post("/api/messaging/campaigns", authMiddleware, requireRole(["admin", "doctor"]), async (req: TenantRequest, res) => {
     try {
-      const campaign = await storage.createMessageCampaign(req.body, req.tenant!.id);
+      const campaignData = {
+        ...req.body,
+        createdBy: req.user!.id
+      };
+      const campaign = await storage.createMessageCampaign(campaignData, req.tenant!.id);
       res.json(campaign);
     } catch (error) {
       console.error("Error creating campaign:", error);

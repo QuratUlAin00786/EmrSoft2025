@@ -1,6 +1,6 @@
 import { isDoctorLike } from './utils/role-utils.js';
 import { 
-  organizations, users, patients, medicalRecords, appointments, invoices, payments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages, clinicalPhotos, labResults, riskAssessments, claims, revenueRecords, insuranceVerifications, clinicalProcedures, emergencyProtocols, medicationsDatabase, roles, staffShifts, doctorDefaultShifts, gdprConsents, gdprDataRequests, gdprAuditTrail, gdprProcessingActivities, conversations as conversationsTable, messages, voiceNotes, saasOwners, saasPackages, saasSubscriptions, saasPayments, saasInvoices, saasSettings, chatbotConfigs, chatbotSessions, chatbotMessages, chatbotAnalytics, musclePositions, userDocumentPreferences, letterDrafts, forecastModels, financialForecasts, quickbooksConnections, quickbooksSyncLogs, quickbooksCustomerMappings, quickbooksInvoiceMappings, quickbooksPaymentMappings, quickbooksAccountMappings, quickbooksItemMappings, quickbooksSyncConfigs, doctorsFee, labTestPricing, imagingPricing, clinicHeaders, clinicFooters, symptomChecks,
+  organizations, users, patients, medicalRecords, appointments, invoices, payments, aiInsights, subscriptions, patientCommunications, consultations, notifications, prescriptions, documents, medicalImages, clinicalPhotos, labResults, riskAssessments, claims, revenueRecords, insuranceVerifications, clinicalProcedures, emergencyProtocols, medicationsDatabase, roles, staffShifts, doctorDefaultShifts, gdprConsents, gdprDataRequests, gdprAuditTrail, gdprProcessingActivities, conversations as conversationsTable, messages, messageCampaigns, voiceNotes, saasOwners, saasPackages, saasSubscriptions, saasPayments, saasInvoices, saasSettings, chatbotConfigs, chatbotSessions, chatbotMessages, chatbotAnalytics, musclePositions, userDocumentPreferences, letterDrafts, forecastModels, financialForecasts, quickbooksConnections, quickbooksSyncLogs, quickbooksCustomerMappings, quickbooksInvoiceMappings, quickbooksPaymentMappings, quickbooksAccountMappings, quickbooksItemMappings, quickbooksSyncConfigs, doctorsFee, labTestPricing, imagingPricing, clinicHeaders, clinicFooters, symptomChecks,
   type Organization, type InsertOrganization,
   type User, type InsertUser,
   type Role, type InsertRole,
@@ -33,6 +33,7 @@ import {
   type GdprProcessingActivity, type InsertGdprProcessingActivity,
   type Conversation, type InsertConversation,
   type Message, type InsertMessage,
+  type MessageCampaign, type InsertMessageCampaign,
   type VoiceNote, type InsertVoiceNote,
   type SaaSOwner, type InsertSaaSOwner,
   type SaaSPackage, type InsertSaaSPackage,
@@ -3203,34 +3204,48 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getMessageCampaigns(organizationId: number): Promise<any[]> {
-    // Mock campaigns data
-    return [
-      {
-        id: "camp_1",
-        name: "Flu Vaccination Reminder",
-        type: "email",
-        status: "sent",
-        subject: "Annual Flu Vaccination Available",
-        content: "Book your flu vaccination appointment today.",
-        recipientCount: 150,
-        sentCount: 150,
-        openRate: 65,
-        clickRate: 12,
-        createdAt: "2024-06-20T10:00:00Z",
-        template: "vaccination_reminder"
-      }
-    ];
+  async getMessageCampaigns(organizationId: number): Promise<MessageCampaign[]> {
+    try {
+      const campaigns = await db.select()
+        .from(messageCampaigns)
+        .where(eq(messageCampaigns.organizationId, organizationId))
+        .orderBy(desc(messageCampaigns.createdAt));
+      
+      console.log(`📧 Fetched ${campaigns.length} campaigns for organization ${organizationId}`);
+      return campaigns;
+    } catch (error) {
+      console.error("❌ Error fetching campaigns:", error);
+      return [];
+    }
   }
 
-  async createMessageCampaign(campaignData: any, organizationId: number): Promise<any> {
-    // Mock implementation
-    return { 
-      id: Date.now().toString(), 
-      ...campaignData, 
-      createdAt: new Date().toISOString(),
-      organizationId 
-    };
+  async createMessageCampaign(campaignData: any, organizationId: number): Promise<MessageCampaign> {
+    try {
+      const currentUser = campaignData.createdBy || 1; // fallback to user ID 1 if not provided
+      
+      const [campaign] = await db.insert(messageCampaigns)
+        .values({
+          organizationId,
+          name: campaignData.name,
+          type: campaignData.type || "email",
+          status: campaignData.status || "draft",
+          subject: campaignData.subject,
+          content: campaignData.content,
+          template: campaignData.template || "default",
+          recipientCount: campaignData.recipientCount || 0,
+          sentCount: campaignData.sentCount || 0,
+          openRate: campaignData.openRate || 0,
+          clickRate: campaignData.clickRate || 0,
+          createdBy: currentUser,
+        })
+        .returning();
+      
+      console.log(`📧 Created campaign "${campaign.name}" (ID: ${campaign.id}) for organization ${organizationId}`);
+      return campaign;
+    } catch (error) {
+      console.error("❌ Error creating campaign:", error);
+      throw error;
+    }
   }
 
   // Integration implementations
