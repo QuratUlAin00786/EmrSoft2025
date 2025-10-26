@@ -16799,15 +16799,15 @@ Cura EMR Team
           await access(filePath, fs.constants.F_OK);
           console.log('✅ PDF file found! Reading file...');
           
-          // Read the PDF file using fs/promises
+          // Read the PDF file using fs/promises as a raw buffer
           const pdfBuffer = await readFile(filePath);
           console.log(`📄 PDF file size: ${pdfBuffer.length} bytes`);
           
+          // Attach the PDF using the raw buffer (nodemailer will handle encoding)
           attachments.push({
-            content: pdfBuffer.toString('base64'),
             filename: `invoice-${invoice.invoiceNumber}.pdf`,
-            type: 'application/pdf',
-            disposition: 'attachment'
+            content: pdfBuffer,
+            contentType: 'application/pdf'
           });
           console.log('📧 PDF attachment prepared successfully');
         } catch (error: any) {
