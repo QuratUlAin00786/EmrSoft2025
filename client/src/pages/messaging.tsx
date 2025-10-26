@@ -158,6 +158,8 @@ export default function MessagingPage() {
     searchName: ""
   });
   const [selectedRecipients, setSelectedRecipients] = useState<any[]>([]);
+  const [showDeleteCampaign, setShowDeleteCampaign] = useState(false);
+  const [campaignToDelete, setCampaignToDelete] = useState<any>(null);
   const [newMessage, setNewMessage] = useState({
     recipient: "",
     subject: "",
@@ -1147,8 +1149,15 @@ export default function MessagingPage() {
   });
 
   const handleDeleteCampaign = (campaign: any) => {
-    if (window.confirm(`Are you sure you want to delete the campaign "${campaign.name}"? This action cannot be undone.`)) {
-      deleteCampaignMutation.mutate(campaign.id);
+    setCampaignToDelete(campaign);
+    setShowDeleteCampaign(true);
+  };
+
+  const handleConfirmDeleteCampaign = () => {
+    if (campaignToDelete) {
+      deleteCampaignMutation.mutate(campaignToDelete.id);
+      setShowDeleteCampaign(false);
+      setCampaignToDelete(null);
     }
   };
 
@@ -2813,6 +2822,38 @@ export default function MessagingPage() {
                   </Button>
                 </div>
               </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* Delete Campaign Dialog */}
+          <Dialog open={showDeleteCampaign} onOpenChange={setShowDeleteCampaign}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Delete Campaign</DialogTitle>
+                <DialogDescription>
+                  Are you sure you want to delete the campaign "{campaignToDelete?.name}"? This action cannot be undone.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setShowDeleteCampaign(false);
+                    setCampaignToDelete(null);
+                  }} 
+                  data-testid="button-cancel-delete-campaign"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  variant="destructive" 
+                  onClick={handleConfirmDeleteCampaign} 
+                  disabled={deleteCampaignMutation.isPending} 
+                  data-testid="button-confirm-delete-campaign"
+                >
+                  {deleteCampaignMutation.isPending ? "Deleting..." : "Delete"}
+                </Button>
+              </DialogFooter>
             </DialogContent>
           </Dialog>
         </TabsContent>
