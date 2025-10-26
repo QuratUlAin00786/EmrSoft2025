@@ -6581,8 +6581,8 @@ This treatment plan should be reviewed and adjusted based on individual patient 
       // Get lab results for all patients
       const allLabResults = [];
       for (const patientId of patientIds) {
-        const labResults = await storage.getLabResultsByPatient(patientId);
-        allLabResults.push(...labResults.filter(lr => lr.organizationId === organizationId));
+        const labResults = await storage.getLabResultsByPatient(patientId, organizationId);
+        allLabResults.push(...labResults);
       }
       
       // Get users (doctors) to map testOrderedBy
