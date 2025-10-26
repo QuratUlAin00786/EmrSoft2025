@@ -532,45 +532,8 @@ function PricingManagementDashboard() {
       }));
       setMultipleServices(predefinedImagingServices);
     } else if (pricingTab === "lab-tests") {
-      const predefinedLabTests = [
-        { serviceName: "Complete Blood Count (CBC)", serviceCode: "CBC001", category: "Hematology", basePrice: "" },
-        { serviceName: "Basic Metabolic Panel (BMP) / Chem-7", serviceCode: "BMP001", category: "Chemistry", basePrice: "" },
-        { serviceName: "Comprehensive Metabolic Panel (CMP)", serviceCode: "CMP001", category: "Chemistry", basePrice: "" },
-        { serviceName: "Lipid Profile (Cholesterol, LDL, HDL, Triglycerides)", serviceCode: "LP001", category: "Chemistry", basePrice: "" },
-        { serviceName: "Thyroid Function Tests (TSH, Free T4, Free T3)", serviceCode: "TFT001", category: "Endocrinology", basePrice: "" },
-        { serviceName: "Liver Function Tests (AST, ALT, ALP, Bilirubin)", serviceCode: "LFT001", category: "Chemistry", basePrice: "" },
-        { serviceName: "Kidney Function Tests (Creatinine, BUN, eGFR)", serviceCode: "KFT001", category: "Chemistry", basePrice: "" },
-        { serviceName: "Electrolytes (Sodium, Potassium, Chloride, Bicarbonate)", serviceCode: "E001", category: "Chemistry", basePrice: "" },
-        { serviceName: "Blood Glucose (Fasting / Random / Postprandial)", serviceCode: "BG001", category: "Chemistry", basePrice: "" },
-        { serviceName: "Hemoglobin A1C (HbA1c)", serviceCode: "HA001", category: "Chemistry", basePrice: "" },
-        { serviceName: "C-Reactive Protein (CRP)", serviceCode: "CRP001", category: "Immunology", basePrice: "" },
-        { serviceName: "Erythrocyte Sedimentation Rate (ESR)", serviceCode: "ESR001", category: "Hematology", basePrice: "" },
-        { serviceName: "Coagulation Tests (PT, PTT, INR)", serviceCode: "CT001", category: "Hematology", basePrice: "" },
-        { serviceName: "Urinalysis (UA)", serviceCode: "UA001", category: "Urinalysis", basePrice: "" },
-        { serviceName: "Albumin / Total Protein", serviceCode: "ATP001", category: "Chemistry", basePrice: "" },
-        { serviceName: "Iron Studies (Serum Iron, TIBC, Ferritin)", serviceCode: "IS001", category: "Hematology", basePrice: "" },
-        { serviceName: "Vitamin D", serviceCode: "VD001", category: "Chemistry", basePrice: "" },
-        { serviceName: "Vitamin B12 / Folate", serviceCode: "VBF001", category: "Chemistry", basePrice: "" },
-        { serviceName: "Hormone Panels (e.g., LH, FSH, Testosterone, Estrogen)", serviceCode: "HP001", category: "Endocrinology", basePrice: "" },
-        { serviceName: "Prostate-Specific Antigen (PSA)", serviceCode: "PSA001", category: "Oncology", basePrice: "" },
-        { serviceName: "Thyroid Antibodies (e.g. Anti-TPO, Anti-TG)", serviceCode: "TA001", category: "Immunology", basePrice: "" },
-        { serviceName: "Creatine Kinase (CK)", serviceCode: "CK001", category: "Chemistry", basePrice: "" },
-        { serviceName: "Cardiac Biomarkers (Troponin, CK-MB, BNP)", serviceCode: "CB001", category: "Cardiology", basePrice: "" },
-        { serviceName: "Electrolyte Panel", serviceCode: "EP001", category: "Chemistry", basePrice: "" },
-        { serviceName: "Uric Acid", serviceCode: "UA002", category: "Chemistry", basePrice: "" },
-        { serviceName: "Lipase / Amylase (Pancreatic enzymes)", serviceCode: "LA001", category: "Chemistry", basePrice: "" },
-        { serviceName: "Hepatitis B / C Serologies", serviceCode: "HBC001", category: "Serology", basePrice: "" },
-        { serviceName: "HIV Antibody / Viral Load", serviceCode: "HIV001", category: "Serology", basePrice: "" },
-        { serviceName: "HCG (Pregnancy / Quantitative)", serviceCode: "HCG001", category: "Endocrinology", basePrice: "" },
-        { serviceName: "Autoimmune Panels (ANA, ENA, Rheumatoid Factor)", serviceCode: "AP001", category: "Immunology", basePrice: "" },
-        { serviceName: "Tumor Markers (e.g. CA-125, CEA, AFP)", serviceCode: "TM001", category: "Oncology", basePrice: "" },
-        { serviceName: "Blood Culture & Sensitivity", serviceCode: "BCS001", category: "Microbiology", basePrice: "" },
-        { serviceName: "Stool Culture / Ova & Parasites", serviceCode: "SCOP001", category: "Microbiology", basePrice: "" },
-        { serviceName: "Sputum Culture", serviceCode: "SC001", category: "Microbiology", basePrice: "" },
-        { serviceName: "Viral Panels / PCR Tests (e.g. COVID-19, Influenza)", serviceCode: "VP001", category: "Microbiology", basePrice: "" },
-        { serviceName: "Hormonal tests (Cortisol, ACTH)", serviceCode: "HT001", category: "Endocrinology", basePrice: "" }
-      ];
-      setMultipleServices(predefinedLabTests);
+      // Start with one blank row for custom tests
+      setMultipleServices([{ serviceName: "", serviceCode: "", category: "", basePrice: "" }]);
     } else {
       setMultipleServices([{ serviceName: "", serviceCode: "", category: "", basePrice: "" }]);
     }
@@ -1321,8 +1284,38 @@ function PricingManagementDashboard() {
 
             {pricingTab === "lab-tests" && !editingItem && (
               <>
+                {/* Existing Tests in Database (Read-only) */}
+                {labTests.length > 0 && (
+                  <div className="space-y-2">
+                    <Label className="text-base font-semibold">Existing Tests in Database</Label>
+                    <div className="border rounded-md overflow-hidden max-h-64 overflow-y-auto bg-gray-50 dark:bg-gray-900">
+                      <table className="w-full">
+                        <thead className="bg-gray-100 dark:bg-gray-800 sticky top-0">
+                          <tr>
+                            <th className="text-left p-2 text-sm font-medium">Test Type</th>
+                            <th className="text-left p-2 text-sm font-medium">Code</th>
+                            <th className="text-left p-2 text-sm font-medium">Category</th>
+                            <th className="text-left p-2 text-sm font-medium">Price (£)</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {labTests.map((test: any) => (
+                            <tr key={test.id} className="border-t">
+                              <td className="p-2 text-sm">{test.testName}</td>
+                              <td className="p-2 text-sm">{test.testCode || '-'}</td>
+                              <td className="p-2 text-sm">{test.category || '-'}</td>
+                              <td className="p-2 text-sm">{test.basePrice}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {/* Add Custom Tests (Editable) */}
                 <div className="space-y-2">
-                  <Label>Lab Tests</Label>
+                  <Label className="text-base font-semibold">Add Custom Tests</Label>
                   <div className="border rounded-md overflow-hidden max-h-96 overflow-y-auto">
                     <table className="w-full">
                       <thead className="bg-gray-50 dark:bg-gray-800 sticky top-0">
