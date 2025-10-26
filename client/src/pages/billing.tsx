@@ -1690,14 +1690,40 @@ export default function BillingPage() {
   const [activeTab, setActiveTab] = useState("invoices");
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [isInvoiceSaved, setIsInvoiceSaved] = useState(false);
+  const [clinicHeader, setClinicHeader] = useState<any>(null);
+  const [clinicFooter, setClinicFooter] = useState<any>(null);
   
   // Check if user is admin
   const isAdmin = user?.role === 'admin';
+
+  // Fetch clinic headers and footers
+  useEffect(() => {
+    const fetchClinicBranding = async () => {
+      try {
+        const [headerResponse, footerResponse] = await Promise.all([
+          apiRequest('GET', '/api/clinic-headers', undefined),
+          apiRequest('GET', '/api/clinic-footers', undefined)
+        ]);
+        
+        const headerData = await headerResponse.json();
+        const footerData = await footerResponse.json();
+        
+        setClinicHeader(headerData);
+        setClinicFooter(footerData);
+      } catch (error) {
+        console.error('Failed to fetch clinic branding:', error);
+      }
+    };
+    
+    fetchClinicBranding();
+  }, []);
 
   const handleViewInvoice = (invoice: Invoice) => {
     setSelectedInvoice(invoice);
     setEditedStatus(invoice.status);
     setIsEditingStatus(false);
+    setIsInvoiceSaved(false);
   };
 
   const handleUpdateStatus = async () => {
@@ -1808,15 +1834,29 @@ export default function BillingPage() {
 
       // Function to add header to page
       const addHeader = () => {
+        // Use clinic header if available, otherwise default
+        if (clinicHeader && clinicHeader.logoBase64) {
+          try {
+            // Add logo
+            const logoPosition = clinicHeader.logoPosition || 'left';
+            let logoX = margin;
+            if (logoPosition === 'center') logoX = (pageWidth - 40) / 2;
+            if (logoPosition === 'right') logoX = pageWidth - margin - 40;
+            doc.addImage(clinicHeader.logoBase64, 'PNG', logoX, 5, 40, 30);
+          } catch (error) {
+            console.error('Failed to add logo to PDF:', error);
+          }
+        }
+        
         doc.setFillColor(79, 70, 229);
         doc.rect(0, 0, pageWidth, 40, 'F');
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(20);
         doc.setFont('helvetica', 'bold');
-        doc.text('Cura Medical Practice', margin, 15);
+        doc.text(clinicHeader?.clinicName || 'Cura Medical Practice', margin, 15);
         doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
-        doc.text('Excellence in Healthcare', margin, 25);
+        doc.text(clinicHeader?.tagline || 'Excellence in Healthcare', margin, 25);
         doc.setFontSize(24);
         doc.setFont('helvetica', 'bold');
         doc.text('INVOICE', pageWidth - margin - 45, 25);
@@ -1832,7 +1872,8 @@ export default function BillingPage() {
         doc.setTextColor(107, 114, 128);
         doc.setFontSize(8);
         doc.setFont('helvetica', 'normal');
-        doc.text('Thank you for choosing Cura Medical Practice for your healthcare needs.', pageWidth / 2, footerY + 2, { align: 'center' });
+        const footerText = clinicFooter?.footerText || 'Thank you for choosing Cura Medical Practice for your healthcare needs.';
+        doc.text(footerText, pageWidth / 2, footerY + 2, { align: 'center' });
         doc.text('© 2025 Cura Software Limited - Powered by Halo Group & Averox Technologies', pageWidth / 2, footerY + 8, { align: 'center' });
         doc.text(`Page ${pageNum}`, pageWidth - margin, footerY + 2, { align: 'right' });
       };
@@ -1972,6 +2013,8 @@ export default function BillingPage() {
       const result = await response.json();
       console.log('✅ Invoice saved successfully:', result);
 
+      setIsInvoiceSaved(true);
+
       toast({
         title: "Success",
         description: `Invoice saved to ${result.filePath}`,
@@ -2018,6 +2061,20 @@ export default function BillingPage() {
 
     // Function to add header to page
     const addHeader = () => {
+      // Use clinic header if available, otherwise default
+      if (clinicHeader && clinicHeader.logoBase64) {
+        try {
+          // Add logo
+          const logoPosition = clinicHeader.logoPosition || 'left';
+          let logoX = margin;
+          if (logoPosition === 'center') logoX = (pageWidth - 40) / 2;
+          if (logoPosition === 'right') logoX = pageWidth - margin - 40;
+          doc.addImage(clinicHeader.logoBase64, 'PNG', logoX, 5, 40, 30);
+        } catch (error) {
+          console.error('Failed to add logo to PDF:', error);
+        }
+      }
+      
       // Header background with gradient effect (simulated with rectangle)
       doc.setFillColor(79, 70, 229);
       doc.rect(0, 0, pageWidth, 40, 'F');
@@ -2026,12 +2083,12 @@ export default function BillingPage() {
       doc.setTextColor(255, 255, 255);
       doc.setFontSize(20);
       doc.setFont('helvetica', 'bold');
-      doc.text('Cura Medical Practice', margin, 15);
+      doc.text(clinicHeader?.clinicName || 'Cura Medical Practice', margin, 15);
       
       // Subtitle
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
-      doc.text('Excellence in Healthcare', margin, 25);
+      doc.text(clinicHeader?.tagline || 'Excellence in Healthcare', margin, 25);
       
       // INVOICE title on right
       doc.setFontSize(24);
@@ -2055,7 +2112,8 @@ export default function BillingPage() {
       doc.setTextColor(107, 114, 128);
       doc.setFontSize(8);
       doc.setFont('helvetica', 'normal');
-      doc.text('Thank you for choosing Cura Medical Practice for your healthcare needs.', pageWidth / 2, footerY + 2, { align: 'center' });
+      const footerText = clinicFooter?.footerText || 'Thank you for choosing Cura Medical Practice for your healthcare needs.';
+      doc.text(footerText, pageWidth / 2, footerY + 2, { align: 'center' });
       doc.text('© 2025 Cura Software Limited - Powered by Halo Group & Averox Technologies', pageWidth / 2, footerY + 8, { align: 'center' });
       
       // Page number
@@ -5155,14 +5213,16 @@ export default function BillingPage() {
               <Download className="h-4 w-4 mr-2" />
               Save Invoice
             </Button>
-            <Button onClick={() => {
-              if (selectedInvoice) {
-                handleDownloadInvoice(selectedInvoice.id.toString());
-              }
-            }}>
-              <Download className="h-4 w-4 mr-2" />
-              Download PDF
-            </Button>
+            {isInvoiceSaved && (
+              <Button onClick={() => {
+                if (selectedInvoice) {
+                  handleDownloadInvoice(selectedInvoice.id.toString());
+                }
+              }} data-testid="button-download-pdf">
+                <Download className="h-4 w-4 mr-2" />
+                Download PDF
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
