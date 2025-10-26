@@ -131,6 +131,10 @@ export default function ClinicalDecisionSupport() {
   const [filterPatientName, setFilterPatientName] = useState<string>("");
   const [filterDate, setFilterDate] = useState<string>("");
   
+  // Guidelines Browser Filters
+  const [guidelineSearchQuery, setGuidelineSearchQuery] = useState<string>("");
+  const [guidelineCategory, setGuidelineCategory] = useState<string>("all");
+  
   // Lab Result Assessment State
   const [selectedLabResult, setSelectedLabResult] = useState<LabResult | null>(null);
   const [assessmentDialogOpen, setAssessmentDialogOpen] = useState(false);
@@ -371,6 +375,23 @@ export default function ClinicalDecisionSupport() {
       setGuidelineViewOpen(true);
     }
   };
+
+  // Filter guidelines based on category and search query
+  const filteredGuidelines = Object.values(guidelines).filter((guideline: any) => {
+    // Filter by category
+    const matchesCategory = guidelineCategory === "all" || 
+      guideline.category.toLowerCase() === guidelineCategory.toLowerCase() ||
+      (guidelineCategory === "diabetes" && guideline.category === "Endocrinology") ||
+      (guidelineCategory === "infectious" && guideline.category === "Infectious Disease");
+    
+    // Filter by search query
+    const matchesSearch = guidelineSearchQuery === "" ||
+      guideline.title.toLowerCase().includes(guidelineSearchQuery.toLowerCase()) ||
+      guideline.description.toLowerCase().includes(guidelineSearchQuery.toLowerCase()) ||
+      guideline.organization.toLowerCase().includes(guidelineSearchQuery.toLowerCase());
+    
+    return matchesCategory && matchesSearch;
+  });
 
   // Mock data definitions (must be defined before useQuery hooks)
   const mockInsights: ClinicalInsight[] = [
@@ -1712,10 +1733,16 @@ export default function ClinicalDecisionSupport() {
                       {/* Search and Filter */}
                       <div className="flex gap-4">
                         <div className="flex-1">
-                          <Input placeholder="Search guidelines..." className="w-full" />
+                          <Input 
+                            placeholder="Search guidelines..." 
+                            className="w-full" 
+                            value={guidelineSearchQuery}
+                            onChange={(e) => setGuidelineSearchQuery(e.target.value)}
+                            data-testid="input-search-guidelines"
+                          />
                         </div>
-                        <Select defaultValue="all">
-                          <SelectTrigger className="w-48">
+                        <Select value={guidelineCategory} onValueChange={setGuidelineCategory}>
+                          <SelectTrigger className="w-48" data-testid="select-guideline-category">
                             <SelectValue placeholder="Category" />
                           </SelectTrigger>
                           <SelectContent>
@@ -1731,142 +1758,52 @@ export default function ClinicalDecisionSupport() {
 
                       {/* Guidelines List */}
                       <div className="grid gap-4">
-                        {/* Featured Guidelines */}
-                        <div>
-                          <h3 className="text-lg font-semibold mb-3">Featured Guidelines</h3>
-                          <div className="grid gap-3">
-                            <Card className="border-l-4 border-l-blue-500">
-                              <CardContent className="p-4">
-                                <div className="flex justify-between items-start">
-                                  <div className="flex-1">
-                                    <h4 className="font-semibold text-sm">NICE Guidelines: Hypertension Management</h4>
-                                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                                      Comprehensive guidance on diagnosis and management of hypertension in adults
-                                    </p>
-                                    <div className="flex items-center gap-4 mt-2 text-xs text-gray-500 dark:text-gray-400">
-                                      <span>Updated: March 2024</span>
-                                      <span>Evidence Level: A</span>
-                                      <Badge variant="secondary" className="text-xs">Cardiology</Badge>
-                                    </div>
-                                  </div>
-                                  <Button 
-                                    size="sm" 
-                                    variant="outline"
-                                    onClick={() => viewGuideline('nice-hypertension')}
-                                  >
-                                    View
-                                  </Button>
-                                </div>
-                              </CardContent>
-                            </Card>
-
-                            <Card className="border-l-4 border-l-green-500">
-                              <CardContent className="p-4">
-                                <div className="flex justify-between items-start">
-                                  <div className="flex-1">
-                                    <h4 className="font-semibold text-sm">ADA Standards: Diabetes Care</h4>
-                                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                                      Evidence-based recommendations for diabetes diagnosis, treatment, and monitoring
-                                    </p>
-                                    <div className="flex items-center gap-4 mt-2 text-xs text-gray-500 dark:text-gray-400">
-                                      <span>Updated: January 2024</span>
-                                      <span>Evidence Level: A</span>
-                                      <Badge variant="secondary" className="text-xs">Endocrinology</Badge>
-                                    </div>
-                                  </div>
-                                  <Button 
-                                    size="sm" 
-                                    variant="outline"
-                                    onClick={() => viewGuideline('ada-diabetes')}
-                                  >
-                                    View
-                                  </Button>
-                                </div>
-                              </CardContent>
-                            </Card>
-
-                            <Card className="border-l-4 border-l-purple-500">
-                              <CardContent className="p-4">
-                                <div className="flex justify-between items-start">
-                                  <div className="flex-1">
-                                    <h4 className="font-semibold text-sm">GOLD Guidelines: COPD Management</h4>
-                                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                                      Global strategy for diagnosis, management and prevention of COPD
-                                    </p>
-                                    <div className="flex items-center gap-4 mt-2 text-xs text-gray-500 dark:text-gray-400">
-                                      <span>Updated: February 2024</span>
-                                      <span>Evidence Level: A</span>
-                                      <Badge variant="secondary" className="text-xs">Respiratory</Badge>
-                                    </div>
-                                  </div>
-                                  <Button 
-                                    size="sm" 
-                                    variant="outline"
-                                    onClick={() => viewGuideline('gold-copd')}
-                                  >
-                                    View
-                                  </Button>
-                                </div>
-                              </CardContent>
-                            </Card>
+                        {filteredGuidelines.length === 0 ? (
+                          <div className="text-center py-8">
+                            <p className="text-gray-500 dark:text-gray-400">No guidelines found matching your criteria.</p>
                           </div>
-                        </div>
-
-                        {/* Recent Updates */}
-                        <div>
-                          <h3 className="text-lg font-semibold mb-3">Recent Updates</h3>
-                          <div className="grid gap-3">
-                            <Card>
-                              <CardContent className="p-4">
-                                <div className="flex justify-between items-start">
-                                  <div className="flex-1">
-                                    <h4 className="font-semibold text-sm">WHO Guidelines: Antimicrobial Resistance</h4>
-                                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                                      Updated recommendations for preventing and containing antimicrobial resistance
-                                    </p>
-                                    <div className="flex items-center gap-4 mt-2 text-xs text-gray-500 dark:text-gray-400">
-                                      <span>Updated: April 2024</span>
-                                      <span>Evidence Level: B</span>
-                                      <Badge variant="secondary" className="text-xs">Infectious Disease</Badge>
-                                    </div>
-                                  </div>
-                                  <Button 
-                                    size="sm" 
-                                    variant="outline"
-                                    onClick={() => viewGuideline('who-amr')}
-                                  >
-                                    View
-                                  </Button>
-                                </div>
-                              </CardContent>
-                            </Card>
-
-                            <Card>
-                              <CardContent className="p-4">
-                                <div className="flex justify-between items-start">
-                                  <div className="flex-1">
-                                    <h4 className="font-semibold text-sm">ESC Guidelines: Heart Failure</h4>
-                                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                                      European Society of Cardiology guidelines for acute and chronic heart failure
-                                    </p>
-                                    <div className="flex items-center gap-4 mt-2 text-xs text-gray-500 dark:text-gray-400">
-                                      <span>Updated: March 2024</span>
-                                      <span>Evidence Level: A</span>
-                                      <Badge variant="secondary" className="text-xs">Cardiology</Badge>
-                                    </div>
-                                  </div>
-                                  <Button 
-                                    size="sm" 
-                                    variant="outline"
-                                    onClick={() => viewGuideline('esc-heart-failure')}
-                                  >
-                                    View
-                                  </Button>
-                                </div>
-                              </CardContent>
-                            </Card>
+                        ) : (
+                          <div>
+                            <h3 className="text-lg font-semibold mb-3">
+                              {guidelineCategory === "all" ? "All Guidelines" : `${guidelineCategory.charAt(0).toUpperCase() + guidelineCategory.slice(1)} Guidelines`}
+                              <span className="text-sm font-normal text-gray-500 ml-2">({filteredGuidelines.length} result{filteredGuidelines.length !== 1 ? 's' : ''})</span>
+                            </h3>
+                            <div className="grid gap-3">
+                              {filteredGuidelines.map((guideline: any, index: number) => {
+                                const borderColors = ['border-l-blue-500', 'border-l-green-500', 'border-l-purple-500', 'border-l-orange-500', 'border-l-pink-500'];
+                                const borderColor = borderColors[index % borderColors.length];
+                                
+                                return (
+                                  <Card key={guideline.id} className={`border-l-4 ${borderColor}`} data-testid={`card-guideline-${guideline.id}`}>
+                                    <CardContent className="p-4">
+                                      <div className="flex justify-between items-start">
+                                        <div className="flex-1">
+                                          <h4 className="font-semibold text-sm">{guideline.title}</h4>
+                                          <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                                            {guideline.description}
+                                          </p>
+                                          <div className="flex items-center gap-4 mt-2 text-xs text-gray-500 dark:text-gray-400">
+                                            <span>Updated: {guideline.updated}</span>
+                                            <span>Evidence Level: {guideline.evidenceLevel}</span>
+                                            <Badge variant="secondary" className="text-xs">{guideline.category}</Badge>
+                                          </div>
+                                        </div>
+                                        <Button 
+                                          size="sm" 
+                                          variant="outline"
+                                          onClick={() => viewGuideline(guideline.id)}
+                                          data-testid={`button-view-${guideline.id}`}
+                                        >
+                                          View
+                                        </Button>
+                                      </div>
+                                    </CardContent>
+                                  </Card>
+                                );
+                              })}
+                            </div>
                           </div>
-                        </div>
+                        )}
 
                         {/* Quick Access */}
                         <div>
