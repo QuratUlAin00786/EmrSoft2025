@@ -109,6 +109,7 @@ export default function MessagingPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [messageFilter, setMessageFilter] = useState("all");
   const [showCreateCampaign, setShowCreateCampaign] = useState(false);
+  const [showCreateTemplate, setShowCreateTemplate] = useState(false);
   const [showNewMessage, setShowNewMessage] = useState(false);
   const [showVideoCall, setShowVideoCall] = useState(false);
   const [activeVideoCall, setActiveVideoCall] = useState(false);
@@ -126,6 +127,12 @@ export default function MessagingPage() {
     subject: "",
     content: "",
     template: "default"
+  });
+  const [newTemplate, setNewTemplate] = useState({
+    name: "",
+    category: "general" as "general" | "medical" | "preventive" | "urgent" | "onboarding",
+    subject: "",
+    content: ""
   });
   const [newMessage, setNewMessage] = useState({
     recipient: "",
@@ -672,6 +679,62 @@ export default function MessagingPage() {
       openRate: 0,
       clickRate: 0
     });
+  };
+
+  const createTemplateMutation = useMutation({
+    mutationFn: async (templateData: any) => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/messaging/templates', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': localStorage.getItem('user_subdomain') || 'demo',
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify(templateData),
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: response.statusText }));
+        throw new Error(errorData.error || `${response.status}: ${response.statusText}`);
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/messaging/templates'] });
+      setShowCreateTemplate(false);
+      setNewTemplate({
+        name: "",
+        category: "general",
+        subject: "",
+        content: ""
+      });
+      toast({
+        title: "Template Created",
+        description: "Your message template has been created successfully.",
+      });
+    },
+    onError: (error: any) => {
+      console.error("Error creating template:", error);
+      toast({
+        title: "Failed to Create Template",
+        description: error.message || "An error occurred while creating the template. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleCreateTemplate = () => {
+    if (!newTemplate.name.trim() || !newTemplate.subject.trim() || !newTemplate.content.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    createTemplateMutation.mutate(newTemplate);
   };
 
   // Polling-based real-time messaging as WebSocket fallback
@@ -1691,9 +1754,7 @@ export default function MessagingPage() {
           <TabsTrigger value="conversations">Conversations</TabsTrigger>
           <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
           <TabsTrigger value="templates">Templates</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
-
         <TabsContent value="conversations" className="space-y-6">
           <div className="grid grid-cols-12 gap-6 h-[700px]">
             {/* Conversations List */}
@@ -2245,10 +2306,88 @@ export default function MessagingPage() {
         <TabsContent value="templates" className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold">Message Templates</h2>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Create Template
-            </Button>
+            <Dialog open={showCreateTemplate} onOpenChange={setShowCreateTemplate}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Template
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Create New Template</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-6">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="templateName">Template Name *</Label>
+                      <Input
+                        id="templateName"
+                        placeholder="Enter template name"
+                        value={newTemplate.name}
+                        onChange={(e) => setNewTemplate({ ...newTemplate, name: e.target.value })}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="category">Category *</Label>
+                      <Select
+                        value={newTemplate.category}
+                        onValueChange={(value) => setNewTemplate({ ...newTemplate, category: value as any })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="general">General</SelectItem>
+                          <SelectItem value="medical">Medical</SelectItem>
+                          <SelectItem value="preventive">Preventive</SelectItem>
+                          <SelectItem value="urgent">Urgent</SelectItem>
+                          <SelectItem value="onboarding">Onboarding</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="subject">Subject *</Label>
+                    <Input
+                      id="subject"
+                      placeholder="Enter subject line"
+                      value={newTemplate.subject}
+                      onChange={(e) => setNewTemplate({ ...newTemplate, subject: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="content">Message Content *</Label>
+                    <Textarea
+                      id="content"
+                      placeholder="Enter message content. Use {{variableName}} for dynamic content."
+                      rows={8}
+                      value={newTemplate.content}
+                      onChange={(e) => setNewTemplate({ ...newTemplate, content: e.target.value })}
+                    />
+                    <p className="text-xs text-gray-500">Tip: Use placeholders like {'{{patientName}}'}, {'{{date}}'}, {'{{doctorName}}'} for dynamic content</p>
+                  </div>
+
+                  <div className="flex justify-end gap-3">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setShowCreateTemplate(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      onClick={handleCreateTemplate}
+                      disabled={createTemplateMutation.isPending}
+                    >
+                      {createTemplateMutation.isPending ? "Creating..." : "Create Template"}
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
 
           {templatesLoading ? (
@@ -2267,7 +2406,7 @@ export default function MessagingPage() {
                   <Mail className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <h3 className="text-lg font-medium mb-2">No Templates Yet</h3>
                   <p className="mb-4">Create your first message template to get started.</p>
-                  <Button>
+                  <Button onClick={() => setShowCreateTemplate(true)}>
                     <Plus className="h-4 w-4 mr-2" />
                     Create Template
                   </Button>

@@ -1462,6 +1462,20 @@ export const messageCampaigns = pgTable("message_campaigns", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Message Templates - Database table for reusable message templates
+export const messageTemplates = pgTable("message_templates", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  name: text("name").notNull(),
+  category: varchar("category", { length: 50 }).notNull().default("general"), // general, appointment, reminder, etc.
+  subject: text("subject").notNull(),
+  content: text("content").notNull(),
+  usageCount: integer("usage_count").notNull().default(0),
+  createdBy: integer("created_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // SaaS Relations
 export const saasSubscriptionsRelations = relations(saasSubscriptions, ({ one, many }) => ({
   organization: one(organizations, {
@@ -2048,6 +2062,18 @@ export const messageCampaignsRelations = relations(messageCampaigns, ({ one }) =
   }),
 }));
 
+// Message Templates Relations
+export const messageTemplatesRelations = relations(messageTemplates, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [messageTemplates.organizationId],
+    references: [organizations.id],
+  }),
+  creator: one(users, {
+    fields: [messageTemplates.createdBy],
+    references: [users.id],
+  }),
+}));
+
 // Insert schemas
 export const insertOrganizationSchema = createInsertSchema(organizations).omit({
   id: true,
@@ -2430,6 +2456,12 @@ export const insertMessageCampaignSchema = createInsertSchema(messageCampaigns).
   updatedAt: true,
 });
 
+export const insertMessageTemplateSchema = createInsertSchema(messageTemplates).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Chatbot Configuration - Each organization can configure their chatbot
 export const chatbotConfigs = pgTable("chatbot_configs", {
   id: serial("id").primaryKey(),
@@ -2752,6 +2784,9 @@ export type InsertMessage = z.infer<typeof insertMessageSchema>;
 
 export type MessageCampaign = typeof messageCampaigns.$inferSelect;
 export type InsertMessageCampaign = z.infer<typeof insertMessageCampaignSchema>;
+
+export type MessageTemplate = typeof messageTemplates.$inferSelect;
+export type InsertMessageTemplate = z.infer<typeof insertMessageTemplateSchema>;
 
 export type VoiceNote = typeof voiceNotes.$inferSelect;
 export type InsertVoiceNote = z.infer<typeof insertVoiceNoteSchema>;

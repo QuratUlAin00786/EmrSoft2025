@@ -18,7 +18,7 @@ import { messagingService } from "./messaging-service";
 import { isDoctorLike } from './utils/role-utils.js';
 // PayPal imports moved to dynamic imports to avoid initialization errors when credentials are missing
 import { gdprComplianceService } from "./services/gdpr-compliance";
-import { insertGdprConsentSchema, insertGdprDataRequestSchema, updateMedicalImageReportFieldSchema, insertAiInsightSchema, medicationsDatabase, patientDrugInteractions, insuranceVerifications, type Appointment, organizations, subscriptions, users, patients, symptomChecks, quickbooksConnections, insertClinicHeaderSchema, insertClinicFooterSchema, doctorsFee, invoices, labResults } from "../shared/schema";
+import { insertGdprConsentSchema, insertGdprDataRequestSchema, updateMedicalImageReportFieldSchema, insertAiInsightSchema, medicationsDatabase, patientDrugInteractions, insuranceVerifications, type Appointment, organizations, subscriptions, users, patients, symptomChecks, quickbooksConnections, insertClinicHeaderSchema, insertClinicFooterSchema, doctorsFee, invoices, labResults, insertMessageTemplateSchema } from "../shared/schema";
 import * as schema from "../shared/schema";
 import { db, pool } from "./db";
 import { and, eq, sql, desc } from "drizzle-orm";
@@ -9370,6 +9370,40 @@ This treatment plan should be reviewed and adjusted based on individual patient 
     } catch (error) {
       console.error("Error creating campaign:", error);
       res.status(500).json({ error: "Failed to create campaign" });
+    }
+  });
+
+  app.get("/api/messaging/templates", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const templates = await storage.getMessageTemplates(req.tenant!.id);
+      res.json(templates);
+    } catch (error) {
+      console.error("Error fetching templates:", error);
+      res.status(500).json({ error: "Failed to fetch templates" });
+    }
+  });
+
+  app.post("/api/messaging/templates", authMiddleware, requireRole(["admin", "doctor"]), async (req: TenantRequest, res) => {
+    try {
+      // Validate request body with Zod schema
+      const validationResult = insertMessageTemplateSchema.omit({ createdBy: true, organizationId: true }).safeParse(req.body);
+      
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: validationResult.error.errors 
+        });
+      }
+
+      const templateData = {
+        ...validationResult.data,
+        createdBy: req.user!.id
+      };
+      const template = await storage.createMessageTemplate(templateData, req.tenant!.id);
+      res.json(template);
+    } catch (error) {
+      console.error("Error creating template:", error);
+      res.status(500).json({ error: "Failed to create template" });
     }
   });
 
