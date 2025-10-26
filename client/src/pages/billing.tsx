@@ -1710,12 +1710,11 @@ export default function BillingPage() {
         const headerData = await headerResponse.json();
         const footerData = await footerResponse.json();
         
-        // If data is array, get first element
-        const header = Array.isArray(headerData) ? headerData[0] : headerData;
-        const footer = Array.isArray(footerData) ? footerData[0] : footerData;
+        console.log('📋 Clinic Header Data:', headerData);
+        console.log('📋 Clinic Footer Data:', footerData);
         
-        setClinicHeader(header);
-        setClinicFooter(footer);
+        setClinicHeader(headerData);
+        setClinicFooter(footerData);
       } catch (error) {
         console.error('Failed to fetch clinic branding:', error);
       }
@@ -1965,10 +1964,12 @@ export default function BillingPage() {
       doc.text('VAT (0%):', totalsX, yPosition);
       doc.text('£0.00', pageWidth - margin - 2, yPosition, { align: 'right' });
       
-      yPosition += 8;
+      yPosition += 6;
       doc.setDrawColor(79, 70, 229);
-      doc.line(totalsX - 5, yPosition - 2, pageWidth - margin, yPosition - 2);
+      doc.setLineWidth(0.5);
+      doc.line(totalsX - 5, yPosition, pageWidth - margin, yPosition);
       
+      yPosition += 6;
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(11);
       doc.text('Total Amount:', totalsX, yPosition);
@@ -2212,10 +2213,12 @@ export default function BillingPage() {
     doc.text('VAT (0%):', totalsX, yPosition);
     doc.text('£0.00', pageWidth - margin - 2, yPosition, { align: 'right' });
     
-    yPosition += 8;
+    yPosition += 6;
     doc.setDrawColor(79, 70, 229);
-    doc.line(totalsX - 5, yPosition - 2, pageWidth - margin, yPosition - 2);
+    doc.setLineWidth(0.5);
+    doc.line(totalsX - 5, yPosition, pageWidth - margin, yPosition);
     
+    yPosition += 6;
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(11);
     doc.text('Total Amount:', totalsX, yPosition);

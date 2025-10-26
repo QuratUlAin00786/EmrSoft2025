@@ -16707,12 +16707,34 @@ Best regards,
 Cura EMR Team
         `;
 
+        // Check if PDF file exists for this invoice
+        const fileName = `${invoice.invoiceNumber}.pdf`;
+        const filePath = path.join(process.cwd(), 'uploads', 'Invoices', req.tenant!.id.toString(), invoice.patientId, fileName);
+        
+        let attachments = [];
+        try {
+          // Check if file exists
+          await fse.access(filePath);
+          // Read the PDF file
+          const pdfBuffer = await fse.readFile(filePath);
+          attachments.push({
+            content: pdfBuffer.toString('base64'),
+            filename: `invoice-${invoice.invoiceNumber}.pdf`,
+            type: 'application/pdf',
+            disposition: 'attachment'
+          });
+        } catch (error) {
+          // File doesn't exist - send email without attachment
+          console.log('No saved PDF found for invoice, sending email without attachment');
+        }
+        
         // Send email using the email service
         const emailSent = await emailService.sendEmail({
           to: recipientEmail,
           subject,
           html,
-          text
+          text,
+          attachments
         });
 
         if (emailSent) {
