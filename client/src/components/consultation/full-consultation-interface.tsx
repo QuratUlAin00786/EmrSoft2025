@@ -4398,13 +4398,123 @@ ${
 
                         let yPos = 20;
 
-                        // Add clinic logo header if available
-                        if (clinicHeader && clinicHeader.logoBase64) {
-                          try {
-                            doc.addImage(clinicHeader.logoBase64, 'PNG', 85, yPos, 40, 15);
+                        // Add clinic header with logo and information
+                        if (clinicHeader) {
+                          const logoPosition = clinicHeader.logoPosition || 'center';
+                          const hasLogo = clinicHeader.logoBase64;
+                          
+                          if (logoPosition === 'center' && hasLogo) {
+                            // Center: Logo and info side by side
+                            try {
+                              // Logo on left side of center
+                              doc.addImage(clinicHeader.logoBase64, 'PNG', 70, yPos, 30, 15);
+                              
+                              // Clinic info on right side of center
+                              doc.setFontSize(10);
+                              doc.setFont('helvetica', 'bold');
+                              let infoY = yPos + 2;
+                              if (clinicHeader.clinicName) {
+                                doc.text(clinicHeader.clinicName, 105, infoY);
+                                infoY += 5;
+                              }
+                              doc.setFontSize(8);
+                              doc.setFont('helvetica', 'normal');
+                              if (clinicHeader.address) {
+                                doc.text(clinicHeader.address, 105, infoY);
+                                infoY += 4;
+                              }
+                              if (clinicHeader.phone) {
+                                doc.text(clinicHeader.phone, 105, infoY);
+                                infoY += 4;
+                              }
+                              if (clinicHeader.email) {
+                                doc.text(clinicHeader.email, 105, infoY);
+                              }
+                              yPos += 20;
+                            } catch (logoError) {
+                              console.log('[ANATOMICAL PDF STEP1] Error adding centered header:', logoError);
+                            }
+                          } else if (logoPosition === 'left' && hasLogo) {
+                            // Left: Logo on left, info on right
+                            try {
+                              doc.addImage(clinicHeader.logoBase64, 'PNG', 20, yPos, 30, 15);
+                              
+                              doc.setFontSize(10);
+                              doc.setFont('helvetica', 'bold');
+                              let infoY = yPos + 2;
+                              if (clinicHeader.clinicName) {
+                                doc.text(clinicHeader.clinicName, 55, infoY);
+                                infoY += 5;
+                              }
+                              doc.setFontSize(8);
+                              doc.setFont('helvetica', 'normal');
+                              if (clinicHeader.address) {
+                                doc.text(clinicHeader.address, 55, infoY);
+                                infoY += 4;
+                              }
+                              if (clinicHeader.phone) {
+                                doc.text(clinicHeader.phone, 55, infoY);
+                                infoY += 4;
+                              }
+                              if (clinicHeader.email) {
+                                doc.text(clinicHeader.email, 55, infoY);
+                              }
+                              yPos += 20;
+                            } catch (logoError) {
+                              console.log('[ANATOMICAL PDF STEP1] Error adding left header:', logoError);
+                            }
+                          } else if (logoPosition === 'right' && hasLogo) {
+                            // Right: Info on left, logo on right
+                            try {
+                              doc.setFontSize(10);
+                              doc.setFont('helvetica', 'bold');
+                              let infoY = yPos + 2;
+                              if (clinicHeader.clinicName) {
+                                doc.text(clinicHeader.clinicName, 20, infoY);
+                                infoY += 5;
+                              }
+                              doc.setFontSize(8);
+                              doc.setFont('helvetica', 'normal');
+                              if (clinicHeader.address) {
+                                doc.text(clinicHeader.address, 20, infoY);
+                                infoY += 4;
+                              }
+                              if (clinicHeader.phone) {
+                                doc.text(clinicHeader.phone, 20, infoY);
+                                infoY += 4;
+                              }
+                              if (clinicHeader.email) {
+                                doc.text(clinicHeader.email, 20, infoY);
+                              }
+                              
+                              doc.addImage(clinicHeader.logoBase64, 'PNG', 160, yPos, 30, 15);
+                              yPos += 20;
+                            } catch (logoError) {
+                              console.log('[ANATOMICAL PDF STEP1] Error adding right header:', logoError);
+                            }
+                          } else {
+                            // No logo, just text centered
+                            doc.setFontSize(10);
+                            doc.setFont('helvetica', 'bold');
+                            let infoY = yPos + 2;
+                            if (clinicHeader.clinicName) {
+                              doc.text(clinicHeader.clinicName, 105, infoY, { align: 'center' });
+                              infoY += 5;
+                            }
+                            doc.setFontSize(8);
+                            doc.setFont('helvetica', 'normal');
+                            if (clinicHeader.address) {
+                              doc.text(clinicHeader.address, 105, infoY, { align: 'center' });
+                              infoY += 4;
+                            }
+                            if (clinicHeader.phone) {
+                              doc.text(clinicHeader.phone, 105, infoY, { align: 'center' });
+                              infoY += 4;
+                            }
+                            if (clinicHeader.email) {
+                              doc.text(clinicHeader.email, 105, infoY, { align: 'center' });
+                            }
                             yPos += 20;
-                          } catch (logoError) {
-                            console.log('[ANATOMICAL PDF STEP1] Error adding logo:', logoError);
                           }
                         }
 
@@ -4921,13 +5031,123 @@ ${
 
                         let yPos = 20;
 
-                        // Add clinic logo header if available
-                        if (clinicHeader && clinicHeader.logoBase64) {
-                          try {
-                            doc.addImage(clinicHeader.logoBase64, 'PNG', 85, yPos, 40, 15);
+                        // Add clinic header with logo and information
+                        if (clinicHeader) {
+                          const logoPosition = clinicHeader.logoPosition || 'center';
+                          const hasLogo = clinicHeader.logoBase64;
+                          
+                          if (logoPosition === 'center' && hasLogo) {
+                            // Center: Logo and info side by side
+                            try {
+                              // Logo on left side of center
+                              doc.addImage(clinicHeader.logoBase64, 'PNG', 70, yPos, 30, 15);
+                              
+                              // Clinic info on right side of center
+                              doc.setFontSize(10);
+                              doc.setFont('helvetica', 'bold');
+                              let infoY = yPos + 2;
+                              if (clinicHeader.clinicName) {
+                                doc.text(clinicHeader.clinicName, 105, infoY);
+                                infoY += 5;
+                              }
+                              doc.setFontSize(8);
+                              doc.setFont('helvetica', 'normal');
+                              if (clinicHeader.address) {
+                                doc.text(clinicHeader.address, 105, infoY);
+                                infoY += 4;
+                              }
+                              if (clinicHeader.phone) {
+                                doc.text(clinicHeader.phone, 105, infoY);
+                                infoY += 4;
+                              }
+                              if (clinicHeader.email) {
+                                doc.text(clinicHeader.email, 105, infoY);
+                              }
+                              yPos += 20;
+                            } catch (logoError) {
+                              console.log('[ANATOMICAL PDF STEP3] Error adding centered header:', logoError);
+                            }
+                          } else if (logoPosition === 'left' && hasLogo) {
+                            // Left: Logo on left, info on right
+                            try {
+                              doc.addImage(clinicHeader.logoBase64, 'PNG', 20, yPos, 30, 15);
+                              
+                              doc.setFontSize(10);
+                              doc.setFont('helvetica', 'bold');
+                              let infoY = yPos + 2;
+                              if (clinicHeader.clinicName) {
+                                doc.text(clinicHeader.clinicName, 55, infoY);
+                                infoY += 5;
+                              }
+                              doc.setFontSize(8);
+                              doc.setFont('helvetica', 'normal');
+                              if (clinicHeader.address) {
+                                doc.text(clinicHeader.address, 55, infoY);
+                                infoY += 4;
+                              }
+                              if (clinicHeader.phone) {
+                                doc.text(clinicHeader.phone, 55, infoY);
+                                infoY += 4;
+                              }
+                              if (clinicHeader.email) {
+                                doc.text(clinicHeader.email, 55, infoY);
+                              }
+                              yPos += 20;
+                            } catch (logoError) {
+                              console.log('[ANATOMICAL PDF STEP3] Error adding left header:', logoError);
+                            }
+                          } else if (logoPosition === 'right' && hasLogo) {
+                            // Right: Info on left, logo on right
+                            try {
+                              doc.setFontSize(10);
+                              doc.setFont('helvetica', 'bold');
+                              let infoY = yPos + 2;
+                              if (clinicHeader.clinicName) {
+                                doc.text(clinicHeader.clinicName, 20, infoY);
+                                infoY += 5;
+                              }
+                              doc.setFontSize(8);
+                              doc.setFont('helvetica', 'normal');
+                              if (clinicHeader.address) {
+                                doc.text(clinicHeader.address, 20, infoY);
+                                infoY += 4;
+                              }
+                              if (clinicHeader.phone) {
+                                doc.text(clinicHeader.phone, 20, infoY);
+                                infoY += 4;
+                              }
+                              if (clinicHeader.email) {
+                                doc.text(clinicHeader.email, 20, infoY);
+                              }
+                              
+                              doc.addImage(clinicHeader.logoBase64, 'PNG', 160, yPos, 30, 15);
+                              yPos += 20;
+                            } catch (logoError) {
+                              console.log('[ANATOMICAL PDF STEP3] Error adding right header:', logoError);
+                            }
+                          } else {
+                            // No logo, just text centered
+                            doc.setFontSize(10);
+                            doc.setFont('helvetica', 'bold');
+                            let infoY = yPos + 2;
+                            if (clinicHeader.clinicName) {
+                              doc.text(clinicHeader.clinicName, 105, infoY, { align: 'center' });
+                              infoY += 5;
+                            }
+                            doc.setFontSize(8);
+                            doc.setFont('helvetica', 'normal');
+                            if (clinicHeader.address) {
+                              doc.text(clinicHeader.address, 105, infoY, { align: 'center' });
+                              infoY += 4;
+                            }
+                            if (clinicHeader.phone) {
+                              doc.text(clinicHeader.phone, 105, infoY, { align: 'center' });
+                              infoY += 4;
+                            }
+                            if (clinicHeader.email) {
+                              doc.text(clinicHeader.email, 105, infoY, { align: 'center' });
+                            }
                             yPos += 20;
-                          } catch (logoError) {
-                            console.log('[ANATOMICAL PDF STEP3] Error adding logo:', logoError);
                           }
                         }
 
