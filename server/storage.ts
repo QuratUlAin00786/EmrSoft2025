@@ -302,6 +302,7 @@ export interface IStorage {
   deleteConversation(conversationId: string, organizationId: number): Promise<boolean>;
   getMessageCampaigns(organizationId: number): Promise<any[]>;
   createMessageCampaign(campaignData: any, organizationId: number): Promise<any>;
+  updateMessageCampaign(campaignId: number, campaignData: any, organizationId: number): Promise<any>;
   getMessageTemplates(organizationId: number): Promise<any[]>;
   createMessageTemplate(templateData: any, organizationId: number): Promise<any>;
   updateMessageTemplate(templateId: number, templateData: any, organizationId: number): Promise<any>;
@@ -3248,6 +3249,42 @@ export class DatabaseStorage implements IStorage {
       return campaign;
     } catch (error) {
       console.error("❌ Error creating campaign:", error);
+      throw error;
+    }
+  }
+
+  async updateMessageCampaign(campaignId: number, campaignData: any, organizationId: number): Promise<MessageCampaign> {
+    try {
+      const updateValues: any = {};
+      
+      if (campaignData.name !== undefined) updateValues.name = campaignData.name;
+      if (campaignData.type !== undefined) updateValues.type = campaignData.type;
+      if (campaignData.status !== undefined) updateValues.status = campaignData.status;
+      if (campaignData.subject !== undefined) updateValues.subject = campaignData.subject;
+      if (campaignData.content !== undefined) updateValues.content = campaignData.content;
+      if (campaignData.template !== undefined) updateValues.template = campaignData.template;
+      if (campaignData.recipientCount !== undefined) updateValues.recipientCount = campaignData.recipientCount;
+      if (campaignData.sentCount !== undefined) updateValues.sentCount = campaignData.sentCount;
+      if (campaignData.openRate !== undefined) updateValues.openRate = campaignData.openRate;
+      if (campaignData.clickRate !== undefined) updateValues.clickRate = campaignData.clickRate;
+      if (campaignData.createdBy !== undefined) updateValues.createdBy = campaignData.createdBy;
+      
+      const [campaign] = await db.update(messageCampaigns)
+        .set(updateValues)
+        .where(and(
+          eq(messageCampaigns.id, campaignId),
+          eq(messageCampaigns.organizationId, organizationId)
+        ))
+        .returning();
+      
+      if (!campaign) {
+        throw new Error(`Campaign ${campaignId} not found for organization ${organizationId}`);
+      }
+      
+      console.log(`📧 Updated campaign "${campaign.name}" (ID: ${campaign.id}) for organization ${organizationId}`);
+      return campaign;
+    } catch (error) {
+      console.error("❌ Error updating campaign:", error);
       throw error;
     }
   }

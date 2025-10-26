@@ -143,6 +143,15 @@ export default function MessagingPage() {
     subject: "",
     content: ""
   });
+  const [showEditCampaign, setShowEditCampaign] = useState(false);
+  const [selectedCampaign, setSelectedCampaign] = useState<any>(null);
+  const [editingCampaign, setEditingCampaign] = useState({
+    name: "",
+    type: "email" as "email" | "sms" | "both",
+    subject: "",
+    content: "",
+    template: "default"
+  });
   const [newMessage, setNewMessage] = useState({
     recipient: "",
     subject: "",
@@ -747,7 +756,7 @@ export default function MessagingPage() {
   };
 
   // Fetch all users for Use Template dialog
-  const { data: allUsers } = useQuery({
+  const { data: allUsers = [] } = useQuery<any[]>({
     queryKey: ['/api/users'],
     enabled: showUseTemplate,
   });
@@ -914,6 +923,133 @@ export default function MessagingPage() {
       editTemplateMutation.mutate({
         templateId: selectedTemplate.id,
         templateData: editingTemplate
+      });
+    }
+  };
+
+  // Campaign mutations
+  const editCampaignMutation = useMutation({
+    mutationFn: async ({ campaignId, campaignData }: { campaignId: number, campaignData: any }) => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`/api/messaging/campaigns/${campaignId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': localStorage.getItem('user_subdomain') || 'demo',
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify(campaignData),
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: response.statusText }));
+        throw new Error(errorData.error || `${response.status}: ${response.statusText}`);
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/messaging/campaigns'] });
+      setShowEditCampaign(false);
+      setSelectedCampaign(null);
+      setEditingCampaign({
+        name: "",
+        type: "email",
+        subject: "",
+        content: "",
+        template: "default"
+      });
+      toast({
+        title: "Campaign Updated",
+        description: "Your campaign has been updated successfully.",
+      });
+    },
+    onError: (error: any) => {
+      console.error("Error updating campaign:", error);
+      toast({
+        title: "Failed to Update Campaign",
+        description: error.message || "An error occurred while updating the campaign. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const duplicateCampaignMutation = useMutation({
+    mutationFn: async (campaign: any) => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/messaging/campaigns', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': localStorage.getItem('user_subdomain') || 'demo',
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          name: `${campaign.name} (Copy)`,
+          type: campaign.type,
+          subject: campaign.subject,
+          content: campaign.content,
+          template: campaign.template,
+          status: "draft",
+          recipientCount: 0,
+          sentCount: 0,
+          openRate: 0,
+          clickRate: 0
+        }),
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: response.statusText }));
+        throw new Error(errorData.error || `${response.status}: ${response.statusText}`);
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/messaging/campaigns'] });
+      toast({
+        title: "Campaign Duplicated",
+        description: "Campaign has been duplicated successfully.",
+      });
+    },
+    onError: (error: any) => {
+      console.error("Error duplicating campaign:", error);
+      toast({
+        title: "Failed to Duplicate Campaign",
+        description: error.message || "An error occurred while duplicating the campaign. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleEditCampaign = (campaign: any) => {
+    setSelectedCampaign(campaign);
+    setEditingCampaign({
+      name: campaign.name,
+      type: campaign.type,
+      subject: campaign.subject,
+      content: campaign.content,
+      template: campaign.template
+    });
+    setShowEditCampaign(true);
+  };
+
+  const handleDuplicateCampaign = (campaign: any) => {
+    duplicateCampaignMutation.mutate(campaign);
+  };
+
+  const handleConfirmEditCampaign = () => {
+    if (!editingCampaign.name.trim() || !editingCampaign.subject.trim() || !editingCampaign.content.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (selectedCampaign) {
+      editCampaignMutation.mutate({
+        campaignId: selectedCampaign.id,
+        campaignData: editingCampaign
       });
     }
   };
@@ -2470,8 +2606,23 @@ export default function MessagingPage() {
                       </div>
 
                       <div className="flex items-center gap-2 pt-3 border-t">
-                        <Button variant="outline" size="sm">Edit</Button>
-                        <Button variant="outline" size="sm">Duplicate</Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleEditCampaign(campaign)}
+                          data-testid={`button-edit-campaign-${campaign.id}`}
+                        >
+                          Edit
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleDuplicateCampaign(campaign)}
+                          disabled={duplicateCampaignMutation.isPending}
+                          data-testid={`button-duplicate-campaign-${campaign.id}`}
+                        >
+                          Duplicate
+                        </Button>
                         <Button variant="outline" size="sm">
                           <Archive className="h-4 w-4" />
                         </Button>
@@ -2482,6 +2633,84 @@ export default function MessagingPage() {
               ))
             )}
           </div>
+
+          {/* Edit Campaign Dialog */}
+          <Dialog open={showEditCampaign} onOpenChange={setShowEditCampaign}>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Edit Campaign</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="editCampaignName">Campaign Name *</Label>
+                  <Input
+                    id="editCampaignName"
+                    placeholder="Enter campaign name"
+                    value={editingCampaign.name}
+                    onChange={(e) => setEditingCampaign({ ...editingCampaign, name: e.target.value })}
+                    data-testid="input-edit-campaign-name"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="editCampaignType">Campaign Type *</Label>
+                  <Select
+                    value={editingCampaign.type}
+                    onValueChange={(value) => setEditingCampaign({ ...editingCampaign, type: value as any })}
+                  >
+                    <SelectTrigger data-testid="select-edit-campaign-type">
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="email">Email</SelectItem>
+                      <SelectItem value="sms">SMS</SelectItem>
+                      <SelectItem value="both">Both</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="editCampaignSubject">Subject *</Label>
+                  <Input
+                    id="editCampaignSubject"
+                    placeholder="Enter subject line"
+                    value={editingCampaign.subject}
+                    onChange={(e) => setEditingCampaign({ ...editingCampaign, subject: e.target.value })}
+                    data-testid="input-edit-campaign-subject"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="editCampaignContent">Message Content *</Label>
+                  <Textarea
+                    id="editCampaignContent"
+                    placeholder="Enter your campaign message content..."
+                    rows={6}
+                    value={editingCampaign.content}
+                    onChange={(e) => setEditingCampaign({ ...editingCampaign, content: e.target.value })}
+                    data-testid="textarea-edit-campaign-content"
+                  />
+                </div>
+
+                <div className="flex justify-end gap-3">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowEditCampaign(false)}
+                    data-testid="button-cancel-edit-campaign"
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={handleConfirmEditCampaign}
+                    disabled={editCampaignMutation.isPending}
+                    data-testid="button-save-edit-campaign"
+                  >
+                    {editCampaignMutation.isPending ? "Saving..." : "Save Changes"}
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </TabsContent>
 
         <TabsContent value="templates" className="space-y-6">

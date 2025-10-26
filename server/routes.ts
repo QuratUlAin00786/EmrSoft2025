@@ -9373,6 +9373,21 @@ This treatment plan should be reviewed and adjusted based on individual patient 
     }
   });
 
+  app.put("/api/messaging/campaigns/:id", authMiddleware, requireRole(["admin", "doctor"]), async (req: TenantRequest, res) => {
+    try {
+      const campaignId = parseInt(req.params.id);
+      const campaignData = {
+        ...req.body,
+        createdBy: req.user!.id
+      };
+      const campaign = await storage.updateMessageCampaign(campaignId, campaignData, req.tenant!.id);
+      res.json(campaign);
+    } catch (error) {
+      console.error("Error updating campaign:", error);
+      res.status(500).json({ error: "Failed to update campaign" });
+    }
+  });
+
   app.get("/api/messaging/templates", authMiddleware, async (req: TenantRequest, res) => {
     try {
       const templates = await storage.getMessageTemplates(req.tenant!.id);
