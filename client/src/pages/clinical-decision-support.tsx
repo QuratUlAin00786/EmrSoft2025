@@ -75,6 +75,12 @@ interface RiskScore {
   risk: 'low' | 'moderate' | 'high' | 'critical';
   factors: string[];
   recommendations: string[];
+  patientId: number;
+  patientName: string;
+  patientAge: number | null;
+  patientGender: string | null;
+  patientDateOfBirth: string | null;
+  assessmentDate: string;
 }
 
 export default function ClinicalDecisionSupport() {
@@ -94,6 +100,12 @@ export default function ClinicalDecisionSupport() {
   const [tempSeverity, setTempSeverity] = useState<string>("");
   const [editingPriority, setEditingPriority] = useState<string | null>(null);
   const [tempPriority, setTempPriority] = useState<string>("");
+  
+  // Risk Assessment Filters
+  const [filterCategory, setFilterCategory] = useState<string>("all");
+  const [filterPatientName, setFilterPatientName] = useState<string>("");
+  const [filterDate, setFilterDate] = useState<string>("");
+  
   const { toast } = useToast();
   const [location, setLocation] = useLocation();
 
@@ -1336,55 +1348,162 @@ export default function ClinicalDecisionSupport() {
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {riskAssessments.map((risk, idx) => (
-              <Card key={idx}>
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <span>{risk.category}</span>
-                    <Badge className={getSeverityColor(risk.risk)}>
-                      {risk.risk.toUpperCase()}
-                    </Badge>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center gap-4">
-                    <div className="text-center">
-                      <div className={`text-3xl font-bold ${getRiskColor(risk.risk)}`}>
-                        {risk.score}%
-                      </div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">Risk Score</div>
-                    </div>
-                    <Progress value={risk.score} className="flex-1" />
+            <>
+              {/* Filters */}
+              <Card className="p-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium mb-2 block">Category</Label>
+                    <Select value={filterCategory} onValueChange={setFilterCategory}>
+                      <SelectTrigger data-testid="select-category-filter">
+                        <SelectValue placeholder="All Categories" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Categories</SelectItem>
+                        <SelectItem value="Cardiovascular Disease">Cardiovascular Disease</SelectItem>
+                        <SelectItem value="Diabetes">Diabetes</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   
                   <div>
-                    <h4 className="font-medium text-sm mb-2">Risk Factors</h4>
-                    <ul className="space-y-1">
-                      {risk.factors.map((factor, factorIdx) => (
-                        <li key={factorIdx} className="flex items-center gap-2 text-sm">
-                          <AlertTriangle className="w-4 h-4 text-yellow-500" />
-                          <span>{factor}</span>
-                        </li>
-                      ))}
-                    </ul>
+                    <Label className="text-sm font-medium mb-2 block">Patient Name</Label>
+                    <Input
+                      placeholder="Search by patient name..."
+                      value={filterPatientName}
+                      onChange={(e) => setFilterPatientName(e.target.value)}
+                      data-testid="input-patient-name-filter"
+                    />
                   </div>
-
+                  
                   <div>
-                    <h4 className="font-medium text-sm mb-2">Recommendations</h4>
-                    <ul className="space-y-1">
-                      {risk.recommendations.map((rec, recIdx) => (
-                        <li key={recIdx} className="flex items-center gap-2 text-sm">
-                          <Target className="w-4 h-4 text-blue-500" />
-                          <span>{rec}</span>
-                        </li>
-                      ))}
-                    </ul>
+                    <Label className="text-sm font-medium mb-2 block">Assessment Date</Label>
+                    <Input
+                      type="date"
+                      value={filterDate}
+                      onChange={(e) => setFilterDate(e.target.value)}
+                      data-testid="input-date-filter"
+                    />
                   </div>
-                </CardContent>
+                </div>
               </Card>
-              ))}
-            </div>
+
+              {/* Filtered Risk Assessments */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {riskAssessments
+                  .filter(risk => {
+                    // Filter by category
+                    if (filterCategory !== "all" && risk.category !== filterCategory) {
+                      return false;
+                    }
+                    
+                    // Filter by patient name
+                    if (filterPatientName && !risk.patientName?.toLowerCase().includes(filterPatientName.toLowerCase())) {
+                      return false;
+                    }
+                    
+                    // Filter by date
+                    if (filterDate && risk.assessmentDate) {
+                      const assessmentDate = new Date(risk.assessmentDate).toISOString().split('T')[0];
+                      if (assessmentDate !== filterDate) {
+                        return false;
+                      }
+                    }
+                    
+                    return true;
+                  })
+                  .map((risk, idx) => (
+                  <Card key={idx} data-testid={`card-risk-assessment-${idx}`}>
+                    <CardHeader>
+                      <CardTitle className="flex items-center justify-between">
+                        <span>{risk.category}</span>
+                        <Badge className={getSeverityColor(risk.risk)}>
+                          {risk.risk.toUpperCase()}
+                        </Badge>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {/* Patient Details */}
+                      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 space-y-2">
+                        <div className="flex items-center gap-2">
+                          <User className="w-4 h-4 text-gray-500" />
+                          <span className="font-medium text-sm" data-testid={`text-patient-name-${idx}`}>{risk.patientName}</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 text-xs text-gray-600 dark:text-gray-400">
+                          {risk.patientAge && (
+                            <div>
+                              <span className="font-medium">Age:</span> {risk.patientAge} years
+                            </div>
+                          )}
+                          {risk.patientGender && (
+                            <div>
+                              <span className="font-medium">Gender:</span> {risk.patientGender}
+                            </div>
+                          )}
+                          {risk.assessmentDate && (
+                            <div className="col-span-2">
+                              <span className="font-medium">Assessment Date:</span> {format(new Date(risk.assessmentDate), 'MMM dd, yyyy')}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Risk Score */}
+                      <div className="flex items-center gap-4">
+                        <div className="text-center">
+                          <div className={`text-3xl font-bold ${getRiskColor(risk.risk)}`}>
+                            {risk.score}%
+                          </div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">Risk Score</div>
+                        </div>
+                        <Progress value={risk.score} className="flex-1" />
+                      </div>
+                      
+                      {/* Risk Factors */}
+                      <div>
+                        <h4 className="font-medium text-sm mb-2">Risk Factors</h4>
+                        <ul className="space-y-1">
+                          {risk.factors.map((factor, factorIdx) => (
+                            <li key={factorIdx} className="flex items-center gap-2 text-sm">
+                              <AlertTriangle className="w-4 h-4 text-yellow-500" />
+                              <span>{factor}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      {/* Recommendations */}
+                      <div>
+                        <h4 className="font-medium text-sm mb-2">Recommendations</h4>
+                        <ul className="space-y-1">
+                          {risk.recommendations.map((rec, recIdx) => (
+                            <li key={recIdx} className="flex items-center gap-2 text-sm">
+                              <Target className="w-4 h-4 text-blue-500" />
+                              <span>{rec}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+                
+                {/* No results message */}
+                {riskAssessments.filter(risk => {
+                  if (filterCategory !== "all" && risk.category !== filterCategory) return false;
+                  if (filterPatientName && !risk.patientName?.toLowerCase().includes(filterPatientName.toLowerCase())) return false;
+                  if (filterDate && risk.assessmentDate) {
+                    const assessmentDate = new Date(risk.assessmentDate).toISOString().split('T')[0];
+                    if (assessmentDate !== filterDate) return false;
+                  }
+                  return true;
+                }).length === 0 && (
+                  <div className="col-span-2 text-center py-8">
+                    <p className="text-gray-500 dark:text-gray-400">No risk assessments found matching the filters.</p>
+                  </div>
+                )}
+              </div>
+            </>
           )}
         </TabsContent>
 

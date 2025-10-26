@@ -6408,24 +6408,45 @@ This treatment plan should be reviewed and adjusted based on individual patient 
       // Fetch all existing assessments from database (including the ones just created)
       const allSavedAssessments = await storage.getRiskAssessmentsByOrganization(organizationId);
       
-      // Add patient names to saved assessments
-      const assessmentsWithNames = allSavedAssessments.map(assessment => {
+      // Add patient details to saved assessments
+      const assessmentsWithDetails = allSavedAssessments.map(assessment => {
         const patient = patients.find(p => p.id === assessment.patientId);
+        
+        // Calculate age if patient has date of birth
+        let age = null;
+        if (patient?.dateOfBirth) {
+          const birthDate = new Date(patient.dateOfBirth);
+          const today = new Date();
+          age = today.getFullYear() - birthDate.getFullYear();
+          const monthDiff = today.getMonth() - birthDate.getMonth();
+          if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+          }
+        }
+        
         return {
           ...assessment,
-          patientName: patient ? `${patient.firstName} ${patient.lastName}` : `Patient ${assessment.patientId}`
+          patientName: patient ? `${patient.firstName} ${patient.lastName}` : `Patient ${assessment.patientId}`,
+          patientAge: age,
+          patientGender: patient?.genderAtBirth || null,
+          patientDateOfBirth: patient?.dateOfBirth || null,
+          assessmentDate: assessment.assessmentDate || assessment.createdAt
         };
       });
       
       // Transform for frontend
-      const transformedAssessments = assessmentsWithNames.map((assessment: any) => ({
+      const transformedAssessments = assessmentsWithDetails.map((assessment: any) => ({
         category: assessment.category,
         score: parseFloat(assessment.riskScore),
         risk: assessment.riskLevel,
         factors: assessment.riskFactors || [],
         recommendations: assessment.recommendations || [],
         patientId: assessment.patientId,
-        patientName: assessment.patientName
+        patientName: assessment.patientName,
+        patientAge: assessment.patientAge,
+        patientGender: assessment.patientGender,
+        patientDateOfBirth: assessment.patientDateOfBirth,
+        assessmentDate: assessment.assessmentDate
       }));
       
       res.json(transformedAssessments);
