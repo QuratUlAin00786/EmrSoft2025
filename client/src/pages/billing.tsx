@@ -173,6 +173,11 @@ function PricingManagementDashboard() {
   const [labDoctorFilter, setLabDoctorFilter] = useState("");
   const [doctorFeeServiceFilter, setDoctorFeeServiceFilter] = useState("");
   const [doctorFeeDoctorFilter, setDoctorFeeDoctorFilter] = useState("");
+  
+  // Validation error states
+  const [doctorRoleError, setDoctorRoleError] = useState("");
+  const [doctorNameError, setDoctorNameError] = useState("");
+  const [labTestError, setLabTestError] = useState("");
 
   const { data: users = [] } = useQuery({
     queryKey: ["/api/users"],
@@ -287,12 +292,23 @@ function PricingManagementDashboard() {
       if ((pricingTab === "doctors" || pricingTab === "lab-tests" || pricingTab === "imaging") && !editingItem) {
         // Validation for doctors fees
         if (pricingTab === "doctors") {
-          if (!formData.doctorRole || !formData.doctorName) {
-            toast({
-              title: "Validation Error",
-              description: "Please select both Role and Name",
-              variant: "destructive"
-            });
+          // Reset errors first
+          setDoctorRoleError("");
+          setDoctorNameError("");
+          
+          let hasError = false;
+          
+          if (!formData.doctorRole) {
+            setDoctorRoleError("Please select a role");
+            hasError = true;
+          }
+          
+          if (!formData.doctorName) {
+            setDoctorNameError("Please select a name");
+            hasError = true;
+          }
+          
+          if (hasError) {
             setIsSaving(false);
             return;
           }
@@ -323,17 +339,26 @@ function PricingManagementDashboard() {
         );
         
         if (validServices.length === 0) {
-          toast({
-            title: "Error",
-            description: pricingTab === "doctors" 
-              ? "Please add at least one service with name and price"
-              : pricingTab === "lab-tests"
-              ? "Please add at least one test with name and price"
-              : "Please add at least one imaging service with name and price",
-            variant: "destructive"
-          });
+          if (pricingTab === "lab-tests") {
+            setLabTestError("Please add at least one test with name and price");
+          }
+          // For doctors and imaging, still use toast as they don't have dedicated error states
+          if (pricingTab === "doctors" || pricingTab === "imaging") {
+            toast({
+              title: "Error",
+              description: pricingTab === "doctors" 
+                ? "Please add at least one service with name and price"
+                : "Please add at least one imaging service with name and price",
+              variant: "destructive"
+            });
+          }
           setIsSaving(false);
           return;
+        }
+        
+        // Clear lab test error if validation passes
+        if (pricingTab === "lab-tests") {
+          setLabTestError("");
         }
         
         // Create all services/tests/imaging
@@ -470,6 +495,20 @@ function PricingManagementDashboard() {
       currency: "GBP",
       version: 1
     });
+    
+    // Close all dropdowns
+    setShowRoleSuggestions(false);
+    setShowDoctorSuggestions(false);
+    setShowServiceSuggestions(false);
+    setShowLabTestSuggestions(false);
+    setShowLabRoleSuggestions(false);
+    setShowLabDoctorSuggestions(false);
+    setShowImagingTypeSuggestions(false);
+    
+    // Reset validation errors
+    setDoctorRoleError("");
+    setDoctorNameError("");
+    setLabTestError("");
     
     // Pre-populate with predefined services for doctors fees
     if (pricingTab === "doctors") {
@@ -862,6 +901,7 @@ function PricingManagementDashboard() {
                       onChange={(e) => {
                         setFormData({ ...formData, doctorRole: e.target.value, doctorName: "", doctorId: null });
                         setShowRoleSuggestions(true);
+                        setDoctorRoleError(""); // Clear error on change
                       }}
                       onFocus={() => setShowRoleSuggestions(true)}
                       placeholder="Select role"
@@ -904,6 +944,9 @@ function PricingManagementDashboard() {
                         )}
                       </div>
                     )}
+                    {doctorRoleError && (
+                      <p className="text-sm text-red-500 mt-1">{doctorRoleError}</p>
+                    )}
                   </div>
 
                   <div className="grid gap-2 relative">
@@ -914,6 +957,7 @@ function PricingManagementDashboard() {
                       onChange={(e) => {
                         setFormData({ ...formData, doctorName: e.target.value });
                         setShowDoctorSuggestions(true);
+                        setDoctorNameError(""); // Clear error on change
                       }}
                       onFocus={() => setShowDoctorSuggestions(true)}
                       placeholder="Select or enter name"
@@ -958,6 +1002,9 @@ function PricingManagementDashboard() {
                           </div>
                         )}
                       </div>
+                    )}
+                    {doctorNameError && (
+                      <p className="text-sm text-red-500 mt-1">{doctorNameError}</p>
                     )}
                   </div>
                 </div>
@@ -1382,6 +1429,9 @@ function PricingManagementDashboard() {
                     <Plus className="h-4 w-4 mr-2" />
                     Add More Test
                   </Button>
+                  {labTestError && (
+                    <p className="text-sm text-red-500 mt-2">{labTestError}</p>
+                  )}
                 </div>
               </>
             )}
