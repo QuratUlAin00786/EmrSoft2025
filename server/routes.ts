@@ -6456,6 +6456,137 @@ This treatment plan should be reviewed and adjusted based on individual patient 
     }
   });
 
+  // AI-powered Lab Result Assessment
+  app.post("/api/lab-results/:labResultId/assess", authMiddleware, requireRole(["doctor", "nurse", "admin"]), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = req.tenant!.id;
+      const labResultId = parseInt(req.params.labResultId);
+      
+      // Fetch the lab result
+      const labResult = await storage.getLabResultById(labResultId);
+      
+      if (!labResult) {
+        return res.status(404).json({ error: "Lab result not found" });
+      }
+      
+      if (labResult.organizationId !== organizationId) {
+        return res.status(403).json({ error: "Unauthorized access to lab result" });
+      }
+      
+      // Get patient details
+      const patient = await storage.getPatient(labResult.patientId);
+      
+      if (!patient) {
+        return res.status(404).json({ error: "Patient not found" });
+      }
+      
+      // Prepare lab results for OpenAI analysis
+      const labResultsText = labResult.results.map((result: any) => 
+        `${result.name}: ${result.value} ${result.unit} (Reference: ${result.referenceRange}, Status: ${result.status})`
+      ).join('\n');
+      
+      // Call OpenAI API for analysis
+      const openaiApiKey = process.env.OPENAI_API_KEY;
+      if (!openaiApiKey) {
+        return res.status(500).json({ error: "OpenAI API key not configured" });
+      }
+      
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${openaiApiKey}`
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a medical AI assistant specializing in analyzing lab results and identifying health risks. Provide concise, evidence-based risk factors and recommendations.'
+            },
+            {
+              role: 'user',
+              content: `Analyze the following lab results for a ${patient.genderAtBirth || 'patient'} patient and identify potential health risks and recommendations:\n\nLab Results:\n${labResultsText}\n\nProvide your analysis in the following JSON format:\n{\n  "riskFactors": ["factor1", "factor2", ...],\n  "recommendations": ["recommendation1", "recommendation2", ...],\n  "riskCategory": "Cardiovascular Disease|Diabetes|Kidney Disease|Liver Disease|Thyroid Disorder|Other",\n  "riskLevel": "low|moderate|high|critical",\n  "riskScore": number (0-100)\n}`
+            }
+          ],
+          temperature: 0.3,
+          max_tokens: 1000
+        })
+      });
+      
+      if (!response.ok) {
+        console.error("OpenAI API error:", await response.text());
+        return res.status(500).json({ error: "Failed to analyze lab results with AI" });
+      }
+      
+      const aiResponse = await response.json();
+      const aiContent = aiResponse.choices[0].message.content;
+      
+      // Parse AI response
+      let analysis;
+      try {
+        analysis = JSON.parse(aiContent);
+      } catch (parseError) {
+        console.error("Failed to parse AI response:", aiContent);
+        return res.status(500).json({ error: "Failed to parse AI analysis" });
+      }
+      
+      // Save risk assessment to database
+      const riskAssessment = await storage.createRiskAssessment({
+        organizationId,
+        patientId: labResult.patientId,
+        category: analysis.riskCategory || 'Other',
+        riskScore: analysis.riskScore.toString(),
+        riskLevel: analysis.riskLevel,
+        riskFactors: analysis.riskFactors || [],
+        recommendations: analysis.recommendations || [],
+        basedOnLabResults: labResult.results.map((r: any) => ({
+          testId: labResult.testId,
+          testName: r.name,
+          value: r.value,
+          status: r.status,
+          flag: r.flag
+        })),
+        hasCriticalValues: labResult.criticalValues,
+        assessmentDate: new Date()
+      });
+      
+      res.json({
+        success: true,
+        assessment: {
+          id: riskAssessment.id,
+          category: riskAssessment.category,
+          riskLevel: riskAssessment.riskLevel,
+          riskScore: parseFloat(riskAssessment.riskScore),
+          riskFactors: riskAssessment.riskFactors,
+          recommendations: riskAssessment.recommendations,
+          assessmentDate: riskAssessment.assessmentDate
+        }
+      });
+    } catch (error) {
+      console.error("Lab result assessment error:", error);
+      res.status(500).json({ error: "Failed to assess lab results" });
+    }
+  });
+
+  // Get lab results for a specific patient
+  app.get("/api/patients/:patientId/lab-results", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const organizationId = req.tenant!.id;
+      const patientId = parseInt(req.params.patientId);
+      
+      const labResults = await storage.getLabResultsByPatient(patientId);
+      
+      // Filter by organization
+      const filteredResults = labResults.filter(lr => lr.organizationId === organizationId);
+      
+      res.json(filteredResults);
+    } catch (error) {
+      console.error("Get lab results error:", error);
+      res.status(500).json({ error: "Failed to fetch lab results" });
+    }
+  });
+
   // Organization settings routes
   app.get("/api/organization/settings", requireRole(["admin"]), async (req: TenantRequest, res) => {
     try {
