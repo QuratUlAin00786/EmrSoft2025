@@ -4416,7 +4416,7 @@ ${
 
                         // Add anatomical analysis image if available
                         const organizationId = tenant?.id || 0;
-                        const imagePath = `/uploads/${organizationId}/anatomical_analysis_img/${organizationId}/${currentPatientId}/${currentPatientId}.png`;
+                        const imagePath = `/uploads/anatomical_analysis_img/${organizationId}/${currentPatientId}/${currentPatientId}.png`;
                         console.log('[ANATOMICAL PDF STEP1] Fetching image from:', imagePath);
                         
                         try {
@@ -4927,7 +4927,7 @@ ${
 
                         // Add anatomical analysis image if available
                         const organizationId = tenant?.id || 0;
-                        const imagePath = `/uploads/${organizationId}/anatomical_analysis_img/${organizationId}/${currentPatientId}/${currentPatientId}.png`;
+                        const imagePath = `/uploads/anatomical_analysis_img/${organizationId}/${currentPatientId}/${currentPatientId}.png`;
                         console.log('[ANATOMICAL PDF STEP1] Fetching image from:', imagePath);
                         
                         try {
