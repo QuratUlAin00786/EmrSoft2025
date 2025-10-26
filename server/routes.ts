@@ -7335,14 +7335,8 @@ This treatment plan should be reviewed and adjusted based on individual patient 
             // Group results by test type
             const resultsByTestType: Record<string, any[]> = {};
             results.forEach((result: any) => {
-              let testType = 'General Tests';
-              const resultName = result.testName || result.name || '';
-              
-              // Extract test type from result name (before " - ")
-              const dashIndex = resultName.indexOf(' - ');
-              if (dashIndex !== -1) {
-                testType = resultName.substring(0, dashIndex).trim();
-              }
+              // Use the testType field from the result, or fallback to 'General Tests'
+              const testType = result.testType || 'General Tests';
               
               if (!resultsByTestType[testType]) {
                 resultsByTestType[testType] = [];
@@ -7420,14 +7414,8 @@ This treatment plan should be reviewed and adjusted based on individual patient 
                 doc.line(tableX + colWidths[0] + colWidths[1], yPos, tableX + colWidths[0] + colWidths[1], yPos + rowHeight);
                 doc.line(tableX + colWidths[0] + colWidths[1] + colWidths[2], yPos, tableX + colWidths[0] + colWidths[1] + colWidths[2], yPos + rowHeight);
                 
-                // Row data
-                let paramName = result.testName || result.name || '';
-                
-                // Strip test type prefix - extract short parameter name after " - "
-                const dashIndex = paramName.indexOf(' - ');
-                if (dashIndex !== -1) {
-                  paramName = paramName.substring(dashIndex + 3).trim();
-                }
+                // Row data - use the parameter name directly
+                const paramName = result.testName || result.name || '';
                 
                 doc.text(paramName, tableX + 2, yPos + 5);
                 doc.text(String(result.value || ''), tableX + colWidths[0] + 2, yPos + 5);

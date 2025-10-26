@@ -514,6 +514,7 @@ export default function LabTechnicianDashboard() {
               
               results.push({
                 name: field.name,
+                testType: testType,
                 value: value,
                 unit: field.unit,
                 referenceRange: field.referenceRange,
