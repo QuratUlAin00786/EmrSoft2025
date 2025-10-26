@@ -6487,36 +6487,90 @@ This treatment plan should be reviewed and adjusted based on individual patient 
         `${result.name}: ${result.value} ${result.unit} (Reference: ${result.referenceRange}, Status: ${result.status})`
       ).join('\n');
       
-      // Call OpenAI API for analysis using SDK (same as aiService)
-      if (!process.env.OPENAI_API_KEY) {
-        return res.status(500).json({ error: "OpenAI API key not configured" });
-      }
-      
-      const completion = await openai.chat.completions.create({
-        model: 'gpt-4o',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a medical AI assistant specializing in analyzing lab results and identifying health risks. Provide concise, evidence-based risk factors and recommendations.'
-          },
-          {
-            role: 'user',
-            content: `Analyze the following lab results for a ${patient.genderAtBirth || 'patient'} patient and identify potential health risks and recommendations:\n\nLab Results:\n${labResultsText}\n\nProvide your analysis in the following JSON format:\n{\n  "riskFactors": ["factor1", "factor2", ...],\n  "recommendations": ["recommendation1", "recommendation2", ...],\n  "riskCategory": "Cardiovascular Disease|Diabetes|Kidney Disease|Liver Disease|Thyroid Disorder|Other",\n  "riskLevel": "low|moderate|high|critical",\n  "riskScore": number (0-100)\n}`
-          }
-        ],
-        temperature: 0.3,
-        max_tokens: 1000
-      });
-      
-      const aiContent = completion.choices[0].message.content;
-      
-      // Parse AI response
+      // Try to use OpenAI for analysis, fallback to rule-based analysis if it fails
       let analysis;
+      
       try {
+        // Call OpenAI API for analysis using SDK (same as aiService)
+        if (!process.env.OPENAI_API_KEY) {
+          throw new Error("OpenAI API key not configured");
+        }
+        
+        const completion = await openai.chat.completions.create({
+          model: 'gpt-4o',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a medical AI assistant specializing in analyzing lab results and identifying health risks. Provide concise, evidence-based risk factors and recommendations.'
+            },
+            {
+              role: 'user',
+              content: `Analyze the following lab results for a ${patient.genderAtBirth || 'patient'} patient and identify potential health risks and recommendations:\n\nLab Results:\n${labResultsText}\n\nProvide your analysis in the following JSON format:\n{\n  "riskFactors": ["factor1", "factor2", ...],\n  "recommendations": ["recommendation1", "recommendation2", ...],\n  "riskCategory": "Cardiovascular Disease|Diabetes|Kidney Disease|Liver Disease|Thyroid Disorder|Other",\n  "riskLevel": "low|moderate|high|critical",\n  "riskScore": number (0-100)\n}`
+            }
+          ],
+          temperature: 0.3,
+          max_tokens: 1000
+        });
+        
+        const aiContent = completion.choices[0].message.content;
         analysis = JSON.parse(aiContent);
-      } catch (parseError) {
-        console.error("Failed to parse AI response:", aiContent);
-        return res.status(500).json({ error: "Failed to parse AI analysis" });
+        console.log("[LAB-ASSESSMENT] OpenAI analysis succeeded");
+      } catch (aiError) {
+        console.log("[LAB-ASSESSMENT] OpenAI failed, using rule-based analysis");
+        console.error("[LAB-ASSESSMENT] OpenAI Error:", (aiError as Error)?.message || aiError);
+        
+        // Fallback: Rule-based analysis of lab results
+        const abnormalResults = labResult.results.filter((r: any) => r.status !== 'normal');
+        const criticalResults = labResult.results.filter((r: any) => r.flag === 'critical' || r.flag === 'high' || r.flag === 'low');
+        
+        // Determine risk category based on test type
+        let category = 'Other';
+        let riskFactors: string[] = [];
+        let recommendations: string[] = [];
+        
+        if (labResult.testType.toLowerCase().includes('glucose') || labResult.testType.toLowerCase().includes('hba1c') || labResult.testType.toLowerCase().includes('diabetes')) {
+          category = 'Diabetes';
+          riskFactors = abnormalResults.length > 0 ? ['Abnormal glucose metabolism indicators detected'] : ['Lab results within acceptable range'];
+          recommendations = abnormalResults.length > 0 ? ['Diabetes screening', 'Dietary consultation', 'Regular glucose monitoring'] : ['Continue regular monitoring'];
+        } else if (labResult.testType.toLowerCase().includes('lipid') || labResult.testType.toLowerCase().includes('cholesterol') || labResult.testType.toLowerCase().includes('cardiovascular')) {
+          category = 'Cardiovascular Disease';
+          riskFactors = abnormalResults.length > 0 ? ['Abnormal lipid profile detected'] : ['Cardiovascular markers within range'];
+          recommendations = abnormalResults.length > 0 ? ['Cardiology consultation', 'Lifestyle modifications', 'Regular monitoring'] : ['Maintain healthy lifestyle'];
+        } else if (labResult.testType.toLowerCase().includes('kidney') || labResult.testType.toLowerCase().includes('renal') || labResult.testType.toLowerCase().includes('creatinine')) {
+          category = 'Kidney Disease';
+          riskFactors = abnormalResults.length > 0 ? ['Abnormal kidney function markers'] : ['Kidney function within normal range'];
+          recommendations = abnormalResults.length > 0 ? ['Nephrology consultation', 'Hydration monitoring', 'Regular kidney function tests'] : ['Continue routine monitoring'];
+        } else if (labResult.testType.toLowerCase().includes('liver') || labResult.testType.toLowerCase().includes('hepatic')) {
+          category = 'Liver Disease';
+          riskFactors = abnormalResults.length > 0 ? ['Abnormal liver function tests'] : ['Liver function within normal limits'];
+          recommendations = abnormalResults.length > 0 ? ['Hepatology consultation', 'Avoid hepatotoxic substances', 'Follow-up testing'] : ['Maintain liver health'];
+        } else {
+          riskFactors = abnormalResults.length > 0 ? [`${abnormalResults.length} abnormal result(s) detected`] : ['All results within normal range'];
+          recommendations = abnormalResults.length > 0 ? ['Consult with healthcare provider', 'Follow-up testing as needed'] : ['Continue routine health monitoring'];
+        }
+        
+        // Determine risk level and score
+        let riskLevel = 'low';
+        let riskScore = 20;
+        
+        if (criticalResults.length > 0) {
+          riskLevel = 'critical';
+          riskScore = 85;
+        } else if (abnormalResults.length >= 3) {
+          riskLevel = 'high';
+          riskScore = 70;
+        } else if (abnormalResults.length > 0) {
+          riskLevel = 'moderate';
+          riskScore = 45;
+        }
+        
+        analysis = {
+          riskCategory: category,
+          riskFactors,
+          recommendations,
+          riskLevel,
+          riskScore
+        };
       }
       
       // Save risk assessment to database
