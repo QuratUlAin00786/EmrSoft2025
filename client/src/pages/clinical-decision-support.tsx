@@ -1501,8 +1501,23 @@ export default function ClinicalDecisionSupport() {
                             <td className="p-3 text-sm" data-testid={`text-test-id-${idx}`}>
                               {labResult.testId}
                             </td>
-                            <td className="p-3 text-sm" data-testid={`text-test-type-${idx}`}>
-                              {labResult.testType}
+                            <td className="p-3 text-sm relative group" data-testid={`text-test-type-${idx}`}>
+                              {(() => {
+                                const tests = labResult.testType.split(' | ');
+                                if (tests.length > 2) {
+                                  return (
+                                    <>
+                                      <div className="group-hover:hidden">
+                                        {tests.slice(0, 2).join(' | ')}...
+                                      </div>
+                                      <div className="hidden group-hover:block absolute left-0 top-0 bg-white dark:bg-gray-800 p-3 shadow-lg border border-gray-200 dark:border-gray-700 rounded z-10 max-w-md">
+                                        {labResult.testType}
+                                      </div>
+                                    </>
+                                  );
+                                }
+                                return labResult.testType;
+                              })()}
                             </td>
                             <td className="p-3 text-sm" data-testid={`text-patient-name-${idx}`}>
                               {labResult.patientName}
