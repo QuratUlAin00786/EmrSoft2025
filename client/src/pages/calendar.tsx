@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Calendar, Plus, Users, Clock, User, X, Check, ChevronsUpDown, Phone, Mail, FileText, MapPin, Filter, FilterX } from "lucide-react";
+import { Calendar, Plus, Users, Clock, User, X, Check, ChevronsUpDown, Phone, Mail, FileText, MapPin, Filter, FilterX, Search } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { format, isBefore, startOfDay, addMonths, isAfter } from "date-fns";
 import { useLocation } from "wouter";
@@ -195,6 +195,11 @@ export default function CalendarPage() {
   // Role-based filter state for admin users
   const [filterRole, setFilterRole] = useState("");
   const [filterProvider, setFilterProvider] = useState("");
+  
+  // Staff filter state for admin/patient users
+  const [showStaffFilterPopover, setShowStaffFilterPopover] = useState(false);
+  const [staffFilterRole, setStaffFilterRole] = useState("");
+  const [staffFilterSearch, setStaffFilterSearch] = useState("");
   
   // Calendar view state
   const [calendarView, setCalendarView] = useState<"month" | "week" | "day">("month");
@@ -1509,6 +1514,50 @@ export default function CalendarPage() {
                 <h4 className="font-medium text-gray-900 dark:text-white flex items-center gap-2 mb-3">
                   <Users className="h-4 w-4 text-gray-900 dark:text-white" />
                   {isDoctorLike(user?.role) ? "Available Patient" : "Available Staff"}
+                  {(user?.role === 'admin' || user?.role === 'patient') && (
+                    <Popover open={showStaffFilterPopover} onOpenChange={setShowStaffFilterPopover}>
+                      <PopoverTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          className="h-6 w-6 p-0 ml-1"
+                        >
+                          <Filter className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-64 p-4" align="start">
+                        <div className="space-y-3">
+                          <div>
+                            <Label className="text-sm font-medium mb-2">Role</Label>
+                            <Select value={staffFilterRole} onValueChange={setStaffFilterRole}>
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="All Roles" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="all">All Roles</SelectItem>
+                                <SelectItem value="doctor">Doctor</SelectItem>
+                                <SelectItem value="nurse">Nurse</SelectItem>
+                                <SelectItem value="receptionist">Receptionist</SelectItem>
+                                <SelectItem value="admin">Admin</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium mb-2">Search</Label>
+                            <div className="relative">
+                              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                              <Input
+                                placeholder="Search staff..."
+                                value={staffFilterSearch}
+                                onChange={(e) => setStaffFilterSearch(e.target.value)}
+                                className="pl-9"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  )}
                 </h4>
               </div>
               <DoctorList 
