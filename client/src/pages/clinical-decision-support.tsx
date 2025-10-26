@@ -440,26 +440,8 @@ export default function ClinicalDecisionSupport() {
   });
 
   // Fetch risk assessments
-  const { data: riskAssessments = mockRiskScores, isLoading: riskLoading } = useQuery<RiskScore[]>({
+  const { data: riskAssessments = [], isLoading: riskLoading } = useQuery<RiskScore[]>({
     queryKey: ["/api/clinical/risk-assessments"],
-    queryFn: async () => {
-      try {
-        const response = await fetch("/api/clinical/risk-assessments", {
-          headers: { 
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${localStorage.getItem('auth_token')}`,
-            "X-Tenant-Subdomain": getActiveSubdomain()
-          },
-          credentials: "include"
-        });
-        if (!response.ok) throw new Error("Failed to fetch risk assessments");
-        return response.json();
-      } catch (error) {
-        // If API fails, return mock data as fallback
-        console.warn("Using mock risk assessments data:", error);
-        return mockRiskScores;
-      }
-    },
     retry: false,
     staleTime: 30000,
     enabled: true
@@ -1043,7 +1025,7 @@ export default function ClinicalDecisionSupport() {
               
               // Ensure we have valid data
               const validInsights = insights || [];
-              const validRiskScores = mockRiskScores || [];
+              const validRiskScores = riskAssessments || [];
               
               const reportData = {
                 title: "Clinical Decision Support Report",
