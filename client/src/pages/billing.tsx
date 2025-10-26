@@ -2739,6 +2739,16 @@ export default function BillingPage() {
                                     <Button variant="ghost" size="sm" onClick={() => handleViewInvoice(invoice)} data-testid="button-view-invoice" title="View">
                                       <Eye className="h-4 w-4" />
                                     </Button>
+                                    {savedInvoiceIds.has(invoice.id) && (
+                                      <>
+                                        <Button variant="ghost" size="sm" onClick={() => handleDownloadInvoice(invoice.id.toString())} data-testid="button-download-invoice" title="Download">
+                                          <Download className="h-4 w-4" />
+                                        </Button>
+                                        <Button variant="ghost" size="sm" onClick={() => handleSendInvoice(invoice.id)} data-testid="button-send-invoice" title="Send">
+                                          <Send className="h-4 w-4" />
+                                        </Button>
+                                      </>
+                                    )}
                                     {!isAdmin && invoice.status !== 'draft' && invoice.status !== 'paid' && invoice.status !== 'cancelled' && (
                                       <Button 
                                         variant="default" 
@@ -3049,6 +3059,16 @@ export default function BillingPage() {
                                       <Button variant="ghost" size="sm" onClick={() => handleViewInvoice(invoice)} title="View">
                                         <Eye className="h-4 w-4" />
                                       </Button>
+                                      {savedInvoiceIds.has(invoice.id) && (
+                                        <>
+                                          <Button variant="ghost" size="sm" onClick={() => handleDownloadInvoice(invoice.id.toString())} title="Download">
+                                            <Download className="h-4 w-4" />
+                                          </Button>
+                                          <Button variant="ghost" size="sm" onClick={() => handleSendInvoice(invoice.id)} title="Send">
+                                            <Send className="h-4 w-4" />
+                                          </Button>
+                                        </>
+                                      )}
                                       {isAdmin && (
                                         <Button 
                                           variant="ghost" 
@@ -3168,6 +3188,16 @@ export default function BillingPage() {
                                 <Button variant="outline" size="sm" onClick={() => handleViewInvoice(invoice)}>
                                   <Eye className="h-4 w-4" />
                                 </Button>
+                                {savedInvoiceIds.has(invoice.id) && (
+                                  <>
+                                    <Button variant="outline" size="sm" onClick={() => handleDownloadInvoice(invoice.id.toString())}>
+                                      <Download className="h-4 w-4" />
+                                    </Button>
+                                    <Button variant="outline" size="sm" onClick={() => handleSendInvoice(invoice.id)}>
+                                      <Send className="h-4 w-4" />
+                                    </Button>
+                                  </>
+                                )}
                                 {isAdmin && (
                                   <Button 
                                     variant="outline" 
