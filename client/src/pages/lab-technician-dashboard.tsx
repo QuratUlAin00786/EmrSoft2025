@@ -425,12 +425,19 @@ export default function LabTechnicianDashboard() {
     }));
   };
 
-  // Handle view report
+  // Handle view report from dialog
   const handleViewReport = () => {
     if (!selectedTest) return;
     
     // Construct PDF URL using the test ID
     const pdfUrl = `/api/lab-results/${selectedTest.id}/pdf`;
+    setPdfViewerUrl(pdfUrl);
+    setShowPdfViewerDialog(true);
+  };
+
+  // Handle view report from card
+  const handleViewReportFromCard = (test: LabTest) => {
+    const pdfUrl = `/api/lab-results/${test.id}/pdf`;
     setPdfViewerUrl(pdfUrl);
     setShowPdfViewerDialog(true);
   };
@@ -700,15 +707,26 @@ export default function LabTechnicianDashboard() {
                       </div>
                     </div>
 
-                    {/* Generate Button */}
-                    <Button
-                      onClick={() => handleGenerateClick(test)}
-                      className="w-full bg-green-600 hover:bg-green-700"
-                      data-testid={`button-generate-result-${test.id}`}
-                    >
-                      <Sparkles className="h-4 w-4 mr-2" />
-                      Generate Test Result
-                    </Button>
+                    {/* Action Buttons */}
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => handleViewReportFromCard(test)}
+                        variant="outline"
+                        className="flex-1"
+                        data-testid={`button-view-report-${test.id}`}
+                      >
+                        <FileText className="h-4 w-4 mr-2" />
+                        View Report
+                      </Button>
+                      <Button
+                        onClick={() => handleGenerateClick(test)}
+                        className="flex-1 bg-green-600 hover:bg-green-700"
+                        data-testid={`button-generate-result-${test.id}`}
+                      >
+                        <Sparkles className="h-4 w-4 mr-2" />
+                        Generate Result
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -779,15 +797,25 @@ export default function LabTechnicianDashboard() {
                         </div>
                       </div>
                     </div>
-                    {/* Generate Button */}
-                    <Button
-                      onClick={() => handleGenerateClick(test)}
-                      className="bg-green-600 hover:bg-green-700"
-                      data-testid={`button-generate-result-${test.id}`}
-                    >
-                      <Sparkles className="h-4 w-4 mr-2" />
-                      Generate Result
-                    </Button>
+                    {/* Action Buttons */}
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => handleViewReportFromCard(test)}
+                        variant="outline"
+                        data-testid={`button-view-report-${test.id}`}
+                      >
+                        <FileText className="h-4 w-4 mr-2" />
+                        View Report
+                      </Button>
+                      <Button
+                        onClick={() => handleGenerateClick(test)}
+                        className="bg-green-600 hover:bg-green-700"
+                        data-testid={`button-generate-result-${test.id}`}
+                      >
+                        <Sparkles className="h-4 w-4 mr-2" />
+                        Generate Result
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
