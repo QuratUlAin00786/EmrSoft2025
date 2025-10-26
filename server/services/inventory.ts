@@ -725,6 +725,8 @@ Cura Healthcare Team
               quantity: item.quantityReceived,
               remainingQuantity: item.quantityReceived,
               expiryDate: item.expiryDate ? new Date(item.expiryDate) : null,
+              manufactureDate: item.manufactureDate ? new Date(item.manufactureDate) : null,
+              purchasePrice: item.unitPrice || '0.00',
               receivedDate: new Date(receiptData.receivedDate),
               status: 'active'
             });
