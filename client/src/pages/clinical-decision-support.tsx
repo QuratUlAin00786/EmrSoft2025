@@ -83,6 +83,31 @@ interface RiskScore {
   assessmentDate: string;
 }
 
+interface LabResult {
+  id: number;
+  testId: string;
+  testType: string;
+  patientId: number;
+  patientName: string;
+  doctorName: string;
+  testDate: string;
+  results: any[];
+  criticalValues: boolean;
+}
+
+interface AssessmentResponse {
+  success: boolean;
+  assessment: {
+    id: number;
+    category: string;
+    riskLevel: string;
+    riskScore: number;
+    riskFactors: string[];
+    recommendations: string[];
+    assessmentDate: string;
+  };
+}
+
 export default function ClinicalDecisionSupport() {
   const [selectedPatient, setSelectedPatient] = useState<string>("");
   const [activeTab, setActiveTab] = useState("insights");
@@ -105,6 +130,12 @@ export default function ClinicalDecisionSupport() {
   const [filterCategory, setFilterCategory] = useState<string>("all");
   const [filterPatientName, setFilterPatientName] = useState<string>("");
   const [filterDate, setFilterDate] = useState<string>("");
+  
+  // Lab Result Assessment State
+  const [selectedLabResult, setSelectedLabResult] = useState<LabResult | null>(null);
+  const [assessmentDialogOpen, setAssessmentDialogOpen] = useState(false);
+  const [assessmentResult, setAssessmentResult] = useState<AssessmentResponse | null>(null);
+  const [isGeneratingAssessment, setIsGeneratingAssessment] = useState(false);
   
   const { toast } = useToast();
   const [location, setLocation] = useLocation();
@@ -458,6 +489,46 @@ export default function ClinicalDecisionSupport() {
     staleTime: 30000,
     enabled: true
   });
+
+  // Fetch lab results
+  const { data: labResults = [], isLoading: labResultsLoading } = useQuery<LabResult[]>({
+    queryKey: ["/api/lab-results"],
+    retry: false,
+    staleTime: 30000,
+    enabled: true
+  });
+
+  // Generate AI assessment for lab result
+  const generateAssessmentMutation = useMutation({
+    mutationFn: async (labResultId: number) => {
+      return apiRequest<AssessmentResponse>("POST", `/api/lab-results/${labResultId}/assess`, {});
+    },
+    onSuccess: (data) => {
+      setAssessmentResult(data);
+      setIsGeneratingAssessment(false);
+      toast({
+        title: "Assessment Generated",
+        description: "AI-powered risk assessment completed successfully",
+      });
+    },
+    onError: (error: any) => {
+      setIsGeneratingAssessment(false);
+      toast({
+        title: "Assessment Failed",
+        description: error.message || "Failed to generate assessment",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleGenerateAssessment = async (labResult: LabResult) => {
+    setSelectedLabResult(labResult);
+    setAssessmentResult(null);
+    setAssessmentDialogOpen(true);
+    setIsGeneratingAssessment(true);
+    
+    await generateAssessmentMutation.mutateAsync(labResult.id);
+  };
 
   // Create new insight mutation
   const createInsightMutation = useMutation({
@@ -1340,32 +1411,18 @@ export default function ClinicalDecisionSupport() {
         </TabsContent>
 
         <TabsContent value="risk" className="space-y-4">
-          {riskLoading ? (
+          {labResultsLoading ? (
             <div className="flex items-center justify-center py-8">
               <div className="flex items-center gap-2">
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                <span className="text-gray-600 dark:text-gray-400">Loading risk assessments...</span>
+                <span className="text-gray-600 dark:text-gray-400">Loading lab results...</span>
               </div>
             </div>
           ) : (
             <>
               {/* Filters */}
               <Card className="p-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <Label className="text-sm font-medium mb-2 block">Category</Label>
-                    <Select value={filterCategory} onValueChange={setFilterCategory}>
-                      <SelectTrigger data-testid="select-category-filter">
-                        <SelectValue placeholder="All Categories" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Categories</SelectItem>
-                        <SelectItem value="Cardiovascular Disease">Cardiovascular Disease</SelectItem>
-                        <SelectItem value="Diabetes">Diabetes</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label className="text-sm font-medium mb-2 block">Patient Name</Label>
                     <Input
@@ -1377,7 +1434,7 @@ export default function ClinicalDecisionSupport() {
                   </div>
                   
                   <div>
-                    <Label className="text-sm font-medium mb-2 block">Assessment Date</Label>
+                    <Label className="text-sm font-medium mb-2 block">Test Date</Label>
                     <Input
                       type="date"
                       value={filterDate}
@@ -1388,121 +1445,212 @@ export default function ClinicalDecisionSupport() {
                 </div>
               </Card>
 
-              {/* Filtered Risk Assessments */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {riskAssessments
-                  .filter(risk => {
-                    // Filter by category
-                    if (filterCategory !== "all" && risk.category !== filterCategory) {
-                      return false;
-                    }
+              {/* Lab Results Table */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Lab Results - AI Assessment</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b border-gray-200 dark:border-gray-700">
+                          <th className="text-left p-3 font-medium text-sm">Test ID</th>
+                          <th className="text-left p-3 font-medium text-sm">Test Type</th>
+                          <th className="text-left p-3 font-medium text-sm">Patient Name</th>
+                          <th className="text-left p-3 font-medium text-sm">Doctor Name</th>
+                          <th className="text-left p-3 font-medium text-sm">Test Date</th>
+                          <th className="text-left p-3 font-medium text-sm">Status</th>
+                          <th className="text-left p-3 font-medium text-sm">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {labResults
+                          .filter(labResult => {
+                            // Filter by patient name
+                            if (filterPatientName && !labResult.patientName?.toLowerCase().includes(filterPatientName.toLowerCase())) {
+                              return false;
+                            }
+                            
+                            // Filter by date
+                            if (filterDate && labResult.testDate) {
+                              const testDate = new Date(labResult.testDate).toISOString().split('T')[0];
+                              if (testDate !== filterDate) {
+                                return false;
+                              }
+                            }
+                            
+                            return true;
+                          })
+                          .map((labResult, idx) => (
+                          <tr 
+                            key={labResult.id} 
+                            className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800"
+                            data-testid={`row-lab-result-${idx}`}
+                          >
+                            <td className="p-3 text-sm" data-testid={`text-test-id-${idx}`}>
+                              {labResult.testId}
+                            </td>
+                            <td className="p-3 text-sm" data-testid={`text-test-type-${idx}`}>
+                              {labResult.testType}
+                            </td>
+                            <td className="p-3 text-sm" data-testid={`text-patient-name-${idx}`}>
+                              {labResult.patientName}
+                            </td>
+                            <td className="p-3 text-sm" data-testid={`text-doctor-name-${idx}`}>
+                              {labResult.doctorName}
+                            </td>
+                            <td className="p-3 text-sm">
+                              {format(new Date(labResult.testDate), 'MMM dd, yyyy')}
+                            </td>
+                            <td className="p-3 text-sm">
+                              {labResult.criticalValues ? (
+                                <Badge variant="destructive">Critical</Badge>
+                              ) : (
+                                <Badge variant="secondary">Normal</Badge>
+                              )}
+                            </td>
+                            <td className="p-3">
+                              <Button
+                                size="sm"
+                                onClick={() => handleGenerateAssessment(labResult)}
+                                data-testid={`button-assess-${idx}`}
+                              >
+                                <Brain className="w-4 h-4 mr-2" />
+                                Assess
+                              </Button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                     
-                    // Filter by patient name
-                    if (filterPatientName && !risk.patientName?.toLowerCase().includes(filterPatientName.toLowerCase())) {
-                      return false;
-                    }
-                    
-                    // Filter by date
-                    if (filterDate && risk.assessmentDate) {
-                      const assessmentDate = new Date(risk.assessmentDate).toISOString().split('T')[0];
-                      if (assessmentDate !== filterDate) {
-                        return false;
+                    {/* No results message */}
+                    {labResults.filter(labResult => {
+                      if (filterPatientName && !labResult.patientName?.toLowerCase().includes(filterPatientName.toLowerCase())) return false;
+                      if (filterDate && labResult.testDate) {
+                        const testDate = new Date(labResult.testDate).toISOString().split('T')[0];
+                        if (testDate !== filterDate) return false;
                       }
-                    }
-                    
-                    return true;
-                  })
-                  .map((risk, idx) => (
-                  <Card key={idx} data-testid={`card-risk-assessment-${idx}`}>
-                    <CardHeader>
-                      <CardTitle className="flex items-center justify-between">
-                        <span>{risk.category}</span>
-                        <Badge className={getSeverityColor(risk.risk)}>
-                          {risk.risk.toUpperCase()}
-                        </Badge>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {/* Patient Details */}
-                      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 space-y-2">
-                        <div className="flex items-center gap-2">
-                          <User className="w-4 h-4 text-gray-500" />
-                          <span className="font-medium text-sm" data-testid={`text-patient-name-${idx}`}>{risk.patientName}</span>
-                        </div>
-                        <div className="grid grid-cols-2 gap-2 text-xs text-gray-600 dark:text-gray-400">
-                          {risk.patientAge && (
-                            <div>
-                              <span className="font-medium">Age:</span> {risk.patientAge} years
-                            </div>
-                          )}
-                          {risk.patientGender && (
-                            <div>
-                              <span className="font-medium">Gender:</span> {risk.patientGender}
-                            </div>
-                          )}
-                          {risk.assessmentDate && (
-                            <div className="col-span-2">
-                              <span className="font-medium">Assessment Date:</span> {format(new Date(risk.assessmentDate), 'MMM dd, yyyy')}
-                            </div>
-                          )}
-                        </div>
+                      return true;
+                    }).length === 0 && (
+                      <div className="text-center py-8">
+                        <p className="text-gray-500 dark:text-gray-400">No lab results found matching the filters.</p>
                       </div>
-
-                      {/* Risk Score */}
-                      <div className="flex items-center gap-4">
-                        <div className="text-center">
-                          <div className={`text-3xl font-bold ${getRiskColor(risk.risk)}`}>
-                            {risk.score}%
-                          </div>
-                          <div className="text-sm text-gray-500 dark:text-gray-400">Risk Score</div>
-                        </div>
-                        <Progress value={risk.score} className="flex-1" />
-                      </div>
-                      
-                      {/* Risk Factors */}
-                      <div>
-                        <h4 className="font-medium text-sm mb-2">Risk Factors</h4>
-                        <ul className="space-y-1">
-                          {risk.factors.map((factor, factorIdx) => (
-                            <li key={factorIdx} className="flex items-center gap-2 text-sm">
-                              <AlertTriangle className="w-4 h-4 text-yellow-500" />
-                              <span>{factor}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-
-                      {/* Recommendations */}
-                      <div>
-                        <h4 className="font-medium text-sm mb-2">Recommendations</h4>
-                        <ul className="space-y-1">
-                          {risk.recommendations.map((rec, recIdx) => (
-                            <li key={recIdx} className="flex items-center gap-2 text-sm">
-                              <Target className="w-4 h-4 text-blue-500" />
-                              <span>{rec}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-                
-                {/* No results message */}
-                {riskAssessments.filter(risk => {
-                  if (filterCategory !== "all" && risk.category !== filterCategory) return false;
-                  if (filterPatientName && !risk.patientName?.toLowerCase().includes(filterPatientName.toLowerCase())) return false;
-                  if (filterDate && risk.assessmentDate) {
-                    const assessmentDate = new Date(risk.assessmentDate).toISOString().split('T')[0];
-                    if (assessmentDate !== filterDate) return false;
-                  }
-                  return true;
-                }).length === 0 && (
-                  <div className="col-span-2 text-center py-8">
-                    <p className="text-gray-500 dark:text-gray-400">No risk assessments found matching the filters.</p>
+                    )}
                   </div>
-                )}
-              </div>
+                </CardContent>
+              </Card>
+
+              {/* Assessment Dialog */}
+              <Dialog open={assessmentDialogOpen} onOpenChange={setAssessmentDialogOpen}>
+                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>AI-Powered Lab Result Assessment</DialogTitle>
+                  </DialogHeader>
+                  
+                  {isGeneratingAssessment ? (
+                    <div className="flex items-center justify-center py-12">
+                      <div className="flex flex-col items-center gap-4">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                        <p className="text-gray-600 dark:text-gray-400">Analyzing lab results with AI...</p>
+                      </div>
+                    </div>
+                  ) : assessmentResult ? (
+                    <div className="space-y-6">
+                      {/* Lab Result Details */}
+                      {selectedLabResult && (
+                        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                          <h3 className="font-semibold mb-3">Lab Result Details</h3>
+                          <div className="grid grid-cols-2 gap-3 text-sm">
+                            <div>
+                              <span className="font-medium">Test ID:</span> {selectedLabResult.testId}
+                            </div>
+                            <div>
+                              <span className="font-medium">Test Type:</span> {selectedLabResult.testType}
+                            </div>
+                            <div>
+                              <span className="font-medium">Patient:</span> {selectedLabResult.patientName}
+                            </div>
+                            <div>
+                              <span className="font-medium">Doctor:</span> {selectedLabResult.doctorName}
+                            </div>
+                            <div className="col-span-2">
+                              <span className="font-medium">Test Date:</span> {format(new Date(selectedLabResult.testDate), 'MMM dd, yyyy')}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Assessment Results */}
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-semibold">Risk Assessment</h3>
+                          <Badge className={
+                            assessmentResult.assessment.riskLevel === 'critical' ? 'bg-red-500' :
+                            assessmentResult.assessment.riskLevel === 'high' ? 'bg-orange-500' :
+                            assessmentResult.assessment.riskLevel === 'moderate' ? 'bg-yellow-500' :
+                            'bg-green-500'
+                          }>
+                            {assessmentResult.assessment.riskLevel.toUpperCase()}
+                          </Badge>
+                        </div>
+
+                        <div>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Category</p>
+                          <p className="font-medium">{assessmentResult.assessment.category}</p>
+                        </div>
+
+                        <div>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Risk Score</p>
+                          <div className="flex items-center gap-4">
+                            <div className="text-3xl font-bold text-blue-600">
+                              {assessmentResult.assessment.riskScore}%
+                            </div>
+                            <Progress value={assessmentResult.assessment.riskScore} className="flex-1" />
+                          </div>
+                        </div>
+
+                        <div>
+                          <h4 className="font-medium text-sm mb-2">Risk Factors</h4>
+                          <ul className="space-y-2">
+                            {assessmentResult.assessment.riskFactors.map((factor, idx) => (
+                              <li key={idx} className="flex items-start gap-2 text-sm">
+                                <AlertTriangle className="w-4 h-4 text-yellow-500 mt-0.5 flex-shrink-0" />
+                                <span>{factor}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+
+                        <div>
+                          <h4 className="font-medium text-sm mb-2">Recommendations</h4>
+                          <ul className="space-y-2">
+                            {assessmentResult.assessment.recommendations.map((rec, idx) => (
+                              <li key={idx} className="flex items-start gap-2 text-sm">
+                                <Target className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                                <span>{rec}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+
+                        <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            Assessment generated: {format(new Date(assessmentResult.assessment.assessmentDate), 'MMM dd, yyyy HH:mm')}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex justify-end gap-2 pt-4">
+                        <Button variant="outline" onClick={() => setAssessmentDialogOpen(false)}>
+                          Close
+                        </Button>
+                      </div>
+                    </div>
+                  ) : null}
+                </DialogContent>
+              </Dialog>
             </>
           )}
         </TabsContent>

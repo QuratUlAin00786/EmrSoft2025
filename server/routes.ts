@@ -6569,6 +6569,50 @@ This treatment plan should be reviewed and adjusted based on individual patient 
     }
   });
 
+  // Get all lab results for an organization
+  app.get("/api/lab-results", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const organizationId = req.tenant!.id;
+      
+      // Get all patients for this organization
+      const patients = await storage.getAllPatients(organizationId);
+      const patientIds = patients.map(p => p.id);
+      
+      // Get lab results for all patients
+      const allLabResults = [];
+      for (const patientId of patientIds) {
+        const labResults = await storage.getLabResultsByPatient(patientId);
+        allLabResults.push(...labResults.filter(lr => lr.organizationId === organizationId));
+      }
+      
+      // Get users (doctors) to map testOrderedBy
+      const users = await storage.getAllUsers(organizationId);
+      
+      // Enrich with patient and doctor names
+      const enrichedResults = allLabResults.map(lr => {
+        const patient = patients.find(p => p.id === lr.patientId);
+        const doctor = users.find(u => u.id === lr.testOrderedBy);
+        
+        return {
+          id: lr.id,
+          testId: lr.testId,
+          testType: lr.testType,
+          patientId: lr.patientId,
+          patientName: patient ? `${patient.firstName} ${patient.lastName}` : `Patient ${lr.patientId}`,
+          doctorName: doctor ? doctor.name || doctor.email : `Doctor ${lr.testOrderedBy}`,
+          testDate: lr.testDate,
+          results: lr.results,
+          criticalValues: lr.criticalValues
+        };
+      });
+      
+      res.json(enrichedResults);
+    } catch (error) {
+      console.error("Get all lab results error:", error);
+      res.status(500).json({ error: "Failed to fetch lab results" });
+    }
+  });
+
   // Get lab results for a specific patient
   app.get("/api/patients/:patientId/lab-results", authMiddleware, async (req: TenantRequest, res) => {
     try {
