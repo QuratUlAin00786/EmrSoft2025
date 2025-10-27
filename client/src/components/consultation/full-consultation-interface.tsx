@@ -562,14 +562,35 @@ ${
 
           let textStartX = marginLeft;
           const logoSize = 25;
+          const logoTextGap = 5;
 
           if (clinicHeader.logoBase64 && clinicHeader.logoPosition === 'center') {
-            const logoX = (pageWidth - logoSize) / 2;
+            pdf.setFontSize(16);
+            pdf.setFont('helvetica', 'bold');
+            const clinicNameWidth = pdf.getTextWidth(clinicHeader.clinicName || 'Clinic');
+            
+            pdf.setFontSize(8);
+            pdf.setFont('helvetica', 'normal');
+            let maxTextWidth = clinicNameWidth;
+            if (clinicHeader.address) {
+              maxTextWidth = Math.max(maxTextWidth, pdf.getTextWidth(clinicHeader.address));
+            }
+            if (clinicHeader.phone || clinicHeader.email) {
+              const contact = [clinicHeader.phone, clinicHeader.email].filter(Boolean).join(' | ');
+              maxTextWidth = Math.max(maxTextWidth, pdf.getTextWidth(contact));
+            }
+            if (clinicHeader.website) {
+              maxTextWidth = Math.max(maxTextWidth, pdf.getTextWidth(clinicHeader.website));
+            }
+
+            const combinedWidth = logoSize + logoTextGap + maxTextWidth;
+            const logoX = (pageWidth - combinedWidth) / 2;
+            textStartX = logoX + logoSize + logoTextGap;
+
             pdf.addImage(clinicHeader.logoBase64, 'PNG', logoX, 5, logoSize, logoSize);
-            textStartX = logoX + logoSize + 5;
           } else if (clinicHeader.logoBase64 && clinicHeader.logoPosition === 'left') {
             pdf.addImage(clinicHeader.logoBase64, 'PNG', marginLeft, 5, logoSize, logoSize);
-            textStartX = marginLeft + logoSize + 5;
+            textStartX = marginLeft + logoSize + logoTextGap;
           }
 
           pdf.setTextColor(255, 255, 255);
