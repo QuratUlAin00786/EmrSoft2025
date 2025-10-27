@@ -557,10 +557,9 @@ ${
       const addHeader = () => {
         if (clinicHeader) {
           const headerHeight = 35;
-          pdf.setFillColor(74, 125, 255);
-          pdf.rect(0, 0, pageWidth, headerHeight, 'F');
 
           let textStartX = marginLeft;
+          let textAlign: 'left' | 'center' | 'right' = 'left';
           const logoSize = 25;
           const logoTextGap = 5;
 
@@ -591,34 +590,33 @@ ${
           } else if (clinicHeader.logoBase64 && clinicHeader.logoPosition === 'left') {
             pdf.addImage(clinicHeader.logoBase64, 'PNG', marginLeft, 5, logoSize, logoSize);
             textStartX = marginLeft + logoSize + logoTextGap;
+          } else if (clinicHeader.logoBase64 && clinicHeader.logoPosition === 'right') {
+            pdf.addImage(clinicHeader.logoBase64, 'PNG', pageWidth - marginRight - logoSize, 5, logoSize, logoSize);
+            textStartX = pageWidth - marginRight - logoSize - logoTextGap;
+            textAlign = 'right';
           }
 
-          pdf.setTextColor(255, 255, 255);
+          pdf.setTextColor(0, 0, 0);
           pdf.setFontSize(16);
           pdf.setFont('helvetica', 'bold');
-          pdf.text(clinicHeader.clinicName || 'Clinic', textStartX, 12);
+          pdf.text(clinicHeader.clinicName || 'Clinic', textStartX, 12, { align: textAlign });
 
           pdf.setFontSize(8);
           pdf.setFont('helvetica', 'normal');
           let infoY = 18;
           if (clinicHeader.address) {
-            pdf.text(clinicHeader.address, textStartX, infoY);
+            pdf.text(clinicHeader.address, textStartX, infoY, { align: textAlign });
             infoY += 4;
           }
           if (clinicHeader.phone || clinicHeader.email) {
             const contact = [clinicHeader.phone, clinicHeader.email].filter(Boolean).join(' | ');
-            pdf.text(contact, textStartX, infoY);
+            pdf.text(contact, textStartX, infoY, { align: textAlign });
             infoY += 4;
           }
           if (clinicHeader.website) {
-            pdf.text(clinicHeader.website, textStartX, infoY);
+            pdf.text(clinicHeader.website, textStartX, infoY, { align: textAlign });
           }
 
-          if (clinicHeader.logoBase64 && clinicHeader.logoPosition === 'right') {
-            pdf.addImage(clinicHeader.logoBase64, 'PNG', pageWidth - marginRight - logoSize, 5, logoSize, logoSize);
-          }
-
-          pdf.setTextColor(0, 0, 0);
           yPosition = headerHeight + 10;
         }
       };
