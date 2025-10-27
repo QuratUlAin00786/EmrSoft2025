@@ -1102,42 +1102,58 @@ export default function PrescriptionsPage() {
           pdf.setFontSize(10);
           pdf.setFont("helvetica", "normal");
       
-          // Medication Details - Highlighted Box
-          pdf.setFillColor(240, 245, 255);
-          pdf.rect(15, 145, 180, 55, "F");
-
+          // Medication Details - Iterate through medications array
           pdf.setFontSize(12);
           pdf.setFont("helvetica", "bold");
-          pdf.text("MEDICATION PRESCRIBED", 20, 153);
+          pdf.text("MEDICATIONS PRESCRIBED", 20, 153);
 
-          pdf.setFontSize(11);
-          pdf.setFont("helvetica", "bold");
-          const medicationName =
-            prescriptionData.medicationName ||
-            prescriptionData.medication ||
-            "N/A";
-          pdf.text(`Rx: ${medicationName}`, 20, 162);
+          let medicationY = 162;
+          const medications = prescriptionData.medications || [];
+          
+          if (medications.length === 0) {
+            // Fallback for old format with single medication fields
+            pdf.setFillColor(240, 245, 255);
+            pdf.rect(15, 145, 180, 55, "F");
+            
+            pdf.setFontSize(11);
+            pdf.setFont("helvetica", "bold");
+            const medicationName = prescriptionData.medicationName || prescriptionData.medication || "N/A";
+            pdf.text(`Rx: ${medicationName}`, 20, 162);
 
-          pdf.setFontSize(10);
-          pdf.setFont("helvetica", "normal");
-          pdf.text(`Dosage: ${prescriptionData.dosage || "N/A"}`, 20, 170);
-          pdf.text(
-            `Frequency: ${prescriptionData.frequency || "N/A"}`,
-            20,
-            176,
-          );
-          pdf.text(`Duration: ${prescriptionData.duration || "N/A"}`, 20, 182);
+            pdf.setFontSize(10);
+            pdf.setFont("helvetica", "normal");
+            pdf.text(`Dosage: ${prescriptionData.dosage || "N/A"}`, 20, 170);
+            pdf.text(`Frequency: ${prescriptionData.frequency || "N/A"}`, 20, 176);
+            pdf.text(`Duration: ${prescriptionData.duration || "N/A"}`, 20, 182);
+            if (prescriptionData.refills !== undefined && prescriptionData.refills !== null) {
+              pdf.text(`Refills: ${prescriptionData.refills}`, 20, 188);
+            }
+          } else {
+            // New format with medications array
+            medications.forEach((med: any, index: number) => {
+              const boxHeight = 48;
+              pdf.setFillColor(240, 245, 255);
+              pdf.rect(15, medicationY - 12, 180, boxHeight, "F");
 
-          // Refills if available
-          if (
-            prescriptionData.refills !== undefined &&
-            prescriptionData.refills !== null
-          ) {
-            pdf.text(`Refills: ${prescriptionData.refills}`, 20, 188);
+              pdf.setFontSize(10);
+              pdf.setFont("helvetica", "bold");
+              pdf.text(`Medication ${index + 1}`, 20, medicationY - 6);
+
+              pdf.setFontSize(10);
+              pdf.setFont("helvetica", "normal");
+              pdf.text(`Medication Name: ${med.name || "N/A"}`, 20, medicationY);
+              pdf.text(`Dosage: ${med.dosage || "N/A"}`, 20, medicationY + 6);
+              pdf.text(`Frequency: ${med.frequency || "N/A"}`, 20, medicationY + 12);
+              pdf.text(`Duration: ${med.duration || "N/A"}`, 20, medicationY + 18);
+              pdf.text(`Quantity: ${med.quantity || "N/A"}`, 20, medicationY + 24);
+              pdf.text(`Refills: ${med.refills || "0"}`, 20, medicationY + 30);
+
+              medicationY += boxHeight + 8;
+            });
           }
 
           // Instructions Section
-          let currentY = 206;
+          let currentY = medications.length > 0 ? medicationY + 6 : 206;
           if (prescriptionData.instructions) {
             pdf.setFontSize(11);
             pdf.setFont("helvetica", "bold");
