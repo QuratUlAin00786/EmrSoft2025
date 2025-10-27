@@ -414,6 +414,53 @@ export default function AnalyticsPage() {
 
           <TabsContent value="patients" className="space-y-4 lg:space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 mb-4 lg:mb-6">
+            {/* Patient Growth Trend */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Patient Growth Trend</CardTitle>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  Track the growth of total and new patients over time from the patients database
+                </p>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <AreaChart data={analytics.trends.patientGrowth}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip />
+                    <Area type="monotone" dataKey="total" stackId="1" stroke="#0ea5e9" fill="#0ea5e9" fillOpacity={0.8} name="Total Patients" />
+                    <Area type="monotone" dataKey="new" stackId="2" stroke="#10b981" fill="#10b981" fillOpacity={0.8} name="New Patients" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            {/* Appointment Volume */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Appointment Volume</CardTitle>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  View appointment trends showing scheduled, completed, cancelled, and no-show appointments from the appointments table
+                </p>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={analytics.trends.appointmentVolume}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" tickFormatter={(value) => format(new Date(value), 'MMM d')} />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="completed" stackId="a" fill="#10b981" name="Completed" />
+                    <Bar dataKey="cancelled" stackId="a" fill="#f59e0b" name="Cancelled" />
+                    <Bar dataKey="noShow" stackId="a" fill="#ef4444" name="No Show" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 mb-4 lg:mb-6">
             {/* Patient Demographics */}
             <Card>
               <CardHeader>
