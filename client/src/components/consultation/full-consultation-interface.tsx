@@ -178,9 +178,6 @@ export function FullConsultationInterface({ open, onOpenChange, patient, patient
 
     // Validate vitals before saving
     if (!validateAllVitals()) {
-      toast({
-        description: "Please correct the errors in the vitals fields before saving.",
-      });
       return;
     }
 
@@ -245,9 +242,6 @@ export function FullConsultationInterface({ open, onOpenChange, patient, patient
 
     // Validate history before saving
     if (!validateAllHistory()) {
-      toast({
-        description: "Please correct the errors in the history fields before saving.",
-      });
       return;
     }
 
@@ -320,9 +314,6 @@ export function FullConsultationInterface({ open, onOpenChange, patient, patient
 
     // Validate examination before saving
     if (!validateAllExamination()) {
-      toast({
-        description: "Please correct the errors in the examination fields before saving.",
-      });
       return;
     }
 
@@ -390,9 +381,6 @@ export function FullConsultationInterface({ open, onOpenChange, patient, patient
 
     // Validate assessment before saving
     if (!validateAssessment()) {
-      toast({
-        description: "Please fix the validation errors before saving.",
-      });
       return;
     }
 
@@ -2058,9 +2046,6 @@ ${
   const generateTreatmentPlan = async () => {
     // Validate all fields before generating plan
     if (!validateAnatomicalFields()) {
-      toast({
-        description: "Please fill in all required fields before generating treatment plan.",
-      });
       return;
     }
 
@@ -2124,9 +2109,6 @@ ${
   const saveAnalysis = async () => {
     // Validate all fields before saving
     if (!validateAnatomicalFields()) {
-      toast({
-        description: "Please fill in all required fields before saving analysis.",
-      });
       return;
     }
 
@@ -2199,9 +2181,6 @@ ${
   const savePhysicalExamination = async () => {
     // Validate all fields before saving
     if (!validatePhysicalExam()) {
-      toast({
-        description: "Please fill in all required fields before saving.",
-      });
       return;
     }
 
@@ -2271,9 +2250,6 @@ ${
   const saveRespiratoryExamination = async () => {
     // Validate all fields before saving
     if (!validateRespiratoryExam()) {
-      toast({
-        description: "Please fill in all required fields before saving.",
-      });
       return;
     }
 
@@ -2346,9 +2322,6 @@ ${
   const saveCardiovascularExamination = async () => {
     // Validate all fields before saving
     if (!validateCardiovascularExam()) {
-      toast({
-        description: "Please fill in all required fields before saving.",
-      });
       return;
     }
 
@@ -2421,9 +2394,6 @@ ${
   const saveNeurologicalExamination = async () => {
     // Validate all fields before saving
     if (!validateNeurologicalExam()) {
-      toast({
-        description: "Please fill in all required fields before saving.",
-      });
       return;
     }
 
@@ -2496,9 +2466,6 @@ ${
   const saveGeneralExamination = async () => {
     // Validate all fields before saving
     if (!validateGeneralExam()) {
-      toast({
-        description: "Please fill in all required fields before saving.",
-      });
       return;
     }
 
