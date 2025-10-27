@@ -3739,22 +3739,33 @@ export default function PrescriptionsPage() {
                       <div className="space-y-4">
                         {prescription.medications.map(
                           (medication: any, index: number) => (
-                            <div key={index}>
-                              <p className="font-medium text-lg text-gray-800 dark:text-gray-100">
-                                {medication.name} {medication.dosage}
+                            <div key={index} className="border-l-4 border-blue-500 pl-4">
+                              <p className="font-bold text-sm text-blue-600 dark:text-blue-400 mb-2">
+                                Medication {index + 1}
                               </p>
-                              <p className="text-sm text-gray-700 dark:text-gray-300 ml-4">
-                                Sig:{" "}
-                                {medication.instructions ||
-                                  medication.frequency}
+                              <p className="text-sm text-gray-700 dark:text-gray-300">
+                                <strong>Medication Name:</strong> {medication.name}
                               </p>
-                              <p className="text-sm text-gray-700 dark:text-gray-300 ml-4">
-                                Disp: {medication.quantity} (
-                                {medication.duration})
+                              <p className="text-sm text-gray-700 dark:text-gray-300">
+                                <strong>Dosage:</strong> {medication.dosage}
                               </p>
-                              <p className="text-sm text-gray-700 dark:text-gray-300 ml-4">
-                                Refills: {medication.refills}
+                              <p className="text-sm text-gray-700 dark:text-gray-300">
+                                <strong>Frequency:</strong> {medication.frequency}
                               </p>
+                              <p className="text-sm text-gray-700 dark:text-gray-300">
+                                <strong>Duration:</strong> {medication.duration}
+                              </p>
+                              <p className="text-sm text-gray-700 dark:text-gray-300">
+                                <strong>Quantity:</strong> {medication.quantity}
+                              </p>
+                              <p className="text-sm text-gray-700 dark:text-gray-300">
+                                <strong>Refills:</strong> {medication.refills}
+                              </p>
+                              {medication.instructions && (
+                                <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">
+                                  <strong>Instructions:</strong> {medication.instructions}
+                                </p>
+                              )}
                               {index < prescription.medications.length - 1 && (
                                 <hr className="my-3 border-gray-200" />
                               )}
