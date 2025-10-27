@@ -564,7 +564,7 @@ ${
           const logoSize = 25;
 
           if (clinicHeader.logoBase64 && clinicHeader.logoPosition === 'center') {
-            const logoX = (pageWidth - logoSize) / 2 - 30;
+            const logoX = (pageWidth - logoSize) / 2;
             pdf.addImage(clinicHeader.logoBase64, 'PNG', logoX, 5, logoSize, logoSize);
             textStartX = logoX + logoSize + 5;
           } else if (clinicHeader.logoBase64 && clinicHeader.logoPosition === 'left') {
