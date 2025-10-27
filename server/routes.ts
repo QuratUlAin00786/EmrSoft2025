@@ -6875,16 +6875,30 @@ This treatment plan should be reviewed and adjusted based on individual patient 
       const prescriptionId = parseInt(req.params.id);
       const prescriptionData = req.body;
       
-      // Update prescription data
-      const prescriptionUpdates = {
-        status: prescriptionData.status,
-        diagnosis: prescriptionData.diagnosis,
-        medications: prescriptionData.medications || [],
-        pharmacy: prescriptionData.pharmacy || {},
-        notes: prescriptionData.notes,
-        validUntil: prescriptionData.validUntil ? new Date(prescriptionData.validUntil) : null,
-        interactions: prescriptionData.interactions || []
-      };
+      // Build update object with only provided fields to avoid overwriting existing data
+      const prescriptionUpdates: any = {};
+      
+      if (prescriptionData.status !== undefined) {
+        prescriptionUpdates.status = prescriptionData.status;
+      }
+      if (prescriptionData.diagnosis !== undefined) {
+        prescriptionUpdates.diagnosis = prescriptionData.diagnosis;
+      }
+      if (prescriptionData.medications !== undefined) {
+        prescriptionUpdates.medications = prescriptionData.medications;
+      }
+      if (prescriptionData.pharmacy !== undefined) {
+        prescriptionUpdates.pharmacy = prescriptionData.pharmacy;
+      }
+      if (prescriptionData.notes !== undefined) {
+        prescriptionUpdates.notes = prescriptionData.notes;
+      }
+      if (prescriptionData.validUntil !== undefined) {
+        prescriptionUpdates.validUntil = prescriptionData.validUntil ? new Date(prescriptionData.validUntil) : null;
+      }
+      if (prescriptionData.interactions !== undefined) {
+        prescriptionUpdates.interactions = prescriptionData.interactions;
+      }
 
       const updatedPrescription = await storage.updatePrescription(prescriptionId, req.tenant!.id, prescriptionUpdates);
       
