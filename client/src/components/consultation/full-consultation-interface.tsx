@@ -171,6 +171,17 @@ export function FullConsultationInterface({ open, onOpenChange, patient, patient
       toast({
         title: "Error",
         description: "Patient information is missing. Cannot save vitals.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate vitals before saving
+    if (!validateAllVitals()) {
+      toast({
+        title: "Validation Error",
+        description: "Please correct the errors in the vitals fields before saving.",
+        variant: "destructive",
       });
       return;
     }
@@ -229,6 +240,17 @@ export function FullConsultationInterface({ open, onOpenChange, patient, patient
       toast({
         title: "Error",
         description: "Patient information is missing. Cannot save history.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate history before saving
+    if (!validateAllHistory()) {
+      toast({
+        title: "Validation Error",
+        description: "Please correct the errors in the history fields before saving.",
+        variant: "destructive",
       });
       return;
     }
@@ -295,6 +317,17 @@ export function FullConsultationInterface({ open, onOpenChange, patient, patient
       toast({
         title: "Error",
         description: "Patient information is missing. Cannot save examination.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate examination before saving
+    if (!validateAllExamination()) {
+      toast({
+        title: "Validation Error",
+        description: "Please correct the errors in the examination fields before saving.",
+        variant: "destructive",
       });
       return;
     }
@@ -356,6 +389,17 @@ export function FullConsultationInterface({ open, onOpenChange, patient, patient
       toast({
         title: "Error",
         description: "Patient information is missing. Cannot save assessment.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate assessment before saving
+    if (!validateAssessment()) {
+      toast({
+        title: "Validation Error",
+        description: "Please fix the validation errors before saving.",
+        variant: "destructive",
       });
       return;
     }
@@ -2020,6 +2064,16 @@ ${
   };
 
   const generateTreatmentPlan = async () => {
+    // Validate all fields before generating plan
+    if (!validateAnatomicalFields()) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields before generating treatment plan.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsGeneratingPlan(true);
     
     try {
@@ -2078,6 +2132,16 @@ ${
   };
 
   const saveAnalysis = async () => {
+    // Validate all fields before saving
+    if (!validateAnatomicalFields()) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields before saving analysis.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsSavingAnalysis(true);
     
     try {
@@ -2145,6 +2209,16 @@ ${
   };
 
   const savePhysicalExamination = async () => {
+    // Validate all fields before saving
+    if (!validatePhysicalExam()) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields before saving.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsSavingPhysicalExam(true);
     
     try {
@@ -2209,6 +2283,16 @@ ${
   };
 
   const saveRespiratoryExamination = async () => {
+    // Validate all fields before saving
+    if (!validateRespiratoryExam()) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields before saving.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsSavingRespiratoryExam(true);
     
     try {
@@ -2276,6 +2360,16 @@ ${
   };
 
   const saveCardiovascularExamination = async () => {
+    // Validate all fields before saving
+    if (!validateCardiovascularExam()) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields before saving.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsSavingCardiovascularExam(true);
     
     try {
@@ -2343,6 +2437,16 @@ ${
   };
 
   const saveNeurologicalExamination = async () => {
+    // Validate all fields before saving
+    if (!validateNeurologicalExam()) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields before saving.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsSavingNeurologicalExam(true);
     
     try {
@@ -2410,6 +2514,16 @@ ${
   };
 
   const saveGeneralExamination = async () => {
+    // Validate all fields before saving
+    if (!validateGeneralExam()) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields before saving.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsSavingGeneralExam(true);
     
     try {
