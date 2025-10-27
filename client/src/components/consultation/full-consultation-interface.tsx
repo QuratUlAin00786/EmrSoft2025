@@ -181,7 +181,6 @@ export function FullConsultationInterface({ open, onOpenChange, patient, patient
       toast({
         title: "Validation Error",
         description: "Please correct the errors in the vitals fields before saving.",
-        variant: "destructive",
       });
       return;
     }
@@ -250,7 +249,6 @@ export function FullConsultationInterface({ open, onOpenChange, patient, patient
       toast({
         title: "Validation Error",
         description: "Please correct the errors in the history fields before saving.",
-        variant: "destructive",
       });
       return;
     }
@@ -327,7 +325,6 @@ export function FullConsultationInterface({ open, onOpenChange, patient, patient
       toast({
         title: "Validation Error",
         description: "Please correct the errors in the examination fields before saving.",
-        variant: "destructive",
       });
       return;
     }
@@ -399,7 +396,6 @@ export function FullConsultationInterface({ open, onOpenChange, patient, patient
       toast({
         title: "Validation Error",
         description: "Please fix the validation errors before saving.",
-        variant: "destructive",
       });
       return;
     }
@@ -2069,7 +2065,6 @@ ${
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields before generating treatment plan.",
-        variant: "destructive"
       });
       return;
     }
@@ -2137,7 +2132,6 @@ ${
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields before saving analysis.",
-        variant: "destructive"
       });
       return;
     }
@@ -2214,7 +2208,6 @@ ${
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields before saving.",
-        variant: "destructive"
       });
       return;
     }
@@ -2288,7 +2281,6 @@ ${
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields before saving.",
-        variant: "destructive"
       });
       return;
     }
@@ -2365,7 +2357,6 @@ ${
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields before saving.",
-        variant: "destructive"
       });
       return;
     }
@@ -2442,7 +2433,6 @@ ${
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields before saving.",
-        variant: "destructive"
       });
       return;
     }
@@ -2519,7 +2509,6 @@ ${
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields before saving.",
-        variant: "destructive"
       });
       return;
     }
