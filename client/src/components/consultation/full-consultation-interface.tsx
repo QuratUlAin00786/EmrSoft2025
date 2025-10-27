@@ -4310,10 +4310,11 @@ ${
                   </Card>
                 )}
 
-                {/* View Anatomical Analysis Button */}
-                <div className="flex justify-center pt-4">
-                  <Button
-                    onClick={async () => {
+                {/* View Anatomical Analysis Button - Only show after treatment plan is generated */}
+                {generatedTreatmentPlan && (
+                  <div className="flex justify-center pt-4">
+                    <Button
+                      onClick={async () => {
                       try {
                         console.log('[ANATOMICAL PDF STEP1] Button clicked');
                         const currentPatientId = patientId || patient?.id;
@@ -4537,6 +4538,7 @@ ${
                     View Anatomical Analysis
                   </Button>
                 </div>
+                )}
               </div>
             </div>
           )}
