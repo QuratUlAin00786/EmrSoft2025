@@ -179,7 +179,6 @@ export function FullConsultationInterface({ open, onOpenChange, patient, patient
     // Validate vitals before saving
     if (!validateAllVitals()) {
       toast({
-        title: "Validation Error",
         description: "Please correct the errors in the vitals fields before saving.",
       });
       return;
@@ -247,7 +246,6 @@ export function FullConsultationInterface({ open, onOpenChange, patient, patient
     // Validate history before saving
     if (!validateAllHistory()) {
       toast({
-        title: "Validation Error",
         description: "Please correct the errors in the history fields before saving.",
       });
       return;
@@ -323,7 +321,6 @@ export function FullConsultationInterface({ open, onOpenChange, patient, patient
     // Validate examination before saving
     if (!validateAllExamination()) {
       toast({
-        title: "Validation Error",
         description: "Please correct the errors in the examination fields before saving.",
       });
       return;
@@ -394,7 +391,6 @@ export function FullConsultationInterface({ open, onOpenChange, patient, patient
     // Validate assessment before saving
     if (!validateAssessment()) {
       toast({
-        title: "Validation Error",
         description: "Please fix the validation errors before saving.",
       });
       return;
@@ -2063,7 +2059,6 @@ ${
     // Validate all fields before generating plan
     if (!validateAnatomicalFields()) {
       toast({
-        title: "Validation Error",
         description: "Please fill in all required fields before generating treatment plan.",
       });
       return;
@@ -2130,7 +2125,6 @@ ${
     // Validate all fields before saving
     if (!validateAnatomicalFields()) {
       toast({
-        title: "Validation Error",
         description: "Please fill in all required fields before saving analysis.",
       });
       return;
@@ -2206,7 +2200,6 @@ ${
     // Validate all fields before saving
     if (!validatePhysicalExam()) {
       toast({
-        title: "Validation Error",
         description: "Please fill in all required fields before saving.",
       });
       return;
@@ -2279,7 +2272,6 @@ ${
     // Validate all fields before saving
     if (!validateRespiratoryExam()) {
       toast({
-        title: "Validation Error",
         description: "Please fill in all required fields before saving.",
       });
       return;
@@ -2355,7 +2347,6 @@ ${
     // Validate all fields before saving
     if (!validateCardiovascularExam()) {
       toast({
-        title: "Validation Error",
         description: "Please fill in all required fields before saving.",
       });
       return;
@@ -2431,7 +2422,6 @@ ${
     // Validate all fields before saving
     if (!validateNeurologicalExam()) {
       toast({
-        title: "Validation Error",
         description: "Please fill in all required fields before saving.",
       });
       return;
@@ -2507,7 +2497,6 @@ ${
     // Validate all fields before saving
     if (!validateGeneralExam()) {
       toast({
-        title: "Validation Error",
         description: "Please fill in all required fields before saving.",
       });
       return;
