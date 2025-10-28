@@ -284,7 +284,23 @@ function PricingManagementDashboard() {
       queryClient.invalidateQueries({ queryKey: [`/api/pricing/${apiPath}`] });
       toast({ title: "Success", description: "Pricing entry deleted successfully" });
     } catch (error: any) {
-      toast({ title: "Error", description: error.message || "Failed to delete pricing entry", variant: "destructive" });
+      let errorMessage = "Failed to delete pricing entry";
+      
+      if (error.message && typeof error.message === 'string') {
+        if (error.message.includes("not found")) {
+          errorMessage = "Pricing entry not found";
+        } else if (error.message.includes("404")) {
+          errorMessage = "Pricing entry not found in the database";
+        } else if (!error.message.includes("{") && !error.message.includes(":")) {
+          errorMessage = error.message;
+        }
+      }
+      
+      toast({ 
+        title: "Delete Failed", 
+        description: errorMessage, 
+        variant: "destructive" 
+      });
     }
   };
 
@@ -354,9 +370,23 @@ function PricingManagementDashboard() {
         description: `Added ${successCount} default lab tests successfully` 
       });
     } catch (error: any) {
+      let errorMessage = "Failed to add default tests";
+      
+      if (error.message && typeof error.message === 'string') {
+        if (error.message.includes("not found")) {
+          errorMessage = "Lab tests pricing configuration not found";
+        } else if (error.message.includes("404")) {
+          errorMessage = "Unable to connect to the pricing service";
+        } else if (error.message.includes("duplicate") || error.message.includes("already exists")) {
+          errorMessage = "Some tests already exist in the database";
+        } else if (!error.message.includes("{") && !error.message.includes(":")) {
+          errorMessage = error.message;
+        }
+      }
+      
       toast({ 
-        title: "Error", 
-        description: error.message || "Failed to add default tests", 
+        title: "Failed to Add Tests", 
+        description: errorMessage, 
         variant: "destructive" 
       });
     } finally {
@@ -436,9 +466,23 @@ function PricingManagementDashboard() {
         });
       }
     } catch (error: any) {
+      let errorMessage = "Failed to add default imaging services";
+      
+      if (error.message && typeof error.message === 'string') {
+        if (error.message.includes("not found")) {
+          errorMessage = "Imaging pricing configuration not found";
+        } else if (error.message.includes("404")) {
+          errorMessage = "Unable to connect to the imaging pricing service";
+        } else if (error.message.includes("duplicate") || error.message.includes("already exists")) {
+          errorMessage = "Some imaging services already exist in the database";
+        } else if (!error.message.includes("{") && !error.message.includes(":")) {
+          errorMessage = error.message;
+        }
+      }
+      
       toast({ 
-        title: "Error", 
-        description: error.message || "Failed to add default imaging", 
+        title: "Failed to Add Imaging", 
+        description: errorMessage, 
         variant: "destructive" 
       });
     } finally {
@@ -643,9 +687,25 @@ function PricingManagementDashboard() {
         setFormData({});
       }
     } catch (error: any) {
+      let errorMessage = "Failed to save pricing";
+      
+      if (error.message && typeof error.message === 'string') {
+        if (error.message.includes("not found")) {
+          errorMessage = "Pricing configuration not found";
+        } else if (error.message.includes("404")) {
+          errorMessage = "Unable to connect to the pricing service";
+        } else if (error.message.includes("duplicate") || error.message.includes("already exists")) {
+          errorMessage = "This pricing entry already exists";
+        } else if (error.message.includes("validation")) {
+          errorMessage = "Please check your input and try again";
+        } else if (!error.message.includes("{") && !error.message.includes(":")) {
+          errorMessage = error.message;
+        }
+      }
+      
       toast({ 
-        title: "Error", 
-        description: error.message || "Failed to save pricing", 
+        title: "Failed to Save", 
+        description: errorMessage, 
         variant: "destructive" 
       });
     } finally {
