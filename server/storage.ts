@@ -1904,6 +1904,9 @@ export class DatabaseStorage implements IStorage {
       const prescriptionsList = await db.select().from(prescriptions).where(eq(prescriptions.organizationId, organizationId));
       const aiInsightsList = await db.select().from(aiInsights).where(eq(aiInsights.organizationId, organizationId));
       
+      // Get payment data from database
+      const paymentsList = await db.select().from(saasPayments).where(eq(saasPayments.organizationId, organizationId));
+      
       const totalPatients = patientsList.length;
       const totalAppointments = appointmentsList.length;
       
@@ -2040,13 +2043,18 @@ export class DatabaseStorage implements IStorage {
         });
       }
 
+      // Calculate revenue from completed payments
+      const totalRevenue = paymentsList
+        .filter(p => p.paymentStatus === 'completed')
+        .reduce((sum, p) => sum + parseFloat(p.amount), 0);
+
       return {
         overview: {
           totalPatients,
           newPatients,
           totalAppointments,
           completedAppointments,
-          revenue: 125800, // Mock revenue data
+          revenue: totalRevenue,
           averageWaitTime: 18, // Mock wait time
           patientSatisfaction: 4.6, // Mock satisfaction
           noShowRate: totalAppointments > 0 ? Math.round((noShowAppointments / totalAppointments) * 100 * 10) / 10 : 0

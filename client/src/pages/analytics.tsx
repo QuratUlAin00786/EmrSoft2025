@@ -28,7 +28,7 @@ import {
   TrendingDown, 
   Users, 
   Calendar, 
-  DollarSign, 
+  PoundSterling, 
   Clock,
   Download,
   Filter,
@@ -312,7 +312,7 @@ export default function AnalyticsPage() {
                   +5.2% vs last month
                 </p>
               </div>
-              <DollarSign className="h-8 w-8 text-green-600" />
+              <PoundSterling className="h-8 w-8 text-green-600" />
             </div>
           </CardContent>
         </Card>
