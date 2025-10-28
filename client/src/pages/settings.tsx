@@ -781,6 +781,27 @@ function MyProfileContent({ user }: { user: any }) {
     return !patientData?.[field] || patientData[field] === "";
   };
 
+  const renderReadOnlyField = (label: string, field: string, type: string = "text") => {
+    return (
+      <div className="space-y-2">
+        <Label htmlFor={field}>{label}</Label>
+        <Input
+          id={field}
+          type={type}
+          value={formData[field] || ""}
+          disabled
+          className="bg-gray-100 dark:bg-gray-800"
+          data-testid={`input-${field}`}
+        />
+        {formData[field] && (
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            This field is read-only and cannot be edited.
+          </p>
+        )}
+      </div>
+    );
+  };
+
   const renderField = (label: string, field: string, type: string = "text") => {
     const isEmpty = canEdit(field);
     const isCurrentlyEditing = isEditing[field];
@@ -931,8 +952,8 @@ function MyProfileContent({ user }: { user: any }) {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {renderField("Blood Type", "bloodType")}
-            {renderField("Allergies", "allergies")}
+            {renderReadOnlyField("Blood Type", "bloodType")}
+            {renderReadOnlyField("Allergies", "allergies")}
           </div>
         </CardContent>
       </Card>
