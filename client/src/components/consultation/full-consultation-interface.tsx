@@ -4311,8 +4311,8 @@ ${
                   </Card>
                 )}
 
-                {/* View Anatomical Analysis Button - Only show after treatment plan is generated AND image is saved */}
-                {generatedTreatmentPlan && savedAnatomicalImage && (
+                {/* View Anatomical Analysis Button - Only show after treatment plan is generated */}
+                {generatedTreatmentPlan && (
                   <div className="flex justify-center pt-4">
                     <Button
                       onClick={async () => {
@@ -4325,6 +4325,16 @@ ${
                           toast({
                             title: "Error",
                             description: "Patient information not available.",
+                            variant: "destructive"
+                          });
+                          return;
+                        }
+
+                        // Check if image has been saved
+                        if (!savedAnatomicalImage) {
+                          toast({
+                            title: "Image Not Saved",
+                            description: "Please save the image first by clicking '💾 Save Image with Yellow Dot Position' button.",
                             variant: "destructive"
                           });
                           return;
