@@ -1,5 +1,4 @@
 import nodemailer from 'nodemailer';
-import sgMail from '@sendgrid/mail';
 
 interface EmailOptions {
   to: string;
@@ -14,67 +13,6 @@ interface EmailOptions {
     contentType?: string;
     cid?: string;
   }>;
-}
-
-// SendGrid client getter
-async function getUncachableSendGridClient() {
-  const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME;
-  const xReplitToken = process.env.REPL_IDENTITY 
-    ? 'repl ' + process.env.REPL_IDENTITY 
-    : process.env.WEB_REPL_RENEWAL 
-    ? 'depl ' + process.env.WEB_REPL_RENEWAL 
-    : null;
-
-  if (!xReplitToken) {
-    console.error('[SENDGRID] No X_REPLIT_TOKEN found');
-    throw new Error('X_REPLIT_TOKEN not found for repl/depl');
-  }
-
-  console.log('[SENDGRID] Fetching connection settings from hostname:', hostname);
-  
-  const response = await fetch(
-    'https://' + hostname + '/api/v2/connection?include_secrets=true&connector_names=sendgrid',
-    {
-      headers: {
-        'Accept': 'application/json',
-        'X_REPLIT_TOKEN': xReplitToken
-      }
-    }
-  );
-
-  const data = await response.json();
-  console.log('[SENDGRID] Connection response status:', response.status);
-  console.log('[SENDGRID] Connection items count:', data.items?.length || 0);
-  
-  const connectionSettings = data.items?.[0];
-
-  if (!connectionSettings) {
-    console.error('[SENDGRID] No connection settings found');
-    throw new Error('SendGrid connection not found - please setup SendGrid integration');
-  }
-
-  const apiKey = connectionSettings.settings?.api_key;
-  const fromEmail = connectionSettings.settings?.from_email;
-
-  console.log('[SENDGRID] API key exists:', !!apiKey);
-  console.log('[SENDGRID] API key prefix:', apiKey?.substring(0, 3));
-  console.log('[SENDGRID] From email:', fromEmail);
-
-  if (!apiKey || !fromEmail) {
-    console.error('[SENDGRID] Missing API key or from email');
-    throw new Error('SendGrid not properly configured - missing API key or from email');
-  }
-  
-  if (!apiKey.startsWith('SG.')) {
-    console.error('[SENDGRID] Invalid API key format - should start with SG.');
-    throw new Error('Invalid SendGrid API key format');
-  }
-  
-  sgMail.setApiKey(apiKey);
-  return {
-    client: sgMail,
-    fromEmail: fromEmail
-  };
 }
 
 interface EmailTemplate {
@@ -144,13 +82,13 @@ class EmailService {
 
   async sendEmail(options: EmailOptions): Promise<boolean> {
     try {
-      // Try SendGrid first
-      const result = await this.sendWithSendGrid(options);
+      // Use Gmail SMTP for all emails
+      const result = await this.sendWithSMTP(options);
       if (result) {
         return true;
       }
       
-      // If SendGrid fails, log the email details for manual follow-up
+      // If Gmail SMTP fails, log the email details for manual follow-up
       console.log('[EMAIL] 🚨 EMAIL DELIVERY FAILED:');
       console.log('[EMAIL] TO:', options.to);
       console.log('[EMAIL] SUBJECT:', options.subject);
@@ -165,38 +103,6 @@ class EmailService {
       return false;
     }
   }
-
-  private async sendWithSendGrid(options: EmailOptions): Promise<boolean> {
-    try {
-      const { client, fromEmail } = await getUncachableSendGridClient();
-      
-      // Prepare attachments for SendGrid
-      const attachments = options.attachments?.map(att => ({
-        filename: att.filename,
-        content: att.content?.toString('base64') || '',
-        type: att.contentType || 'application/octet-stream',
-        disposition: 'attachment'
-      })) || [];
-
-      const msg = {
-        to: options.to,
-        from: options.from || fromEmail,
-        subject: options.subject,
-        text: options.text || '',
-        html: options.html || '',
-        attachments
-      };
-
-      await client.send(msg);
-      console.log('[EMAIL] ✅ Email sent successfully via SendGrid to:', options.to);
-      return true;
-    } catch (error) {
-      console.error('[EMAIL] SendGrid failed:', error);
-      return false;
-    }
-  }
-
-  // Gmail SMTP only - SendGrid removed as requested by user
 
   private async sendWithSMTP(options: EmailOptions): Promise<boolean> {
     try {
