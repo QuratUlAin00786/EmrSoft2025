@@ -2979,6 +2979,8 @@ export default function UserManagement() {
                               <SelectValue placeholder="Select country" />
                             </SelectTrigger>
                             <SelectContent>
+                              <SelectItem value="Pakistan">🇵🇰 Pakistan</SelectItem>
+                              <SelectItem value="India">🇮🇳 India</SelectItem>
                               <SelectItem value="United Kingdom">🇬🇧 United Kingdom</SelectItem>
                               <SelectItem value="United States">🇺🇸 United States</SelectItem>
                               <SelectItem value="Canada">🇨🇦 Canada</SelectItem>
