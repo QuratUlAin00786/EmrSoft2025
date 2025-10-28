@@ -53,6 +53,27 @@ interface AnalyticsData {
     averageWaitTime: number;
     patientSatisfaction: number;
     noShowRate: number;
+    patientsThisMonth?: number;
+    topDoctor?: {
+      name: string;
+      appointmentCount: number;
+    };
+    totalRevenue?: number;
+    outstandingDues?: number;
+    labTestsCount?: number;
+    noShowCount?: number;
+    cancelledCount?: number;
+    topLabTest?: {
+      name: string;
+      count: number;
+    };
+    topPaymentMode?: {
+      mode: string;
+      count: number;
+    };
+    averageAge?: number;
+    maleCount?: number;
+    femaleCount?: number;
   };
   trends: {
     patientGrowth: Array<{
@@ -347,93 +368,129 @@ export default function AnalyticsPage() {
             {/* Compact Analytics Grid */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
               {/* Patients This Month */}
-              <Card className="p-3">
-                <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Patients (Month)</div>
-                <div className="text-2xl font-bold text-blue-600">{analytics.overview.patientsThisMonth || 0}</div>
-                <div className="text-xs text-gray-500">New registrations</div>
-              </Card>
+              <div>
+                <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Patients Module</div>
+                <Card className="p-3">
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Patients (Month)</div>
+                  <div className="text-2xl font-bold text-blue-600">{analytics.overview.patientsThisMonth || 0}</div>
+                  <div className="text-xs text-gray-500">New registrations</div>
+                </Card>
+              </div>
 
               {/* Top Doctor */}
-              <Card className="p-3">
-                <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Top Doctor</div>
-                <div className="text-sm font-semibold text-green-600 truncate">{analytics.overview.topDoctor?.name || 'No data'}</div>
-                <div className="text-lg font-bold text-gray-900 dark:text-white">{analytics.overview.topDoctor?.appointmentCount || 0}</div>
-                <div className="text-xs text-gray-500">Appointments</div>
-              </Card>
+              <div>
+                <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Doctors Module</div>
+                <Card className="p-3">
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Top Doctor</div>
+                  <div className="text-sm font-semibold text-green-600 truncate">{analytics.overview.topDoctor?.name || 'No data'}</div>
+                  <div className="text-lg font-bold text-gray-900 dark:text-white">{analytics.overview.topDoctor?.appointmentCount || 0}</div>
+                  <div className="text-xs text-gray-500">Appointments</div>
+                </Card>
+              </div>
 
               {/* Total Revenue */}
-              <Card className="p-3">
-                <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Total Revenue</div>
-                <div className="text-2xl font-bold text-green-600">{formatCurrency(analytics.overview.totalRevenue || 0)}</div>
-                <div className="text-xs text-gray-500">All payments</div>
-              </Card>
+              <div>
+                <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Billing Module</div>
+                <Card className="p-3">
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Total Revenue</div>
+                  <div className="text-2xl font-bold text-green-600">{formatCurrency(analytics.overview.totalRevenue || 0)}</div>
+                  <div className="text-xs text-gray-500">All payments</div>
+                </Card>
+              </div>
 
               {/* Outstanding Dues */}
-              <Card className="p-3">
-                <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Outstanding</div>
-                <div className="text-2xl font-bold text-orange-600">{formatCurrency(analytics.overview.outstandingDues || 0)}</div>
-                <div className="text-xs text-gray-500">Unpaid invoices</div>
-              </Card>
+              <div>
+                <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Billing Module</div>
+                <Card className="p-3">
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Outstanding</div>
+                  <div className="text-2xl font-bold text-orange-600">{formatCurrency(analytics.overview.outstandingDues || 0)}</div>
+                  <div className="text-xs text-gray-500">Unpaid invoices</div>
+                </Card>
+              </div>
 
               {/* Total Lab Tests */}
-              <Card className="p-3">
-                <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Lab Tests (7d)</div>
-                <div className="text-2xl font-bold text-purple-600">{analytics.overview.labTestsCount || 0}</div>
-                <div className="text-xs text-gray-500">Total ordered</div>
-              </Card>
+              <div>
+                <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Lab Tests Module</div>
+                <Card className="p-3">
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Lab Tests (7d)</div>
+                  <div className="text-2xl font-bold text-purple-600">{analytics.overview.labTestsCount || 0}</div>
+                  <div className="text-xs text-gray-500">Total ordered</div>
+                </Card>
+              </div>
 
               {/* Appointments Today */}
-              <Card className="p-3">
-                <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Appointments</div>
-                <div className="text-2xl font-bold text-blue-600">{analytics.overview.totalAppointments || 0}</div>
-                <div className="text-xs text-gray-500">{analytics.overview.completedAppointments || 0} completed</div>
-              </Card>
+              <div>
+                <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Appointments Module</div>
+                <Card className="p-3">
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Appointments</div>
+                  <div className="text-2xl font-bold text-blue-600">{analytics.overview.totalAppointments || 0}</div>
+                  <div className="text-xs text-gray-500">{analytics.overview.completedAppointments || 0} completed</div>
+                </Card>
+              </div>
 
               {/* No-Shows */}
-              <Card className="p-3">
-                <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">No-Shows</div>
-                <div className="text-2xl font-bold text-red-600">{analytics.overview.noShowCount || 0}</div>
-                <div className="text-xs text-gray-500">{analytics.overview.noShowRate || 0}% rate</div>
-              </Card>
+              <div>
+                <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Appointments Module</div>
+                <Card className="p-3">
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">No-Shows</div>
+                  <div className="text-2xl font-bold text-red-600">{analytics.overview.noShowCount || 0}</div>
+                  <div className="text-xs text-gray-500">{analytics.overview.noShowRate || 0}% rate</div>
+                </Card>
+              </div>
 
               {/* Cancellations */}
-              <Card className="p-3">
-                <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Cancelled</div>
-                <div className="text-2xl font-bold text-yellow-600">{analytics.overview.cancelledCount || 0}</div>
-                <div className="text-xs text-gray-500">Appointments</div>
-              </Card>
+              <div>
+                <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Appointments Module</div>
+                <Card className="p-3">
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Cancelled</div>
+                  <div className="text-2xl font-bold text-yellow-600">{analytics.overview.cancelledCount || 0}</div>
+                  <div className="text-xs text-gray-500">Appointments</div>
+                </Card>
+              </div>
 
               {/* Most Frequent Test */}
-              <Card className="p-3">
-                <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Top Lab Test</div>
-                <div className="text-sm font-semibold text-purple-600 truncate">{analytics.overview.topLabTest?.name || 'No data'}</div>
-                <div className="text-lg font-bold text-gray-900 dark:text-white">{analytics.overview.topLabTest?.count || 0}</div>
-                <div className="text-xs text-gray-500">Orders</div>
-              </Card>
+              <div>
+                <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Lab Tests Module</div>
+                <Card className="p-3">
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Top Lab Test</div>
+                  <div className="text-sm font-semibold text-purple-600 truncate">{analytics.overview.topLabTest?.name || 'No data'}</div>
+                  <div className="text-lg font-bold text-gray-900 dark:text-white">{analytics.overview.topLabTest?.count || 0}</div>
+                  <div className="text-xs text-gray-500">Orders</div>
+                </Card>
+              </div>
 
               {/* Payment Mode */}
-              <Card className="p-3">
-                <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Top Payment</div>
-                <div className="text-sm font-semibold text-green-600 truncate">{analytics.overview.topPaymentMode?.mode || 'No data'}</div>
-                <div className="text-lg font-bold text-gray-900 dark:text-white">{analytics.overview.topPaymentMode?.count || 0}</div>
-                <div className="text-xs text-gray-500">Transactions</div>
-              </Card>
+              <div>
+                <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Billing Module</div>
+                <Card className="p-3">
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Top Payment</div>
+                  <div className="text-sm font-semibold text-green-600 truncate">{analytics.overview.topPaymentMode?.mode || 'No data'}</div>
+                  <div className="text-lg font-bold text-gray-900 dark:text-white">{analytics.overview.topPaymentMode?.count || 0}</div>
+                  <div className="text-xs text-gray-500">Transactions</div>
+                </Card>
+              </div>
 
               {/* Age Distribution */}
-              <Card className="p-3">
-                <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Avg Age</div>
-                <div className="text-2xl font-bold text-blue-600">{analytics.overview.averageAge || 0}</div>
-                <div className="text-xs text-gray-500">Years</div>
-              </Card>
+              <div>
+                <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Patients Module</div>
+                <Card className="p-3">
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Avg Age</div>
+                  <div className="text-2xl font-bold text-blue-600">{analytics.overview.averageAge || 0}</div>
+                  <div className="text-xs text-gray-500">Years</div>
+                </Card>
+              </div>
 
               {/* Gender Ratio */}
-              <Card className="p-3">
-                <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Gender Ratio</div>
-                <div className="text-sm font-semibold text-gray-900 dark:text-white">
-                  M:{analytics.overview.maleCount || 0} F:{analytics.overview.femaleCount || 0}
-                </div>
-                <div className="text-xs text-gray-500">Patients</div>
-              </Card>
+              <div>
+                <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Patients Module</div>
+                <Card className="p-3">
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Gender Ratio</div>
+                  <div className="text-sm font-semibold text-gray-900 dark:text-white">
+                    M:{analytics.overview.maleCount || 0} F:{analytics.overview.femaleCount || 0}
+                  </div>
+                  <div className="text-xs text-gray-500">Patients</div>
+                </Card>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
