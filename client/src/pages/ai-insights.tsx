@@ -358,7 +358,7 @@ export default function AiInsights() {
                               </p>
                             )}
 
-                            {insight.metadata.suggestedActions && insight.metadata.suggestedActions.length > 0 && (
+                            {insight.metadata && insight.metadata.suggestedActions && insight.metadata.suggestedActions.length > 0 && (
                               <div className="mb-4">
                                 <h5 className="text-sm font-medium text-gray-800 dark:text-gray-200 mb-2">Suggested Actions:</h5>
                                 <ul className="text-sm text-gray-600 dark:text-gray-300 space-y-1">
