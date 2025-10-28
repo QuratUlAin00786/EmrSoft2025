@@ -173,6 +173,15 @@ export default function PatientFamilyHistory({
   const [newChronicCondition, setNewChronicCondition] = useState("");
   const [editingCondition, setEditingCondition] =
     useState<FamilyCondition | null>(null);
+  const [familyErrors, setFamilyErrors] = useState({
+    relative: "",
+    condition: "",
+  });
+  const [immunizationErrors, setImmunizationErrors] = useState({
+    vaccine: "",
+    date: "",
+    provider: "",
+  });
 
   // Ensure Family History tab is selected when dialog opens
   useEffect(() => {
@@ -396,7 +405,19 @@ export default function PatientFamilyHistory({
   };
 
   const addFamilyCondition = () => {
-    if (!newCondition.relative || !newCondition.condition) {
+    // Reset errors
+    setFamilyErrors({ relative: "", condition: "" });
+
+    // Validate fields
+    const errors = {
+      relative: !newCondition.relative ? "Please select a family member" : "",
+      condition: !newCondition.condition
+        ? "Please select a medical condition"
+        : "",
+    };
+
+    if (errors.relative || errors.condition) {
+      setFamilyErrors(errors);
       return;
     }
 
@@ -468,15 +489,24 @@ export default function PatientFamilyHistory({
 
     // Reset form only after successful local update
     setNewCondition({ relative: "", condition: "", severity: "mild" });
+    setFamilyErrors({ relative: "", condition: "" });
   };
 
   const addImmunization = () => {
-    if (
-      !newImmunization.vaccine ||
-      !newImmunization.date ||
-      !newImmunization.provider
-    )
+    // Reset errors
+    setImmunizationErrors({ vaccine: "", date: "", provider: "" });
+
+    // Validate fields
+    const errors = {
+      vaccine: !newImmunization.vaccine ? "Please select a vaccine" : "",
+      date: !newImmunization.date ? "Please select a date" : "",
+      provider: !newImmunization.provider ? "Please enter a provider" : "",
+    };
+
+    if (errors.vaccine || errors.date || errors.provider) {
+      setImmunizationErrors(errors);
       return;
+    }
 
     const immunization: Immunization = {
       id: Date.now().toString(),
@@ -514,6 +544,7 @@ export default function PatientFamilyHistory({
       site: "",
       notes: "",
     });
+    setImmunizationErrors({ vaccine: "", date: "", provider: "" });
     setShowImmunizationForm(false);
   };
 
@@ -598,6 +629,11 @@ export default function PatientFamilyHistory({
                             ))}
                           </SelectContent>
                         </Select>
+                        {familyErrors.relative && (
+                          <p className="text-sm text-red-500 mt-1">
+                            {familyErrors.relative}
+                          </p>
+                        )}
                       </div>
                       <div>
                         <Label>Medical Condition</Label>
@@ -621,6 +657,11 @@ export default function PatientFamilyHistory({
                             ))}
                           </SelectContent>
                         </Select>
+                        {familyErrors.condition && (
+                          <p className="text-sm text-red-500 mt-1">
+                            {familyErrors.condition}
+                          </p>
+                        )}
                       </div>
                     </div>
                     <div className="grid grid-cols-3 gap-4 mb-4">
@@ -930,6 +971,11 @@ export default function PatientFamilyHistory({
                                 ))}
                               </SelectContent>
                             </Select>
+                            {immunizationErrors.vaccine && (
+                              <p className="text-sm text-red-500 mt-1">
+                                {immunizationErrors.vaccine}
+                              </p>
+                            )}
                           </div>
                           <div>
                             <Label>Date Administered</Label>
@@ -943,6 +989,11 @@ export default function PatientFamilyHistory({
                                 })
                               }
                             />
+                            {immunizationErrors.date && (
+                              <p className="text-sm text-red-500 mt-1">
+                                {immunizationErrors.date}
+                              </p>
+                            )}
                           </div>
                           <div>
                             <Label>Healthcare Provider</Label>
@@ -956,6 +1007,11 @@ export default function PatientFamilyHistory({
                                 })
                               }
                             />
+                            {immunizationErrors.provider && (
+                              <p className="text-sm text-red-500 mt-1">
+                                {immunizationErrors.provider}
+                              </p>
+                            )}
                           </div>
                           <div>
                             <Label>Lot Number (Optional)</Label>
@@ -1033,6 +1089,11 @@ export default function PatientFamilyHistory({
                                 lot: "",
                                 site: "",
                                 notes: "",
+                              });
+                              setImmunizationErrors({
+                                vaccine: "",
+                                date: "",
+                                provider: "",
                               });
                             }}
                           >
