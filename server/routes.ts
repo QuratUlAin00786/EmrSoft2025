@@ -19466,7 +19466,7 @@ Cura EMR Team
     try {
       const organizationId = requireOrgId(req);
       const header = await storage.getActiveClinicHeader(organizationId);
-      res.json(header);
+      res.json(header || null);
     } catch (error) {
       handleRouteError(error, "get clinic header", res);
     }
@@ -19504,7 +19504,7 @@ Cura EMR Team
     try {
       const organizationId = requireOrgId(req);
       const footer = await storage.getActiveClinicFooter(organizationId);
-      res.json(footer);
+      res.json(footer || null);
     } catch (error) {
       handleRouteError(error, "get clinic footer", res);
     }
