@@ -2009,6 +2009,33 @@ export class DatabaseStorage implements IStorage {
         });
       }
 
+      // Calculate appointment volume trend for last 30 days
+      const appointmentVolumeData = [];
+      for (let i = 29; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        const dayEnd = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59);
+        
+        const dayAppointments = appointmentsList.filter(a => {
+          const scheduledDate = new Date(a.scheduledAt);
+          return scheduledDate >= dayStart && scheduledDate <= dayEnd;
+        });
+        
+        const completed = dayAppointments.filter(a => a.status === 'completed').length;
+        const cancelled = dayAppointments.filter(a => a.status === 'cancelled').length;
+        const noShow = dayAppointments.filter(a => a.status === 'no-show').length;
+        const scheduled = dayAppointments.filter(a => a.status === 'scheduled').length;
+        
+        appointmentVolumeData.push({
+          date: dayStart.toISOString().split('T')[0],
+          scheduled,
+          completed,
+          cancelled,
+          noShow
+        });
+      }
+
       return {
         overview: {
           totalPatients,
@@ -2022,13 +2049,7 @@ export class DatabaseStorage implements IStorage {
         },
         trends: {
           patientGrowth: patientGrowthData,
-          appointmentVolume: [
-            { date: "2024-06-10", scheduled: 45, completed: 42, cancelled: 2, noShow: 1 },
-            { date: "2024-06-11", scheduled: 52, completed: 47, cancelled: 3, noShow: 2 },
-            { date: "2024-06-12", scheduled: 48, completed: 44, cancelled: 2, noShow: 2 },
-            { date: "2024-06-13", scheduled: 51, completed: 46, cancelled: 3, noShow: 2 },
-            { date: "2024-06-14", scheduled: 49, completed: 45, cancelled: 2, noShow: 2 }
-          ],
+          appointmentVolume: appointmentVolumeData,
           revenue: [
             { month: "Jan", amount: 98500, target: 100000 },
             { month: "Feb", amount: 102300, target: 105000 },
