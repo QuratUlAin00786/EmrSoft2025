@@ -730,7 +730,7 @@ function MyProfileContent({ user }: { user: any }) {
         dateOfBirth: patientData.dateOfBirth || "",
         gender: patientData.gender || "",
         phone: patientData.phone || "",
-        address: patientData.address || "",
+        address: patientData.address?.street || "",
         city: patientData.city || "",
         state: patientData.state || "",
         zipCode: patientData.zipCode || "",
@@ -765,6 +765,13 @@ function MyProfileContent({ user }: { user: any }) {
           phone: formData.emergencyContactPhone,
         },
       });
+    } else if (field === "address") {
+      updatePatientMutation.mutate({
+        address: {
+          ...patientData?.address,
+          street: formData.address,
+        },
+      });
     } else {
       updatePatientMutation.mutate({ [field]: formData[field] });
     }
@@ -777,6 +784,9 @@ function MyProfileContent({ user }: { user: any }) {
     }
     if (field === "emergencyContactPhone") {
       return !patientData?.emergencyContact?.phone || patientData.emergencyContact.phone === "";
+    }
+    if (field === "address") {
+      return !patientData?.address?.street || patientData.address.street === "";
     }
     return !patientData?.[field] || patientData[field] === "";
   };
@@ -848,6 +858,8 @@ function MyProfileContent({ user }: { user: any }) {
                     setFormData((prev: any) => ({ ...prev, emergencyContactName: patientData?.emergencyContact?.name || "" }));
                   } else if (field === "emergencyContactPhone") {
                     setFormData((prev: any) => ({ ...prev, emergencyContactPhone: patientData?.emergencyContact?.phone || "" }));
+                  } else if (field === "address") {
+                    setFormData((prev: any) => ({ ...prev, address: patientData?.address?.street || "" }));
                   } else {
                     setFormData((prev: any) => ({ ...prev, [field]: patientData?.[field] || "" }));
                   }
