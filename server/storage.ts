@@ -2093,6 +2093,68 @@ export class DatabaseStorage implements IStorage {
         };
       });
 
+      // Additional Analytics
+      // Outstanding dues calculation
+      const invoicesList = await db.select().from(invoices).where(eq(invoices.organizationId, organizationId));
+      const outstandingDues = invoicesList
+        .filter(inv => inv.status !== 'paid')
+        .reduce((sum, inv) => sum + parseFloat(inv.totalAmount), 0);
+
+      // Lab tests count (last 7 days)
+      const labTestsCount = labResultsList.length;
+
+      // No-show and cancelled counts
+      const noShowCount = noShowAppointments;
+      const cancelledCount = cancelledAppointments;
+
+      // Most frequent lab test
+      const labTestCounts = labResultsList.reduce((acc, lab) => {
+        const testName = lab.testType || 'Unknown';
+        acc[testName] = (acc[testName] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
+      const topLabTestEntry = Object.entries(labTestCounts)
+        .sort(([,a], [,b]) => b - a)[0];
+      
+      const topLabTest = topLabTestEntry ? {
+        name: topLabTestEntry[0],
+        count: topLabTestEntry[1]
+      } : { name: 'No data', count: 0 };
+
+      // Top payment mode
+      const paymentModeCounts = paymentsList.reduce((acc, payment) => {
+        const mode = payment.paymentMethod || 'Unknown';
+        acc[mode] = (acc[mode] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
+      const topPaymentModeEntry = Object.entries(paymentModeCounts)
+        .sort(([,a], [,b]) => b - a)[0];
+      
+      const topPaymentMode = topPaymentModeEntry ? {
+        mode: topPaymentModeEntry[0],
+        count: topPaymentModeEntry[1]
+      } : { mode: 'No data', count: 0 };
+
+      // Average age calculation
+      const patientsWithAge = patientsList.filter(p => p.dateOfBirth);
+      const averageAge = patientsWithAge.length > 0 
+        ? Math.round(patientsWithAge.reduce((sum, p) => {
+            const birthDate = new Date(p.dateOfBirth!);
+            const age = Math.floor((Date.now() - birthDate.getTime()) / (365.25 * 24 * 60 * 60 * 1000));
+            return sum + age;
+          }, 0) / patientsWithAge.length)
+        : 0;
+
+      // Gender counts
+      const maleCount = patientsList.filter(p => 
+        p.genderAtBirth?.toLowerCase() === 'male'
+      ).length;
+      const femaleCount = patientsList.filter(p => 
+        p.genderAtBirth?.toLowerCase() === 'female'
+      ).length;
+
       return {
         overview: {
           totalPatients,
@@ -2105,7 +2167,17 @@ export class DatabaseStorage implements IStorage {
           noShowRate: totalAppointments > 0 ? Math.round((noShowAppointments / totalAppointments) * 100 * 10) / 10 : 0,
           patientsThisMonth,
           topDoctor,
-          labTestsDaily
+          labTestsDaily,
+          totalRevenue,
+          outstandingDues,
+          labTestsCount,
+          noShowCount,
+          cancelledCount,
+          topLabTest,
+          topPaymentMode,
+          averageAge,
+          maleCount,
+          femaleCount
         },
         trends: {
           patientGrowth: patientGrowthData,
