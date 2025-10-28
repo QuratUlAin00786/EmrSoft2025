@@ -14139,8 +14139,8 @@ This treatment plan should be reviewed and adjusted based on individual patient 
       let clinicLogoUrl: string | undefined;
       try {
         const clinicHeader = await storage.getActiveClinicHeader(req.tenant!.id);
-        clinicLogoUrl = clinicHeader?.logo || undefined;
-        console.log('[PRESCRIPTION-EMAIL] Clinic logo from clinic_headers:', clinicLogoUrl);
+        clinicLogoUrl = clinicHeader?.logoBase64 || undefined;
+        console.log('[PRESCRIPTION-EMAIL] Clinic logo from clinic_headers:', clinicLogoUrl ? 'Logo found' : 'No logo');
       } catch (error) {
         console.log('[PRESCRIPTION-EMAIL] Could not fetch clinic header logo:', error);
         clinicLogoUrl = undefined;
