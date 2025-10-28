@@ -368,15 +368,12 @@ export default function Settings() {
       
       <div className="flex-1 overflow-auto p-6">
         <div className="max-w-6xl mx-auto">
-          <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
-            {user?.role === "patient" ? (
-              <TabsList className="grid w-full grid-cols-1">
-                <TabsTrigger value="my-profile">
-                  <User className="h-4 w-4 mr-2" />
-                  My Profile
-                </TabsTrigger>
-              </TabsList>
-            ) : (
+          {user?.role === "patient" ? (
+            <div className="space-y-6">
+              <MyProfileContent user={user} />
+            </div>
+          ) : (
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="general">
                   <SettingsIcon className="h-4 w-4 mr-2" />
@@ -391,9 +388,8 @@ export default function Settings() {
                   Integrations
                 </TabsTrigger>
               </TabsList>
-            )}
 
-            <TabsContent value="general" className="space-y-6">
+              <TabsContent value="general" className="space-y-6">
               {/* Organization Settings */}
               <Card>
             <CardHeader>
@@ -631,18 +627,15 @@ export default function Settings() {
               </div>
             </TabsContent>
 
-            <TabsContent value="gdpr">
-              <GDPRCompliance />
-            </TabsContent>
+              <TabsContent value="gdpr">
+                <GDPRCompliance />
+              </TabsContent>
 
-            <TabsContent value="integrations">
-              <IntegrationsPage />
-            </TabsContent>
-
-            <TabsContent value="my-profile" className="space-y-6">
-              <MyProfileContent user={user} />
-            </TabsContent>
-          </Tabs>
+              <TabsContent value="integrations">
+                <IntegrationsPage />
+              </TabsContent>
+            </Tabs>
+          )}
         </div>
       </div>
     </>
@@ -651,6 +644,7 @@ export default function Settings() {
 
 function MyProfileContent({ user }: { user: any }) {
   const { toast } = useToast();
+  const { tenant } = useTenant();
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState<Record<string, boolean>>({});
 
@@ -660,6 +654,7 @@ function MyProfileContent({ user }: { user: any }) {
       const token = localStorage.getItem("auth_token");
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
+        "X-Tenant-Subdomain": tenant?.subdomain || "demo",
       };
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
@@ -675,7 +670,10 @@ function MyProfileContent({ user }: { user: any }) {
       }
 
       const patients = await response.json();
+      console.log("All patients:", patients);
+      console.log("Looking for email:", user?.email);
       const myPatient = patients.find((p: any) => p.email === user?.email);
+      console.log("Found patient:", myPatient);
       return myPatient || null;
     },
     enabled: !!user?.email,
@@ -686,6 +684,7 @@ function MyProfileContent({ user }: { user: any }) {
       const token = localStorage.getItem("auth_token");
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
+        "X-Tenant-Subdomain": tenant?.subdomain || "demo",
       };
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
