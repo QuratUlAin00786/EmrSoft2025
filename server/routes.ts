@@ -19358,7 +19358,7 @@ Cura EMR Team
   });
 
   // Imaging Pricing Routes
-  app.get("/api/pricing/imaging", authMiddleware, requireRole('doctor', 'nurse', 'patient', 'admin'), multiTenantEnforcer(), async (req: TenantRequest, res) => {
+  app.get("/api/pricing/imaging", authMiddleware, requireRole(['doctor', 'nurse', 'patient', 'admin']), multiTenantEnforcer(), async (req: TenantRequest, res) => {
     try {
       const organizationId = requireOrgId(req);
       const pricing = await storage.getImagingPricing(organizationId);
@@ -19368,7 +19368,7 @@ Cura EMR Team
     }
   });
 
-  app.get("/api/pricing/imaging/:id", authMiddleware, requireRole('doctor', 'nurse', 'patient', 'admin'), multiTenantEnforcer(), async (req: TenantRequest, res) => {
+  app.get("/api/pricing/imaging/:id", authMiddleware, requireRole(['doctor', 'nurse', 'patient', 'admin']), multiTenantEnforcer(), async (req: TenantRequest, res) => {
     try {
       const organizationId = requireOrgId(req);
       const pricing = await storage.getImagingPricingById(parseInt(req.params.id), organizationId);
@@ -19381,7 +19381,7 @@ Cura EMR Team
     }
   });
 
-  app.post("/api/pricing/imaging", authMiddleware, requireRole('admin'), multiTenantEnforcer(), async (req: TenantRequest, res) => {
+  app.post("/api/pricing/imaging", authMiddleware, requireRole(['admin']), multiTenantEnforcer(), async (req: TenantRequest, res) => {
     try {
       const organizationId = requireOrgId(req);
       const payload = enforceCreatedBy(req, {
@@ -19396,7 +19396,7 @@ Cura EMR Team
     }
   });
 
-  app.patch("/api/pricing/imaging/:id", authMiddleware, requireRole('admin'), multiTenantEnforcer(), async (req: TenantRequest, res) => {
+  app.patch("/api/pricing/imaging/:id", authMiddleware, requireRole(['admin']), multiTenantEnforcer(), async (req: TenantRequest, res) => {
     try {
       const organizationId = requireOrgId(req);
       const updated = await storage.updateImagingPricing(parseInt(req.params.id), organizationId, req.body);
@@ -19409,7 +19409,7 @@ Cura EMR Team
     }
   });
 
-  app.delete("/api/pricing/imaging/:id", authMiddleware, requireRole('admin'), multiTenantEnforcer(), async (req: TenantRequest, res) => {
+  app.delete("/api/pricing/imaging/:id", authMiddleware, requireRole(['admin']), multiTenantEnforcer(), async (req: TenantRequest, res) => {
     try {
       const organizationId = requireOrgId(req);
       const success = await storage.deleteImagingPricing(parseInt(req.params.id), organizationId);
