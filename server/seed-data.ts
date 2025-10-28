@@ -664,7 +664,7 @@ export async function seedDatabase() {
           name: "lab_technician",
           displayName: "Lab Technician",
           description: "Laboratory technician with lab results access",
-          permissions: {"fields": {"financialData": {"edit": false, "view": false}, "medicalHistory": {"edit": false, "view": true}, "patientSensitiveInfo": {"edit": false, "view": false}}, "modules": {"billing": {"edit": false, "view": false, "create": false, "delete": false}, "patients": {"edit": false, "view": true, "create": false, "delete": false}, "settings": {"edit": false, "view": false, "create": false, "delete": false}, "analytics": {"edit": false, "view": false, "create": false, "delete": false}, "appointments": {"edit": false, "view": true, "create": false, "delete": false}, "prescriptions": {"edit": false, "view": false, "create": false, "delete": false}, "medicalRecords": {"edit": true, "view": true, "create": true, "delete": false}, "userManagement": {"edit": false, "view": false, "create": false, "delete": false}}},
+          permissions: {"fields": {}, "modules": {"dashboard": {"edit": false, "view": true, "create": false, "delete": false}}},
           isSystem: true
         },
         {
@@ -736,7 +736,7 @@ export async function seedDatabase() {
           name: "sample_taker",
           displayName: "Sample Taker",
           description: "Medical sample collection specialist",
-          permissions: {"fields": {"financialData": {"edit": false, "view": false}, "medicalHistory": {"edit": false, "view": true}, "patientSensitiveInfo": {"edit": false, "view": false}}, "modules": {"billing": {"edit": false, "view": false, "create": false, "delete": false}, "patients": {"edit": false, "view": true, "create": false, "delete": false}, "settings": {"edit": false, "view": false, "create": false, "delete": false}, "analytics": {"edit": false, "view": false, "create": false, "delete": false}, "appointments": {"edit": false, "view": true, "create": false, "delete": false}, "prescriptions": {"edit": false, "view": false, "create": false, "delete": false}, "medicalRecords": {"edit": true, "view": true, "create": true, "delete": false}, "userManagement": {"edit": false, "view": false, "create": false, "delete": false}}},
+          permissions: {"fields": {}, "modules": {"dashboard": {"edit": false, "view": true, "create": false, "delete": false}}},
           isSystem: true
         },
         {
