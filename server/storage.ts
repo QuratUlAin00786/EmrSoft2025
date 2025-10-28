@@ -1905,7 +1905,7 @@ export class DatabaseStorage implements IStorage {
       const aiInsightsList = await db.select().from(aiInsights).where(eq(aiInsights.organizationId, organizationId));
       
       // Get payment data from database
-      const paymentsList = await db.select().from(saasPayments).where(eq(saasPayments.organizationId, organizationId));
+      const paymentsList = await db.select().from(payments).where(eq(payments.organizationId, organizationId));
       
       const totalPatients = patientsList.length;
       const totalAppointments = appointmentsList.length;
