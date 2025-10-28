@@ -372,6 +372,91 @@ export default function Settings() {
             <div className="space-y-6">
               <MyProfileContent user={user} />
             </div>
+          ) : user?.role === "doctor" ? (
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <User className="h-5 w-5" />
+                    <span>My Profile</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>First Name</Label>
+                      <Input value={user?.firstName || ""} disabled className="bg-gray-100 dark:bg-gray-800" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Last Name</Label>
+                      <Input value={user?.lastName || ""} disabled className="bg-gray-100 dark:bg-gray-800" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Email</Label>
+                      <Input value={user?.email || ""} disabled className="bg-gray-100 dark:bg-gray-800" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Username</Label>
+                      <Input value={user?.username || ""} disabled className="bg-gray-100 dark:bg-gray-800" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Role</Label>
+                      <Input value={user?.role || ""} disabled className="bg-gray-100 dark:bg-gray-800" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Department</Label>
+                      <Input value={user?.department || ""} disabled className="bg-gray-100 dark:bg-gray-800" />
+                    </div>
+                    {user?.medicalSpecialtyCategory && (
+                      <div className="space-y-2">
+                        <Label>Medical Specialty Category</Label>
+                        <Input value={user.medicalSpecialtyCategory} disabled className="bg-gray-100 dark:bg-gray-800" />
+                      </div>
+                    )}
+                    {user?.subSpecialty && (
+                      <div className="space-y-2">
+                        <Label>Sub-Specialty</Label>
+                        <Input value={user.subSpecialty} disabled className="bg-gray-100 dark:bg-gray-800" />
+                      </div>
+                    )}
+                    {user?.workingDays && (
+                      <div className="space-y-2">
+                        <Label>Working Days</Label>
+                        <Input 
+                          value={Array.isArray(user.workingDays) ? user.workingDays.join(", ") : user.workingDays} 
+                          disabled 
+                          className="bg-gray-100 dark:bg-gray-800" 
+                        />
+                      </div>
+                    )}
+                    {user?.workingHours && (
+                      <div className="space-y-2">
+                        <Label>Working Hours</Label>
+                        <Input 
+                          value={typeof user.workingHours === 'object' ? `${user.workingHours.start} - ${user.workingHours.end}` : user.workingHours} 
+                          disabled 
+                          className="bg-gray-100 dark:bg-gray-800" 
+                        />
+                      </div>
+                    )}
+                    <div className="space-y-2">
+                      <Label>Status</Label>
+                      <Input value={user?.isActive ? "Active" : "Inactive"} disabled className="bg-gray-100 dark:bg-gray-800" />
+                    </div>
+                    {user?.createdAt && (
+                      <div className="space-y-2">
+                        <Label>Member Since</Label>
+                        <Input 
+                          value={new Date(user.createdAt).toLocaleDateString()} 
+                          disabled 
+                          className="bg-gray-100 dark:bg-gray-800" 
+                        />
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           ) : (
             <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
               <TabsList className="grid w-full grid-cols-3">
@@ -390,92 +475,6 @@ export default function Settings() {
               </TabsList>
 
               <TabsContent value="general" className="space-y-6">
-              {/* Doctor/Staff User Profile - Show for non-admin roles */}
-              {user?.role === "doctor" && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center space-x-2">
-                      <User className="h-5 w-5" />
-                      <span>My Profile</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>First Name</Label>
-                        <Input value={user?.firstName || ""} disabled className="bg-gray-100 dark:bg-gray-800" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Last Name</Label>
-                        <Input value={user?.lastName || ""} disabled className="bg-gray-100 dark:bg-gray-800" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Email</Label>
-                        <Input value={user?.email || ""} disabled className="bg-gray-100 dark:bg-gray-800" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Username</Label>
-                        <Input value={user?.username || ""} disabled className="bg-gray-100 dark:bg-gray-800" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Role</Label>
-                        <Input value={user?.role || ""} disabled className="bg-gray-100 dark:bg-gray-800" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Department</Label>
-                        <Input value={user?.department || ""} disabled className="bg-gray-100 dark:bg-gray-800" />
-                      </div>
-                      {user?.medicalSpecialtyCategory && (
-                        <div className="space-y-2">
-                          <Label>Medical Specialty Category</Label>
-                          <Input value={user.medicalSpecialtyCategory} disabled className="bg-gray-100 dark:bg-gray-800" />
-                        </div>
-                      )}
-                      {user?.subSpecialty && (
-                        <div className="space-y-2">
-                          <Label>Sub-Specialty</Label>
-                          <Input value={user.subSpecialty} disabled className="bg-gray-100 dark:bg-gray-800" />
-                        </div>
-                      )}
-                      {user?.workingDays && (
-                        <div className="space-y-2">
-                          <Label>Working Days</Label>
-                          <Input 
-                            value={Array.isArray(user.workingDays) ? user.workingDays.join(", ") : user.workingDays} 
-                            disabled 
-                            className="bg-gray-100 dark:bg-gray-800" 
-                          />
-                        </div>
-                      )}
-                      {user?.workingHours && (
-                        <div className="space-y-2">
-                          <Label>Working Hours</Label>
-                          <Input 
-                            value={typeof user.workingHours === 'object' ? `${user.workingHours.start} - ${user.workingHours.end}` : user.workingHours} 
-                            disabled 
-                            className="bg-gray-100 dark:bg-gray-800" 
-                          />
-                        </div>
-                      )}
-                      <div className="space-y-2">
-                        <Label>Status</Label>
-                        <Input value={user?.isActive ? "Active" : "Inactive"} disabled className="bg-gray-100 dark:bg-gray-800" />
-                      </div>
-                      {user?.createdAt && (
-                        <div className="space-y-2">
-                          <Label>Member Since</Label>
-                          <Input 
-                            value={new Date(user.createdAt).toLocaleDateString()} 
-                            disabled 
-                            className="bg-gray-100 dark:bg-gray-800" 
-                          />
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
               {/* Organization Settings */}
               <Card>
             <CardHeader>
