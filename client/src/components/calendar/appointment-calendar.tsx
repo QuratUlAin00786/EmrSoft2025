@@ -175,6 +175,8 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
   const [editingAppointment, setEditingAppointment] = useState<any>(null);
   const [editAppointmentDate, setEditAppointmentDate] = useState<Date | undefined>(undefined);
   const [editSelectedTimeSlot, setEditSelectedTimeSlot] = useState<string>("");
+  const [showInsufficientTimeWarning, setShowInsufficientTimeWarning] = useState(false);
+  const [insufficientTimeMessage, setInsufficientTimeMessage] = useState<string>("");
   
   // State for invoice creation workflow
   const [showInvoiceDialog, setShowInvoiceDialog] = useState(false);
@@ -3192,6 +3194,19 @@ Medical License: [License Number]
                                 }`}
                                 disabled={!isAvailable}
                                 onClick={() => {
+                                  // Validate if enough consecutive slots are available for the appointment duration
+                                  const duration = editingAppointment.duration || 30;
+                                  const availabilityCheck = checkConsecutiveSlotsAvailable(editAppointmentDate!, slot, duration);
+                                  
+                                  if (!availabilityCheck.available) {
+                                    // Show warning dialog with available time
+                                    setInsufficientTimeMessage(
+                                      `Only ${availabilityCheck.availableMinutes} minutes are available at ${slot}. Please select another time slot.`
+                                    );
+                                    setShowInsufficientTimeWarning(true);
+                                    return;
+                                  }
+                                  
                                   setEditSelectedTimeSlot(slot);
                                   if (editAppointmentDate) {
                                     // Parse time slot to get hours and minutes
@@ -3350,6 +3365,32 @@ Medical License: [License Number]
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Insufficient Time Available Warning Dialog */}
+      <Dialog open={showInsufficientTimeWarning} onOpenChange={setShowInsufficientTimeWarning}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-red-600">Insufficient Time Available</DialogTitle>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <p className="text-gray-700">{insufficientTimeMessage}</p>
+          </div>
+
+          <div className="flex justify-end">
+            <Button
+              onClick={() => {
+                setShowInsufficientTimeWarning(false);
+                setInsufficientTimeMessage("");
+              }}
+              className="bg-blue-500 hover:bg-blue-600"
+              data-testid="button-insufficient-time-ok"
+            >
+              OK
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
