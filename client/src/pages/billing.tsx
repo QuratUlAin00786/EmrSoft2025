@@ -2650,7 +2650,20 @@ export default function BillingPage() {
   };
 
   const getOutstandingAmount = () => {
-    return Array.isArray(invoices) ? invoices.reduce((sum: number, invoice: any) => sum + (invoice.totalAmount - invoice.paidAmount), 0) : 0;
+    // Calculate total from invoices table
+    const totalInvoices = Array.isArray(invoices) ? invoices.reduce((sum: number, invoice: any) => {
+      const amount = typeof invoice.totalAmount === 'string' ? parseFloat(invoice.totalAmount) : invoice.totalAmount;
+      return sum + amount;
+    }, 0) : 0;
+    
+    // Calculate total from payments table
+    const totalPayments = Array.isArray(payments) ? payments.reduce((sum: number, payment: any) => {
+      const amount = typeof payment.amount === 'string' ? parseFloat(payment.amount) : payment.amount;
+      return sum + amount;
+    }, 0) : 0;
+    
+    // Outstanding = Invoices - Payments
+    return totalInvoices - totalPayments;
   };
 
   if (invoicesLoading) {
