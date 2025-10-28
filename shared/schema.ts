@@ -467,7 +467,7 @@ export const invoices = pgTable("invoices", {
   invoiceNumber: varchar("invoice_number", { length: 50 }).notNull().unique(),
   patientId: text("patient_id").notNull(), // Reference to patients.patientId
   patientName: text("patient_name").notNull(),
-  nhsNumber: varchar("nhs_number", { length: 10 }), // 10-digit NHS number
+  nhsNumber: varchar("nhs_number", { length: 50 }), // NHS number or patient identifier
   serviceType: varchar("service_type", { length: 50 }), // lab_result, medical_image, consultation, etc.
   serviceId: text("service_id"), // ID of the related service (lab_results.testId, medical_images.id, etc.)
   dateOfService: timestamp("date_of_service").notNull(),
