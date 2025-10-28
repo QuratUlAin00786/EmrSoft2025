@@ -144,19 +144,6 @@ export default function Subscription() {
       
       <div className="flex-1 overflow-auto bg-gradient-to-br from-gray-50 to-blue-50/30 dark:from-gray-900 dark:to-blue-950/20 p-6">
         <div className="max-w-7xl mx-auto space-y-10">
-          {/* Page Header */}
-          <div className="text-center space-y-3">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 shadow-lg mb-4">
-              <Crown className="h-8 w-8 text-white" />
-            </div>
-            <h2 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent">
-              Cura Packages
-            </h2>
-            <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-              Choose the perfect plan to power your medical practice
-            </p>
-          </div>
-
           {/* Current Subscription */}
           {subscription && (
             <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-blue-50/50 dark:from-gray-800 dark:to-blue-950/30 overflow-hidden">
