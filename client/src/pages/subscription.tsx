@@ -5,7 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
-import { Crown, Users, Calendar, Zap, Check, X, Package, Heart, Brain, Shield, Stethoscope, Phone, FileText, Activity, Pill, UserCheck, TrendingUp, Download } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Crown, Users, Calendar, Zap, Check, X, Package, Heart, Brain, Shield, Stethoscope, Phone, FileText, Activity, Pill, UserCheck, TrendingUp, Download, CreditCard } from "lucide-react";
 import { PaymentMethodDialog } from "@/components/payment-method-dialog";
 import type { Subscription } from "@/types";
 import type { SaaSPackage } from "@shared/schema";
@@ -50,6 +52,9 @@ const formatPackageFeatures = (features: any): string[] => {
 export default function Subscription() {
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [showCurrentPlanDialog, setShowCurrentPlanDialog] = useState(false);
+  const [currentPlanData, setCurrentPlanData] = useState<any>(null);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'ryft' | 'paypal' | 'stripe'>('ryft');
   
   const { data: subscription, isLoading, error } = useQuery<Subscription>({
     queryKey: ["/api/subscription"],
@@ -297,13 +302,16 @@ export default function Subscription() {
                           ? "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white" 
                           : "bg-white dark:bg-gray-700 border-2 border-gray-300 dark:border-gray-600 hover:border-blue-500 dark:hover:border-blue-500 text-gray-900 dark:text-gray-100"
                       }`}
-                      disabled={subscription?.plan === plan.id}
                       onClick={() => {
-                        if (subscription?.plan !== plan.id) {
+                        if (subscription?.plan === plan.id) {
+                          setCurrentPlanData(plan);
+                          setShowCurrentPlanDialog(true);
+                        } else {
                           setSelectedPlan(plan);
                           setShowPaymentDialog(true);
                         }
                       }}
+                      data-testid={`button-plan-${plan.id}`}
                     >
                       {subscription?.plan === plan.id 
                         ? "✓ Current Plan" 
@@ -479,6 +487,150 @@ export default function Subscription() {
           </Card>
         </div>
       </div>
+      
+      {/* Current Plan Payment Dialog */}
+      <Dialog open={showCurrentPlanDialog} onOpenChange={setShowCurrentPlanDialog}>
+        <DialogContent className="sm:max-w-[580px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl">
+              <CreditCard className="h-5 w-5" />
+              Manage {currentPlanData?.name}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {currentPlanData && (
+            <div className="space-y-6">
+              {/* Plan Details */}
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{currentPlanData.name}</h3>
+                  <div className="text-right">
+                    <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">£{currentPlanData.price}</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">/month</div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                  <Users className="h-4 w-4" />
+                  <span>Up to {currentPlanData.userLimit} users</span>
+                </div>
+                
+                <div className="flex items-center gap-2 text-green-600 dark:text-green-500">
+                  <Check className="h-4 w-4" />
+                  <span className="text-sm font-medium">30-day money-back guarantee</span>
+                </div>
+              </div>
+
+              {/* Payment Method Tabs */}
+              <Tabs value={selectedPaymentMethod} onValueChange={(value) => setSelectedPaymentMethod(value as 'ryft' | 'paypal' | 'stripe')} className="w-full">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="ryft">Ryft</TabsTrigger>
+                  <TabsTrigger value="paypal">PayPal</TabsTrigger>
+                  <TabsTrigger value="stripe">Stripe</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="ryft" className="space-y-4">
+                  <div className="flex items-center justify-center gap-2 text-sm text-gray-600 dark:text-gray-400 py-2">
+                    <Shield className="h-4 w-4" />
+                    <span>Secured by Ryft</span>
+                  </div>
+                  
+                  <div className="bg-blue-50 dark:bg-blue-950/30 rounded-lg p-4 space-y-3">
+                    <h4 className="font-semibold text-blue-900 dark:text-blue-100">Secure Payment with Ryft</h4>
+                    <p className="text-sm text-blue-800 dark:text-blue-200">
+                      PCI DSS Level 1 certified payment processing with advanced fraud protection and real-time transaction monitoring.
+                    </p>
+                    <div className="flex items-center gap-4 text-xs text-blue-700 dark:text-blue-300">
+                      <div className="flex items-center gap-1">
+                        <Shield className="h-3 w-3" />
+                        <span>256-bit SSL encryption</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Check className="h-3 w-3" />
+                        <span>FCA regulated</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <Button 
+                    className="w-full h-12 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold"
+                    data-testid="button-pay-ryft"
+                  >
+                    Pay £{currentPlanData.price}/month with Ryft
+                  </Button>
+                </TabsContent>
+                
+                <TabsContent value="paypal" className="space-y-4">
+                  <div className="flex items-center justify-center gap-2 text-sm text-gray-600 dark:text-gray-400 py-2">
+                    <Shield className="h-4 w-4" />
+                    <span>Secured by PayPal</span>
+                  </div>
+                  
+                  <div className="bg-blue-50 dark:bg-blue-950/30 rounded-lg p-4 space-y-3">
+                    <h4 className="font-semibold text-blue-900 dark:text-blue-100">Secure Payment with PayPal</h4>
+                    <p className="text-sm text-blue-800 dark:text-blue-200">
+                      Industry-leading security with buyer protection and fraud monitoring for safe online transactions.
+                    </p>
+                    <div className="flex items-center gap-4 text-xs text-blue-700 dark:text-blue-300">
+                      <div className="flex items-center gap-1">
+                        <Shield className="h-3 w-3" />
+                        <span>Buyer protection</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Check className="h-3 w-3" />
+                        <span>Secure checkout</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <Button 
+                    className="w-full h-12 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold"
+                    data-testid="button-pay-paypal"
+                  >
+                    Pay £{currentPlanData.price}/month with PayPal
+                  </Button>
+                </TabsContent>
+                
+                <TabsContent value="stripe" className="space-y-4">
+                  <div className="flex items-center justify-center gap-2 text-sm text-gray-600 dark:text-gray-400 py-2">
+                    <Shield className="h-4 w-4" />
+                    <span>Secured by Stripe</span>
+                  </div>
+                  
+                  <div className="bg-blue-50 dark:bg-blue-950/30 rounded-lg p-4 space-y-3">
+                    <h4 className="font-semibold text-blue-900 dark:text-blue-100">Secure Payment with Stripe</h4>
+                    <p className="text-sm text-blue-800 dark:text-blue-200">
+                      PCI-certified payment platform with advanced security features and real-time fraud detection.
+                    </p>
+                    <div className="flex items-center gap-4 text-xs text-blue-700 dark:text-blue-300">
+                      <div className="flex items-center gap-1">
+                        <Shield className="h-3 w-3" />
+                        <span>PCI DSS compliant</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Check className="h-3 w-3" />
+                        <span>3D Secure</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <Button 
+                    className="w-full h-12 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold"
+                    data-testid="button-pay-stripe"
+                  >
+                    Pay £{currentPlanData.price}/month with Stripe
+                  </Button>
+                </TabsContent>
+              </Tabs>
+
+              {/* Terms */}
+              <p className="text-xs text-center text-gray-500 dark:text-gray-400">
+                By proceeding, you agree to our Terms of Service and Privacy Policy. You can cancel your subscription at any time.
+              </p>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
       
       {/* Payment Method Dialog */}
       {selectedPlan && (
