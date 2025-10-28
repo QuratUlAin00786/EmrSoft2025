@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer';
-// Using Gmail SMTP exclusively as requested
+import sgMail from '@sendgrid/mail';
 
 interface EmailOptions {
   to: string;
@@ -14,6 +14,40 @@ interface EmailOptions {
     contentType?: string;
     cid?: string;
   }>;
+}
+
+// SendGrid client getter
+async function getUncachableSendGridClient() {
+  const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME;
+  const xReplitToken = process.env.REPL_IDENTITY 
+    ? 'repl ' + process.env.REPL_IDENTITY 
+    : process.env.WEB_REPL_RENEWAL 
+    ? 'depl ' + process.env.WEB_REPL_RENEWAL 
+    : null;
+
+  if (!xReplitToken) {
+    throw new Error('X_REPLIT_TOKEN not found for repl/depl');
+  }
+
+  const connectionSettings = await fetch(
+    'https://' + hostname + '/api/v2/connection?include_secrets=true&connector_names=sendgrid',
+    {
+      headers: {
+        'Accept': 'application/json',
+        'X_REPLIT_TOKEN': xReplitToken
+      }
+    }
+  ).then(res => res.json()).then(data => data.items?.[0]);
+
+  if (!connectionSettings || (!connectionSettings.settings.api_key || !connectionSettings.settings.from_email)) {
+    throw new Error('SendGrid not connected');
+  }
+  
+  sgMail.setApiKey(connectionSettings.settings.api_key);
+  return {
+    client: sgMail,
+    fromEmail: connectionSettings.settings.from_email
+  };
 }
 
 interface EmailTemplate {
@@ -83,13 +117,13 @@ class EmailService {
 
   async sendEmail(options: EmailOptions): Promise<boolean> {
     try {
-      // Try Gmail SMTP first
-      const result = await this.sendWithSMTP(options);
+      // Try SendGrid first
+      const result = await this.sendWithSendGrid(options);
       if (result) {
         return true;
       }
       
-      // If Gmail fails, log the email details for manual follow-up
+      // If SendGrid fails, log the email details for manual follow-up
       console.log('[EMAIL] 🚨 EMAIL DELIVERY FAILED:');
       console.log('[EMAIL] TO:', options.to);
       console.log('[EMAIL] SUBJECT:', options.subject);
@@ -101,6 +135,36 @@ class EmailService {
     } catch (error) {
       console.error('[EMAIL] Failed to send email:', error);
       // Return false to indicate delivery failure
+      return false;
+    }
+  }
+
+  private async sendWithSendGrid(options: EmailOptions): Promise<boolean> {
+    try {
+      const { client, fromEmail } = await getUncachableSendGridClient();
+      
+      // Prepare attachments for SendGrid
+      const attachments = options.attachments?.map(att => ({
+        filename: att.filename,
+        content: att.content?.toString('base64') || '',
+        type: att.contentType || 'application/octet-stream',
+        disposition: 'attachment'
+      })) || [];
+
+      const msg = {
+        to: options.to,
+        from: options.from || fromEmail,
+        subject: options.subject,
+        text: options.text || '',
+        html: options.html || '',
+        attachments
+      };
+
+      await client.send(msg);
+      console.log('[EMAIL] ✅ Email sent successfully via SendGrid to:', options.to);
+      return true;
+    } catch (error) {
+      console.error('[EMAIL] SendGrid failed:', error);
       return false;
     }
   }
