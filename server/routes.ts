@@ -2815,9 +2815,28 @@ This treatment plan should be reviewed and adjusted based on individual patient 
   });
 
   // Update patient data (comprehensive schema)
-  app.patch("/api/patients/:id", authMiddleware, requireRole(["doctor", "nurse", "admin"]), async (req: TenantRequest, res) => {
+  app.patch("/api/patients/:id", authMiddleware, async (req: TenantRequest, res) => {
     try {
       const patientId = parseInt(req.params.id);
+      
+      // Check permissions: doctors, nurses, and admins can update any patient
+      // Patients can only update their own record
+      const userRole = req.user?.role;
+      const userEmail = req.user?.email;
+      
+      if (userRole === "patient") {
+        // For patients, verify they're updating their own record
+        const patient = await storage.getPatient(patientId, req.tenant!.id);
+        if (!patient) {
+          return res.status(404).json({ error: "Patient not found" });
+        }
+        
+        if (patient.email !== userEmail) {
+          return res.status(403).json({ error: "Patients can only update their own records" });
+        }
+      } else if (!["doctor", "nurse", "admin"].includes(userRole || "")) {
+        return res.status(403).json({ error: "Insufficient permissions" });
+      }
       
       const updateData = z.object({
         firstName: z.string().trim().min(1, "First name is required").optional(),
