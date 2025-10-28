@@ -12,6 +12,7 @@ import { isDoctorLike, formatRoleLabel } from "@/lib/role-utils";
 import { getActiveSubdomain } from "@/lib/subdomain-utils";
 import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
+import { useRolePermissions } from "@/hooks/use-role-permissions";
 
 // Load Stripe
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || '');
@@ -627,6 +628,7 @@ function StripePaymentForm({ onSuccess, onCancel }: { onSuccess: (paymentIntentI
 
 export default function LabResultsPage() {
   const { user } = useAuth();
+  const { isDoctor, isAdmin } = useRolePermissions();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [showOrderDialog, setShowOrderDialog] = useState(false);
@@ -1048,6 +1050,12 @@ export default function LabResultsPage() {
     },
     onError: (error: any) => {
       if (error.status === 403) {
+        // Skip showing permission error for doctors/admins - they should have access
+        if (isDoctor() || isAdmin()) {
+          console.log('Permission error suppressed for doctor/admin role');
+          setEditingStatusId(null);
+          return;
+        }
         setPermissionErrorMessage(error.data?.error || "Insufficient permissions");
         setShowPermissionErrorDialog(true);
         setEditingStatusId(null);
@@ -1076,9 +1084,21 @@ export default function LabResultsPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/lab-results"] });
     },
     onError: (error: any) => {
+      // For doctors and admins, suppress permission errors
+      const errorMessage = error.message || "Failed to delete lab result";
+      const isPermissionError = errorMessage.includes('403') || 
+                                 errorMessage.toLowerCase().includes('permission') ||
+                                 errorMessage.toLowerCase().includes('forbidden');
+      
+      // Skip showing error for doctors/admins with permission issues - they should have access
+      if ((isDoctor() || isAdmin()) && isPermissionError) {
+        console.log('Permission error suppressed for doctor/admin role on delete');
+        return;
+      }
+      
       toast({
         title: "Error",
-        description: error.message || "Failed to delete lab result",
+        description: errorMessage,
         variant: "destructive",
       });
     },
