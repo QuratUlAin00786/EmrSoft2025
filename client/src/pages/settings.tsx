@@ -15,7 +15,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useTenant } from "@/hooks/use-tenant";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
-import { Settings as SettingsIcon, Globe, Shield, Palette, Save, Check, Upload, X, Link as LinkIcon, User } from "lucide-react";
+import { Settings as SettingsIcon, Globe, Shield, Palette, Save, Check, Upload, X, Link as LinkIcon, User, Plus } from "lucide-react";
 import type { Organization } from "@/types";
 import GDPRCompliance from "./gdpr-compliance";
 import IntegrationsPage from "./integrations";
@@ -780,7 +780,7 @@ function MyProfileContent({ user }: { user: any }) {
               onClick={() => setIsEditing((prev) => ({ ...prev, [field]: true }))}
               data-testid={`button-edit-${field}`}
             >
-              Edit
+              <Plus className="h-4 w-4" />
             </Button>
           )}
           {isCurrentlyEditing && (
