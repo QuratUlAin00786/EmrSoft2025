@@ -84,13 +84,15 @@ export function DoctorDashboard() {
     staleTime: 0,
   });
 
+  const subdomain = getTenantSubdomain();
+  
   const doctorCards = [
     {
       title: "Today's Patients",
       value: (stats && typeof stats === 'object' && 'todayAppointments' in stats) ? String(stats.todayAppointments) : "0",
       description: "Scheduled appointments",
       icon: Calendar,
-      href: "/appointments",
+      href: `/${subdomain}/appointments`,
       color: "bg-blue-100 text-blue-800"
     },
     {
@@ -98,7 +100,7 @@ export function DoctorDashboard() {
       value: patientsLoading ? "--" : (Array.isArray(allPatients) ? allPatients.length.toString() : "0"),
       description: patientsLoading || activePatientsLoading ? "Loading..." : `${Array.isArray(allPatients) ? allPatients.length : 0} total patients • ${Array.isArray(activePatients) ? activePatients.length : 0} active patients`,
       icon: Users,
-      href: "/patients",
+      href: `/${subdomain}/patients`,
       color: "bg-green-100 text-green-800"
     },
     {
@@ -106,7 +108,7 @@ export function DoctorDashboard() {
       value: (stats && typeof stats === 'object' && 'aiSuggestions' in stats) ? String(stats.aiSuggestions) : "0",
       description: "New recommendations",
       icon: Brain,
-      href: "/ai-insights",
+      href: `/${subdomain}/ai-insights`,
       color: "bg-purple-100 text-purple-800"
     },
     {
@@ -114,16 +116,16 @@ export function DoctorDashboard() {
       value: isLoading ? "--" : "0",
       description: "Awaiting review",
       icon: Pill,
-      href: "/prescriptions",
+      href: `/${subdomain}/prescriptions`,
       color: "bg-orange-100 text-orange-800"
     }
   ];
-
+  
   const quickActions = [
-    { title: "New Consultation", description: "Start a patient consultation", icon: Stethoscope, href: "/appointments" },
-    { title: "Review Lab Results", description: "Check pending test results", icon: FileText, href: "/lab-results" },
-    { title: "AI Insights", description: "View clinical recommendations", icon: Brain, href: "/ai-insights" },
-    { title: "Patient Records", description: "Access medical histories", icon: Users, href: "/patients" }
+    { title: "New Consultation", description: "Start a patient consultation", icon: Stethoscope, href: `/${subdomain}/appointments` },
+    { title: "Review Lab Results", description: "Check pending test results", icon: FileText, href: `/${subdomain}/lab-results` },
+    { title: "AI Insights", description: "View clinical recommendations", icon: Brain, href: `/${subdomain}/ai-insights` },
+    { title: "Patient Records", description: "Access medical histories", icon: Users, href: `/${subdomain}/patients` }
   ];
 
   if (isLoading) {
