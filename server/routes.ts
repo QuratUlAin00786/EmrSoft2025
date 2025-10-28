@@ -19358,7 +19358,7 @@ Cura EMR Team
   });
 
   // Imaging Pricing Routes
-  app.get("/api/pricing/imaging", authMiddleware, requireRole('admin'), multiTenantEnforcer(), async (req: TenantRequest, res) => {
+  app.get("/api/pricing/imaging", authMiddleware, requireRole('doctor', 'nurse', 'patient', 'admin'), multiTenantEnforcer(), async (req: TenantRequest, res) => {
     try {
       const organizationId = requireOrgId(req);
       const pricing = await storage.getImagingPricing(organizationId);
@@ -19368,7 +19368,7 @@ Cura EMR Team
     }
   });
 
-  app.get("/api/pricing/imaging/:id", authMiddleware, requireRole('admin'), multiTenantEnforcer(), async (req: TenantRequest, res) => {
+  app.get("/api/pricing/imaging/:id", authMiddleware, requireRole('doctor', 'nurse', 'patient', 'admin'), multiTenantEnforcer(), async (req: TenantRequest, res) => {
     try {
       const organizationId = requireOrgId(req);
       const pricing = await storage.getImagingPricingById(parseInt(req.params.id), organizationId);
