@@ -180,6 +180,14 @@ export default function LoginPage() {
                   <span>Patient:</span>
                   <span>patient@cura.com / patient123</span>
                 </div>
+                <div className="flex justify-between">
+                  <span>Lab Tech:</span>
+                  <span>labtech@cura.com / lab123</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Sample Taker:</span>
+                  <span>sampletaker@cura.com / sample123</span>
+                </div>
               </div>
             </div>
 
@@ -194,6 +202,7 @@ export default function LoginPage() {
                   setPassword("admin123");
                 }}
                 className="text-xs"
+                data-testid="button-login-admin"
               >
                 Admin
               </Button>
@@ -206,6 +215,7 @@ export default function LoginPage() {
                   setPassword("doctor123");
                 }}
                 className="text-xs"
+                data-testid="button-login-doctor"
               >
                 Doctor
               </Button>
@@ -218,8 +228,35 @@ export default function LoginPage() {
                   setPassword("patient123");
                 }}
                 className="text-xs"
+                data-testid="button-login-patient"
               >
                 Patient
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setEmail("labtech@cura.com");
+                  setPassword("lab123");
+                }}
+                className="text-xs"
+                data-testid="button-login-labtech"
+              >
+                Lab Tech
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setEmail("sampletaker@cura.com");
+                  setPassword("sample123");
+                }}
+                className="text-xs"
+                data-testid="button-login-sampletaker"
+              >
+                Sample Taker
               </Button>
             </div>
           </CardContent>
