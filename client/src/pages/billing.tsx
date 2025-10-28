@@ -175,6 +175,8 @@ function PricingManagementDashboard() {
   const [doctorFeeDoctorFilter, setDoctorFeeDoctorFilter] = useState("");
   const [defaultTestsAdded, setDefaultTestsAdded] = useState(false);
   const [isAddingDefaultTests, setIsAddingDefaultTests] = useState(false);
+  const [isAddingDefaultImaging, setIsAddingDefaultImaging] = useState(false);
+  const [showImagingExistsModal, setShowImagingExistsModal] = useState(false);
   
   // Validation error states
   const [doctorRoleError, setDoctorRoleError] = useState("");
@@ -359,6 +361,88 @@ function PricingManagementDashboard() {
       });
     } finally {
       setIsAddingDefaultTests(false);
+    }
+  };
+
+  const addDefaultImaging = async () => {
+    setIsAddingDefaultImaging(true);
+    try {
+      const defaultImaging = [
+        { imagingType: "X-ray (Radiography)", code: "XRAY7672", basePrice: 50.00 },
+        { imagingType: "CT (Computed Tomography)", code: "CT7672", basePrice: 54.00 },
+        { imagingType: "MRI (Magnetic Resonance Imaging)", code: "MRI7672", basePrice: 43.00 },
+        { imagingType: "Ultrasound (Sonography)", code: "US7672", basePrice: 39.00 },
+        { imagingType: "Mammography", code: "MAMMO7672", basePrice: 34.00 },
+        { imagingType: "Fluoroscopy", code: "FLUORO7672", basePrice: 23.00 },
+        { imagingType: "PET (Positron Emission Tomography)", code: "PET0792", basePrice: 1.00 },
+        { imagingType: "SPECT (Single Photon Emission CT)", code: "SPECT0792", basePrice: 1.00 },
+        { imagingType: "Nuclear Medicine Scans", code: "NM0792", basePrice: 1.00 },
+        { imagingType: "DEXA (Bone Densitometry)", code: "DEXA0792", basePrice: 11.00 },
+        { imagingType: "Angiography", code: "ANGIO0792", basePrice: 1.00 },
+        { imagingType: "Interventional Radiology (IR)", code: "IR0792", basePrice: 1.00 },
+        { imagingType: "Fluoroscopy", code: "FLUORO0792", basePrice: 1.00 },
+        { imagingType: "Mammography", code: "MAMMO0792", basePrice: 1.00 },
+        { imagingType: "Ultrasound (Sonography)", code: "US0792", basePrice: 1.00 },
+        { imagingType: "MRI (Magnetic Resonance Imaging)", code: "MRI0792", basePrice: 1.00 },
+        { imagingType: "CT (Computed Tomography)", code: "CT0792", basePrice: 1.00 },
+        { imagingType: "X-ray (Radiography)", code: "XRAY0792", basePrice: 1.00 }
+      ];
+
+      // Fetch existing imaging to check for duplicates
+      const response = await fetch('/api/pricing/imaging', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+          'X-Tenant-Subdomain': localStorage.getItem('user_subdomain') || 'demo'
+        }
+      });
+      const existingImaging = await response.json();
+
+      let successCount = 0;
+      let alreadyExistsCount = 0;
+
+      for (const img of defaultImaging) {
+        // Check if imaging with same code already exists
+        const exists = existingImaging.some((existing: any) => existing.imagingCode === img.code);
+        
+        if (exists) {
+          alreadyExistsCount++;
+          continue;
+        }
+
+        try {
+          await apiRequest('POST', '/api/pricing/imaging', {
+            imagingType: img.imagingType,
+            imagingCode: img.code,
+            modality: '',
+            bodyPart: '',
+            basePrice: img.basePrice,
+            isActive: true,
+            version: 1
+          });
+          successCount++;
+        } catch (error) {
+          console.error(`Failed to add imaging ${img.imagingType}:`, error);
+        }
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['/api/pricing/imaging'] });
+
+      if (alreadyExistsCount > 0 && successCount === 0) {
+        setShowImagingExistsModal(true);
+      } else if (successCount > 0) {
+        toast({ 
+          title: "Success", 
+          description: `Added ${successCount} default imaging services${alreadyExistsCount > 0 ? ` (${alreadyExistsCount} already existed)` : ''}` 
+        });
+      }
+    } catch (error: any) {
+      toast({ 
+        title: "Error", 
+        description: error.message || "Failed to add default imaging", 
+        variant: "destructive" 
+      });
+    } finally {
+      setIsAddingDefaultImaging(false);
     }
   };
 
@@ -871,10 +955,21 @@ function PricingManagementDashboard() {
       <TabsContent value="imaging" className="space-y-4 mt-4">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold">Imaging Pricing</h3>
-          <Button size="sm" onClick={openAddDialog} data-testid="button-add-imaging">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Imaging Service
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              size="sm" 
+              variant="outline"
+              onClick={addDefaultImaging} 
+              disabled={isAddingDefaultImaging}
+              data-testid="button-default-imaging"
+            >
+              {isAddingDefaultImaging ? "Adding..." : "Default Imaging"}
+            </Button>
+            <Button size="sm" onClick={openAddDialog} data-testid="button-add-imaging">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Imaging Service
+            </Button>
+          </div>
         </div>
         
         {loadingImaging ? (
@@ -1866,6 +1961,25 @@ function PricingManagementDashboard() {
             </Button>
             <Button onClick={handleSave} disabled={isSaving}>
               {isSaving ? "Saving..." : editingItem ? "Update" : "Create"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Imaging Already Exists Modal */}
+      <Dialog open={showImagingExistsModal} onOpenChange={setShowImagingExistsModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Imaging Already Exists</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-gray-700 dark:text-gray-300">
+              All default imaging services already exist in the database. No new imaging was added.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setShowImagingExistsModal(false)}>
+              OK
             </Button>
           </DialogFooter>
         </DialogContent>
