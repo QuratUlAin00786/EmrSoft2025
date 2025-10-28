@@ -4330,14 +4330,92 @@ ${
                           return;
                         }
 
-                        // Check if image has been saved
-                        if (!savedAnatomicalImage) {
-                          toast({
-                            title: "Image Not Saved",
-                            description: "Please save the image first by clicking '💾 Save Image with Yellow Dot Position' button.",
-                            variant: "destructive"
-                          });
-                          return;
+                        // If image not saved, save it automatically
+                        let imagePathToUse = savedAnatomicalImage;
+                        if (!imagePathToUse) {
+                          if (!selectedMuscleGroup || !imageRef.current || !canvasRef.current) {
+                            toast({
+                              title: "Cannot Generate PDF",
+                              description: "Please select a muscle group first.",
+                              variant: "destructive"
+                            });
+                            return;
+                          }
+
+                          try {
+                            const image = imageRef.current;
+                            const canvas = canvasRef.current;
+                            const ctx = canvas.getContext('2d');
+                            
+                            if (!ctx) return;
+
+                            canvas.width = image.naturalWidth;
+                            canvas.height = image.naturalHeight;
+                            ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+                            const staticPositions = getStaticMusclePositions();
+                            const musclePositions = staticPositions.filter((pos: any) => {
+                              const muscleValue = pos.value.toLowerCase().replace(/\s+/g, '_');
+                              return muscleValue === selectedMuscleGroup.toLowerCase();
+                            });
+
+                            musclePositions.forEach((position: any) => {
+                              const x = position.coordinates.xPct * canvas.width;
+                              const y = position.coordinates.yPct * canvas.height;
+                              const radius = 20;
+
+                              ctx.beginPath();
+                              ctx.arc(x, y, radius, 0, 2 * Math.PI);
+                              ctx.fillStyle = 'rgba(255, 255, 0, 0.7)';
+                              ctx.fill();
+                              ctx.strokeStyle = 'rgba(255, 215, 0, 1)';
+                              ctx.lineWidth = 3;
+                              ctx.stroke();
+
+                              ctx.beginPath();
+                              ctx.arc(x, y, 10, 0, 2 * Math.PI);
+                              ctx.fillStyle = 'rgba(255, 255, 0, 0.9)';
+                              ctx.fill();
+                              ctx.strokeStyle = 'rgba(255, 215, 0, 1)';
+                              ctx.lineWidth = 2;
+                              ctx.stroke();
+                            });
+
+                            const imageData = canvas.toDataURL('image/png');
+                            
+                            const token = localStorage.getItem('auth_token');
+                            const saveResponse = await fetch('/api/anatomical-analysis/save-image', {
+                              method: 'POST',
+                              headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'X-Tenant-Subdomain': getTenantSubdomain(),
+                                'Content-Type': 'application/json',
+                              },
+                              body: JSON.stringify({
+                                patientId: currentPatientId,
+                                imageData: imageData,
+                                muscleGroup: selectedMuscleGroup
+                              })
+                            });
+
+                            if (!saveResponse.ok) {
+                              throw new Error('Failed to save image to server');
+                            }
+
+                            const result = await saveResponse.json();
+                            const organizationId = tenant?.id || 0;
+                            const imageFilename = result.filename || `${currentPatientId}.png`;
+                            imagePathToUse = `/uploads/anatomical_analysis_img/${organizationId}/${currentPatientId}/${imageFilename}`;
+                            setSavedAnatomicalImage(imagePathToUse);
+                          } catch (saveError) {
+                            console.error('Error auto-saving image:', saveError);
+                            toast({
+                              title: "Save Failed",
+                              description: "Failed to save image automatically.",
+                              variant: "destructive"
+                            });
+                            return;
+                          }
                         }
 
                         // Fetch clinic header and footer
@@ -4516,7 +4594,7 @@ ${
                         });
 
                         // Right Column: Image (smaller size) - Use the timestamped saved image
-                        const imagePath = savedAnatomicalImage;
+                        const imagePath = imagePathToUse;
                         console.log('[ANATOMICAL PDF STEP1] Fetching image from:', imagePath);
                         
                         try {
@@ -5074,7 +5152,7 @@ ${
                         });
 
                         // Right Column: Image (smaller size) - Use the timestamped saved image
-                        const imagePath = savedAnatomicalImage;
+                        const imagePath = imagePathToUse;
                         console.log('[ANATOMICAL PDF STEP1] Fetching image from:', imagePath);
                         
                         try {
