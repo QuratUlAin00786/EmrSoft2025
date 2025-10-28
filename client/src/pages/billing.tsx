@@ -173,6 +173,8 @@ function PricingManagementDashboard() {
   const [labDoctorFilter, setLabDoctorFilter] = useState("");
   const [doctorFeeServiceFilter, setDoctorFeeServiceFilter] = useState("");
   const [doctorFeeDoctorFilter, setDoctorFeeDoctorFilter] = useState("");
+  const [defaultTestsAdded, setDefaultTestsAdded] = useState(false);
+  const [isAddingDefaultTests, setIsAddingDefaultTests] = useState(false);
   
   // Validation error states
   const [doctorRoleError, setDoctorRoleError] = useState("");
@@ -281,6 +283,82 @@ function PricingManagementDashboard() {
       toast({ title: "Success", description: "Pricing entry deleted successfully" });
     } catch (error: any) {
       toast({ title: "Error", description: error.message || "Failed to delete pricing entry", variant: "destructive" });
+    }
+  };
+
+  const addDefaultLabTests = async () => {
+    setIsAddingDefaultTests(true);
+    try {
+      const defaultTests = [
+        { testName: "Complete Blood Count (CBC)", code: "CBC001", category: "Hematology", basePrice: 55.00 },
+        { testName: "Basic Metabolic Panel (BMP) / Chem-7", code: "BMP001", category: "Chemistry", basePrice: 5.00 },
+        { testName: "Comprehensive Metabolic Panel (CMP)", code: "CMP001", category: "Chemistry", basePrice: 5.00 },
+        { testName: "Lipid Profile (Cholesterol, LDL, HDL, Triglycerides)", code: "LP001", category: "Chemistry", basePrice: 5.00 },
+        { testName: "Thyroid Function Tests (TSH, Free T4, Free T3)", code: "TFT001", category: "Endocrinology", basePrice: 5.00 },
+        { testName: "Liver Function Tests (AST, ALT, ALP, Bilirubin)", code: "LFT001", category: "Chemistry", basePrice: 5.00 },
+        { testName: "Kidney Function Tests (Creatinine, BUN, eGFR)", code: "KFT001", category: "Chemistry", basePrice: 342.00 },
+        { testName: "Electrolytes (Sodium, Potassium, Chloride, Bicarbonate)", code: "E001", category: "Chemistry", basePrice: 223.00 },
+        { testName: "Blood Glucose (Fasting / Random / Postprandial)", code: "BG001", category: "Chemistry", basePrice: 23234.00 },
+        { testName: "Hemoglobin A1C (HbA1c)", code: "HA001", category: "Chemistry", basePrice: 44223.00 },
+        { testName: "C-Reactive Protein (CRP)", code: "CRP001", category: "Immunology", basePrice: 4234.00 },
+        { testName: "Erythrocyte Sedimentation Rate (ESR)", code: "ESR001", category: "Hematology", basePrice: 234.00 },
+        { testName: "Coagulation Tests (PT, PTT, INR)", code: "CT001", category: "Hematology", basePrice: 44.00 },
+        { testName: "Urinalysis (UA)", code: "UA001", category: "Urinalysis", basePrice: 3.00 },
+        { testName: "Albumin / Total Protein", code: "ATP001", category: "Chemistry", basePrice: 4.00 },
+        { testName: "Iron Studies (Serum Iron, TIBC, Ferritin)", code: "IS001", category: "Hematology", basePrice: 32.03 },
+        { testName: "Vitamin D", code: "VD001", category: "Chemistry", basePrice: 3.00 },
+        { testName: "Vitamin B12 / Folate", code: "VBF001", category: "Chemistry", basePrice: 3.00 },
+        { testName: "Hormone Panels (e.g., LH, FSH, Testosterone, Estrogen)", code: "HP001", category: "Endocrinology", basePrice: 4.00 },
+        { testName: "Prostate-Specific Antigen (PSA)", code: "PSA001", category: "Oncology", basePrice: 4.00 },
+        { testName: "Thyroid Antibodies (e.g. Anti-TPO, Anti-TG)", code: "TA001", category: "Immunology", basePrice: 55.00 },
+        { testName: "Creatine Kinase (CK)", code: "CK001", category: "Chemistry", basePrice: 155.00 },
+        { testName: "Cardiac Biomarkers (Troponin, CK-MB, BNP)", code: "CB001", category: "Cardiology", basePrice: 1.00 },
+        { testName: "Electrolyte Panel", code: "EP001", category: "Chemistry", basePrice: 55.00 },
+        { testName: "Uric Acid", code: "UA002", category: "Chemistry", basePrice: 55.00 },
+        { testName: "Lipase / Amylase (Pancreatic enzymes)", code: "LA001", category: "Chemistry", basePrice: 66.00 },
+        { testName: "Hepatitis B / C Serologies", code: "HBC001", category: "Serology", basePrice: 77.00 },
+        { testName: "HIV Antibody / Viral Load", code: "HIV001", category: "Serology", basePrice: 88.00 },
+        { testName: "HCG (Pregnancy / Quantitative)", code: "HCG001", category: "Endocrinology", basePrice: 99.00 },
+        { testName: "Autoimmune Panels (ANA, ENA, Rheumatoid Factor)", code: "AP001", category: "Immunology", basePrice: 54.50 },
+        { testName: "Tumor Markers (e.g. CA-125, CEA, AFP)", code: "TM001", category: "Oncology", basePrice: 24.95 },
+        { testName: "Blood Culture & Sensitivity", code: "BCS001", category: "Microbiology", basePrice: 2.00 },
+        { testName: "Stool Culture / Ova & Parasites", code: "SCOP001", category: "Microbiology", basePrice: 2.00 },
+        { testName: "Sputum Culture", code: "SC001", category: "Microbiology", basePrice: 2.00 },
+        { testName: "Viral Panels / PCR Tests (e.g. COVID-19, Influenza)", code: "VP001", category: "Microbiology", basePrice: 2.00 },
+        { testName: "Hormonal tests (Cortisol, ACTH)", code: "HT001", category: "Endocrinology", basePrice: 20.00 }
+      ];
+
+      let successCount = 0;
+      for (const test of defaultTests) {
+        try {
+          await apiRequest('POST', '/api/pricing/lab-tests', {
+            testName: test.testName,
+            testCode: test.code,
+            category: test.category,
+            basePrice: test.basePrice,
+            isActive: true,
+            version: 1
+          });
+          successCount++;
+        } catch (error) {
+          console.error(`Failed to add test ${test.testName}:`, error);
+        }
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['/api/pricing/lab-tests'] });
+      setDefaultTestsAdded(true);
+      toast({ 
+        title: "Success", 
+        description: `Added ${successCount} default lab tests successfully` 
+      });
+    } catch (error: any) {
+      toast({ 
+        title: "Error", 
+        description: error.message || "Failed to add default tests", 
+        variant: "destructive" 
+      });
+    } finally {
+      setIsAddingDefaultTests(false);
     }
   };
 
@@ -670,10 +748,21 @@ function PricingManagementDashboard() {
       <TabsContent value="lab-tests" className="space-y-4 mt-4">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold">Lab Test Pricing</h3>
-          <Button size="sm" onClick={openAddDialog} data-testid="button-add-lab-test">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Lab Test
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              size="sm" 
+              variant="outline"
+              onClick={addDefaultLabTests} 
+              disabled={defaultTestsAdded || isAddingDefaultTests}
+              data-testid="button-default-tests"
+            >
+              {isAddingDefaultTests ? "Adding..." : "Default Tests"}
+            </Button>
+            <Button size="sm" onClick={openAddDialog} data-testid="button-add-lab-test">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Lab Test
+            </Button>
+          </div>
         </div>
         
         <div className="flex gap-4 mb-4">
