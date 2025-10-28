@@ -1979,9 +1979,11 @@ export class DatabaseStorage implements IStorage {
           else if (age < 55) acc['35-54']++;
           else if (age < 75) acc['55-74']++;
           else acc['75+']++;
+        } else {
+          acc['Unknown']++;
         }
         return acc;
-      }, { 'Under 18': 0, '18-34': 0, '35-54': 0, '55-74': 0, '75+': 0 });
+      }, { 'Under 18': 0, '18-34': 0, '35-54': 0, '55-74': 0, '75+': 0, 'Unknown': 0 });
       
       // Gender distribution
       const genderDistribution = patientsList.reduce((acc, patient) => {
