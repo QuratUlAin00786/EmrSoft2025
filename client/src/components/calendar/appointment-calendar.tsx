@@ -3144,7 +3144,28 @@ Medical License: [License Number]
                   {/* Time Slot Selection */}
                   <div>
                     <Label className="text-lg font-semibold text-gray-800 mb-3 block">Select Time Slot</Label>
-                    {/* *** CHANGE 6: Color Legend - Orange: Current appointment | Blue: Newly selected | Grey: Booked | Green: Available *** */}
+                    {/* Color Legend */}
+                    <div className="mb-2 p-2 bg-blue-50 border border-blue-200 rounded-md">
+                      <div className="text-xs font-medium text-gray-700 mb-1">Legend:</div>
+                      <div className="flex flex-wrap gap-3 text-xs">
+                        <div className="flex items-center gap-1">
+                          <div className="w-3 h-3 bg-green-500 rounded"></div>
+                          <span>Available</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <div className="w-3 h-3 bg-orange-500 rounded"></div>
+                          <span>Current</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <div className="w-3 h-3 bg-blue-500 rounded"></div>
+                          <span>Selected</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <div className="w-3 h-3 bg-gray-600 rounded opacity-60"></div>
+                          <span>Booked/Blocked</span>
+                        </div>
+                      </div>
+                    </div>
                     <div className="border rounded-lg p-4 bg-gray-50 h-[300px] overflow-y-auto">
                       {/* *** CHANGE 5: Use editTimeSlots instead of timeSlots *** */}
                       {editTimeSlots.length === 0 ? (
@@ -3185,7 +3206,7 @@ Medical License: [License Number]
                                 variant={isSelected ? "default" : "outline"}
                                 className={`h-12 text-sm font-medium ${
                                   !isAvailable 
-                                    ? "bg-gray-400 text-gray-600 cursor-not-allowed border-gray-300" 
+                                    ? "bg-gray-600 text-white cursor-not-allowed border-gray-700 opacity-60 line-through" 
                                     : isNewlySelected
                                       ? "bg-blue-500 hover:bg-blue-600 text-white border-blue-500"
                                     : isOriginalSlot 
