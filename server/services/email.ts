@@ -26,10 +26,13 @@ async function getUncachableSendGridClient() {
     : null;
 
   if (!xReplitToken) {
+    console.error('[SENDGRID] No X_REPLIT_TOKEN found');
     throw new Error('X_REPLIT_TOKEN not found for repl/depl');
   }
 
-  const connectionSettings = await fetch(
+  console.log('[SENDGRID] Fetching connection settings from hostname:', hostname);
+  
+  const response = await fetch(
     'https://' + hostname + '/api/v2/connection?include_secrets=true&connector_names=sendgrid',
     {
       headers: {
@@ -37,16 +40,40 @@ async function getUncachableSendGridClient() {
         'X_REPLIT_TOKEN': xReplitToken
       }
     }
-  ).then(res => res.json()).then(data => data.items?.[0]);
+  );
 
-  if (!connectionSettings || (!connectionSettings.settings.api_key || !connectionSettings.settings.from_email)) {
-    throw new Error('SendGrid not connected');
+  const data = await response.json();
+  console.log('[SENDGRID] Connection response status:', response.status);
+  console.log('[SENDGRID] Connection items count:', data.items?.length || 0);
+  
+  const connectionSettings = data.items?.[0];
+
+  if (!connectionSettings) {
+    console.error('[SENDGRID] No connection settings found');
+    throw new Error('SendGrid connection not found - please setup SendGrid integration');
+  }
+
+  const apiKey = connectionSettings.settings?.api_key;
+  const fromEmail = connectionSettings.settings?.from_email;
+
+  console.log('[SENDGRID] API key exists:', !!apiKey);
+  console.log('[SENDGRID] API key prefix:', apiKey?.substring(0, 3));
+  console.log('[SENDGRID] From email:', fromEmail);
+
+  if (!apiKey || !fromEmail) {
+    console.error('[SENDGRID] Missing API key or from email');
+    throw new Error('SendGrid not properly configured - missing API key or from email');
   }
   
-  sgMail.setApiKey(connectionSettings.settings.api_key);
+  if (!apiKey.startsWith('SG.')) {
+    console.error('[SENDGRID] Invalid API key format - should start with SG.');
+    throw new Error('Invalid SendGrid API key format');
+  }
+  
+  sgMail.setApiKey(apiKey);
   return {
     client: sgMail,
-    fromEmail: connectionSettings.settings.from_email
+    fromEmail: fromEmail
   };
 }
 
