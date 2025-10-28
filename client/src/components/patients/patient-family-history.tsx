@@ -182,6 +182,12 @@ export default function PatientFamilyHistory({
     date: "",
     provider: "",
   });
+  const [allergyError, setAllergyError] = useState("");
+  const [chronicConditionError, setChronicConditionError] = useState("");
+  const [socialHistoryErrors, setSocialHistoryErrors] = useState({
+    occupation: "",
+    education: "",
+  });
 
   // Ensure Family History tab is selected when dialog opens
   useEffect(() => {
@@ -264,6 +270,22 @@ export default function PatientFamilyHistory({
   );
 
   const saveSocialHistory = () => {
+    setSocialHistoryErrors({ occupation: "", education: "" });
+
+    const errors = {
+      occupation: !editedSocialHistory.occupation.trim()
+        ? "Please enter occupation"
+        : "",
+      education: !editedSocialHistory.education.trim()
+        ? "Please enter education level"
+        : "",
+    };
+
+    if (errors.occupation || errors.education) {
+      setSocialHistoryErrors(errors);
+      return;
+    }
+
     try {
       updateMedicalHistoryMutation.mutate({
         allergies: patient.medicalHistory?.allergies || [],
@@ -273,6 +295,7 @@ export default function PatientFamilyHistory({
         socialHistory: editedSocialHistory as any,
         immunizations: patient.medicalHistory?.immunizations || [],
       });
+      setSocialHistoryErrors({ occupation: "", education: "" });
     } catch (error) {
       toast({
         title: "Error",
@@ -283,27 +306,33 @@ export default function PatientFamilyHistory({
   };
 
   const addAllergy = () => {
-    if (newAllergy.trim()) {
-      const currentAllergies = patient.medicalHistory?.allergies || [];
-      const updatedAllergies = [...currentAllergies, newAllergy.trim()];
-
-      updateMedicalHistoryMutation.mutate({
-        allergies: updatedAllergies,
-        chronicConditions: patient.medicalHistory?.chronicConditions || [],
-        medications: patient.medicalHistory?.medications || [],
-        familyHistory: patient.medicalHistory?.familyHistory || {},
-        socialHistory: patient.medicalHistory?.socialHistory || {},
-        immunizations: patient.medicalHistory?.immunizations || [],
-      });
-
-      onUpdate({
-        medicalHistory: {
-          ...patient.medicalHistory,
-          allergies: updatedAllergies,
-        },
-      });
-      setNewAllergy("");
+    setAllergyError("");
+    
+    if (!newAllergy.trim()) {
+      setAllergyError("Please enter an allergy");
+      return;
     }
+
+    const currentAllergies = patient.medicalHistory?.allergies || [];
+    const updatedAllergies = [...currentAllergies, newAllergy.trim()];
+
+    updateMedicalHistoryMutation.mutate({
+      allergies: updatedAllergies,
+      chronicConditions: patient.medicalHistory?.chronicConditions || [],
+      medications: patient.medicalHistory?.medications || [],
+      familyHistory: patient.medicalHistory?.familyHistory || {},
+      socialHistory: patient.medicalHistory?.socialHistory || {},
+      immunizations: patient.medicalHistory?.immunizations || [],
+    });
+
+    onUpdate({
+      medicalHistory: {
+        ...patient.medicalHistory,
+        allergies: updatedAllergies,
+      },
+    });
+    setNewAllergy("");
+    setAllergyError("");
   };
 
   const removeAllergy = (index: number) => {
@@ -342,30 +371,36 @@ export default function PatientFamilyHistory({
   };
 
   const addChronicCondition = () => {
-    if (newChronicCondition.trim()) {
-      const currentConditions = patient.medicalHistory?.chronicConditions || [];
-      const updatedConditions = [
-        ...currentConditions,
-        newChronicCondition.trim(),
-      ];
-
-      updateMedicalHistoryMutation.mutate({
-        allergies: patient.medicalHistory?.allergies || [],
-        chronicConditions: updatedConditions,
-        medications: patient.medicalHistory?.medications || [],
-        familyHistory: patient.medicalHistory?.familyHistory || {},
-        socialHistory: patient.medicalHistory?.socialHistory || {},
-        immunizations: patient.medicalHistory?.immunizations || [],
-      });
-
-      onUpdate({
-        medicalHistory: {
-          ...patient.medicalHistory,
-          chronicConditions: updatedConditions,
-        },
-      });
-      setNewChronicCondition("");
+    setChronicConditionError("");
+    
+    if (!newChronicCondition.trim()) {
+      setChronicConditionError("Please enter a chronic condition");
+      return;
     }
+
+    const currentConditions = patient.medicalHistory?.chronicConditions || [];
+    const updatedConditions = [
+      ...currentConditions,
+      newChronicCondition.trim(),
+    ];
+
+    updateMedicalHistoryMutation.mutate({
+      allergies: patient.medicalHistory?.allergies || [],
+      chronicConditions: updatedConditions,
+      medications: patient.medicalHistory?.medications || [],
+      familyHistory: patient.medicalHistory?.familyHistory || {},
+      socialHistory: patient.medicalHistory?.socialHistory || {},
+      immunizations: patient.medicalHistory?.immunizations || [],
+    });
+
+    onUpdate({
+      medicalHistory: {
+        ...patient.medicalHistory,
+        chronicConditions: updatedConditions,
+      },
+    });
+    setNewChronicCondition("");
+    setChronicConditionError("");
   };
 
   const removeChronicCondition = (index: number) => {
@@ -858,6 +893,11 @@ export default function PatientFamilyHistory({
                           }
                           placeholder="Current or former occupation"
                         />
+                        {socialHistoryErrors.occupation && (
+                          <p className="text-sm text-red-500 mt-1">
+                            {socialHistoryErrors.occupation}
+                          </p>
+                        )}
                       </div>
                       <div>
                         <Label>Marital Status</Label>
@@ -894,6 +934,11 @@ export default function PatientFamilyHistory({
                           }
                           placeholder="Highest education level"
                         />
+                        {socialHistoryErrors.education && (
+                          <p className="text-sm text-red-500 mt-1">
+                            {socialHistoryErrors.education}
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1159,16 +1204,23 @@ export default function PatientFamilyHistory({
                           );
                         })()}
                       </div>
-                      <div className="flex gap-2">
-                        <Input
-                          placeholder="Add new allergy"
-                          value={newAllergy}
-                          onChange={(e) => setNewAllergy(e.target.value)}
-                          onKeyPress={(e) => e.key === "Enter" && addAllergy()}
-                        />
-                        <Button onClick={addAllergy} size="sm">
-                          <Plus className="h-4 w-4" />
-                        </Button>
+                      <div>
+                        <div className="flex gap-2">
+                          <Input
+                            placeholder="Add new allergy"
+                            value={newAllergy}
+                            onChange={(e) => setNewAllergy(e.target.value)}
+                            onKeyPress={(e) => e.key === "Enter" && addAllergy()}
+                          />
+                          <Button onClick={addAllergy} size="sm">
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        {allergyError && (
+                          <p className="text-sm text-red-500 mt-1">
+                            {allergyError}
+                          </p>
+                        )}
                       </div>
                     </div>
                     <div>
@@ -1204,20 +1256,27 @@ export default function PatientFamilyHistory({
                           </p>
                         )}
                       </div>
-                      <div className="flex gap-2">
-                        <Input
-                          placeholder="Add new condition"
-                          value={newChronicCondition}
-                          onChange={(e) =>
-                            setNewChronicCondition(e.target.value)
-                          }
-                          onKeyPress={(e) =>
-                            e.key === "Enter" && addChronicCondition()
-                          }
-                        />
-                        <Button onClick={addChronicCondition} size="sm">
-                          <Plus className="h-4 w-4" />
-                        </Button>
+                      <div>
+                        <div className="flex gap-2">
+                          <Input
+                            placeholder="Add new condition"
+                            value={newChronicCondition}
+                            onChange={(e) =>
+                              setNewChronicCondition(e.target.value)
+                            }
+                            onKeyPress={(e) =>
+                              e.key === "Enter" && addChronicCondition()
+                            }
+                          />
+                          <Button onClick={addChronicCondition} size="sm">
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        {chronicConditionError && (
+                          <p className="text-sm text-red-500 mt-1">
+                            {chronicConditionError}
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>
