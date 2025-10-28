@@ -1982,10 +1982,14 @@ export class DatabaseStorage implements IStorage {
       
       // Gender distribution
       const genderDistribution = patientsList.reduce((acc, patient) => {
-        const gender = 'Unknown'; // Placeholder since gender field doesn't exist in schema
-        acc[gender]++;
+        const gender = patient.genderAtBirth || 'Unknown';
+        if (gender in acc) {
+          acc[gender]++;
+        } else {
+          acc[gender] = 1;
+        }
         return acc;
-      }, { Male: 0, Female: 0, Unknown: 0 });
+      }, { Male: 0, Female: 0, Other: 0, Unknown: 0 });
       
       // Calculate patient growth over last 6 months
       const patientGrowthData = [];
