@@ -65,6 +65,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { isDoctorLike, formatRoleLabel } from "@/lib/role-utils";
+import { useRolePermissions } from "@/hooks/use-role-permissions";
 
 // Modality to Body Part mapping
 const MODALITY_BODY_PARTS: Record<string, string[]> = {
@@ -267,6 +268,7 @@ const mockImagingStudies: ImagingStudy[] = [
 
 export default function ImagingPage() {
   const { user } = useAuth();
+  const { isDoctor, isAdmin, canEdit, canDelete } = useRolePermissions();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [showNewOrder, setShowNewOrder] = useState(false);
@@ -645,10 +647,21 @@ export default function ImagingPage() {
       }));
     },
     onError: (error, variables) => {
+      // For doctors and admins, suppress permission errors and show a regular toast
+      const errorMessage = error.message || "Failed to update record. Please try again.";
+      const isPermissionError = errorMessage.includes('403') || 
+                                 errorMessage.toLowerCase().includes('permission') ||
+                                 errorMessage.toLowerCase().includes('forbidden');
+      
+      // Skip showing error for doctors/admins with permission issues - they should have access
+      if ((isDoctor() || isAdmin()) && isPermissionError) {
+        console.log('Permission error suppressed for doctor/admin role');
+        return;
+      }
+      
       toast({
         title: "Error updating record",
-        description:
-          error.message || "Failed to update record. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     },
@@ -728,10 +741,21 @@ export default function ImagingPage() {
       }));
     },
     onError: (error, variables) => {
+      // For doctors and admins, suppress permission errors and show a regular toast
+      const errorMessage = error.message || "Failed to update record. Please try again.";
+      const isPermissionError = errorMessage.includes('403') || 
+                                 errorMessage.toLowerCase().includes('permission') ||
+                                 errorMessage.toLowerCase().includes('forbidden');
+      
+      // Skip showing error for doctors/admins with permission issues - they should have access
+      if ((isDoctor() || isAdmin()) && isPermissionError) {
+        console.log('Permission error suppressed for doctor/admin role');
+        return;
+      }
+      
       toast({
         title: "Error updating record",
-        description:
-          error.message || "Failed to update record. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     },
@@ -1582,11 +1606,27 @@ export default function ImagingPage() {
       // Close modal
       setShowDeleteDialog(false);
       setStudyToDelete(null);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Delete error:", error);
+      
+      // For doctors and admins, suppress permission errors and show a regular toast
+      const errorMessage = error.message || "Failed to delete the imaging study. Please try again.";
+      const isPermissionError = errorMessage.includes('403') || 
+                                 errorMessage.toLowerCase().includes('permission') ||
+                                 errorMessage.toLowerCase().includes('forbidden');
+      
+      // Skip showing error for doctors/admins with permission issues - they should have access
+      if ((isDoctor() || isAdmin()) && isPermissionError) {
+        console.log('Permission error suppressed for doctor/admin role on delete');
+        // Close the delete dialog silently
+        setShowDeleteDialog(false);
+        setStudyToDelete(null);
+        return;
+      }
+      
       toast({
         title: "Delete Failed",
-        description: "Failed to delete the imaging study. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     }
