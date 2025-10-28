@@ -19303,7 +19303,7 @@ Cura EMR Team
   });
 
   // Lab Test Pricing Routes
-  app.get("/api/pricing/lab-tests", authMiddleware, requireRole('admin'), multiTenantEnforcer(), async (req: TenantRequest, res) => {
+  app.get("/api/pricing/lab-tests", authMiddleware, requireRole(['admin', 'doctor']), multiTenantEnforcer(), async (req: TenantRequest, res) => {
     try {
       const organizationId = requireOrgId(req);
       const pricing = await storage.getLabTestPricing(organizationId);
@@ -19313,7 +19313,7 @@ Cura EMR Team
     }
   });
 
-  app.get("/api/pricing/lab-tests/:id", authMiddleware, requireRole('admin'), multiTenantEnforcer(), async (req: TenantRequest, res) => {
+  app.get("/api/pricing/lab-tests/:id", authMiddleware, requireRole(['admin', 'doctor']), multiTenantEnforcer(), async (req: TenantRequest, res) => {
     try {
       const organizationId = requireOrgId(req);
       const pricing = await storage.getLabTestPricingById(parseInt(req.params.id), organizationId);
