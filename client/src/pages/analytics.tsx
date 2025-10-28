@@ -369,7 +369,7 @@ export default function AnalyticsPage() {
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
               {/* Patients This Month */}
               <div>
-                <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Patients Module</div>
+                <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Patients</div>
                 <Card className="p-3">
                   <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Patients (Month)</div>
                   <div className="text-2xl font-bold text-blue-600">{analytics.overview.patientsThisMonth || 0}</div>
@@ -379,7 +379,7 @@ export default function AnalyticsPage() {
 
               {/* Top Doctor */}
               <div>
-                <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Doctors Module</div>
+                <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Doctors </div>
                 <Card className="p-3">
                   <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Top Doctor</div>
                   <div className="text-sm font-semibold text-green-600 truncate">{analytics.overview.topDoctor?.name || 'No data'}</div>
@@ -390,7 +390,7 @@ export default function AnalyticsPage() {
 
               {/* Total Revenue */}
               <div>
-                <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Billing Module</div>
+                <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Billing </div>
                 <Card className="p-3">
                   <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Total Revenue</div>
                   <div className="text-2xl font-bold text-green-600">{formatCurrency(analytics.overview.totalRevenue || 0)}</div>
@@ -400,7 +400,7 @@ export default function AnalyticsPage() {
 
               {/* Outstanding Dues */}
               <div>
-                <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Billing Module</div>
+                <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Billing </div>
                 <Card className="p-3">
                   <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Outstanding</div>
                   <div className="text-2xl font-bold text-orange-600">{formatCurrency(analytics.overview.outstandingDues || 0)}</div>
@@ -410,7 +410,7 @@ export default function AnalyticsPage() {
 
               {/* Total Lab Tests */}
               <div>
-                <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Lab Tests Module</div>
+                <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Lab Tests </div>
                 <Card className="p-3">
                   <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Lab Tests (7d)</div>
                   <div className="text-2xl font-bold text-purple-600">{analytics.overview.labTestsCount || 0}</div>
@@ -420,7 +420,7 @@ export default function AnalyticsPage() {
 
               {/* Appointments Today */}
               <div>
-                <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Appointments Module</div>
+                <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Appointments </div>
                 <Card className="p-3">
                   <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Appointments</div>
                   <div className="text-2xl font-bold text-blue-600">{analytics.overview.totalAppointments || 0}</div>
@@ -430,7 +430,7 @@ export default function AnalyticsPage() {
 
               {/* No-Shows */}
               <div>
-                <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Appointments Module</div>
+                <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Appointments </div>
                 <Card className="p-3">
                   <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">No-Shows</div>
                   <div className="text-2xl font-bold text-red-600">{analytics.overview.noShowCount || 0}</div>
@@ -440,7 +440,7 @@ export default function AnalyticsPage() {
 
               {/* Cancellations */}
               <div>
-                <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Appointments Module</div>
+                <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Appointments </div>
                 <Card className="p-3">
                   <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Cancelled</div>
                   <div className="text-2xl font-bold text-yellow-600">{analytics.overview.cancelledCount || 0}</div>
@@ -450,7 +450,7 @@ export default function AnalyticsPage() {
 
               {/* Most Frequent Test */}
               <div>
-                <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Lab Tests Module</div>
+                <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Lab Tests </div>
                 <Card className="p-3">
                   <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Top Lab Test</div>
                   <div className="text-sm font-semibold text-purple-600 truncate">{analytics.overview.topLabTest?.name || 'No data'}</div>
@@ -461,7 +461,7 @@ export default function AnalyticsPage() {
 
               {/* Payment Mode */}
               <div>
-                <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Billing Module</div>
+                <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Billing </div>
                 <Card className="p-3">
                   <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Top Payment</div>
                   <div className="text-sm font-semibold text-green-600 truncate">{analytics.overview.topPaymentMode?.mode || 'No data'}</div>
@@ -472,7 +472,7 @@ export default function AnalyticsPage() {
 
               {/* Age Distribution */}
               <div>
-                <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Patients Module</div>
+                <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Patients </div>
                 <Card className="p-3">
                   <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Avg Age</div>
                   <div className="text-2xl font-bold text-blue-600">{analytics.overview.averageAge || 0}</div>
@@ -482,7 +482,7 @@ export default function AnalyticsPage() {
 
               {/* Gender Ratio */}
               <div>
-                <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Patients Module</div>
+                <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Patients </div>
                 <Card className="p-3">
                   <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Gender Ratio</div>
                   <div className="text-sm font-semibold text-gray-900 dark:text-white">
