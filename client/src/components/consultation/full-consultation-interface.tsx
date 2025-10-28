@@ -4311,8 +4311,8 @@ ${
                   </Card>
                 )}
 
-                {/* View Anatomical Analysis Button - Only show after treatment plan is generated */}
-                {generatedTreatmentPlan && (
+                {/* View Anatomical Analysis Button - Only show after treatment plan is generated AND image is saved */}
+                {generatedTreatmentPlan && savedAnatomicalImage && (
                   <div className="flex justify-center pt-4">
                     <Button
                       onClick={async () => {
