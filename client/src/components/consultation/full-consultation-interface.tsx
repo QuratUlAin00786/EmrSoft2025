@@ -1670,9 +1670,10 @@ ${
 
       const result = await response.json();
 
-      // Set the saved anatomical image path for viewing in the dialog
+      // Set the saved anatomical image path for viewing in the dialog (with timestamp)
       const organizationId = tenant?.id || 0;
-      const imagePath = `/uploads/anatomical_analysis_img/${organizationId}/${currentPatientId}/${currentPatientId}.png`;
+      const imageFilename = result.filename || `${currentPatientId}.png`;
+      const imagePath = `/uploads/anatomical_analysis_img/${organizationId}/${currentPatientId}/${imageFilename}`;
       setSavedAnatomicalImage(imagePath);
 
       toast({
@@ -4504,9 +4505,8 @@ ${
                           });
                         });
 
-                        // Right Column: Image (smaller size)
-                        const organizationId = tenant?.id || 0;
-                        const imagePath = `/uploads/anatomical_analysis_img/${organizationId}/${currentPatientId}/${currentPatientId}.png`;
+                        // Right Column: Image (smaller size) - Use the timestamped saved image
+                        const imagePath = savedAnatomicalImage;
                         console.log('[ANATOMICAL PDF STEP1] Fetching image from:', imagePath);
                         
                         try {
@@ -5063,9 +5063,8 @@ ${
                           });
                         });
 
-                        // Right Column: Image (smaller size)
-                        const organizationId = tenant?.id || 0;
-                        const imagePath = `/uploads/anatomical_analysis_img/${organizationId}/${currentPatientId}/${currentPatientId}.png`;
+                        // Right Column: Image (smaller size) - Use the timestamped saved image
+                        const imagePath = savedAnatomicalImage;
                         console.log('[ANATOMICAL PDF STEP1] Fetching image from:', imagePath);
                         
                         try {

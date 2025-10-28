@@ -11839,37 +11839,25 @@ This treatment plan should be reviewed and adjusted based on individual patient 
         console.log(`📁 Created directory: ${baseDir}`);
       }
 
-      // Define image file path: {patient_id}.png
-      const imagePath = path.join(baseDir, `${patientId}.png`);
+      // Define image file path with timestamp: {patient_id}_{timestamp}.png
+      const timestamp = Date.now();
+      const imageFilename = `${patientId}_${timestamp}.png`;
+      const imagePath = path.join(baseDir, imageFilename);
       
       // Convert base64 image data to buffer
       const base64Data = imageUploadData.imageData.replace(/^data:image\/\w+;base64,/, '');
       const imageBuffer = Buffer.from(base64Data, 'base64');
 
-      // Check if image already exists
-      const imageExists = await fs.promises.access(imagePath).then(() => true).catch(() => false);
+      // Create new image with timestamp
+      await fs.promises.writeFile(imagePath, imageBuffer);
+      console.log(`💾 Created new anatomical analysis image for patient ${patientId} at: ${imagePath}`);
       
-      if (imageExists) {
-        // Update existing image
-        await fs.promises.writeFile(imagePath, imageBuffer);
-        console.log(`✏️ Updated anatomical analysis image for patient ${patientId} at: ${imagePath}`);
-        
-        res.json({
-          message: "Anatomical analysis image updated successfully",
-          path: imagePath,
-          action: "updated"
-        });
-      } else {
-        // Create new image
-        await fs.promises.writeFile(imagePath, imageBuffer);
-        console.log(`💾 Created new anatomical analysis image for patient ${patientId} at: ${imagePath}`);
-        
-        res.json({
-          message: "Anatomical analysis image created successfully",
-          path: imagePath,
-          action: "created"
-        });
-      }
+      res.json({
+        message: "Anatomical analysis image created successfully",
+        path: imagePath,
+        filename: imageFilename,
+        action: "created"
+      });
     } catch (error) {
       console.error("Error saving anatomical analysis image:", error);
       handleRouteError(error, "save anatomical analysis image", res);
