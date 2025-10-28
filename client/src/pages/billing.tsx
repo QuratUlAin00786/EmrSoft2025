@@ -2435,17 +2435,12 @@ export default function BillingPage() {
       
       // Send to backend
       console.log('📡 Sending PDF to server...');
-      const response = await apiRequest('POST', '/api/billing/save-invoice-pdf', {
+      const result = await apiRequest('POST', '/api/billing/save-invoice-pdf', {
         invoiceNumber: invoice.invoiceNumber || invoice.id.toString(),
         patientId: invoice.patientId,
         pdfData
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to save invoice');
-      }
-
-      const result = await response.json();
       console.log('✅ Invoice saved successfully:', result);
 
       setIsInvoiceSaved(true);
@@ -4848,7 +4843,6 @@ export default function BillingPage() {
                       <tr className="border-b border-gray-200 dark:border-gray-700">
                         <th className="text-left p-3 text-gray-900 dark:text-gray-100">Code</th>
                         <th className="text-left p-3 text-gray-900 dark:text-gray-100">Description</th>
-                        <th className="text-right p-3 text-gray-900 dark:text-gray-100">Qty</th>
                         <th className="text-right p-3 text-gray-900 dark:text-gray-100">Unit Price</th>
                         <th className="text-right p-3 text-gray-900 dark:text-gray-100">Total</th>
                       </tr>
@@ -4858,7 +4852,6 @@ export default function BillingPage() {
                         <tr key={index} className="border-b border-gray-200 dark:border-gray-700 last:border-b-0">
                           <td className="p-3 font-mono text-gray-900 dark:text-gray-100">{item.code}</td>
                           <td className="p-3 text-gray-900 dark:text-gray-100">{item.description}</td>
-                          <td className="p-3 text-right text-gray-900 dark:text-gray-100">{item.quantity}</td>
                           <td className="p-3 text-right text-gray-900 dark:text-gray-100">£{Number(item.unitPrice).toFixed(2)}</td>
                           <td className="p-3 text-right font-semibold text-gray-900 dark:text-gray-100">£{Number(item.total).toFixed(2)}</td>
                         </tr>
