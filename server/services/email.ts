@@ -848,6 +848,11 @@ Cura EMR Team
           </div>
           
           <div class="footer">
+            ${clinicLogoUrl ? `
+              <div style="margin-bottom: 15px;">
+                <img src="${clinicLogoUrl}" alt="${organizationName || 'Clinic'} Logo" style="width: 80px; height: 80px; object-fit: contain; border-radius: 8px; background: white; padding: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+              </div>
+            ` : ''}
             <div class="footer-logo">
               <img src="cid:cura-email-logo" alt="Cura" style="width: 50px; height: 50px; object-fit: contain;">
             </div>

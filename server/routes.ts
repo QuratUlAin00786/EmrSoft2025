@@ -14133,8 +14133,18 @@ This treatment plan should be reviewed and adjusted based on individual patient 
 
       // Get organization info for logo and branding
       const organization = await storage.getOrganization(req.tenant!.id);
-      const clinicLogoUrl = organization?.settings?.theme?.logoUrl;
       const organizationName = organization?.brandName || organization?.name;
+      
+      // Get clinic logo from clinic_headers table
+      let clinicLogoUrl: string | undefined;
+      try {
+        const clinicHeader = await storage.getActiveClinicHeader(req.tenant!.id);
+        clinicLogoUrl = clinicHeader?.logo || undefined;
+        console.log('[PRESCRIPTION-EMAIL] Clinic logo from clinic_headers:', clinicLogoUrl);
+      } catch (error) {
+        console.log('[PRESCRIPTION-EMAIL] Could not fetch clinic header logo:', error);
+        clinicLogoUrl = undefined;
+      }
 
       // Prepare attachments array including user uploaded files
       const attachments: any[] = [];
