@@ -945,48 +945,47 @@ export default function PrescriptionsPage() {
               const logoPosition = clinicHeader.logoPosition || "center";
 
               if (logoPosition === "center") {
-                // Place logo beside clinic info (side by side layout)
-                const logoX = 70;
-                const textX = 105;
+                // Two-column layout: Logo on left, clinic info on right
+                const logoX = 20;
+                const logoSize = 30;
+                const textX = logoX + logoSize + 10;
+                
+                // Add logo in left column
                 pdf.addImage(
                   clinicHeader.logoBase64,
                   "PNG",
                   logoX,
                   yPosition,
-                  25,
-                  25,
+                  logoSize,
+                  logoSize,
                 );
 
-                // Clinic text beside logo - center aligned
+                // Clinic info in right column - left aligned
+                let textY = yPosition + 2;
                 pdf.setFontSize(clinicNameSize);
                 pdf.setFont("helvetica", fontWeight);
-                pdf.text(clinicName, 105, yPosition + 8, { align: "center" });
+                pdf.text(clinicName, textX, textY, { align: "left" });
 
-                yPosition += 10;
+                textY += 7;
                 pdf.setFontSize(contentSize);
                 pdf.setFont("helvetica", fontStyle);
-                pdf.text(clinicAddress, 105, yPosition + 8, {
-                  align: "center",
-                });
+                pdf.text(clinicAddress, textX, textY, { align: "left" });
 
-                yPosition += 6;
-                pdf.text(clinicPhone, 105, yPosition + 8, { align: "center" });
+                textY += 5;
+                pdf.text(clinicPhone, textX, textY, { align: "left" });
 
                 if (clinicEmail) {
-                  yPosition += 6;
-                  pdf.text(clinicEmail, 105, yPosition + 8, {
-                    align: "center",
-                  });
+                  textY += 5;
+                  pdf.text(clinicEmail, textX, textY, { align: "left" });
                 }
 
                 if (clinicWebsite) {
-                  yPosition += 6;
-                  pdf.text(clinicWebsite, 105, yPosition + 8, {
-                    align: "center",
-                  });
+                  textY += 5;
+                  pdf.text(clinicWebsite, textX, textY, { align: "left" });
                 }
 
-                yPosition += 10;
+                // Update yPosition to be after the tallest column
+                yPosition = Math.max(yPosition + logoSize, textY) + 5;
               } else {
                 // Left or right positioning - logo above text
                 const textAlign = logoPosition === "left" ? "left" : "right";
