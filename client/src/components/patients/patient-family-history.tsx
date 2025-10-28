@@ -188,6 +188,7 @@ export default function PatientFamilyHistory({
     occupation: "",
     education: "",
   });
+  const [allergiesConditionsError, setAllergiesConditionsError] = useState("");
 
   // Ensure Family History tab is selected when dialog opens
   useEffect(() => {
@@ -333,6 +334,7 @@ export default function PatientFamilyHistory({
     });
     setNewAllergy("");
     setAllergyError("");
+    setAllergiesConditionsError(""); // Clear overall error
   };
 
   const removeAllergy = (index: number) => {
@@ -401,6 +403,7 @@ export default function PatientFamilyHistory({
     });
     setNewChronicCondition("");
     setChronicConditionError("");
+    setAllergiesConditionsError(""); // Clear overall error
   };
 
   const removeChronicCondition = (index: number) => {
@@ -427,6 +430,31 @@ export default function PatientFamilyHistory({
   const immunizations = patient.medicalHistory?.immunizations || [];
 
   const handleSaveAllChanges = () => {
+    // Reset error
+    setAllergiesConditionsError("");
+
+    // Get allergies
+    const medicalAllergies = patient.medicalHistory?.allergies || [];
+    const flagAllergies = patient.flags
+      ? patient.flags
+          .filter((flag) => typeof flag === "string" && flag.includes(":"))
+          .map((flag) => flag.split(":")[2])
+          .filter((allergy) => allergy && allergy.trim().length > 0)
+      : [];
+    const allAllergies = [...medicalAllergies, ...flagAllergies];
+
+    // Get chronic conditions
+    const chronicConditions = patient.medicalHistory?.chronicConditions || [];
+
+    // Validate that at least one allergy or chronic condition exists
+    if (allAllergies.length === 0 && chronicConditions.length === 0) {
+      setAllergiesConditionsError(
+        "Please add at least one allergy or chronic condition before saving"
+      );
+      setActiveTab("allergies"); // Switch to allergies tab to show error
+      return;
+    }
+
     // Save the complete medical history including all sections
     updateMedicalHistoryMutation.mutate({
       allergies: patient.medicalHistory?.allergies || [],
@@ -1151,6 +1179,13 @@ export default function PatientFamilyHistory({
                 </TabsContent>
 
                 <TabsContent value="allergies" className="space-y-4">
+                  {allergiesConditionsError && (
+                    <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+                      <p className="text-sm text-red-600 font-medium">
+                        {allergiesConditionsError}
+                      </p>
+                    </div>
+                  )}
                   <div className="grid grid-cols-2 gap-6">
                     <div>
                       <h4 className="font-medium mb-3 flex items-center gap-2">
