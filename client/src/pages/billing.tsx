@@ -177,6 +177,7 @@ function PricingManagementDashboard() {
   const [isAddingDefaultTests, setIsAddingDefaultTests] = useState(false);
   const [isAddingDefaultImaging, setIsAddingDefaultImaging] = useState(false);
   const [showImagingExistsModal, setShowImagingExistsModal] = useState(false);
+  const [showTestsExistsModal, setShowTestsExistsModal] = useState(false);
   
   // Validation error states
   const [doctorRoleError, setDoctorRoleError] = useState("");
@@ -346,8 +347,27 @@ function PricingManagementDashboard() {
         { testName: "Hormonal tests (Cortisol, ACTH)", code: "HT001", category: "Endocrinology", basePrice: 20.00 }
       ];
 
+      // Fetch existing lab tests to check for duplicates
+      const response = await fetch('/api/pricing/lab-tests', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+          'X-Tenant-Subdomain': localStorage.getItem('user_subdomain') || 'demo'
+        }
+      });
+      const existingTests = await response.json();
+
       let successCount = 0;
+      let alreadyExistsCount = 0;
+
       for (const test of defaultTests) {
+        // Check if test with same code already exists
+        const exists = existingTests.some((existing: any) => existing.testCode === test.code);
+        
+        if (exists) {
+          alreadyExistsCount++;
+          continue;
+        }
+
         try {
           await apiRequest('POST', '/api/pricing/lab-tests', {
             testName: test.testName,
@@ -364,11 +384,15 @@ function PricingManagementDashboard() {
       }
 
       queryClient.invalidateQueries({ queryKey: ['/api/pricing/lab-tests'] });
-      setDefaultTestsAdded(true);
-      toast({ 
-        title: "Success", 
-        description: `Added ${successCount} default lab tests successfully` 
-      });
+
+      if (alreadyExistsCount > 0 && successCount === 0) {
+        setShowTestsExistsModal(true);
+      } else if (successCount > 0) {
+        toast({ 
+          title: "Success", 
+          description: `Added ${successCount} default lab tests${alreadyExistsCount > 0 ? ` (${alreadyExistsCount} already existed)` : ''}` 
+        });
+      }
     } catch (error: any) {
       let errorMessage = "Failed to add default tests";
       
@@ -2021,6 +2045,25 @@ function PricingManagementDashboard() {
             </Button>
             <Button onClick={handleSave} disabled={isSaving}>
               {isSaving ? "Saving..." : editingItem ? "Update" : "Create"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Lab Tests Already Exists Modal */}
+      <Dialog open={showTestsExistsModal} onOpenChange={setShowTestsExistsModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Tests Already Exist</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-gray-700 dark:text-gray-300">
+              All default lab tests already exist in the database. No new tests were added.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setShowTestsExistsModal(false)}>
+              OK
             </Button>
           </DialogFooter>
         </DialogContent>
