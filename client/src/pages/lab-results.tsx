@@ -931,6 +931,7 @@ export default function LabResultsPage() {
 
   const { data: labTestPricing = [] } = useQuery({
     queryKey: ["/api/pricing/lab-tests"],
+    enabled: user?.role !== 'patient', // Disable for patient users who only view their own lab results
     queryFn: async () => {
       const res = await apiRequest("GET", "/api/pricing/lab-tests");
       return res.json();
