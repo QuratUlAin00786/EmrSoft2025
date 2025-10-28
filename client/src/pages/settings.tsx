@@ -735,8 +735,8 @@ function MyProfileContent({ user }: { user: any }) {
         state: patientData.state || "",
         zipCode: patientData.zipCode || "",
         country: patientData.country || "",
-        emergencyContact: patientData.emergencyContact || "",
-        emergencyPhone: patientData.emergencyPhone || "",
+        emergencyContactName: patientData.emergencyContact?.name || "",
+        emergencyContactPhone: patientData.emergencyContact?.phone || "",
         bloodType: patientData.bloodType || "",
         allergies: patientData.allergies || "",
         insuranceProvider: patientData.insuranceProvider || "",
@@ -750,10 +750,34 @@ function MyProfileContent({ user }: { user: any }) {
   };
 
   const handleFieldSave = (field: string) => {
-    updatePatientMutation.mutate({ [field]: formData[field] });
+    // Handle emergency contact fields specially
+    if (field === "emergencyContactName") {
+      updatePatientMutation.mutate({
+        emergencyContact: {
+          ...patientData?.emergencyContact,
+          name: formData.emergencyContactName,
+        },
+      });
+    } else if (field === "emergencyContactPhone") {
+      updatePatientMutation.mutate({
+        emergencyContact: {
+          ...patientData?.emergencyContact,
+          phone: formData.emergencyContactPhone,
+        },
+      });
+    } else {
+      updatePatientMutation.mutate({ [field]: formData[field] });
+    }
   };
 
   const canEdit = (field: string) => {
+    // Handle emergency contact fields specially
+    if (field === "emergencyContactName") {
+      return !patientData?.emergencyContact?.name || patientData.emergencyContact.name === "";
+    }
+    if (field === "emergencyContactPhone") {
+      return !patientData?.emergencyContact?.phone || patientData.emergencyContact.phone === "";
+    }
     return !patientData?.[field] || patientData[field] === "";
   };
 
@@ -798,7 +822,14 @@ function MyProfileContent({ user }: { user: any }) {
                 variant="outline"
                 onClick={() => {
                   setIsEditing((prev) => ({ ...prev, [field]: false }));
-                  setFormData((prev: any) => ({ ...prev, [field]: patientData?.[field] || "" }));
+                  // Handle emergency contact fields specially
+                  if (field === "emergencyContactName") {
+                    setFormData((prev: any) => ({ ...prev, emergencyContactName: patientData?.emergencyContact?.name || "" }));
+                  } else if (field === "emergencyContactPhone") {
+                    setFormData((prev: any) => ({ ...prev, emergencyContactPhone: patientData?.emergencyContact?.phone || "" }));
+                  } else {
+                    setFormData((prev: any) => ({ ...prev, [field]: patientData?.[field] || "" }));
+                  }
                 }}
                 data-testid={`button-cancel-${field}`}
               >
@@ -888,8 +919,8 @@ function MyProfileContent({ user }: { user: any }) {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {renderField("Emergency Contact Name", "emergencyContact")}
-            {renderField("Emergency Contact Phone", "emergencyPhone", "tel")}
+            {renderField("Emergency Contact Name", "emergencyContactName")}
+            {renderField("Emergency Contact Phone", "emergencyContactPhone", "tel")}
           </div>
         </CardContent>
       </Card>
