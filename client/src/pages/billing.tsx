@@ -2694,6 +2694,44 @@ export default function BillingPage() {
     }
   };
 
+  const handleDownloadPDF = async (invoice: any) => {
+    try {
+      const organizationId = user?.organizationId;
+      const patientId = invoice.patientId;
+      const invoiceNumber = invoice.invoiceNumber;
+      
+      const pdfPath = `/uploads/Invoices/${organizationId}/${patientId}/${invoiceNumber}.pdf`;
+      
+      const response = await fetch(pdfPath);
+      
+      if (!response.ok) {
+        throw new Error('PDF file not found on server');
+      }
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `invoice-${invoiceNumber}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast({
+        title: "Success",
+        description: "Invoice PDF downloaded successfully",
+      });
+    } catch (error) {
+      console.error('❌ Failed to download PDF:', error);
+      toast({
+        title: "Download Failed",
+        description: "Failed to download invoice PDF. Please save the invoice first.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const [sendInvoiceDialog, setSendInvoiceDialog] = useState(false);
   const [invoiceToSend, setInvoiceToSend] = useState<Invoice | null>(null);
   const [sendMethod, setSendMethod] = useState("email");
