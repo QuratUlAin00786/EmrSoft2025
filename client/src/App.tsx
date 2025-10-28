@@ -13,7 +13,9 @@ import { AIChatWidget } from "@/components/ai-chat-widget";
 import { getActiveSubdomain } from "@/lib/subdomain-utils";
 
 import { useAuth } from "@/hooks/use-auth";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { PermissionDeniedDialog } from "@/components/ui/permission-denied-dialog";
+import { setPermissionDeniedCallback } from "@/lib/permission-error-handler";
 
 const curaLogoPath = "/cura-logo.png";
 
@@ -130,6 +132,15 @@ function SettingsTabRedirect({ params }: { params?: { subdomain?: string } }) {
 }
 
 function ProtectedApp() {
+  const [permissionDeniedOpen, setPermissionDeniedOpen] = useState(false);
+  
+  // Setup global permission denied handler
+  useEffect(() => {
+    setPermissionDeniedCallback(() => {
+      setPermissionDeniedOpen(true);
+    });
+  }, []);
+  
   // Load and apply theme from organization settings
   const { data: organization } = useQuery({
     queryKey: ["/api/tenant/info"],
@@ -270,10 +281,15 @@ function ProtectedApp() {
   }, [organization]);
 
   return (
-    <div className="flex h-screen bg-neutral-50 dark:bg-background">
-      <Sidebar />
-      <main className="flex-1 flex flex-col overflow-y-auto lg:ml-0">
-        <Switch>
+    <>
+      <PermissionDeniedDialog 
+        open={permissionDeniedOpen} 
+        onOpenChange={setPermissionDeniedOpen}
+      />
+      <div className="flex h-screen bg-neutral-50 dark:bg-background">
+        <Sidebar />
+        <main className="flex-1 flex flex-col overflow-y-auto lg:ml-0">
+          <Switch>
           {/* Subdomain-prefixed routes */}
           <Route path="/:subdomain" component={Dashboard} />
           <Route path="/:subdomain/dashboard" component={Dashboard} />
@@ -391,9 +407,10 @@ function ProtectedApp() {
         </Switch>
       </main>
 
-      {/* AI Chat Widget available on all pages */}
-      <AIChatWidget />
-    </div>
+        {/* AI Chat Widget available on all pages */}
+        <AIChatWidget />
+      </div>
+    </>
   );
 }
 

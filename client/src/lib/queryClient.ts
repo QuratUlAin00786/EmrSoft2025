@@ -1,9 +1,17 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { isPermissionError, showPermissionDenied } from "./permission-error-handler";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
-    throw new Error(`${res.status}: ${text}`);
+    const error = new Error(`${res.status}: ${text}`);
+    
+    if (res.status === 403 || isPermissionError(error)) {
+      showPermissionDenied();
+      throw error;
+    }
+    
+    throw error;
   }
 }
 
