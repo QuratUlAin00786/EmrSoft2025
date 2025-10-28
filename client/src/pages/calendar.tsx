@@ -245,7 +245,7 @@ export default function CalendarPage() {
     },
   });
 
-  // Auto-populate patient when user is a patient - FIXED to use userId field
+  // Auto-populate patient when user is a patient - Match by email
   useEffect(() => {
     if (user?.role === 'patient' && patients.length > 0 && !bookingForm.patientId && showNewAppointmentModal) {
       console.log("🔍 CALENDAR: Looking for patient matching user:", { 
@@ -255,28 +255,22 @@ export default function CalendarPage() {
       });
       console.log("📋 CALENDAR: Available patients:", patients.map((p: any) => ({ 
         id: p.id,
-        userId: p.userId,
         email: p.email, 
         name: `${p.firstName} ${p.lastName}` 
       })));
       
-      // CRITICAL FIX: Match by userId field in patient record
-      // Patient record structure: { id: 3, userId: 13, ... }
-      // We need to match userId=13 to get patient record id=3
-      const currentPatient = patients.find((patient: any) => {
-        console.log(`🔍 CALENDAR: Checking patient record ID ${patient.id}, userId: ${patient.userId}, user.id: ${user.id}, match: ${patient.userId === user.id}`);
-        return patient.userId === user.id;
-      });
+      // Match by email address
+      const currentPatient = patients.find((patient: any) => 
+        patient.email === user.email
+      );
       
       if (currentPatient) {
         console.log("✅ CALENDAR: Found matching patient record:", currentPatient);
-        console.log("✅ CALENDAR: Patient record ID (correct):", currentPatient.id);
-        console.log("✅ CALENDAR: Patient userId (matches user.id):", currentPatient.userId);
-        // Use the patient RECORD ID (not user ID)
+        // Use the patient RECORD ID
         setBookingForm(prev => ({ ...prev, patientId: currentPatient.id.toString() }));
         console.log("✅ CALENDAR: Set patientId to:", currentPatient.id.toString());
       } else {
-        console.log("❌ CALENDAR: No matching patient found for user ID:", user.id);
+        console.log("❌ CALENDAR: No matching patient found for email:", user.email);
       }
     }
   }, [user, patients, showNewAppointmentModal, bookingForm.patientId]);
