@@ -3177,19 +3177,14 @@ Medical License: [License Number]
                           {editTimeSlots.map((slot) => {
                             const isAvailable = editAppointmentDate ? isTimeSlotAvailable(editAppointmentDate, slot) : true;
                             
-                            // *** CHANGE 6: Add ORANGE color for the original editing time slot ***
-                            // Get the original appointment time slot (no timezone conversion)
+                            // Get the original appointment time slot (read as local time)
                             const originalTimeSlot = (() => {
-                              const isoString = editingAppointment.scheduledAt;
-                              const match = isoString.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})/);
-                              if (match) {
-                                const hours = parseInt(match[4]);
-                                const minutes = parseInt(match[5]);
-                                const period = hours >= 12 ? 'PM' : 'AM';
-                                const displayHours = hours > 12 ? hours - 12 : (hours === 0 ? 12 : hours);
-                                return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
-                              }
-                              return '';
+                              const date = new Date(editingAppointment.scheduledAt);
+                              const hours = date.getHours();
+                              const minutes = date.getMinutes();
+                              const period = hours >= 12 ? 'PM' : 'AM';
+                              const displayHours = hours > 12 ? hours - 12 : (hours === 0 ? 12 : hours);
+                              return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
                             })();
                             const isOriginalSlot = slot === originalTimeSlot;
                             
