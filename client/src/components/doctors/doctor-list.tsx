@@ -765,10 +765,11 @@ export function DoctorList({
       return doctorPatients;
     }
 
-    // If logged-in user is a patient, show all users except admin and patient
+    // If logged-in user is a patient, show all users except patient, admin, sample_taker, lab_technician
     if (user?.role === 'patient') {
       return medicalStaff.filter((doctor: Doctor) => {
-        if (doctor.role === 'admin' || doctor.role === 'patient') {
+        // Exclude patient, admin, sample_taker, lab_technician roles
+        if (doctor.role === 'admin' || doctor.role === 'patient' || doctor.role === 'sample_taker' || doctor.role === 'lab_technician') {
           return false;
         }
         
@@ -781,11 +782,11 @@ export function DoctorList({
       });
     }
     
-    // For admin role: show all users except patient role, with role filter and search
+    // For admin role: show all users except patient, admin, sample_taker, lab_technician, with role filter and search
     if (user?.role === 'admin') {
       return medicalStaff.filter((staff: Doctor) => {
-        // Exclude patient role
-        if (staff.role === 'patient') {
+        // Exclude patient, admin, sample_taker, lab_technician roles
+        if (staff.role === 'patient' || staff.role === 'admin' || staff.role === 'sample_taker' || staff.role === 'lab_technician') {
           return false;
         }
         
@@ -913,6 +914,15 @@ export function DoctorList({
                       <span className="text-sm text-gray-600 dark:text-gray-300 block truncate">
                         {item.email}
                       </span>
+                    </div>
+                  )}
+
+                  {/* Row 3: Role Badge - Show for admin and patient users */}
+                  {(user?.role === 'admin' || user?.role === 'patient') && item.role && (
+                    <div className="w-full">
+                      <Badge className={`${roleColors[item.role as keyof typeof roleColors] || 'bg-gray-100 text-gray-800'} max-w-full truncate inline-block capitalize`}>
+                        {item.role}
+                      </Badge>
                     </div>
                   )}
 
