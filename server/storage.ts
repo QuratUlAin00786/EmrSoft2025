@@ -2050,6 +2050,49 @@ export class DatabaseStorage implements IStorage {
         .filter(p => p.paymentStatus === 'completed')
         .reduce((sum, p) => sum + parseFloat(p.amount), 0);
 
+      // New Analytics for Overview Tab
+      // 1. Patients registered this month
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const patientsThisMonth = patientsList.filter(p => new Date(p.createdAt) >= startOfMonth).length;
+
+      // 2. Doctor who handled the most appointments
+      const doctorAppointmentCounts = appointmentsList.reduce((acc, appointment) => {
+        const providerId = appointment.providerId;
+        acc[providerId] = (acc[providerId] || 0) + 1;
+        return acc;
+      }, {} as Record<number, number>);
+
+      const topDoctorId = Object.entries(doctorAppointmentCounts)
+        .sort(([,a], [,b]) => b - a)[0];
+      
+      let topDoctor = { name: 'No appointments yet', appointmentCount: 0 };
+      if (topDoctorId) {
+        const doctorInfo = await db.select().from(users).where(eq(users.id, parseInt(topDoctorId[0]))).limit(1);
+        if (doctorInfo.length > 0) {
+          topDoctor = {
+            name: `${doctorInfo[0].firstName} ${doctorInfo[0].lastName}`,
+            appointmentCount: topDoctorId[1]
+          };
+        }
+      }
+
+      // 3. Lab tests done daily (last 7 days)
+      const labResultsList = await db.select().from(labResults).where(eq(labResults.organizationId, organizationId));
+      
+      const labTestsDaily = Array.from({ length: 7 }, (_, i) => {
+        const date = new Date(Date.now() - (6 - i) * 24 * 60 * 60 * 1000);
+        const dateStr = date.toISOString().split('T')[0];
+        const count = labResultsList.filter(lab => {
+          const labDate = new Date(lab.orderedAt).toISOString().split('T')[0];
+          return labDate === dateStr;
+        }).length;
+        return {
+          date: dateStr,
+          count
+        };
+      });
+
       return {
         overview: {
           totalPatients,
@@ -2059,7 +2102,10 @@ export class DatabaseStorage implements IStorage {
           revenue: totalRevenue,
           averageWaitTime: 18, // Mock wait time
           patientSatisfaction: 4.6, // Mock satisfaction
-          noShowRate: totalAppointments > 0 ? Math.round((noShowAppointments / totalAppointments) * 100 * 10) / 10 : 0
+          noShowRate: totalAppointments > 0 ? Math.round((noShowAppointments / totalAppointments) * 100 * 10) / 10 : 0,
+          patientsThisMonth,
+          topDoctor,
+          labTestsDaily
         },
         trends: {
           patientGrowth: patientGrowthData,

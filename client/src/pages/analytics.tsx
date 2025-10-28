@@ -344,6 +344,59 @@ export default function AnalyticsPage() {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4 lg:space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 mb-4 lg:mb-6">
+              {/* Patients Registered This Month */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Patients Registered This Month</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-4">
+                    <div className="text-4xl font-bold text-blue-600 mb-2">
+                      {analytics.overview.patientsThisMonth || 0}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">New Registrations</div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Doctor with Most Appointments */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Top Doctor (Appointments)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-4">
+                    <div className="text-lg font-semibold text-green-600 mb-2">
+                      {analytics.overview.topDoctor?.name || 'No data'}
+                    </div>
+                    <div className="text-3xl font-bold text-gray-900 dark:text-white">
+                      {analytics.overview.topDoctor?.appointmentCount || 0}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Appointments Handled</div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Lab Tests Daily */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Lab Tests (Last 7 Days)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={120}>
+                    <LineChart data={analytics.overview.labTestsDaily || []}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" tickFormatter={(value) => format(new Date(value), 'MMM d')} fontSize={10} />
+                      <YAxis fontSize={10} />
+                      <Tooltip />
+                      <Line type="monotone" dataKey="count" stroke="#8b5cf6" strokeWidth={2} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
             {/* Patient Growth */}
             <Card>
