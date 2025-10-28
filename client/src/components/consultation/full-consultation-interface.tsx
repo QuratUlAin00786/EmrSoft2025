@@ -1624,7 +1624,7 @@ ${
       musclePositions.forEach((position: any) => {
         const x = position.coordinates.xPct * canvas.width;
         const y = position.coordinates.yPct * canvas.height;
-        const radius = 20;
+        const radius = 10;
 
         // Draw yellow circle
         ctx.beginPath();
@@ -1632,16 +1632,16 @@ ${
         ctx.fillStyle = 'rgba(255, 255, 0, 0.7)';
         ctx.fill();
         ctx.strokeStyle = 'rgba(255, 215, 0, 1)';
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 2;
         ctx.stroke();
 
         // Draw inner circle
         ctx.beginPath();
-        ctx.arc(x, y, 10, 0, 2 * Math.PI);
+        ctx.arc(x, y, 5, 0, 2 * Math.PI);
         ctx.fillStyle = 'rgba(255, 255, 0, 0.9)';
         ctx.fill();
         ctx.strokeStyle = 'rgba(255, 215, 0, 1)';
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 1;
         ctx.stroke();
       });
 
