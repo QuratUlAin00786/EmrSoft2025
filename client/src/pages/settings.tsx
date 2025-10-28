@@ -14,7 +14,8 @@ import { LoadingSpinner } from "@/components/common/loading-spinner";
 import { apiRequest } from "@/lib/queryClient";
 import { useTenant } from "@/hooks/use-tenant";
 import { useToast } from "@/hooks/use-toast";
-import { Settings as SettingsIcon, Globe, Shield, Palette, Save, Check, Upload, X, Link as LinkIcon } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { Settings as SettingsIcon, Globe, Shield, Palette, Save, Check, Upload, X, Link as LinkIcon, User } from "lucide-react";
 import type { Organization } from "@/types";
 import GDPRCompliance from "./gdpr-compliance";
 import IntegrationsPage from "./integrations";
@@ -41,6 +42,7 @@ const themes = [
 
 export default function Settings() {
   const { tenant } = useTenant();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [location, setLocation] = useLocation();
@@ -50,7 +52,8 @@ export default function Settings() {
   // Get tab from URL parameter
   const urlParams = new URLSearchParams(window.location.search);
   const tabParam = urlParams.get('tab');
-  const [activeTab, setActiveTab] = useState(tabParam || "general");
+  const defaultTab = user?.role === "patient" ? "my-profile" : "general";
+  const [activeTab, setActiveTab] = useState(tabParam || defaultTab);
   
   // Sync activeTab with URL changes (for back/forward navigation and direct URL access)
   useEffect(() => {
@@ -366,20 +369,29 @@ export default function Settings() {
       <div className="flex-1 overflow-auto p-6">
         <div className="max-w-6xl mx-auto">
           <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="general">
-                <SettingsIcon className="h-4 w-4 mr-2" />
-                General
-              </TabsTrigger>
-              <TabsTrigger value="gdpr">
-                <Shield className="h-4 w-4 mr-2" />
-                GDPR Compliance
-              </TabsTrigger>
-              <TabsTrigger value="integrations">
-                <LinkIcon className="h-4 w-4 mr-2" />
-                Integrations
-              </TabsTrigger>
-            </TabsList>
+            {user?.role === "patient" ? (
+              <TabsList className="grid w-full grid-cols-1">
+                <TabsTrigger value="my-profile">
+                  <User className="h-4 w-4 mr-2" />
+                  My Profile
+                </TabsTrigger>
+              </TabsList>
+            ) : (
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="general">
+                  <SettingsIcon className="h-4 w-4 mr-2" />
+                  General
+                </TabsTrigger>
+                <TabsTrigger value="gdpr">
+                  <Shield className="h-4 w-4 mr-2" />
+                  GDPR Compliance
+                </TabsTrigger>
+                <TabsTrigger value="integrations">
+                  <LinkIcon className="h-4 w-4 mr-2" />
+                  Integrations
+                </TabsTrigger>
+              </TabsList>
+            )}
 
             <TabsContent value="general" className="space-y-6">
               {/* Organization Settings */}
@@ -626,9 +638,286 @@ export default function Settings() {
             <TabsContent value="integrations">
               <IntegrationsPage />
             </TabsContent>
+
+            <TabsContent value="my-profile" className="space-y-6">
+              <MyProfileContent user={user} />
+            </TabsContent>
           </Tabs>
         </div>
       </div>
+    </>
+  );
+}
+
+function MyProfileContent({ user }: { user: any }) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [isEditing, setIsEditing] = useState<Record<string, boolean>>({});
+
+  const { data: patientData, isLoading: patientLoading } = useQuery({
+    queryKey: ["/api/patients", "my-profile"],
+    queryFn: async () => {
+      const token = localStorage.getItem("auth_token");
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const response = await fetch("/api/patients", {
+        headers,
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch patient data: ${response.status}`);
+      }
+
+      const patients = await response.json();
+      const myPatient = patients.find((p: any) => p.email === user?.email);
+      return myPatient || null;
+    },
+    enabled: !!user?.email,
+  });
+
+  const updatePatientMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const token = localStorage.getItem("auth_token");
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`/api/patients/${patientData.id}`, {
+        method: "PATCH",
+        headers,
+        credentials: "include",
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to update patient data: ${response.status}`);
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/patients", "my-profile"] });
+      toast({
+        title: "Profile Updated",
+        description: "Your profile has been updated successfully.",
+      });
+      setIsEditing({});
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update profile. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const [formData, setFormData] = useState<any>({});
+
+  useEffect(() => {
+    if (patientData) {
+      setFormData({
+        firstName: patientData.firstName || "",
+        lastName: patientData.lastName || "",
+        dateOfBirth: patientData.dateOfBirth || "",
+        gender: patientData.gender || "",
+        phone: patientData.phone || "",
+        address: patientData.address || "",
+        city: patientData.city || "",
+        state: patientData.state || "",
+        zipCode: patientData.zipCode || "",
+        country: patientData.country || "",
+        emergencyContact: patientData.emergencyContact || "",
+        emergencyPhone: patientData.emergencyPhone || "",
+        bloodType: patientData.bloodType || "",
+        allergies: patientData.allergies || "",
+        insuranceProvider: patientData.insuranceProvider || "",
+        insuranceNumber: patientData.insuranceNumber || "",
+      });
+    }
+  }, [patientData]);
+
+  const handleFieldChange = (field: string, value: string) => {
+    setFormData((prev: any) => ({ ...prev, [field]: value }));
+  };
+
+  const handleFieldSave = (field: string) => {
+    updatePatientMutation.mutate({ [field]: formData[field] });
+  };
+
+  const canEdit = (field: string) => {
+    return !patientData?.[field] || patientData[field] === "";
+  };
+
+  const renderField = (label: string, field: string, type: string = "text") => {
+    const isEmpty = canEdit(field);
+    const isCurrentlyEditing = isEditing[field];
+
+    return (
+      <div className="space-y-2">
+        <Label htmlFor={field}>{label}</Label>
+        <div className="flex gap-2">
+          <Input
+            id={field}
+            type={type}
+            value={formData[field] || ""}
+            onChange={(e) => handleFieldChange(field, e.target.value)}
+            disabled={!isEmpty && !isCurrentlyEditing}
+            className={!isEmpty && !isCurrentlyEditing ? "bg-gray-100 dark:bg-gray-800" : ""}
+            data-testid={`input-${field}`}
+          />
+          {isEmpty && !isCurrentlyEditing && (
+            <Button
+              size="sm"
+              onClick={() => setIsEditing((prev) => ({ ...prev, [field]: true }))}
+              data-testid={`button-edit-${field}`}
+            >
+              Edit
+            </Button>
+          )}
+          {isCurrentlyEditing && (
+            <>
+              <Button
+                size="sm"
+                onClick={() => handleFieldSave(field)}
+                disabled={updatePatientMutation.isPending}
+                data-testid={`button-save-${field}`}
+              >
+                Save
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  setIsEditing((prev) => ({ ...prev, [field]: false }));
+                  setFormData((prev: any) => ({ ...prev, [field]: patientData?.[field] || "" }));
+                }}
+                data-testid={`button-cancel-${field}`}
+              >
+                Cancel
+              </Button>
+            </>
+          )}
+        </div>
+        {!isEmpty && !isCurrentlyEditing && (
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            This field cannot be edited as it already has a value.
+          </p>
+        )}
+      </div>
+    );
+  };
+
+  if (patientLoading) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <LoadingSpinner className="h-8 w-8 mx-auto" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!patientData) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <p className="text-center text-gray-500 dark:text-gray-400">
+            No patient profile found. Please contact your administrator.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>Personal Information</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {renderField("First Name", "firstName")}
+            {renderField("Last Name", "lastName")}
+            {renderField("Date of Birth", "dateOfBirth", "date")}
+            {renderField("Gender", "gender")}
+            {renderField("Phone", "phone", "tel")}
+            <div className="space-y-2">
+              <Label>Email</Label>
+              <Input
+                value={user?.email || ""}
+                disabled
+                className="bg-gray-100 dark:bg-gray-800"
+                data-testid="input-email"
+              />
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Email cannot be changed.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Address Information</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {renderField("Address", "address")}
+            {renderField("City", "city")}
+            {renderField("State", "state")}
+            {renderField("Zip Code", "zipCode")}
+            {renderField("Country", "country")}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Emergency Contact</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {renderField("Emergency Contact Name", "emergencyContact")}
+            {renderField("Emergency Contact Phone", "emergencyPhone", "tel")}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Medical Information</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {renderField("Blood Type", "bloodType")}
+            {renderField("Allergies", "allergies")}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Insurance Information</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {renderField("Insurance Provider", "insuranceProvider")}
+            {renderField("Insurance Number", "insuranceNumber")}
+          </div>
+        </CardContent>
+      </Card>
     </>
   );
 }
