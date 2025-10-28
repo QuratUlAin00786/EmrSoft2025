@@ -428,11 +428,12 @@ export default function ImagingPage() {
     },
   });
 
-  // Fetch imaging pricing data for study types
+  // Fetch imaging pricing data for study types (not needed for patient users)
   const { data: imagingPricing = [], isLoading: pricingLoading } = useQuery({
     queryKey: ["/api/pricing/imaging"],
     staleTime: 60000,
     retry: false,
+    enabled: user?.role !== 'patient', // Disable for patient users who only view their own images
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/pricing/imaging');
       const data = await response.json();
