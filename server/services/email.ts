@@ -1,6 +1,5 @@
 import nodemailer from 'nodemailer';
-import { getUncachableSendGridClient } from './sendgrid';
-// Using SendGrid for email delivery
+// Using Gmail SMTP exclusively as requested
 
 interface EmailOptions {
   to: string;
@@ -84,20 +83,13 @@ class EmailService {
 
   async sendEmail(options: EmailOptions): Promise<boolean> {
     try {
-      // Try SendGrid first
-      const result = await this.sendWithSendGrid(options);
+      // Try Gmail SMTP first
+      const result = await this.sendWithSMTP(options);
       if (result) {
         return true;
       }
       
-      // If SendGrid fails, try SMTP as fallback
-      console.log('[EMAIL] SendGrid failed, trying SMTP fallback...');
-      const smtpResult = await this.sendWithSMTP(options);
-      if (smtpResult) {
-        return true;
-      }
-      
-      // If both fail, log the email details for manual follow-up
+      // If Gmail fails, log the email details for manual follow-up
       console.log('[EMAIL] 🚨 EMAIL DELIVERY FAILED:');
       console.log('[EMAIL] TO:', options.to);
       console.log('[EMAIL] SUBJECT:', options.subject);
@@ -113,41 +105,7 @@ class EmailService {
     }
   }
 
-  private async sendWithSendGrid(options: EmailOptions): Promise<boolean> {
-    try {
-      console.log('[EMAIL] Attempting to send email via SendGrid:', {
-        to: options.to,
-        subject: options.subject
-      });
-
-      const { client, fromEmail } = await getUncachableSendGridClient();
-      
-      const mailOptions: any = {
-        to: options.to,
-        from: options.from || fromEmail,
-        subject: options.subject,
-        text: options.text,
-        html: options.html
-      };
-
-      // Add attachments if present
-      if (options.attachments && options.attachments.length > 0) {
-        mailOptions.attachments = options.attachments.map(att => ({
-          content: att.content ? att.content.toString('base64') : '',
-          filename: att.filename,
-          type: att.contentType || 'application/octet-stream',
-          disposition: 'attachment'
-        }));
-      }
-
-      await client.send(mailOptions);
-      console.log('[EMAIL] ✅ SendGrid email sent successfully');
-      return true;
-    } catch (error: any) {
-      console.error('[EMAIL] SendGrid failed:', error.message);
-      return false;
-    }
-  }
+  // Gmail SMTP only - SendGrid removed as requested by user
 
   private async sendWithSMTP(options: EmailOptions): Promise<boolean> {
     try {
