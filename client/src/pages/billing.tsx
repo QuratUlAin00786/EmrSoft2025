@@ -2581,6 +2581,12 @@ export default function BillingPage() {
     enabled: isAdmin,
   });
 
+  // Fetch doctors fees for Revenue Breakdown
+  const { data: doctorsFees = [] } = useQuery({
+    queryKey: ["/api/pricing/doctors-fees"],
+    enabled: isAdmin && activeTab === "custom-reports"
+  });
+
   // Auto-populate NHS number when patient is selected
   useEffect(() => {
     if (selectedPatient && patients && patients.length > 0) {
@@ -2664,6 +2670,98 @@ export default function BillingPage() {
     
     // Outstanding = Invoices - Payments
     return totalInvoices - totalPayments;
+  };
+
+  // Calculate Revenue Breakdown from real data
+  const getRevenueBreakdown = () => {
+    if (!Array.isArray(invoices) || !Array.isArray(doctorsFees)) {
+      return [];
+    }
+
+    // Get current month invoices
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
+    
+    const currentMonthInvoices = invoices.filter((invoice: any) => {
+      const invoiceDate = new Date(invoice.dateOfService);
+      return invoiceDate.getMonth() === currentMonth && invoiceDate.getFullYear() === currentYear;
+    });
+
+    // Group invoices by service name from doctors fee table
+    const serviceMap: Record<string, any> = {};
+
+    currentMonthInvoices.forEach((invoice: any) => {
+      // Try to match invoice service with doctors fee by service name or service type
+      const matchingFee = doctorsFees.find((fee: any) => 
+        fee.serviceName === invoice.serviceType || 
+        fee.serviceName === invoice.serviceId
+      );
+
+      const serviceName = matchingFee?.serviceName || invoice.serviceType || 'Other Services';
+      
+      if (!serviceMap[serviceName]) {
+        serviceMap[serviceName] = {
+          serviceName,
+          procedures: 0,
+          revenue: 0,
+          insurance: 0,
+          selfPay: 0,
+          totalAmount: 0,
+          paidAmount: 0
+        };
+      }
+
+      const amount = typeof invoice.totalAmount === 'string' ? parseFloat(invoice.totalAmount) : invoice.totalAmount;
+      const paid = typeof invoice.paidAmount === 'string' ? parseFloat(invoice.paidAmount) : invoice.paidAmount;
+      
+      serviceMap[serviceName].procedures += 1;
+      serviceMap[serviceName].revenue += amount;
+      serviceMap[serviceName].totalAmount += amount;
+      serviceMap[serviceName].paidAmount += paid;
+
+      // If insurance provider exists, count as insurance, otherwise self-pay
+      if (invoice.insuranceProvider && invoice.insuranceProvider !== 'self-pay') {
+        serviceMap[serviceName].insurance += amount;
+      } else {
+        serviceMap[serviceName].selfPay += amount;
+      }
+    });
+
+    // Convert to array and calculate collection rate
+    const breakdown = Object.values(serviceMap).map((service: any) => ({
+      ...service,
+      collectionRate: service.totalAmount > 0 
+        ? Math.round((service.paidAmount / service.totalAmount) * 100)
+        : 0
+    }));
+
+    // Calculate totals
+    const totals = breakdown.reduce((acc, service) => ({
+      serviceName: 'Total',
+      procedures: acc.procedures + service.procedures,
+      revenue: acc.revenue + service.revenue,
+      insurance: acc.insurance + service.insurance,
+      selfPay: acc.selfPay + service.selfPay,
+      totalAmount: acc.totalAmount + service.totalAmount,
+      paidAmount: acc.paidAmount + service.paidAmount,
+      collectionRate: 0
+    }), {
+      serviceName: 'Total',
+      procedures: 0,
+      revenue: 0,
+      insurance: 0,
+      selfPay: 0,
+      totalAmount: 0,
+      paidAmount: 0,
+      collectionRate: 0
+    });
+
+    totals.collectionRate = totals.totalAmount > 0 
+      ? Math.round((totals.paidAmount / totals.totalAmount) * 100)
+      : 0;
+
+    return [...breakdown, totals];
   };
 
   if (invoicesLoading) {
@@ -3833,56 +3931,34 @@ export default function BillingPage() {
                             </tr>
                           </thead>
                           <tbody>
-                            <tr className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
-                              <td className="p-3 font-medium">General Consultation</td>
-                              <td className="p-3">24</td>
-                              <td className="p-3 font-semibold">{formatCurrency(3600)}</td>
-                              <td className="p-3">{formatCurrency(2800)}</td>
-                              <td className="p-3">{formatCurrency(800)}</td>
-                              <td className="p-3">
-                                <Badge className="bg-green-100 text-green-800">95%</Badge>
-                              </td>
-                            </tr>
-                            <tr className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
-                              <td className="p-3 font-medium">Specialist Consultation</td>
-                              <td className="p-3">12</td>
-                              <td className="p-3 font-semibold">{formatCurrency(2400)}</td>
-                              <td className="p-3">{formatCurrency(1900)}</td>
-                              <td className="p-3">{formatCurrency(500)}</td>
-                              <td className="p-3">
-                                <Badge className="bg-green-100 text-green-800">92%</Badge>
-                              </td>
-                            </tr>
-                            <tr className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
-                              <td className="p-3 font-medium">Diagnostic Tests</td>
-                              <td className="p-3">18</td>
-                              <td className="p-3 font-semibold">{formatCurrency(1800)}</td>
-                              <td className="p-3">{formatCurrency(1600)}</td>
-                              <td className="p-3">{formatCurrency(200)}</td>
-                              <td className="p-3">
-                                <Badge className="bg-yellow-100 text-yellow-800">88%</Badge>
-                              </td>
-                            </tr>
-                            <tr className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
-                              <td className="p-3 font-medium">Minor Procedures</td>
-                              <td className="p-3">8</td>
-                              <td className="p-3 font-semibold">{formatCurrency(1200)}</td>
-                              <td className="p-3">{formatCurrency(900)}</td>
-                              <td className="p-3">{formatCurrency(300)}</td>
-                              <td className="p-3">
-                                <Badge className="bg-green-100 text-green-800">94%</Badge>
-                              </td>
-                            </tr>
-                            <tr className="border-b bg-gray-50 dark:bg-gray-800 font-semibold">
-                              <td className="p-3">Total</td>
-                              <td className="p-3">62</td>
-                              <td className="p-3">{formatCurrency(9000)}</td>
-                              <td className="p-3">{formatCurrency(7200)}</td>
-                              <td className="p-3">{formatCurrency(1800)}</td>
-                              <td className="p-3">
-                                <Badge className="bg-green-100 text-green-800">92%</Badge>
-                              </td>
-                            </tr>
+                            {getRevenueBreakdown().map((item, index) => (
+                              <tr 
+                                key={index} 
+                                className={`border-b ${item.serviceName === 'Total' ? 'bg-gray-50 dark:bg-gray-800 font-semibold' : 'hover:bg-gray-50 dark:hover:bg-gray-800'}`}
+                              >
+                                <td className="p-3 font-medium">{item.serviceName}</td>
+                                <td className="p-3">{item.procedures}</td>
+                                <td className="p-3 font-semibold">{formatCurrency(item.revenue)}</td>
+                                <td className="p-3">{formatCurrency(item.insurance)}</td>
+                                <td className="p-3">{formatCurrency(item.selfPay)}</td>
+                                <td className="p-3">
+                                  <Badge className={`${
+                                    item.collectionRate >= 90 ? 'bg-green-100 text-green-800' :
+                                    item.collectionRate >= 75 ? 'bg-yellow-100 text-yellow-800' :
+                                    'bg-red-100 text-red-800'
+                                  }`}>
+                                    {item.collectionRate}%
+                                  </Badge>
+                                </td>
+                              </tr>
+                            ))}
+                            {getRevenueBreakdown().length === 0 && (
+                              <tr>
+                                <td colSpan={6} className="p-8 text-center text-gray-500 dark:text-gray-400">
+                                  No revenue data available for the current month
+                                </td>
+                              </tr>
+                            )}
                           </tbody>
                         </table>
                       </div>
