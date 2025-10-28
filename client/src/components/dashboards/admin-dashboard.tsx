@@ -283,7 +283,7 @@ export function AdminDashboard() {
     { title: "Schedule Appointment", description: "", icon: Calendar, href: `/${subdomain}/appointments` },
     { title: "Create Prescription", description: "", icon: Pill, href: `/${subdomain}/prescriptions` },
     { title: "Medical Records", description: "", icon: ClipboardPlus, href: `/${subdomain}/patients` },
-    { title: "AI Assistant", description: "", icon: Brain, href: `/${subdomain}/ai-insights` }
+    { title: "AI Assistant", description: "", icon: Brain, href: `/${subdomain}/clinical-decision-support` }
   ];
 
   return (
