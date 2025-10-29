@@ -18193,7 +18193,7 @@ Cura EMR Team
         borderWidth: 0.5
       });
       
-      page.drawText('📋 Imaging Study Prescription', {
+      page.drawText('Imaging Study Prescription', {
         x: 40,
         y: yPosition,
         size: 11,
@@ -18346,7 +18346,7 @@ Cura EMR Team
           borderWidth: 1
         });
         
-        page.drawText('⚠ CRITICAL VALUES DETECTED', {
+        page.drawText('CRITICAL VALUES DETECTED', {
           x: 40,
           y: yPosition - 5,
           size: 10,
