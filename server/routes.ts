@@ -18657,7 +18657,8 @@ Cura EMR Team
       let pdfBytes: Uint8Array;
       if (await fse.pathExists(outputPath)) {
         console.log('[EMAIL-SHARE] Loading existing prescription PDF:', outputPath);
-        pdfBytes = await fse.readFile(outputPath);
+        const buffer = await fs.promises.readFile(outputPath);
+        pdfBytes = new Uint8Array(buffer);
       } else {
         console.log('[EMAIL-SHARE] Generating new prescription PDF for study:', studyId);
         
