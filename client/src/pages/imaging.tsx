@@ -1712,9 +1712,10 @@ export default function ImagingPage() {
       matchesTab = study.orderStudyCreated === true && 
                    study.orderStudyGenerated === false;
     } else if (activeTab === "imaging-results") {
-      // Imaging Results tab: order_study_created = true AND order_study_generated = true
+      // Imaging Results tab: order_study_created = true AND order_study_generated = true AND status = Completed
       matchesTab = study.orderStudyCreated === true && 
-                   study.orderStudyGenerated === true;
+                   study.orderStudyGenerated === true && 
+                   study.status === "Completed";
     }
 
     const matchesSearch =
