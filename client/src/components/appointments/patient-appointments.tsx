@@ -1009,7 +1009,19 @@ export default function PatientAppointments({
                             </span>
                           </div>
                         )}
-                        {getDoctorSpecialtyData(appointment.providerId)
+                        {user?.role === 'patient' && getDoctorSpecialtyData(appointment.providerId)
+                          .category && (
+                          <div className="flex items-center space-x-2">
+                            <FileText className="h-4 w-4 text-gray-400" />
+                            <span className="text-sm">
+                              {
+                                getDoctorSpecialtyData(appointment.providerId)
+                                  .category
+                              }
+                            </span>
+                          </div>
+                        )}
+                        {user?.role === 'patient' && getDoctorSpecialtyData(appointment.providerId)
                           .subSpecialty && (
                           <div className="flex items-center space-x-2">
                             <FileText className="h-4 w-4 text-gray-400" />
