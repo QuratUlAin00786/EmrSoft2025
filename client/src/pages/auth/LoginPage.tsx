@@ -170,7 +170,7 @@ export default function LoginPage() {
               <div className="space-y-2 text-xs text-gray-600 dark:text-gray-300">
                 <div className="flex justify-between">
                   <span>Admin:</span>
-                  <span>admin@cura.com / admin123</span>
+                  <span>james@curaemr.ai / admin123</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Doctor:</span>
