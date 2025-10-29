@@ -1462,14 +1462,15 @@ export default function ImagingPage() {
         setGeneratedReportId(data.reportId);
         setGeneratedReportFileName(data.fileName || `${data.reportId}.pdf`);
 
-        // Update order_study_generated to true for this medical image
+        // Update order_study_generated to true and status to Completed for this medical image
         try {
           await apiRequest("PATCH", `/api/medical-images/${study.id}`, {
-            orderStudyGenerated: true
+            orderStudyGenerated: true,
+            status: "Completed"
           });
-          console.log('📷 IMAGING: Updated order_study_generated to true for study ID:', study.id);
+          console.log('📷 IMAGING: Updated order_study_generated to true and status to Completed for study ID:', study.id);
         } catch (updateError) {
-          console.error('Error updating order_study_generated:', updateError);
+          console.error('Error updating order_study_generated and status:', updateError);
         }
 
         // Refresh the medical images to get updated data
