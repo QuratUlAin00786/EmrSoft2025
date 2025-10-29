@@ -123,6 +123,10 @@ export function DoctorList({
   const [workingDays, setWorkingDays] = useState<string[]>([]);
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
+  
+  // Medical Specialty Filter state
+  const [selectedSpecialty, setSelectedSpecialty] = useState<string>("all");
+  const [openSpecialtyCombobox, setOpenSpecialtyCombobox] = useState(false);
 
   // Booking dialog state
   const [isBookingOpen, setIsBookingOpen] = useState(false);
@@ -759,6 +763,17 @@ export function DoctorList({
     return patients.filter((patient: any) => patientIds.has(patient.id));
   }, [user, doctorAppointments, patients]);
 
+  // Get unique medical specialties from doctors
+  const uniqueSpecialties = useMemo(() => {
+    const specialties = new Set<string>();
+    medicalStaff.forEach((staff: Doctor) => {
+      if (staff.role === 'doctor' && staff.medicalSpecialtyCategory) {
+        specialties.add(staff.medicalSpecialtyCategory);
+      }
+    });
+    return Array.from(specialties).sort();
+  }, [medicalStaff]);
+
   const availableStaff = useMemo(() => {
     // If logged-in user is a doctor, show their patients
     if (isDoctorLike(user?.role)) {
@@ -778,6 +793,13 @@ export function DoctorList({
           return false;
         }
         
+        // Apply medical specialty filter when role is doctor
+        if (filterRole === 'doctor' && selectedSpecialty !== 'all') {
+          if (doctor.medicalSpecialtyCategory !== selectedSpecialty) {
+            return false;
+          }
+        }
+        
         return true;
       });
     }
@@ -793,6 +815,13 @@ export function DoctorList({
         // Apply role filter if a specific role is selected
         if (filterRole !== 'all' && filterRole !== '' && staff.role !== filterRole) {
           return false;
+        }
+        
+        // Apply medical specialty filter when role is doctor
+        if (filterRole === 'doctor' && selectedSpecialty !== 'all') {
+          if (staff.medicalSpecialtyCategory !== selectedSpecialty) {
+            return false;
+          }
         }
         
         // Apply search filter
@@ -830,7 +859,7 @@ export function DoctorList({
       // If working days are set, check if today is included
       return doctor.workingDays.includes(today);
     });
-  }, [user, doctorPatients, medicalStaff, filterRole, filterSearch, today]);
+  }, [user, doctorPatients, medicalStaff, filterRole, filterSearch, selectedSpecialty, today]);
 
   if (isLoading) {
     return (
@@ -886,6 +915,73 @@ export function DoctorList({
     <Card>
       <CardContent>
         <div className="space-y-4">
+          {/* Medical Specialty Filter - Show for admin and patient when role is doctor */}
+          {(user?.role === 'admin' || user?.role === 'patient') && filterRole === 'doctor' && uniqueSpecialties.length > 0 && (
+            <div className="mb-4">
+              <Label htmlFor="specialty-filter" className="text-sm font-medium mb-2 block">
+                Filter by Medical Specialty
+              </Label>
+              <Popover open={openSpecialtyCombobox} onOpenChange={setOpenSpecialtyCombobox}>
+                <PopoverTrigger asChild>
+                  <Button
+                    id="specialty-filter"
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={openSpecialtyCombobox}
+                    className="w-full justify-between"
+                    data-testid="specialty-filter"
+                  >
+                    {selectedSpecialty === "all"
+                      ? "All Specialties"
+                      : uniqueSpecialties.find((specialty) => specialty === selectedSpecialty) || "All Specialties"}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Search specialty..." />
+                    <CommandEmpty>No specialty found.</CommandEmpty>
+                    <CommandGroup>
+                      <CommandItem
+                        value="all"
+                        onSelect={() => {
+                          setSelectedSpecialty("all");
+                          setOpenSpecialtyCombobox(false);
+                        }}
+                      >
+                        <CheckIcon
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            selectedSpecialty === "all" ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        All Specialties
+                      </CommandItem>
+                      {uniqueSpecialties.map((specialty) => (
+                        <CommandItem
+                          key={specialty}
+                          value={specialty}
+                          onSelect={(currentValue) => {
+                            setSelectedSpecialty(currentValue === selectedSpecialty ? "all" : currentValue);
+                            setOpenSpecialtyCombobox(false);
+                          }}
+                        >
+                          <CheckIcon
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              selectedSpecialty === specialty ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          {specialty}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
+          )}
+          
           {availableStaff.map((item: any) => (
             <div
               key={item.id}
