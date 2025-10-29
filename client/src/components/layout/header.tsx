@@ -27,17 +27,6 @@ export function Header({ title, subtitle }: HeaderProps) {
     <header className="bg-white dark:bg-card shadow-sm border-b border-neutral-100 dark:border-border p-4 lg:p-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2 lg:space-x-4 min-w-0 flex-1">
-          {showBackButton && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleBack}
-              className="flex items-center space-x-1 lg:space-x-2 shrink-0"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span className="hidden sm:inline">Back</span>
-            </Button>
-          )}
           <div className="min-w-0 flex-1">
             <h2 className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-foreground truncate">{title}</h2>
             {subtitle && (
