@@ -14448,6 +14448,22 @@ This treatment plan should be reviewed and adjusted based on individual patient 
     }
   });
 
+  app.delete("/api/default-shifts/all", authMiddleware, requireRole(["admin"]), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = req.tenant!.id;
+      
+      const result = await storage.deleteAllDefaultShifts(organizationId);
+
+      res.json({
+        message: "All default shifts deleted successfully",
+        deleted: result.deleted
+      });
+    } catch (error) {
+      console.error("Error deleting all default shifts:", error);
+      res.status(500).json({ error: "Failed to delete all default shifts" });
+    }
+  });
+
   app.delete("/api/default-shifts/:userId", authMiddleware, async (req: TenantRequest, res) => {
     try {
       const userId = parseInt(req.params.userId);
@@ -14469,22 +14485,6 @@ This treatment plan should be reviewed and adjusted based on individual patient 
     } catch (error) {
       console.error("Error deleting default shift:", error);
       res.status(500).json({ error: "Failed to delete default shift" });
-    }
-  });
-
-  app.delete("/api/default-shifts/all", authMiddleware, requireRole(["admin"]), async (req: TenantRequest, res) => {
-    try {
-      const organizationId = req.tenant!.id;
-      
-      const result = await storage.deleteAllDefaultShifts(organizationId);
-
-      res.json({
-        message: "All default shifts deleted successfully",
-        deleted: result.deleted
-      });
-    } catch (error) {
-      console.error("Error deleting all default shifts:", error);
-      res.status(500).json({ error: "Failed to delete all default shifts" });
     }
   });
 
