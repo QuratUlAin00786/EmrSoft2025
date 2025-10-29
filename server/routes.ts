@@ -18535,65 +18535,376 @@ Cura EMR Team
         return res.status(404).json({ error: "Patient not found" });
       }
 
-      // Get the user details who is sharing the study
-      const sharedBy = req.user.email;
+      const organizationId = req.tenant!.id;
+      const imageId = study.imageId;
+
+      // Generate Image Prescription PDF
+      console.log('[EMAIL-SHARE] Generating image prescription PDF for study:', studyId);
       
-      // Create signed report URL if report exists
-      let reportUrl = '';
-      if (study.reportFileName && study.imageId) {
-        const fileSecret = process.env.FILE_SECRET;
-        if (!fileSecret) {
-          console.error("FILE_SECRET not configured");
-          return res.status(500).json({ error: "Server configuration error" });
-        }
-
-        // Generate signed token valid for 7 days (for email access)
-        const token = jwt.sign(
-          {
-            fileId: study.id,
-            imageId: study.imageId,
-            organizationId: study.organizationId,
-            patientId: study.patientId,
-            userId: req.user.id
-          },
-          fileSecret,
-          { expiresIn: '7d' }
-        );
-
-        const baseUrl = process.env.NODE_ENV === 'production' 
-          ? `https://${req.get('host')}` 
-          : `http://${req.get('host')}`;
-        
-        // Use signed URL endpoint for email access (no auth required)
-        reportUrl = `${baseUrl}/api/imaging-files/view/${study.imageId}?token=${token}`;
-        
-        console.log('[EMAIL-SHARE] Generated signed URL for imaging report:', study.imageId);
+      // Save PDF in organizational structure
+      const prescriptionsDir = path.resolve(process.cwd(), 'uploads', 'Image_Prescriptions', String(organizationId), 'patients', String(study.patientId));
+      await fse.ensureDir(prescriptionsDir);
+      
+      // Import pdf-lib dynamically
+      const { PDFDocument, rgb, StandardFonts } = await import('pdf-lib');
+      
+      // Fetch clinic footer data
+      const { clinicFooters } = await import("@shared/schema");
+      const { db } = await import("../db");
+      const clinicFooterRecords = await db
+        .select()
+        .from(clinicFooters)
+        .where(eq(clinicFooters.organizationId, organizationId))
+        .limit(1);
+      
+      const footerData = clinicFooterRecords[0] || null;
+      
+      // Create PDF with two-column layout matching lab result prescription format
+      const pdfDoc = await PDFDocument.create();
+      const page = pdfDoc.addPage([595, 842]); // A4 size
+      const { width, height } = page.getSize();
+      
+      // Load fonts
+      const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+      
+      // Color definitions
+      const darkText = rgb(0.2, 0.2, 0.2);
+      const lightGray = rgb(0.95, 0.95, 0.95);
+      const borderGray = rgb(0.85, 0.85, 0.85);
+      const greenText = rgb(0, 0.6, 0);
+      const yellowBg = rgb(1, 0.98, 0.85);
+      const redBg = rgb(1, 0.93, 0.93);
+      
+      // HEADER - Purple gradient effect
+      page.drawRectangle({
+        x: 0,
+        y: height - 120,
+        width,
+        height: 120,
+        color: rgb(0.31, 0.27, 0.9)
+      });
+      
+      // Organization Name - CURA EMR SYSTEM
+      page.drawText(footerData?.organizationName || 'CURA EMR SYSTEM', {
+        x: 40,
+        y: height - 50,
+        size: 22,
+        font: boldFont,
+        color: rgb(1, 1, 1)
+      });
+      
+      page.drawText('MEDICAL IMAGING PRESCRIPTION', {
+        x: 40,
+        y: height - 75,
+        size: 12,
+        font: boldFont,
+        color: rgb(1, 1, 1)
+      });
+      
+      // Patient Details Section (Gray Background)
+      let yPosition = height - 150;
+      
+      page.drawRectangle({
+        x: 30,
+        y: yPosition - 70,
+        width: width - 60,
+        height: 75,
+        color: lightGray,
+        borderColor: borderGray,
+        borderWidth: 1
+      });
+      
+      page.drawText('Patient Information', {
+        x: 40,
+        y: yPosition,
+        size: 11,
+        font: boldFont,
+        color: darkText
+      });
+      
+      yPosition -= 25;
+      
+      const col1X = 50;
+      const col2X = 310;
+      
+      page.drawText(`Patient Name:`, {
+        x: col1X,
+        y: yPosition,
+        size: 9,
+        font,
+        color: darkText
+      });
+      page.drawText(`${patient.firstName} ${patient.lastName}`, {
+        x: col1X + 85,
+        y: yPosition,
+        size: 9,
+        font: boldFont,
+        color: darkText
+      });
+      
+      page.drawText(`Patient ID:`, {
+        x: col2X,
+        y: yPosition,
+        size: 9,
+        font,
+        color: darkText
+      });
+      page.drawText(String(patient.patientId), {
+        x: col2X + 70,
+        y: yPosition,
+        size: 9,
+        font: boldFont,
+        color: darkText
+      });
+      
+      yPosition -= 18;
+      
+      page.drawText(`DOB:`, {
+        x: col1X,
+        y: yPosition,
+        size: 9,
+        font,
+        color: darkText
+      });
+      page.drawText(patient.dateOfBirth ? new Date(patient.dateOfBirth).toLocaleDateString() : 'N/A', {
+        x: col1X + 85,
+        y: yPosition,
+        size: 9,
+        font,
+        color: darkText
+      });
+      
+      page.drawText(`Gender:`, {
+        x: col2X,
+        y: yPosition,
+        size: 9,
+        font,
+        color: darkText
+      });
+      page.drawText(patient.gender || 'N/A', {
+        x: col2X + 70,
+        y: yPosition,
+        size: 9,
+        font,
+        color: darkText
+      });
+      
+      yPosition -= 35;
+      
+      // Imaging Study Section
+      page.drawText('Imaging Study Prescription', {
+        x: 40,
+        y: yPosition,
+        size: 11,
+        font: boldFont,
+        color: darkText
+      });
+      
+      yPosition -= 25;
+      
+      page.drawText(`Image ID:`, {
+        x: col1X,
+        y: yPosition,
+        size: 9,
+        font,
+        color: darkText
+      });
+      page.drawText(imageId, {
+        x: col1X + 70,
+        y: yPosition,
+        size: 9,
+        font: boldFont,
+        color: darkText
+      });
+      
+      page.drawText(`Study Type:`, {
+        x: col2X,
+        y: yPosition,
+        size: 9,
+        font,
+        color: darkText
+      });
+      page.drawText(study.studyType, {
+        x: col2X + 70,
+        y: yPosition,
+        size: 9,
+        font: boldFont,
+        color: darkText
+      });
+      
+      yPosition -= 18;
+      
+      page.drawText(`Modality: ${study.modality}`, {
+        x: col1X,
+        y: yPosition,
+        size: 9,
+        font,
+        color: darkText
+      });
+      
+      if (study.bodyPart) {
+        page.drawText(`Body Part: ${study.bodyPart}`, {
+          x: col2X,
+          y: yPosition,
+          size: 9,
+          font,
+          color: darkText
+        });
       }
-
-      // Send the email using the email service
+      
+      yPosition -= 30;
+      
+      // Clinical Notes Section
+      if (study.indication || study.findings) {
+        page.drawRectangle({
+          x: 30,
+          y: yPosition - 50,
+          width: width - 60,
+          height: 55,
+          color: yellowBg,
+          borderColor: rgb(0.9, 0.85, 0.3),
+          borderWidth: 1
+        });
+        
+        page.drawText('Clinical Notes:', {
+          x: 40,
+          y: yPosition,
+          size: 10,
+          font: boldFont,
+          color: darkText
+        });
+        
+        yPosition -= 20;
+        
+        const notesText = study.indication || study.findings || 'No clinical notes available';
+        page.drawText(notesText.substring(0, 120), {
+          x: 40,
+          y: yPosition,
+          size: 9,
+          font,
+          color: darkText
+        });
+        
+        yPosition -= 40;
+      }
+      
+      // Footer
+      const footerY = 50;
+      page.drawText(footerData?.address || 'Medical Center, Healthcare District', {
+        x: 40,
+        y: footerY + 40,
+        size: 8,
+        font,
+        color: darkText
+      });
+      
+      page.drawText(
+        req.user?.firstName && req.user?.lastName 
+          ? `${req.user.firstName} ${req.user.lastName}` 
+          : 'Authorized Medical Staff', {
+        x: width - 180,
+        y: footerY + 30,
+        size: 8,
+        font,
+        color: darkText
+      });
+      
+      // Generate and save PDF
+      const pdfBytes = await pdfDoc.save();
+      const fileName = `prescription-${imageId}.pdf`;
+      const outputPath = path.join(prescriptionsDir, fileName);
+      await fse.outputFile(outputPath, pdfBytes);
+      
+      console.log(`[EMAIL-SHARE] Image prescription PDF generated: ${outputPath}`);
+      
+      // Send the email with PDF attachment
       const patientName = `${patient.firstName} ${patient.lastName}`;
-      const studyType = study.studyDescription || 'Medical Imaging Study';
+      const studyType = study.studyDescription || study.studyType || 'Medical Imaging Study';
+      const sharedBy = req.user.email;
 
-      const emailSent = await emailService.sendImagingStudyShare(
-        recipientEmail,
-        patientName,
-        studyType,
-        sharedBy,
-        customMessage || '',
-        reportUrl
-      );
+      const emailSent = await emailService.sendEmail({
+        to: recipientEmail,
+        subject: `Image Prescription - ${patientName} - ${studyType}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <div style="background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); color: white; padding: 30px; text-align: center;">
+              <h1 style="margin: 0;">Imaging Study Prescription</h1>
+            </div>
+            
+            <div style="padding: 30px; background-color: #f8fafc;">
+              <p>Dear Colleague,</p>
+              
+              <p>An imaging study prescription has been shared with you by <strong>${sharedBy}</strong>:</p>
+              
+              <div style="background-color: white; padding: 20px; border-left: 4px solid #4F46E5; margin: 20px 0;">
+                <p><strong>Patient:</strong> ${patientName}</p>
+                <p><strong>Study Type:</strong> ${studyType}</p>
+                <p><strong>Image ID:</strong> ${imageId}</p>
+                <p><strong>Shared by:</strong> ${sharedBy}</p>
+                <p><strong>Date Shared:</strong> ${new Date().toLocaleDateString()}</p>
+              </div>
+              
+              ${customMessage ? `
+              <div style="background-color: #fffbeb; padding: 15px; border-left: 4px solid #f59e0b; margin: 20px 0;">
+                <p><strong>Message from ${sharedBy}:</strong></p>
+                <p style="font-style: italic;">${customMessage}</p>
+              </div>
+              ` : ''}
+              
+              <p>The imaging prescription is attached to this email as a PDF document.</p>
+              
+              <p style="color: #dc2626; font-weight: bold;">⚠️ CONFIDENTIAL MEDICAL INFORMATION</p>
+              <p style="font-size: 12px; color: #666;">This study has been shared for medical consultation purposes. Please ensure appropriate patient confidentiality is maintained.</p>
+              
+              <p>Best regards,<br>Cura EMR Team</p>
+            </div>
+            
+            <div style="background-color: #1e293b; color: white; padding: 20px; text-align: center; font-size: 12px;">
+              <p>© 2025 Cura EMR by Halo Group. All rights reserved.</p>
+            </div>
+          </div>
+        `,
+        text: `
+Dear Colleague,
+
+An imaging study prescription has been shared with you by ${sharedBy}:
+
+Patient: ${patientName}
+Study Type: ${studyType}
+Image ID: ${imageId}
+Shared by: ${sharedBy}
+Date Shared: ${new Date().toLocaleDateString()}
+
+${customMessage ? `Message from ${sharedBy}: ${customMessage}\n` : ''}
+
+The imaging prescription is attached to this email.
+
+This study has been shared for medical consultation purposes. Please ensure appropriate patient confidentiality is maintained.
+
+Best regards,
+Cura EMR Team
+        `,
+        attachments: [
+          {
+            filename: fileName,
+            content: Buffer.from(pdfBytes),
+            contentType: 'application/pdf'
+          }
+        ]
+      });
 
       if (emailSent) {
-        console.log(`📧 EMAIL: Successfully shared imaging study ${studyId} with ${recipientEmail}`);
+        console.log(`[EMAIL-SHARE] Successfully shared imaging prescription ${studyId} with ${recipientEmail}`);
         res.json({
           success: true,
-          message: `Imaging study shared successfully with ${recipientEmail}`,
+          message: `Image prescription shared successfully with ${recipientEmail}`,
           studyId,
           recipientEmail,
           patientName
         });
       } else {
-        console.error(`📧 EMAIL: Failed to share imaging study ${studyId} with ${recipientEmail}`);
+        console.error(`[EMAIL-SHARE] Failed to share imaging prescription ${studyId} with ${recipientEmail}`);
         res.status(500).json({
           error: "Failed to send email. Please try again or contact support.",
           studyId,
@@ -18602,7 +18913,7 @@ Cura EMR Team
       }
 
     } catch (error) {
-      console.error("Share imaging study error:", error);
+      console.error("[EMAIL-SHARE] Share imaging study error:", error);
       res.status(500).json({ error: "Failed to share imaging study" });
     }
   });
