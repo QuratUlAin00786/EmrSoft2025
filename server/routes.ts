@@ -18123,6 +18123,7 @@ Cura EMR Team
       const logoStartX = 70;
       const clinicInfoX = 160;
       let clinicInfoY = yPosition;
+      let logoBottomY = yPosition; // Track logo bottom position
       
       // Logo on the left (small)
       if (headerData?.logoBase64) {
@@ -18139,10 +18140,11 @@ Cura EMR Team
           
           // Small logo size
           const logoDims = logoImage.scale(0.12);
+          logoBottomY = yPosition - logoDims.height;
           
           page.drawImage(logoImage, {
             x: logoStartX,
-            y: yPosition - logoDims.height,
+            y: logoBottomY,
             width: logoDims.width,
             height: logoDims.height
           });
@@ -18206,7 +18208,8 @@ Cura EMR Team
         color: darkText
       });
       
-      yPosition = clinicInfoY - 30;
+      // Use the lower of logo bottom or clinic info bottom to ensure no overlap
+      yPosition = Math.min(logoBottomY, clinicInfoY) - 30;
       
       // PATIENT INFORMATION SECTION (TWO COLUMNS)
       const leftColumnX = 60;
