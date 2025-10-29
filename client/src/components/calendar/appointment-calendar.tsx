@@ -189,7 +189,8 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
     services: [],
     insuranceProvider: "",
     totalAmount: "0.00",
-    notes: ""
+    notes: "",
+    paymentMethod: ""
   });
   const [doctorFee, setDoctorFee] = useState<any>(null);
 
@@ -2756,6 +2757,27 @@ Medical License: [License Number]
                 placeholder="Add any additional notes about this invoice..."
               />
             </div>
+
+            <div>
+              <Label>Payment Method</Label>
+              <Select
+                value={invoiceData.paymentMethod}
+                onValueChange={(value) => setInvoiceData({...invoiceData, paymentMethod: value})}
+              >
+                <SelectTrigger data-testid="select-payment-method">
+                  <SelectValue placeholder="Select payment method" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Cash">Cash</SelectItem>
+                  <SelectItem value="Debit Card">Debit Card</SelectItem>
+                  <SelectItem value="Credit Card">Credit Card</SelectItem>
+                  <SelectItem value="Insurance">Insurance</SelectItem>
+                  <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
+                  <SelectItem value="Check">Check</SelectItem>
+                  <SelectItem value="Online Payment">Online Payment</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div className="flex justify-end space-x-2 pt-4 border-t mt-4">
@@ -2880,7 +2902,8 @@ Medical License: [License Number]
                     paidAmount: '0',
                     items: invoiceData.services,
                     insuranceProvider: invoiceData.insuranceProvider,
-                    notes: invoiceData.notes
+                    notes: invoiceData.notes,
+                    paymentMethod: invoiceData.paymentMethod
                   };
                   
                   console.log("Creating invoice with payload:", invoicePayload);
@@ -2951,7 +2974,8 @@ Medical License: [License Number]
                     services: [],
                     insuranceProvider: "",
                     totalAmount: "0.00",
-                    notes: ""
+                    notes: "",
+                    paymentMethod: ""
                   });
                 } catch (error) {
                   console.error("Error creating appointment and invoice:", error);
