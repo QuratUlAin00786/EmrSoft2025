@@ -18066,8 +18066,10 @@ Cura EMR Team
       // Position tracker
       let yPosition = height - 40;
       
-      // TOP LEFT: Date and Prescription ID
+      // TOP ROW: Date/Time | Logo (center) | ACTIVE
       const currentDate = new Date();
+      
+      // TOP LEFT: Date and time
       page.drawText(`${currentDate.toLocaleDateString()}, ${currentDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}`, {
         x: 40,
         y: yPosition,
@@ -18076,48 +18078,7 @@ Cura EMR Team
         color: darkText
       });
       
-      page.drawText(`Prescription #: RX-${medicalImage.imageId}`, {
-        x: width / 2 - 60,
-        y: yPosition,
-        size: 8,
-        font,
-        color: darkText
-      });
-      
-      // TOP RIGHT: ACTIVE status
-      page.drawText('ACTIVE', {
-        x: width - 80,
-        y: yPosition,
-        size: 8,
-        font: boldFont,
-        color: darkText
-      });
-      
-      yPosition -= 35;
-      
-      // CURA HEALTH EMR header
-      page.drawText('CURA HEALTH EMR', {
-        x: 40,
-        y: yPosition,
-        size: 11,
-        font: boldFont,
-        color: darkText
-      });
-      
-      yPosition -= 12;
-      
-      page.drawText(`Prescription #: RX-${medicalImage.imageId}`, {
-        x: 40,
-        y: yPosition,
-        size: 8,
-        font,
-        color: rgb(0.5, 0.5, 0.5)
-      });
-      
-      yPosition -= 40;
-      
-      // LOGO AND CLINIC NAME SECTION (CENTER)
-      // Embed logo if available
+      // CENTER: Logo in same row
       if (headerData?.logoBase64) {
         try {
           const logoData = headerData.logoBase64.replace(/^data:image\/\w+;base64,/, '');
@@ -18130,10 +18091,13 @@ Cura EMR Team
             logoImage = await pdfDoc.embedJpg(logoBytes);
           }
           
-          const logoDims = logoImage.scale(0.15);
+          // Scale logo to fit in header row (smaller size)
+          const logoDims = logoImage.scale(0.25);
+          const logoY = yPosition - logoDims.height + 8; // Align with text
+          
           page.drawImage(logoImage, {
             x: width / 2 - logoDims.width / 2,
-            y: yPosition - 30,
+            y: logoY,
             width: logoDims.width,
             height: logoDims.height
           });
@@ -18142,7 +18106,46 @@ Cura EMR Team
         }
       }
       
-      yPosition -= 85;
+      // TOP CENTER: Prescription number
+      page.drawText(`Prescription #: RX-${medicalImage.imageId}ORDER`, {
+        x: width / 2 - 60,
+        y: yPosition + 15,
+        size: 7,
+        font,
+        color: darkText
+      });
+      
+      // TOP RIGHT: ACTIVE status
+      page.drawText('ACTIVE', {
+        x: width - 80,
+        y: yPosition,
+        size: 9,
+        font: boldFont,
+        color: darkText
+      });
+      
+      yPosition -= 70;
+      
+      // CURA HEALTH EMR header (left side, below logo row)
+      page.drawText('CURA HEALTH EMR', {
+        x: 40,
+        y: yPosition,
+        size: 11,
+        font: boldFont,
+        color: darkText
+      });
+      
+      yPosition -= 12;
+      
+      page.drawText(`Prescription #: RX-${medicalImage.imageId}ORDER`, {
+        x: 40,
+        y: yPosition,
+        size: 8,
+        font,
+        color: rgb(0.5, 0.5, 0.5)
+      });
+      
+      yPosition -= 40;
       
       // Clinic Name (centered)
       const clinicName = headerData?.clinicName || 'Clinical Care Hospital';
