@@ -12553,7 +12553,8 @@ This treatment plan should be reviewed and adjusted based on individual patient 
         uploadedBy: z.number(),
         imageData: z.string().optional(), // Add base64 image data field
         mimeType: z.string().optional(), // Add MIME type field
-        status: z.string().optional() // Add status field for orders vs uploads
+        status: z.string().optional(), // Add status field for orders vs uploads
+        orderStudyCreated: z.boolean().optional() // Add order study tracking
       }).parse(req.body);
 
       // Generate imageId if not provided
@@ -12573,7 +12574,8 @@ This treatment plan should be reviewed and adjusted based on individual patient 
         mimeType: imageData.mimeType || "image/jpeg", // Use provided MIME type or default
         organizationId: req.tenant!.id,
         imageData: imageData.imageData || null, // Store the base64 image data
-        status: imageData.status || "uploaded" // Use provided status or default to uploaded
+        status: imageData.status || "uploaded", // Use provided status or default to uploaded
+        orderStudyCreated: imageData.orderStudyCreated || false // Track order study creation
       }, 'uploadedBy');
 
 

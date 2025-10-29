@@ -1164,7 +1164,8 @@ export default function ImagingPage() {
         fileSize: 0,
         mimeType: "application/pending",
         uploadedBy: user?.id || 0,
-        status: "ordered"
+        status: "ordered",
+        orderStudyCreated: true
       };
 
       const response = await apiRequest("POST", "/api/medical-images", imageData);
