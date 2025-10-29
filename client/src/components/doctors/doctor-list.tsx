@@ -29,6 +29,8 @@ import {
   Clock,
   MapPin,
   Edit,
+  ChevronsUpDown,
+  Check,
 } from "lucide-react";
 import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
@@ -949,7 +951,7 @@ export function DoctorList({
                           setOpenSpecialtyCombobox(false);
                         }}
                       >
-                        <CheckIcon
+                        <Check
                           className={cn(
                             "mr-2 h-4 w-4",
                             selectedSpecialty === "all" ? "opacity-100" : "opacity-0"
@@ -966,7 +968,7 @@ export function DoctorList({
                             setOpenSpecialtyCombobox(false);
                           }}
                         >
-                          <CheckIcon
+                          <Check
                             className={cn(
                               "mr-2 h-4 w-4",
                               selectedSpecialty === specialty ? "opacity-100" : "opacity-0"
