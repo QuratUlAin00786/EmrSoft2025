@@ -13,7 +13,7 @@ import { saasApiRequest } from '@/lib/saasQueryClient';
 import { useToast } from '@/hooks/use-toast';
 import { Shield, Lock } from 'lucide-react';
 
-const curaLogoPath = "/cura-logo.png";
+const curaLogoPath = "/cura-logo-chatbot.png";
 
 const saasLoginSchema = z.object({
   username: z.string().min(1, 'Username is required'),
