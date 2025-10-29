@@ -18657,8 +18657,6 @@ Cura EMR Team
       const { PDFDocument, rgb, StandardFonts } = await import('pdf-lib');
       
       // Fetch clinic footer data
-      const { clinicFooters } = await import("@shared/schema");
-      const { db } = await import("../db");
       const clinicFooterRecords = await db
         .select()
         .from(clinicFooters)
