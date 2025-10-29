@@ -104,11 +104,11 @@ export function DoctorDashboard() {
       color: "bg-green-100 text-green-800"
     },
     {
-      title: "AI Clinical Insights",
+      title: "Medical Images",
       value: (stats && typeof stats === 'object' && 'aiSuggestions' in stats) ? String(stats.aiSuggestions) : "0",
       description: "New recommendations",
       icon: Brain,
-      href: `/${subdomain}/ai-insights`,
+      href: `/${subdomain}/imaging`,
       color: "bg-purple-100 text-purple-800"
     },
     {
