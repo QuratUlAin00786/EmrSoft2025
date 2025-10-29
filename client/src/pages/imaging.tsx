@@ -1455,6 +1455,16 @@ export default function ImagingPage() {
         setGeneratedReportId(data.reportId);
         setGeneratedReportFileName(data.fileName || `${data.reportId}.pdf`);
 
+        // Update order_study_generated to true for this medical image
+        try {
+          await apiRequest("PATCH", `/api/medical-images/${study.id}`, {
+            orderStudyGenerated: true
+          });
+          console.log('📷 IMAGING: Updated order_study_generated to true for study ID:', study.id);
+        } catch (updateError) {
+          console.error('Error updating order_study_generated:', updateError);
+        }
+
         // Refresh the medical images to get updated data
         refetchImages();
 
@@ -3185,6 +3195,9 @@ export default function ImagingPage() {
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <strong>Image ID:</strong> {selectedStudy.imageId || 'N/A'}
+                  </div>
                   <div>
                     <strong>Study:</strong> {selectedStudy.studyType}
                   </div>

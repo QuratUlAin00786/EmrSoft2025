@@ -12759,13 +12759,14 @@ This treatment plan should be reviewed and adjusted based on individual patient 
         return res.status(400).json({ error: "Invalid image ID" });
       }
 
-      // Validate update data - allow updating scheduledAt, performedAt, status, priority, and imageId
+      // Validate update data - allow updating scheduledAt, performedAt, status, priority, imageId, and orderStudyGenerated
       const validatedData = z.object({
         scheduledAt: z.string().optional(),
         performedAt: z.string().optional(),
         status: z.string().optional(),
         priority: z.string().optional(),
         imageId: z.string().optional(),
+        orderStudyGenerated: z.boolean().optional(),
       }).parse(req.body);
 
       // Convert ISO string dates to Date objects for database storage and handle other fields
@@ -12784,6 +12785,9 @@ This treatment plan should be reviewed and adjusted based on individual patient 
       }
       if (validatedData.imageId) {
         updateData.imageId = validatedData.imageId;
+      }
+      if (validatedData.orderStudyGenerated !== undefined) {
+        updateData.orderStudyGenerated = validatedData.orderStudyGenerated;
       }
 
       const success = await storage.updateMedicalImage(imageId, req.tenant!.id, updateData);
