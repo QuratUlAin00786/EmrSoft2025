@@ -3055,7 +3055,7 @@ export default function MessagingPage() {
                         onClick={() => handleUseTemplate(template)}
                         data-testid={`button-use-template-${template.id}`}
                       >
-                        Use Template Announcement
+                        Public Notice
                       </Button>
                       <Button 
                         variant="outline" 
