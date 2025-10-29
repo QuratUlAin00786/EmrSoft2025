@@ -18001,7 +18001,7 @@ Cura EMR Team
 
       // Fetch medical image data by imageId
       console.log("🔍 IMAGE PRESCRIPTION: Fetching medical images...");
-      const medicalImages = await storage.getMedicalImages(req.tenant!.id);
+      const medicalImages = await storage.getMedicalImagesByOrganization(req.tenant!.id);
       console.log("📊 IMAGE PRESCRIPTION: Found medical images:", medicalImages.length);
       
       const medicalImage = medicalImages.find(img => img.imageId === imageId);
