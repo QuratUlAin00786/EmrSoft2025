@@ -387,8 +387,6 @@ export default function ImagingPage() {
   const [editingStudyId, setEditingStudyId] = useState<string | null>(null);
   const [showInvoiceDialog, setShowInvoiceDialog] = useState(false);
   const [showSummaryDialog, setShowSummaryDialog] = useState(false);
-  const [showPrescriptionDialog, setShowPrescriptionDialog] = useState(false);
-  const [prescriptionStudy, setPrescriptionStudy] = useState<any>(null);
   const [invoiceFormData, setInvoiceFormData] = useState({
     paymentMethod: "",
     subtotal: 0,
@@ -451,26 +449,6 @@ export default function ImagingPage() {
       return Array.isArray(data) ? data : [];
     },
   });
-
-  // Fetch clinic headers for prescription
-  const { data: clinicHeaderData } = useQuery<any>({
-    queryKey: ["/api/clinic-headers"],
-    staleTime: 300000,
-    retry: false,
-    enabled: showPrescriptionDialog,
-  });
-
-  // Fetch clinic footers for prescription
-  const { data: clinicFooterData } = useQuery<any>({
-    queryKey: ["/api/clinic-footers"],
-    staleTime: 300000,
-    retry: false,
-    enabled: showPrescriptionDialog,
-  });
-
-  // Extract the clinic header and footer (API returns single object, not array)
-  const clinicHeader = clinicHeaderData;
-  const clinicFooter = clinicFooterData;
 
   // Find the patient record for the logged-in user
   const currentPatient = useMemo(() => {
@@ -1999,7 +1977,7 @@ export default function ImagingPage() {
                 <div className="">
                   {user?.role !== "patient" && (
                     <Button
-                      onClick={() => setShowNewOrder(true)}
+                      onClick={() => setShowUploadDialog(true)}
                       className="bg-medical-blue hover:bg-blue-700 text-white ml-auto"
                     >
                       <Share className="h-4 w-4 mr-2" />
@@ -4276,31 +4254,13 @@ export default function ImagingPage() {
               <Button variant="outline" onClick={() => setShowNewOrder(false)}>
                 Cancel
               </Button>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    // Open prescription dialog with current order form data
-                    setPrescriptionStudy({
-                      ...orderFormData,
-                      orderedAt: new Date().toISOString(),
-                      physicianName: `${user?.firstName} ${user?.lastName}`,
-                    });
-                    setShowPrescriptionDialog(true);
-                  }}
-                  className="border-medical-blue text-medical-blue hover:bg-blue-50"
-                >
-                  <FileText className="h-4 w-4 mr-2" />
-                  Imaging Prescription
-                </Button>
-                <Button
-                  onClick={handleOrderSubmit}
-                  className="bg-medical-blue hover:bg-blue-700"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Order Study
-                </Button>
-              </div>
+              <Button
+                onClick={handleOrderSubmit}
+                className="bg-medical-blue hover:bg-blue-700"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Order Study
+              </Button>
             </div>
           </div>
         </DialogContent>
@@ -5778,292 +5738,6 @@ export default function ImagingPage() {
                 title="PDF Report Viewer"
               />
             )}
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Imaging Prescription Dialog */}
-      <Dialog open={showPrescriptionDialog} onOpenChange={setShowPrescriptionDialog}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Imaging Prescription</DialogTitle>
-          </DialogHeader>
-          
-          <div id="prescription-content" className="bg-white dark:bg-gray-900 p-8 space-y-6">
-            {/* Header Section */}
-            <div className="border-b-2 border-gray-300 pb-6">
-              <div className="flex items-start gap-6">
-                {/* Logo */}
-                {clinicHeader?.logoBase64 && (
-                  <div className="flex-shrink-0">
-                    <img 
-                      src={clinicHeader.logoBase64} 
-                      alt="Clinic Logo" 
-                      className="h-20 w-20 object-contain"
-                    />
-                  </div>
-                )}
-                
-                {/* Clinic Information */}
-                <div className="flex-1 text-center">
-                  <h1 
-                    className="text-blue-600 dark:text-blue-400 font-bold mb-2"
-                    style={{ 
-                      fontSize: clinicHeader?.clinicNameFontSize || '24pt',
-                      fontFamily: clinicHeader?.fontFamily || 'verdana',
-                      fontWeight: clinicHeader?.fontWeight || 'bold',
-                    }}
-                  >
-                    {clinicHeader?.clinicName || 'Clinical Care Hospital'}
-                  </h1>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                    Laboratory Test Prescription
-                  </p>
-                  {clinicHeader?.address && (
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {clinicHeader.address}
-                    </p>
-                  )}
-                  {clinicHeader?.phone && (
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {clinicHeader.phone}
-                    </p>
-                  )}
-                  {clinicHeader?.email && (
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {clinicHeader.email}
-                    </p>
-                  )}
-                  {clinicHeader?.website && (
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      website: {clinicHeader.website}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Information Grid */}
-            <div className="grid grid-cols-2 gap-8">
-              {/* Physician Information */}
-              <div>
-                <h3 className="font-semibold text-lg mb-3 text-gray-900 dark:text-gray-100">
-                  Physician Information
-                </h3>
-                <div className="space-y-1 text-sm">
-                  <div>
-                    <span className="font-medium">Name:</span>{' '}
-                    <span className="text-gray-700 dark:text-gray-300">
-                      {prescriptionStudy?.physicianName || `${user?.firstName} ${user?.lastName}`}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="font-medium">Priority:</span>{' '}
-                    <span className="text-gray-700 dark:text-gray-300">
-                      {prescriptionStudy?.priority || 'routine'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Patient Information */}
-              <div>
-                <h3 className="font-semibold text-lg mb-3 text-gray-900 dark:text-gray-100">
-                  Patient Information
-                </h3>
-                <div className="space-y-1 text-sm">
-                  <div>
-                    <span className="font-medium">Name:</span>{' '}
-                    <span className="text-gray-700 dark:text-gray-300">
-                      {(() => {
-                        if (!prescriptionStudy?.patientId || !patientsData) return 'N/A';
-                        const patient = patientsData.find((p: any) => p.id === parseInt(prescriptionStudy.patientId));
-                        return patient ? `${patient.firstName} ${patient.lastName}` : 'N/A';
-                      })()}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="font-medium">Patient ID:</span>{' '}
-                    <span className="text-gray-700 dark:text-gray-300">
-                      {(() => {
-                        if (!prescriptionStudy?.patientId || !patientsData) return 'N/A';
-                        const patient = patientsData.find((p: any) => p.id === parseInt(prescriptionStudy.patientId));
-                        return patient?.patientId || prescriptionStudy.patientId;
-                      })()}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="font-medium">Date:</span>{' '}
-                    <span className="text-gray-700 dark:text-gray-300">
-                      {format(new Date(), 'MMM dd, yyyy')}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="font-medium">Time:</span>{' '}
-                    <span className="text-gray-700 dark:text-gray-300">
-                      {format(new Date(), 'HH:mm')}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Laboratory Test Prescription */}
-            <div>
-              <h3 className="font-semibold text-lg mb-4 text-gray-900 dark:text-gray-100">
-                ℞ Laboratory Test Prescription
-              </h3>
-              
-              <div className="bg-blue-50 dark:bg-gray-800 rounded-lg p-6 space-y-4">
-                <div className="grid grid-cols-2 gap-6">
-                  <div>
-                    <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-                      Test ID:
-                    </div>
-                    <div className="text-sm text-gray-900 dark:text-gray-100">
-                      LAB{Date.now()}{prescriptionStudy?.patientId || ''}DHCN
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-                      Test Type:
-                    </div>
-                    <div className="text-sm text-blue-600 dark:text-blue-400 font-medium">
-                      {prescriptionStudy?.studyType || 'Viral Panels / PCR Tests (e.g. COVID-19, Influenza) | Tumor Markers (e.g. CA-125, CEA, AFP)'}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-6">
-                  <div>
-                    <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-                      Ordered Date:
-                    </div>
-                    <div className="text-sm text-gray-900 dark:text-gray-100">
-                      {format(new Date(), 'MMM dd, yyyy HH:mm')}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-                      Status:
-                    </div>
-                    <div>
-                      <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
-                        PENDING
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-
-                {prescriptionStudy?.indication && (
-                  <div>
-                    <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-                      Clinical Indication:
-                    </div>
-                    <div className="text-sm text-gray-900 dark:text-gray-100">
-                      {prescriptionStudy.indication}
-                    </div>
-                  </div>
-                )}
-
-                {prescriptionStudy?.bodyPart && (
-                  <div>
-                    <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-                      Body Part:
-                    </div>
-                    <div className="text-sm text-gray-900 dark:text-gray-100">
-                      {prescriptionStudy.bodyPart}
-                    </div>
-                  </div>
-                )}
-
-                {prescriptionStudy?.modality && (
-                  <div>
-                    <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-                      Modality:
-                    </div>
-                    <div className="text-sm text-gray-900 dark:text-gray-100">
-                      {prescriptionStudy.modality}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="border-t-2 border-gray-300 pt-6">
-              <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
-                <div>
-                  {clinicFooter?.footerText || 'Generated by Cura EMR System'}
-                </div>
-                <div className="text-right">
-                  <div>Date: {format(new Date(), 'MMM dd, yyyy HH:mm')}</div>
-                  <div className="mt-2 pt-2 border-t border-gray-300">
-                    <div className="text-center">{prescriptionStudy?.physicianName || `${user?.firstName} ${user?.lastName}`}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex justify-end gap-2 pt-4 border-t">
-            <Button
-              variant="outline"
-              onClick={() => setShowPrescriptionDialog(false)}
-            >
-              Close
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => {
-                const printContent = document.getElementById('prescription-content');
-                if (printContent) {
-                  const printWindow = window.open('', '', 'height=800,width=800');
-                  if (printWindow) {
-                    printWindow.document.write('<html><head><title>Imaging Prescription</title>');
-                    printWindow.document.write('<style>body { font-family: Arial, sans-serif; padding: 20px; } .bg-blue-50 { background-color: #eff6ff; } .text-blue-600 { color: #2563eb; } .border-b-2 { border-bottom: 2px solid #d1d5db; } .border-t-2 { border-top: 2px solid #d1d5db; }</style>');
-                    printWindow.document.write('</head><body>');
-                    printWindow.document.write(printContent.innerHTML);
-                    printWindow.document.write('</body></html>');
-                    printWindow.document.close();
-                    printWindow.print();
-                  }
-                }
-              }}
-              className="bg-green-600 hover:bg-green-700 text-white"
-            >
-              <FileText className="h-4 w-4 mr-2" />
-              Print
-            </Button>
-            <Button
-              onClick={async () => {
-                try {
-                  const html2pdf = (await import('jspdf')).default;
-                  const printContent = document.getElementById('prescription-content');
-                  
-                  if (printContent) {
-                    const pdf = new html2pdf();
-                    const canvas = await (await import('html2canvas')).default(printContent);
-                    const imgData = canvas.toDataURL('image/png');
-                    
-                    pdf.addImage(imgData, 'PNG', 10, 10, 190, 0);
-                    pdf.save(`imaging-prescription-${Date.now()}.pdf`);
-                  }
-                } catch (error) {
-                  console.error('Error generating PDF:', error);
-                  toast({
-                    title: "Error",
-                    description: "Failed to generate PDF",
-                    variant: "destructive",
-                  });
-                }
-              }}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Download PDF
-            </Button>
           </div>
         </DialogContent>
       </Dialog>

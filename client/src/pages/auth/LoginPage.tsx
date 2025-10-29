@@ -170,23 +170,19 @@ export default function LoginPage() {
               <div className="space-y-2 text-xs text-gray-600 dark:text-gray-300">
                 <div className="flex justify-between">
                   <span>Admin:</span>
-                  <span>james@curaemr.ai / 467fe887</span>
+                  <span>admin@cura.com / admin123</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Doctor:</span>
-                  <span>paul@curaemr.ai / doctor123</span>
+                  <span>doctor@cura.com / doctor123</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Patient:</span>
-                  <span>john@curaemr.ai / patient123</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Nurse:</span>
-                  <span>emma@curaemr.ai / nurse123</span>
+                  <span>patient@cura.com / patient123</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Lab Tech:</span>
-                  <span>amelia@curaemr.ai / lab123</span>
+                  <span>labtech@cura.com / lab123</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Sample Taker:</span>
@@ -202,8 +198,8 @@ export default function LoginPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  setEmail("james@curaemr.ai");
-                  setPassword("467fe887");
+                  setEmail("admin@cura.com");
+                  setPassword("admin123");
                 }}
                 className="text-xs"
                 data-testid="button-login-admin"
@@ -215,7 +211,7 @@ export default function LoginPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  setEmail("paul@curaemr.ai");
+                  setEmail("doctor@cura.com");
                   setPassword("doctor123");
                 }}
                 className="text-xs"
@@ -228,7 +224,7 @@ export default function LoginPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  setEmail("john@curaemr.ai");
+                  setEmail("patient@cura.com");
                   setPassword("patient123");
                 }}
                 className="text-xs"
@@ -241,21 +237,7 @@ export default function LoginPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  setEmail("emma@curaemr.ai");
-                  setPassword("nurse123");
-                }}
-                className="text-xs"
-                data-testid="button-login-labtech"
-              >
-                Nurse
-              </Button>
-              
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setEmail("amelia@curaemr.ai");
+                  setEmail("labtech@cura.com");
                   setPassword("lab123");
                 }}
                 className="text-xs"
