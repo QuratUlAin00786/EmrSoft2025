@@ -160,6 +160,8 @@ export default function MessagingPage() {
   const [selectedRecipients, setSelectedRecipients] = useState<any[]>([]);
   const [showDeleteCampaign, setShowDeleteCampaign] = useState(false);
   const [campaignToDelete, setCampaignToDelete] = useState<any>(null);
+  const [showDeleteTemplate, setShowDeleteTemplate] = useState(false);
+  const [templateToDelete, setTemplateToDelete] = useState<any>(null);
   const [newMessage, setNewMessage] = useState({
     recipient: "",
     subject: "",
@@ -1158,6 +1160,53 @@ export default function MessagingPage() {
       deleteCampaignMutation.mutate(campaignToDelete.id);
       setShowDeleteCampaign(false);
       setCampaignToDelete(null);
+    }
+  };
+
+  const deleteTemplateMutation = useMutation({
+    mutationFn: async (templateId: number) => {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`/api/messaging/templates/${templateId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': localStorage.getItem('user_subdomain') || 'demo',
+        },
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: response.statusText }));
+        throw new Error(errorData.error || `${response.status}: ${response.statusText}`);
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/messaging/templates'] });
+      toast({
+        title: "Template Deleted",
+        description: "Template has been deleted successfully.",
+      });
+    },
+    onError: (error: any) => {
+      console.error("Error deleting template:", error);
+      toast({
+        title: "Failed to Delete Template",
+        description: error.message || "An error occurred while deleting the template. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleDeleteTemplate = (template: any) => {
+    setTemplateToDelete(template);
+    setShowDeleteTemplate(true);
+  };
+
+  const handleConfirmDeleteTemplate = () => {
+    if (templateToDelete) {
+      deleteTemplateMutation.mutate(templateToDelete.id);
+      setShowDeleteTemplate(false);
+      setTemplateToDelete(null);
     }
   };
 
@@ -2875,10 +2924,10 @@ export default function MessagingPage() {
                 <div className="space-y-6">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="templateName">Template Name *</Label>
+                      <Label htmlFor="templateName">Announcement Name *</Label>
                       <Input
                         id="templateName"
-                        placeholder="Enter template name"
+                        placeholder="Enter Announcement name"
                         value={newTemplate.name}
                         onChange={(e) => setNewTemplate({ ...newTemplate, name: e.target.value })}
                       />
@@ -3006,7 +3055,7 @@ export default function MessagingPage() {
                         onClick={() => handleUseTemplate(template)}
                         data-testid={`button-use-template-${template.id}`}
                       >
-                        Use Template
+                        Use Template Announcement
                       </Button>
                       <Button 
                         variant="outline" 
@@ -3024,6 +3073,14 @@ export default function MessagingPage() {
                         data-testid={`button-copy-template-${template.id}`}
                       >
                         <Copy className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleDeleteTemplate(template)}
+                        data-testid={`button-delete-template-${template.id}`}
+                      >
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </CardContent>
@@ -3271,6 +3328,38 @@ export default function MessagingPage() {
                   </Button>
                 </div>
               </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* Delete Template Dialog */}
+          <Dialog open={showDeleteTemplate} onOpenChange={setShowDeleteTemplate}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Delete Template</DialogTitle>
+                <DialogDescription>
+                  Are you sure you want to delete the template "{templateToDelete?.name}"? This action cannot be undone.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setShowDeleteTemplate(false);
+                    setTemplateToDelete(null);
+                  }} 
+                  data-testid="button-cancel-delete-template"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  variant="destructive" 
+                  onClick={handleConfirmDeleteTemplate} 
+                  disabled={deleteTemplateMutation.isPending} 
+                  data-testid="button-confirm-delete-template"
+                >
+                  {deleteTemplateMutation.isPending ? "Deleting..." : "Delete"}
+                </Button>
+              </DialogFooter>
             </DialogContent>
           </Dialog>
         </TabsContent>

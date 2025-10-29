@@ -306,6 +306,7 @@ export interface IStorage {
   getMessageTemplates(organizationId: number): Promise<any[]>;
   createMessageTemplate(templateData: any, organizationId: number): Promise<any>;
   updateMessageTemplate(templateId: number, templateData: any, organizationId: number): Promise<any>;
+  deleteMessageTemplate(templateId: number, organizationId: number): Promise<boolean>;
   
   // Integrations
   getIntegrations(organizationId: number): Promise<any[]>;
@@ -3990,6 +3991,22 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("❌ Error updating template:", error);
       throw error;
+    }
+  }
+
+  async deleteMessageTemplate(templateId: number, organizationId: number): Promise<boolean> {
+    try {
+      const result = await db.delete(messageTemplates)
+        .where(and(
+          eq(messageTemplates.id, templateId),
+          eq(messageTemplates.organizationId, organizationId)
+        ));
+      
+      console.log(`🗑️ Deleted template (ID: ${templateId}) for organization ${organizationId}`);
+      return true;
+    } catch (error) {
+      console.error("❌ Error deleting template:", error);
+      return false;
     }
   }
 

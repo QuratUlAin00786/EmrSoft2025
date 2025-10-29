@@ -9492,6 +9492,22 @@ This treatment plan should be reviewed and adjusted based on individual patient 
     }
   });
 
+  app.delete("/api/messaging/templates/:id", authMiddleware, requireRole(["admin", "doctor"]), async (req: TenantRequest, res) => {
+    try {
+      const templateId = parseInt(req.params.id);
+      const deleted = await storage.deleteMessageTemplate(templateId, req.tenant!.id);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: "Template not found or failed to delete" });
+      }
+
+      res.json({ success: true, message: "Template deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting template:", error);
+      res.status(500).json({ error: "Failed to delete template" });
+    }
+  });
+
   app.post("/api/messaging/templates/:id/send-to-selected", authMiddleware, requireRole(["admin", "doctor"]), async (req: TenantRequest, res) => {
     try {
       const templateId = parseInt(req.params.id);
