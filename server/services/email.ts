@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import sgMail from '@sendgrid/mail';
 
 interface EmailOptions {
   to: string;
@@ -24,7 +25,7 @@ interface EmailTemplate {
 class EmailService {
   private transporter: nodemailer.Transporter;
   private initialized: boolean = false;
-  // Gmail SMTP only - no SendGrid
+  private sendGridConnectionSettings: any = null;
 
   constructor() {
     // Initialize with fallback transporter
@@ -40,6 +41,45 @@ class EmailService {
     
     // Initialize production email service
     this.initializeProductionEmailService();
+  }
+
+  private async getSendGridCredentials() {
+    try {
+      const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME;
+      const xReplitToken = process.env.REPL_IDENTITY 
+        ? 'repl ' + process.env.REPL_IDENTITY 
+        : process.env.WEB_REPL_RENEWAL 
+        ? 'depl ' + process.env.WEB_REPL_RENEWAL 
+        : null;
+
+      if (!xReplitToken || !hostname) {
+        console.log('[EMAIL] SendGrid connector not available in this environment');
+        return null;
+      }
+
+      this.sendGridConnectionSettings = await fetch(
+        'https://' + hostname + '/api/v2/connection?include_secrets=true&connector_names=sendgrid',
+        {
+          headers: {
+            'Accept': 'application/json',
+            'X_REPLIT_TOKEN': xReplitToken
+          }
+        }
+      ).then(res => res.json()).then(data => data.items?.[0]);
+
+      if (!this.sendGridConnectionSettings || !this.sendGridConnectionSettings.settings?.api_key) {
+        console.log('[EMAIL] SendGrid not properly configured');
+        return null;
+      }
+
+      return {
+        apiKey: this.sendGridConnectionSettings.settings.api_key,
+        fromEmail: this.sendGridConnectionSettings.settings.from_email || 'noreply@curaemr.ai'
+      };
+    } catch (error) {
+      console.error('[EMAIL] Error getting SendGrid credentials:', error);
+      return null;
+    }
   }
 
   private async initializeProductionEmailService() {
@@ -80,15 +120,65 @@ class EmailService {
     }
   }
 
+  private async sendWithSendGrid(options: EmailOptions): Promise<boolean> {
+    try {
+      const credentials = await this.getSendGridCredentials();
+      if (!credentials) {
+        console.log('[EMAIL] SendGrid credentials not available, will try SMTP fallback');
+        return false;
+      }
+
+      sgMail.setApiKey(credentials.apiKey);
+
+      // Prepare attachments in SendGrid format
+      const sendGridAttachments = options.attachments?.map(att => ({
+        content: att.content ? att.content.toString('base64') : '',
+        filename: att.filename,
+        type: att.contentType || 'application/octet-stream',
+        disposition: 'attachment'
+      })) || [];
+
+      const msg = {
+        to: options.to,
+        from: options.from || credentials.fromEmail,
+        subject: options.subject,
+        text: options.text || '',
+        html: options.html || '',
+        attachments: sendGridAttachments
+      };
+
+      console.log('[EMAIL] Sending email via SendGrid:', {
+        to: msg.to,
+        from: msg.from,
+        subject: msg.subject,
+        attachmentsCount: sendGridAttachments.length
+      });
+
+      await sgMail.send(msg);
+      console.log('[EMAIL] ✅ SendGrid email sent successfully');
+      return true;
+    } catch (error: any) {
+      console.error('[EMAIL] SendGrid failed:', error.response?.body || error.message);
+      return false;
+    }
+  }
+
   async sendEmail(options: EmailOptions): Promise<boolean> {
     try {
-      // Use Gmail SMTP for all emails
+      // Try SendGrid first (best for production with attachments)
+      const sendGridResult = await this.sendWithSendGrid(options);
+      if (sendGridResult) {
+        return true;
+      }
+
+      // Fallback to Gmail SMTP
+      console.log('[EMAIL] SendGrid unavailable, trying Gmail SMTP...');
       const result = await this.sendWithSMTP(options);
       if (result) {
         return true;
       }
       
-      // If Gmail SMTP fails, log the email details for manual follow-up
+      // If both fail, log the email details for manual follow-up
       console.log('[EMAIL] 🚨 EMAIL DELIVERY FAILED:');
       console.log('[EMAIL] TO:', options.to);
       console.log('[EMAIL] SUBJECT:', options.subject);
