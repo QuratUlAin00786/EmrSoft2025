@@ -2991,8 +2991,8 @@ export default function ImagingPage() {
                         </Button>
                       )}
                       
-                      {/* Hide File (Generate Report) icon for patient role, Generate Report tab, and Imaging Results tab */}
-                      {user?.role !== 'patient' && activeTab !== 'generate-report' && activeTab !== 'imaging-results' && (
+                      {/* Hide File (Generate Report) icon for patient role and Imaging Results tab */}
+                      {user?.role !== 'patient' && activeTab !== 'imaging-results' && (
                         <Button
                           variant="outline"
                           size="sm"
