@@ -18312,8 +18312,8 @@ Cura EMR Team
       
       yPosition -= 40;
       
-      // MEDICINE SECTION
-      page.drawText('MEDICINE', {
+      // IMAGING STUDY DETAILS SECTION
+      page.drawText('IMAGING STUDY DETAILS', {
         x: 60,
         y: yPosition,
         size: 12,
@@ -18321,9 +18321,10 @@ Cura EMR Team
         color: darkText
       });
       
-      yPosition -= 18;
+      yPosition -= 20;
       
-      page.drawText('Top: Please visit the doctor after 15 days.', {
+      // Study Type
+      page.drawText(`Study Type: ${medicalImage.studyType || 'N/A'}`, {
         x: 60,
         y: yPosition,
         size: 9,
@@ -18333,7 +18334,8 @@ Cura EMR Team
       
       yPosition -= 14;
       
-      page.drawText('Days: 231 (60 days)', {
+      // Modality
+      page.drawText(`Modality: ${medicalImage.modality || 'N/A'}`, {
         x: 60,
         y: yPosition,
         size: 9,
@@ -18343,7 +18345,8 @@ Cura EMR Team
       
       yPosition -= 14;
       
-      page.drawText('Date: 1', {
+      // Body Part
+      page.drawText(`Body Part: ${medicalImage.bodyPart || 'N/A'}`, {
         x: 60,
         y: yPosition,
         size: 9,
@@ -18351,11 +18354,10 @@ Cura EMR Team
         color: darkText
       });
       
-      yPosition -= 35;
+      yPosition -= 14;
       
-      // Diagnosis Section
-      const diagnosisText = medicalImage.indication || medicalImage.findings || 'Diabetes (Diabetes Mellitus)';
-      page.drawText(`Diagnosis: ${diagnosisText.substring(0, 60)}`, {
+      // Image ID
+      page.drawText(`Image ID: ${medicalImage.imageId || 'N/A'}`, {
         x: 60,
         y: yPosition,
         size: 9,
@@ -18363,7 +18365,74 @@ Cura EMR Team
         color: darkText
       });
       
-      yPosition -= 35;
+      yPosition -= 14;
+      
+      // Status
+      page.drawText(`Status: ${medicalImage.status?.toUpperCase() || 'PENDING'}`, {
+        x: 60,
+        y: yPosition,
+        size: 9,
+        font,
+        color: medicalImage.status?.toLowerCase() === 'completed' ? greenText : darkText
+      });
+      
+      yPosition -= 20;
+      
+      // Clinical Indication
+      if (medicalImage.indication) {
+        page.drawText('Clinical Indication:', {
+          x: 60,
+          y: yPosition,
+          size: 9,
+          font: boldFont,
+          color: darkText
+        });
+        
+        yPosition -= 14;
+        
+        const indicationLines = medicalImage.indication.substring(0, 150).match(/.{1,80}/g) || [];
+        indicationLines.forEach((line: string) => {
+          page.drawText(line, {
+            x: 60,
+            y: yPosition,
+            size: 9,
+            font,
+            color: darkText
+          });
+          yPosition -= 12;
+        });
+        
+        yPosition -= 8;
+      }
+      
+      // Findings
+      if (medicalImage.findings) {
+        page.drawText('Findings:', {
+          x: 60,
+          y: yPosition,
+          size: 9,
+          font: boldFont,
+          color: darkText
+        });
+        
+        yPosition -= 14;
+        
+        const findingsLines = medicalImage.findings.substring(0, 150).match(/.{1,80}/g) || [];
+        findingsLines.forEach((line: string) => {
+          page.drawText(line, {
+            x: 60,
+            y: yPosition,
+            size: 9,
+            font,
+            color: darkText
+          });
+          yPosition -= 12;
+        });
+        
+        yPosition -= 8;
+      }
+      
+      yPosition -= 15;
       
       // Resident Physician (Signature) section
       page.drawText('Resident Physician', {
