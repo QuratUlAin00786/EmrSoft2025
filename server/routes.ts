@@ -18459,60 +18459,53 @@ Cura EMR Team
     }
   });
 
-  // View Image Prescription PDF Endpoint (with token-based authentication)
+  // View Image Prescription PDF using temporary signed URL (no authentication required - token validated)
   app.get("/api/imaging/view-prescription/:organizationId/:patientId/:fileName", async (req: Request, res: Response) => {
     try {
-      const { organizationId, patientId, fileName } = req.params;
       const { token } = req.query;
-      
-      console.log("📄 VIEW PRESCRIPTION: Request params:", { organizationId, patientId, fileName });
-      
-      // Verify token if provided
-      if (token) {
-        try {
-          const fileSecret = process.env.FILE_SECRET;
-          if (!fileSecret) {
-            console.error("FILE_SECRET not configured");
-            return res.status(500).json({ error: "Server configuration error" });
-          }
-          
-          const decoded = jwt.verify(token as string, fileSecret) as any;
-          console.log("📄 VIEW PRESCRIPTION: Token verified for organization:", decoded.organizationId);
-        } catch (tokenError) {
-          console.log("❌ VIEW PRESCRIPTION: Invalid token");
-          return res.status(401).json({ error: "Invalid or expired token" });
-        }
+      if (!token || typeof token !== 'string') {
+        return res.status(403).json({ error: "Missing or invalid token" });
       }
+
+      const fileSecret = process.env.FILE_SECRET;
+      if (!fileSecret) {
+        console.error("FILE_SECRET not configured");
+        return res.status(500).json({ error: "Server configuration error" });
+      }
+
+      // Verify and decode token
+      let payload: any;
+      try {
+        payload = jwt.verify(token, fileSecret);
+      } catch (err) {
+        console.log("[PRESCRIPTION-VIEW] Token verification failed:", err);
+        return res.status(403).json({ error: "Invalid or expired token" });
+      }
+
+      const { organizationId, patientId, fileName } = payload;
       
-      // Construct the file path
-      const prescriptionPath = path.resolve(
-        process.cwd(),
-        'uploads',
-        'Image_Prescriptions',
-        organizationId,
-        'patients',
-        patientId,
-        fileName
-      );
-      
-      console.log("📄 VIEW PRESCRIPTION: File path:", prescriptionPath);
-      
+      // Construct file path
+      const relativePath = `uploads/Image_Prescriptions/${organizationId}/patients/${patientId}/${fileName}`;
+      const fullPath = path.join(process.cwd(), relativePath);
+
       // Check if file exists
-      if (!await fse.pathExists(prescriptionPath)) {
-        console.log("❌ VIEW PRESCRIPTION: File not found");
+      const fileExists = await fse.pathExists(fullPath);
+      if (!fileExists) {
+        console.log(`[PRESCRIPTION-VIEW] File not found: ${fullPath}`);
         return res.status(404).json({ error: "Prescription not found" });
       }
+
+      console.log(`[PRESCRIPTION-VIEW] Serving file: ${fullPath}`);
       
-      // Send the PDF file
+      // Set headers for PDF viewing
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', 'inline; filename="' + fileName + '"');
       
-      const fileStream = fse.createReadStream(prescriptionPath);
-      fileStream.pipe(res);
-      
-      console.log("✅ VIEW PRESCRIPTION: PDF sent successfully");
+      // Stream the file
+      res.sendFile(fullPath);
+
     } catch (error) {
-      console.error("❌ VIEW PRESCRIPTION ERROR:", error);
+      console.error("[PRESCRIPTION-VIEW] Error viewing prescription:", error);
       res.status(500).json({ error: "Failed to view prescription" });
     }
   });
