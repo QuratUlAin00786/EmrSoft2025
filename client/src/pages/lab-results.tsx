@@ -2260,7 +2260,7 @@ Report generated from Cura EMR System`;
       <div className="flex-1 overflow-auto p-6">
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "request" | "generate" | "generated")} className="w-full">
           <TabsList className="mb-6">
-            <TabsTrigger value="request">Request Report</TabsTrigger>
+            {user?.role !== "patient" && <TabsTrigger value="request">Request Report</TabsTrigger>}
             {user?.role !== "patient" && <TabsTrigger value="generate">Generate Reports</TabsTrigger>}
             {user?.role !== "patient" && <TabsTrigger value="generated"> Lab Results</TabsTrigger>}
           </TabsList>
