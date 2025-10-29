@@ -17981,23 +17981,35 @@ Cura EMR Team
   // Generate Image Prescription PDF Endpoint
   app.post("/api/imaging/generate-image-prescription", authMiddleware, requireRole(["doctor", "nurse", "admin"]), async (req: TenantRequest, res) => {
     try {
+      console.log("🏥 IMAGE PRESCRIPTION: Starting generation...");
+      
       if (!req.user) {
+        console.log("❌ IMAGE PRESCRIPTION: User not authenticated");
         return res.status(401).json({ error: "User not authenticated" });
       }
 
       const { imageId } = req.body;
+      console.log("📋 IMAGE PRESCRIPTION: Received imageId:", imageId);
       
       if (!imageId) {
+        console.log("❌ IMAGE PRESCRIPTION: Image ID is required");
         return res.status(400).json({ error: "Image ID is required" });
       }
 
       const organizationId = req.organizationId || req.tenant!.id;
+      console.log("🏢 IMAGE PRESCRIPTION: Organization ID:", organizationId);
 
       // Fetch medical image data by imageId
+      console.log("🔍 IMAGE PRESCRIPTION: Fetching medical images...");
       const medicalImages = await storage.getMedicalImages(req.tenant!.id);
+      console.log("📊 IMAGE PRESCRIPTION: Found medical images:", medicalImages.length);
+      
       const medicalImage = medicalImages.find(img => img.imageId === imageId);
+      console.log("🎯 IMAGE PRESCRIPTION: Found medical image:", medicalImage ? "YES" : "NO");
       
       if (!medicalImage) {
+        console.log("❌ IMAGE PRESCRIPTION: Medical image not found for imageId:", imageId);
+        console.log("Available imageIds:", medicalImages.map(img => img.imageId));
         return res.status(404).json({ error: "Medical image not found" });
       }
 
@@ -18370,8 +18382,16 @@ Cura EMR Team
       });
 
     } catch (error) {
-      console.error("Image prescription generation error:", error);
-      res.status(500).json({ error: "Failed to generate image prescription" });
+      console.error("❌ IMAGE PRESCRIPTION ERROR:", error);
+      console.error("Error details:", {
+        name: (error as Error).name,
+        message: (error as Error).message,
+        stack: (error as Error).stack
+      });
+      res.status(500).json({ 
+        error: "Failed to generate image prescription",
+        details: (error as Error).message 
+      });
     }
   });
 
