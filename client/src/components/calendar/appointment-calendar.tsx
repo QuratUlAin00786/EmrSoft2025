@@ -2717,7 +2717,7 @@ Medical License: [License Number]
             </div>
 
             <div className="border rounded p-4 bg-gray-50">
-              <h3 className="font-semibold mb-2">Services & Procedures</h3>
+              <h5 className="font-semibold mb-2">Services & Procedures</h5>
               <div className="grid grid-cols-3 gap-2 mb-2 text-sm font-medium">
                 <div>Code</div>
                 <div>Description</div>
