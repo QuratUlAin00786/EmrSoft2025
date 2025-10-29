@@ -1309,7 +1309,7 @@ export default function CalendarPage() {
                   ) : (
                     <>
                       {/* Medical Specialty Category (Non-Admin) */}
-                      <div>
+                      <div className="pt-4">
                         <Label>Medical Specialty Category</Label>
                         <Select value={filterSpecialty} onValueChange={(value) => {
                           setFilterSpecialty(value);
