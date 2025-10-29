@@ -1728,7 +1728,7 @@ export default function MessagingPage() {
       {/* Messaging Content */}
       <div className="flex-1 overflow-auto p-6">
         {/* Healthcare Quick Actions */}
-        <div className="flex items-center gap-4 mb-8 px-[90px] flex-wrap">
+        <div className="flex items-center gap-4 mb-8 px-[110px] flex-wrap">
             <Button 
               variant="outline" 
               size="sm"
