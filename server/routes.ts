@@ -18054,315 +18054,358 @@ Cura EMR Team
       const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
       
       // Colors
-      const primaryColor = rgb(0.12, 0.23, 0.54); // Default blue
-      const darkGray = rgb(0.3, 0.3, 0.3);
-      const blackColor = rgb(0, 0, 0);
+      const primaryBlue = rgb(0.27, 0.51, 0.71); // #4583B6
+      const darkText = rgb(0.2, 0.2, 0.2);
+      const lightGray = rgb(0.9, 0.9, 0.9);
+      const yellowBg = rgb(1, 0.98, 0.8); // Light yellow for clinical notes
+      const redBg = rgb(1, 0.95, 0.95); // Light red for critical alert
+      const greenText = rgb(0.2, 0.6, 0.2); // Green for COMPLETED
+      const redText = rgb(0.8, 0.2, 0.2); // Red for ABNORMAL
+      const orangeText = rgb(1, 0.5, 0); // Orange for warnings
       
       // Position tracker
-      let yPosition = height - 40;
+      let yPosition = height - 50;
       
-      // HEADER SECTION - Clinic Headers
-      const headerHeight = 120;
-      
-      // Add logo if available
-      if (headerData?.logoBase64) {
-        try {
-          // Remove data:image/png;base64, prefix if present
-          const base64Data = headerData.logoBase64.includes(',') 
-            ? headerData.logoBase64.split(',')[1] 
-            : headerData.logoBase64;
-          
-          const logoBuffer = Buffer.from(base64Data, 'base64');
-          const logoImage = await pdfDoc.embedPng(logoBuffer).catch(() => pdfDoc.embedJpg(logoBuffer));
-          
-          const logoSize = 60;
-          const logoX = headerData.logoPosition === 'left' ? 40 : 
-                        headerData.logoPosition === 'right' ? width - logoSize - 40 : 
-                        (width - logoSize) / 2;
-          
-          page.drawImage(logoImage, {
-            x: logoX,
-            y: yPosition - logoSize,
-            width: logoSize,
-            height: logoSize,
-          });
-        } catch (logoError) {
-          console.error("Error embedding logo:", logoError);
-        }
-      }
-      
-      // Clinic name and details
-      const clinicNameSize = parseInt(headerData?.clinicNameFontSize || '24pt');
-      page.drawText(headerData?.clinicName || 'Medical Clinic', {
-        x: width / 2 - 100,
-        y: yPosition - 20,
-        size: clinicNameSize,
-        font: boldFont,
-        color: primaryColor
-      });
-      
-      yPosition -= 40;
-      
-      if (headerData?.address) {
-        page.drawText(headerData.address, {
-          x: width / 2 - 100,
-          y: yPosition,
-          size: 10,
-          font,
-          color: darkGray
-        });
-        yPosition -= 15;
-      }
-      
-      if (headerData?.phone || headerData?.email) {
-        const contactText = [headerData?.phone, headerData?.email].filter(Boolean).join(' | ');
-        page.drawText(contactText, {
-          x: width / 2 - 100,
-          y: yPosition,
-          size: 9,
-          font,
-          color: darkGray
-        });
-        yPosition -= 30;
-      }
-      
-      // Prescription title
-      page.drawText('IMAGING PRESCRIPTION', {
-        x: width / 2 - 80,
-        y: yPosition,
-        size: 16,
-        font: boldFont,
-        color: primaryColor
-      });
-      
-      yPosition -= 40;
-      
-      // PATIENT INFORMATION SECTION
-      page.drawText('Patient Information:', {
+      // HEADER SECTION
+      // Title
+      page.drawText('Imaging Study Prescription', {
         x: 40,
         y: yPosition,
-        size: 12,
+        size: 14,
         font: boldFont,
-        color: primaryColor
+        color: darkText
+      });
+      
+      yPosition -= 35;
+      
+      // System name
+      page.drawText(headerData?.clinicName || 'CURA EMR SYSTEM', {
+        x: 40,
+        y: yPosition,
+        size: 20,
+        font: boldFont,
+        color: primaryBlue
       });
       
       yPosition -= 20;
+      
+      // Subtitle
+      page.drawText('Imaging Study Prescription', {
+        x: 40,
+        y: yPosition,
+        size: 10,
+        font,
+        color: darkText
+      });
+      
+      yPosition -= 45;
+      
+      // TWO-COLUMN LAYOUT FOR PHYSICIAN AND PATIENT INFO
+      const leftColumnX = 40;
+      const rightColumnX = 310;
+      const sectionStartY = yPosition;
+      
+      // Left Column: Physician Information
+      page.drawText('Physician Information', {
+        x: leftColumnX,
+        y: yPosition,
+        size: 11,
+        font: boldFont,
+        color: darkText
+      });
+      
+      let leftY = yPosition - 20;
+      
+      page.drawText(`Name: ${req.user?.firstName || 'Dr.'} ${req.user?.lastName || 'Medical Staff'}`, {
+        x: leftColumnX,
+        y: leftY,
+        size: 9,
+        font,
+        color: darkText
+      });
+      leftY -= 14;
+      
+      page.drawText(`Priority: ${medicalImage.priority || 'routine'}`, {
+        x: leftColumnX,
+        y: leftY,
+        size: 9,
+        font,
+        color: darkText
+      });
+      
+      // Right Column: Patient Information
+      page.drawText('Patient Information', {
+        x: rightColumnX,
+        y: sectionStartY,
+        size: 11,
+        font: boldFont,
+        color: darkText
+      });
+      
+      let rightY = sectionStartY - 20;
       
       page.drawText(`Name: ${patient.firstName} ${patient.lastName}`, {
-        x: 50,
-        y: yPosition,
-        size: 10,
-        font
+        x: rightColumnX,
+        y: rightY,
+        size: 9,
+        font,
+        color: darkText
       });
-      yPosition -= 15;
+      rightY -= 14;
       
       page.drawText(`Patient ID: ${patient.patientId}`, {
-        x: 50,
-        y: yPosition,
-        size: 10,
-        font
+        x: rightColumnX,
+        y: rightY,
+        size: 9,
+        font,
+        color: darkText
       });
-      yPosition -= 15;
+      rightY -= 14;
       
-      page.drawText(`Date of Birth: ${new Date(patient.dateOfBirth).toLocaleDateString()}`, {
-        x: 50,
-        y: yPosition,
-        size: 10,
-        font
+      const currentDate = new Date();
+      page.drawText(`Date: ${currentDate.toLocaleDateString()}`, {
+        x: rightColumnX,
+        y: rightY,
+        size: 9,
+        font,
+        color: darkText
       });
-      yPosition -= 30;
+      rightY -= 14;
       
-      // IMAGING STUDY DETAILS SECTION
-      page.drawText('Imaging Study Details:', {
+      page.drawText(`Time: ${currentDate.toLocaleTimeString().slice(0, 5)}`, {
+        x: rightColumnX,
+        y: rightY,
+        size: 9,
+        font,
+        color: darkText
+      });
+      
+      yPosition = Math.min(leftY, rightY) - 30;
+      
+      // IMAGING STUDY PRESCRIPTION SECTION with light background
+      page.drawRectangle({
+        x: 30,
+        y: yPosition - 100,
+        width: width - 60,
+        height: 105,
+        color: lightGray,
+        borderColor: rgb(0.7, 0.7, 0.7),
+        borderWidth: 0.5
+      });
+      
+      page.drawText('📋 Imaging Study Prescription', {
         x: 40,
         y: yPosition,
-        size: 12,
+        size: 11,
         font: boldFont,
-        color: primaryColor
+        color: darkText
       });
       
-      yPosition -= 20;
+      yPosition -= 25;
       
-      page.drawText(`Image ID: ${medicalImage.imageId}`, {
-        x: 50,
+      const col1X = 50;
+      const col2X = 310;
+      
+      page.drawText(`Image ID:`, {
+        x: col1X,
         y: yPosition,
-        size: 10,
-        font
+        size: 9,
+        font,
+        color: darkText
       });
-      yPosition -= 15;
-      
-      page.drawText(`Study Type: ${medicalImage.studyType}`, {
-        x: 50,
+      page.drawText(medicalImage.imageId, {
+        x: col1X + 70,
         y: yPosition,
-        size: 10,
-        font
+        size: 9,
+        font: boldFont,
+        color: darkText
       });
-      yPosition -= 15;
+      
+      page.drawText(`Study Type:`, {
+        x: col2X,
+        y: yPosition,
+        size: 9,
+        font,
+        color: darkText
+      });
+      page.drawText(medicalImage.studyType, {
+        x: col2X + 70,
+        y: yPosition,
+        size: 9,
+        font: boldFont,
+        color: darkText
+      });
+      
+      yPosition -= 18;
+      
+      page.drawText(`Ordered Date:`, {
+        x: col1X,
+        y: yPosition,
+        size: 9,
+        font,
+        color: darkText
+      });
+      page.drawText(new Date(medicalImage.createdAt || Date.now()).toLocaleString(), {
+        x: col1X + 70,
+        y: yPosition,
+        size: 9,
+        font,
+        color: darkText
+      });
+      
+      page.drawText(`Status:`, {
+        x: col2X,
+        y: yPosition,
+        size: 9,
+        font,
+        color: darkText
+      });
+      page.drawText(medicalImage.status?.toUpperCase() || 'PENDING', {
+        x: col2X + 70,
+        y: yPosition,
+        size: 9,
+        font: boldFont,
+        color: greenText
+      });
+      
+      yPosition -= 30;
+      
+      page.drawText('Imaging Details:', {
+        x: col1X,
+        y: yPosition,
+        size: 9,
+        font: boldFont,
+        color: darkText
+      });
+      
+      yPosition -= 16;
       
       page.drawText(`Modality: ${medicalImage.modality}`, {
-        x: 50,
+        x: col1X,
         y: yPosition,
-        size: 10,
-        font
+        size: 9,
+        font,
+        color: darkText
       });
-      yPosition -= 15;
       
       if (medicalImage.bodyPart) {
         page.drawText(`Body Part: ${medicalImage.bodyPart}`, {
-          x: 50,
+          x: col2X,
           y: yPosition,
-          size: 10,
-          font
+          size: 9,
+          font,
+          color: darkText
         });
-        yPosition -= 15;
       }
       
-      if (medicalImage.indication) {
-        page.drawText(`Indication: ${medicalImage.indication}`, {
-          x: 50,
-          y: yPosition,
-          size: 10,
-          font
+      yPosition -= 40;
+      
+      // CLINICAL NOTES SECTION (Yellow Background)
+      if (medicalImage.indication || medicalImage.findings) {
+        page.drawRectangle({
+          x: 30,
+          y: yPosition - 60,
+          width: width - 60,
+          height: 65,
+          color: yellowBg,
+          borderColor: rgb(0.9, 0.85, 0.3),
+          borderWidth: 1
         });
-        yPosition -= 15;
-      }
-      
-      page.drawText(`Priority: ${medicalImage.priority}`, {
-        x: 50,
-        y: yPosition,
-        size: 10,
-        font
-      });
-      yPosition -= 15;
-      
-      page.drawText(`Status: ${medicalImage.status}`, {
-        x: 50,
-        y: yPosition,
-        size: 10,
-        font
-      });
-      yPosition -= 30;
-      
-      if (medicalImage.findings) {
-        page.drawText('Findings:', {
+        
+        page.drawText('Clinical Notes:', {
+          x: 40,
+          y: yPosition - 5,
+          size: 10,
+          font: boldFont,
+          color: darkText
+        });
+        
+        yPosition -= 22;
+        
+        const notesText = medicalImage.indication || medicalImage.findings || 'No clinical notes available';
+        page.drawText(notesText.substring(0, 120), {
           x: 40,
           y: yPosition,
-          size: 12,
-          font: boldFont,
-          color: primaryColor
+          size: 9,
+          font,
+          color: darkText
         });
-        yPosition -= 20;
         
-        page.drawText(medicalImage.findings.substring(0, 200), {
-          x: 50,
-          y: yPosition,
-          size: 10,
-          font
-        });
-        yPosition -= 30;
+        yPosition -= 50;
       }
       
-      // SIGNATURE BOX SECTION
-      yPosition -= 20;
-      
-      page.drawText('Authorized Signature:', {
-        x: 40,
-        y: yPosition,
-        size: 12,
-        font: boldFont,
-        color: primaryColor
-      });
-      
-      yPosition -= 10;
-      
-      // Draw signature box border
-      page.drawRectangle({
-        x: 40,
-        y: yPosition - 60,
-        width: width - 80,
-        height: 60,
-        borderColor: darkGray,
-        borderWidth: 1,
-      });
-      
-      page.drawText('Signature: _____________________________', {
-        x: 50,
-        y: yPosition - 30,
-        size: 10,
-        font
-      });
-      
-      page.drawText(`Date: ${new Date().toLocaleDateString()}`, {
-        x: width - 200,
-        y: yPosition - 30,
-        size: 10,
-        font
-      });
-      
-      yPosition -= 80;
-      
-      // FOOTER SECTION - Clinic Footers
-      const footerY = 60;
-      
-      if (footerData) {
-        // Draw footer background with specified color
-        const bgColor = footerData.backgroundColor || '#4A7DFF';
-        const bgRgb = rgb(
-          parseInt(bgColor.slice(1, 3), 16) / 255,
-          parseInt(bgColor.slice(3, 5), 16) / 255,
-          parseInt(bgColor.slice(5, 7), 16) / 255
-        );
-        
+      // CRITICAL VALUES DETECTED (Red Background) - Only if status indicates issues
+      if (medicalImage.status && medicalImage.status.toLowerCase() === 'abnormal') {
         page.drawRectangle({
-          x: 0,
-          y: footerY - 10,
-          width: width,
-          height: 50,
-          color: bgRgb,
+          x: 30,
+          y: yPosition - 50,
+          width: width - 60,
+          height: 55,
+          color: redBg,
+          borderColor: redText,
+          borderWidth: 1
         });
         
-        // Footer text with specified text color
-        const textColorHex = footerData.textColor || '#FFFFFF';
-        const textRgb = rgb(
-          parseInt(textColorHex.slice(1, 3), 16) / 255,
-          parseInt(textColorHex.slice(3, 5), 16) / 255,
-          parseInt(textColorHex.slice(5, 7), 16) / 255
-        );
-        
-        page.drawText(footerData.footerText, {
-          x: width / 2 - 100,
-          y: footerY + 10,
+        page.drawText('⚠ CRITICAL VALUES DETECTED', {
+          x: 40,
+          y: yPosition - 5,
           size: 10,
           font: boldFont,
-          color: textRgb
+          color: redText
         });
         
-        // Social links if available
-        if (footerData.showSocial) {
-          const socialLinks = [footerData.facebook, footerData.twitter, footerData.linkedin]
-            .filter(Boolean)
-            .join(' | ');
-          
-          if (socialLinks) {
-            page.drawText(socialLinks, {
-              x: width / 2 - 80,
-              y: footerY - 5,
-              size: 8,
-              font,
-              color: textRgb
-            });
-          }
-        }
-      } else {
-        // Default footer if no footer data
-        page.drawText('Medical Imaging Prescription', {
-          x: width / 2 - 70,
-          y: footerY,
-          size: 10,
-          font: boldFont,
-          color: primaryColor
+        yPosition -= 22;
+        
+        page.drawText('This imaging study contains critical values that require immediate attention.', {
+          x: 40,
+          y: yPosition,
+          size: 9,
+          font,
+          color: darkText
         });
+        
+        yPosition -= 40;
       }
+      
+      // FOOTER SECTION
+      const footerY = 80;
+      
+      // Left side: Generated by
+      page.drawText(`Generated by ${headerData?.clinicName || 'Cura EMR System'}`, {
+        x: 40,
+        y: footerY,
+        size: 8,
+        font,
+        color: darkText
+      });
+      
+      // Right side: Date and signature
+      const genDate = new Date();
+      page.drawText(`Date: ${genDate.toLocaleDateString()} ${genDate.toLocaleTimeString().slice(0, 5)}`, {
+        x: width - 200,
+        y: footerY,
+        size: 8,
+        font,
+        color: darkText
+      });
+      
+      // Signature line
+      page.drawLine({
+        start: { x: width - 200, y: footerY + 25 },
+        end: { x: width - 40, y: footerY + 25 },
+        thickness: 0.5,
+        color: darkText
+      });
+      
+      page.drawText(req.user?.firstName && req.user?.lastName 
+        ? `${req.user.firstName} ${req.user.lastName}` 
+        : 'Authorized Medical Staff', {
+        x: width - 180,
+        y: footerY + 30,
+        size: 8,
+        font,
+        color: darkText
+      });
       
       // Generate PDF bytes
       const pdfBytes = await pdfDoc.save();
@@ -18374,8 +18417,26 @@ Cura EMR Team
       
       console.log(`Image prescription PDF generated and saved: ${outputPath}`);
       
-      // Create view URL for the prescription
-      const viewUrl = `/api/imaging/view-prescription/${organizationId}/${medicalImage.patientId}/${fileName}`;
+      // Generate signed token for secure access
+      const fileSecret = process.env.FILE_SECRET;
+      if (!fileSecret) {
+        console.error("FILE_SECRET not configured");
+        return res.status(500).json({ error: "Server configuration error" });
+      }
+      
+      const accessToken = jwt.sign(
+        {
+          organizationId: organizationId,
+          patientId: medicalImage.patientId,
+          fileName: fileName,
+          type: 'prescription'
+        },
+        fileSecret,
+        { expiresIn: '7d' }
+      );
+      
+      // Create view URL for the prescription with token
+      const viewUrl = `/api/imaging/view-prescription/${organizationId}/${medicalImage.patientId}/${fileName}?token=${accessToken}`;
       
       res.json({
         success: true,
@@ -18398,12 +18459,30 @@ Cura EMR Team
     }
   });
 
-  // View Image Prescription PDF Endpoint
-  app.get("/api/imaging/view-prescription/:organizationId/:patientId/:fileName", authMiddleware, async (req: TenantRequest, res) => {
+  // View Image Prescription PDF Endpoint (with token-based authentication)
+  app.get("/api/imaging/view-prescription/:organizationId/:patientId/:fileName", async (req: Request, res: Response) => {
     try {
       const { organizationId, patientId, fileName } = req.params;
+      const { token } = req.query;
       
       console.log("📄 VIEW PRESCRIPTION: Request params:", { organizationId, patientId, fileName });
+      
+      // Verify token if provided
+      if (token) {
+        try {
+          const fileSecret = process.env.FILE_SECRET;
+          if (!fileSecret) {
+            console.error("FILE_SECRET not configured");
+            return res.status(500).json({ error: "Server configuration error" });
+          }
+          
+          const decoded = jwt.verify(token as string, fileSecret) as any;
+          console.log("📄 VIEW PRESCRIPTION: Token verified for organization:", decoded.organizationId);
+        } catch (tokenError) {
+          console.log("❌ VIEW PRESCRIPTION: Invalid token");
+          return res.status(401).json({ error: "Invalid or expired token" });
+        }
+      }
       
       // Construct the file path
       const prescriptionPath = path.resolve(
