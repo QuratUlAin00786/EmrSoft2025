@@ -1945,13 +1945,15 @@ export default function ImagingPage() {
 
           {/* Tabs for Order Study, Generate Report, and Imaging Results */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-4">
+            <TabsList className={`grid w-full mb-4 ${user?.role === 'patient' ? 'grid-cols-2' : 'grid-cols-3'}`}>
               <TabsTrigger value="order-study" data-testid="tab-order-study">
                 Order Study
               </TabsTrigger>
-              <TabsTrigger value="generate-report" data-testid="tab-generate-report">
-                Generate Report
-              </TabsTrigger>
+              {user?.role !== 'patient' && (
+                <TabsTrigger value="generate-report" data-testid="tab-generate-report">
+                  Generate Report
+                </TabsTrigger>
+              )}
               <TabsTrigger value="imaging-results" data-testid="tab-imaging-results">
                 Imaging Results
               </TabsTrigger>
