@@ -18125,7 +18125,10 @@ Cura EMR Team
       let leftColY = yPosition;
       let rightColY = yPosition;
       
-      // LEFT COLUMN: Small Logo
+      // Calculate header section height first to match logo
+      const headerHeight = 16 + 14 + 10 + 10 + 10; // clinic name + address + phone + email + website spacing
+      
+      // LEFT COLUMN: Small Logo (sized to match header height)
       if (headerData?.logoBase64) {
         try {
           const logoData = headerData.logoBase64.replace(/^data:image\/\w+;base64,/, '');
@@ -18138,15 +18141,18 @@ Cura EMR Team
             logoImage = await pdfDoc.embedJpg(logoBytes);
           }
           
-          // Small logo size (0.1 for smaller appearance)
-          const logoDims = logoImage.scale(0.1);
-          leftColY = yPosition - logoDims.height;
+          // Scale logo to match header height (approximately 60 points)
+          const targetLogoHeight = 60;
+          const logoAspectRatio = logoImage.width / logoImage.height;
+          const logoWidth = targetLogoHeight * logoAspectRatio;
+          
+          leftColY = yPosition - targetLogoHeight;
           
           page.drawImage(logoImage, {
             x: leftColX,
             y: leftColY,
-            width: logoDims.width,
-            height: logoDims.height
+            width: logoWidth,
+            height: targetLogoHeight
           });
         } catch (logoError) {
           console.error('Failed to embed logo:', logoError);
