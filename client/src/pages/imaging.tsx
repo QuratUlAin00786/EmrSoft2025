@@ -1366,23 +1366,14 @@ export default function ImagingPage() {
 
       const data = await response.json();
 
-      if (data.success && data.filePath) {
+      if (data.success && data.viewUrl) {
         toast({
           title: "Prescription Generated",
-          description: "Image prescription has been created successfully",
+          description: "Opening prescription in new tab...",
         });
 
-        // Download the prescription PDF
-        const downloadResponse = await fetch(data.filePath);
-        const blob = await downloadResponse.blob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = data.fileName || `prescription-${study.imageId}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        // Open the prescription PDF in a new tab
+        window.open(data.viewUrl, '_blank');
       } else {
         throw new Error("Failed to generate prescription");
       }

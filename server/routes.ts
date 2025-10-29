@@ -18374,10 +18374,13 @@ Cura EMR Team
       
       console.log(`Image prescription PDF generated and saved: ${outputPath}`);
       
+      // Create view URL for the prescription
+      const viewUrl = `/api/imaging/view-prescription/${organizationId}/${medicalImage.patientId}/${fileName}`;
+      
       res.json({
         success: true,
         fileName: fileName,
-        filePath: outputPath,
+        viewUrl: viewUrl,
         message: "Image prescription generated successfully"
       });
 
@@ -18392,6 +18395,46 @@ Cura EMR Team
         error: "Failed to generate image prescription",
         details: (error as Error).message 
       });
+    }
+  });
+
+  // View Image Prescription PDF Endpoint
+  app.get("/api/imaging/view-prescription/:organizationId/:patientId/:fileName", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const { organizationId, patientId, fileName } = req.params;
+      
+      console.log("📄 VIEW PRESCRIPTION: Request params:", { organizationId, patientId, fileName });
+      
+      // Construct the file path
+      const prescriptionPath = path.resolve(
+        process.cwd(),
+        'uploads',
+        'Image_Prescriptions',
+        organizationId,
+        'patients',
+        patientId,
+        fileName
+      );
+      
+      console.log("📄 VIEW PRESCRIPTION: File path:", prescriptionPath);
+      
+      // Check if file exists
+      if (!await fse.pathExists(prescriptionPath)) {
+        console.log("❌ VIEW PRESCRIPTION: File not found");
+        return res.status(404).json({ error: "Prescription not found" });
+      }
+      
+      // Send the PDF file
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'inline; filename="' + fileName + '"');
+      
+      const fileStream = fse.createReadStream(prescriptionPath);
+      fileStream.pipe(res);
+      
+      console.log("✅ VIEW PRESCRIPTION: PDF sent successfully");
+    } catch (error) {
+      console.error("❌ VIEW PRESCRIPTION ERROR:", error);
+      res.status(500).json({ error: "Failed to view prescription" });
     }
   });
 
