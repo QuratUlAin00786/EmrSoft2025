@@ -18078,38 +18078,10 @@ Cura EMR Team
         color: darkText
       });
       
-      // CENTER: Logo in same row
-      if (headerData?.logoBase64) {
-        try {
-          const logoData = headerData.logoBase64.replace(/^data:image\/\w+;base64,/, '');
-          const logoBytes = Buffer.from(logoData, 'base64');
-          
-          let logoImage;
-          if (headerData.logoBase64.includes('image/png')) {
-            logoImage = await pdfDoc.embedPng(logoBytes);
-          } else {
-            logoImage = await pdfDoc.embedJpg(logoBytes);
-          }
-          
-          // Scale logo to fit in header row (smaller size)
-          const logoDims = logoImage.scale(0.25);
-          const logoY = yPosition - logoDims.height + 8; // Align with text
-          
-          page.drawImage(logoImage, {
-            x: width / 2 - logoDims.width / 2,
-            y: logoY,
-            width: logoDims.width,
-            height: logoDims.height
-          });
-        } catch (logoError) {
-          console.error('Failed to embed logo:', logoError);
-        }
-      }
-      
-      // TOP CENTER: Prescription number
+      // Prescription number moved to center
       page.drawText(`Prescription #: RX-${medicalImage.imageId}ORDER`, {
         x: width / 2 - 60,
-        y: yPosition + 15,
+        y: yPosition,
         size: 7,
         font,
         color: darkText
@@ -18145,69 +18117,96 @@ Cura EMR Team
         color: rgb(0.5, 0.5, 0.5)
       });
       
-      yPosition -= 40;
+      yPosition -= 30;
       
-      // Clinic Name (centered)
+      // LOGO AND CLINIC INFO IN ONE ROW (Logo left, Clinic details right)
+      const logoStartX = 70;
+      const clinicInfoX = 160;
+      let clinicInfoY = yPosition;
+      
+      // Logo on the left (small)
+      if (headerData?.logoBase64) {
+        try {
+          const logoData = headerData.logoBase64.replace(/^data:image\/\w+;base64,/, '');
+          const logoBytes = Buffer.from(logoData, 'base64');
+          
+          let logoImage;
+          if (headerData.logoBase64.includes('image/png')) {
+            logoImage = await pdfDoc.embedPng(logoBytes);
+          } else {
+            logoImage = await pdfDoc.embedJpg(logoBytes);
+          }
+          
+          // Small logo size
+          const logoDims = logoImage.scale(0.12);
+          
+          page.drawImage(logoImage, {
+            x: logoStartX,
+            y: yPosition - logoDims.height,
+            width: logoDims.width,
+            height: logoDims.height
+          });
+        } catch (logoError) {
+          console.error('Failed to embed logo:', logoError);
+        }
+      }
+      
+      // Clinic Name (to the right of logo)
       const clinicName = headerData?.clinicName || 'Clinical Care Hospital';
-      const clinicNameWidth = clinicName.length * 8;
       page.drawText(clinicName, {
-        x: width / 2 - clinicNameWidth / 2,
-        y: yPosition,
+        x: clinicInfoX,
+        y: clinicInfoY,
         size: 16,
         font: boldFont,
         color: darkText
       });
       
-      yPosition -= 18;
+      clinicInfoY -= 14;
       
-      // Clinic contact details (centered)
+      // Clinic contact details (to the right of logo)
       const clinicAddress = headerData?.address || 'house 33';
-      const clinicAddressWidth = clinicAddress.length * 4;
       page.drawText(clinicAddress, {
-        x: width / 2 - clinicAddressWidth / 2,
-        y: yPosition,
+        x: clinicInfoX,
+        y: clinicInfoY,
         size: 8,
         font,
         color: darkText
       });
       
-      yPosition -= 12;
+      clinicInfoY -= 10;
       
       const clinicPhone = headerData?.phone || '+923213213213';
-      const clinicPhoneWidth = clinicPhone.length * 4;
       page.drawText(clinicPhone, {
-        x: width / 2 - clinicPhoneWidth / 2,
-        y: yPosition,
+        x: clinicInfoX,
+        y: clinicInfoY,
         size: 8,
         font,
         color: darkText
       });
       
-      yPosition -= 12;
+      clinicInfoY -= 10;
       
       const clinicEmail = headerData?.email || 'averox71@gmail.com';
-      const clinicEmailWidth = clinicEmail.length * 4;
       page.drawText(clinicEmail, {
-        x: width / 2 - clinicEmailWidth / 2,
-        y: yPosition,
+        x: clinicInfoX,
+        y: clinicInfoY,
         size: 8,
         font,
         color: darkText
       });
       
-      yPosition -= 12;
+      clinicInfoY -= 10;
       
       const clinicWebsite = headerData?.website || 'website: www.clinicalcare.com';
-      const clinicWebsiteWidth = clinicWebsite.length * 4;
       page.drawText(clinicWebsite, {
-        x: width / 2 - clinicWebsiteWidth / 2,
-        y: yPosition,
+        x: clinicInfoX,
+        y: clinicInfoY,
         size: 8,
         font,
         color: darkText
       });
       
-      yPosition -= 40;
+      yPosition = clinicInfoY - 30;
       
       // PATIENT INFORMATION SECTION (TWO COLUMNS)
       const leftColumnX = 60;
