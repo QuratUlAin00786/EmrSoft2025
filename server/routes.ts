@@ -18119,13 +18119,13 @@ Cura EMR Team
       
       yPosition -= 30;
       
-      // LOGO AND CLINIC INFO IN ONE ROW (Logo left, Clinic details right)
-      const logoStartX = 70;
-      const clinicInfoX = 160;
-      let clinicInfoY = yPosition;
-      let logoBottomY = yPosition; // Track logo bottom position
+      // TWO COLUMNS: Left column (logo), Right column (clinic info)
+      const leftColX = 50;
+      const rightColX = 180;
+      let leftColY = yPosition;
+      let rightColY = yPosition;
       
-      // Logo on the left (small)
+      // LEFT COLUMN: Small Logo
       if (headerData?.logoBase64) {
         try {
           const logoData = headerData.logoBase64.replace(/^data:image\/\w+;base64,/, '');
@@ -18138,13 +18138,13 @@ Cura EMR Team
             logoImage = await pdfDoc.embedJpg(logoBytes);
           }
           
-          // Small logo size
-          const logoDims = logoImage.scale(0.12);
-          logoBottomY = yPosition - logoDims.height;
+          // Small logo size (0.1 for smaller appearance)
+          const logoDims = logoImage.scale(0.1);
+          leftColY = yPosition - logoDims.height;
           
           page.drawImage(logoImage, {
-            x: logoStartX,
-            y: logoBottomY,
+            x: leftColX,
+            y: leftColY,
             width: logoDims.width,
             height: logoDims.height
           });
@@ -18153,63 +18153,62 @@ Cura EMR Team
         }
       }
       
-      // Clinic Name (to the right of logo)
+      // RIGHT COLUMN: Clinic Information
       const clinicName = headerData?.clinicName || 'Clinical Care Hospital';
       page.drawText(clinicName, {
-        x: clinicInfoX,
-        y: clinicInfoY,
+        x: rightColX,
+        y: rightColY,
         size: 16,
         font: boldFont,
         color: darkText
       });
       
-      clinicInfoY -= 14;
+      rightColY -= 14;
       
-      // Clinic contact details (to the right of logo)
       const clinicAddress = headerData?.address || 'house 33';
       page.drawText(clinicAddress, {
-        x: clinicInfoX,
-        y: clinicInfoY,
+        x: rightColX,
+        y: rightColY,
         size: 8,
         font,
         color: darkText
       });
       
-      clinicInfoY -= 10;
+      rightColY -= 10;
       
       const clinicPhone = headerData?.phone || '+923213213213';
       page.drawText(clinicPhone, {
-        x: clinicInfoX,
-        y: clinicInfoY,
+        x: rightColX,
+        y: rightColY,
         size: 8,
         font,
         color: darkText
       });
       
-      clinicInfoY -= 10;
+      rightColY -= 10;
       
       const clinicEmail = headerData?.email || 'averox71@gmail.com';
       page.drawText(clinicEmail, {
-        x: clinicInfoX,
-        y: clinicInfoY,
+        x: rightColX,
+        y: rightColY,
         size: 8,
         font,
         color: darkText
       });
       
-      clinicInfoY -= 10;
+      rightColY -= 10;
       
       const clinicWebsite = headerData?.website || 'website: www.clinicalcare.com';
       page.drawText(clinicWebsite, {
-        x: clinicInfoX,
-        y: clinicInfoY,
+        x: rightColX,
+        y: rightColY,
         size: 8,
         font,
         color: darkText
       });
       
-      // Use the lower of logo bottom or clinic info bottom to ensure no overlap
-      yPosition = Math.min(logoBottomY, clinicInfoY) - 30;
+      // Use the lower of left column (logo) or right column (clinic info) bottom to ensure no overlap
+      yPosition = Math.min(leftColY, rightColY) - 30;
       
       // PATIENT INFORMATION SECTION (TWO COLUMNS)
       const leftColumnX = 60;
