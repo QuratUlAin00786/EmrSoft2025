@@ -2177,7 +2177,7 @@ export default function MessagingPage() {
         <TabsList>
           <TabsTrigger value="conversations">Conversations</TabsTrigger>
           <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
-          <TabsTrigger value="templates">Templates</TabsTrigger>
+          <TabsTrigger value="templates">Announcement</TabsTrigger>
         </TabsList>
         <TabsContent value="conversations" className="space-y-6">
           <div className="grid grid-cols-12 gap-6 h-[700px]">
@@ -2860,17 +2860,17 @@ export default function MessagingPage() {
 
         <TabsContent value="templates" className="space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">Message Templates</h2>
+            <h2 className="text-xl font-semibold">Message Announcement</h2>
             <Dialog open={showCreateTemplate} onOpenChange={setShowCreateTemplate}>
               <DialogTrigger asChild>
                 <Button>
                   <Plus className="h-4 w-4 mr-2" />
-                  Create Template
+                  Create Announcement
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-2xl">
                 <DialogHeader>
-                  <DialogTitle>Create New Template</DialogTitle>
+                  <DialogTitle>Create New Announcement</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-6">
                   <div className="grid grid-cols-2 gap-4">
@@ -2937,7 +2937,7 @@ export default function MessagingPage() {
                       onClick={handleCreateTemplate}
                       disabled={createTemplateMutation.isPending}
                     >
-                      {createTemplateMutation.isPending ? "Creating..." : "Create Template"}
+                      {createTemplateMutation.isPending ? "Creating..." : "Create Announcement"}
                     </Button>
                   </div>
                 </div>
@@ -2959,11 +2959,11 @@ export default function MessagingPage() {
               <CardContent className="p-6">
                 <div className="text-center py-8 text-gray-500">
                   <Mail className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <h3 className="text-lg font-medium mb-2">No Templates Yet</h3>
-                  <p className="mb-4">Create your first message template to get started.</p>
+                  <h3 className="text-lg font-medium mb-2">No Announcements Yet</h3>
+                  <p className="mb-4">Create your first message announcement to get started.</p>
                   <Button onClick={() => setShowCreateTemplate(true)}>
                     <Plus className="h-4 w-4 mr-2" />
-                    Create Template
+                    Create Announcement
                   </Button>
                 </div>
               </CardContent>
