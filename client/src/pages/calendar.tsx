@@ -1911,15 +1911,28 @@ export default function CalendarPage() {
                       </div>
 
                       {/* Column 2: Patient Information */}
-                      {bookingForm.patientId && (
+                      {(bookingForm.patientId || user?.role === 'patient') && (
                         <div>
                           <Label className="text-sm font-medium text-gray-900 dark:text-white mb-2 block">
                             Patient Information
                           </Label>
                           {(() => {
-                            const selectedPatient = patients.find((patient: any) => 
-                              (patient.patientId || patient.id.toString()) === bookingForm.patientId
-                            );
+                            const selectedPatient = user?.role === 'patient' 
+                              ? patients.find((patient: any) => patient.email === user.email) || {
+                                  id: user.id,
+                                  firstName: user.firstName,
+                                  lastName: user.lastName,
+                                  email: user.email,
+                                  phone: null,
+                                  phoneNumber: null,
+                                  patientId: null,
+                                  dateOfBirth: null,
+                                  nhsNumber: null,
+                                  address: {}
+                                }
+                              : patients.find((patient: any) => 
+                                  (patient.patientId || patient.id.toString()) === bookingForm.patientId
+                                );
                             
                             if (!selectedPatient) return null;
                             
