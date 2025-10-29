@@ -170,23 +170,23 @@ export default function LoginPage() {
               <div className="space-y-2 text-xs text-gray-600 dark:text-gray-300">
                 <div className="flex justify-between">
                   <span>Admin:</span>
-                  <span>admin@cura.com / admin123</span>
+                  <span>james@curaemr.ai / 467fe887</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Doctor:</span>
-                  <span>doctor@cura.com / doctor123</span>
+                  <span>paul@curaemr.ai / doctor123</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Nurse:</span>
+                  <span>emma@curaemr.ai / nurse123</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Patient:</span>
-                  <span>patient@cura.com / patient123</span>
+                  <span>john@curaemr.ai / patient123</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Lab Tech:</span>
-                  <span>labtech@cura.com / lab123</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Sample Taker:</span>
-                  <span>sampletaker@cura.com / sample123</span>
+                  <span>Lab-Technician:</span>
+                  <span>amelia@curaemr.ai / lab123</span>
                 </div>
               </div>
             </div>
@@ -198,8 +198,8 @@ export default function LoginPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  setEmail("admin@cura.com");
-                  setPassword("admin123");
+                  setEmail("james@curaemr.ai");
+                  setPassword("467fe887");
                 }}
                 className="text-xs"
                 data-testid="button-login-admin"
@@ -211,7 +211,7 @@ export default function LoginPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  setEmail("doctor@cura.com");
+                  setEmail("paul@curaemr.ai");
                   setPassword("doctor123");
                 }}
                 className="text-xs"
@@ -224,7 +224,20 @@ export default function LoginPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  setEmail("patient@cura.com");
+                  setEmail("emma@curaemr.ai");
+                  setPassword("nurse123");
+                }}
+                className="text-xs"
+                data-testid="button-login-nurse"
+              >
+                Nurse
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setEmail("john@curaemr.ai");
                   setPassword("patient123");
                 }}
                 className="text-xs"
@@ -237,26 +250,13 @@ export default function LoginPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  setEmail("labtech@cura.com");
+                  setEmail("amelia@curaemr.ai");
                   setPassword("lab123");
                 }}
                 className="text-xs"
                 data-testid="button-login-labtech"
               >
-                Lab Tech
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setEmail("sampletaker@cura.com");
-                  setPassword("sample123");
-                }}
-                className="text-xs"
-                data-testid="button-login-sampletaker"
-              >
-                Sample Taker
+                Lab-Technician
               </Button>
             </div>
           </CardContent>
