@@ -1999,7 +1999,7 @@ export default function ImagingPage() {
                 <div className="">
                   {user?.role !== "patient" && (
                     <Button
-                      onClick={() => setShowUploadDialog(true)}
+                      onClick={() => setShowNewOrder(true)}
                       className="bg-medical-blue hover:bg-blue-700 text-white ml-auto"
                     >
                       <Share className="h-4 w-4 mr-2" />
