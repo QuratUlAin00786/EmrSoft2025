@@ -2829,8 +2829,8 @@ export default function ImagingPage() {
                     </div>
 
                     <div className="flex items-center gap-2 justify-center">
-                      {/* Hide Edit icon for patient role */}
-                      {user?.role !== 'patient' && (
+                      {/* Hide Edit icon for patient role and Imaging Results tab */}
+                      {user?.role !== 'patient' && activeTab !== 'imaging-results' && (
                         <Button
                           variant="outline"
                           size="sm"
@@ -2980,8 +2980,8 @@ export default function ImagingPage() {
                         </>
                       )}
 
-                      {/* Hide Share icon for patient role */}
-                      {user?.role !== 'patient' && (
+                      {/* Hide Share icon for patient role and Generate Report tab */}
+                      {user?.role !== 'patient' && activeTab !== 'generate-report' && (
                         <Button
                           variant="outline"
                           size="sm"
@@ -2991,8 +2991,8 @@ export default function ImagingPage() {
                         </Button>
                       )}
                       
-                      {/* Hide File (Generate Report) icon for patient role */}
-                      {user?.role !== 'patient' && (
+                      {/* Hide File (Generate Report) icon for patient role, Generate Report tab, and Imaging Results tab */}
+                      {user?.role !== 'patient' && activeTab !== 'generate-report' && activeTab !== 'imaging-results' && (
                         <Button
                           variant="outline"
                           size="sm"
