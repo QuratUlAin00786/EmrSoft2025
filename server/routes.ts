@@ -18064,136 +18064,39 @@ Cura EMR Team
       const orangeText = rgb(1, 0.5, 0); // Orange for warnings
       
       // Position tracker
-      let yPosition = height - 50;
+      let yPosition = height - 40;
       
-      // HEADER SECTION
-      // Title
-      page.drawText('Imaging Study Prescription', {
+      // TOP LEFT: Date and Prescription ID
+      const currentDate = new Date();
+      page.drawText(`${currentDate.toLocaleDateString()}, ${currentDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}`, {
         x: 40,
         y: yPosition,
-        size: 14,
+        size: 8,
+        font,
+        color: darkText
+      });
+      
+      page.drawText(`Prescription #: RX-${medicalImage.imageId}`, {
+        x: width / 2 - 60,
+        y: yPosition,
+        size: 8,
+        font,
+        color: darkText
+      });
+      
+      // TOP RIGHT: ACTIVE status
+      page.drawText('ACTIVE', {
+        x: width - 80,
+        y: yPosition,
+        size: 8,
         font: boldFont,
         color: darkText
       });
       
       yPosition -= 35;
       
-      // System name
-      page.drawText(headerData?.clinicName || 'CURA EMR SYSTEM', {
-        x: 40,
-        y: yPosition,
-        size: 20,
-        font: boldFont,
-        color: primaryBlue
-      });
-      
-      yPosition -= 20;
-      
-      // Subtitle
-      page.drawText('Imaging Study Prescription', {
-        x: 40,
-        y: yPosition,
-        size: 10,
-        font,
-        color: darkText
-      });
-      
-      yPosition -= 45;
-      
-      // TWO-COLUMN LAYOUT FOR PHYSICIAN AND PATIENT INFO
-      const leftColumnX = 40;
-      const rightColumnX = 310;
-      const sectionStartY = yPosition;
-      
-      // Left Column: Physician Information
-      page.drawText('Physician Information', {
-        x: leftColumnX,
-        y: yPosition,
-        size: 11,
-        font: boldFont,
-        color: darkText
-      });
-      
-      let leftY = yPosition - 20;
-      
-      page.drawText(`Name: ${req.user?.firstName || 'Dr.'} ${req.user?.lastName || 'Medical Staff'}`, {
-        x: leftColumnX,
-        y: leftY,
-        size: 9,
-        font,
-        color: darkText
-      });
-      leftY -= 14;
-      
-      page.drawText(`Priority: ${medicalImage.priority || 'routine'}`, {
-        x: leftColumnX,
-        y: leftY,
-        size: 9,
-        font,
-        color: darkText
-      });
-      
-      // Right Column: Patient Information
-      page.drawText('Patient Information', {
-        x: rightColumnX,
-        y: sectionStartY,
-        size: 11,
-        font: boldFont,
-        color: darkText
-      });
-      
-      let rightY = sectionStartY - 20;
-      
-      page.drawText(`Name: ${patient.firstName} ${patient.lastName}`, {
-        x: rightColumnX,
-        y: rightY,
-        size: 9,
-        font,
-        color: darkText
-      });
-      rightY -= 14;
-      
-      page.drawText(`Patient ID: ${patient.patientId}`, {
-        x: rightColumnX,
-        y: rightY,
-        size: 9,
-        font,
-        color: darkText
-      });
-      rightY -= 14;
-      
-      const currentDate = new Date();
-      page.drawText(`Date: ${currentDate.toLocaleDateString()}`, {
-        x: rightColumnX,
-        y: rightY,
-        size: 9,
-        font,
-        color: darkText
-      });
-      rightY -= 14;
-      
-      page.drawText(`Time: ${currentDate.toLocaleTimeString().slice(0, 5)}`, {
-        x: rightColumnX,
-        y: rightY,
-        size: 9,
-        font,
-        color: darkText
-      });
-      
-      yPosition = Math.min(leftY, rightY) - 30;
-      
-      // IMAGING STUDY PRESCRIPTION SECTION with light background
-      page.drawRectangle({
-        x: 30,
-        y: yPosition - 100,
-        width: width - 60,
-        height: 105,
-        color: lightGray,
-        borderColor: rgb(0.7, 0.7, 0.7),
-        borderWidth: 0.5
-      });
-      
-      page.drawText('Imaging Study Prescription', {
+      // CURA HEALTH EMR header
+      page.drawText('CURA HEALTH EMR', {
         x: 40,
         y: yPosition,
         size: 11,
@@ -18201,210 +18104,336 @@ Cura EMR Team
         color: darkText
       });
       
-      yPosition -= 25;
+      yPosition -= 12;
       
-      const col1X = 50;
-      const col2X = 310;
-      
-      page.drawText(`Image ID:`, {
-        x: col1X,
+      page.drawText(`Prescription #: RX-${medicalImage.imageId}`, {
+        x: 40,
         y: yPosition,
-        size: 9,
+        size: 8,
         font,
-        color: darkText
-      });
-      page.drawText(medicalImage.imageId, {
-        x: col1X + 70,
-        y: yPosition,
-        size: 9,
-        font: boldFont,
-        color: darkText
+        color: rgb(0.5, 0.5, 0.5)
       });
       
-      page.drawText(`Study Type:`, {
-        x: col2X,
+      yPosition -= 40;
+      
+      // LOGO AND CLINIC NAME SECTION (CENTER)
+      // Embed logo if available
+      if (headerData?.logoBase64) {
+        try {
+          const logoData = headerData.logoBase64.replace(/^data:image\/\w+;base64,/, '');
+          const logoBytes = Buffer.from(logoData, 'base64');
+          
+          let logoImage;
+          if (headerData.logoBase64.includes('image/png')) {
+            logoImage = await pdfDoc.embedPng(logoBytes);
+          } else {
+            logoImage = await pdfDoc.embedJpg(logoBytes);
+          }
+          
+          const logoDims = logoImage.scale(0.15);
+          page.drawImage(logoImage, {
+            x: width / 2 - logoDims.width / 2,
+            y: yPosition - 30,
+            width: logoDims.width,
+            height: logoDims.height
+          });
+        } catch (logoError) {
+          console.error('Failed to embed logo:', logoError);
+        }
+      }
+      
+      yPosition -= 85;
+      
+      // Clinic Name (centered)
+      const clinicName = headerData?.clinicName || 'Clinical Care Hospital';
+      const clinicNameWidth = clinicName.length * 8;
+      page.drawText(clinicName, {
+        x: width / 2 - clinicNameWidth / 2,
         y: yPosition,
-        size: 9,
-        font,
-        color: darkText
-      });
-      page.drawText(medicalImage.studyType, {
-        x: col2X + 70,
-        y: yPosition,
-        size: 9,
+        size: 16,
         font: boldFont,
         color: darkText
       });
       
       yPosition -= 18;
       
-      page.drawText(`Ordered Date:`, {
-        x: col1X,
+      // Clinic contact details (centered)
+      const clinicAddress = headerData?.address || 'house 33';
+      const clinicAddressWidth = clinicAddress.length * 4;
+      page.drawText(clinicAddress, {
+        x: width / 2 - clinicAddressWidth / 2,
         y: yPosition,
-        size: 9,
-        font,
-        color: darkText
-      });
-      page.drawText(new Date(medicalImage.createdAt || Date.now()).toLocaleString(), {
-        x: col1X + 70,
-        y: yPosition,
-        size: 9,
+        size: 8,
         font,
         color: darkText
       });
       
-      page.drawText(`Status:`, {
-        x: col2X,
-        y: yPosition,
-        size: 9,
-        font,
-        color: darkText
-      });
-      page.drawText(medicalImage.status?.toUpperCase() || 'PENDING', {
-        x: col2X + 70,
-        y: yPosition,
-        size: 9,
-        font: boldFont,
-        color: greenText
-      });
+      yPosition -= 12;
       
-      yPosition -= 30;
-      
-      page.drawText('Imaging Details:', {
-        x: col1X,
+      const clinicPhone = headerData?.phone || '+923213213213';
+      const clinicPhoneWidth = clinicPhone.length * 4;
+      page.drawText(clinicPhone, {
+        x: width / 2 - clinicPhoneWidth / 2,
         y: yPosition,
-        size: 9,
-        font: boldFont,
-        color: darkText
-      });
-      
-      yPosition -= 16;
-      
-      page.drawText(`Modality: ${medicalImage.modality}`, {
-        x: col1X,
-        y: yPosition,
-        size: 9,
+        size: 8,
         font,
         color: darkText
       });
       
-      if (medicalImage.bodyPart) {
-        page.drawText(`Body Part: ${medicalImage.bodyPart}`, {
-          x: col2X,
-          y: yPosition,
-          size: 9,
-          font,
-          color: darkText
-        });
-      }
+      yPosition -= 12;
+      
+      const clinicEmail = headerData?.email || 'averox71@gmail.com';
+      const clinicEmailWidth = clinicEmail.length * 4;
+      page.drawText(clinicEmail, {
+        x: width / 2 - clinicEmailWidth / 2,
+        y: yPosition,
+        size: 8,
+        font,
+        color: darkText
+      });
+      
+      yPosition -= 12;
+      
+      const clinicWebsite = headerData?.website || 'website: www.clinicalcare.com';
+      const clinicWebsiteWidth = clinicWebsite.length * 4;
+      page.drawText(clinicWebsite, {
+        x: width / 2 - clinicWebsiteWidth / 2,
+        y: yPosition,
+        size: 8,
+        font,
+        color: darkText
+      });
       
       yPosition -= 40;
       
-      // CLINICAL NOTES SECTION (Yellow Background)
-      if (medicalImage.indication || medicalImage.findings) {
-        page.drawRectangle({
-          x: 30,
-          y: yPosition - 60,
-          width: width - 60,
-          height: 65,
-          color: yellowBg,
-          borderColor: rgb(0.9, 0.85, 0.3),
-          borderWidth: 1
-        });
-        
-        page.drawText('Clinical Notes:', {
-          x: 40,
-          y: yPosition - 5,
-          size: 10,
-          font: boldFont,
-          color: darkText
-        });
-        
-        yPosition -= 22;
-        
-        const notesText = medicalImage.indication || medicalImage.findings || 'No clinical notes available';
-        page.drawText(notesText.substring(0, 120), {
-          x: 40,
-          y: yPosition,
-          size: 9,
-          font,
-          color: darkText
-        });
-        
-        yPosition -= 50;
-      }
+      // PATIENT INFORMATION SECTION (TWO COLUMNS)
+      const leftColumnX = 60;
+      const rightColumnX = 310;
       
-      // CRITICAL VALUES DETECTED (Red Background) - Only if status indicates issues
-      if (medicalImage.status && medicalImage.status.toLowerCase() === 'abnormal') {
-        page.drawRectangle({
-          x: 30,
-          y: yPosition - 50,
-          width: width - 60,
-          height: 55,
-          color: redBg,
-          borderColor: redText,
-          borderWidth: 1
-        });
-        
-        page.drawText('CRITICAL VALUES DETECTED', {
-          x: 40,
-          y: yPosition - 5,
-          size: 10,
-          font: boldFont,
-          color: redText
-        });
-        
-        yPosition -= 22;
-        
-        page.drawText('This imaging study contains critical values that require immediate attention.', {
-          x: 40,
-          y: yPosition,
-          size: 9,
-          font,
-          color: darkText
-        });
-        
-        yPosition -= 40;
-      }
-      
-      // FOOTER SECTION
-      const footerY = 80;
-      
-      // Left side: Generated by
-      page.drawText(`Generated by ${headerData?.clinicName || 'Cura EMR System'}`, {
-        x: 40,
-        y: footerY,
-        size: 8,
+      // Left Column
+      page.drawText(`Name: ${patient.firstName} ${patient.lastName}`, {
+        x: leftColumnX,
+        y: yPosition,
+        size: 9,
         font,
         color: darkText
       });
       
-      // Right side: Date and signature
-      const genDate = new Date();
-      page.drawText(`Date: ${genDate.toLocaleDateString()} ${genDate.toLocaleTimeString().slice(0, 5)}`, {
-        x: width - 200,
-        y: footerY,
-        size: 8,
+      // Right Column
+      const age = patient.dateOfBirth 
+        ? Math.floor((new Date().getTime() - new Date(patient.dateOfBirth).getTime()) / (1000 * 60 * 60 * 24 * 365))
+        : 0;
+      
+      page.drawText(`DOB: ${patient.dateOfBirth ? new Date(patient.dateOfBirth).toLocaleDateString() : '11th Sept 2015'}`, {
+        x: rightColumnX,
+        y: yPosition,
+        size: 9,
         font,
         color: darkText
       });
       
-      // Signature line
+      yPosition -= 14;
+      
+      // Address on left
+      page.drawText(`Address: ${patient.address || 'House 33, Birmingham, West Midlands, B33 8TH, United Kingdom'}`.substring(0, 50), {
+        x: leftColumnX,
+        y: yPosition,
+        size: 9,
+        font,
+        color: darkText
+      });
+      
+      // Age on right
+      page.drawText(`Age: ${age}`, {
+        x: rightColumnX,
+        y: yPosition,
+        size: 9,
+        font,
+        color: darkText
+      });
+      
+      yPosition -= 14;
+      
+      // Gender on left
+      page.drawText(`Gender: ${patient.gender || 'N/A'}`, {
+        x: leftColumnX,
+        y: yPosition,
+        size: 9,
+        font,
+        color: darkText
+      });
+      
+      // Sex on right
+      page.drawText(`Sex: No: ${patient.nhsNumber || 'N/A'}`, {
+        x: rightColumnX,
+        y: yPosition,
+        size: 9,
+        font,
+        color: darkText
+      });
+      
+      yPosition -= 14;
+      
+      // Weight on left
+      page.drawText(`Weight: ${patient.weight || '-'}`, {
+        x: leftColumnX,
+        y: yPosition,
+        size: 9,
+        font,
+        color: darkText
+      });
+      
+      // Date on right
+      page.drawText(`Date: ${currentDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, ' ')}`, {
+        x: rightColumnX,
+        y: yPosition,
+        size: 9,
+        font,
+        color: darkText
+      });
+      
+      yPosition -= 35;
+      
+      // PROVIDER SECTION (Blue left border)
       page.drawLine({
-        start: { x: width - 200, y: footerY + 25 },
-        end: { x: width - 40, y: footerY + 25 },
+        start: { x: 60, y: yPosition + 5 },
+        end: { x: 60, y: yPosition - 20 },
+        thickness: 3,
+        color: primaryBlue
+      });
+      
+      page.drawText('Provider: N/A', {
+        x: 70,
+        y: yPosition,
+        size: 9,
+        font,
+        color: darkText
+      });
+      
+      yPosition -= 40;
+      
+      // MEDICINE SECTION
+      page.drawText('MEDICINE', {
+        x: 60,
+        y: yPosition,
+        size: 12,
+        font: boldFont,
+        color: darkText
+      });
+      
+      yPosition -= 18;
+      
+      page.drawText('Top: Please visit the doctor after 15 days.', {
+        x: 60,
+        y: yPosition,
+        size: 9,
+        font,
+        color: darkText
+      });
+      
+      yPosition -= 14;
+      
+      page.drawText('Days: 231 (60 days)', {
+        x: 60,
+        y: yPosition,
+        size: 9,
+        font,
+        color: darkText
+      });
+      
+      yPosition -= 14;
+      
+      page.drawText('Date: 1', {
+        x: 60,
+        y: yPosition,
+        size: 9,
+        font,
+        color: darkText
+      });
+      
+      yPosition -= 35;
+      
+      // Diagnosis Section
+      const diagnosisText = medicalImage.indication || medicalImage.findings || 'Diabetes (Diabetes Mellitus)';
+      page.drawText(`Diagnosis: ${diagnosisText.substring(0, 60)}`, {
+        x: 60,
+        y: yPosition,
+        size: 9,
+        font,
+        color: darkText
+      });
+      
+      yPosition -= 35;
+      
+      // Resident Physician (Signature) section
+      page.drawText('Resident Physician', {
+        x: 60,
+        y: yPosition,
+        size: 8,
+        font,
+        color: darkText
+      });
+      
+      yPosition -= 10;
+      
+      page.drawText('(Signature)', {
+        x: 60,
+        y: yPosition,
+        size: 8,
+        font,
+        color: darkText
+      });
+      
+      yPosition -= 20;
+      
+      // Add signature line
+      page.drawLine({
+        start: { x: width - 200, y: yPosition + 30 },
+        end: { x: width - 60, y: yPosition + 30 },
         thickness: 0.5,
         color: darkText
       });
       
       page.drawText(req.user?.firstName && req.user?.lastName 
         ? `${req.user.firstName} ${req.user.lastName}` 
-        : 'Authorized Medical Staff', {
+        : 'May Bubushia', {
         x: width - 180,
-        y: footerY + 30,
+        y: yPosition + 35,
         size: 8,
         font,
         color: darkText
+      });
+      
+      // FOOTER SECTION
+      const footerY = 30;
+      
+      // Bottom center: Copyright notice
+      const copyrightText = `© 2025 ${headerData?.clinicName || 'CuraCare Hospital'} — All Rights Reserved`;
+      const copyrightWidth = copyrightText.length * 3.5;
+      page.drawText(copyrightText, {
+        x: width / 2 - copyrightWidth / 2,
+        y: footerY,
+        size: 7,
+        font,
+        color: rgb(0.4, 0.4, 0.4)
+      });
+      
+      // Bottom left: about:blank
+      page.drawText('about:blank', {
+        x: 40,
+        y: 15,
+        size: 7,
+        font,
+        color: rgb(0.4, 0.4, 0.4)
+      });
+      
+      // Bottom right: Page number
+      page.drawText('1/2', {
+        x: width - 60,
+        y: 15,
+        size: 7,
+        font,
+        color: rgb(0.4, 0.4, 0.4)
       });
       
       // Generate PDF bytes
