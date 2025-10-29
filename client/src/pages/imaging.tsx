@@ -22,6 +22,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
@@ -271,6 +277,7 @@ export default function ImagingPage() {
   const { isDoctor, isAdmin, canEdit, canDelete } = useRolePermissions();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [activeTab, setActiveTab] = useState<string>("order-study");
   const [showNewOrder, setShowNewOrder] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [showReportDialog, setShowReportDialog] = useState(false);
@@ -1669,6 +1676,10 @@ export default function ImagingPage() {
       fileName: image.fileName, // Include image file name for PDF generation
       reportFileName: image.reportFileName, // Include PDF report file name
       reportFilePath: image.reportFilePath, // Include PDF report file path
+      imageId: image.imageId, // Include imageId
+      orderStudyCreated: image.orderStudyCreated || false, // Include order study tracking
+      orderStudyGenerated: image.orderStudyGenerated || false, // Include order study tracking
+      orderStudyShared: image.orderStudyShared || false, // Include order study tracking
       images: [
         {
           id: image.id.toString(),
@@ -1689,6 +1700,23 @@ export default function ImagingPage() {
       return false;
     }
 
+    // Filter based on active tab
+    let matchesTab = true;
+    if (activeTab === "order-study") {
+      // Order Study tab: order_study_created = true AND order_study_generated = false AND status = pending
+      matchesTab = study.orderStudyCreated === true && 
+                   study.orderStudyGenerated === false && 
+                   study.status === "pending";
+    } else if (activeTab === "generate-report") {
+      // Generate Report tab: order_study_created = true AND order_study_generated = false
+      matchesTab = study.orderStudyCreated === true && 
+                   study.orderStudyGenerated === false;
+    } else if (activeTab === "imaging-results") {
+      // Imaging Results tab: order_study_created = true AND order_study_generated = true
+      matchesTab = study.orderStudyCreated === true && 
+                   study.orderStudyGenerated === true;
+    }
+
     const matchesSearch =
       !searchQuery ||
       study.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -1700,7 +1728,7 @@ export default function ImagingPage() {
     const matchesModality =
       modalityFilter === "all" || study.modality === modalityFilter;
 
-    return matchesSearch && matchesStatus && matchesModality;
+    return matchesTab && matchesSearch && matchesStatus && matchesModality;
   });
 
   const getStatusColor = (status: string) => {
@@ -1858,8 +1886,23 @@ export default function ImagingPage() {
             </Card>
           </div>
 
-          {/* Filters */}
-          <Card>
+          {/* Tabs for Order Study, Generate Report, and Imaging Results */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-3 mb-4">
+              <TabsTrigger value="order-study" data-testid="tab-order-study">
+                Order Study
+              </TabsTrigger>
+              <TabsTrigger value="generate-report" data-testid="tab-generate-report">
+                Generate Report
+              </TabsTrigger>
+              <TabsTrigger value="imaging-results" data-testid="tab-imaging-results">
+                Imaging Results
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value={activeTab} className="space-y-4">
+              {/* Filters */}
+              <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-4">
                 <div className="relative flex-1 max-w-sm">
@@ -2987,6 +3030,8 @@ export default function ImagingPage() {
               </p>
             </div>
           )}
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
 
