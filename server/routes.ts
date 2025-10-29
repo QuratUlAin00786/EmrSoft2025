@@ -18646,15 +18646,23 @@ Cura EMR Team
       const organizationId = req.tenant!.id;
       const imageId = study.imageId;
 
-      // Generate Image Prescription PDF
-      console.log('[EMAIL-SHARE] Generating image prescription PDF for study:', studyId);
-      
       // Save PDF in organizational structure
       const prescriptionsDir = path.resolve(process.cwd(), 'uploads', 'Image_Prescriptions', String(organizationId), 'patients', String(study.patientId));
       await fse.ensureDir(prescriptionsDir);
       
-      // Import pdf-lib dynamically
-      const { PDFDocument, rgb, StandardFonts } = await import('pdf-lib');
+      const fileName = `prescription-${imageId}.pdf`;
+      const outputPath = path.join(prescriptionsDir, fileName);
+      
+      // Check if prescription already exists
+      let pdfBytes: Uint8Array;
+      if (await fse.pathExists(outputPath)) {
+        console.log('[EMAIL-SHARE] Loading existing prescription PDF:', outputPath);
+        pdfBytes = await fse.readFile(outputPath);
+      } else {
+        console.log('[EMAIL-SHARE] Generating new prescription PDF for study:', studyId);
+        
+        // Import pdf-lib dynamically
+        const { PDFDocument, rgb, StandardFonts } = await import('pdf-lib');
       
       // Fetch clinic footer data
       const clinicFooterRecords = await db
@@ -18916,13 +18924,12 @@ Cura EMR Team
         color: darkText
       });
       
-      // Generate and save PDF
-      const pdfBytes = await pdfDoc.save();
-      const fileName = `prescription-${imageId}.pdf`;
-      const outputPath = path.join(prescriptionsDir, fileName);
-      await fse.outputFile(outputPath, pdfBytes);
-      
-      console.log(`[EMAIL-SHARE] Image prescription PDF generated: ${outputPath}`);
+        // Generate and save PDF
+        pdfBytes = await pdfDoc.save();
+        await fse.outputFile(outputPath, pdfBytes);
+        
+        console.log(`[EMAIL-SHARE] Image prescription PDF generated: ${outputPath}`);
+      }
       
       // Send the email with PDF attachment
       const patientName = `${patient.firstName} ${patient.lastName}`;
