@@ -9,15 +9,15 @@ export async function seedDatabase() {
     console.log("Seeding database with sample data...");
 
     // Get or create sample organization
-    let [org] = await db.select().from(organizations).where(eq(organizations.subdomain, "demo"));
+    let [org] = await db.select().from(organizations).where(eq(organizations.subdomain, "cura"));
     
     if (!org) {
       [org] = await db.insert(organizations).values([{
-      name: "Averox Healthcare",
-      subdomain: "demo",
-      email: "admin@averox-healthcare.com",
+      name: "Cura Healthcare",
+      subdomain: "cura",
+      email: "admin@curaemr.ai",
       region: "UK",
-      brandName: "MediCore Demo",
+      brandName: "Cura EMR",
       settings: {
         theme: { primaryColor: "#3b82f6", logoUrl: "" },
         compliance: { gdprEnabled: true, dataResidency: "UK" },
@@ -39,7 +39,7 @@ export async function seedDatabase() {
     
     // Only create default users if no users exist
     if (existingUsers.length === 0) {
-      const hashedAdminPassword = await authService.hashPassword("admin123");
+      const hashedAdminPassword = await authService.hashPassword("467fe887");
       const hashedDoctorPassword = await authService.hashPassword("doctor123");
       const hashedNursePassword = await authService.hashPassword("nurse123");
       const hashedPatientPassword = await authService.hashPassword("patient123");
@@ -49,10 +49,10 @@ export async function seedDatabase() {
       const sampleUsers = [
         {
           organizationId: org.id,
-          email: "admin@cura.com",
-          username: "admin",
+          email: "james@curaemr.ai",
+          username: "james",
           passwordHash: hashedAdminPassword,
-          firstName: "John",
+          firstName: "James",
           lastName: "Administrator",
           role: "admin",
           department: "Administration",
@@ -62,10 +62,10 @@ export async function seedDatabase() {
         },
         {
           organizationId: org.id,
-          email: "doctor@cura.com",
-          username: "doctor",
+          email: "paul@curaemr.ai",
+          username: "paul",
           passwordHash: hashedDoctorPassword,
-          firstName: "Sarah",
+          firstName: "Paul",
           lastName: "Smith",
           role: "doctor",
           department: "Cardiology",
@@ -75,10 +75,10 @@ export async function seedDatabase() {
         },
         {
           organizationId: org.id,
-          email: "nurse@cura.com",
-          username: "nurse",
+          email: "emma@curaemr.ai",
+          username: "emma",
           passwordHash: hashedNursePassword,
-          firstName: "Emily",
+          firstName: "Emma",
           lastName: "Johnson",
           role: "nurse",
           department: "General Medicine",
@@ -88,10 +88,10 @@ export async function seedDatabase() {
         },
         {
           organizationId: org.id,
-          email: "patient@cura.com",
-          username: "patient",
+          email: "john@curaemr.ai",
+          username: "john",
           passwordHash: hashedPatientPassword,
-          firstName: "Michael",
+          firstName: "John",
           lastName: "Patient",
           role: "patient",
           department: null,
@@ -99,10 +99,10 @@ export async function seedDatabase() {
         },
         {
           organizationId: org.id,
-          email: "labtech@cura.com",
-          username: "labtech",
+          email: "amelia@curaemr.ai",
+          username: "amelia",
           passwordHash: hashedLabTechPassword,
-          firstName: "Maria",
+          firstName: "Amelia",
           lastName: "Rodriguez",
           role: "lab_technician",
           department: "Laboratory",
