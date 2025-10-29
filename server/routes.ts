@@ -17978,6 +17978,403 @@ Cura EMR Team
     }
   });
 
+  // Generate Image Prescription PDF Endpoint
+  app.post("/api/imaging/generate-image-prescription", authMiddleware, requireRole(["doctor", "nurse", "admin"]), async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const { imageId } = req.body;
+      
+      if (!imageId) {
+        return res.status(400).json({ error: "Image ID is required" });
+      }
+
+      const organizationId = req.organizationId || req.tenant!.id;
+
+      // Fetch medical image data by imageId
+      const medicalImages = await storage.getMedicalImages(req.tenant!.id);
+      const medicalImage = medicalImages.find(img => img.imageId === imageId);
+      
+      if (!medicalImage) {
+        return res.status(404).json({ error: "Medical image not found" });
+      }
+
+      // Fetch clinic headers
+      const clinicHeaders = await db
+        .select()
+        .from(schema.clinicHeaders)
+        .where(eq(schema.clinicHeaders.organizationId, organizationId))
+        .limit(1);
+      
+      const headerData = clinicHeaders[0] || null;
+
+      // Fetch clinic footers
+      const clinicFooters = await db
+        .select()
+        .from(schema.clinicFooters)
+        .where(eq(schema.clinicFooters.organizationId, organizationId))
+        .limit(1);
+      
+      const footerData = clinicFooters[0] || null;
+
+      // Fetch patient data
+      const patient = await storage.getPatient(medicalImage.patientId, req.tenant!.id);
+      if (!patient) {
+        return res.status(404).json({ error: "Patient not found" });
+      }
+
+      // Save PDF in organizational structure: uploads/Image_Prescriptions/organization_id/patients/patient_id/
+      const prescriptionsDir = path.resolve(process.cwd(), 'uploads', 'Image_Prescriptions', String(organizationId), 'patients', String(medicalImage.patientId));
+      await fse.ensureDir(prescriptionsDir);
+      
+      // Import pdf-lib dynamically
+      const { PDFDocument, rgb, StandardFonts } = await import('pdf-lib');
+      
+      // Create a new PDF document
+      const pdfDoc = await PDFDocument.create();
+      const page = pdfDoc.addPage([595, 842]); // A4 size in points
+      const { width, height } = page.getSize();
+      
+      // Load fonts
+      const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+      
+      // Colors
+      const primaryColor = rgb(0.12, 0.23, 0.54); // Default blue
+      const darkGray = rgb(0.3, 0.3, 0.3);
+      const blackColor = rgb(0, 0, 0);
+      
+      // Position tracker
+      let yPosition = height - 40;
+      
+      // HEADER SECTION - Clinic Headers
+      const headerHeight = 120;
+      
+      // Add logo if available
+      if (headerData?.logoBase64) {
+        try {
+          // Remove data:image/png;base64, prefix if present
+          const base64Data = headerData.logoBase64.includes(',') 
+            ? headerData.logoBase64.split(',')[1] 
+            : headerData.logoBase64;
+          
+          const logoBuffer = Buffer.from(base64Data, 'base64');
+          const logoImage = await pdfDoc.embedPng(logoBuffer).catch(() => pdfDoc.embedJpg(logoBuffer));
+          
+          const logoSize = 60;
+          const logoX = headerData.logoPosition === 'left' ? 40 : 
+                        headerData.logoPosition === 'right' ? width - logoSize - 40 : 
+                        (width - logoSize) / 2;
+          
+          page.drawImage(logoImage, {
+            x: logoX,
+            y: yPosition - logoSize,
+            width: logoSize,
+            height: logoSize,
+          });
+        } catch (logoError) {
+          console.error("Error embedding logo:", logoError);
+        }
+      }
+      
+      // Clinic name and details
+      const clinicNameSize = parseInt(headerData?.clinicNameFontSize || '24pt');
+      page.drawText(headerData?.clinicName || 'Medical Clinic', {
+        x: width / 2 - 100,
+        y: yPosition - 20,
+        size: clinicNameSize,
+        font: boldFont,
+        color: primaryColor
+      });
+      
+      yPosition -= 40;
+      
+      if (headerData?.address) {
+        page.drawText(headerData.address, {
+          x: width / 2 - 100,
+          y: yPosition,
+          size: 10,
+          font,
+          color: darkGray
+        });
+        yPosition -= 15;
+      }
+      
+      if (headerData?.phone || headerData?.email) {
+        const contactText = [headerData?.phone, headerData?.email].filter(Boolean).join(' | ');
+        page.drawText(contactText, {
+          x: width / 2 - 100,
+          y: yPosition,
+          size: 9,
+          font,
+          color: darkGray
+        });
+        yPosition -= 30;
+      }
+      
+      // Prescription title
+      page.drawText('IMAGING PRESCRIPTION', {
+        x: width / 2 - 80,
+        y: yPosition,
+        size: 16,
+        font: boldFont,
+        color: primaryColor
+      });
+      
+      yPosition -= 40;
+      
+      // PATIENT INFORMATION SECTION
+      page.drawText('Patient Information:', {
+        x: 40,
+        y: yPosition,
+        size: 12,
+        font: boldFont,
+        color: primaryColor
+      });
+      
+      yPosition -= 20;
+      
+      page.drawText(`Name: ${patient.firstName} ${patient.lastName}`, {
+        x: 50,
+        y: yPosition,
+        size: 10,
+        font
+      });
+      yPosition -= 15;
+      
+      page.drawText(`Patient ID: ${patient.patientId}`, {
+        x: 50,
+        y: yPosition,
+        size: 10,
+        font
+      });
+      yPosition -= 15;
+      
+      page.drawText(`Date of Birth: ${new Date(patient.dateOfBirth).toLocaleDateString()}`, {
+        x: 50,
+        y: yPosition,
+        size: 10,
+        font
+      });
+      yPosition -= 30;
+      
+      // IMAGING STUDY DETAILS SECTION
+      page.drawText('Imaging Study Details:', {
+        x: 40,
+        y: yPosition,
+        size: 12,
+        font: boldFont,
+        color: primaryColor
+      });
+      
+      yPosition -= 20;
+      
+      page.drawText(`Image ID: ${medicalImage.imageId}`, {
+        x: 50,
+        y: yPosition,
+        size: 10,
+        font
+      });
+      yPosition -= 15;
+      
+      page.drawText(`Study Type: ${medicalImage.studyType}`, {
+        x: 50,
+        y: yPosition,
+        size: 10,
+        font
+      });
+      yPosition -= 15;
+      
+      page.drawText(`Modality: ${medicalImage.modality}`, {
+        x: 50,
+        y: yPosition,
+        size: 10,
+        font
+      });
+      yPosition -= 15;
+      
+      if (medicalImage.bodyPart) {
+        page.drawText(`Body Part: ${medicalImage.bodyPart}`, {
+          x: 50,
+          y: yPosition,
+          size: 10,
+          font
+        });
+        yPosition -= 15;
+      }
+      
+      if (medicalImage.indication) {
+        page.drawText(`Indication: ${medicalImage.indication}`, {
+          x: 50,
+          y: yPosition,
+          size: 10,
+          font
+        });
+        yPosition -= 15;
+      }
+      
+      page.drawText(`Priority: ${medicalImage.priority}`, {
+        x: 50,
+        y: yPosition,
+        size: 10,
+        font
+      });
+      yPosition -= 15;
+      
+      page.drawText(`Status: ${medicalImage.status}`, {
+        x: 50,
+        y: yPosition,
+        size: 10,
+        font
+      });
+      yPosition -= 30;
+      
+      if (medicalImage.findings) {
+        page.drawText('Findings:', {
+          x: 40,
+          y: yPosition,
+          size: 12,
+          font: boldFont,
+          color: primaryColor
+        });
+        yPosition -= 20;
+        
+        page.drawText(medicalImage.findings.substring(0, 200), {
+          x: 50,
+          y: yPosition,
+          size: 10,
+          font
+        });
+        yPosition -= 30;
+      }
+      
+      // SIGNATURE BOX SECTION
+      yPosition -= 20;
+      
+      page.drawText('Authorized Signature:', {
+        x: 40,
+        y: yPosition,
+        size: 12,
+        font: boldFont,
+        color: primaryColor
+      });
+      
+      yPosition -= 10;
+      
+      // Draw signature box border
+      page.drawRectangle({
+        x: 40,
+        y: yPosition - 60,
+        width: width - 80,
+        height: 60,
+        borderColor: darkGray,
+        borderWidth: 1,
+      });
+      
+      page.drawText('Signature: _____________________________', {
+        x: 50,
+        y: yPosition - 30,
+        size: 10,
+        font
+      });
+      
+      page.drawText(`Date: ${new Date().toLocaleDateString()}`, {
+        x: width - 200,
+        y: yPosition - 30,
+        size: 10,
+        font
+      });
+      
+      yPosition -= 80;
+      
+      // FOOTER SECTION - Clinic Footers
+      const footerY = 60;
+      
+      if (footerData) {
+        // Draw footer background with specified color
+        const bgColor = footerData.backgroundColor || '#4A7DFF';
+        const bgRgb = rgb(
+          parseInt(bgColor.slice(1, 3), 16) / 255,
+          parseInt(bgColor.slice(3, 5), 16) / 255,
+          parseInt(bgColor.slice(5, 7), 16) / 255
+        );
+        
+        page.drawRectangle({
+          x: 0,
+          y: footerY - 10,
+          width: width,
+          height: 50,
+          color: bgRgb,
+        });
+        
+        // Footer text with specified text color
+        const textColorHex = footerData.textColor || '#FFFFFF';
+        const textRgb = rgb(
+          parseInt(textColorHex.slice(1, 3), 16) / 255,
+          parseInt(textColorHex.slice(3, 5), 16) / 255,
+          parseInt(textColorHex.slice(5, 7), 16) / 255
+        );
+        
+        page.drawText(footerData.footerText, {
+          x: width / 2 - 100,
+          y: footerY + 10,
+          size: 10,
+          font: boldFont,
+          color: textRgb
+        });
+        
+        // Social links if available
+        if (footerData.showSocial) {
+          const socialLinks = [footerData.facebook, footerData.twitter, footerData.linkedin]
+            .filter(Boolean)
+            .join(' | ');
+          
+          if (socialLinks) {
+            page.drawText(socialLinks, {
+              x: width / 2 - 80,
+              y: footerY - 5,
+              size: 8,
+              font,
+              color: textRgb
+            });
+          }
+        }
+      } else {
+        // Default footer if no footer data
+        page.drawText('Medical Imaging Prescription', {
+          x: width / 2 - 70,
+          y: footerY,
+          size: 10,
+          font: boldFont,
+          color: primaryColor
+        });
+      }
+      
+      // Generate PDF bytes
+      const pdfBytes = await pdfDoc.save();
+      
+      // Save PDF to disk
+      const fileName = `prescription-${imageId}.pdf`;
+      const outputPath = path.join(prescriptionsDir, fileName);
+      await fse.outputFile(outputPath, pdfBytes);
+      
+      console.log(`Image prescription PDF generated and saved: ${outputPath}`);
+      
+      res.json({
+        success: true,
+        fileName: fileName,
+        filePath: outputPath,
+        message: "Image prescription generated successfully"
+      });
+
+    } catch (error) {
+      console.error("Image prescription generation error:", error);
+      res.status(500).json({ error: "Failed to generate image prescription" });
+    }
+  });
+
   // Share Imaging Study via Email
   app.post("/api/imaging/share-study", authMiddleware, async (req: TenantRequest, res) => {
     try {

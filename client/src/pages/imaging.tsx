@@ -68,6 +68,7 @@ import {
   Check as CheckIcon,
   Grid,
   List,
+  Pill,
 } from "lucide-react";
 import { format } from "date-fns";
 import { isDoctorLike, formatRoleLabel } from "@/lib/role-utils";
@@ -1329,6 +1330,69 @@ export default function ImagingPage() {
       setReportImpression(study.impression || "");
       setReportRadiologist(study.radiologist || "Dr. Michael Chen");
       setShowReportDialog(true);
+    }
+  };
+
+  const handleGenerateImagePrescription = async (studyId: string) => {
+    const study = ((studies as any) || []).find((s: any) => s.id === studyId);
+    if (!study) {
+      toast({
+        title: "Error",
+        description: "Study not found",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      toast({
+        title: "Generating Prescription",
+        description: "Please wait...",
+      });
+
+      // Call backend to generate image prescription PDF
+      const response = await apiRequest(
+        "POST",
+        "/api/imaging/generate-image-prescription",
+        {
+          imageId: study.imageId,
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to generate prescription");
+      }
+
+      const data = await response.json();
+
+      if (data.success && data.filePath) {
+        toast({
+          title: "Prescription Generated",
+          description: "Image prescription has been created successfully",
+        });
+
+        // Download the prescription PDF
+        const downloadResponse = await fetch(data.filePath);
+        const blob = await downloadResponse.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = data.fileName || `prescription-${study.imageId}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } else {
+        throw new Error("Failed to generate prescription");
+      }
+    } catch (error) {
+      console.error("Prescription generation error:", error);
+      toast({
+        title: "Prescription Generation Failed",
+        description: error instanceof Error ? error.message : "Failed to generate prescription. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -2997,8 +3061,23 @@ export default function ImagingPage() {
                           variant="outline"
                           size="sm"
                           onClick={() => handleGenerateReport(study.id)}
+                          title="Generate Report"
                         >
                           <FileText className="h-4 w-4" />
+                        </Button>
+                      )}
+                      
+                      {/* Image Prescription button - only in Order Study tab */}
+                      {user?.role !== 'patient' && activeTab === 'order-study' && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleGenerateImagePrescription(study.id)}
+                          title="Generate Image Prescription"
+                          data-testid="button-image-prescription"
+                          className="border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300"
+                        >
+                          <Pill className="h-4 w-4" />
                         </Button>
                       )}
                       
