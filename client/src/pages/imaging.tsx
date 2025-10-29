@@ -1703,10 +1703,10 @@ export default function ImagingPage() {
     // Filter based on active tab
     let matchesTab = true;
     if (activeTab === "order-study") {
-      // Order Study tab: order_study_created = true AND order_study_generated = false AND status = pending
+      // Order Study tab: order_study_created = true AND order_study_generated = false AND status = ordered
       matchesTab = study.orderStudyCreated === true && 
                    study.orderStudyGenerated === false && 
-                   study.status === "pending";
+                   study.status === "ordered";
     } else if (activeTab === "generate-report") {
       // Generate Report tab: order_study_created = true AND order_study_generated = false
       matchesTab = study.orderStudyCreated === true && 
