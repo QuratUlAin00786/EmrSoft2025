@@ -3334,12 +3334,12 @@ This treatment plan should be reviewed and adjusted based on individual patient 
         }
       } else if (userRole === 'patient') {
         // Patients can only see their own appointments
-        // Find the patient record by userId field
+        // Find the patient record by email (since userId may be null)
         const patients = await storage.getPatientsByOrganization(req.tenant!.id, 100);
         const user = req.user! as any; // Cast to access firstName/lastName properties
         
-        // Match by userId field first (primary method)
-        const patient = patients.find(p => p.userId === userId);
+        // Match by email first (primary method), fallback to userId
+        const patient = patients.find(p => p.email === user.email) || patients.find(p => p.userId === userId);
         
         if (patient) {
           appointments = await storage.getAppointmentsByPatient(patient.id, req.tenant!.id);
