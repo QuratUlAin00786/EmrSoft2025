@@ -3397,9 +3397,9 @@ This treatment plan should be reviewed and adjusted based on individual patient 
         canUpdate = existingAppointment.providerId === userId || hasEditPermission;
       } else if (userRole === 'patient') {
         // Patients can update their own appointments
-        // Find the patient record by email since user_id column doesn't exist
+        // Find the patient record by email first (primary), fallback to userId
         const patients = await storage.getPatientsByOrganization(req.tenant!.id, 100);
-        const patient = patients.find(p => p.email === req.user!.email);
+        const patient = patients.find(p => p.email === req.user!.email) || patients.find(p => p.userId === userId);
         canUpdate = Boolean(patient && existingAppointment.patientId === patient.id);
       } else if (userRole === 'nurse') {
         // Nurses can update appointments with proper permissions
