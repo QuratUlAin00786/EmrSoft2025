@@ -684,6 +684,25 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
                           <User className="h-4 w-4 text-gray-400" />
                           <span className="text-sm">{getPatientName(appointment.patientId)}</span>
                         </div>
+                        {isDoctorLike(user?.role || '') && usersData && (() => {
+                          const doctor = usersData.find((u: any) => u.id === user?.id);
+                          return doctor && (doctor.medicalSpecialtyCategory || doctor.subSpecialty) ? (
+                            <>
+                              {doctor.medicalSpecialtyCategory && (
+                                <div className="flex items-center space-x-2 mt-1">
+                                  <Stethoscope className="h-4 w-4 text-gray-400" />
+                                  <span className="text-xs text-gray-600">{doctor.medicalSpecialtyCategory}</span>
+                                </div>
+                              )}
+                              {doctor.subSpecialty && (
+                                <div className="flex items-center space-x-2 mt-1">
+                                  <Stethoscope className="h-4 w-4 text-gray-400" />
+                                  <span className="text-xs text-gray-600">{doctor.subSpecialty}</span>
+                                </div>
+                              )}
+                            </>
+                          ) : null;
+                        })()}
                       </div>
                     </div>
                     <div className="text-right space-y-2">
