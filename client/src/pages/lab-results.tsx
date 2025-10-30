@@ -1382,88 +1382,174 @@ Report generated from Cura EMR System`;
     if (!selectedResult) return;
 
     try {
-      // Find the prescription content element
-      const element = document.getElementById("prescription-print");
-      if (!element) {
-        toast({
-          title: "Error",
-          description: "Could not find prescription content to convert",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      console.log("PDF Generation: Found element", element);
-
-      // Show loading state (don't show immediately to avoid interfering with capture)
-      setTimeout(() => {
-        toast({
-          title: "Generating PDF",
-          description: "Please wait while we create your prescription PDF...",
-        });
-      }, 50);
-
-      // Wait a moment for any layout changes
-      await new Promise((resolve) => setTimeout(resolve, 200));
-
-      console.log("PDF Generation: Starting canvas capture");
-
-      // Create canvas from HTML element - simple approach
-      const canvas = await html2canvas(element, {
-        scale: 2, // Higher resolution for better quality
-        useCORS: true,
-        logging: false,
-        backgroundColor: "#ffffff",
-        width: element.scrollWidth,
-        height: element.scrollHeight,
+      toast({
+        title: "Generating PDF",
+        description: "Please wait while we create your lab test result PDF...",
       });
 
-      console.log(
-        "PDF Generation: Canvas created",
-        canvas.width,
-        "x",
-        canvas.height,
+      // Create PDF with proper lab test result format
+      const pdf = new jsPDF();
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      let yPos = 20;
+
+      // Title - "Lab Test Result Report"
+      pdf.setFontSize(20);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Lab Test Result Report', pageWidth / 2, yPos, { align: 'center' });
+      yPos += 20;
+
+      // Lab Order Information Section
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Lab Order Information', 20, yPos);
+      yPos += 10;
+
+      // Patient information
+      pdf.setFontSize(11);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Patient Name:', 51, yPos);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(getPatientName(selectedResult.patientId), 109, yPos);
+      yPos += 7;
+
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Test ID:', 51, yPos);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(selectedResult.testId || 'N/A', 109, yPos);
+      yPos += 7;
+
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Ordered Date:', 51, yPos);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(
+        selectedResult.orderedDate ? new Date(selectedResult.orderedDate).toLocaleDateString() : 'N/A',
+        109,
+        yPos
       );
+      yPos += 7;
 
-      // Create PDF
-      const pdf = new jsPDF("p", "mm", "a4");
-      const imgData = canvas.toDataURL("image/png");
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Ordered By:', 51, yPos);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(getUserName(selectedResult.orderedBy), 109, yPos);
+      yPos += 7;
 
-      // A4 dimensions
-      const pageWidth = 210; // A4 width in mm
-      const pageHeight = 297; // A4 height in mm
-      const margin = 10; // 10mm margins
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Priority:', 51, yPos);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(selectedResult.priority || 'routine', 109, yPos);
+      yPos += 15;
 
-      // Calculate dimensions to fit content with margins
-      const usableWidth = pageWidth - 2 * margin;
-      const usableHeight = pageHeight - 2 * margin;
+      // Group results by test type
+      const resultsByTestType: Record<string, any[]> = {};
+      if (selectedResult.results && Array.isArray(selectedResult.results)) {
+        selectedResult.results.forEach((result: any) => {
+          // Extract test type from result name
+          const nameParts = result.name.split(' - ');
+          const testType = nameParts.length > 1 ? nameParts[0] : 'General Tests';
+          const paramName = nameParts.length > 1 ? nameParts[1] : result.name;
 
-      // Scale image to fit width
-      const imgWidth = usableWidth;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-      // Add content to PDF
-      let yPosition = margin;
-      let heightLeft = imgHeight;
-
-      // First page
-      pdf.addImage(
-        imgData,
-        "PNG",
-        margin,
-        yPosition,
-        imgWidth,
-        Math.min(imgHeight, usableHeight),
-      );
-      heightLeft -= usableHeight;
-
-      // Add additional pages if needed
-      while (heightLeft > 0) {
-        pdf.addPage();
-        yPosition = margin - (imgHeight - heightLeft);
-        pdf.addImage(imgData, "PNG", margin, yPosition, imgWidth, imgHeight);
-        heightLeft -= usableHeight;
+          if (!resultsByTestType[testType]) {
+            resultsByTestType[testType] = [];
+          }
+          resultsByTestType[testType].push({
+            ...result,
+            displayName: paramName
+          });
+        });
       }
+
+      // Test Results - Each test type gets its own section
+      Object.entries(resultsByTestType).forEach(([testType, testResults]) => {
+        if (yPos > 240) {
+          pdf.addPage();
+          yPos = 20;
+        }
+
+        // Test Type Header (Blue)
+        pdf.setFontSize(14);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(66, 133, 244);
+        pdf.text(testType, 20, yPos);
+        pdf.setTextColor(0, 0, 0);
+        yPos += 10;
+
+        // Table Header
+        const tableStartY = yPos;
+        const rowHeight = 8;
+        const colWidths = [60, 30, 30, 50]; // Parameter, Value, Unit, Reference Range
+        const tableX = 20;
+        const tableWidth = colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3];
+        
+        // Header background (light gray)
+        pdf.setFillColor(240, 240, 240);
+        pdf.rect(tableX, tableStartY, tableWidth, rowHeight, 'F');
+        
+        // Header border
+        pdf.setDrawColor(200, 200, 200);
+        pdf.rect(tableX, tableStartY, tableWidth, rowHeight);
+        
+        // Header text
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(10);
+        pdf.text('Parameter', tableX + 2, tableStartY + 5);
+        pdf.text('Value', tableX + colWidths[0] + 2, tableStartY + 5);
+        pdf.text('Unit', tableX + colWidths[0] + colWidths[1] + 2, tableStartY + 5);
+        pdf.text('Reference Range', tableX + colWidths[0] + colWidths[1] + colWidths[2] + 2, tableStartY + 5);
+        
+        yPos = tableStartY + rowHeight;
+
+        // Table rows
+        pdf.setFont('helvetica', 'normal');
+        testResults.forEach((result: any, index: number) => {
+          if (yPos > 270) {
+            pdf.addPage();
+            yPos = 20;
+          }
+
+          // Alternate row background
+          if (index % 2 === 0) {
+            pdf.setFillColor(250, 250, 250);
+            pdf.rect(tableX, yPos, tableWidth, rowHeight, 'F');
+          }
+          
+          // Row border
+          pdf.setDrawColor(200, 200, 200);
+          pdf.rect(tableX, yPos, tableWidth, rowHeight);
+          
+          // Vertical lines
+          pdf.line(tableX + colWidths[0], yPos, tableX + colWidths[0], yPos + rowHeight);
+          pdf.line(tableX + colWidths[0] + colWidths[1], yPos, tableX + colWidths[0] + colWidths[1], yPos + rowHeight);
+          pdf.line(tableX + colWidths[0] + colWidths[1] + colWidths[2], yPos, tableX + colWidths[0] + colWidths[1] + colWidths[2], yPos + rowHeight);
+          
+          // Row data
+          pdf.text(result.displayName || result.name, tableX + 2, yPos + 5);
+          pdf.text(String(result.value || ''), tableX + colWidths[0] + 2, yPos + 5);
+          pdf.text(result.unit || '', tableX + colWidths[0] + colWidths[1] + 2, yPos + 5);
+          pdf.text(result.referenceRange || '', tableX + colWidths[0] + colWidths[1] + colWidths[2] + 2, yPos + 5);
+          
+          yPos += rowHeight;
+        });
+
+        yPos += 10;
+      });
+
+      // Clinical Notes Section
+      if (yPos > 250) {
+        pdf.addPage();
+        yPos = 20;
+      }
+      
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Clinical Notes', 20, yPos);
+      yPos += 10;
+
+      pdf.setFontSize(11);
+      pdf.setFont('helvetica', 'normal');
+      const notes = selectedResult.notes || "none";
+      const splitNotes = pdf.splitTextToSize(notes, 170);
+      pdf.text(splitNotes, 20, yPos);
 
       // Create filename from testId
       const filename = `${selectedResult.testId}.pdf`;
@@ -1472,12 +1558,10 @@ Report generated from Cura EMR System`;
       pdf.save(filename);
 
       // Success message
-      setTimeout(() => {
-        toast({
-          title: "PDF Generated",
-          description: `Prescription PDF downloaded as ${filename}`,
-        });
-      }, 100);
+      toast({
+        title: "PDF Generated",
+        description: `Lab test result PDF downloaded as ${filename}`,
+      });
     } catch (error) {
       console.error("Error generating PDF:", error);
       toast({
