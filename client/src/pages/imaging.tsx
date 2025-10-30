@@ -4367,6 +4367,10 @@ export default function ImagingPage() {
                 </h3>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
+                    <span className="font-medium">Image ID:</span>{" "}
+                    {selectedStudy.imageId || 'N/A'}
+                  </div>
+                  <div>
                     <span className="font-medium">Patient Name:</span>{" "}
                     {selectedStudy.patientName}
                   </div>
