@@ -14197,7 +14197,7 @@ This treatment plan should be reviewed and adjusted based on individual patient 
       // TODO: In a real implementation, generate and add prescription PDF here
       // For now, we'll send the professional HTML email with user attachments
       console.log('[PRESCRIPTION-EMAIL] Calling emailService.sendEmail()...');
-      const success = await emailService.sendEmail({
+      const emailSent = await emailService.sendEmail({
         to: pharmacyEmail,
         subject: emailTemplate.subject,
         html: emailTemplate.html,
@@ -14205,9 +14205,9 @@ This treatment plan should be reviewed and adjusted based on individual patient 
         attachments: attachments.length > 0 ? attachments : undefined
       });
 
-      console.log('[PRESCRIPTION-EMAIL] emailService.sendEmail() returned:', success);
+      console.log('[PRESCRIPTION-EMAIL] emailService.sendEmail() returned:', emailSent);
 
-      if (success) {
+      if (emailSent) {
         const attachmentInfo = attachments.length > 0 
           ? ` with ${attachments.length} attachment(s)`
           : '';
