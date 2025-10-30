@@ -1354,7 +1354,7 @@ export default function PrescriptionsPage() {
       }
 
       console.log("[PHARMACY EMAIL] ✅ Email sent successfully!");
-      return response.json();
+      return emailResult;
     },
     onSuccess: () => {
       console.log("[PHARMACY EMAIL] Mutation onSuccess triggered");
