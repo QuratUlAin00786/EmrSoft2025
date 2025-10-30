@@ -291,11 +291,18 @@ export default function ImagingPage() {
   const [studyToDelete, setStudyToDelete] = useState<any>(null);
   const [modalityFilter, setModalityFilter] = useState<string>("all");
   const [selectedStudyId, setSelectedStudyId] = useState<string | null>(null);
-  const [shareFormData, setShareFormData] = useState({
+  const [shareFormData, setShareFormData] = useState<{
+    method: string;
+    email: string;
+    whatsapp: string;
+    message: string;
+    shareSource?: 'prescription' | 'report';
+  }>({
     method: "",
     email: "",
     whatsapp: "",
     message: "",
+    shareSource: 'report',
   });
   const [patients, setPatients] = useState<any[]>([]);
   const [patientsLoading, setPatientsLoading] = useState(false);
@@ -1311,7 +1318,7 @@ export default function ImagingPage() {
     }
   };
 
-  const handleShareStudy = (study: ImagingStudy) => {
+  const handleShareStudy = (study: ImagingStudy, shareSource: 'prescription' | 'report' = 'report') => {
     setSelectedStudyId(study.id);
     setShowShareDialog(true);
     setShareFormData({
@@ -1319,6 +1326,7 @@ export default function ImagingPage() {
       email: "",
       whatsapp: "",
       message: `Imaging study results for ${study.studyType} are now available for review.`,
+      shareSource, // Store which type of PDF to share
     });
   };
 
@@ -3042,7 +3050,8 @@ export default function ImagingPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleShareStudy(study)}
+                          onClick={() => handleShareStudy(study, activeTab === 'order-study' ? 'prescription' : 'report')}
+                          title={activeTab === 'order-study' ? 'Share Image Prescription' : 'Share Imaging Report'}
                         >
                           <Share2 className="h-4 w-4" />
                         </Button>
@@ -3229,6 +3238,7 @@ export default function ImagingPage() {
                             studyId: selectedStudy.id,
                             recipientEmail: shareFormData.email,
                             customMessage: shareFormData.message,
+                            shareSource: shareFormData.shareSource || 'report', // 'prescription' or 'report'
                           }),
                         });
 

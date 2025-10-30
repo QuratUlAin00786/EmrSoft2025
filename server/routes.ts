@@ -18690,7 +18690,7 @@ Cura EMR Team
         return res.status(401).json({ error: "User not authenticated" });
       }
 
-      const { studyId, recipientEmail, customMessage } = req.body;
+      const { studyId, recipientEmail, customMessage, shareSource = 'report' } = req.body;
 
       if (!studyId || !recipientEmail) {
         return res.status(400).json({ error: "Study ID and recipient email are required" });
@@ -18711,16 +18711,20 @@ Cura EMR Team
       const organizationId = req.tenant!.id;
       const imageId = study.imageId;
 
-      // Fetch the imaging report PDF (already generated in Imaging_Reports directory)
-      const reportsDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Reports', String(organizationId), 'patients', String(study.patientId));
+      // Determine which folder to use based on shareSource
+      const folderName = shareSource === 'prescription' ? 'Image_Prescriptions' : 'Imaging_Reports';
+      const reportsDir = path.resolve(process.cwd(), 'uploads', folderName, String(organizationId), 'patients', String(study.patientId));
       const fileName = `${imageId}.pdf`;
       const reportPath = path.join(reportsDir, fileName);
       
-      // Check if imaging report exists
+      console.log(`[EMAIL-SHARE] Attempting to share ${shareSource} from: ${reportPath}`);
+      
+      // Check if the PDF exists
       if (!await fse.pathExists(reportPath)) {
-        console.error('[EMAIL-SHARE] Imaging report PDF not found:', reportPath);
+        const docType = shareSource === 'prescription' ? 'Image prescription' : 'Imaging report';
+        console.error(`[EMAIL-SHARE] ${docType} PDF not found:`, reportPath);
         return res.status(404).json({ 
-          error: "Imaging report not found. Please generate the report first." 
+          error: `${docType} not found. Please generate the ${shareSource === 'prescription' ? 'prescription' : 'report'} first.`
         });
       }
 
@@ -19006,20 +19010,25 @@ Cura EMR Team
       const patientName = `${patient.firstName} ${patient.lastName}`;
       const studyType = study.studyDescription || study.studyType || 'Medical Imaging Study';
       const sharedBy = req.user.email;
+      
+      // Customize email content based on shareSource
+      const isPrescription = shareSource === 'prescription';
+      const emailTitle = isPrescription ? 'Image Prescription' : 'Diagnostic Radiology Report';
+      const emailDescription = isPrescription ? 'imaging prescription' : 'diagnostic imaging report';
 
       const emailSent = await emailService.sendEmail({
         to: recipientEmail,
-        subject: `Imaging Report - ${patientName} - ${studyType}`,
+        subject: `${isPrescription ? 'Image Prescription' : 'Imaging Report'} - ${patientName} - ${studyType}`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <div style="background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); color: white; padding: 30px; text-align: center;">
-              <h1 style="margin: 0;">Diagnostic Radiology Report</h1>
+              <h1 style="margin: 0;">${emailTitle}</h1>
             </div>
             
             <div style="padding: 30px; background-color: #f8fafc;">
               <p>Dear Colleague,</p>
               
-              <p>A diagnostic imaging report has been shared with you by <strong>${sharedBy}</strong>:</p>
+              <p>A ${emailDescription} has been shared with you by <strong>${sharedBy}</strong>:</p>
               
               <div style="background-color: white; padding: 20px; border-left: 4px solid #4F46E5; margin: 20px 0;">
                 <p><strong>Patient:</strong> ${patientName}</p>
@@ -19036,10 +19045,10 @@ Cura EMR Team
               </div>
               ` : ''}
               
-              <p>The diagnostic radiology report is attached to this email as a PDF document.</p>
+              <p>The ${emailDescription} is attached to this email as a PDF document.</p>
               
               <p style="color: #dc2626; font-weight: bold;">⚠️ CONFIDENTIAL MEDICAL INFORMATION</p>
-              <p style="font-size: 12px; color: #666;">This study has been shared for medical consultation purposes. Please ensure appropriate patient confidentiality is maintained.</p>
+              <p style="font-size: 12px; color: #666;">This ${isPrescription ? 'prescription' : 'study'} has been shared for medical consultation purposes. Please ensure appropriate patient confidentiality is maintained.</p>
               
               <p>Best regards,<br>Cura EMR Team</p>
             </div>
@@ -19052,7 +19061,7 @@ Cura EMR Team
         text: `
 Dear Colleague,
 
-A diagnostic imaging report has been shared with you by ${sharedBy}:
+A ${emailDescription} has been shared with you by ${sharedBy}:
 
 Patient: ${patientName}
 Study Type: ${studyType}
@@ -19062,9 +19071,9 @@ Date Shared: ${new Date().toLocaleDateString()}
 
 ${customMessage ? `Message from ${sharedBy}: ${customMessage}\n` : ''}
 
-The diagnostic radiology report is attached to this email.
+The ${emailDescription} is attached to this email.
 
-This study has been shared for medical consultation purposes. Please ensure appropriate patient confidentiality is maintained.
+This ${isPrescription ? 'prescription' : 'study'} has been shared for medical consultation purposes. Please ensure appropriate patient confidentiality is maintained.
 
 Best regards,
 Cura EMR Team
@@ -19087,16 +19096,18 @@ Cura EMR Team
           console.error(`[EMAIL-SHARE] Failed to update orderStudyShared flag:`, dbError);
         }
         
-        console.log(`[EMAIL-SHARE] Successfully shared imaging report ${studyId} with ${recipientEmail}`);
+        const docType = isPrescription ? 'image prescription' : 'imaging report';
+        console.log(`[EMAIL-SHARE] Successfully shared ${docType} ${studyId} with ${recipientEmail}`);
         res.json({
           success: true,
-          message: `Imaging report shared successfully with ${recipientEmail}`,
+          message: `${isPrescription ? 'Image prescription' : 'Imaging report'} shared successfully with ${recipientEmail}`,
           studyId,
           recipientEmail,
           patientName
         });
       } else {
-        console.error(`[EMAIL-SHARE] Failed to share imaging report ${studyId} with ${recipientEmail}`);
+        const docType = isPrescription ? 'image prescription' : 'imaging report';
+        console.error(`[EMAIL-SHARE] Failed to share ${docType} ${studyId} with ${recipientEmail}`);
         res.status(500).json({
           error: "Failed to send email. Please try again or contact support.",
           studyId,
