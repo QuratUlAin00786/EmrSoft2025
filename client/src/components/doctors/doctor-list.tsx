@@ -134,10 +134,6 @@ export function DoctorList({
   const [workingDays, setWorkingDays] = useState<string[]>([]);
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
-  
-  // Medical Specialty Filter state
-  const [selectedSpecialty, setSelectedSpecialty] = useState<string>("all");
-  const [openSpecialtyCombobox, setOpenSpecialtyCombobox] = useState(false);
 
   // Booking dialog state
   const [isBookingOpen, setIsBookingOpen] = useState(false);
@@ -936,73 +932,6 @@ export function DoctorList({
     <Card>
       <CardContent>
         <div className="space-y-4">
-          {/* Medical Specialty Filter - Show for admin and patient when role is doctor */}
-          {(user?.role === 'admin' || user?.role === 'patient') && filterRole === 'doctor' && (
-            <div className="mb-4">
-              <Label htmlFor="specialty-filter" className="text-sm font-medium mb-2 block">
-                Filter by Medical Specialty
-              </Label>
-              <Popover open={openSpecialtyCombobox} onOpenChange={setOpenSpecialtyCombobox}>
-                <PopoverTrigger asChild>
-                  <Button
-                    id="specialty-filter"
-                    variant="outline"
-                    role="combobox"
-                    aria-expanded={openSpecialtyCombobox}
-                    className="w-full justify-between"
-                    data-testid="specialty-filter"
-                  >
-                    {selectedSpecialty === "all"
-                      ? "All Specialties"
-                      : medicalSpecialtyCategories.find((specialty) => specialty === selectedSpecialty) || "All Specialties"}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-full p-0" align="start">
-                  <Command>
-                    <CommandInput placeholder="Search specialty..." />
-                    <CommandEmpty>No specialty found.</CommandEmpty>
-                    <CommandGroup>
-                      <CommandItem
-                        value="all"
-                        onSelect={() => {
-                          setSelectedSpecialty("all");
-                          setOpenSpecialtyCombobox(false);
-                        }}
-                      >
-                        <Check
-                          className={cn(
-                            "mr-2 h-4 w-4",
-                            selectedSpecialty === "all" ? "opacity-100" : "opacity-0"
-                          )}
-                        />
-                        All Specialties
-                      </CommandItem>
-                      {medicalSpecialtyCategories.map((specialty) => (
-                        <CommandItem
-                          key={specialty}
-                          value={specialty}
-                          onSelect={(currentValue) => {
-                            setSelectedSpecialty(currentValue === selectedSpecialty ? "all" : currentValue);
-                            setOpenSpecialtyCombobox(false);
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              selectedSpecialty === specialty ? "opacity-100" : "opacity-0"
-                            )}
-                          />
-                          {specialty}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-            </div>
-          )}
-          
           {availableStaff.map((item: any) => (
             <div
               key={item.id}
