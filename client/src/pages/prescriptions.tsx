@@ -221,6 +221,7 @@ export default function PrescriptionsPage() {
     useState<Prescription | null>(null);
   const [showNewPrescription, setShowNewPrescription] = useState(false);
   const [showPharmacyDialog, setShowPharmacyDialog] = useState(false);
+  const [showPharmacySuccessDialog, setShowPharmacySuccessDialog] = useState(false);
   const [selectedPrescriptionId, setSelectedPrescriptionId] =
     useState<string>("");
   const [pharmacyEmail, setPharmacyEmail] = useState<string>(
@@ -1358,12 +1359,8 @@ export default function PrescriptionsPage() {
     },
     onSuccess: () => {
       console.log("[PHARMACY EMAIL] Mutation onSuccess triggered");
-      toast({
-        title: "Success",
-        description:
-          "Prescription sent to pharmacy and PDF emailed successfully",
-      });
       setShowPharmacyDialog(false);
+      setShowPharmacySuccessDialog(true);
       queryClient.invalidateQueries({ queryKey: ["/api/prescriptions"] });
     },
     onError: (error: any) => {
@@ -4526,6 +4523,31 @@ export default function PrescriptionsPage() {
                   : "Send PDF to Pharmacy"}
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Prescription Send Success Dialog */}
+      <Dialog open={showPharmacySuccessDialog} onOpenChange={setShowPharmacySuccessDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-green-700">
+              <CheckCircle className="h-6 w-6" />
+              Prescription send successfully
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-gray-600">
+              The prescription has been successfully sent to the pharmacy via email with the PDF attachment.
+            </p>
+          </div>
+          <div className="flex justify-end">
+            <Button
+              onClick={() => setShowPharmacySuccessDialog(false)}
+              className="bg-medical-blue hover:bg-blue-700"
+            >
+              OK
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
