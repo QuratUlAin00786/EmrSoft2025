@@ -2472,24 +2472,23 @@ Medical License: [License Number]
                       return;
                     }
                     
-                    // Check for duplicate appointments (same patient, same doctor, same date/time)
-                    if (appointmentsData && newAppointmentDate && newSelectedTimeSlot) {
+                    // Check for duplicate appointments (same patient, same doctor, same date)
+                    if (appointmentsData && newAppointmentDate) {
                       const selectedDateStr = format(newAppointmentDate, 'yyyy-MM-dd');
                       const duplicateAppointment = appointmentsData.find((apt: any) => {
                         const aptDateStr = format(new Date(apt.scheduledAt), 'yyyy-MM-dd');
-                        const aptTimeStr = format(new Date(apt.scheduledAt), 'h:mm a');
                         return (
                           apt.patientId.toString() === newAppointmentData.patientId &&
                           apt.providerId.toString() === selectedProviderId &&
-                          aptDateStr === selectedDateStr &&
-                          aptTimeStr === newSelectedTimeSlot
+                          aptDateStr === selectedDateStr
                         );
                       });
                       
                       if (duplicateAppointment) {
                         const doctorName = usersData?.find((u: any) => u.id.toString() === selectedProviderId);
                         const doctorFullName = doctorName ? `${doctorName.firstName} ${doctorName.lastName}` : 'the selected doctor';
-                        setDuplicateAppointmentDetails(`${doctorFullName} at ${newSelectedTimeSlot}`);
+                        const formattedDate = format(newAppointmentDate, 'PPP');
+                        setDuplicateAppointmentDetails(`${doctorFullName} on ${formattedDate}`);
                         setShowDuplicateWarning(true);
                         return;
                       }
@@ -3122,7 +3121,7 @@ Medical License: [License Number]
           
           <div className="py-4">
             <p className="text-gray-700">
-              You have already created an appointment with the same doctor at this time. ({duplicateAppointmentDetails})
+              You have already created an appointment with the same doctor on this date. ({duplicateAppointmentDetails}), you can update existing appointment.
             </p>
           </div>
 
