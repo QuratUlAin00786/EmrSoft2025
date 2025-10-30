@@ -7770,53 +7770,60 @@ This treatment plan should be reviewed and adjusted based on individual patient 
 
       yPos += 10;
 
-      // Lab Order Information Section
+      // Title - "Lab Test Result Report"
+      doc.setFontSize(20);
       doc.setFont('helvetica', 'bold');
+      doc.text('Lab Test Result Report', pageWidth / 2, yPos, { align: 'center' });
+      yPos += 20;
+
+      // Lab Order Information Section
       doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
       doc.text('Lab Order Information', 20, yPos);
       yPos += 10;
 
-      // Create two-column layout for lab order info
+      // Simple list format (no table)
+      doc.setFontSize(11);
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(10);
       
-      const leftX = 20;
-      const rightX = 120;
-      let leftY = yPos;
-      let rightY = yPos;
-
-      // Left column
+      // Patient Name
       doc.setFont('helvetica', 'bold');
-      doc.text('Patient Name:', leftX, leftY);
+      doc.text('Patient Name:', 20, yPos);
       doc.setFont('helvetica', 'normal');
-      doc.text(`${patient.firstName} ${patient.lastName}`, leftX + 35, leftY);
-      leftY += 7;
+      doc.text(`${patient.firstName} ${patient.lastName}`, 80, yPos);
+      yPos += 7;
 
+      // Test ID
       doc.setFont('helvetica', 'bold');
-      doc.text('Test ID:', leftX, leftY);
+      doc.text('Test ID:', 20, yPos);
       doc.setFont('helvetica', 'normal');
-      doc.text(labResult.testId, leftX + 35, leftY);
-      leftY += 7;
+      doc.text(labResult.testId, 80, yPos);
+      yPos += 7;
 
+      // Ordered Date
       doc.setFont('helvetica', 'bold');
-      doc.text('Ordered Date:', leftX, leftY);
+      doc.text('Ordered Date:', 20, yPos);
       doc.setFont('helvetica', 'normal');
-      doc.text(labResult.orderedAt ? new Date(labResult.orderedAt).toLocaleDateString() : 'N/A', leftX + 35, leftY);
-      leftY += 7;
+      doc.text(
+        labResult.orderedAt ? new Date(labResult.orderedAt).toLocaleDateString() : 'N/A',
+        80,
+        yPos
+      );
+      yPos += 7;
 
-      // Right column
+      // Ordered By
       doc.setFont('helvetica', 'bold');
-      doc.text('Ordered By:', rightX, rightY);
+      doc.text('Ordered By:', 20, yPos);
       doc.setFont('helvetica', 'normal');
-      doc.text(req.user?.firstName ? `${req.user.firstName} ${req.user.lastName}` : 'N/A', rightX + 30, rightY);
-      rightY += 7;
+      doc.text(req.user?.firstName ? `${req.user.firstName} ${req.user.lastName}` : 'N/A', 80, yPos);
+      yPos += 7;
 
+      // Priority
       doc.setFont('helvetica', 'bold');
-      doc.text('Priority:', rightX, rightY);
+      doc.text('Priority:', 20, yPos);
       doc.setFont('helvetica', 'normal');
-      doc.text(labResult.priority || 'normal', rightX + 30, rightY);
-
-      yPos = Math.max(leftY, rightY) + 10;
+      doc.text(labResult.priority || 'routine', 80, yPos);
+      yPos += 15;
 
       // Results Table - Group by test type
       if (labResult.results) {
@@ -7838,42 +7845,35 @@ This treatment plan should be reviewed and adjusted based on individual patient 
               resultsByTestType[testType].push(result);
             });
 
-            // Render each test type group
-            Object.entries(resultsByTestType).forEach(([testType, groupResults], groupIndex) => {
-              // Add extra spacing between test groups (but not before first group)
-              if (groupIndex > 0) {
-                yPos += 8;
-              }
-              
+            // Test Results - Each test type gets its own section
+            Object.entries(resultsByTestType).forEach(([testType, groupResults]) => {
               if (yPos > 240) {
                 doc.addPage();
                 yPos = 20;
               }
 
-              // Test Type Header with blue background box
-              doc.setFillColor(66, 133, 244);
-              doc.rect(20, yPos - 2, 170, 10, 'F');
-              
+              // Test Type Header (Blue text, no background)
+              doc.setFontSize(14);
               doc.setFont('helvetica', 'bold');
-              doc.setFontSize(12);
-              doc.setTextColor(255, 255, 255);
-              doc.text(testType, 22, yPos + 5);
+              doc.setTextColor(66, 133, 244);
+              doc.text(testType, 20, yPos);
               doc.setTextColor(0, 0, 0);
-              yPos += 12;
+              yPos += 10;
 
               // Table Header
               const tableStartY = yPos;
               const rowHeight = 8;
               const colWidths = [60, 30, 30, 50]; // Parameter, Value, Unit, Reference Range
               const tableX = 20;
+              const tableWidth = colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3];
               
-              // Draw header background (light gray)
+              // Header background (light gray)
               doc.setFillColor(240, 240, 240);
-              doc.rect(tableX, tableStartY, colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], rowHeight, 'F');
+              doc.rect(tableX, tableStartY, tableWidth, rowHeight, 'F');
               
-              // Draw header borders
+              // Header border
               doc.setDrawColor(200, 200, 200);
-              doc.rect(tableX, tableStartY, colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], rowHeight);
+              doc.rect(tableX, tableStartY, tableWidth, rowHeight);
               
               // Header text
               doc.setFont('helvetica', 'bold');
@@ -7885,23 +7885,24 @@ This treatment plan should be reviewed and adjusted based on individual patient 
               
               yPos = tableStartY + rowHeight;
 
+              // Sort parameters by name
+              const sortedResults = [...groupResults].sort((a: any, b: any) => {
+                const nameA = (a.testName || a.name || '').toLowerCase();
+                const nameB = (b.testName || b.name || '').toLowerCase();
+                return nameA.localeCompare(nameB);
+              });
+
               // Table rows
               doc.setFont('helvetica', 'normal');
-              groupResults.forEach((result: any, index: number) => {
+              sortedResults.forEach((result: any, index: number) => {
                 if (yPos > 270) {
                   doc.addPage();
                   yPos = 20;
                 }
-
-                // Alternate row background (very light gray)
-                if (index % 2 === 0) {
-                  doc.setFillColor(250, 250, 250);
-                  doc.rect(tableX, yPos, colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], rowHeight, 'F');
-                }
                 
                 // Draw row borders
                 doc.setDrawColor(200, 200, 200);
-                doc.rect(tableX, yPos, colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], rowHeight);
+                doc.rect(tableX, yPos, tableWidth, rowHeight);
                 
                 // Draw vertical lines between columns
                 doc.line(tableX + colWidths[0], yPos, tableX + colWidths[0], yPos + rowHeight);
@@ -7919,7 +7920,7 @@ This treatment plan should be reviewed and adjusted based on individual patient 
                 yPos += rowHeight;
               });
 
-              yPos += 5;
+              yPos += 10;
             });
           }
         } catch (e) {
@@ -7930,19 +7931,20 @@ This treatment plan should be reviewed and adjusted based on individual patient 
         }
       }
 
-      // Notes
+      // Clinical Notes
       if (labResult.notes) {
-        yPos += 8;
+        yPos += 5;
         if (yPos > 270) {
           doc.addPage();
           yPos = 20;
         }
+        doc.setFontSize(14);
         doc.setFont('helvetica', 'bold');
-        doc.setFontSize(12);
-        doc.text('Notes:', 20, yPos);
-        yPos += 8;
+        doc.text('Clinical Notes', 20, yPos);
+        yPos += 10;
+
+        doc.setFontSize(11);
         doc.setFont('helvetica', 'normal');
-        doc.setFontSize(10);
         const splitNotes = doc.splitTextToSize(labResult.notes, 170);
         doc.text(splitNotes, 20, yPos);
       }

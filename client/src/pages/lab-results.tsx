@@ -6517,9 +6517,16 @@ Report generated from Cura EMR System`;
                       
                       yPos = tableStartY + rowHeight;
 
+                      // Sort parameters by name
+                      const sortedResults = [...testResults].sort((a: any, b: any) => {
+                        const nameA = (a.name || '').toLowerCase();
+                        const nameB = (b.name || '').toLowerCase();
+                        return nameA.localeCompare(nameB);
+                      });
+
                       // Table rows
                       pdf.setFont('helvetica', 'normal');
-                      testResults.forEach((result: any, index: number) => {
+                      sortedResults.forEach((result: any, index: number) => {
                         if (yPos > 270) {
                           pdf.addPage();
                           yPos = 20;
