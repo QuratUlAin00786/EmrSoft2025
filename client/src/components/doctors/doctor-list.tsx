@@ -925,7 +925,7 @@ export function DoctorList({
       <CardContent>
         <div className="space-y-4">
           {/* Medical Specialty Filter - Show for admin and patient when role is doctor */}
-          {(user?.role === 'admin' || user?.role === 'patient') && filterRole === 'doctor' && uniqueSpecialties.length > 0 && (
+          {(user?.role === 'admin' || user?.role === 'patient') && filterRole === 'doctor' && (
             <div className="mb-4">
               <Label htmlFor="specialty-filter" className="text-sm font-medium mb-2 block">
                 Filter by Medical Specialty
