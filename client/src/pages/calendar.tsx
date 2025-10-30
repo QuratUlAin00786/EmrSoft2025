@@ -161,6 +161,27 @@ const medicalSpecialties = {
   }
 };
 
+// Medical Specialty Categories for filtering
+const medicalSpecialtyCategories = [
+  "General & Primary Care",
+  "Surgical Specialties",
+  "Heart & Circulation",
+  "Women's Health",
+  "Children's Health",
+  "Brain & Nervous System",
+  "Skin, Hair & Appearance",
+  "Eye & Vision",
+  "Teeth & Mouth",
+  "Digestive System",
+  "Kidneys & Urinary Tract",
+  "Respiratory System",
+  "Cancer",
+  "Endocrine & Hormones",
+  "Muscles & Joints",
+  "Blood & Immunity",
+  "Others"
+];
+
 export default function CalendarPage() {
   const { user } = useAuth();
   const [selectedDoctor, setSelectedDoctor] = useState<any>(null);
@@ -1650,19 +1671,19 @@ export default function CalendarPage() {
                       </SelectContent>
                     </Select>
                     
-                    {staffFilterRole && staffFilterRole !== 'all' && staffAvailableMedicalSpecialties.length > 0 && (
+                    {staffFilterRole === 'doctor' && (
                       <Select 
                         value={staffFilterSpecialty} 
                         onValueChange={setStaffFilterSpecialty}
                       >
                         <SelectTrigger className="w-full" data-testid="select-staff-medical-specialty">
-                          <SelectValue placeholder="Filter by Medical Specialty" />
+                          <SelectValue placeholder="Medical Specialty Category" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="all">All Specialties</SelectItem>
-                          {staffAvailableMedicalSpecialties.map((specialty) => (
-                            <SelectItem key={specialty} value={specialty}>
-                              {specialty}
+                          <SelectItem value="all">All Categories</SelectItem>
+                          {medicalSpecialtyCategories.map((category) => (
+                            <SelectItem key={category} value={category}>
+                              {category}
                             </SelectItem>
                           ))}
                         </SelectContent>
