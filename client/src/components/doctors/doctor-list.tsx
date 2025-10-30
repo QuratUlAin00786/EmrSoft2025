@@ -772,16 +772,26 @@ export function DoctorList({
     return patients.filter((patient: any) => patientIds.has(patient.id));
   }, [user, doctorAppointments, patients]);
 
-  // Get unique medical specialties from doctors
-  const uniqueSpecialties = useMemo(() => {
-    const specialties = new Set<string>();
-    medicalStaff.forEach((staff: Doctor) => {
-      if (staff.role === 'doctor' && staff.medicalSpecialtyCategory) {
-        specialties.add(staff.medicalSpecialtyCategory);
-      }
-    });
-    return Array.from(specialties).sort();
-  }, [medicalStaff]);
+  // Predefined medical specialty categories for filtering
+  const medicalSpecialtyCategories = [
+    "General & Primary Care",
+    "Surgical Specialties",
+    "Heart & Circulation",
+    "Women's Health",
+    "Children's Health",
+    "Brain & Nervous System",
+    "Skin, Hair & Appearance",
+    "Eye & Vision",
+    "Teeth & Mouth",
+    "Digestive System",
+    "Kidneys & Urinary Tract",
+    "Respiratory System",
+    "Cancer",
+    "Endocrine & Hormones",
+    "Muscles & Joints",
+    "Blood & Immunity",
+    "Others"
+  ];
 
   const availableStaff = useMemo(() => {
     // If logged-in user is a doctor, show their patients
@@ -942,7 +952,7 @@ export function DoctorList({
                   >
                     {selectedSpecialty === "all"
                       ? "All Specialties"
-                      : uniqueSpecialties.find((specialty) => specialty === selectedSpecialty) || "All Specialties"}
+                      : medicalSpecialtyCategories.find((specialty) => specialty === selectedSpecialty) || "All Specialties"}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
                 </PopoverTrigger>
@@ -966,7 +976,7 @@ export function DoctorList({
                         />
                         All Specialties
                       </CommandItem>
-                      {uniqueSpecialties.map((specialty) => (
+                      {medicalSpecialtyCategories.map((specialty) => (
                         <CommandItem
                           key={specialty}
                           value={specialty}
