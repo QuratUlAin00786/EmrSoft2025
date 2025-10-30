@@ -179,6 +179,7 @@ export default function CalendarPage() {
   const [selectedDuration, setSelectedDuration] = useState<number>(30);
   const [openRoleCombo, setOpenRoleCombo] = useState(false);
   const [openProviderCombo, setOpenProviderCombo] = useState(false);
+  const [selectedMedicalSpecialty, setSelectedMedicalSpecialty] = useState<string>("");
   
   // Validation error states for patient booking
   const [roleError, setRoleError] = useState<string>("");
@@ -439,20 +440,28 @@ export default function CalendarPage() {
 
   // Get filtered users by selected role (exclude patient and admin)
   const filteredUsers = useMemo(() => {
-    console.log('🔍 FILTERING USERS - selectedRole:', selectedRole, 'usersData:', usersData);
+    console.log('🔍 FILTERING USERS - selectedRole:', selectedRole, 'selectedMedicalSpecialty:', selectedMedicalSpecialty, 'usersData:', usersData);
     if (!selectedRole || !usersData || !Array.isArray(usersData)) {
       console.log('❌ No role or users data available');
       return [];
     }
     const filtered = usersData.filter((u: any) => {
       // Case-insensitive comparison to handle any uppercase/lowercase mismatches
-      const matches = u.role?.toLowerCase() === selectedRole.toLowerCase();
-      console.log(`User ${u.firstName} ${u.lastName} - role: "${u.role}" === "${selectedRole}": ${matches}`);
-      return matches;
+      const roleMatches = u.role?.toLowerCase() === selectedRole.toLowerCase();
+      
+      // If medical specialty is selected, also filter by specialty
+      if (selectedMedicalSpecialty && selectedMedicalSpecialty !== 'all') {
+        const specialtyMatches = u.medicalSpecialtyCategory === selectedMedicalSpecialty;
+        console.log(`User ${u.firstName} ${u.lastName} - role: "${u.role}" === "${selectedRole}": ${roleMatches}, specialty: "${u.medicalSpecialtyCategory}" === "${selectedMedicalSpecialty}": ${specialtyMatches}`);
+        return roleMatches && specialtyMatches;
+      }
+      
+      console.log(`User ${u.firstName} ${u.lastName} - role: "${u.role}" === "${selectedRole}": ${roleMatches}`);
+      return roleMatches;
     });
     console.log('✅ Filtered users count:', filtered.length, filtered);
     return filtered;
-  }, [selectedRole, usersData]);
+  }, [selectedRole, selectedMedicalSpecialty, usersData]);
 
   // Get filtered users by filter role for admin filter panel
   const filteredUsersByFilterRole = useMemo(() => {
@@ -477,6 +486,22 @@ export default function CalendarPage() {
       })
       .map((role: any) => ({ name: role.name, displayName: role.displayName }));
   }, [rolesData, user?.role]);
+
+  // Get unique medical specialties from users with the selected role
+  const availableMedicalSpecialties = useMemo(() => {
+    if (!usersData || !Array.isArray(usersData) || !selectedRole) return [];
+    
+    const roleFilteredUsers = usersData.filter((u: any) => 
+      u.role?.toLowerCase() === selectedRole.toLowerCase()
+    );
+    
+    const specialties = roleFilteredUsers
+      .map((u: any) => u.medicalSpecialtyCategory)
+      .filter((specialty: any) => specialty && specialty !== null && specialty !== '');
+    
+    const uniqueSpecialties = Array.from(new Set(specialties)) as string[];
+    return uniqueSpecialties.sort();
+  }, [usersData, selectedRole]);
 
   // Check if a date has shifts (custom or default)
   const hasShiftsOnDate = (date: Date): boolean => {
@@ -1135,6 +1160,7 @@ export default function CalendarPage() {
       setSelectedRole("");
       setSelectedProviderId("");
       setSelectedDuration(30);
+      setSelectedMedicalSpecialty("");
       setBookingForm({
         patientId: "",
         title: "",
@@ -1763,6 +1789,10 @@ export default function CalendarPage() {
                       setSelectedDoctor(null);
                       setSelectedDate(undefined);
                       setSelectedTimeSlot("");
+                      setSelectedRole("");
+                      setSelectedProviderId("");
+                      setSelectedDuration(30);
+                      setSelectedMedicalSpecialty("");
                     }}
                     data-testid="button-close-modal"
                   >
@@ -1810,6 +1840,7 @@ export default function CalendarPage() {
                                         onSelect={(currentValue) => {
                                           setSelectedRole(currentValue);
                                           setSelectedProviderId("");
+                                          setSelectedMedicalSpecialty(""); // Reset specialty when role changes
                                           setRoleError(""); // Clear error on selection
                                           setOpenRoleCombo(false);
                                         }}
@@ -1831,6 +1862,34 @@ export default function CalendarPage() {
                             <p className="text-red-600 text-sm mt-1">{roleError}</p>
                           )}
                         </div>
+
+                        {/* Filter by Medical Specialty */}
+                        {selectedRole && availableMedicalSpecialties.length > 0 && (
+                          <div>
+                            <Label className="text-sm font-medium text-gray-900 dark:text-white mb-2 block">
+                              Filter by Medical Specialty
+                            </Label>
+                            <Select 
+                              value={selectedMedicalSpecialty} 
+                              onValueChange={(value) => {
+                                setSelectedMedicalSpecialty(value);
+                                setSelectedProviderId(""); // Reset provider when specialty changes
+                              }}
+                            >
+                              <SelectTrigger className="w-full" data-testid="select-medical-specialty">
+                                <SelectValue placeholder="All Specialties" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="all">All Specialties</SelectItem>
+                                {availableMedicalSpecialties.map((specialty) => (
+                                  <SelectItem key={specialty} value={specialty}>
+                                    {specialty}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        )}
 
                         {/* Select Name */}
                         {selectedRole && (
@@ -2601,6 +2660,7 @@ export default function CalendarPage() {
                                       onSelect={(currentValue) => {
                                         setSelectedRole(currentValue);
                                         setSelectedProviderId("");
+                                        setSelectedMedicalSpecialty(""); // Reset specialty when role changes
                                         setOpenRoleCombo(false);
                                       }}
                                     >
@@ -2618,6 +2678,34 @@ export default function CalendarPage() {
                           </PopoverContent>
                         </Popover>
                       </div>
+
+                      {/* Filter by Medical Specialty */}
+                      {selectedRole && availableMedicalSpecialties.length > 0 && (
+                        <div>
+                          <Label className="text-sm font-medium text-gray-900 dark:text-white mb-2 block">
+                            Filter by Medical Specialty
+                          </Label>
+                          <Select 
+                            value={selectedMedicalSpecialty} 
+                            onValueChange={(value) => {
+                              setSelectedMedicalSpecialty(value);
+                              setSelectedProviderId(""); // Reset provider when specialty changes
+                            }}
+                          >
+                            <SelectTrigger className="w-full" data-testid="select-medical-specialty-admin">
+                              <SelectValue placeholder="All Specialties" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">All Specialties</SelectItem>
+                              {availableMedicalSpecialties.map((specialty) => (
+                                <SelectItem key={specialty} value={specialty}>
+                                  {specialty}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
 
                       {/* Select Name (Provider) */}
                       {selectedRole && (
@@ -2903,6 +2991,7 @@ export default function CalendarPage() {
                         setSelectedRole("");
                         setSelectedProviderId("");
                         setSelectedDuration(30);
+                        setSelectedMedicalSpecialty("");
                       }}
                       data-testid="button-cancel-appointment"
                     >
