@@ -17400,8 +17400,8 @@ Cura EMR Team
       await fse.ensureDir(reportsDir);
       
       // Fetch clinic headers and footers from database
-      const clinicHeader = await storage.getClinicHeader(organizationId);
-      const clinicFooter = await storage.getClinicFooter(organizationId);
+      const clinicHeader = await storage.getActiveClinicHeader(organizationId);
+      const clinicFooter = await storage.getActiveClinicFooter(organizationId);
       
       // Import pdf-lib dynamically
       const { PDFDocument, rgb, StandardFonts } = await import('pdf-lib');
