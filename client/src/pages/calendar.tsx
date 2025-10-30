@@ -3623,7 +3623,8 @@ export default function CalendarPage() {
                           return;
                         }
 
-                        // Create invoice data
+                        // Create invoice data with proper structure
+                        const amount = parseFloat(invoiceForm.amount);
                         const invoiceData = {
                           patientId: patient.patientId || patient.id.toString(),
                           patientName: `${patient.firstName} ${patient.lastName}`,
@@ -3642,9 +3643,16 @@ export default function CalendarPage() {
                             code: invoiceForm.serviceCode,
                             description: invoiceForm.serviceDescription,
                             quantity: 1,
-                            amount: parseFloat(invoiceForm.amount)
+                            unitPrice: amount,
+                            total: amount
                           }],
-                          insuranceProvider: invoiceForm.insuranceProvider,
+                          payments: invoiceForm.paymentMethod === "cash" ? [{
+                            id: `payment_${Date.now()}`,
+                            amount: amount,
+                            method: invoiceForm.paymentMethod,
+                            date: new Date().toISOString(),
+                            reference: `Cash payment for invoice`
+                          }] : [],
                           notes: invoiceForm.notes
                         };
 
