@@ -17754,24 +17754,61 @@ Cura EMR Team
       // Check for image data from uploaded image filenames or database fileName and filesystem
       let imageBuffers: Array<{ buffer: Buffer; mimeType: string }> = [];
       
-      // Priority 1: Use uploaded image filenames if provided
+      // ALWAYS try to include the study's main image first (from study.fileName)
+      const fileName = study.fileName;
+      if (fileName && fileName.trim() !== '') {
+        try {
+          const imagingImagesDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Images');
+          await fse.ensureDir(imagingImagesDir);
+          const imageFilePath = path.join(imagingImagesDir, fileName);
+          
+          if (await fse.pathExists(imageFilePath)) {
+            console.log("📷 SERVER: Loading study's main image:", fileName);
+            const imageBuffer = await readFile(imageFilePath);
+            
+            // Determine MIME type from file extension
+            const fileExtension = path.extname(fileName).toLowerCase();
+            let mimeType = 'image/jpeg';
+            if (fileExtension === '.png') {
+              mimeType = 'image/png';
+            } else if (fileExtension === '.jpg' || fileExtension === '.jpeg') {
+              mimeType = 'image/jpeg';
+            }
+            
+            imageBuffers.push({ buffer: imageBuffer, mimeType });
+            console.log("📷 SERVER: Successfully loaded study's main image:", fileName, "mimeType:", mimeType);
+          } else {
+            console.log("📷 SERVER: Study's main image file not found:", fileName);
+          }
+        } catch (error) {
+          console.error("📷 SERVER: Error loading study's main image:", fileName, error);
+        }
+      }
+      
+      // Additionally, load any manually uploaded images
       if (uploadedImageFileNames && Array.isArray(uploadedImageFileNames) && uploadedImageFileNames.length > 0) {
-        console.log("📷 SERVER: Processing uploaded images:", uploadedImageFileNames);
+        console.log("📷 SERVER: Processing additional uploaded images:", uploadedImageFileNames);
         
         const imagingImagesDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Images');
         await fse.ensureDir(imagingImagesDir);
         
-        for (const fileName of uploadedImageFileNames) {
+        for (const uploadedFileName of uploadedImageFileNames) {
+          // Skip if this is the same as the study's main image (already added)
+          if (uploadedFileName === fileName) {
+            console.log("📷 SERVER: Skipping duplicate - already added study's main image:", uploadedFileName);
+            continue;
+          }
+          
           try {
-            const imageFilePath = path.join(imagingImagesDir, fileName);
+            const imageFilePath = path.join(imagingImagesDir, uploadedFileName);
             
             if (await fse.pathExists(imageFilePath)) {
-              console.log("📷 SERVER: Loading uploaded image:", fileName);
+              console.log("📷 SERVER: Loading additional uploaded image:", uploadedFileName);
               
               const imageBuffer = await readFile(imageFilePath);
               
               // Determine MIME type from file extension
-              const fileExtension = path.extname(fileName).toLowerCase();
+              const fileExtension = path.extname(uploadedFileName).toLowerCase();
               let mimeType = 'image/jpeg';
               if (fileExtension === '.png') {
                 mimeType = 'image/png';
@@ -17780,17 +17817,17 @@ Cura EMR Team
               }
               
               imageBuffers.push({ buffer: imageBuffer, mimeType });
-              console.log("📷 SERVER: Successfully loaded uploaded image:", fileName, "mimeType:", mimeType);
+              console.log("📷 SERVER: Successfully loaded additional uploaded image:", uploadedFileName, "mimeType:", mimeType);
             } else {
-              console.log("📷 SERVER: Uploaded image file not found:", fileName);
+              console.log("📷 SERVER: Additional uploaded image file not found:", uploadedFileName);
             }
           } catch (error) {
-            console.error("📷 SERVER: Error loading uploaded image:", fileName, error);
+            console.error("📷 SERVER: Error loading additional uploaded image:", uploadedFileName, error);
           }
         }
       }
       
-      // Priority 2: Fallback to study.fileName if no uploaded images
+      // Fallback methods if no images loaded yet
       if (imageBuffers.length === 0) {
         let imageBuffer: Buffer | null = null;
         let actualMimeType = 'image/jpeg';
