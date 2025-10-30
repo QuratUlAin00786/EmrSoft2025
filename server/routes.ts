@@ -18714,7 +18714,8 @@ Cura EMR Team
       // Determine which folder to use based on shareSource
       const folderName = shareSource === 'prescription' ? 'Image_Prescriptions' : 'Imaging_Reports';
       const reportsDir = path.resolve(process.cwd(), 'uploads', folderName, String(organizationId), 'patients', String(study.patientId));
-      const fileName = `${imageId}.pdf`;
+      // Prescription files have 'prescription-' prefix, reports use imageId only
+      const fileName = shareSource === 'prescription' ? `prescription-${imageId}.pdf` : `${imageId}.pdf`;
       const reportPath = path.join(reportsDir, fileName);
       
       console.log(`[EMAIL-SHARE] Attempting to share ${shareSource} from: ${reportPath}`);
