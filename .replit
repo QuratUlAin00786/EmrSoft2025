@@ -4,7 +4,7 @@ hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
 [nix]
 channel = "stable-24_05"
-packages = ["vim"]
+packages = ["vim", "libuuid"]
 
 [deployment]
 deploymentTarget = "gce"
@@ -61,12 +61,12 @@ localPort = 40381
 externalPort = 9000
 
 [[ports]]
-localPort = 40537
-externalPort = 8000
-
-[[ports]]
 localPort = 41645
 externalPort = 8081
+
+[[ports]]
+localPort = 42509
+externalPort = 8000
 
 [[ports]]
 localPort = 42825

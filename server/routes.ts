@@ -31,6 +31,7 @@ import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs';
 import * as fse from 'fs-extra';
 import { readFile, access } from 'fs/promises';
+import { createCanvas, loadImage } from 'canvas';
 
 // Initialize Stripe with secret key only if provided (conditional to avoid crashes)
 const stripe = process.env.STRIPE_SECRET_KEY 
@@ -76,6 +77,50 @@ function enforceCreatedBy<T extends Record<string, any>>(
     ...payload,
     [fieldName]: req.user.id
   };
+}
+
+/**
+ * Helper function to convert unsupported image formats (WebP, GIF, BMP, TIFF, etc.) to JPEG
+ * PDF libraries typically only support JPEG and PNG
+ * @param imageBuffer - The original image buffer
+ * @param fileExtension - The file extension (e.g., '.webp', '.gif')
+ * @returns Object with converted buffer and MIME type
+ */
+async function convertImageToSupportedFormat(imageBuffer: Buffer, fileExtension: string): Promise<{ buffer: Buffer; mimeType: string }> {
+  const unsupportedFormats = ['.webp', '.gif', '.bmp', '.tiff', '.tif', '.ico', '.jfif', '.pjpeg', '.pjp', '.svg'];
+  
+  if (!unsupportedFormats.includes(fileExtension.toLowerCase())) {
+    // Already a supported format (JPEG or PNG)
+    if (fileExtension === '.png') {
+      return { buffer: imageBuffer, mimeType: 'image/png' };
+    } else {
+      return { buffer: imageBuffer, mimeType: 'image/jpeg' };
+    }
+  }
+  
+  try {
+    console.log(`🔄 Converting ${fileExtension} image to JPEG for PDF compatibility`);
+    
+    // Load the image using canvas
+    const img = await loadImage(imageBuffer);
+    
+    // Create canvas with image dimensions
+    const canvas = createCanvas(img.width, img.height);
+    const ctx = canvas.getContext('2d');
+    
+    // Draw image on canvas
+    ctx.drawImage(img, 0, 0);
+    
+    // Convert to JPEG buffer (quality: 0.95)
+    const convertedBuffer = canvas.toBuffer('image/jpeg', { quality: 0.95 });
+    
+    console.log(`✅ Successfully converted ${fileExtension} to JPEG`);
+    return { buffer: convertedBuffer, mimeType: 'image/jpeg' };
+  } catch (error) {
+    console.error(`❌ Failed to convert ${fileExtension} image:`, error);
+    // Return original buffer as fallback
+    return { buffer: imageBuffer, mimeType: 'image/jpeg' };
+  }
 }
 
 // In-memory storage for voice notes - persistent across server restarts
@@ -17764,16 +17809,11 @@ Cura EMR Team
           
           if (await fse.pathExists(imageFilePath)) {
             console.log("📷 SERVER: Loading study's main image:", fileName);
-            const imageBuffer = await readFile(imageFilePath);
+            const rawImageBuffer = await readFile(imageFilePath);
             
-            // Determine MIME type from file extension
+            // Convert image to supported format if needed
             const fileExtension = path.extname(fileName).toLowerCase();
-            let mimeType = 'image/jpeg';
-            if (fileExtension === '.png') {
-              mimeType = 'image/png';
-            } else if (fileExtension === '.jpg' || fileExtension === '.jpeg') {
-              mimeType = 'image/jpeg';
-            }
+            const { buffer: imageBuffer, mimeType } = await convertImageToSupportedFormat(rawImageBuffer, fileExtension);
             
             imageBuffers.push({ buffer: imageBuffer, mimeType });
             console.log("📷 SERVER: Successfully loaded study's main image:", fileName, "mimeType:", mimeType);
@@ -17805,16 +17845,11 @@ Cura EMR Team
             if (await fse.pathExists(imageFilePath)) {
               console.log("📷 SERVER: Loading additional uploaded image:", uploadedFileName);
               
-              const imageBuffer = await readFile(imageFilePath);
+              const rawImageBuffer = await readFile(imageFilePath);
               
-              // Determine MIME type from file extension
+              // Convert image to supported format if needed
               const fileExtension = path.extname(uploadedFileName).toLowerCase();
-              let mimeType = 'image/jpeg';
-              if (fileExtension === '.png') {
-                mimeType = 'image/png';
-              } else if (fileExtension === '.jpg' || fileExtension === '.jpeg') {
-                mimeType = 'image/jpeg';
-              }
+              const { buffer: imageBuffer, mimeType } = await convertImageToSupportedFormat(rawImageBuffer, fileExtension);
               
               imageBuffers.push({ buffer: imageBuffer, mimeType });
               console.log("📷 SERVER: Successfully loaded additional uploaded image:", uploadedFileName, "mimeType:", mimeType);
