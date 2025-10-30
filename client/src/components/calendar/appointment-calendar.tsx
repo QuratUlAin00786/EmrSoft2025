@@ -154,6 +154,8 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
   const [showEditSuccessModal, setShowEditSuccessModal] = useState(false);
   const [validationErrorMessage, setValidationErrorMessage] = useState<string>("");
   const [showValidationError, setShowValidationError] = useState(false);
+  const [showDuplicateWarning, setShowDuplicateWarning] = useState(false);
+  const [duplicateAppointmentDetails, setDuplicateAppointmentDetails] = useState<string>("");
   const [newAppointmentDate, setNewAppointmentDate] = useState<Date | undefined>(undefined);
   const [newSelectedTimeSlot, setNewSelectedTimeSlot] = useState<string>("");
   const [selectedRole, setSelectedRole] = useState<string>("");
@@ -2470,6 +2472,29 @@ Medical License: [License Number]
                       return;
                     }
                     
+                    // Check for duplicate appointments (same patient, same doctor, same date/time)
+                    if (appointmentsData && newAppointmentDate && newSelectedTimeSlot) {
+                      const selectedDateStr = format(newAppointmentDate, 'yyyy-MM-dd');
+                      const duplicateAppointment = appointmentsData.find((apt: any) => {
+                        const aptDateStr = format(new Date(apt.scheduledAt), 'yyyy-MM-dd');
+                        const aptTimeStr = format(new Date(apt.scheduledAt), 'h:mm a');
+                        return (
+                          apt.patientId.toString() === newAppointmentData.patientId &&
+                          apt.providerId.toString() === selectedProviderId &&
+                          aptDateStr === selectedDateStr &&
+                          aptTimeStr === newSelectedTimeSlot
+                        );
+                      });
+                      
+                      if (duplicateAppointment) {
+                        const doctorName = usersData?.find((u: any) => u.id.toString() === selectedProviderId);
+                        const doctorFullName = doctorName ? `${doctorName.firstName} ${doctorName.lastName}` : 'the selected doctor';
+                        setDuplicateAppointmentDetails(`${doctorFullName} at ${newSelectedTimeSlot}`);
+                        setShowDuplicateWarning(true);
+                        return;
+                      }
+                    }
+                    
                     // Fetch doctor's fee
                     try {
                       const response = await apiRequest("GET", `/api/doctors-fee/${selectedProviderId}`);
@@ -3081,6 +3106,32 @@ Medical License: [License Number]
                 setEditSelectedTimeSlot("");
               }}
               data-testid="button-edit-success-ok"
+            >
+              OK
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Duplicate Appointment Warning Dialog */}
+      <Dialog open={showDuplicateWarning} onOpenChange={setShowDuplicateWarning}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-red-600">Duplicate Appointment</DialogTitle>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <p className="text-gray-700">
+              You have already created an appointment with the same doctor at this time. ({duplicateAppointmentDetails})
+            </p>
+          </div>
+
+          <div className="flex justify-end">
+            <Button
+              onClick={() => {
+                setShowDuplicateWarning(false);
+              }}
+              data-testid="button-duplicate-warning-ok"
             >
               OK
             </Button>
