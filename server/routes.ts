@@ -7836,14 +7836,30 @@ This treatment plan should be reviewed and adjusted based on individual patient 
             // Group results by test type
             const resultsByTestType: Record<string, any[]> = {};
             results.forEach((result: any) => {
-              // Use the testType field from the result, skip if not available
-              const testType = result.testType;
+              // Extract test type and parameter name
+              let testType = result.testType;
+              let paramName = result.name || result.testName || '';
               
+              // Always try to extract from name if it has the separator
+              const nameParts = paramName.split(' - ');
+              if (nameParts.length > 1) {
+                // If no testType field, use the extracted one
+                if (!testType) {
+                  testType = nameParts[0];
+                }
+                // Always use the parameter name after the separator
+                paramName = nameParts[1];
+              }
+              
+              // Skip results without a valid test type
               if (testType) {
                 if (!resultsByTestType[testType]) {
                   resultsByTestType[testType] = [];
                 }
-                resultsByTestType[testType].push(result);
+                resultsByTestType[testType].push({
+                  ...result,
+                  displayName: paramName
+                });
               }
             });
 
@@ -7887,10 +7903,10 @@ This treatment plan should be reviewed and adjusted based on individual patient 
               
               yPos = tableStartY + rowHeight;
 
-              // Sort parameters by name
+              // Sort parameters by displayName
               const sortedResults = [...groupResults].sort((a: any, b: any) => {
-                const nameA = (a.testName || a.name || '').toLowerCase();
-                const nameB = (b.testName || b.name || '').toLowerCase();
+                const nameA = (a.displayName || a.testName || a.name || '').toLowerCase();
+                const nameB = (b.displayName || b.testName || b.name || '').toLowerCase();
                 return nameA.localeCompare(nameB);
               });
 
@@ -7911,8 +7927,8 @@ This treatment plan should be reviewed and adjusted based on individual patient 
                 doc.line(tableX + colWidths[0] + colWidths[1], yPos, tableX + colWidths[0] + colWidths[1], yPos + rowHeight);
                 doc.line(tableX + colWidths[0] + colWidths[1] + colWidths[2], yPos, tableX + colWidths[0] + colWidths[1] + colWidths[2], yPos + rowHeight);
                 
-                // Row data - use the parameter name directly
-                const paramName = result.testName || result.name || '';
+                // Row data - use the displayName (parameter name without test type prefix)
+                const paramName = result.displayName || result.testName || result.name || '';
                 
                 doc.text(paramName, tableX + 2, yPos + 5);
                 doc.text(String(result.value || ''), tableX + colWidths[0] + 2, yPos + 5);

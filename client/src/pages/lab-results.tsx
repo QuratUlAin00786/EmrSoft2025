@@ -1444,16 +1444,19 @@ Report generated from Cura EMR System`;
       const resultsByTestType: Record<string, any[]> = {};
       if (selectedResult.results && Array.isArray(selectedResult.results)) {
         selectedResult.results.forEach((result: any) => {
-          // Use testType field if available, otherwise extract from result name
+          // Extract test type and parameter name
           let testType = result.testType;
           let paramName = result.name;
           
-          if (!testType) {
-            const nameParts = result.name.split(' - ');
-            if (nameParts.length > 1) {
+          // Always try to extract from name if it has the separator
+          const nameParts = result.name.split(' - ');
+          if (nameParts.length > 1) {
+            // If no testType field, use the extracted one
+            if (!testType) {
               testType = nameParts[0];
-              paramName = nameParts[1];
             }
+            // Always use the parameter name after the separator
+            paramName = nameParts[1];
           }
           
           // Skip results without a valid test type
