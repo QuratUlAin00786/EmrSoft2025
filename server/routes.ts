@@ -7836,13 +7836,15 @@ This treatment plan should be reviewed and adjusted based on individual patient 
             // Group results by test type
             const resultsByTestType: Record<string, any[]> = {};
             results.forEach((result: any) => {
-              // Use the testType field from the result, or fallback to 'General Tests'
-              const testType = result.testType || 'General Tests';
+              // Use the testType field from the result, skip if not available
+              const testType = result.testType;
               
-              if (!resultsByTestType[testType]) {
-                resultsByTestType[testType] = [];
+              if (testType) {
+                if (!resultsByTestType[testType]) {
+                  resultsByTestType[testType] = [];
+                }
+                resultsByTestType[testType].push(result);
               }
-              resultsByTestType[testType].push(result);
             });
 
             // Test Results - Each test type gets its own section
@@ -8075,7 +8077,7 @@ This treatment plan should be reviewed and adjusted based on individual patient 
         // Update results array with testType field
         const updatedResults = results.map((result: any) => {
           const paramName = result.testName || result.name || '';
-          const testType = paramToTestType[paramName] || testTypes[0] || 'General Tests';
+          const testType = paramToTestType[paramName] || testTypes[0];
           return {
             ...result,
             testType

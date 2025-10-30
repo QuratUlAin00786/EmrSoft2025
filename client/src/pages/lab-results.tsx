@@ -1444,18 +1444,28 @@ Report generated from Cura EMR System`;
       const resultsByTestType: Record<string, any[]> = {};
       if (selectedResult.results && Array.isArray(selectedResult.results)) {
         selectedResult.results.forEach((result: any) => {
-          // Extract test type from result name
-          const nameParts = result.name.split(' - ');
-          const testType = nameParts.length > 1 ? nameParts[0] : 'General Tests';
-          const paramName = nameParts.length > 1 ? nameParts[1] : result.name;
-
-          if (!resultsByTestType[testType]) {
-            resultsByTestType[testType] = [];
+          // Use testType field if available, otherwise extract from result name
+          let testType = result.testType;
+          let paramName = result.name;
+          
+          if (!testType) {
+            const nameParts = result.name.split(' - ');
+            if (nameParts.length > 1) {
+              testType = nameParts[0];
+              paramName = nameParts[1];
+            }
           }
-          resultsByTestType[testType].push({
-            ...result,
-            displayName: paramName
-          });
+          
+          // Skip results without a valid test type
+          if (testType) {
+            if (!resultsByTestType[testType]) {
+              resultsByTestType[testType] = [];
+            }
+            resultsByTestType[testType].push({
+              ...result,
+              displayName: paramName
+            });
+          }
         });
       }
 
