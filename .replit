@@ -49,10 +49,6 @@ localPort = 33709
 externalPort = 3001
 
 [[ports]]
-localPort = 37301
-externalPort = 8000
-
-[[ports]]
 localPort = 37537
 externalPort = 3000
 
@@ -95,6 +91,10 @@ externalPort = 6800
 [[ports]]
 localPort = 46315
 externalPort = 4200
+
+[[ports]]
+localPort = 46669
+externalPort = 8000
 
 [agent]
 integrations = ["javascript_sendgrid:1.0.0", "javascript_database:1.0.0", "javascript_stripe:1.0.0", "sendgrid:1.0.0"]
