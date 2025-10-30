@@ -229,8 +229,23 @@ export default function CalendarPage() {
   const [showBookingErrorModal, setShowBookingErrorModal] = useState(false);
   const [bookingErrorMessage, setBookingErrorMessage] = useState("");
   
+  // Invoice modal state
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+  const [newAppointmentData, setNewAppointmentData] = useState<any>(null);
+  const [invoiceForm, setInvoiceForm] = useState({
+    serviceDate: new Date().toISOString().split('T')[0],
+    invoiceDate: new Date().toISOString().split('T')[0],
+    dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    serviceCode: "CONS-001",
+    serviceDescription: "General Consultation",
+    amount: "50.00",
+    insuranceProvider: "None (Patient Self-Pay)",
+    notes: "",
+    paymentMethod: ""
+  });
+  
   const [location] = useLocation();
-  const { toast } = useToast();
+  const { toast} = useToast();
   const queryClient = useQueryClient();
 
   // Fetch patient records from patients table (not users table)
@@ -1151,9 +1166,9 @@ export default function CalendarPage() {
       const response = await apiRequest("POST", "/api/appointments", dataWithCreatedBy);
       return response.json();
     },
-    onSuccess: () => {
-      // Show success modal for all users after appointment creation
-      setShowSuccessModal(true);
+    onSuccess: (data) => {
+      // Store the new appointment data for invoice creation
+      setNewAppointmentData(data);
       
       // Update calendar data with proper cache invalidation
       queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
@@ -1166,8 +1181,25 @@ export default function CalendarPage() {
           queryKey: ["/api/appointments", format(selectedDate, 'yyyy-MM-dd')] 
         });
       }
-      // Close modal and reset form
+      
+      // Pre-populate invoice form with appointment data
+      setInvoiceForm({
+        serviceDate: data.scheduledAt ? new Date(data.scheduledAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        invoiceDate: new Date().toISOString().split('T')[0],
+        dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        serviceCode: "CONS-001",
+        serviceDescription: "General Consultation",
+        amount: "50.00",
+        insuranceProvider: "None (Patient Self-Pay)",
+        notes: "",
+        paymentMethod: ""
+      });
+      
+      // Close appointment modal and open invoice modal
       setShowNewAppointmentModal(false);
+      setShowInvoiceModal(true);
+      
+      // Reset appointment form for next booking
       setSelectedSpecialty("");
       setSelectedSubSpecialty("");
       setFilteredDoctors([]);
@@ -1209,6 +1241,38 @@ export default function CalendarPage() {
       // Close other modals
       setShowConfirmationModal(false);
       setShowNewAppointmentModal(false);
+    },
+  });
+
+  // Invoice creation mutation
+  const createInvoiceMutation = useMutation({
+    mutationFn: async (invoiceData: any) => {
+      const response = await apiRequest("POST", "/api/invoices", invoiceData);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Invoice created successfully",
+      });
+      
+      // Close invoice modal
+      setShowInvoiceModal(false);
+      setNewAppointmentData(null);
+      
+      // Show success modal
+      setShowSuccessModal(true);
+      
+      // Invalidate invoices queries
+      queryClient.invalidateQueries({ queryKey: ["/api/invoices"] });
+    },
+    onError: (error) => {
+      console.error("Invoice creation error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create invoice. Please try again.",
+        variant: "destructive",
+      });
     },
   });
 
@@ -3357,6 +3421,242 @@ export default function CalendarPage() {
                   >
                     OK
                   </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Invoice Creation Modal */}
+        {showInvoiceModal && newAppointmentData && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h2 className="text-xl font-bold text-blue-700 dark:text-blue-400">
+                      Create New Invoice
+                    </h2>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      Invoice details for the appointment
+                    </p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setShowInvoiceModal(false);
+                      setNewAppointmentData(null);
+                      setShowSuccessModal(true);
+                    }}
+                    data-testid="button-close-invoice"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                <div className="space-y-4">
+                  {/* Patient and Doctor Info */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-sm font-medium text-gray-900 dark:text-white">Patient</Label>
+                      <Input
+                        value={patients.find((p: any) => p.id === newAppointmentData.patientId)?.firstName + ' ' + patients.find((p: any) => p.id === newAppointmentData.patientId)?.lastName || 'N/A'}
+                        disabled
+                        className="mt-1 bg-gray-50 dark:bg-gray-700"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-gray-900 dark:text-white">Service Date</Label>
+                      <Input
+                        type="date"
+                        value={invoiceForm.serviceDate}
+                        onChange={(e) => setInvoiceForm({ ...invoiceForm, serviceDate: e.target.value })}
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label className="text-sm font-medium text-gray-900 dark:text-white">Doctor</Label>
+                    <Input
+                      value={usersData?.find((u: any) => u.id === newAppointmentData.providerId)?.firstName + ' ' + usersData?.find((u: any) => u.id === newAppointmentData.providerId)?.lastName || 'N/A'}
+                      disabled
+                      className="mt-1 bg-gray-50 dark:bg-gray-700"
+                    />
+                  </div>
+
+                  {/* Dates */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-sm font-medium text-gray-900 dark:text-white">Invoice Date</Label>
+                      <Input
+                        type="date"
+                        value={invoiceForm.invoiceDate}
+                        onChange={(e) => setInvoiceForm({ ...invoiceForm, invoiceDate: e.target.value })}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-gray-900 dark:text-white">Due Date</Label>
+                      <Input
+                        type="date"
+                        value={invoiceForm.dueDate}
+                        onChange={(e) => setInvoiceForm({ ...invoiceForm, dueDate: e.target.value })}
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Services & Procedures */}
+                  <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-700">
+                    <h3 className="font-semibold text-gray-900 dark:text-white mb-3">Services & Procedures</h3>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Code</Label>
+                        <Input
+                          value={invoiceForm.serviceCode}
+                          onChange={(e) => setInvoiceForm({ ...invoiceForm, serviceCode: e.target.value })}
+                          className="mt-1 bg-white dark:bg-gray-600"
+                          placeholder="CONS-001"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Description</Label>
+                        <Input
+                          value={invoiceForm.serviceDescription}
+                          onChange={(e) => setInvoiceForm({ ...invoiceForm, serviceDescription: e.target.value })}
+                          className="mt-1 bg-white dark:bg-gray-600"
+                          placeholder="General Consultation"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Amount</Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={invoiceForm.amount}
+                          onChange={(e) => setInvoiceForm({ ...invoiceForm, amount: e.target.value })}
+                          className="mt-1 bg-white dark:bg-gray-600"
+                          placeholder="50.00"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Insurance Provider */}
+                  <div>
+                    <Label className="text-sm font-medium text-gray-900 dark:text-white">Insurance Provider</Label>
+                    <Input
+                      value={invoiceForm.insuranceProvider}
+                      onChange={(e) => setInvoiceForm({ ...invoiceForm, insuranceProvider: e.target.value })}
+                      className="mt-1"
+                      placeholder="None (Patient Self-Pay)"
+                    />
+                  </div>
+
+                  {/* Total Amount */}
+                  <div>
+                    <Label className="text-sm font-medium text-gray-900 dark:text-white">Total Amount</Label>
+                    <Input
+                      value={invoiceForm.amount}
+                      disabled
+                      className="mt-1 bg-gray-50 dark:bg-gray-700 font-semibold"
+                    />
+                  </div>
+
+                  {/* Notes */}
+                  <div>
+                    <Label className="text-sm font-medium text-gray-900 dark:text-white">Notes</Label>
+                    <textarea
+                      value={invoiceForm.notes}
+                      onChange={(e) => setInvoiceForm({ ...invoiceForm, notes: e.target.value })}
+                      className="mt-1 w-full min-h-[80px] px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                      placeholder="Add any additional notes about this invoice..."
+                    />
+                  </div>
+
+                  {/* Payment Method */}
+                  <div>
+                    <Label className="text-sm font-medium text-gray-900 dark:text-white">Payment Method</Label>
+                    <Select
+                      value={invoiceForm.paymentMethod}
+                      onValueChange={(value) => setInvoiceForm({ ...invoiceForm, paymentMethod: value })}
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Select payment method" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="cash">Cash</SelectItem>
+                        <SelectItem value="card">Card</SelectItem>
+                        <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+                        <SelectItem value="insurance">Insurance</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex justify-end gap-2 pt-4 border-t">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setShowInvoiceModal(false);
+                        setNewAppointmentData(null);
+                        setShowSuccessModal(true);
+                      }}
+                      data-testid="button-cancel-invoice"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        // Get patient and provider details
+                        const patient = patients.find((p: any) => p.id === newAppointmentData.patientId);
+                        const provider = usersData?.find((u: any) => u.id === newAppointmentData.providerId);
+                        
+                        if (!patient) {
+                          toast({
+                            title: "Error",
+                            description: "Patient information not found",
+                            variant: "destructive",
+                          });
+                          return;
+                        }
+
+                        // Create invoice data
+                        const invoiceData = {
+                          patientId: patient.patientId || patient.id.toString(),
+                          patientName: `${patient.firstName} ${patient.lastName}`,
+                          nhsNumber: patient.nhsNumber || "",
+                          dateOfService: invoiceForm.serviceDate,
+                          invoiceDate: invoiceForm.invoiceDate,
+                          dueDate: invoiceForm.dueDate,
+                          status: invoiceForm.paymentMethod === "cash" ? "paid" : "draft",
+                          invoiceType: "payment",
+                          subtotal: invoiceForm.amount,
+                          tax: "0",
+                          discount: "0",
+                          totalAmount: invoiceForm.amount,
+                          paidAmount: invoiceForm.paymentMethod === "cash" ? invoiceForm.amount : "0",
+                          items: [{
+                            code: invoiceForm.serviceCode,
+                            description: invoiceForm.serviceDescription,
+                            quantity: 1,
+                            amount: parseFloat(invoiceForm.amount)
+                          }],
+                          insuranceProvider: invoiceForm.insuranceProvider,
+                          notes: invoiceForm.notes
+                        };
+
+                        createInvoiceMutation.mutate(invoiceData);
+                      }}
+                      disabled={createInvoiceMutation.isPending || !invoiceForm.paymentMethod}
+                      className="bg-blue-600 hover:bg-blue-700"
+                      data-testid="button-create-invoice"
+                    >
+                      {createInvoiceMutation.isPending ? "Creating..." : "Create Invoice"}
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
