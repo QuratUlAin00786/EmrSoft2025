@@ -201,6 +201,7 @@ export default function CalendarPage() {
   const [showStaffFilter, setShowStaffFilter] = useState(false);
   const [staffFilterRole, setStaffFilterRole] = useState("");
   const [staffFilterSearch, setStaffFilterSearch] = useState("");
+  const [staffFilterSpecialty, setStaffFilterSpecialty] = useState("");
   
   // Calendar view state
   const [calendarView, setCalendarView] = useState<"month" | "week" | "day">("month");
@@ -487,7 +488,7 @@ export default function CalendarPage() {
       .map((role: any) => ({ name: role.name, displayName: role.displayName }));
   }, [rolesData, user?.role]);
 
-  // Get unique medical specialties from users with the selected role
+  // Get unique medical specialties from users with the selected role (for patient booking)
   const availableMedicalSpecialties = useMemo(() => {
     if (!usersData || !Array.isArray(usersData) || !selectedRole) return [];
     
@@ -502,6 +503,22 @@ export default function CalendarPage() {
     const uniqueSpecialties = Array.from(new Set(specialties)) as string[];
     return uniqueSpecialties.sort();
   }, [usersData, selectedRole]);
+
+  // Get unique medical specialties for staff filter sidebar
+  const staffAvailableMedicalSpecialties = useMemo(() => {
+    if (!usersData || !Array.isArray(usersData) || !staffFilterRole || staffFilterRole === 'all') return [];
+    
+    const roleFilteredUsers = usersData.filter((u: any) => 
+      u.role?.toLowerCase() === staffFilterRole.toLowerCase()
+    );
+    
+    const specialties = roleFilteredUsers
+      .map((u: any) => u.medicalSpecialtyCategory)
+      .filter((specialty: any) => specialty && specialty !== null && specialty !== '');
+    
+    const uniqueSpecialties = Array.from(new Set(specialties)) as string[];
+    return uniqueSpecialties.sort();
+  }, [usersData, staffFilterRole]);
 
   // Check if a date has shifts (custom or default)
   const hasShiftsOnDate = (date: Date): boolean => {
@@ -1550,7 +1567,13 @@ export default function CalendarPage() {
                 
                 {showStaffFilter && (
                   <div className="space-y-3 mb-4">
-                    <Select value={staffFilterRole} onValueChange={setStaffFilterRole}>
+                    <Select 
+                      value={staffFilterRole} 
+                      onValueChange={(value) => {
+                        setStaffFilterRole(value);
+                        setStaffFilterSpecialty(""); // Reset specialty when role changes
+                      }}
+                    >
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="All Roles" />
                       </SelectTrigger>
@@ -1566,6 +1589,26 @@ export default function CalendarPage() {
                         }
                       </SelectContent>
                     </Select>
+                    
+                    {staffFilterRole && staffFilterRole !== 'all' && staffAvailableMedicalSpecialties.length > 0 && (
+                      <Select 
+                        value={staffFilterSpecialty} 
+                        onValueChange={setStaffFilterSpecialty}
+                      >
+                        <SelectTrigger className="w-full" data-testid="select-staff-medical-specialty">
+                          <SelectValue placeholder="Filter by Medical Specialty" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Specialties</SelectItem>
+                          {staffAvailableMedicalSpecialties.map((specialty) => (
+                            <SelectItem key={specialty} value={specialty}>
+                              {specialty}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                    
                     <Input
                       placeholder="Search by name, email, specialization, department.."
                       value={staffFilterSearch}
@@ -1582,6 +1625,7 @@ export default function CalendarPage() {
                 showAppointmentButton={true}
                 filterRole={staffFilterRole}
                 filterSearch={staffFilterSearch}
+                filterSpecialty={staffFilterSpecialty}
               />
             </div>
           </div>
@@ -1862,34 +1906,6 @@ export default function CalendarPage() {
                             <p className="text-red-600 text-sm mt-1">{roleError}</p>
                           )}
                         </div>
-
-                        {/* Filter by Medical Specialty */}
-                        {selectedRole && availableMedicalSpecialties.length > 0 && (
-                          <div>
-                            <Label className="text-sm font-medium text-gray-900 dark:text-white mb-2 block">
-                              Filter by Medical Specialty
-                            </Label>
-                            <Select 
-                              value={selectedMedicalSpecialty} 
-                              onValueChange={(value) => {
-                                setSelectedMedicalSpecialty(value);
-                                setSelectedProviderId(""); // Reset provider when specialty changes
-                              }}
-                            >
-                              <SelectTrigger className="w-full" data-testid="select-medical-specialty">
-                                <SelectValue placeholder="All Specialties" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="all">All Specialties</SelectItem>
-                                {availableMedicalSpecialties.map((specialty) => (
-                                  <SelectItem key={specialty} value={specialty}>
-                                    {specialty}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        )}
 
                         {/* Select Name */}
                         {selectedRole && (
@@ -2678,34 +2694,6 @@ export default function CalendarPage() {
                           </PopoverContent>
                         </Popover>
                       </div>
-
-                      {/* Filter by Medical Specialty */}
-                      {selectedRole && availableMedicalSpecialties.length > 0 && (
-                        <div>
-                          <Label className="text-sm font-medium text-gray-900 dark:text-white mb-2 block">
-                            Filter by Medical Specialty
-                          </Label>
-                          <Select 
-                            value={selectedMedicalSpecialty} 
-                            onValueChange={(value) => {
-                              setSelectedMedicalSpecialty(value);
-                              setSelectedProviderId(""); // Reset provider when specialty changes
-                            }}
-                          >
-                            <SelectTrigger className="w-full" data-testid="select-medical-specialty-admin">
-                              <SelectValue placeholder="All Specialties" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="all">All Specialties</SelectItem>
-                              {availableMedicalSpecialties.map((specialty) => (
-                                <SelectItem key={specialty} value={specialty}>
-                                  {specialty}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      )}
 
                       {/* Select Name (Provider) */}
                       {selectedRole && (

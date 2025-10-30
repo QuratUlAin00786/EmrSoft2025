@@ -68,6 +68,7 @@ interface DoctorListProps {
   showAppointmentButton?: boolean;
   filterRole?: string;
   filterSearch?: string;
+  filterSpecialty?: string;
 }
 
 const departmentColors = {
@@ -125,6 +126,7 @@ export function DoctorList({
   showAppointmentButton = false,
   filterRole = "all",
   filterSearch = "",
+  filterSpecialty = "",
 }: DoctorListProps) {
   const [, setLocation] = useLocation();
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
@@ -813,8 +815,8 @@ export function DoctorList({
         }
         
         // Apply medical specialty filter when role is doctor
-        if (filterRole === 'doctor' && selectedSpecialty !== 'all') {
-          if (doctor.medicalSpecialtyCategory !== selectedSpecialty) {
+        if (filterRole === 'doctor' && filterSpecialty && filterSpecialty !== 'all' && filterSpecialty !== '') {
+          if (doctor.medicalSpecialtyCategory !== filterSpecialty) {
             return false;
           }
         }
@@ -837,8 +839,8 @@ export function DoctorList({
         }
         
         // Apply medical specialty filter when role is doctor
-        if (filterRole === 'doctor' && selectedSpecialty !== 'all') {
-          if (staff.medicalSpecialtyCategory !== selectedSpecialty) {
+        if (filterRole === 'doctor' && filterSpecialty && filterSpecialty !== 'all' && filterSpecialty !== '') {
+          if (staff.medicalSpecialtyCategory !== filterSpecialty) {
             return false;
           }
         }
@@ -878,7 +880,7 @@ export function DoctorList({
       // If working days are set, check if today is included
       return doctor.workingDays.includes(today);
     });
-  }, [user, doctorPatients, medicalStaff, filterRole, filterSearch, selectedSpecialty, today]);
+  }, [user, doctorPatients, medicalStaff, filterRole, filterSearch, filterSpecialty, today]);
 
   if (isLoading) {
     return (
