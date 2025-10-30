@@ -222,6 +222,8 @@ export default function CalendarPage() {
   const [insufficientTimeMessage, setInsufficientTimeMessage] = useState("");
   
   // Error modal state for booking errors
+  const [showDuplicateWarning, setShowDuplicateWarning] = useState(false);
+  const [duplicateAppointmentDetails, setDuplicateAppointmentDetails] = useState("");
   const [showBookingErrorModal, setShowBookingErrorModal] = useState(false);
   const [bookingErrorMessage, setBookingErrorMessage] = useState("");
   
@@ -2951,6 +2953,27 @@ export default function CalendarPage() {
                           scheduledAt: appointmentDateTime
                         };
 
+                        // Check for duplicate appointments (same patient, same doctor, same date)
+                        if (user?.role === 'patient' && allAppointments && selectedDate) {
+                          const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
+                          const duplicateAppointment = allAppointments.find((apt: any) => {
+                            const aptDateStr = format(new Date(apt.scheduledAt), 'yyyy-MM-dd');
+                            return (
+                              apt.patientId.toString() === patientId.toString() &&
+                              apt.providerId.toString() === selectedProviderId &&
+                              aptDateStr === selectedDateStr
+                            );
+                          });
+                          
+                          if (duplicateAppointment) {
+                            const doctorName = provider ? `${provider.firstName} ${provider.lastName}` : 'the selected doctor';
+                            const formattedDate = format(selectedDate, 'PPP');
+                            setDuplicateAppointmentDetails(`${doctorName} on ${formattedDate}`);
+                            setShowDuplicateWarning(true);
+                            return;
+                          }
+                        }
+
                         // Show confirmation modal for all users before booking
                         setPendingAppointmentData(appointmentData);
                         setShowNewAppointmentModal(false); // Close the booking modal first
@@ -3159,6 +3182,40 @@ export default function CalendarPage() {
                   <Button
                     onClick={() => setShowInsufficientTimeModal(false)}
                     data-testid="button-ok-insufficient-time"
+                  >
+                    OK
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Duplicate Appointment Warning Modal */}
+        {showDuplicateWarning && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-bold text-red-600 dark:text-red-400">
+                    Duplicate Appointment
+                  </h2>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowDuplicateWarning(false)}
+                    data-testid="button-close-duplicate-warning"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+                <p className="text-gray-700 dark:text-gray-300 mb-6">
+                  You have already created an appointment with the same doctor on this date. ({duplicateAppointmentDetails}), you can update existing appointment.
+                </p>
+                <div className="flex justify-end">
+                  <Button
+                    onClick={() => setShowDuplicateWarning(false)}
+                    data-testid="button-ok-duplicate-warning"
                   >
                     OK
                   </Button>
