@@ -2040,10 +2040,11 @@ export default function ImagingPage() {
                 </div>
 
                 <div className="">
-                  {user?.role !== "patient" && (
+                  {user?.role !== "patient" && activeTab === 'order-study' && (
                     <Button
                       onClick={() => setShowUploadDialog(true)}
                       className="bg-medical-blue hover:bg-blue-700 text-white ml-auto"
+                      data-testid="button-order-study"
                     >
                       <Share className="h-4 w-4 mr-2" />
                       Order Study
