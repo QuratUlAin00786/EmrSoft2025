@@ -17399,6 +17399,10 @@ Cura EMR Team
       const reportsDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Reports', String(organizationId), 'patients', String(patientId));
       await fse.ensureDir(reportsDir);
       
+      // Fetch clinic headers and footers from database
+      const clinicHeader = await storage.getClinicHeader(organizationId);
+      const clinicFooter = await storage.getClinicFooter(organizationId);
+      
       // Import pdf-lib dynamically
       const { PDFDocument, rgb, StandardFonts } = await import('pdf-lib');
       
@@ -17425,69 +17429,116 @@ Cura EMR Team
       // Position tracker
       let yPosition = height - 40;
       
-      // Professional Formal Header
+      // Professional Formal Header with Logo and Clinic Info in a Row
       const headerHeight = 100;
+      const logoX = 40;
+      const logoWidth = 80;
+      const logoHeight = 80;
       
-      // Medical cross symbol (using standard plus symbol) - no background
-      page.drawText('+', {
-        x: 67,
-        y: yPosition - 55,
-        size: 32,
-        font: boldFont,
-        color: primaryBlue
-      });
+      // Embed logo from clinic_headers if available
+      if (clinicHeader?.logoBase64) {
+        try {
+          // Remove data URL prefix if present
+          const base64Data = clinicHeader.logoBase64.includes(',') 
+            ? clinicHeader.logoBase64.split(',')[1] 
+            : clinicHeader.logoBase64;
+          const logoBuffer = Buffer.from(base64Data, 'base64');
+          
+          // Try to embed logo as PNG or JPEG
+          let logoImage;
+          try {
+            logoImage = await pdfDoc.embedPng(logoBuffer);
+          } catch {
+            try {
+              logoImage = await pdfDoc.embedJpg(logoBuffer);
+            } catch (error) {
+              console.error('Failed to embed logo:', error);
+            }
+          }
+          
+          if (logoImage) {
+            // Draw logo with equal height to header info
+            page.drawImage(logoImage, {
+              x: logoX,
+              y: yPosition - logoHeight - 10,
+              width: logoWidth,
+              height: logoHeight
+            });
+          }
+        } catch (error) {
+          console.error('Error processing logo:', error);
+        }
+      } else {
+        // Fallback: Medical cross symbol if no logo
+        page.drawText('+', {
+          x: logoX + 20,
+          y: yPosition - 55,
+          size: 32,
+          font: boldFont,
+          color: primaryBlue
+        });
+      }
       
-      // Institution name and department
-      page.drawText('CURA MEDICAL CENTER', {
-        x: 120,
-        y: yPosition - 20,
+      // Header information (clinic name, address, phone) - to the right of logo
+      const headerInfoX = logoX + logoWidth + 20;
+      let headerY = yPosition - 20;
+      
+      // Clinic name
+      const clinicName = clinicHeader?.clinicName || 'CURA MEDICAL CENTER';
+      page.drawText(clinicName, {
+        x: headerInfoX,
+        y: headerY,
         size: 16,
         font: boldFont,
         color: primaryBlue
       });
+      headerY -= 18;
       
+      // Department
       page.drawText('DEPARTMENT OF DIAGNOSTIC RADIOLOGY', {
-        x: 120,
-        y: yPosition - 38,
+        x: headerInfoX,
+        y: headerY,
         size: 11,
         font,
         color: darkGray
       });
+      headerY -= 14;
       
-      page.drawText('Ground Floor Unit 2, Drayton Court, Drayton Road, Solihull, England B90 4NG', {
-        x: 120,
-        y: yPosition - 52,
+      // Address
+      const address = clinicHeader?.address || 'Ground Floor Unit 2, Drayton Court, Drayton Road, Solihull, England B90 4NG';
+      page.drawText(address, {
+        x: headerInfoX,
+        y: headerY,
+        size: 8,
+        font,
+        color: darkGray
+      });
+      headerY -= 13;
+      
+      // Phone and email
+      const phone = clinicHeader?.phone || '+44-123-456-7890';
+      const email = clinicHeader?.email || 'info@curamedical.com';
+      page.drawText(`Tel: ${phone} | Fax: ${phone}`, {
+        x: headerInfoX,
+        y: headerY,
         size: 8,
         font,
         color: darkGray
       });
       
-      page.drawText('Tel: +44-123-456-7890 | Fax: +44-123-456-7891', {
-        x: 120,
-        y: yPosition - 65,
-        size: 8,
-        font,
-        color: darkGray
-      });
+      yPosition -= headerHeight;
       
-      // Report title (right side) - no background
-      page.drawText('DIAGNOSTIC', {
-        x: width - 170,
-        y: yPosition - 30,
-        size: 12,
+      // Report title in separate row (centered)
+      yPosition -= 10;
+      page.drawText('DIAGNOSTIC RADIOLOGY REPORT', {
+        x: width / 2 - 100,
+        y: yPosition,
+        size: 14,
         font: boldFont,
         color: primaryBlue
       });
       
-      page.drawText('RADIOLOGY REPORT', {
-        x: width - 175,
-        y: yPosition - 43,
-        size: 11,
-        font: boldFont,
-        color: primaryBlue
-      });
-      
-      yPosition -= headerHeight + 20;
+      yPosition -= 30;
       
       // Save starting position for both sections (equal alignment)
       const sectionsStartY = yPosition;
@@ -17906,25 +17957,39 @@ Cura EMR Team
         }
       }
       
-      // Professional Footer
+      // Professional Footer using clinic_footers data
       const footerY = 60;
       drawSectionBox(30, footerY + 5, width - 60, 40);
       
-      page.drawText('CURA MEDICAL CENTER - DEPARTMENT OF RADIOLOGY', {
-        x: width / 2 - 120,
-        y: footerY - 8,
-        size: 10,
-        font: boldFont,
-        color: primaryBlue
-      });
-      
-      page.drawText('Tel: +44-123-456-7890  |  Email: radiology@curamedical.com  |  Web: www.curamedical.com', {
-        x: width / 2 - 140,
-        y: footerY - 22,
-        size: 8,
-        font,
-        color: darkGray
-      });
+      if (clinicFooter?.footerText) {
+        // Use footer text from clinic_footers
+        const footerText = clinicFooter.footerText;
+        const footerTextWidth = font.widthOfTextAtSize(footerText, 9);
+        page.drawText(footerText, {
+          x: width / 2 - footerTextWidth / 2,
+          y: footerY - 15,
+          size: 9,
+          font,
+          color: darkGray
+        });
+      } else {
+        // Fallback footer
+        page.drawText('CURA MEDICAL CENTER - DEPARTMENT OF RADIOLOGY', {
+          x: width / 2 - 120,
+          y: footerY - 8,
+          size: 10,
+          font: boldFont,
+          color: primaryBlue
+        });
+        
+        page.drawText('Tel: +44-123-456-7890  |  Email: radiology@curamedical.com  |  Web: www.curamedical.com', {
+          x: width / 2 - 140,
+          y: footerY - 22,
+          size: 8,
+          font,
+          color: darkGray
+        });
+      }
       
       // Confidentiality notice
       page.drawText('WARNING: CONFIDENTIAL MEDICAL REPORT - Authorized Personnel Only', {
