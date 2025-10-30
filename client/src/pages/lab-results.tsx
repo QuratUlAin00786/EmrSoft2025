@@ -2395,7 +2395,7 @@ Report generated from Cura EMR System`;
                 </div>
 
                 {/* Right Side: Buttons */}
-                {user?.role !== "patient" && (
+                {user?.role !== "patient" && activeTab === "request" && (
                   <div className="flex gap-3 ml-auto">
                     <Button
                       onClick={handleOrderTest}
