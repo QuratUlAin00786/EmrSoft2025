@@ -231,7 +231,7 @@ export default function CalendarPage() {
   
   // Invoice modal state
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
-  const [newAppointmentData, setNewAppointmentData] = useState<any>(null);
+  const [showInvoiceSummary, setShowInvoiceSummary] = useState(false);
   const [invoiceForm, setInvoiceForm] = useState({
     serviceDate: new Date().toISOString().split('T')[0],
     invoiceDate: new Date().toISOString().split('T')[0],
@@ -333,7 +333,7 @@ export default function CalendarPage() {
   }, [doctorsData, doctorsError, isLoadingDoctors]);
   
   // Fetch all users for role-based provider selection
-  const { data: usersData, isLoading: usersLoading } = useQuery({
+  const { data: usersData = [], isLoading: usersLoading } = useQuery<any[]>({
     queryKey: ["/api/users"],
     staleTime: 300000, // 5 minutes cache
     retry: false,
@@ -1156,25 +1156,29 @@ export default function CalendarPage() {
     }
   }, [showNewAppointmentModal, user, selectedDate, timeSlots, selectedTimeSlot, isTimeSlotBooked]);
 
-  const createAppointmentMutation = useMutation({
-    mutationFn: async (appointmentData: any) => {
-      // Add created_by field from logged-in user
-      const dataWithCreatedBy = {
+  // Combined mutation to create both appointment and invoice
+  const createAppointmentAndInvoiceMutation = useMutation({
+    mutationFn: async ({ appointmentData, invoiceData }: { appointmentData: any; invoiceData: any }) => {
+      // Create appointment first
+      const appointmentResponse = await apiRequest("POST", "/api/appointments", {
         ...appointmentData,
         createdBy: user?.id
-      };
-      const response = await apiRequest("POST", "/api/appointments", dataWithCreatedBy);
-      return response.json();
-    },
-    onSuccess: (data) => {
-      // Store the new appointment data for invoice creation
-      setNewAppointmentData(data);
+      });
+      const appointment = await appointmentResponse.json();
       
+      // Create invoice
+      const invoiceResponse = await apiRequest("POST", "/api/invoices", invoiceData);
+      const invoice = await invoiceResponse.json();
+      
+      return { appointment, invoice };
+    },
+    onSuccess: ({ appointment, invoice }) => {
       // Update calendar data with proper cache invalidation
       queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
-      // Also invalidate patient-filtered appointments query
       queryClient.invalidateQueries({ queryKey: ["/api/appointments", "patient-filtered"] });
       queryClient.invalidateQueries({ queryKey: ["/api/appointments", "all"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/invoices"] });
+      
       // Invalidate specific appointment queries for the selected date
       if (selectedDate) {
         queryClient.invalidateQueries({ 
@@ -1182,24 +1186,16 @@ export default function CalendarPage() {
         });
       }
       
-      // Pre-populate invoice form with appointment data
-      setInvoiceForm({
-        serviceDate: data.scheduledAt ? new Date(data.scheduledAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-        invoiceDate: new Date().toISOString().split('T')[0],
-        dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        serviceCode: "CONS-001",
-        serviceDescription: "General Consultation",
-        amount: "50.00",
-        insuranceProvider: "None (Patient Self-Pay)",
-        notes: "",
-        paymentMethod: ""
-      });
+      // Close modals
+      setShowInvoiceModal(false);
+      setShowInvoiceSummary(false);
+      setPendingAppointmentData(null);
       
-      // Close appointment modal and open invoice modal
+      // Show success modal
+      setShowSuccessModal(true);
+      
+      // Reset forms
       setShowNewAppointmentModal(false);
-      setShowInvoiceModal(true);
-      
-      // Reset appointment form for next booking
       setSelectedSpecialty("");
       setSelectedSubSpecialty("");
       setFilteredDoctors([]);
@@ -1220,59 +1216,41 @@ export default function CalendarPage() {
         location: "",
         isVirtual: false
       });
+      setInvoiceForm({
+        serviceDate: new Date().toISOString().split('T')[0],
+        invoiceDate: new Date().toISOString().split('T')[0],
+        dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        serviceCode: "CONS-001",
+        serviceDescription: "General Consultation",
+        amount: "50.00",
+        insuranceProvider: "None (Patient Self-Pay)",
+        notes: "",
+        paymentMethod: ""
+      });
+      
+      toast({
+        title: "Success",
+        description: "Appointment and invoice created successfully",
+      });
     },
     onError: (error) => {
-      console.error("Appointment creation error:", error);
-      let errorMessage = "Failed to create appointment. Please try again.";
+      console.error("Creation error:", error);
+      let errorMessage = "Failed to create appointment and invoice. Please try again.";
       
-      // Check if the error message contains specific errors
       if (error.message && error.message.includes("Patient not found")) {
-        errorMessage = "Patient not found. Please use a valid patient ID like: 165, 159, P000004, P000005, or P000158.";
+        errorMessage = "Patient not found. Please use a valid patient ID.";
       } else if (error.message && error.message.includes("already scheduled at this time")) {
         errorMessage = "This time slot is already booked. Please select a different time slot.";
       } else if (error.message && error.message.includes("Doctor is already scheduled")) {
         errorMessage = "The selected doctor is not available at this time. Please choose a different time slot.";
       }
       
-      // Show error in modal instead of toast
       setBookingErrorMessage(errorMessage);
       setShowBookingErrorModal(true);
-      
-      // Close other modals
+      setShowInvoiceModal(false);
+      setShowInvoiceSummary(false);
       setShowConfirmationModal(false);
       setShowNewAppointmentModal(false);
-    },
-  });
-
-  // Invoice creation mutation
-  const createInvoiceMutation = useMutation({
-    mutationFn: async (invoiceData: any) => {
-      const response = await apiRequest("POST", "/api/invoices", invoiceData);
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Success",
-        description: "Invoice created successfully",
-      });
-      
-      // Close invoice modal
-      setShowInvoiceModal(false);
-      setNewAppointmentData(null);
-      
-      // Show success modal
-      setShowSuccessModal(true);
-      
-      // Invalidate invoices queries
-      queryClient.invalidateQueries({ queryKey: ["/api/invoices"] });
-    },
-    onError: (error) => {
-      console.error("Invoice creation error:", error);
-      toast({
-        title: "Error",
-        description: "Failed to create invoice. Please try again.",
-        variant: "destructive",
-      });
     },
   });
 
@@ -1293,9 +1271,8 @@ export default function CalendarPage() {
     if (/^\d+$/.test(bookingForm.patientId)) {
       patientId = parseInt(bookingForm.patientId);
     }
-    // If it's a patient ID format (like P000004), keep as string
-    // The server will handle the lookup
 
+    // Prepare appointment data
     const appointmentData = {
       ...bookingForm,
       patientId: patientId,
@@ -1305,7 +1282,26 @@ export default function CalendarPage() {
       duration: parseInt(bookingForm.duration)
     };
 
-    createAppointmentMutation.mutate(appointmentData);
+    // Store appointment data and open invoice modal
+    setPendingAppointmentData(appointmentData);
+    
+    // Pre-populate invoice form
+    setInvoiceForm({
+      serviceDate: bookingForm.scheduledAt ? new Date(bookingForm.scheduledAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      invoiceDate: new Date().toISOString().split('T')[0],
+      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      serviceCode: "CONS-001",
+      serviceDescription: "General Consultation",
+      amount: "50.00",
+      insuranceProvider: "None (Patient Self-Pay)",
+      notes: "",
+      paymentMethod: ""
+    });
+    
+    // Close appointment modal and open invoice modal
+    setShowNewAppointmentModal(false);
+    setShowInvoiceModal(true);
+    setShowInvoiceSummary(false);
   };
 
   return (
@@ -1866,10 +1862,9 @@ export default function CalendarPage() {
                   </Button>
                   <Button
                     onClick={handleBookAppointment}
-                    disabled={createAppointmentMutation.isPending}
                   >
                     <Clock className="h-4 w-4 mr-2" />
-                    {createAppointmentMutation.isPending ? "Booking..." : "Book Appointment"}
+                    Book Appointment
                   </Button>
                 </div>
               </div>
@@ -3120,11 +3115,10 @@ export default function CalendarPage() {
                         setShowNewAppointmentModal(false); // Close the booking modal first
                         setShowConfirmationModal(true);
                       }}
-                      disabled={createAppointmentMutation.isPending}
                       data-testid="button-book-appointment"
                     >
                       <Clock className="h-4 w-4 mr-2" />
-                      {createAppointmentMutation.isPending ? "Booking..." : "Book Appointment"}
+                      Book Appointment
                     </Button>
                   </div>
                 )}
@@ -3281,16 +3275,28 @@ export default function CalendarPage() {
                   </Button>
                   <Button
                     onClick={() => {
-                      createAppointmentMutation.mutate(pendingAppointmentData);
+                      // Pre-populate invoice form
+                      setInvoiceForm({
+                        serviceDate: pendingAppointmentData.scheduledAt ? new Date(pendingAppointmentData.scheduledAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+                        invoiceDate: new Date().toISOString().split('T')[0],
+                        dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                        serviceCode: "CONS-001",
+                        serviceDescription: "General Consultation",
+                        amount: "50.00",
+                        insuranceProvider: "None (Patient Self-Pay)",
+                        notes: "",
+                        paymentMethod: ""
+                      });
+                      
+                      // Close confirmation modal and open invoice modal
                       setShowConfirmationModal(false);
-                      setPendingAppointmentData(null);
-                      setSelectedDoctor(null); // Clear selected doctor to prevent reopening the doctor booking modal
+                      setShowInvoiceModal(true);
+                      setShowInvoiceSummary(false);
                     }}
-                    disabled={createAppointmentMutation.isPending}
                     data-testid="button-confirm-appointment"
                   >
                     <Check className="h-4 w-4 mr-2" />
-                    {createAppointmentMutation.isPending ? "Confirming..." : "Confirm Appointment"}
+                    Confirm Appointment
                   </Button>
                 </div>
               </div>
@@ -3428,7 +3434,7 @@ export default function CalendarPage() {
         )}
 
         {/* Invoice Creation Modal */}
-        {showInvoiceModal && newAppointmentData && (
+        {showInvoiceModal && pendingAppointmentData && !showInvoiceSummary && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
               <div className="p-6">
@@ -3446,8 +3452,8 @@ export default function CalendarPage() {
                     size="sm"
                     onClick={() => {
                       setShowInvoiceModal(false);
-                      setNewAppointmentData(null);
-                      setShowSuccessModal(true);
+                      setPendingAppointmentData(null);
+                      setShowNewAppointmentModal(true);
                     }}
                     data-testid="button-close-invoice"
                   >
@@ -3461,7 +3467,7 @@ export default function CalendarPage() {
                     <div>
                       <Label className="text-sm font-medium text-gray-900 dark:text-white">Patient</Label>
                       <Input
-                        value={patients.find((p: any) => p.id === newAppointmentData.patientId)?.firstName + ' ' + patients.find((p: any) => p.id === newAppointmentData.patientId)?.lastName || 'N/A'}
+                        value={patients.find((p: any) => p.id === pendingAppointmentData.patientId)?.firstName + ' ' + patients.find((p: any) => p.id === pendingAppointmentData.patientId)?.lastName || 'N/A'}
                         disabled
                         className="mt-1 bg-gray-50 dark:bg-gray-700"
                       />
@@ -3480,7 +3486,7 @@ export default function CalendarPage() {
                   <div>
                     <Label className="text-sm font-medium text-gray-900 dark:text-white">Doctor</Label>
                     <Input
-                      value={usersData?.find((u: any) => u.id === newAppointmentData.providerId)?.firstName + ' ' + usersData?.find((u: any) => u.id === newAppointmentData.providerId)?.lastName || 'N/A'}
+                      value={usersData?.find((u: any) => u.id === pendingAppointmentData.providerId)?.firstName + ' ' + usersData?.find((u: any) => u.id === pendingAppointmentData.providerId)?.lastName || 'N/A'}
                       disabled
                       className="mt-1 bg-gray-50 dark:bg-gray-700"
                     />
@@ -3601,8 +3607,8 @@ export default function CalendarPage() {
                       variant="outline"
                       onClick={() => {
                         setShowInvoiceModal(false);
-                        setNewAppointmentData(null);
-                        setShowSuccessModal(true);
+                        setPendingAppointmentData(null);
+                        setShowNewAppointmentModal(true);
                       }}
                       data-testid="button-cancel-invoice"
                     >
@@ -3610,9 +3616,167 @@ export default function CalendarPage() {
                     </Button>
                     <Button
                       onClick={() => {
-                        // Get patient and provider details
-                        const patient = patients.find((p: any) => p.id === newAppointmentData.patientId);
-                        const provider = usersData?.find((u: any) => u.id === newAppointmentData.providerId);
+                        if (!invoiceForm.paymentMethod) {
+                          toast({
+                            title: "Missing Information",
+                            description: "Please select a payment method",
+                            variant: "destructive",
+                          });
+                          return;
+                        }
+                        // Show summary view
+                        setShowInvoiceSummary(true);
+                      }}
+                      disabled={!invoiceForm.paymentMethod}
+                      className="bg-blue-600 hover:bg-blue-700"
+                      data-testid="button-review-invoice"
+                    >
+                      Review & Confirm
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Invoice Summary Modal */}
+        {showInvoiceModal && showInvoiceSummary && pendingAppointmentData && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="text-2xl font-bold text-blue-700 dark:text-blue-400">
+                      Booking Summary
+                    </h2>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      Review appointment and invoice details before confirming
+                    </p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setShowInvoiceSummary(false);
+                    }}
+                    data-testid="button-back-summary"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                <div className="space-y-6">
+                  {/* Appointment Summary */}
+                  <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-700">
+                    <h3 className="font-semibold text-lg text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                      <Calendar className="h-5 w-5" />
+                      Appointment Details
+                    </h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Patient</p>
+                        <p className="font-medium text-gray-900 dark:text-white">
+                          {patients.find((p: any) => p.id === pendingAppointmentData.patientId)?.firstName} {patients.find((p: any) => p.id === pendingAppointmentData.patientId)?.lastName}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Doctor</p>
+                        <p className="font-medium text-gray-900 dark:text-white">
+                          {usersData?.find((u: any) => u.id === pendingAppointmentData.providerId)?.firstName} {usersData?.find((u: any) => u.id === pendingAppointmentData.providerId)?.lastName}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Date & Time</p>
+                        <p className="font-medium text-gray-900 dark:text-white">
+                          {format(new Date(pendingAppointmentData.scheduledAt), 'PPp')}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Duration</p>
+                        <p className="font-medium text-gray-900 dark:text-white">
+                          {pendingAppointmentData.duration} minutes
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Type</p>
+                        <p className="font-medium text-gray-900 dark:text-white capitalize">
+                          {pendingAppointmentData.type}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Location</p>
+                        <p className="font-medium text-gray-900 dark:text-white">
+                          {pendingAppointmentData.location}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Invoice Summary */}
+                  <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-700">
+                    <h3 className="font-semibold text-lg text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                      <FileText className="h-5 w-5" />
+                      Invoice Details
+                    </h3>
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600 dark:text-gray-400">Service</span>
+                        <span className="font-medium text-gray-900 dark:text-white">{invoiceForm.serviceDescription}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600 dark:text-gray-400">Service Code</span>
+                        <span className="font-medium text-gray-900 dark:text-white">{invoiceForm.serviceCode}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600 dark:text-gray-400">Invoice Date</span>
+                        <span className="font-medium text-gray-900 dark:text-white">{format(new Date(invoiceForm.invoiceDate), 'PP')}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600 dark:text-gray-400">Due Date</span>
+                        <span className="font-medium text-gray-900 dark:text-white">{format(new Date(invoiceForm.dueDate), 'PP')}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600 dark:text-gray-400">Payment Method</span>
+                        <span className="font-medium text-gray-900 dark:text-white capitalize">{invoiceForm.paymentMethod}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600 dark:text-gray-400">Insurance Provider</span>
+                        <span className="font-medium text-gray-900 dark:text-white">{invoiceForm.insuranceProvider}</span>
+                      </div>
+                      {invoiceForm.notes && (
+                        <div>
+                          <span className="text-gray-600 dark:text-gray-400 block mb-1">Notes</span>
+                          <p className="text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-600 p-2 rounded">{invoiceForm.notes}</p>
+                        </div>
+                      )}
+                      <div className="flex justify-between pt-3 border-t border-gray-300 dark:border-gray-600">
+                        <span className="text-lg font-bold text-gray-900 dark:text-white">Total Amount</span>
+                        <span className="text-lg font-bold text-blue-600 dark:text-blue-400">£{invoiceForm.amount}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">Status</span>
+                        <span className="text-sm font-medium text-gray-900 dark:text-white">
+                          {invoiceForm.paymentMethod === "cash" ? "Paid" : "Draft"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex justify-end gap-2 pt-4 border-t">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setShowInvoiceSummary(false);
+                      }}
+                      data-testid="button-back-edit"
+                    >
+                      Back to Edit
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        const patient = patients.find((p: any) => p.id === pendingAppointmentData.patientId);
                         
                         if (!patient) {
                           toast({
@@ -3623,7 +3787,7 @@ export default function CalendarPage() {
                           return;
                         }
 
-                        // Create invoice data with proper structure
+                        // Create invoice data
                         const amount = parseFloat(invoiceForm.amount);
                         const invoiceData = {
                           patientId: patient.patientId || patient.id.toString(),
@@ -3656,13 +3820,17 @@ export default function CalendarPage() {
                           notes: invoiceForm.notes
                         };
 
-                        createInvoiceMutation.mutate(invoiceData);
+                        // Create both appointment and invoice
+                        createAppointmentAndInvoiceMutation.mutate({
+                          appointmentData: pendingAppointmentData,
+                          invoiceData
+                        });
                       }}
-                      disabled={createInvoiceMutation.isPending || !invoiceForm.paymentMethod}
-                      className="bg-blue-600 hover:bg-blue-700"
-                      data-testid="button-create-invoice"
+                      disabled={createAppointmentAndInvoiceMutation.isPending}
+                      className="bg-green-600 hover:bg-green-700"
+                      data-testid="button-confirm-booking"
                     >
-                      {createInvoiceMutation.isPending ? "Creating..." : "Create Invoice"}
+                      {createAppointmentAndInvoiceMutation.isPending ? "Creating..." : "Confirm Booking"}
                     </Button>
                   </div>
                 </div>
