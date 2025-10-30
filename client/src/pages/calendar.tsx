@@ -3807,16 +3807,9 @@ export default function CalendarPage() {
                             code: invoiceForm.serviceCode,
                             description: invoiceForm.serviceDescription,
                             quantity: 1,
-                            unitPrice: amount,
-                            total: amount
+                            amount: amount
                           }],
-                          payments: invoiceForm.paymentMethod === "cash" ? [{
-                            id: `payment_${Date.now()}`,
-                            amount: amount,
-                            method: invoiceForm.paymentMethod,
-                            date: new Date().toISOString(),
-                            reference: `Cash payment for invoice`
-                          }] : [],
+                          insuranceProvider: invoiceForm.insuranceProvider,
                           notes: invoiceForm.notes
                         };
 
