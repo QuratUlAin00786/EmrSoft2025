@@ -18711,21 +18711,26 @@ Cura EMR Team
       const organizationId = req.tenant!.id;
       const imageId = study.imageId;
 
-      // Save PDF in organizational structure
-      const prescriptionsDir = path.resolve(process.cwd(), 'uploads', 'Image_Prescriptions', String(organizationId), 'patients', String(study.patientId));
-      await fse.ensureDir(prescriptionsDir);
+      // Fetch the imaging report PDF (already generated in Imaging_Reports directory)
+      const reportsDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Reports', String(organizationId), 'patients', String(study.patientId));
+      const fileName = `${imageId}.pdf`;
+      const reportPath = path.join(reportsDir, fileName);
       
-      const fileName = `prescription-${imageId}.pdf`;
-      const outputPath = path.join(prescriptionsDir, fileName);
+      // Check if imaging report exists
+      if (!await fse.pathExists(reportPath)) {
+        console.error('[EMAIL-SHARE] Imaging report PDF not found:', reportPath);
+        return res.status(404).json({ 
+          error: "Imaging report not found. Please generate the report first." 
+        });
+      }
+
+      console.log('[EMAIL-SHARE] Loading imaging report PDF:', reportPath);
+      const buffer = await fs.promises.readFile(reportPath);
+      const pdfBytes = new Uint8Array(buffer);
       
-      // Check if prescription already exists
-      let pdfBytes: Uint8Array;
-      if (await fse.pathExists(outputPath)) {
-        console.log('[EMAIL-SHARE] Loading existing prescription PDF:', outputPath);
-        const buffer = await fs.promises.readFile(outputPath);
-        pdfBytes = new Uint8Array(buffer);
-      } else {
-        console.log('[EMAIL-SHARE] Generating new prescription PDF for study:', studyId);
+      // Skip the old prescription PDF generation code
+      if (false) {
+        console.log('[EMAIL-SHARE] Old code - removed');
         
         // Import pdf-lib dynamically
         const { PDFDocument, rgb, StandardFonts } = await import('pdf-lib');
@@ -19004,17 +19009,17 @@ Cura EMR Team
 
       const emailSent = await emailService.sendEmail({
         to: recipientEmail,
-        subject: `Image Prescription - ${patientName} - ${studyType}`,
+        subject: `Imaging Report - ${patientName} - ${studyType}`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <div style="background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); color: white; padding: 30px; text-align: center;">
-              <h1 style="margin: 0;">Imaging Study Prescription</h1>
+              <h1 style="margin: 0;">Diagnostic Radiology Report</h1>
             </div>
             
             <div style="padding: 30px; background-color: #f8fafc;">
               <p>Dear Colleague,</p>
               
-              <p>An imaging study prescription has been shared with you by <strong>${sharedBy}</strong>:</p>
+              <p>A diagnostic imaging report has been shared with you by <strong>${sharedBy}</strong>:</p>
               
               <div style="background-color: white; padding: 20px; border-left: 4px solid #4F46E5; margin: 20px 0;">
                 <p><strong>Patient:</strong> ${patientName}</p>
@@ -19031,7 +19036,7 @@ Cura EMR Team
               </div>
               ` : ''}
               
-              <p>The imaging prescription is attached to this email as a PDF document.</p>
+              <p>The diagnostic radiology report is attached to this email as a PDF document.</p>
               
               <p style="color: #dc2626; font-weight: bold;">⚠️ CONFIDENTIAL MEDICAL INFORMATION</p>
               <p style="font-size: 12px; color: #666;">This study has been shared for medical consultation purposes. Please ensure appropriate patient confidentiality is maintained.</p>
@@ -19047,7 +19052,7 @@ Cura EMR Team
         text: `
 Dear Colleague,
 
-An imaging study prescription has been shared with you by ${sharedBy}:
+A diagnostic imaging report has been shared with you by ${sharedBy}:
 
 Patient: ${patientName}
 Study Type: ${studyType}
@@ -19057,7 +19062,7 @@ Date Shared: ${new Date().toLocaleDateString()}
 
 ${customMessage ? `Message from ${sharedBy}: ${customMessage}\n` : ''}
 
-The imaging prescription is attached to this email.
+The diagnostic radiology report is attached to this email.
 
 This study has been shared for medical consultation purposes. Please ensure appropriate patient confidentiality is maintained.
 
@@ -19074,16 +19079,24 @@ Cura EMR Team
       });
 
       if (emailSent) {
-        console.log(`[EMAIL-SHARE] Successfully shared imaging prescription ${studyId} with ${recipientEmail}`);
+        // Update orderStudyShared flag to true
+        try {
+          await storage.updateMedicalImage(studyId, req.tenant!.id, { orderStudyShared: true });
+          console.log(`[EMAIL-SHARE] Updated orderStudyShared flag for study ${studyId}`);
+        } catch (dbError) {
+          console.error(`[EMAIL-SHARE] Failed to update orderStudyShared flag:`, dbError);
+        }
+        
+        console.log(`[EMAIL-SHARE] Successfully shared imaging report ${studyId} with ${recipientEmail}`);
         res.json({
           success: true,
-          message: `Image prescription shared successfully with ${recipientEmail}`,
+          message: `Imaging report shared successfully with ${recipientEmail}`,
           studyId,
           recipientEmail,
           patientName
         });
       } else {
-        console.error(`[EMAIL-SHARE] Failed to share imaging prescription ${studyId} with ${recipientEmail}`);
+        console.error(`[EMAIL-SHARE] Failed to share imaging report ${studyId} with ${recipientEmail}`);
         res.status(500).json({
           error: "Failed to send email. Please try again or contact support.",
           studyId,
