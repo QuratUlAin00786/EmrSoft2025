@@ -135,6 +135,10 @@ export function DoctorList({
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
 
+  // Medical Specialty Filter state (for admin users only)
+  const [adminSelectedSpecialty, setAdminSelectedSpecialty] = useState<string>("all");
+  const [openSpecialtyCombobox, setOpenSpecialtyCombobox] = useState(false);
+
   // Booking dialog state
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [selectedBookingDoctor, setSelectedBookingDoctor] =
@@ -834,9 +838,9 @@ export function DoctorList({
           return false;
         }
         
-        // Apply medical specialty filter when role is doctor
-        if (filterRole === 'doctor' && filterSpecialty && filterSpecialty !== 'all' && filterSpecialty !== '') {
-          if (staff.medicalSpecialtyCategory !== filterSpecialty) {
+        // Apply medical specialty filter when role is doctor (use admin's local filter)
+        if (filterRole === 'doctor' && adminSelectedSpecialty && adminSelectedSpecialty !== 'all' && adminSelectedSpecialty !== '') {
+          if (staff.medicalSpecialtyCategory !== adminSelectedSpecialty) {
             return false;
           }
         }
@@ -876,7 +880,7 @@ export function DoctorList({
       // If working days are set, check if today is included
       return doctor.workingDays.includes(today);
     });
-  }, [user, doctorPatients, medicalStaff, filterRole, filterSearch, filterSpecialty, today]);
+  }, [user, doctorPatients, medicalStaff, filterRole, filterSearch, filterSpecialty, adminSelectedSpecialty, today]);
 
   if (isLoading) {
     return (
@@ -932,6 +936,73 @@ export function DoctorList({
     <Card>
       <CardContent>
         <div className="space-y-4">
+          {/* Medical Specialty Filter - Show for admin when role is doctor */}
+          {user?.role === 'admin' && filterRole === 'doctor' && (
+            <div className="mb-4">
+              <Label htmlFor="specialty-filter" className="text-sm font-medium mb-2 block">
+                Filter by Medical Specialty
+              </Label>
+              <Popover open={openSpecialtyCombobox} onOpenChange={setOpenSpecialtyCombobox}>
+                <PopoverTrigger asChild>
+                  <Button
+                    id="specialty-filter"
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={openSpecialtyCombobox}
+                    className="w-full justify-between"
+                    data-testid="specialty-filter-admin"
+                  >
+                    {adminSelectedSpecialty === "all"
+                      ? "All Specialties"
+                      : medicalSpecialtyCategories.find((specialty) => specialty === adminSelectedSpecialty) || "All Specialties"}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Search specialty..." />
+                    <CommandEmpty>No specialty found.</CommandEmpty>
+                    <CommandGroup>
+                      <CommandItem
+                        value="all"
+                        onSelect={() => {
+                          setAdminSelectedSpecialty("all");
+                          setOpenSpecialtyCombobox(false);
+                        }}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            adminSelectedSpecialty === "all" ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        All Specialties
+                      </CommandItem>
+                      {medicalSpecialtyCategories.map((specialty) => (
+                        <CommandItem
+                          key={specialty}
+                          value={specialty}
+                          onSelect={(currentValue) => {
+                            setAdminSelectedSpecialty(currentValue === adminSelectedSpecialty ? "all" : currentValue);
+                            setOpenSpecialtyCombobox(false);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              adminSelectedSpecialty === specialty ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          {specialty}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
+          )}
+          
           {availableStaff.map((item: any) => (
             <div
               key={item.id}
