@@ -19425,7 +19425,7 @@ Cura EMR Team
       const fileName = `${study.imageId}.pdf`;
       const filePath = path.join(prescriptionsDir, fileName);
       
-      await fse.writeFile(filePath, pdfBytes);
+      await fse.outputFile(filePath, pdfBytes);
       console.log(`SAVE PRESCRIPTION: PDF saved to ${filePath}`);
       
       // Update the medical_images table with prescription file path and mark as ready to generate
