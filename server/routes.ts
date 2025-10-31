@@ -17937,6 +17937,7 @@ Cura EMR Team
       
       // FIRST PRIORITY: Load images from database image_data column (base64)
       console.log("📷 SERVER: Checking for images in database image_data column...");
+      console.log("📷 SERVER: Looking for ORDER row with imageId:", reportId);
       try {
         const dbImages = await db
           .select()
@@ -17944,12 +17945,12 @@ Cura EMR Team
           .where(
             and(
               eq(schema.medicalImages.organizationId, organizationId),
-              eq(schema.medicalImages.patientId, patientId),
+              eq(schema.medicalImages.imageId, reportId), // Use specific imageId from current ORDER row
               isNotNull(schema.medicalImages.imageData)
             )
           );
         
-        console.log(`📷 SERVER: Found ${dbImages.length} image(s) with base64 data in database`);
+        console.log(`📷 SERVER: Found ${dbImages.length} image(s) with base64 data for imageId ${reportId}`);
         
         for (const dbImage of dbImages) {
           if (dbImage.imageData) {
