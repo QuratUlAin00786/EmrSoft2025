@@ -6196,7 +6196,7 @@ export default function ImagingPage() {
             <DialogTitle className="flex items-center gap-2">
               <X className="h-5 w-5 text-gray-500 cursor-pointer hover:text-gray-700" 
                  onClick={() => setShowPrescriptionDialog(false)} />
-              Lab Result Prescription
+            Imaging Prescription
             </DialogTitle>
           </DialogHeader>
           
