@@ -2506,9 +2506,7 @@ Medical License: [License Number]
                       // Initialize invoice data with fetched fee
                       const selectedDate = format(newAppointmentDate!, 'yyyy-MM-dd');
                       const today = format(new Date(), 'yyyy-MM-dd');
-                      const dueDate = new Date();
-                      dueDate.setDate(dueDate.getDate() + 30);
-                      const dueDateStr = format(dueDate, 'yyyy-MM-dd');
+                      const dueDateStr = format(new Date(), 'yyyy-MM-dd');
                       
                       const selectedPatient = patientsData?.find((p: any) => p.id.toString() === newAppointmentData.patientId);
                       const providerName = usersData?.find((u: any) => u.id.toString() === selectedProviderId);
