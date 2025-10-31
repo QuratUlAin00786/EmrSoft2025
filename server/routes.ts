@@ -8782,7 +8782,7 @@ This treatment plan should be reviewed and adjusted based on individual patient 
   });
 
   // Upload report images endpoint
-  app.post("/api/imaging/upload-report-images", authMiddleware, uploadMedicalImages.array('images', 10), async (req: TenantRequest, res) => {
+  app.post("/api/imaging/upload-report-images", authMiddleware, requireRole(["doctor", "nurse", "admin", "receptionist"]), uploadMedicalImages.array('images', 10), async (req: TenantRequest, res) => {
     try {
       if (!req.user || !req.tenant) {
         return res.status(401).json({ error: "Authentication required" });
@@ -8798,7 +8798,31 @@ This treatment plan should be reviewed and adjusted based on individual patient 
         return res.status(400).json({ error: "Study ID required" });
       }
 
-      console.log(`📷 UPLOAD: Uploading ${files.length} images for study ${studyId}`);
+      // Validate MIME types
+      const allowedMimeTypes = [
+        'image/jpeg',
+        'image/jpg',
+        'image/png',
+        'image/gif',
+        'image/bmp',
+        'image/tiff',
+        'image/webp',
+        'image/svg+xml',
+        'application/dicom',
+        'image/x-icon',
+      ];
+
+      const invalidFiles = files.filter(file => !allowedMimeTypes.includes(file.mimetype));
+      if (invalidFiles.length > 0) {
+        // Clean up uploaded files
+        await Promise.all(files.map(file => fse.remove(file.path)));
+        return res.status(400).json({ 
+          error: "Invalid file type",
+          details: `Files must be images. Invalid files: ${invalidFiles.map(f => f.originalname).join(', ')}`
+        });
+      }
+
+      console.log(`📷 UPLOAD: Uploading ${files.length} images for study ${studyId} in organization ${req.tenant.id}`);
 
       const uploadedImages = files.map(file => ({
         fileName: file.filename,
@@ -8807,12 +8831,6 @@ This treatment plan should be reviewed and adjusted based on individual patient 
         mimeType: file.mimetype,
         path: file.path,
       }));
-
-      // Update the medical image record with the uploaded file paths
-      const imagePaths = uploadedImages.map(img => `/uploads/Imaging_Images/${img.fileName}`);
-      
-      // You can optionally store these paths in the database
-      // await storage.updateMedicalImagePaths(studyId, imagePaths);
 
       console.log(`✅ UPLOAD: Successfully uploaded ${uploadedImages.length} images`);
 
@@ -8823,7 +8841,19 @@ This treatment plan should be reviewed and adjusted based on individual patient 
       });
     } catch (error) {
       console.error("Error uploading report images:", error);
-      res.status(500).json({ error: "Failed to upload images" });
+      
+      // Clean up any uploaded files on error
+      if (req.files) {
+        const files = req.files as Express.Multer.File[];
+        await Promise.all(files.map(file => fse.remove(file.path).catch(err => 
+          console.error(`Failed to clean up file ${file.path}:`, err)
+        )));
+      }
+      
+      res.status(500).json({ 
+        error: "Failed to upload images",
+        details: error instanceof Error ? error.message : "Unknown error"
+      });
     }
   });
 

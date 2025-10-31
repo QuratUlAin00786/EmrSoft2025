@@ -1393,6 +1393,14 @@ export default function ImagingPage() {
     }
   };
 
+  // Reset image previews when dialog closes
+  useEffect(() => {
+    if (!showReportDialog) {
+      setUploadedImagePreviews([]);
+      setSelectedFiles([]);
+    }
+  }, [showReportDialog]);
+
   const handleGenerateImagePrescription = async (studyId: string) => {
     const study = ((studies as any) || []).find((s: any) => s.id === studyId);
     if (!study) {
@@ -3898,8 +3906,6 @@ export default function ImagingPage() {
                   )}
                 </div>
               </div>
-            </div>
-          )}
         </DialogContent>
       </Dialog>
 
