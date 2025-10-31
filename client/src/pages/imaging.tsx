@@ -6356,6 +6356,9 @@ export default function ImagingPage() {
                         description: `Prescription saved successfully as ${result.fileName}`,
                       });
 
+                      // Call pill icon function (generate image prescription)
+                      await handleGenerateImagePrescription(selectedPrescriptionStudy.id);
+
                       setShowPrescriptionDialog(false);
                       setSelectedPrescriptionStudy(null);
                       refetchStudies();
