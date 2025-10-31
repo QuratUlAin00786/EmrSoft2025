@@ -32,6 +32,7 @@ import * as fs from 'fs';
 import * as fse from 'fs-extra';
 import { readFile, access } from 'fs/promises';
 import { createCanvas, loadImage } from 'canvas';
+import sharp from 'sharp';
 
 // Initialize Stripe with secret key only if provided (conditional to avoid crashes)
 const stripe = process.env.STRIPE_SECRET_KEY 
@@ -99,26 +100,18 @@ async function convertImageToSupportedFormat(imageBuffer: Buffer, fileExtension:
   }
   
   try {
-    console.log(`🔄 Converting ${fileExtension} image to JPEG for PDF compatibility`);
+    console.log(`🔄 Converting ${fileExtension} image to JPEG for PDF compatibility using sharp`);
     
-    // Load the image using canvas
-    const img = await loadImage(imageBuffer);
-    
-    // Create canvas with image dimensions
-    const canvas = createCanvas(img.width, img.height);
-    const ctx = canvas.getContext('2d');
-    
-    // Draw image on canvas
-    ctx.drawImage(img, 0, 0);
-    
-    // Convert to JPEG buffer (quality: 0.95)
-    const convertedBuffer = canvas.toBuffer('image/jpeg', { quality: 0.95 });
+    // Use sharp for robust image conversion (supports WebP, GIF, BMP, etc.)
+    const convertedBuffer = await sharp(imageBuffer)
+      .jpeg({ quality: 95 }) // Convert to JPEG with high quality
+      .toBuffer();
     
     console.log(`✅ Successfully converted ${fileExtension} to JPEG`);
     return { buffer: convertedBuffer, mimeType: 'image/jpeg' };
   } catch (error) {
-    console.error(`❌ Failed to convert ${fileExtension} image:`, error);
-    // Return original buffer as fallback
+    console.error(`❌ Failed to convert ${fileExtension} image using sharp:`, error);
+    // Return original buffer as fallback (will likely fail PDF embedding)
     return { buffer: imageBuffer, mimeType: 'image/jpeg' };
   }
 }
