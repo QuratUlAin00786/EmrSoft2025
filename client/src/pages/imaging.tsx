@@ -2570,7 +2570,7 @@ export default function ImagingPage() {
                                   className="bg-gray-50 dark:bg-slate-600 p-3 rounded-lg border dark:border-slate-500 cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-500 transition-colors"
                                   onClick={async () => {
                                     // Check if this is an ordered study without actual image
-                                    if (study.status === "ordered" || study.fileName?.includes("ORDER-") || study.fileName?.includes(".pending")) {
+                                    if (study.status === "ordered") {
                                       toast({
                                         title: "No Image Available",
                                         description: "This is an order without uploaded images. Please upload images first.",
