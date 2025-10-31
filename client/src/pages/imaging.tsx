@@ -152,6 +152,10 @@ interface ImagingStudy {
   radiologist?: string;
   reportFileName?: string;
   reportFilePath?: string;
+  orderStudyCreated?: boolean;
+  orderStudyReadyToGenerate?: boolean;
+  orderStudyGenerated?: boolean;
+  orderStudyShared?: boolean;
   images: Array<{
     id: string;
     type: "DICOM" | "JPEG" | "PNG";
@@ -1846,8 +1850,9 @@ export default function ImagingPage() {
                    study.orderStudyGenerated === false && 
                    study.status === "ordered";
     } else if (activeTab === "generate-report") {
-      // Generate Report tab: order_study_created = true AND order_study_generated = false
+      // Generate Report tab: order_study_created = true AND order_study_ready_to_generate = true AND order_study_generated = false
       matchesTab = study.orderStudyCreated === true && 
+                   study.orderStudyReadyToGenerate === true &&
                    study.orderStudyGenerated === false;
     } else if (activeTab === "imaging-results") {
       // Imaging Results tab: order_study_created = true AND order_study_generated = true AND status = Completed
@@ -2181,6 +2186,11 @@ export default function ImagingPage() {
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                             Status
                           </th>
+                          {activeTab === "order-study" && (
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                              Order Ready
+                            </th>
+                          )}
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                             Actions
                           </th>
@@ -2302,6 +2312,17 @@ export default function ImagingPage() {
                                 </div>
                               )}
                             </td>
+                            {activeTab === "order-study" && (
+                              <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                <input
+                                  type="checkbox"
+                                  checked={study.orderStudyReadyToGenerate || false}
+                                  readOnly
+                                  className="h-4 w-4 text-blue-600 rounded focus:ring-blue-500"
+                                  data-testid={`checkbox-order-ready-${study.id}`}
+                                />
+                              </td>
+                            )}
                             <td className="px-6 py-4 whitespace-nowrap text-sm">
                               <div className="flex items-center gap-2">
                                 <Button

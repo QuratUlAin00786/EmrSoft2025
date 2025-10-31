@@ -757,6 +757,7 @@ export const medicalImages = pgTable("medical_images", {
   performedAt: timestamp("performed_at"),
   // Order study tracking fields
   orderStudyCreated: boolean("order_study_created").notNull().default(false),
+  orderStudyReadyToGenerate: boolean("order_study_ready_to_generate").notNull().default(false),
   orderStudyGenerated: boolean("order_study_generated").notNull().default(false),
   orderStudyShared: boolean("order_study_shared").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
