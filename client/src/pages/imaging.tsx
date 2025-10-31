@@ -2603,11 +2603,11 @@ export default function ImagingPage() {
                                           method: "POST",
                                           headers: {
                                             "Content-Type": "application/json",
-                                            "X-Tenant-Subdomain": tenant?.subdomain || "",
+                                            "X-Tenant-Subdomain": getActiveSubdomain(),
                                             "Authorization": `Bearer ${token}`,
                                           },
                                           body: JSON.stringify({
-                                            organizationId: study.organizationId,
+                                            organizationId: user?.organizationId || study.organizationId,
                                             patientId: study.patientId,
                                             fileName: fileName
                                           }),
