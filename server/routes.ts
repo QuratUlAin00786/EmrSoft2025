@@ -13108,84 +13108,23 @@ This treatment plan should be reviewed and adjusted based on individual patient 
         });
       }
 
-      try {
-        // Try new organizational path first: uploads/Imaging_Images/{organizationId}/patients/{patientId}/
-        const organizationId = req.tenant!.id;
-        const patientId = medicalImage.patientId;
-        const organizationalPath = path.resolve(process.cwd(), 'uploads', 'Imaging_Images', String(organizationId), 'patients', String(patientId));
-        const organizationalFilePath = path.join(organizationalPath, fileName);
-        
-        console.log("📷 SERVER: Checking for image file at organizational path:", organizationalFilePath);
-        
-        // Check if the image file exists in the organizational path
-        if (await fse.pathExists(organizationalFilePath)) {
-          console.log("📷 SERVER: Image file exists in organizational path, serving from filesystem:", fileName);
-          
-          // Determine MIME type from file extension
-          const fileExtension = path.extname(fileName).toLowerCase();
-          let mimeType = medicalImage.mimeType || 'image/jpeg';
-          if (fileExtension === '.png') {
-            mimeType = 'image/png';
-          } else if (fileExtension === '.jpg' || fileExtension === '.jpeg') {
-            mimeType = 'image/jpeg';
-          }
-          
-          // Set appropriate headers
-          res.setHeader('Content-Type', mimeType);
-          res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
-          res.setHeader('Cache-Control', 'public, max-age=31536000'); // Cache for 1 year
-          
-          // Stream the file from filesystem
-          const fileStream = fs.createReadStream(organizationalFilePath);
-          fileStream.pipe(res);
-          return;
-        }
-        
-        // Fallback to legacy flat path for backward compatibility
-        const legacyFlatDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Images');
-        const legacyFilePath = path.join(legacyFlatDir, fileName);
-        
-        console.log("📷 SERVER: Checking for image file at legacy flat path:", legacyFilePath);
-        
-        if (await fse.pathExists(legacyFilePath)) {
-          console.log("📷 SERVER: Image file exists in legacy flat path, serving from filesystem:", fileName);
-          
-          // Determine MIME type from file extension
-          const fileExtension = path.extname(fileName).toLowerCase();
-          let mimeType = medicalImage.mimeType || 'image/jpeg';
-          if (fileExtension === '.png') {
-            mimeType = 'image/png';
-          } else if (fileExtension === '.jpg' || fileExtension === '.jpeg') {
-            mimeType = 'image/jpeg';
-          }
-          
-          // Set appropriate headers
-          res.setHeader('Content-Type', mimeType);
-          res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
-          res.setHeader('Cache-Control', 'public, max-age=31536000'); // Cache for 1 year
-          
-          // Stream the file from filesystem
-          const fileStream = fs.createReadStream(legacyFilePath);
-          fileStream.pipe(res);
-          return;
-        } else {
-          console.log("📷 SERVER: Image file not found at any path, falling back to database");
-        }
-      } catch (filesystemError) {
-        console.error("📷 SERVER: Error accessing filesystem image:", filesystemError);
-      }
-
-      // Fallback: Check if the image has base64 data in database
+      // FIRST PRIORITY: Check if the image has base64 data in database
       if (medicalImage.imageData) {
-        console.log("📷 SERVER: Fallback - serving image from database base64 data");
+        console.log("📷 SERVER: Serving image from database base64 data (FIRST PRIORITY)");
+        
+        // Extract base64 data (remove data:image/xxx;base64, prefix if present)
+        const base64Data = medicalImage.imageData.includes(',') 
+          ? medicalImage.imageData.split(',')[1] 
+          : medicalImage.imageData;
         
         // Set appropriate headers
         const mimeType = medicalImage.mimeType || 'image/jpeg';
         res.setHeader('Content-Type', mimeType);
         res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
+        res.setHeader('Cache-Control', 'public, max-age=31536000'); // Cache for 1 year
         
         // Convert base64 to buffer and send
-        const imageBuffer = Buffer.from(medicalImage.imageData, 'base64');
+        const imageBuffer = Buffer.from(base64Data, 'base64');
         res.send(imageBuffer);
         return;
       }
