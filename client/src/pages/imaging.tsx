@@ -1845,10 +1845,9 @@ export default function ImagingPage() {
     // Filter based on active tab
     let matchesTab = true;
     if (activeTab === "order-study") {
-      // Order Study tab: order_study_created = true AND order_study_generated = false AND status = ordered
+      // Order Study tab: order_study_created = true AND order_study_ready_to_generate = false
       matchesTab = study.orderStudyCreated === true && 
-                   study.orderStudyGenerated === false && 
-                   study.status === "ordered";
+                   study.orderStudyReadyToGenerate === false;
     } else if (activeTab === "generate-report") {
       // Generate Report tab: order_study_created = true AND order_study_ready_to_generate = true AND order_study_generated = false
       matchesTab = study.orderStudyCreated === true && 
