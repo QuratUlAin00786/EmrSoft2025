@@ -2521,7 +2521,29 @@ export default function ImagingPage() {
                           </div>
                         </div>
 
-                        {study.images && study.images.length > 0 && (
+                        {/* Display Image IDs in Order Study and Generate Report tabs */}
+                        {(activeTab === "order-study" || activeTab === "generate-report") && study.images && study.images.length > 0 && (
+                          <div>
+                            <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">
+                              Image IDs
+                            </h4>
+                            <div className="grid grid-cols-1 gap-2">
+                              {study.images.map((series: any) => (
+                                <div
+                                  key={series.id}
+                                  className="bg-gray-50 dark:bg-slate-600 p-3 rounded-lg border dark:border-slate-500"
+                                >
+                                  <div className="font-medium text-sm text-gray-900 dark:text-gray-100">
+                                    Image ID: {series.id}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Hide Image Series in Order Study and Generate Report tabs */}
+                        {activeTab !== "order-study" && activeTab !== "generate-report" && study.images && study.images.length > 0 && (
                           <div>
                             <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">
                               Image Series
@@ -2769,7 +2791,8 @@ export default function ImagingPage() {
                         </div>
                       </div>
 
-                      {study.findings && (
+                      {/* Hide Findings and Impression in Order Study and Generate Report tabs */}
+                      {activeTab !== "order-study" && activeTab !== "generate-report" && study.findings && (
                         <div className="bg-blue-50 dark:bg-slate-700 border-l-4 border-blue-400 dark:border-blue-500 p-5 pr-5 mb-4">
                           <h4 className="font-medium text-blue-700 dark:text-blue-300 text-md mb-1">
                             Findings
