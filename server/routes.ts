@@ -17962,18 +17962,30 @@ Cura EMR Team
               
               // Determine MIME type from data URL prefix or default to jpeg
               let mimeType = 'image/jpeg';
+              let fileExtension = '.jpg';
+              
               if (dbImage.imageData.includes('image/png')) {
                 mimeType = 'image/png';
+                fileExtension = '.png';
               } else if (dbImage.imageData.includes('image/webp')) {
                 mimeType = 'image/webp';
+                fileExtension = '.webp'; // Correct extension for WebP
               } else if (dbImage.imageData.includes('image/jpg') || dbImage.imageData.includes('image/jpeg')) {
                 mimeType = 'image/jpeg';
+                fileExtension = '.jpg';
+              } else if (dbImage.imageData.includes('image/gif')) {
+                mimeType = 'image/gif';
+                fileExtension = '.gif';
+              } else if (dbImage.imageData.includes('image/bmp')) {
+                mimeType = 'image/bmp';
+                fileExtension = '.bmp';
               }
+              
+              console.log(`📷 SERVER: Detected image format - MIME: ${mimeType}, Extension: ${fileExtension}`);
               
               const imageBuffer = Buffer.from(base64Data, 'base64');
               
-              // Convert to supported format if needed
-              const fileExtension = mimeType === 'image/png' ? '.png' : '.jpg';
+              // Convert to supported format if needed (WebP, GIF, BMP → JPEG)
               const { buffer: convertedBuffer, mimeType: convertedMimeType } = await convertImageToSupportedFormat(imageBuffer, fileExtension);
               
               imageBuffers.push({ buffer: convertedBuffer, mimeType: convertedMimeType });
