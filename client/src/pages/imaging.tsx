@@ -392,6 +392,7 @@ export default function ImagingPage() {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [uploadedImagePreviews, setUploadedImagePreviews] = useState<string[]>([]);
   const [uploadingImages, setUploadingImages] = useState(false);
+  const [saveImageSuccess, setSaveImageSuccess] = useState<string | null>(null);
   const [showImageViewer, setShowImageViewer] = useState(false);
   const [selectedImageSeries, setSelectedImageSeries] = useState<any>(null);
   const [deletedStudyIds, setDeletedStudyIds] = useState<Set<string>>(
@@ -1419,6 +1420,7 @@ export default function ImagingPage() {
     if (!showReportDialog) {
       setUploadedImagePreviews([]);
       setSelectedFiles([]);
+      setSaveImageSuccess(null);
     }
   }, [showReportDialog]);
 
@@ -4013,6 +4015,9 @@ export default function ImagingPage() {
                                 title: "Success",
                                 description: `Saved ${data.savedCount} image(s) to Imaging_Images folder.`,
                               });
+                              
+                              // Set success message to display below "Uploaded Images"
+                              setSaveImageSuccess(`Successfully saved ${data.savedCount} image(s) to database`);
                             } catch (error) {
                               console.error('Error saving images:', error);
                               toast({
@@ -4020,6 +4025,7 @@ export default function ImagingPage() {
                                 description: error instanceof Error ? error.message : "Failed to save images.",
                                 variant: "destructive",
                               });
+                              setSaveImageSuccess(null);
                             }
                           }}
                           data-testid="button-save-images"
@@ -4029,6 +4035,11 @@ export default function ImagingPage() {
                         </Button>
                       )}
                     </div>
+                    {saveImageSuccess && (
+                      <div className="text-sm text-green-600 dark:text-green-400 font-medium mt-1">
+                        {saveImageSuccess}
+                      </div>
+                    )}
                     <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-3">
                       {uploadingImages ? (
                         <div className="flex items-center justify-center py-6">

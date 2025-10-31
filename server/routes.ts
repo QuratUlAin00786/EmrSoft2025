@@ -17956,6 +17956,57 @@ Cura EMR Team
       // Check for image data from uploaded image filenames or database fileName and filesystem
       let imageBuffers: Array<{ buffer: Buffer; mimeType: string }> = [];
       
+      // FIRST PRIORITY: Load images from database image_data column (base64)
+      console.log("📷 SERVER: Checking for images in database image_data column...");
+      try {
+        const dbImages = await db
+          .select()
+          .from(schema.medicalImages)
+          .where(
+            and(
+              eq(schema.medicalImages.organizationId, organizationId),
+              eq(schema.medicalImages.patientId, patientId),
+              isNotNull(schema.medicalImages.imageData)
+            )
+          );
+        
+        console.log(`📷 SERVER: Found ${dbImages.length} image(s) with base64 data in database`);
+        
+        for (const dbImage of dbImages) {
+          if (dbImage.imageData) {
+            try {
+              // Extract base64 data (remove data:image/xxx;base64, prefix if present)
+              const base64Data = dbImage.imageData.includes(',') 
+                ? dbImage.imageData.split(',')[1] 
+                : dbImage.imageData;
+              
+              // Determine MIME type from data URL prefix or default to jpeg
+              let mimeType = 'image/jpeg';
+              if (dbImage.imageData.includes('image/png')) {
+                mimeType = 'image/png';
+              } else if (dbImage.imageData.includes('image/webp')) {
+                mimeType = 'image/webp';
+              } else if (dbImage.imageData.includes('image/jpg') || dbImage.imageData.includes('image/jpeg')) {
+                mimeType = 'image/jpeg';
+              }
+              
+              const imageBuffer = Buffer.from(base64Data, 'base64');
+              
+              // Convert to supported format if needed
+              const fileExtension = mimeType === 'image/png' ? '.png' : '.jpg';
+              const { buffer: convertedBuffer, mimeType: convertedMimeType } = await convertImageToSupportedFormat(imageBuffer, fileExtension);
+              
+              imageBuffers.push({ buffer: convertedBuffer, mimeType: convertedMimeType });
+              console.log(`📷 SERVER: Successfully loaded image from database (ID: ${dbImage.id}), mimeType: ${convertedMimeType}`);
+            } catch (error) {
+              console.error(`📷 SERVER: Error processing database image (ID: ${dbImage.id}):`, error);
+            }
+          }
+        }
+      } catch (error) {
+        console.error("📷 SERVER: Error querying database for images:", error);
+      }
+      
       // Load image from organizational path structure: /uploads/Imaging_Images/{organizationId}/patients/{patientId}/{image_id}.{extension}
       const imageIdFromDb = medicalImage.imageId; // e.g., IMG1761920429275I83ONC
       const fileNameFromDb = medicalImage.fileName; // Get original filename to extract extension
