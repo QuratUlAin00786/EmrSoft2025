@@ -18778,6 +18778,22 @@ Cura EMR Team
       
       console.log(`Image prescription PDF generated and saved: ${outputPath}`);
       
+      // Update the medical_images table with prescription file path and mark as ready to generate
+      const prescriptionPath = `/uploads/Image_Prescriptions/${organizationId}/patients/${medicalImage.patientId}/${fileName}`;
+      console.log(`DATABASE UPDATE: Setting prescription_file_path to: ${prescriptionPath}`);
+      console.log(`DATABASE UPDATE: Setting order_study_ready_to_generate to: true`);
+      console.log(`DATABASE UPDATE: For medical image ID: ${medicalImage.id}`);
+      
+      await db
+        .update(schema.medicalImages)
+        .set({
+          prescription_file_path: prescriptionPath,
+          order_study_ready_to_generate: true
+        })
+        .where(eq(schema.medicalImages.id, medicalImage.id));
+      
+      console.log(`DATABASE UPDATE: Successfully updated medical_images table for ID ${medicalImage.id}`);
+      
       // Generate signed token for secure access
       const fileSecret = process.env.FILE_SECRET;
       if (!fileSecret) {
