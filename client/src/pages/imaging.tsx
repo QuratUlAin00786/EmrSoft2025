@@ -1523,6 +1523,12 @@ export default function ImagingPage() {
           formData.append('modality', study.modality || '');
           formData.append('bodyPart', study.bodyPart || '');
           formData.append('indication', study.indication || '');
+          
+          // Send the study's imageId to update the existing ORDER row
+          if (study.imageId) {
+            formData.append('updateImageId', study.imageId);
+            console.log('📷 CLIENT: Updating existing ORDER row with imageId:', study.imageId);
+          }
 
           // Add all files to FormData
           selectedFiles.forEach((file, index) => {
