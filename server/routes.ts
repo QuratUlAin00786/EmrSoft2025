@@ -17956,29 +17956,38 @@ Cura EMR Team
       // Check for image data from uploaded image filenames or database fileName and filesystem
       let imageBuffers: Array<{ buffer: Buffer; mimeType: string }> = [];
       
-      // ALWAYS try to include the study's main image first (from study.fileName)
-      const fileName = study.fileName;
-      if (fileName && fileName.trim() !== '') {
+      // Load image from organizational path structure: /uploads/Imaging_Images/{organizationId}/patients/{patientId}/{image_id}.{extension}
+      const imageIdFromDb = medicalImage.imageId; // e.g., IMG1761920429275I83ONC
+      const fileNameFromDb = medicalImage.fileName; // Get original filename to extract extension
+      
+      if (imageIdFromDb && fileNameFromDb) {
         try {
-          const imagingImagesDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Images');
+          // Extract file extension from original fileName
+          const fileExtension = path.extname(fileNameFromDb).toLowerCase();
+          
+          // Construct organizational path
+          const imagingImagesDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Images', String(organizationId), 'patients', String(patientId));
           await fse.ensureDir(imagingImagesDir);
-          const imageFilePath = path.join(imagingImagesDir, fileName);
+          
+          // Construct full image path using image_id as filename
+          const imageFilePath = path.join(imagingImagesDir, `${imageIdFromDb}${fileExtension}`);
+          
+          console.log("📷 SERVER: Loading image from organizational path:", imageFilePath);
           
           if (await fse.pathExists(imageFilePath)) {
-            console.log("📷 SERVER: Loading study's main image:", fileName);
+            console.log("📷 SERVER: Image found, loading:", imageIdFromDb);
             const rawImageBuffer = await readFile(imageFilePath);
             
             // Convert image to supported format if needed
-            const fileExtension = path.extname(fileName).toLowerCase();
             const { buffer: imageBuffer, mimeType } = await convertImageToSupportedFormat(rawImageBuffer, fileExtension);
             
             imageBuffers.push({ buffer: imageBuffer, mimeType });
-            console.log("📷 SERVER: Successfully loaded study's main image:", fileName, "mimeType:", mimeType);
+            console.log("📷 SERVER: Successfully loaded image:", imageIdFromDb, "mimeType:", mimeType);
           } else {
-            console.log("📷 SERVER: Study's main image file not found:", fileName);
+            console.log("📷 SERVER: Image file not found at organizational path:", imageFilePath);
           }
         } catch (error) {
-          console.error("📷 SERVER: Error loading study's main image:", fileName, error);
+          console.error("📷 SERVER: Error loading image from organizational path:", imageIdFromDb, error);
         }
       }
       
