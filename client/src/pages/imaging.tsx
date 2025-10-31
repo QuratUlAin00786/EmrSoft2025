@@ -2282,7 +2282,7 @@ export default function ImagingPage() {
                                   <Badge className={getStatusColor(study.status)}>
                                     {study.status}
                                   </Badge>
-                                  {user?.role !== 'patient' && (
+                                  {user?.role !== 'patient' && activeTab !== "order-study" && (
                                     <Button
                                       variant="ghost"
                                       size="sm"
@@ -2422,8 +2422,8 @@ export default function ImagingPage() {
                             <Badge className={getStatusColor(study.status)}>
                               {study.status}
                             </Badge>
-                            {/* Hide Status Edit icon for patient role */}
-                            {user?.role !== 'patient' && (
+                            {/* Hide Status Edit icon for patient role and Order Study tab */}
+                            {user?.role !== 'patient' && activeTab !== "order-study" && (
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -2481,8 +2481,8 @@ export default function ImagingPage() {
                             <Badge className={getPriorityColor(study.priority)}>
                               {study.priority}
                             </Badge>
-                            {/* Hide Priority Edit icon for patient role */}
-                            {user?.role !== 'patient' && (
+                            {/* Hide Priority Edit icon for patient role and Order Study tab */}
+                            {user?.role !== 'patient' && activeTab !== "order-study" && (
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -2524,12 +2524,31 @@ export default function ImagingPage() {
                           </div>
                         </div>
 
-                        {/* Display Image IDs in Order Study and Generate Report tabs */}
-                        {(activeTab === "order-study" || activeTab === "generate-report") && (
+                        {/* Display Image IDs in Order Study, Generate Report, and Imaging Results tabs */}
+                        {(activeTab === "order-study" || activeTab === "generate-report" || activeTab === "imaging-results") && (
                           <div>
-                            <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">
-                              image_id
-                            </h4>
+                            <div className="flex items-center gap-2 mb-2">
+                              <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300">
+                                image_id
+                              </h4>
+                              {activeTab === "imaging-results" && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-6 px-2 text-xs"
+                                  onClick={() => {
+                                    // Navigate to prescriptions or show prescription dialog
+                                    toast({
+                                      title: "View Prescription",
+                                      description: "Prescription viewer functionality will be implemented here.",
+                                    });
+                                  }}
+                                >
+                                  <FileText className="h-3 w-3 mr-1" />
+                                  View Image Prescription
+                                </Button>
+                              )}
+                            </div>
                             <div className="bg-gray-50 dark:bg-slate-600 p-3 rounded-lg border dark:border-slate-500">
                               <div className="font-medium text-sm text-gray-900 dark:text-gray-100">
                                 {study.imageId || 'N/A'}
@@ -2550,6 +2569,16 @@ export default function ImagingPage() {
                                   key={series.id}
                                   className="bg-gray-50 dark:bg-slate-600 p-3 rounded-lg border dark:border-slate-500 cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-500 transition-colors"
                                   onClick={async () => {
+                                    // Check if this is an ordered study without actual image
+                                    if (study.status === "ordered" || study.fileName?.includes("ORDER-") || study.fileName?.includes(".pending")) {
+                                      toast({
+                                        title: "No Image Available",
+                                        description: "This is an order without uploaded images. Please upload images first.",
+                                        variant: "destructive",
+                                      });
+                                      return;
+                                    }
+
                                     try {
                                       const token = localStorage.getItem("auth_token");
                                       const headers: Record<string, string> = {
