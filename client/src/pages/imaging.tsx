@@ -876,7 +876,7 @@ export default function ImagingPage() {
       
       return response.json();
     },
-    onSuccess: async () => {
+    onSuccess: async (data) => {
       // Refresh the medical images to get updated data
       await refetchImages();
       
@@ -890,9 +890,13 @@ export default function ImagingPage() {
       setUploadedFile(null);
       setEditingStudyId(null);
       
+      // Get organization ID for the path display
+      const organizationId = user?.organizationId || 0;
+      const filePath = `/uploads/Imaging_Images/${data.keptFilename}`;
+      
       toast({
-        title: "Image Updated Successfully",
-        description: "The medical image has been replaced with the new file.",
+        title: "Image Saved Successfully",
+        description: `File saved to: ${filePath}`,
       });
     },
     onError: (error: any) => {
