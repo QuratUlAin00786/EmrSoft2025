@@ -810,10 +810,18 @@ export function DoctorList({
           return false;
         }
         
-        // Apply medical specialty filter when role is doctor
-        if (filterRole === 'doctor' && filterSpecialty && filterSpecialty !== 'all' && filterSpecialty !== '') {
-          if (doctor.medicalSpecialtyCategory !== filterSpecialty) {
-            return false;
+        // Apply specialty/subcategory filter based on role
+        if (filterSpecialty && filterSpecialty !== 'all' && filterSpecialty !== '') {
+          if (filterRole === 'doctor') {
+            // For doctors, filter by medicalSpecialtyCategory
+            if (doctor.medicalSpecialtyCategory !== filterSpecialty) {
+              return false;
+            }
+          } else if (['lab_technician', 'aesthetician', 'optician', 'paramedic', 'physiotherapist'].includes(filterRole)) {
+            // For other roles, filter by subSpecialty
+            if (doctor.subSpecialty !== filterSpecialty) {
+              return false;
+            }
           }
         }
         
@@ -834,10 +842,18 @@ export function DoctorList({
           return false;
         }
         
-        // Apply medical specialty filter when role is doctor
-        if (filterRole === 'doctor' && filterSpecialty && filterSpecialty !== 'all' && filterSpecialty !== '') {
-          if (staff.medicalSpecialtyCategory !== filterSpecialty) {
-            return false;
+        // Apply specialty/subcategory filter based on role
+        if (filterSpecialty && filterSpecialty !== 'all' && filterSpecialty !== '') {
+          if (filterRole === 'doctor') {
+            // For doctors, filter by medicalSpecialtyCategory
+            if (staff.medicalSpecialtyCategory !== filterSpecialty) {
+              return false;
+            }
+          } else if (['lab_technician', 'aesthetician', 'optician', 'paramedic', 'physiotherapist'].includes(filterRole)) {
+            // For other roles, filter by subSpecialty
+            if (staff.subSpecialty !== filterSpecialty) {
+              return false;
+            }
           }
         }
         

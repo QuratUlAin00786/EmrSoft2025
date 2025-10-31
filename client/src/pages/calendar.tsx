@@ -182,6 +182,106 @@ const medicalSpecialtyCategories = [
   "Others"
 ];
 
+// Lab Technician Subcategories
+const labTechnicianSubcategories = [
+  "Phlebotomy Technician",
+  "Medical Laboratory Technician (MLT)",
+  "Clinical Chemistry Technician",
+  "Hematology Technician",
+  "Microbiology Technician",
+  "Pathology Technician",
+  "Histology Technician",
+  "Cytology Technician",
+  "Immunology Technician",
+  "Molecular Biology Technician",
+  "Serology Technician",
+  "Toxicology Technician",
+  "Biochemistry Technician",
+  "Blood Bank Technician",
+  "Urinalysis Technician",
+  "Lab Information Technician (LIS)",
+  "Forensic Lab Technician",
+  "Environmental Lab Technician",
+  "Quality Control Lab Technician",
+  "Research Lab Technician"
+];
+
+// Aesthetician Subcategories
+const aestheticianSubcategories = [
+  "Medical Aesthetician",
+  "Clinical Aesthetician",
+  "Spa Aesthetician",
+  "Laser Technician",
+  "Paramedical Aesthetician",
+  "Oncology Aesthetician",
+  "Acne Specialist",
+  "Anti-Aging Aesthetician",
+  "Cosmetic Tattoo Technician",
+  "Chemical Peel Specialist",
+  "Microneedling Specialist",
+  "Hydrafacial Specialist",
+  "Body Contouring Specialist",
+  "Eyebrow & Eyelash Technician",
+  "Waxing / Hair Removal Specialist",
+  "Makeup Artist (Certified Aesthetician)",
+  "Dermaplaning Specialist",
+  "Aesthetic Trainer / Educator",
+  "Natural / Organic Aesthetician"
+];
+
+// Optician Subcategories
+const opticianSubcategories = [
+  "Dispensing Optician",
+  "Contact Lens Optician",
+  "Pediatric Optician",
+  "Low Vision Optician",
+  "Ophthalmic Optician",
+  "Retail/Store Optician",
+  "Technical/Manufacturing Optician",
+  "Refractive Surgery Optician",
+  "Frame Stylist/Optical Consultant",
+  "Clinical Optician",
+  "Mobile/Field Optician"
+];
+
+// Paramedic Subcategories
+const paramedicSubcategories = [
+  "Emergency Medical Technician (EMT)",
+  "Advanced EMT (AEMT)",
+  "Critical Care Paramedic",
+  "Flight Paramedic",
+  "Tactical Paramedic",
+  "Community Paramedic",
+  "Rescue Paramedic",
+  "Industrial/Occupational Paramedic",
+  "Firefighter Paramedic",
+  "Event Paramedic",
+  "Pediatric Paramedic",
+  "Geriatric Paramedic",
+  "Ambulance Paramedic",
+  "Disaster Response Paramedic",
+  "Remote Area Paramedic",
+  "Paramedic Instructor",
+  "Telemedicine Paramedic",
+  "Sports Paramedic"
+];
+
+// Physiotherapist Subcategories
+const physiotherapistSubcategories = [
+  "Orthopedic Physiotherapist",
+  "Sports Physiotherapist",
+  "Neurological Physiotherapist",
+  "Pediatric Physiotherapist",
+  "Geriatric Physiotherapist",
+  "Cardiopulmonary Physiotherapist",
+  "Musculoskeletal Physiotherapist",
+  "Women's Health Physiotherapist",
+  "Vestibular Rehabilitation Physiotherapist",
+  "Oncology Physiotherapist",
+  "Hand Therapy Physiotherapist",
+  "Aquatic Physiotherapist"
+];
+
 export default function CalendarPage() {
   const { user } = useAuth();
   const [selectedDoctor, setSelectedDoctor] = useState<any>(null);
@@ -1684,6 +1784,101 @@ export default function CalendarPage() {
                           {medicalSpecialtyCategories.map((category) => (
                             <SelectItem key={category} value={category}>
                               {category}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                    
+                    {staffFilterRole === 'lab_technician' && (
+                      <Select 
+                        value={staffFilterSpecialty} 
+                        onValueChange={setStaffFilterSpecialty}
+                      >
+                        <SelectTrigger className="w-full" data-testid="select-staff-lab-subcategory">
+                          <SelectValue placeholder="Lab Technician Subcategory" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Subcategories</SelectItem>
+                          {labTechnicianSubcategories.map((subcategory) => (
+                            <SelectItem key={subcategory} value={subcategory}>
+                              {subcategory}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                    
+                    {staffFilterRole === 'aesthetician' && (
+                      <Select 
+                        value={staffFilterSpecialty} 
+                        onValueChange={setStaffFilterSpecialty}
+                      >
+                        <SelectTrigger className="w-full" data-testid="select-staff-aesthetician-subcategory">
+                          <SelectValue placeholder="Aesthetician Subcategory" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Subcategories</SelectItem>
+                          {aestheticianSubcategories.map((subcategory) => (
+                            <SelectItem key={subcategory} value={subcategory}>
+                              {subcategory}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                    
+                    {staffFilterRole === 'optician' && (
+                      <Select 
+                        value={staffFilterSpecialty} 
+                        onValueChange={setStaffFilterSpecialty}
+                      >
+                        <SelectTrigger className="w-full" data-testid="select-staff-optician-subcategory">
+                          <SelectValue placeholder="Optician Subcategory" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Subcategories</SelectItem>
+                          {opticianSubcategories.map((subcategory) => (
+                            <SelectItem key={subcategory} value={subcategory}>
+                              {subcategory}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                    
+                    {staffFilterRole === 'paramedic' && (
+                      <Select 
+                        value={staffFilterSpecialty} 
+                        onValueChange={setStaffFilterSpecialty}
+                      >
+                        <SelectTrigger className="w-full" data-testid="select-staff-paramedic-subcategory">
+                          <SelectValue placeholder="Paramedic Subcategory" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Subcategories</SelectItem>
+                          {paramedicSubcategories.map((subcategory) => (
+                            <SelectItem key={subcategory} value={subcategory}>
+                              {subcategory}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                    
+                    {staffFilterRole === 'physiotherapist' && (
+                      <Select 
+                        value={staffFilterSpecialty} 
+                        onValueChange={setStaffFilterSpecialty}
+                      >
+                        <SelectTrigger className="w-full" data-testid="select-staff-physiotherapist-subcategory">
+                          <SelectValue placeholder="Physiotherapist Subcategory" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Subcategories</SelectItem>
+                          {physiotherapistSubcategories.map((subcategory) => (
+                            <SelectItem key={subcategory} value={subcategory}>
+                              {subcategory}
                             </SelectItem>
                           ))}
                         </SelectContent>
