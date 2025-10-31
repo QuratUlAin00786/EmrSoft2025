@@ -3837,78 +3837,80 @@ export default function ImagingPage() {
                     </div>
                   </div>
                 )}
-            )}
+              </div>
+            </div>
+          )}
 
-            <div className="flex justify-between items-center pt-4 border-t">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowReportDialog(false)}
-                >
-                  Close
-                </Button>
-                <div className="flex gap-2">
-                  {/* Hide both button and green box during PDF generation */}
-                  {!isGeneratingPDF ? (
-                    generatedReportId ? (
-                      <div className="space-y-3">
-                        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                          <div className="flex items-center gap-2 mb-2">
-                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                            <span className="text-green-700 font-medium">
-                              Report Generated Successfully!
-                            </span>
-                          </div>
-                          <div className="text-sm text-green-600">
-                            <strong>Report File:</strong>
-                            <Button
-                              variant="link"
-                              onClick={() => viewPDFReport(generatedReportId)}
-                              className="p-0 h-auto ml-2 text-blue-600 hover:text-blue-800 underline"
-                              data-testid="link-report-view"
-                            >
-                              {generatedReportFileName ||
-                                `${generatedReportId.slice(0, 8)}...`}
-                            </Button>
-                          </div>
-                          <p className="text-xs text-green-600 mt-1">
-                            Click the file name to view the PDF
-                          </p>
-                        </div>
-                      </div>
-                    ) : (
-                      <Button
-                        onClick={() => {
-                          if (selectedStudy && selectedStudy.status === "final") {
-                            setShowReportDialog(false);
-                            setShowFinalReportDialog(true);
-                          } else if (selectedStudy) {
-                            generatePDFReport(selectedStudy);
-                          }
-                        }}
-                        disabled={isGeneratingPDF}
-                        className="bg-medical-blue hover:bg-blue-700 disabled:opacity-50"
-                        data-testid="button-generate-report"
-                      >
-                        <FileText className="h-4 w-4 mr-2" />
-                        {isGeneratingPDF
-                          ? "Generating..."
-                          : selectedStudy?.status === "final"
-                            ? "View Final Report"
-                            : "Generate Report"}
-                      </Button>
-                    )
-                  ) : (
-                    <div className="flex items-center justify-center py-8">
-                      <div className="flex items-center gap-3 text-blue-600">
-                        <Loader2 className="h-5 w-5 animate-spin" />
-                        <span className="text-sm font-medium">
-                          Generating PDF Report...
+          <div className="flex justify-between items-center pt-4 border-t">
+            <Button
+              variant="outline"
+              onClick={() => setShowReportDialog(false)}
+            >
+              Close
+            </Button>
+            <div className="flex gap-2">
+              {/* Hide both button and green box during PDF generation */}
+              {!isGeneratingPDF ? (
+                generatedReportId ? (
+                  <div className="space-y-3">
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span className="text-green-700 font-medium">
+                          Report Generated Successfully!
                         </span>
                       </div>
+                      <div className="text-sm text-green-600">
+                        <strong>Report File:</strong>
+                        <Button
+                          variant="link"
+                          onClick={() => viewPDFReport(generatedReportId)}
+                          className="p-0 h-auto ml-2 text-blue-600 hover:text-blue-800 underline"
+                          data-testid="link-report-view"
+                        >
+                          {generatedReportFileName ||
+                            `${generatedReportId.slice(0, 8)}...`}
+                        </Button>
+                      </div>
+                      <p className="text-xs text-green-600 mt-1">
+                        Click the file name to view the PDF
+                      </p>
                     </div>
-                  )}
+                  </div>
+                ) : (
+                  <Button
+                    onClick={() => {
+                      if (selectedStudy && selectedStudy.status === "final") {
+                        setShowReportDialog(false);
+                        setShowFinalReportDialog(true);
+                      } else if (selectedStudy) {
+                        generatePDFReport(selectedStudy);
+                      }
+                    }}
+                    disabled={isGeneratingPDF}
+                    className="bg-medical-blue hover:bg-blue-700 disabled:opacity-50"
+                    data-testid="button-generate-report"
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    {isGeneratingPDF
+                      ? "Generating..."
+                      : selectedStudy?.status === "final"
+                        ? "View Final Report"
+                        : "Generate Report"}
+                  </Button>
+                )
+              ) : (
+                <div className="flex items-center justify-center py-8">
+                  <div className="flex items-center gap-3 text-blue-600">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span className="text-sm font-medium">
+                      Generating PDF Report...
+                    </span>
+                  </div>
                 </div>
-              </div>
+              )}
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 
