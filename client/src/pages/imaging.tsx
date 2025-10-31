@@ -2525,22 +2525,15 @@ export default function ImagingPage() {
                         </div>
 
                         {/* Display Image IDs in Order Study and Generate Report tabs */}
-                        {(activeTab === "order-study" || activeTab === "generate-report") && study.images && study.images.length > 0 && (
+                        {(activeTab === "order-study" || activeTab === "generate-report") && (
                           <div>
                             <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">
-                              Image IDs
+                              image_id
                             </h4>
-                            <div className="grid grid-cols-1 gap-2">
-                              {study.images.map((series: any) => (
-                                <div
-                                  key={series.id}
-                                  className="bg-gray-50 dark:bg-slate-600 p-3 rounded-lg border dark:border-slate-500"
-                                >
-                                  <div className="font-medium text-sm text-gray-900 dark:text-gray-100">
-                                    Image ID: {series.id}
-                                  </div>
-                                </div>
-                              ))}
+                            <div className="bg-gray-50 dark:bg-slate-600 p-3 rounded-lg border dark:border-slate-500">
+                              <div className="font-medium text-sm text-gray-900 dark:text-gray-100">
+                                {study.imageId || 'N/A'}
+                              </div>
                             </div>
                           </div>
                         )}
@@ -2595,8 +2588,35 @@ export default function ImagingPage() {
                               )}
                             </div>
 
-                            {/* Hide Scheduled and Performed dates in Order Study tab */}
-                            {activeTab !== "order-study" && (
+                            {/* Hide Scheduled and Performed dates in Order Study and Generate Report tabs */}
+                            {activeTab === "imaging-results" && (
+                              <>
+                                {/* Scheduled Date - Display only (no edit) */}
+                                {study.scheduledAt && (
+                                  <div>
+                                    <strong>Scheduled:</strong>{" "}
+                                    {format(
+                                      new Date(study.scheduledAt),
+                                      "MMM d, yyyy HH:mm",
+                                    )}
+                                  </div>
+                                )}
+                                
+                                {/* Performed Date - Display only (no edit) */}
+                                {study.performedAt && (
+                                  <div>
+                                    <strong>Performed:</strong>{" "}
+                                    {format(
+                                      new Date(study.performedAt),
+                                      "MMM d, yyyy HH:mm",
+                                    )}
+                                  </div>
+                                )}
+                              </>
+                            )}
+
+                            {/* Keep editable dates for Generate Report tab only */}
+                            {activeTab === "generate-report" && (
                               <>
                                 {/* Scheduled Date - Editable */}
                                 <div className="flex items-center gap-2 flex-wrap">
