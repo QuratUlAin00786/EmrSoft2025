@@ -3875,10 +3875,10 @@ export default function ImagingPage() {
                     ) : (
                       <Button
                         onClick={() => {
-                          if (selectedStudy.status === "final") {
+                          if (selectedStudy && selectedStudy.status === "final") {
                             setShowReportDialog(false);
                             setShowFinalReportDialog(true);
-                          } else {
+                          } else if (selectedStudy) {
                             generatePDFReport(selectedStudy);
                           }
                         }}
@@ -3889,7 +3889,7 @@ export default function ImagingPage() {
                         <FileText className="h-4 w-4 mr-2" />
                         {isGeneratingPDF
                           ? "Generating..."
-                          : selectedStudy.status === "final"
+                          : selectedStudy?.status === "final"
                             ? "View Final Report"
                             : "Generate Report"}
                       </Button>
