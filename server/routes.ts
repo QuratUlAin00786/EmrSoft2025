@@ -19596,7 +19596,7 @@ Cura EMR Team
     }
   });
 
-  // Save Uploaded Images to Imaging_Images Folder
+  // Save Uploaded Images to Imaging_Images Folder and Database (as base64)
   app.post("/api/imaging/save-uploaded-images", authMiddleware, requireRole(["doctor", "nurse", "admin"]), async (req: TenantRequest, res) => {
     try {
       console.log("SAVE UPLOADED IMAGES: Starting...");
@@ -19660,9 +19660,42 @@ Cura EMR Team
             // Copy file to Imaging_Images folder
             await fse.copy(sourcePath, destPath);
             
+            // Read image file and convert to base64
+            const imageBuffer = await readFile(sourcePath);
+            const base64Image = imageBuffer.toString('base64');
+            const mimeType = `image/${fileExtension}`;
+            const base64WithPrefix = `data:${mimeType};base64,${base64Image}`;
+            
+            // Find all medical_images records for this patient and organization that need updating
+            const medicalImages = await db
+              .select()
+              .from(schema.medicalImages)
+              .where(
+                and(
+                  eq(schema.medicalImages.organizationId, organizationId),
+                  eq(schema.medicalImages.patientId, patientId),
+                  isNull(schema.medicalImages.imageData) // Only update records without imageData
+                )
+              );
+            
+            // Update the first available record with base64 image data
+            if (medicalImages.length > 0) {
+              const recordToUpdate = medicalImages[0];
+              await db
+                .update(schema.medicalImages)
+                .set({
+                  imageData: base64WithPrefix,
+                  updatedAt: new Date()
+                })
+                .where(eq(schema.medicalImages.id, recordToUpdate.id));
+              
+              console.log(`SAVE UPLOADED IMAGES: Saved ${uniqueFileName} and updated image_data for medical_images ID: ${recordToUpdate.id}`);
+            } else {
+              console.log(`SAVE UPLOADED IMAGES: Saved ${uniqueFileName} to filesystem (no available medical_images record to update)`);
+            }
+            
             savedFiles.push(uniqueFileName);
             savedCount++;
-            console.log(`SAVE UPLOADED IMAGES: Saved ${uniqueFileName}`);
           } else {
             console.log(`SAVE UPLOADED IMAGES: Source file not found: ${sourcePath}`);
           }
@@ -19678,7 +19711,7 @@ Cura EMR Team
         savedCount,
         savedFiles,
         directory: imagingImagesDir,
-        message: `Successfully saved ${savedCount} image(s) to Imaging_Images folder`
+        message: `Successfully saved ${savedCount} image(s) to Imaging_Images folder and database`
       });
 
     } catch (error) {
