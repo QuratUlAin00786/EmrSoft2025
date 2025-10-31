@@ -1849,10 +1849,9 @@ export default function ImagingPage() {
       matchesTab = study.orderStudyCreated === true && 
                    study.orderStudyReadyToGenerate === false;
     } else if (activeTab === "generate-report") {
-      // Generate Report tab: order_study_created = true AND order_study_ready_to_generate = true AND order_study_generated = false
+      // Generate Report tab: order_study_created = true AND order_study_ready_to_generate = true
       matchesTab = study.orderStudyCreated === true && 
-                   study.orderStudyReadyToGenerate === true &&
-                   study.orderStudyGenerated === false;
+                   study.orderStudyReadyToGenerate === true;
     } else if (activeTab === "imaging-results") {
       // Imaging Results tab: order_study_created = true AND order_study_generated = true AND status = Completed
       matchesTab = study.orderStudyCreated === true && 
