@@ -13092,6 +13092,15 @@ This treatment plan should be reviewed and adjusted based on individual patient 
         return res.status(404).json({ error: "Image file name not available" });
       }
 
+      // Check if this is a pending order without actual image files
+      if (fileName.endsWith('.pending') || medicalImage.status === 'ordered') {
+        return res.status(404).json({ 
+          error: "No image available",
+          message: "This is an order without uploaded images. Please upload images first.",
+          isPending: true
+        });
+      }
+
       try {
         // Try new organizational path first: uploads/Imaging_Images/{organizationId}/patients/{patientId}/
         const organizationId = req.tenant!.id;
