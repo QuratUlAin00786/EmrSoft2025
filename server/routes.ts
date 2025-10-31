@@ -18638,15 +18638,15 @@ Cura EMR Team
         color: darkText
       });
       
-      page.drawText(req.user?.firstName && req.user?.lastName 
-        ? `${req.user.firstName} ${req.user.lastName}` 
-        : 'May Bubushia', {
-        x: width - 180,
-        y: yPosition + 35,
-        size: 8,
-        font,
-        color: darkText
-      });
+      if (req.user?.firstName && req.user?.lastName) {
+        page.drawText(`${req.user.firstName} ${req.user.lastName}`, {
+          x: width - 180,
+          y: yPosition + 35,
+          size: 8,
+          font,
+          color: darkText
+        });
+      }
       
       // FOOTER SECTION
       const footerY = 30;

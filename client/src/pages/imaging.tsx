@@ -3388,7 +3388,7 @@ export default function ImagingPage() {
                           data-testid="button-image-prescription"
                           className="border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300"
                         >
-                          <Pill className="h-4 w-4" />
+                          <Save className="h-4 w-4" />
                         </Button>
                       )}
                       
