@@ -2570,189 +2570,194 @@ export default function ImagingPage() {
                               )}
                             </div>
 
-                            {/* Scheduled Date - Editable */}
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span>
-                                <strong>Scheduled:</strong>
-                              </span>
-                              {selectedStudy?.id === study.id &&
-                              editModes.scheduledAt ? (
+                            {/* Hide Scheduled and Performed dates in Order Study tab */}
+                            {activeTab !== "order-study" && (
+                              <>
+                                {/* Scheduled Date - Editable */}
                                 <div className="flex items-center gap-2 flex-wrap">
-                                  <Popover>
-                                    <PopoverTrigger asChild>
+                                  <span>
+                                    <strong>Scheduled:</strong>
+                                  </span>
+                                  {selectedStudy?.id === study.id &&
+                                  editModes.scheduledAt ? (
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                      <Popover>
+                                        <PopoverTrigger asChild>
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className={`w-auto justify-start text-left font-normal ${
+                                              !scheduledDate &&
+                                              "text-muted-foreground"
+                                            }`}
+                                          >
+                                            {scheduledDate ? (
+                                              format(scheduledDate, "MMM d, yyyy")
+                                            ) : (
+                                              <span>Pick a date</span>
+                                            )}
+                                          </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0">
+                                          <Calendar
+                                            mode="single"
+                                            selected={scheduledDate}
+                                            onSelect={setScheduledDate}
+                                            initialFocus
+                                          />
+                                        </PopoverContent>
+                                      </Popover>
+                                      <Input
+                                        type="time"
+                                        value={scheduledTime}
+                                        onChange={(e) => setScheduledTime(e.target.value)}
+                                        className="w-32 h-8"
+                                        data-testid="input-scheduled-time"
+                                      />
+                                      <Button
+                                        size="sm"
+                                        onClick={() =>
+                                          handleFieldSave("scheduledAt")
+                                        }
+                                        disabled={saving.scheduledAt}
+                                        data-testid="button-save-scheduled-date"
+                                      >
+                                        {saving.scheduledAt ? "Saving..." : "Save"}
+                                      </Button>
                                       <Button
                                         variant="outline"
                                         size="sm"
-                                        className={`w-auto justify-start text-left font-normal ${
-                                          !scheduledDate &&
-                                          "text-muted-foreground"
-                                        }`}
+                                        onClick={() =>
+                                          handleFieldCancel("scheduledAt")
+                                        }
+                                        disabled={saving.scheduledAt}
+                                        data-testid="button-cancel-scheduled-date"
                                       >
-                                        {scheduledDate ? (
-                                          format(scheduledDate, "MMM d, yyyy")
-                                        ) : (
-                                          <span>Pick a date</span>
-                                        )}
+                                        Cancel
                                       </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0">
-                                      <Calendar
-                                        mode="single"
-                                        selected={scheduledDate}
-                                        onSelect={setScheduledDate}
-                                        initialFocus
-                                      />
-                                    </PopoverContent>
-                                  </Popover>
-                                  <Input
-                                    type="time"
-                                    value={scheduledTime}
-                                    onChange={(e) => setScheduledTime(e.target.value)}
-                                    className="w-32 h-8"
-                                    data-testid="input-scheduled-time"
-                                  />
-                                  <Button
-                                    size="sm"
-                                    onClick={() =>
-                                      handleFieldSave("scheduledAt")
-                                    }
-                                    disabled={saving.scheduledAt}
-                                    data-testid="button-save-scheduled-date"
-                                  >
-                                    {saving.scheduledAt ? "Saving..." : "Save"}
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() =>
-                                      handleFieldCancel("scheduledAt")
-                                    }
-                                    disabled={saving.scheduledAt}
-                                    data-testid="button-cancel-scheduled-date"
-                                  >
-                                    Cancel
-                                  </Button>
-                                </div>
-                              ) : (
-                                <div className="flex items-center gap-2">
-                                  <span>
-                                    {study.scheduledAt
-                                      ? format(
-                                          new Date(study.scheduledAt),
-                                          "MMM d, yyyy HH:mm",
-                                        )
-                                      : "Not scheduled"}
-                                  </span>
-                                  {/* Hide Scheduled Date Edit icon for patient role */}
-                                  {user?.role !== 'patient' && (
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => {
-                                        setSelectedStudyId(study.id);
-                                        handleFieldEdit("scheduledAt");
-                                      }}
-                                      className="h-6 w-6 p-0"
-                                      data-testid="button-edit-scheduled-date"
-                                    >
-                                      <Edit className="h-3 w-3 text-gray-400" />
-                                    </Button>
+                                    </div>
+                                  ) : (
+                                    <div className="flex items-center gap-2">
+                                      <span>
+                                        {study.scheduledAt
+                                          ? format(
+                                              new Date(study.scheduledAt),
+                                              "MMM d, yyyy HH:mm",
+                                            )
+                                          : "Not scheduled"}
+                                      </span>
+                                      {/* Hide Scheduled Date Edit icon for patient role */}
+                                      {user?.role !== 'patient' && (
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => {
+                                            setSelectedStudyId(study.id);
+                                            handleFieldEdit("scheduledAt");
+                                          }}
+                                          className="h-6 w-6 p-0"
+                                          data-testid="button-edit-scheduled-date"
+                                        >
+                                          <Edit className="h-3 w-3 text-gray-400" />
+                                        </Button>
+                                      )}
+                                    </div>
                                   )}
                                 </div>
-                              )}
-                            </div>
 
-                            {/* Performed Date - Editable */}
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span>
-                                <strong>Performed:</strong>
-                              </span>
-                              {selectedStudy?.id === study.id &&
-                              editModes.performedAt ? (
+                                {/* Performed Date - Editable */}
                                 <div className="flex items-center gap-2 flex-wrap">
-                                  <Popover>
-                                    <PopoverTrigger asChild>
+                                  <span>
+                                    <strong>Performed:</strong>
+                                  </span>
+                                  {selectedStudy?.id === study.id &&
+                                  editModes.performedAt ? (
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                      <Popover>
+                                        <PopoverTrigger asChild>
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className={`w-auto justify-start text-left font-normal ${
+                                              !performedDate &&
+                                              "text-muted-foreground"
+                                            }`}
+                                          >
+                                            {performedDate ? (
+                                              format(performedDate, "MMM d, yyyy")
+                                            ) : (
+                                              <span>Pick a date</span>
+                                            )}
+                                          </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0">
+                                          <Calendar
+                                            mode="single"
+                                            selected={performedDate}
+                                            onSelect={setPerformedDate}
+                                            initialFocus
+                                          />
+                                        </PopoverContent>
+                                      </Popover>
+                                      <Input
+                                        type="time"
+                                        value={performedTime}
+                                        onChange={(e) => setPerformedTime(e.target.value)}
+                                        className="w-32 h-8"
+                                        data-testid="input-performed-time"
+                                      />
+                                      <Button
+                                        size="sm"
+                                        onClick={() =>
+                                          handleFieldSave("performedAt")
+                                        }
+                                        disabled={saving.performedAt}
+                                        data-testid="button-save-performed-date"
+                                      >
+                                        {saving.performedAt ? "Saving..." : "Save"}
+                                      </Button>
                                       <Button
                                         variant="outline"
                                         size="sm"
-                                        className={`w-auto justify-start text-left font-normal ${
-                                          !performedDate &&
-                                          "text-muted-foreground"
-                                        }`}
+                                        onClick={() =>
+                                          handleFieldCancel("performedAt")
+                                        }
+                                        disabled={saving.performedAt}
+                                        data-testid="button-cancel-performed-date"
                                       >
-                                        {performedDate ? (
-                                          format(performedDate, "MMM d, yyyy")
-                                        ) : (
-                                          <span>Pick a date</span>
-                                        )}
+                                        Cancel
                                       </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0">
-                                      <Calendar
-                                        mode="single"
-                                        selected={performedDate}
-                                        onSelect={setPerformedDate}
-                                        initialFocus
-                                      />
-                                    </PopoverContent>
-                                  </Popover>
-                                  <Input
-                                    type="time"
-                                    value={performedTime}
-                                    onChange={(e) => setPerformedTime(e.target.value)}
-                                    className="w-32 h-8"
-                                    data-testid="input-performed-time"
-                                  />
-                                  <Button
-                                    size="sm"
-                                    onClick={() =>
-                                      handleFieldSave("performedAt")
-                                    }
-                                    disabled={saving.performedAt}
-                                    data-testid="button-save-performed-date"
-                                  >
-                                    {saving.performedAt ? "Saving..." : "Save"}
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() =>
-                                      handleFieldCancel("performedAt")
-                                    }
-                                    disabled={saving.performedAt}
-                                    data-testid="button-cancel-performed-date"
-                                  >
-                                    Cancel
-                                  </Button>
-                                </div>
-                              ) : (
-                                <div className="flex items-center gap-2">
-                                  <span>
-                                    {study.performedAt
-                                      ? format(
-                                          new Date(study.performedAt),
-                                          "MMM d, yyyy HH:mm",
-                                        )
-                                      : "Not performed"}
-                                  </span>
-                                  {/* Hide inline Edit icon for patient role */}
-                                  {user?.role !== 'patient' && (
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => {
-                                        setSelectedStudyId(study.id);
-                                        handleFieldEdit("performedAt");
-                                      }}
-                                      className="h-6 w-6 p-0"
-                                      data-testid="button-edit-performed-date"
-                                    >
-                                      <Edit className="h-3 w-3 text-gray-400" />
-                                    </Button>
+                                    </div>
+                                  ) : (
+                                    <div className="flex items-center gap-2">
+                                      <span>
+                                        {study.performedAt
+                                          ? format(
+                                              new Date(study.performedAt),
+                                              "MMM d, yyyy HH:mm",
+                                            )
+                                          : "Not performed"}
+                                      </span>
+                                      {/* Hide inline Edit icon for patient role */}
+                                      {user?.role !== 'patient' && (
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => {
+                                            setSelectedStudyId(study.id);
+                                            handleFieldEdit("performedAt");
+                                          }}
+                                          className="h-6 w-6 p-0"
+                                          data-testid="button-edit-performed-date"
+                                        >
+                                          <Edit className="h-3 w-3 text-gray-400" />
+                                        </Button>
+                                      )}
+                                    </div>
                                   )}
                                 </div>
-                              )}
-                            </div>
+                              </>
+                            )}
 
                             {study.radiologist && (
                               <div>
