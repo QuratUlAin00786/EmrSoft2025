@@ -18782,13 +18782,15 @@ Cura EMR Team
       const prescriptionPath = `/uploads/Image_Prescriptions/${organizationId}/patients/${medicalImage.patientId}/${fileName}`;
       console.log(`DATABASE UPDATE: Setting prescriptionFilePath to: ${prescriptionPath}`);
       console.log(`DATABASE UPDATE: Setting orderStudyReadyToGenerate to: true`);
+      console.log(`DATABASE UPDATE: Setting status to: in_progress`);
       console.log(`DATABASE UPDATE: For medical image ID: ${medicalImage.id}`);
       
       await db
         .update(schema.medicalImages)
         .set({
           prescriptionFilePath: prescriptionPath,
-          orderStudyReadyToGenerate: true
+          orderStudyReadyToGenerate: true,
+          status: 'in_progress'
         })
         .where(eq(schema.medicalImages.id, medicalImage.id));
       
