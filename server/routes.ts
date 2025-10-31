@@ -19428,17 +19428,18 @@ Cura EMR Team
       await fse.writeFile(filePath, pdfBytes);
       console.log(`SAVE PRESCRIPTION: PDF saved to ${filePath}`);
       
-      // Update the medical_images table with prescription link and mark as ready to generate
+      // Update the medical_images table with prescription file path and mark as ready to generate
+      const prescriptionPath = `/uploads/Image_Prescriptions/${fileName}`;
       await db
         .update(schema.medicalImages)
         .set({ 
-          prescriptionLink: `/uploads/Image_Prescriptions/${fileName}`,
+          prescriptionFilePath: prescriptionPath,
           orderStudyReadyToGenerate: true,
           updatedAt: new Date()
         })
         .where(eq(schema.medicalImages.id, studyId));
       
-      console.log(`SAVE PRESCRIPTION: Database updated with prescription link`);
+      console.log(`SAVE PRESCRIPTION: Database updated with prescription path: ${prescriptionPath}`);
       
       res.json({
         success: true,

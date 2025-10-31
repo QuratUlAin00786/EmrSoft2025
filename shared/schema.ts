@@ -746,6 +746,7 @@ export const medicalImages = pgTable("medical_images", {
   // Generated PDF report storage
   reportFileName: text("report_file_name"), // Generated PDF report file name
   reportFilePath: text("report_file_path"), // Generated PDF report file path
+  prescriptionFilePath: text("prescription_file_path"), // Prescription PDF file path
   metadata: jsonb("metadata").$type<{
     imageCount?: number;
     totalSize?: string;
