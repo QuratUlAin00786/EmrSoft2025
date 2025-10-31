@@ -12978,28 +12978,44 @@ This treatment plan should be reviewed and adjusted based on individual patient 
         return res.status(404).json({ error: "Patient not found" });
       }
 
+      const organizationId = req.tenant!.id;
+      const patientId = existingImage.patientId;
+
       console.log('🔄 SERVER: Replace request for existing image:', {
         imageId,
         existingFileName: existingImage.fileName,
         tempFileName: req.file.filename,
         patientId: patient.id,
-        patientStringId: patient.patientId
+        patientStringId: patient.patientId,
+        organizationId
       });
 
       // Keep the same filename as the existing image
       const keepFilename = existingImage.fileName;
       
-      const imagingImagesDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Images');
-      const tempFilePath = path.join(imagingImagesDir, req.file.filename);
+      // Create organizational directory structure: uploads/Imaging_Images/{organizationId}/patients/{patientId}/
+      const imagingImagesDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Images', String(organizationId), 'patients', String(patientId));
+      await fse.ensureDir(imagingImagesDir);
+      
+      const tempUploadDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Images');
+      const tempFilePath = path.join(tempUploadDir, req.file.filename);
       const finalFilePath = path.join(imagingImagesDir, keepFilename);
 
-      // Delete old file from filesystem if it exists
+      // Delete old file from filesystem if it exists (check both old and new locations)
       if (existingImage.fileName) {
         try {
-          const oldFilePath = path.join(imagingImagesDir, existingImage.fileName);
-          if (await fse.pathExists(oldFilePath)) {
-            await fse.remove(oldFilePath);
-            console.log('📷 SERVER: Deleted old image file:', existingImage.fileName);
+          // Try new organizational path first
+          const newOldFilePath = path.join(imagingImagesDir, existingImage.fileName);
+          if (await fse.pathExists(newOldFilePath)) {
+            await fse.remove(newOldFilePath);
+            console.log('📷 SERVER: Deleted old image file from new path:', existingImage.fileName);
+          } else {
+            // Try old flat path for backward compatibility
+            const oldFlatPath = path.join(tempUploadDir, existingImage.fileName);
+            if (await fse.pathExists(oldFlatPath)) {
+              await fse.remove(oldFlatPath);
+              console.log('📷 SERVER: Deleted old image file from legacy flat path:', existingImage.fileName);
+            }
           }
         } catch (deleteError) {
           console.error('📷 SERVER: Error deleting old image file:', deleteError);
@@ -13012,7 +13028,8 @@ This treatment plan should be reviewed and adjusted based on individual patient 
         await fse.move(tempFilePath, finalFilePath);
         console.log('🔄 SERVER: Replaced image file keeping same filename:', {
           tempFile: req.file.filename,
-          keptFilename: keepFilename
+          keptFilename: keepFilename,
+          finalPath: finalFilePath
         });
       } catch (renameError) {
         console.error('🔄 SERVER: Error renaming temp file:', renameError);
@@ -13020,9 +13037,10 @@ This treatment plan should be reviewed and adjusted based on individual patient 
       }
 
       // Update database record with new file information (keeping the same fileName)
+      const relativeFilePath = `/uploads/Imaging_Images/${organizationId}/patients/${patientId}/${keepFilename}`;
       const updateData = {
         fileName: keepFilename, // Keep the same filename
-        fileUrl: `/uploads/Imaging_Images/${keepFilename}`,
+        fileUrl: relativeFilePath,
         fileSize: req.file.size,
         mimeType: req.file.mimetype,
         uploadedBy: req.user.id,
@@ -13044,7 +13062,8 @@ This treatment plan should be reviewed and adjusted based on individual patient 
         success: true, 
         image: updatedImage,
         originalName: req.file.originalname,
-        keptFilename: keepFilename
+        keptFilename: keepFilename,
+        filePath: relativeFilePath
       });
 
     } catch (error) {
@@ -13074,18 +13093,17 @@ This treatment plan should be reviewed and adjusted based on individual patient 
       }
 
       try {
-        // Ensure the Imaging_Images directory exists
-        const imagingImagesDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Images');
-        await fse.ensureDir(imagingImagesDir);
-        console.log("📷 SERVER: Ensured directory exists:", imagingImagesDir);
+        // Try new organizational path first: uploads/Imaging_Images/{organizationId}/patients/{patientId}/
+        const organizationId = req.tenant!.id;
+        const patientId = medicalImage.patientId;
+        const organizationalPath = path.resolve(process.cwd(), 'uploads', 'Imaging_Images', String(organizationId), 'patients', String(patientId));
+        const organizationalFilePath = path.join(organizationalPath, fileName);
         
-        // Construct the full path to the image file
-        const imageFilePath = path.join(imagingImagesDir, fileName);
-        console.log("📷 SERVER: Checking for image file at:", imageFilePath);
+        console.log("📷 SERVER: Checking for image file at organizational path:", organizationalFilePath);
         
-        // Check if the image file exists on the server filesystem
-        if (await fse.pathExists(imageFilePath)) {
-          console.log("📷 SERVER: Image file exists, serving from filesystem:", fileName);
+        // Check if the image file exists in the organizational path
+        if (await fse.pathExists(organizationalFilePath)) {
+          console.log("📷 SERVER: Image file exists in organizational path, serving from filesystem:", fileName);
           
           // Determine MIME type from file extension
           const fileExtension = path.extname(fileName).toLowerCase();
@@ -13102,11 +13120,40 @@ This treatment plan should be reviewed and adjusted based on individual patient 
           res.setHeader('Cache-Control', 'public, max-age=31536000'); // Cache for 1 year
           
           // Stream the file from filesystem
-          const fileStream = fs.createReadStream(imageFilePath);
+          const fileStream = fs.createReadStream(organizationalFilePath);
+          fileStream.pipe(res);
+          return;
+        }
+        
+        // Fallback to legacy flat path for backward compatibility
+        const legacyFlatDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Images');
+        const legacyFilePath = path.join(legacyFlatDir, fileName);
+        
+        console.log("📷 SERVER: Checking for image file at legacy flat path:", legacyFilePath);
+        
+        if (await fse.pathExists(legacyFilePath)) {
+          console.log("📷 SERVER: Image file exists in legacy flat path, serving from filesystem:", fileName);
+          
+          // Determine MIME type from file extension
+          const fileExtension = path.extname(fileName).toLowerCase();
+          let mimeType = medicalImage.mimeType || 'image/jpeg';
+          if (fileExtension === '.png') {
+            mimeType = 'image/png';
+          } else if (fileExtension === '.jpg' || fileExtension === '.jpeg') {
+            mimeType = 'image/jpeg';
+          }
+          
+          // Set appropriate headers
+          res.setHeader('Content-Type', mimeType);
+          res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
+          res.setHeader('Cache-Control', 'public, max-age=31536000'); // Cache for 1 year
+          
+          // Stream the file from filesystem
+          const fileStream = fs.createReadStream(legacyFilePath);
           fileStream.pipe(res);
           return;
         } else {
-          console.log("📷 SERVER: Image file not found at path, falling back to database:", imageFilePath);
+          console.log("📷 SERVER: Image file not found at any path, falling back to database");
         }
       } catch (filesystemError) {
         console.error("📷 SERVER: Error accessing filesystem image:", filesystemError);

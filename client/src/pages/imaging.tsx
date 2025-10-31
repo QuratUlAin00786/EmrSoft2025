@@ -890,9 +890,8 @@ export default function ImagingPage() {
       setUploadedFile(null);
       setEditingStudyId(null);
       
-      // Get organization ID for the path display
-      const organizationId = user?.organizationId || 0;
-      const filePath = `/uploads/Imaging_Images/${data.keptFilename}`;
+      // Display the full organizational path
+      const filePath = data.filePath || `/uploads/Imaging_Images/${data.keptFilename}`;
       
       toast({
         title: "Image Saved Successfully",
