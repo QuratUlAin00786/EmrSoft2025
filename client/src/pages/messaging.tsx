@@ -105,7 +105,6 @@ interface Campaign {
 
 export default function MessagingPage() {
   const [, setLocation] = useLocation();
-  const [activeTab, setActiveTab] = useState("conversations");
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [newMessageContent, setNewMessageContent] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -1726,18 +1725,9 @@ export default function MessagingPage() {
         </div>
       </div>
 
-      {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
-        <TabsList className="grid w-full grid-cols-3 max-w-md mx-auto">
-          <TabsTrigger value="conversations">Conversations</TabsTrigger>
-          <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
-          <TabsTrigger value="announcement">Announcement</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="conversations">
-          {/* Messaging Content */}
-          <div className="flex-1 overflow-auto p-6">
-            {/* Healthcare Quick Actions */}
+      {/* Messaging Content */}
+      <div className="flex-1 overflow-auto p-6">
+        {/* Healthcare Quick Actions */}
         <div className="flex items-center gap-4 mb-8 px-[110px] flex-wrap">
             <Button 
               variant="outline" 
@@ -3727,24 +3717,6 @@ export default function MessagingPage() {
           </div>
         </div>
       )}
-        </TabsContent>
-
-        <TabsContent value="campaigns">
-          <div className="flex-1 overflow-auto p-6">
-            <div className="text-center text-gray-500 mt-8">
-              Campaigns content coming soon
-            </div>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="announcement">
-          <div className="flex-1 overflow-auto p-6">
-            <div className="text-center text-gray-500 mt-8">
-              Announcement content coming soon
-            </div>
-          </div>
-        </TabsContent>
-      </Tabs>
     </div>
   );
 }
