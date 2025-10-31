@@ -2549,17 +2549,50 @@ export default function ImagingPage() {
                                 <div
                                   key={series.id}
                                   className="bg-gray-50 dark:bg-slate-600 p-3 rounded-lg border dark:border-slate-500 cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-500 transition-colors"
-                                  onClick={() => {
-                                    // Use study.fileName since series.fileName might be null
-                                    const fileName = series.fileName || study.fileName;
-                                    const imageUrl = `/uploads/Imaging_Images/${fileName}`;
-                                    console.log("📷 IMAGE SERIES: Viewing image from file_name:", fileName, "study.fileName:", study.fileName);
-                                    setSelectedImageSeries({
-                                      ...series,
-                                      imageUrl: imageUrl,
-                                      fileName: fileName
-                                    });
-                                    setShowImageViewer(true);
+                                  onClick={async () => {
+                                    try {
+                                      const token = localStorage.getItem("auth_token");
+                                      const headers: Record<string, string> = {
+                                        "X-Tenant-Subdomain": getActiveSubdomain(),
+                                      };
+                                      
+                                      if (token) {
+                                        headers["Authorization"] = `Bearer ${token}`;
+                                      }
+                                      
+                                      const response = await fetch(`/api/medical-images/${study.id}/image?t=${Date.now()}`, {
+                                        method: "GET",
+                                        headers,
+                                        credentials: "include",
+                                      });
+                                      
+                                      if (!response.ok) {
+                                        throw new Error(`Failed to load image: ${response.status}`);
+                                      }
+                                      
+                                      const blob = await response.blob();
+                                      const blobUrl = URL.createObjectURL(blob);
+                                      
+                                      const imageForViewer = {
+                                        seriesDescription: series.seriesDescription,
+                                        type: series.type,
+                                        imageCount: series.imageCount,
+                                        size: series.size,
+                                        imageId: study.id,
+                                        imageUrl: blobUrl,
+                                        mimeType: series.mimeType || "image/jpeg",
+                                        fileName: series.fileName || study.fileName,
+                                      };
+                                      setSelectedImageSeries(imageForViewer);
+                                      setShowImageViewer(true);
+                                    } catch (error) {
+                                      console.error("Error loading image:", error);
+                                      toast({
+                                        title: "Error",
+                                        description: "Failed to load medical image. Please try again.",
+                                        variant: "destructive",
+                                      });
+                                    }
                                   }}
                                 >
                                   <div className="font-medium text-sm text-gray-900 dark:text-gray-100">
