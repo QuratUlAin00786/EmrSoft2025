@@ -5638,7 +5638,7 @@ export default function ImagingPage() {
                   )}
                   <div>
                     <span className="text-gray-600">Payment Method:</span>
-                    <p className="font-medium capitalize">{summaryData.invoice?.paymentMethod.replace('_', ' ')}</p>
+                    <p className="font-medium capitalize">{summaryData.invoice?.paymentMethod?.replace('_', ' ') || 'N/A'}</p>
                   </div>
                   <div className="col-span-2 pt-2 border-t mt-2">
                     <div className="flex justify-between font-bold">
