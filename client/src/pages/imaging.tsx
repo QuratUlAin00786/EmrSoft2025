@@ -1138,9 +1138,17 @@ export default function ImagingPage() {
           formData.append('images', file);
         });
 
+        // Get the JWT token from localStorage
+        const token = localStorage.getItem('auth_token');
+        
         const uploadHeaders: Record<string, string> = {
           'X-Tenant-Subdomain': getActiveSubdomain(),
         };
+        
+        // Add Authorization header if token exists
+        if (token) {
+          uploadHeaders['Authorization'] = `Bearer ${token}`;
+        }
 
         const response = await fetch('/api/imaging/upload-report-images', {
           method: 'POST',
@@ -3367,9 +3375,7 @@ export default function ImagingPage() {
             <DialogTitle>Generate Radiology Report</DialogTitle>
           </DialogHeader>
           {selectedStudy && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Left Column - Form */}
-              <div className="space-y-6">
+            <div className="space-y-6">
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
@@ -3662,6 +3668,40 @@ export default function ImagingPage() {
                       </div>
                     </div>
                   )}
+
+                  {/* Uploaded Images Section */}
+                  <div className="mt-4">
+                    <Label>Uploaded Images</Label>
+                    <div className="mt-2 border-2 border-dashed border-gray-300 rounded-lg p-4">
+                      {uploadingImages ? (
+                        <div className="flex items-center justify-center py-8">
+                          <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+                          <span className="ml-2 text-sm text-gray-600">Uploading images...</span>
+                        </div>
+                      ) : uploadedImagePreviews.length > 0 ? (
+                        <div className="grid grid-cols-2 gap-2">
+                          {uploadedImagePreviews.map((url, index) => (
+                            <div key={index} className="relative group">
+                              <img
+                                src={url}
+                                alt={`Preview ${index + 1}`}
+                                className="w-full h-32 object-cover rounded border"
+                              />
+                              <div className="absolute top-1 right-1 bg-blue-600 text-white text-xs px-2 py-1 rounded">
+                                Image {index + 1}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8 text-gray-500 text-sm">
+                          <FileImage className="h-12 w-12 mx-auto text-gray-300 mb-2" />
+                          <p>No images uploaded yet</p>
+                          <p className="text-xs mt-1">Select images below to upload</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
                 {/* Saved Reports Section */}
@@ -3797,43 +3837,6 @@ export default function ImagingPage() {
                     </div>
                   </div>
                 )}
-              </div>
-              </div>
-
-              {/* Right Column - Image Previews */}
-              <div className="space-y-4">
-                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border">
-                  <h4 className="font-medium text-sm mb-3">Uploaded Images</h4>
-                  {uploadingImages ? (
-                    <div className="flex items-center justify-center py-8">
-                      <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
-                      <span className="ml-2 text-sm text-gray-600">Uploading images...</span>
-                    </div>
-                  ) : uploadedImagePreviews.length > 0 ? (
-                    <div className="grid grid-cols-2 gap-2">
-                      {uploadedImagePreviews.map((url, index) => (
-                        <div key={index} className="relative group">
-                          <img
-                            src={url}
-                            alt={`Preview ${index + 1}`}
-                            className="w-full h-32 object-cover rounded border"
-                          />
-                          <div className="absolute top-1 right-1 bg-blue-600 text-white text-xs px-2 py-1 rounded">
-                            {index + 1}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 text-gray-500 text-sm">
-                      <FileImage className="h-12 w-12 mx-auto text-gray-300 mb-2" />
-                      <p>No images uploaded yet</p>
-                      <p className="text-xs mt-1">Select images below to upload</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-              </div>
             )}
 
             <div className="flex justify-between items-center pt-4 border-t">
