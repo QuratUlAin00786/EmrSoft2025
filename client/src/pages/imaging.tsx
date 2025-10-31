@@ -397,6 +397,9 @@ export default function ImagingPage() {
   const [showEditImageDialog, setShowEditImageDialog] = useState(false);
   const [editingStudyId, setEditingStudyId] = useState<string | null>(null);
   const [showInvoiceDialog, setShowInvoiceDialog] = useState(false);
+  const [showPrescriptionDialog, setShowPrescriptionDialog] = useState(false);
+  const [selectedPrescriptionStudy, setSelectedPrescriptionStudy] = useState<any>(null);
+  const [isSavingPrescription, setIsSavingPrescription] = useState(false);
   const [showSummaryDialog, setShowSummaryDialog] = useState(false);
   const [invoiceFormData, setInvoiceFormData] = useState({
     paymentMethod: "",
@@ -2312,15 +2315,31 @@ export default function ImagingPage() {
                                 </Button>
                                 {user?.role !== 'patient' && (
                                   <>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => handleViewStudy(study)}
-                                      className="h-8 w-8 p-0"
-                                      data-testid={`button-edit-${study.id}`}
-                                    >
-                                      <Edit className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                                    </Button>
+                                    {activeTab === "order-study" ? (
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => {
+                                          setSelectedPrescriptionStudy(study);
+                                          setShowPrescriptionDialog(true);
+                                        }}
+                                        className="h-8 w-8 p-0"
+                                        data-testid={`button-prescription-${study.id}`}
+                                        title="View Prescription"
+                                      >
+                                        <Eye className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                      </Button>
+                                    ) : (
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => handleViewStudy(study)}
+                                        className="h-8 w-8 p-0"
+                                        data-testid={`button-edit-${study.id}`}
+                                      >
+                                        <Edit className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                                      </Button>
+                                    )}
                                     <Button
                                       variant="ghost"
                                       size="sm"
@@ -6119,6 +6138,205 @@ export default function ImagingPage() {
               />
             )}
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Image Prescription Dialog */}
+      <Dialog open={showPrescriptionDialog} onOpenChange={setShowPrescriptionDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <X className="h-5 w-5 text-gray-500 cursor-pointer hover:text-gray-700" 
+                 onClick={() => setShowPrescriptionDialog(false)} />
+              Lab Result Prescription
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedPrescriptionStudy && (
+            <div className="space-y-6">
+              {/* Hospital Header */}
+              <div className="text-center border-b pb-4">
+                <div className="flex justify-center items-center gap-3 mb-2">
+                  <div className="h-12 w-12 rounded-full bg-red-500 flex items-center justify-center">
+                    <svg className="h-8 w-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M13 2v8h8v4h-8v8h-4v-8H1v-4h8V2h4z"/>
+                    </svg>
+                  </div>
+                </div>
+                <h2 className="text-2xl font-bold text-blue-600">Clinical Care Hospital</h2>
+                <p className="text-sm text-gray-600">Laboratory Test Prescription</p>
+                <p className="text-xs text-gray-500">house 33</p>
+                <p className="text-xs text-gray-500">+923213213213</p>
+                <p className="text-xs text-gray-500">averox71@gmail.com</p>
+                <p className="text-xs text-gray-500">website: www.clinicalcare.com</p>
+              </div>
+
+              {/* Physician and Patient Information */}
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-2">Physician Information</h3>
+                  <div className="space-y-1 text-sm">
+                    <div><span className="font-medium">Name:</span> {selectedPrescriptionStudy.referringPhysician || user?.name || 'N/A'}</div>
+                    <div><span className="font-medium">Priority:</span> {selectedPrescriptionStudy.priority || 'routine'}</div>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-2">Patient Information</h3>
+                  <div className="space-y-1 text-sm">
+                    <div><span className="font-medium">Name:</span> {selectedPrescriptionStudy.patientName}</div>
+                    <div><span className="font-medium">Patient ID:</span> {selectedPrescriptionStudy.patientId}</div>
+                    <div><span className="font-medium">Date:</span> {new Date(selectedPrescriptionStudy.studyDate || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+                    <div><span className="font-medium">Time:</span> {new Date(selectedPrescriptionStudy.studyDate || Date.now()).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Laboratory Test Prescription */}
+              <div className="border rounded-lg p-4 bg-blue-50">
+                <h3 className="font-semibold text-gray-900 mb-3">⚕ Laboratory Test Prescription</h3>
+                
+                <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
+                  <div className="bg-white p-3 rounded">
+                    <div className="font-medium text-gray-600">Test ID:</div>
+                    <div className="font-semibold">{selectedPrescriptionStudy.id}</div>
+                  </div>
+                  <div className="bg-white p-3 rounded">
+                    <div className="font-medium text-gray-600">Test Type:</div>
+                    <div className="font-semibold">{selectedPrescriptionStudy.studyType}</div>
+                  </div>
+                  <div className="bg-white p-3 rounded">
+                    <div className="font-medium text-gray-600">Ordered Date:</div>
+                    <div className="font-semibold">{new Date(selectedPrescriptionStudy.studyDate || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
+                  </div>
+                  <div className="bg-white p-3 rounded">
+                    <div className="font-medium text-gray-600">Status:</div>
+                    <div className={`font-semibold ${selectedPrescriptionStudy.status === 'COMPLETED' ? 'text-green-600' : 'text-yellow-600'}`}>
+                      {selectedPrescriptionStudy.status}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Test Results */}
+                <div className="bg-white p-4 rounded mb-3">
+                  <h4 className="font-semibold text-gray-900 mb-2">Test Results:</h4>
+                  <div className="space-y-2 text-sm">
+                    <div>
+                      <div className="font-medium">{selectedPrescriptionStudy.studyType}</div>
+                      <div className="text-gray-600">
+                        <span className="font-medium">Modality:</span> {selectedPrescriptionStudy.modality}
+                      </div>
+                      <div className="text-gray-600">
+                        <span className="font-medium">Body Part:</span> {selectedPrescriptionStudy.bodyPart}
+                      </div>
+                      {selectedPrescriptionStudy.priority === 'urgent' || selectedPrescriptionStudy.priority === 'stat' ? (
+                        <div className="text-red-600 font-semibold">Flag: HIGH</div>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Clinical Notes */}
+                <div className="bg-yellow-50 p-3 rounded">
+                  <h4 className="font-semibold text-gray-900 mb-1">Clinical Notes:</h4>
+                  <p className="text-sm text-gray-700">
+                    {selectedPrescriptionStudy.indication || selectedPrescriptionStudy.specialInstructions || 'No clinical notes available'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Critical Values Alert */}
+              {(selectedPrescriptionStudy.priority === 'stat' || selectedPrescriptionStudy.priority === 'urgent') && (
+                <div className="bg-red-50 border border-red-200 rounded p-3 flex items-start gap-2">
+                  <div className="text-red-600 mt-0.5">⚠</div>
+                  <div>
+                    <div className="font-semibold text-red-900">CRITICAL VALUES DETECTED</div>
+                    <div className="text-sm text-red-700">This {selectedPrescriptionStudy.priority === 'stat' ? 'STAT' : 'urgent'} study requires immediate attention.</div>
+                  </div>
+                </div>
+              )}
+
+              {/* Footer */}
+              <div className="border-t pt-4 flex justify-between items-center text-xs text-gray-500">
+                <div>Generated by Cura EMR System</div>
+                <div>Date: {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
+              </div>
+
+              {/* Save Prescription Button */}
+              <div className="flex justify-end">
+                <Button
+                  onClick={async () => {
+                    setIsSavingPrescription(true);
+                    try {
+                      const response = await fetch('/api/imaging/save-prescription', {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                          studyId: selectedPrescriptionStudy.id,
+                          prescriptionData: {
+                            hospitalName: "Clinical Care Hospital",
+                            hospitalAddress: "house 33",
+                            hospitalPhone: "+923213213213",
+                            hospitalEmail: "averox71@gmail.com",
+                            hospitalWebsite: "www.clinicalcare.com",
+                            physicianName: selectedPrescriptionStudy.referringPhysician || user?.name || 'N/A',
+                            priority: selectedPrescriptionStudy.priority || 'routine',
+                            patientName: selectedPrescriptionStudy.patientName,
+                            patientId: selectedPrescriptionStudy.patientId,
+                            date: new Date(selectedPrescriptionStudy.studyDate || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                            time: new Date(selectedPrescriptionStudy.studyDate || Date.now()).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+                            testId: selectedPrescriptionStudy.id,
+                            testType: selectedPrescriptionStudy.studyType,
+                            orderedDate: new Date(selectedPrescriptionStudy.studyDate || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+                            status: selectedPrescriptionStudy.status,
+                            modality: selectedPrescriptionStudy.modality,
+                            bodyPart: selectedPrescriptionStudy.bodyPart,
+                            clinicalNotes: selectedPrescriptionStudy.indication || selectedPrescriptionStudy.specialInstructions || 'No clinical notes available',
+                          }
+                        }),
+                      });
+
+                      if (!response.ok) {
+                        throw new Error('Failed to save prescription');
+                      }
+
+                      const result = await response.json();
+                      
+                      toast({
+                        title: "Prescription Saved",
+                        description: `Prescription saved successfully as ${result.fileName}`,
+                      });
+
+                      setShowPrescriptionDialog(false);
+                      setSelectedPrescriptionStudy(null);
+                      refetchStudies();
+                    } catch (error) {
+                      console.error('Error saving prescription:', error);
+                      toast({
+                        title: "Error",
+                        description: "Failed to save prescription. Please try again.",
+                        variant: "destructive",
+                      });
+                    } finally {
+                      setIsSavingPrescription(false);
+                    }
+                  }}
+                  className="bg-blue-600 hover:bg-blue-700"
+                  disabled={isSavingPrescription}
+                >
+                  {isSavingPrescription ? (
+                    <>
+                      <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      Saving...
+                    </>
+                  ) : (
+                    'Save Prescription'
+                  )}
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </>

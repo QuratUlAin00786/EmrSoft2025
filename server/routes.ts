@@ -18871,6 +18871,587 @@ Cura EMR Team
     }
   });
 
+  // Save Lab Result Prescription Endpoint
+  app.post("/api/imaging/save-prescription", authMiddleware, requireRole(["doctor", "nurse", "admin"]), async (req: TenantRequest, res) => {
+    try {
+      console.log("SAVE PRESCRIPTION: Starting...");
+      
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const { studyId, prescriptionData } = req.body;
+      console.log("SAVE PRESCRIPTION: Study ID:", studyId);
+      
+      if (!studyId || !prescriptionData) {
+        return res.status(400).json({ error: "Study ID and prescription data are required" });
+      }
+
+      const organizationId = req.tenant!.id;
+      console.log("SAVE PRESCRIPTION: Organization ID:", organizationId);
+
+      // Fetch the study
+      const study = await storage.getMedicalImage(studyId, req.tenant!.id);
+      if (!study) {
+        return res.status(404).json({ error: "Study not found" });
+      }
+
+      // Save PDF in: uploads/Image_Prescriptions/
+      const prescriptionsDir = path.resolve(process.cwd(), 'uploads', 'Image_Prescriptions');
+      await fse.ensureDir(prescriptionsDir);
+      
+      // Import pdf-lib dynamically
+      const { PDFDocument, rgb, StandardFonts } = await import('pdf-lib');
+      
+      // Create a new PDF document
+      const pdfDoc = await PDFDocument.create();
+      const page = pdfDoc.addPage([595, 842]); // A4 size
+      const { width, height } = page.getSize();
+      
+      // Load fonts
+      const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+      
+      // Colors
+      const primaryBlue = rgb(0.29, 0.49, 1); // #4A7DFF
+      const darkText = rgb(0.2, 0.2, 0.2);
+      const lightBlueBg = rgb(0.93, 0.95, 1); // Light blue background
+      const yellowBg = rgb(1, 0.98, 0.8);
+      const redBg = rgb(1, 0.95, 0.95);
+      const greenText = rgb(0.2, 0.6, 0.2);
+      const grayText = rgb(0.4, 0.4, 0.4);
+      
+      let yPosition = height - 50;
+      
+      // Red Cross Logo (circular)
+      page.drawCircle({
+        x: width / 2,
+        y: yPosition - 10,
+        size: 20,
+        color: rgb(0.93, 0.11, 0.14),
+        borderWidth: 0
+      });
+      
+      // White cross inside
+      const crossSize = 12;
+      const centerX = width / 2;
+      const centerY = yPosition - 10;
+      
+      // Horizontal bar
+      page.drawRectangle({
+        x: centerX - crossSize / 2,
+        y: centerY - 2,
+        width: crossSize,
+        height: 4,
+        color: rgb(1, 1, 1)
+      });
+      
+      // Vertical bar
+      page.drawRectangle({
+        x: centerX - 2,
+        y: centerY - crossSize / 2,
+        width: 4,
+        height: crossSize,
+        color: rgb(1, 1, 1)
+      });
+      
+      yPosition -= 45;
+      
+      // Hospital Name
+      page.drawText(prescriptionData.hospitalName || 'Clinical Care Hospital', {
+        x: width / 2 - 85,
+        y: yPosition,
+        size: 18,
+        font: boldFont,
+        color: primaryBlue
+      });
+      
+      yPosition -= 18;
+      
+      // Laboratory Test Prescription
+      page.drawText('Laboratory Test Prescription', {
+        x: width / 2 - 75,
+        y: yPosition,
+        size: 10,
+        font,
+        color: grayText
+      });
+      
+      yPosition -= 12;
+      
+      // Hospital details
+      const hospitalDetails = [
+        prescriptionData.hospitalAddress || 'house 33',
+        prescriptionData.hospitalPhone || '+923213213213',
+        prescriptionData.hospitalEmail || 'averox71@gmail.com',
+        prescriptionData.hospitalWebsite || 'www.clinicalcare.com'
+      ];
+      
+      for (const detail of hospitalDetails) {
+        page.drawText(detail, {
+          x: width / 2 - (detail.length * 2.5),
+          y: yPosition,
+          size: 8,
+          font,
+          color: grayText
+        });
+        yPosition -= 12;
+      }
+      
+      yPosition -= 10;
+      
+      // Horizontal line
+      page.drawLine({
+        start: { x: 40, y: yPosition },
+        end: { x: width - 40, y: yPosition },
+        thickness: 1,
+        color: grayText
+      });
+      
+      yPosition -= 25;
+      
+      // Physician and Patient Information (two columns)
+      const leftColX = 50;
+      const rightColX = width / 2 + 20;
+      
+      // Physician Information
+      page.drawText('Physician Information', {
+        x: leftColX,
+        y: yPosition,
+        size: 11,
+        font: boldFont,
+        color: darkText
+      });
+      
+      // Patient Information
+      page.drawText('Patient Information', {
+        x: rightColX,
+        y: yPosition,
+        size: 11,
+        font: boldFont,
+        color: darkText
+      });
+      
+      yPosition -= 18;
+      
+      // Physician details
+      page.drawText(`Name: ${prescriptionData.physicianName}`, {
+        x: leftColX,
+        y: yPosition,
+        size: 9,
+        font,
+        color: darkText
+      });
+      
+      // Patient details
+      page.drawText(`Name: ${prescriptionData.patientName}`, {
+        x: rightColX,
+        y: yPosition,
+        size: 9,
+        font,
+        color: darkText
+      });
+      
+      yPosition -= 15;
+      
+      page.drawText(`Priority: ${prescriptionData.priority}`, {
+        x: leftColX,
+        y: yPosition,
+        size: 9,
+        font,
+        color: darkText
+      });
+      
+      page.drawText(`Patient ID: ${prescriptionData.patientId}`, {
+        x: rightColX,
+        y: yPosition,
+        size: 9,
+        font,
+        color: darkText
+      });
+      
+      yPosition -= 15;
+      
+      page.drawText(`Date: ${prescriptionData.date}`, {
+        x: rightColX,
+        y: yPosition,
+        size: 9,
+        font,
+        color: darkText
+      });
+      
+      yPosition -= 15;
+      
+      page.drawText(`Time: ${prescriptionData.time}`, {
+        x: rightColX,
+        y: yPosition,
+        size: 9,
+        font,
+        color: darkText
+      });
+      
+      yPosition -= 30;
+      
+      // Laboratory Test Prescription Section
+      page.drawRectangle({
+        x: 40,
+        y: yPosition - 150,
+        width: width - 80,
+        height: 165,
+        color: lightBlueBg,
+        borderColor: grayText,
+        borderWidth: 1
+      });
+      
+      page.drawText('⚕ Laboratory Test Prescription', {
+        x: 50,
+        y: yPosition,
+        size: 11,
+        font: boldFont,
+        color: darkText
+      });
+      
+      yPosition -= 25;
+      
+      // Test details grid (2x2)
+      const boxWidth = (width - 120) / 2;
+      const boxHeight = 35;
+      const boxStartY = yPosition;
+      
+      // Row 1
+      // Test ID box
+      page.drawRectangle({
+        x: 50,
+        y: boxStartY - boxHeight,
+        width: boxWidth,
+        height: boxHeight,
+        color: rgb(1, 1, 1),
+        borderColor: grayText,
+        borderWidth: 0.5
+      });
+      
+      page.drawText('Test ID:', {
+        x: 60,
+        y: boxStartY - 15,
+        size: 8,
+        font,
+        color: grayText
+      });
+      
+      page.drawText(prescriptionData.testId, {
+        x: 60,
+        y: boxStartY - 28,
+        size: 9,
+        font: boldFont,
+        color: darkText
+      });
+      
+      // Test Type box
+      page.drawRectangle({
+        x: 60 + boxWidth,
+        y: boxStartY - boxHeight,
+        width: boxWidth,
+        height: boxHeight,
+        color: rgb(1, 1, 1),
+        borderColor: grayText,
+        borderWidth: 0.5
+      });
+      
+      page.drawText('Test Type:', {
+        x: 70 + boxWidth,
+        y: boxStartY - 15,
+        size: 8,
+        font,
+        color: grayText
+      });
+      
+      page.drawText(prescriptionData.testType, {
+        x: 70 + boxWidth,
+        y: boxStartY - 28,
+        size: 9,
+        font: boldFont,
+        color: darkText
+      });
+      
+      yPosition -= boxHeight;
+      
+      // Row 2
+      // Ordered Date box
+      page.drawRectangle({
+        x: 50,
+        y: yPosition - boxHeight,
+        width: boxWidth,
+        height: boxHeight,
+        color: rgb(1, 1, 1),
+        borderColor: grayText,
+        borderWidth: 0.5
+      });
+      
+      page.drawText('Ordered Date:', {
+        x: 60,
+        y: yPosition - 15,
+        size: 8,
+        font,
+        color: grayText
+      });
+      
+      page.drawText(prescriptionData.orderedDate, {
+        x: 60,
+        y: yPosition - 28,
+        size: 8,
+        font: boldFont,
+        color: darkText
+      });
+      
+      // Status box
+      page.drawRectangle({
+        x: 60 + boxWidth,
+        y: yPosition - boxHeight,
+        width: boxWidth,
+        height: boxHeight,
+        color: rgb(1, 1, 1),
+        borderColor: grayText,
+        borderWidth: 0.5
+      });
+      
+      page.drawText('Status:', {
+        x: 70 + boxWidth,
+        y: yPosition - 15,
+        size: 8,
+        font,
+        color: grayText
+      });
+      
+      const statusColor = prescriptionData.status === 'COMPLETED' ? greenText : rgb(0.8, 0.6, 0);
+      page.drawText(prescriptionData.status, {
+        x: 70 + boxWidth,
+        y: yPosition - 28,
+        size: 9,
+        font: boldFont,
+        color: statusColor
+      });
+      
+      yPosition -= boxHeight + 10;
+      
+      // Test Results section
+      page.drawRectangle({
+        x: 50,
+        y: yPosition - 50,
+        width: width - 100,
+        height: 55,
+        color: rgb(1, 1, 1),
+        borderColor: grayText,
+        borderWidth: 0.5
+      });
+      
+      page.drawText('Test Results:', {
+        x: 60,
+        y: yPosition - 12,
+        size: 9,
+        font: boldFont,
+        color: darkText
+      });
+      
+      yPosition -= 25;
+      
+      page.drawText(prescriptionData.testType, {
+        x: 60,
+        y: yPosition,
+        size: 9,
+        font,
+        color: darkText
+      });
+      
+      yPosition -= 12;
+      
+      page.drawText(`Modality: ${prescriptionData.modality}`, {
+        x: 60,
+        y: yPosition,
+        size: 8,
+        font,
+        color: grayText
+      });
+      
+      yPosition -= 12;
+      
+      page.drawText(`Body Part: ${prescriptionData.bodyPart}`, {
+        x: 60,
+        y: yPosition,
+        size: 8,
+        font,
+        color: grayText
+      });
+      
+      if (prescriptionData.priority === 'urgent' || prescriptionData.priority === 'stat') {
+        page.drawText('Flag: HIGH', {
+          x: width - 150,
+          y: yPosition + 12,
+          size: 9,
+          font: boldFont,
+          color: rgb(0.8, 0.2, 0.2)
+        });
+      }
+      
+      yPosition -= 25;
+      
+      // Clinical Notes
+      page.drawRectangle({
+        x: 50,
+        y: yPosition - 40,
+        width: width - 100,
+        height: 45,
+        color: yellowBg,
+        borderColor: grayText,
+        borderWidth: 0.5
+      });
+      
+      page.drawText('Clinical Notes:', {
+        x: 60,
+        y: yPosition - 12,
+        size: 9,
+        font: boldFont,
+        color: darkText
+      });
+      
+      yPosition -= 25;
+      
+      const clinicalNotes = prescriptionData.clinicalNotes;
+      const maxWidth = width - 120;
+      const words = clinicalNotes.split(' ');
+      let line = '';
+      let lineY = yPosition;
+      
+      for (const word of words) {
+        const testLine = line + word + ' ';
+        const testWidth = testLine.length * 4.5;
+        
+        if (testWidth > maxWidth && line !== '') {
+          page.drawText(line.trim(), {
+            x: 60,
+            y: lineY,
+            size: 8,
+            font,
+            color: darkText
+          });
+          line = word + ' ';
+          lineY -= 12;
+        } else {
+          line = testLine;
+        }
+      }
+      
+      if (line.trim() !== '') {
+        page.drawText(line.trim(), {
+          x: 60,
+          y: lineY,
+          size: 8,
+          font,
+          color: darkText
+        });
+      }
+      
+      yPosition -= 50;
+      
+      // Critical Values Alert
+      if (prescriptionData.priority === 'stat' || prescriptionData.priority === 'urgent') {
+        page.drawRectangle({
+          x: 40,
+          y: yPosition - 35,
+          width: width - 80,
+          height: 40,
+          color: redBg,
+          borderColor: rgb(0.8, 0.2, 0.2),
+          borderWidth: 1
+        });
+        
+        page.drawText('⚠', {
+          x: 50,
+          y: yPosition - 15,
+          size: 12,
+          font: boldFont,
+          color: rgb(0.8, 0.2, 0.2)
+        });
+        
+        page.drawText('CRITICAL VALUES DETECTED', {
+          x: 70,
+          y: yPosition - 12,
+          size: 10,
+          font: boldFont,
+          color: rgb(0.6, 0.1, 0.1)
+        });
+        
+        page.drawText(`This ${prescriptionData.priority === 'stat' ? 'STAT' : 'urgent'} study requires immediate attention.`, {
+          x: 70,
+          y: yPosition - 25,
+          size: 8,
+          font,
+          color: rgb(0.6, 0.1, 0.1)
+        });
+        
+        yPosition -= 45;
+      }
+      
+      // Footer
+      yPosition = 60;
+      
+      page.drawLine({
+        start: { x: 40, y: yPosition },
+        end: { x: width - 40, y: yPosition },
+        thickness: 0.5,
+        color: grayText
+      });
+      
+      yPosition -= 15;
+      
+      page.drawText('Generated by Cura EMR System', {
+        x: 40,
+        y: yPosition,
+        size: 7,
+        font,
+        color: grayText
+      });
+      
+      const footerDate = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+      page.drawText(`Date: ${footerDate}`, {
+        x: width - 150,
+        y: yPosition,
+        size: 7,
+        font,
+        color: grayText
+      });
+      
+      // Save the PDF
+      const pdfBytes = await pdfDoc.save();
+      const fileName = `${study.imageId}.pdf`;
+      const filePath = path.join(prescriptionsDir, fileName);
+      
+      await fse.writeFile(filePath, pdfBytes);
+      console.log(`SAVE PRESCRIPTION: PDF saved to ${filePath}`);
+      
+      // Update the medical_images table with prescription link
+      await db
+        .update(schema.medicalImages)
+        .set({ 
+          prescriptionLink: `/uploads/Image_Prescriptions/${fileName}`,
+          updatedAt: new Date()
+        })
+        .where(eq(schema.medicalImages.id, studyId));
+      
+      console.log(`SAVE PRESCRIPTION: Database updated with prescription link`);
+      
+      res.json({
+        success: true,
+        fileName: fileName,
+        filePath: filePath,
+        message: "Prescription saved successfully"
+      });
+
+    } catch (error) {
+      console.error("SAVE PRESCRIPTION ERROR:", error);
+      res.status(500).json({ error: "Failed to save prescription" });
+    }
+  });
+
   // Share Imaging Study via Email
   app.post("/api/imaging/share-study", authMiddleware, async (req: TenantRequest, res) => {
     try {
