@@ -661,7 +661,7 @@ export default function LabResultsPage() {
   const [invoiceData, setInvoiceData] = useState<any>({
     serviceDate: new Date().toISOString().split('T')[0],
     invoiceDate: new Date().toISOString().split('T')[0],
-    dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    dueDate: new Date().toISOString().split('T')[0],
     items: [] as any[],
     totalAmount: 0,
     paymentMethod: '',
