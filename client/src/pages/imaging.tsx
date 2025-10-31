@@ -422,7 +422,7 @@ export default function ImagingPage() {
   const [invoicePatient, setInvoicePatient] = useState("");
   const [invoiceServiceDate, setInvoiceServiceDate] = useState(new Date().toISOString().split('T')[0]);
   const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().split('T')[0]);
-  const [invoiceDueDate, setInvoiceDueDate] = useState(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
+  const [invoiceDueDate, setInvoiceDueDate] = useState(new Date().toISOString().split('T')[0]);
   const [invoiceServiceCode, setInvoiceServiceCode] = useState("");
   const [invoiceServiceDesc, setInvoiceServiceDesc] = useState("");
   const [invoiceServiceQty, setInvoiceServiceQty] = useState("");
@@ -5651,12 +5651,6 @@ export default function ImagingPage() {
                       setInvoiceTotalAmount(total.toFixed(2));
                     }}
                   />
-                </div>
-                
-                <div className="grid grid-cols-3 gap-2">
-                  <Input placeholder="CPT Code" disabled />
-                  <Input placeholder="Description" disabled />
-                  <Input placeholder="0.00" disabled />
                 </div>
               </div>
               {invoiceServiceError && (
