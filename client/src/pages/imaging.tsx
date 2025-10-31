@@ -6222,14 +6222,14 @@ export default function ImagingPage() {
               {/* Physician and Patient Information */}
               <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Physician Information</h3>
+                  <h5 className="font-semibold text-gray-900 mb-2">Physician Information</h5>
                   <div className="space-y-1 text-sm">
                     <div><span className="font-medium">Name:</span> {selectedPrescriptionStudy.referringPhysician || user?.name || 'N/A'}</div>
                     <div><span className="font-medium">Priority:</span> {selectedPrescriptionStudy.priority || 'routine'}</div>
                   </div>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Patient Information</h3>
+                  <h5 className="font-semibold text-gray-900 mb-2">Patient Information</h5>
                   <div className="space-y-1 text-sm">
                     <div><span className="font-medium">Name:</span> {selectedPrescriptionStudy.patientName}</div>
                     <div><span className="font-medium">Patient ID:</span> {selectedPrescriptionStudy.patientId}</div>
@@ -6241,7 +6241,7 @@ export default function ImagingPage() {
 
               {/* Laboratory Test Prescription */}
               <div className="border rounded-lg p-4 bg-blue-50">
-                <h3 className="font-semibold text-gray-900 mb-3">⚕ Laboratory Test Prescription</h3>
+                <h5 className="font-semibold text-gray-900 mb-3">⚕ Laboratory Test Prescription</h5>
                 
                 <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
                   <div className="bg-white p-3 rounded">
@@ -6315,11 +6315,24 @@ export default function ImagingPage() {
                   onClick={async () => {
                     setIsSavingPrescription(true);
                     try {
+                      const token = localStorage.getItem('auth_token');
+                      const subdomain = localStorage.getItem('user_subdomain');
+                      
+                      const headers: Record<string, string> = {
+                        'Content-Type': 'application/json',
+                      };
+                      
+                      if (token) {
+                        headers['Authorization'] = `Bearer ${token}`;
+                      }
+                      
+                      if (subdomain) {
+                        headers['X-Tenant-Subdomain'] = subdomain;
+                      }
+                      
                       const response = await fetch('/api/imaging/save-prescription', {
                         method: 'POST',
-                        headers: {
-                          'Content-Type': 'application/json',
-                        },
+                        headers,
                         body: JSON.stringify({
                           studyId: selectedPrescriptionStudy.id,
                           prescriptionData: {
