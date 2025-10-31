@@ -8781,6 +8781,52 @@ This treatment plan should be reviewed and adjusted based on individual patient 
     }
   });
 
+  // Upload report images endpoint
+  app.post("/api/imaging/upload-report-images", authMiddleware, uploadMedicalImages.array('images', 10), async (req: TenantRequest, res) => {
+    try {
+      if (!req.user || !req.tenant) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      const files = req.files as Express.Multer.File[];
+      if (!files || files.length === 0) {
+        return res.status(400).json({ error: "No images uploaded" });
+      }
+
+      const { studyId, patientId } = req.body;
+      if (!studyId) {
+        return res.status(400).json({ error: "Study ID required" });
+      }
+
+      console.log(`📷 UPLOAD: Uploading ${files.length} images for study ${studyId}`);
+
+      const uploadedImages = files.map(file => ({
+        fileName: file.filename,
+        originalName: file.originalname,
+        fileSize: file.size,
+        mimeType: file.mimetype,
+        path: file.path,
+      }));
+
+      // Update the medical image record with the uploaded file paths
+      const imagePaths = uploadedImages.map(img => `/uploads/Imaging_Images/${img.fileName}`);
+      
+      // You can optionally store these paths in the database
+      // await storage.updateMedicalImagePaths(studyId, imagePaths);
+
+      console.log(`✅ UPLOAD: Successfully uploaded ${uploadedImages.length} images`);
+
+      res.json({
+        success: true,
+        uploadedImages,
+        message: `${uploadedImages.length} image(s) uploaded successfully`,
+      });
+    } catch (error) {
+      console.error("Error uploading report images:", error);
+      res.status(500).json({ error: "Failed to upload images" });
+    }
+  });
+
   // Imaging Routes
   app.get("/api/imaging", authMiddleware, async (req: TenantRequest, res) => {
     try {

@@ -383,6 +383,8 @@ export default function ImagingPage() {
   });
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [uploadedImagePreviews, setUploadedImagePreviews] = useState<string[]>([]);
+  const [uploadingImages, setUploadingImages] = useState(false);
   const [showImageViewer, setShowImageViewer] = useState(false);
   const [selectedImageSeries, setSelectedImageSeries] = useState<any>(null);
   const [deletedStudyIds, setDeletedStudyIds] = useState<Set<string>>(
@@ -1119,11 +1121,59 @@ export default function ImagingPage() {
     }
   }, [showNewOrder, showUploadDialog, user?.role, currentPatient]);
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
-    if (files) {
+    if (files && files.length > 0 && selectedStudy) {
       const fileList = Array.from(files);
       setSelectedFiles(fileList);
+      setUploadingImages(true);
+
+      try {
+        const formData = new FormData();
+        formData.append('patientId', selectedStudy.patientId);
+        formData.append('studyId', selectedStudy.id);
+        formData.append('studyType', selectedStudy.studyType || 'X-Ray');
+
+        fileList.forEach((file) => {
+          formData.append('images', file);
+        });
+
+        const uploadHeaders: Record<string, string> = {
+          'X-Tenant-Subdomain': getActiveSubdomain(),
+        };
+
+        const response = await fetch('/api/imaging/upload-report-images', {
+          method: 'POST',
+          headers: uploadHeaders,
+          body: formData,
+          credentials: 'include',
+        });
+
+        if (!response.ok) {
+          throw new Error('Upload failed');
+        }
+
+        const data = await response.json();
+        
+        if (data.uploadedImages && data.uploadedImages.length > 0) {
+          const imageUrls = data.uploadedImages.map((img: any) => `/uploads/Imaging_Images/${img.fileName}`);
+          setUploadedImagePreviews(imageUrls);
+          
+          toast({
+            title: "Images Uploaded Successfully",
+            description: `${data.uploadedImages.length} image(s) uploaded and saved`,
+          });
+        }
+      } catch (error) {
+        console.error('Error uploading images:', error);
+        toast({
+          title: "Upload Failed",
+          description: "Failed to upload images. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setUploadingImages(false);
+      }
     }
   };
 
@@ -1337,6 +1387,8 @@ export default function ImagingPage() {
       setReportFindings(study.findings || "");
       setReportImpression(study.impression || "");
       setReportRadiologist(study.radiologist || "Dr. Michael Chen");
+      setUploadedImagePreviews([]);
+      setSelectedFiles([]);
       setShowReportDialog(true);
     }
   };
@@ -3302,12 +3354,14 @@ export default function ImagingPage() {
 
       {/* Generate Report Dialog */}
       <Dialog open={showReportDialog} onOpenChange={setShowReportDialog}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-6xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Generate Radiology Report</DialogTitle>
           </DialogHeader>
           {selectedStudy && (
-            <div className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Left Column - Form */}
+              <div className="space-y-6">
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
@@ -3736,8 +3790,45 @@ export default function ImagingPage() {
                   </div>
                 )}
               </div>
+              </div>
 
-              <div className="flex justify-between items-center pt-4 border-t">
+              {/* Right Column - Image Previews */}
+              <div className="space-y-4">
+                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border">
+                  <h4 className="font-medium text-sm mb-3">Uploaded Images</h4>
+                  {uploadingImages ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+                      <span className="ml-2 text-sm text-gray-600">Uploading images...</span>
+                    </div>
+                  ) : uploadedImagePreviews.length > 0 ? (
+                    <div className="grid grid-cols-2 gap-2">
+                      {uploadedImagePreviews.map((url, index) => (
+                        <div key={index} className="relative group">
+                          <img
+                            src={url}
+                            alt={`Preview ${index + 1}`}
+                            className="w-full h-32 object-cover rounded border"
+                          />
+                          <div className="absolute top-1 right-1 bg-blue-600 text-white text-xs px-2 py-1 rounded">
+                            {index + 1}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500 text-sm">
+                      <FileImage className="h-12 w-12 mx-auto text-gray-300 mb-2" />
+                      <p>No images uploaded yet</p>
+                      <p className="text-xs mt-1">Select images below to upload</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+              </div>
+            )}
+
+            <div className="flex justify-between items-center pt-4 border-t">
                 <Button
                   variant="outline"
                   onClick={() => setShowReportDialog(false)}
