@@ -19513,6 +19513,97 @@ Cura EMR Team
     }
   });
 
+  // Save Uploaded Images to Imaging_Images Folder
+  app.post("/api/imaging/save-uploaded-images", authMiddleware, requireRole(["doctor", "nurse", "admin"]), async (req: TenantRequest, res) => {
+    try {
+      console.log("SAVE UPLOADED IMAGES: Starting...");
+      
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const { organizationId, patientId, imageUrls } = req.body;
+      console.log("SAVE UPLOADED IMAGES: Organization ID:", organizationId, "Patient ID:", patientId);
+      
+      if (!organizationId || !patientId || !imageUrls || !Array.isArray(imageUrls)) {
+        return res.status(400).json({ error: "Organization ID, patient ID, and image URLs are required" });
+      }
+
+      // Create directory structure: /uploads/Imaging_Images/{organizationId}/patients/{patientId}/
+      const imagingImagesDir = path.resolve(
+        process.cwd(), 
+        'uploads', 
+        'Imaging_Images', 
+        String(organizationId), 
+        'patients', 
+        String(patientId)
+      );
+      await fse.ensureDir(imagingImagesDir);
+      console.log("SAVE UPLOADED IMAGES: Directory created:", imagingImagesDir);
+
+      let savedCount = 0;
+      const savedFiles: string[] = [];
+
+      // Process each image URL
+      for (const imageUrl of imageUrls) {
+        try {
+          // Extract filename from URL or generate one
+          const urlParts = imageUrl.split('/');
+          const originalFileName = urlParts[urlParts.length - 1] || `image_${Date.now()}_${savedCount}.jpg`;
+          
+          // Generate unique filename with timestamp
+          const timestamp = Date.now();
+          const fileExtension = originalFileName.split('.').pop() || 'jpg';
+          const uniqueFileName = `IMG_${timestamp}_${savedCount}.${fileExtension}`;
+          
+          // Determine source path - images are typically in /uploads/medical_images/
+          let sourcePath: string;
+          if (imageUrl.startsWith('/api/medical-images/')) {
+            // Extract the filename from the API URL
+            const apiFileName = imageUrl.replace('/api/medical-images/', '');
+            sourcePath = path.resolve(process.cwd(), 'uploads', 'medical_images', apiFileName);
+          } else if (imageUrl.startsWith('/uploads/')) {
+            // Direct file path
+            sourcePath = path.resolve(process.cwd(), imageUrl.substring(1));
+          } else {
+            console.log(`SAVE UPLOADED IMAGES: Skipping unsupported URL format: ${imageUrl}`);
+            continue;
+          }
+
+          // Check if source file exists
+          if (await fse.pathExists(sourcePath)) {
+            const destPath = path.join(imagingImagesDir, uniqueFileName);
+            
+            // Copy file to Imaging_Images folder
+            await fse.copy(sourcePath, destPath);
+            
+            savedFiles.push(uniqueFileName);
+            savedCount++;
+            console.log(`SAVE UPLOADED IMAGES: Saved ${uniqueFileName}`);
+          } else {
+            console.log(`SAVE UPLOADED IMAGES: Source file not found: ${sourcePath}`);
+          }
+        } catch (imageError) {
+          console.error(`SAVE UPLOADED IMAGES: Error processing image ${imageUrl}:`, imageError);
+        }
+      }
+
+      console.log(`SAVE UPLOADED IMAGES: Successfully saved ${savedCount} images`);
+      
+      res.json({
+        success: true,
+        savedCount,
+        savedFiles,
+        directory: imagingImagesDir,
+        message: `Successfully saved ${savedCount} image(s) to Imaging_Images folder`
+      });
+
+    } catch (error) {
+      console.error("SAVE UPLOADED IMAGES ERROR:", error);
+      res.status(500).json({ error: "Failed to save uploaded images" });
+    }
+  });
+
   // Share Imaging Study via Email
   app.post("/api/imaging/share-study", authMiddleware, async (req: TenantRequest, res) => {
     try {

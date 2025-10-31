@@ -70,6 +70,7 @@ import {
   List,
   Pill,
   CalendarIcon,
+  Save,
 } from "lucide-react";
 import { format } from "date-fns";
 import { isDoctorLike, formatRoleLabel } from "@/lib/role-utils";
@@ -3893,75 +3894,140 @@ export default function ImagingPage() {
                   </Popover>
                 </div>
 
-                {/* File Upload - Medical Images */}
-                <div>
-                  <Label htmlFor="report-upload-files">Medical Images *</Label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                    <FileImage className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                    <div className="space-y-2">
-                      <div>
-                        <input
-                          type="file"
-                          id="report-upload-files"
-                          multiple
-                          accept="image/*,.dcm,.dicom,.jpg,.jpeg,.png,.gif,.bmp,.tiff,.tif,.webp,.svg,.ico,.jfif,.pjpeg,.pjp"
-                          onChange={handleFileUpload}
-                          className="hidden"
-                        />
+                {/* File Upload - Two Column Layout for Medical Images and Uploaded Images */}
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Medical Images Column */}
+                  <div className="border rounded-lg p-4">
+                    <Label htmlFor="report-upload-files" className="text-sm font-medium">Medical Images *</Label>
+                    <div className="mt-2 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center">
+                      <FileImage className="h-10 w-10 mx-auto text-gray-400 mb-3" />
+                      <div className="space-y-2">
+                        <div>
+                          <input
+                            type="file"
+                            id="report-upload-files"
+                            multiple
+                            accept="image/*,.dcm,.dicom,.jpg,.jpeg,.png,.gif,.bmp,.tiff,.tif,.webp,.svg,.ico,.jfif,.pjpeg,.pjp"
+                            onChange={handleFileUpload}
+                            className="hidden"
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              document.getElementById("report-upload-files")?.click()
+                            }
+                            data-testid="button-select-images"
+                          >
+                            Select Images
+                          </Button>
+                        </div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          Select X-ray images, DICOM files, or other medical images
+                        </p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500">
+                          Supported formats: All image formats (JPEG, PNG, GIF, BMP,
+                          TIFF, WebP, SVG), DICOM (.dcm), and medical imaging files
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Selected Files Display */}
+                    {selectedFiles.length > 0 && (
+                      <div className="mt-3 space-y-2">
+                        <Label className="text-xs">Selected Files ({selectedFiles.length}):</Label>
+                        <div className="max-h-24 overflow-y-auto space-y-1">
+                          {selectedFiles.map((file, index) => (
+                            <div
+                              key={index}
+                              className="flex items-center justify-between bg-gray-50 dark:bg-gray-800 p-2 rounded text-xs"
+                            >
+                              <span className="truncate">{file.name}</span>
+                              <span className="text-gray-500 dark:text-gray-400">
+                                {file.size
+                                  ? file.size < 1024
+                                    ? `${file.size} B`
+                                    : file.size < 1024 * 1024
+                                      ? `${(file.size / 1024).toFixed(1)} KB`
+                                      : `${(file.size / (1024 * 1024)).toFixed(1)} MB`
+                                  : "Unknown size"}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Uploaded Images Column */}
+                  <div className="border rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <Label className="text-sm font-medium">Uploaded Images</Label>
+                      {uploadedImagePreviews.length > 0 && (
                         <Button
                           type="button"
                           variant="outline"
-                          onClick={() =>
-                            document.getElementById("report-upload-files")?.click()
-                          }
+                          size="sm"
+                          onClick={async () => {
+                            try {
+                              if (!selectedStudy || !user) return;
+                              
+                              const token = localStorage.getItem("auth_token");
+                              if (!token) {
+                                toast({
+                                  title: "Authentication Required",
+                                  description: "Please log in to save images.",
+                                  variant: "destructive",
+                                });
+                                return;
+                              }
+
+                              const response = await fetch('/api/imaging/save-uploaded-images', {
+                                method: 'POST',
+                                headers: {
+                                  'Content-Type': 'application/json',
+                                  'X-Tenant-Subdomain': getActiveSubdomain(),
+                                  'Authorization': `Bearer ${token}`,
+                                },
+                                body: JSON.stringify({
+                                  organizationId: user.organizationId || selectedStudy.organizationId,
+                                  patientId: selectedStudy.patientId,
+                                  imageUrls: uploadedImagePreviews,
+                                }),
+                              });
+
+                              if (!response.ok) {
+                                throw new Error('Failed to save images');
+                              }
+
+                              const data = await response.json();
+                              
+                              toast({
+                                title: "Success",
+                                description: `Saved ${data.savedCount} image(s) to Imaging_Images folder.`,
+                              });
+                            } catch (error) {
+                              console.error('Error saving images:', error);
+                              toast({
+                                title: "Error",
+                                description: error instanceof Error ? error.message : "Failed to save images.",
+                                variant: "destructive",
+                              });
+                            }
+                          }}
+                          data-testid="button-save-images"
                         >
-                          Select Images
+                          <Save className="h-3 w-3 mr-1" />
+                          Save Images
                         </Button>
-                      </div>
-                      <p className="text-sm text-gray-500">
-                        Select X-ray images, DICOM files, or other medical images
-                      </p>
-                      <p className="text-xs text-gray-400">
-                        Supported formats: All image formats (JPEG, PNG, GIF, BMP,
-                        TIFF, WebP, SVG), DICOM (.dcm), and medical imaging files
-                      </p>
+                      )}
                     </div>
-                  </div>
-
-                  {/* Selected Files Display */}
-                  {selectedFiles.length > 0 && (
-                    <div className="mt-4 space-y-2">
-                      <Label>Selected Files ({selectedFiles.length}):</Label>
-                      <div className="max-h-32 overflow-y-auto space-y-1">
-                        {selectedFiles.map((file, index) => (
-                          <div
-                            key={index}
-                            className="flex items-center justify-between bg-gray-50 p-2 rounded"
-                          >
-                            <span className="text-sm truncate">{file.name}</span>
-                            <span className="text-xs text-gray-500">
-                              {file.size
-                                ? file.size < 1024
-                                  ? `${file.size} B`
-                                  : file.size < 1024 * 1024
-                                    ? `${(file.size / 1024).toFixed(1)} KB`
-                                    : `${(file.size / (1024 * 1024)).toFixed(1)} MB`
-                                : "Unknown size"}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Uploaded Images Section */}
-                  <div className="mt-4">
-                    <Label>Uploaded Images</Label>
-                    <div className="mt-2 border-2 border-dashed border-gray-300 rounded-lg p-4">
+                    <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-3">
                       {uploadingImages ? (
-                        <div className="flex items-center justify-center py-8">
-                          <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
-                          <span className="ml-2 text-sm text-gray-600">Uploading images...</span>
+                        <div className="flex items-center justify-center py-6">
+                          <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+                          <span className="ml-2 text-xs text-gray-600 dark:text-gray-400">Uploading images...</span>
                         </div>
                       ) : uploadedImagePreviews.length > 0 ? (
                         <div className="grid grid-cols-2 gap-2">
@@ -3970,17 +4036,17 @@ export default function ImagingPage() {
                               <img
                                 src={url}
                                 alt={`Preview ${index + 1}`}
-                                className="w-full h-32 object-cover rounded border"
+                                className="w-full h-24 object-cover rounded border"
                               />
-                              <div className="absolute top-1 right-1 bg-blue-600 text-white text-xs px-2 py-1 rounded">
-                                Image {index + 1}
+                              <div className="absolute top-1 right-1 bg-blue-600 text-white text-xs px-2 py-0.5 rounded">
+                                {index + 1}
                               </div>
                             </div>
                           ))}
                         </div>
                       ) : (
-                        <div className="text-center py-8 text-gray-500 text-sm">
-                          <FileImage className="h-12 w-12 mx-auto text-gray-300 mb-2" />
+                        <div className="text-center py-6 text-gray-500 dark:text-gray-400 text-xs">
+                          <FileImage className="h-10 w-10 mx-auto text-gray-300 dark:text-gray-600 mb-2" />
                           <p>No images uploaded yet</p>
                           <p className="text-xs mt-1">Select images below to upload</p>
                         </div>
