@@ -18838,6 +18838,47 @@ Cura EMR Team
     }
   });
 
+  // Generate Prescription Token Endpoint
+  app.post("/api/imaging/generate-prescription-token", authMiddleware, requireRole(["doctor", "nurse", "patient", "admin"]), async (req: TenantRequest, res) => {
+    try {
+      const { organizationId, patientId, fileName } = req.body;
+      
+      if (!organizationId || !patientId || !fileName) {
+        return res.status(400).json({ error: "Missing required parameters" });
+      }
+
+      const fileSecret = process.env.FILE_SECRET;
+      if (!fileSecret) {
+        console.error("FILE_SECRET not configured");
+        return res.status(500).json({ error: "Server configuration error" });
+      }
+      
+      // Generate signed token for secure access
+      const accessToken = jwt.sign(
+        {
+          organizationId: organizationId,
+          patientId: patientId,
+          fileName: fileName,
+          type: 'prescription'
+        },
+        fileSecret,
+        { expiresIn: '7d' }
+      );
+      
+      res.json({
+        success: true,
+        token: accessToken
+      });
+
+    } catch (error) {
+      console.error("PRESCRIPTION TOKEN ERROR:", error);
+      res.status(500).json({ 
+        error: "Failed to generate prescription token",
+        details: (error as Error).message 
+      });
+    }
+  });
+
   // View Image Prescription PDF using temporary signed URL (no authentication required - token validated)
   app.get("/api/imaging/view-prescription/:organizationId/:patientId/:fileName", async (req: Request, res: Response) => {
     try {

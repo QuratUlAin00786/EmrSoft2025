@@ -2593,11 +2593,42 @@ export default function ImagingPage() {
                                       }
 
                                       try {
+                                        const token = localStorage.getItem("auth_token");
+                                        if (!token) {
+                                          toast({
+                                            title: "Authentication Required",
+                                            description: "Please log in to view prescriptions.",
+                                            variant: "destructive",
+                                          });
+                                          return;
+                                        }
+
                                         // Extract file name from the path
                                         const fileName = study.prescriptionFilePath.split('/').pop() || '';
                                         
-                                        // Construct the viewing URL using the endpoint
-                                        const prescriptionUrl = `/api/imaging/view-prescription/${study.organizationId}/${study.patientId}/${fileName}`;
+                                        // Request a signed token from the backend
+                                        const response = await fetch(`/api/imaging/generate-prescription-token`, {
+                                          method: "POST",
+                                          headers: {
+                                            "Content-Type": "application/json",
+                                            "X-Tenant-Subdomain": tenant?.subdomain || "cura",
+                                            "Authorization": `Bearer ${token}`,
+                                          },
+                                          body: JSON.stringify({
+                                            organizationId: tenant?.id,
+                                            patientId: study.patientId,
+                                            fileName: fileName
+                                          }),
+                                        });
+
+                                        if (!response.ok) {
+                                          throw new Error("Failed to generate access token");
+                                        }
+
+                                        const data = await response.json();
+                                        
+                                        // Construct the viewing URL with the token
+                                        const prescriptionUrl = `/api/imaging/view-prescription/${tenant?.id}/${study.patientId}/${fileName}?token=${data.token}`;
                                         
                                         // Open the prescription in a new window
                                         window.open(prescriptionUrl, '_blank');
@@ -2610,7 +2641,7 @@ export default function ImagingPage() {
                                         console.error("Error opening prescription:", error);
                                         toast({
                                           title: "Error",
-                                          description: "Failed to open prescription. The file may not exist.",
+                                          description: "Failed to open prescription. Please try again.",
                                           variant: "destructive",
                                         });
                                       }
