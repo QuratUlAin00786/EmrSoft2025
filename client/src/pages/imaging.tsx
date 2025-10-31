@@ -2568,138 +2568,140 @@ export default function ImagingPage() {
 
                         {/* Display Image IDs in Order Study, Generate Report, and Imaging Results tabs */}
                         {(activeTab === "order-study" || activeTab === "generate-report" || activeTab === "imaging-results") && (
-                          <div>
-                            <div className="flex items-center gap-2 mb-2">
-                              <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300">
-                                image_id
-                              </h4>
-                              {activeTab === "imaging-results" && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="h-6 px-2 text-xs"
-                                  onClick={async () => {
-                                    if (!study.imageId) {
-                                      toast({
-                                        title: "No Image ID",
-                                        description: "Cannot load prescription without an image ID.",
-                                        variant: "destructive",
-                                      });
-                                      return;
-                                    }
+                          <div className="space-y-4">
+                            <div>
+                              <div className="flex items-center gap-2 mb-2">
+                                <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300">
+                                  image_id
+                                </h4>
+                                {activeTab === "imaging-results" && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-6 px-2 text-xs"
+                                    onClick={async () => {
+                                      if (!study.imageId) {
+                                        toast({
+                                          title: "No Image ID",
+                                          description: "Cannot load prescription without an image ID.",
+                                          variant: "destructive",
+                                        });
+                                        return;
+                                      }
 
-                                    try {
-                                      // Construct the prescription file path
-                                      const prescriptionFileName = `${study.imageId}.pdf`;
-                                      const prescriptionUrl = `/uploads/Image_Prescriptions/${prescriptionFileName}`;
-                                      
-                                      // Open the prescription in a new window
-                                      window.open(prescriptionUrl, '_blank');
-                                      
-                                      toast({
-                                        title: "Opening Prescription",
-                                        description: "Prescription document is being opened in a new window.",
-                                      });
-                                    } catch (error) {
-                                      console.error("Error opening prescription:", error);
-                                      toast({
-                                        title: "Error",
-                                        description: "Failed to open prescription. The file may not exist.",
-                                        variant: "destructive",
-                                      });
-                                    }
-                                  }}
-                                >
-                                  <FileText className="h-3 w-3 mr-1" />
-                                  View Image Prescription
-                                </Button>
-                              )}
-                            </div>
-                            <div className="bg-gray-50 dark:bg-slate-600 p-3 rounded-lg border dark:border-slate-500">
-                              <div className="font-medium text-sm text-gray-900 dark:text-gray-100">
-                                {study.imageId || 'N/A'}
+                                      try {
+                                        // Construct the prescription file path
+                                        const prescriptionFileName = `${study.imageId}.pdf`;
+                                        const prescriptionUrl = `/uploads/Image_Prescriptions/${prescriptionFileName}`;
+                                        
+                                        // Open the prescription in a new window
+                                        window.open(prescriptionUrl, '_blank');
+                                        
+                                        toast({
+                                          title: "Opening Prescription",
+                                          description: "Prescription document is being opened in a new window.",
+                                        });
+                                      } catch (error) {
+                                        console.error("Error opening prescription:", error);
+                                        toast({
+                                          title: "Error",
+                                          description: "Failed to open prescription. The file may not exist.",
+                                          variant: "destructive",
+                                        });
+                                      }
+                                    }}
+                                  >
+                                    <FileText className="h-3 w-3 mr-1" />
+                                    View Image Prescription
+                                  </Button>
+                                )}
+                              </div>
+                              <div className="bg-gray-50 dark:bg-slate-600 p-3 rounded-lg border dark:border-slate-500">
+                                <div className="font-medium text-sm text-gray-900 dark:text-gray-100">
+                                  {study.imageId || 'N/A'}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        )}
 
-                        {/* Hide Image Series in Order Study and Generate Report tabs */}
-                        {activeTab !== "order-study" && activeTab !== "generate-report" && study.images && study.images.length > 0 && (
-                          <div>
-                            <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">
-                              Image Series
-                            </h4>
-                            <div className="grid grid-cols-1 gap-2">
-                              {study.images.map((series: any) => (
-                                <div
-                                  key={series.id}
-                                  className="bg-gray-50 dark:bg-slate-600 p-3 rounded-lg border dark:border-slate-500 cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-500 transition-colors"
-                                  onClick={async () => {
-                                    // Check if this is an ordered study without actual image
-                                    if (study.status === "ordered") {
-                                      toast({
-                                        title: "No Image Available",
-                                        description: "This is an order without uploaded images. Please upload images first.",
-                                        variant: "destructive",
-                                      });
-                                      return;
-                                    }
+                            {/* Image Series - shown below image_id in Imaging Results tab */}
+                            {activeTab === "imaging-results" && study.images && study.images.length > 0 && (
+                              <div>
+                                <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">
+                                  Image Series
+                                </h4>
+                                <div className="grid grid-cols-1 gap-2">
+                                  {study.images.map((series: any) => (
+                                    <div
+                                      key={series.id}
+                                      className="bg-gray-50 dark:bg-slate-600 p-3 rounded-lg border dark:border-slate-500 cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-500 transition-colors"
+                                      onClick={async () => {
+                                        // Check if this is an ordered study without actual image
+                                        if (study.status === "ordered") {
+                                          toast({
+                                            title: "No Image Available",
+                                            description: "This is an order without uploaded images. Please upload images first.",
+                                            variant: "destructive",
+                                          });
+                                          return;
+                                        }
 
-                                    try {
-                                      const token = localStorage.getItem("auth_token");
-                                      const headers: Record<string, string> = {
-                                        "X-Tenant-Subdomain": getActiveSubdomain(),
-                                      };
-                                      
-                                      if (token) {
-                                        headers["Authorization"] = `Bearer ${token}`;
-                                      }
-                                      
-                                      const response = await fetch(`/api/medical-images/${study.id}/image?t=${Date.now()}`, {
-                                        method: "GET",
-                                        headers,
-                                        credentials: "include",
-                                      });
-                                      
-                                      if (!response.ok) {
-                                        throw new Error(`Failed to load image: ${response.status}`);
-                                      }
-                                      
-                                      const blob = await response.blob();
-                                      const blobUrl = URL.createObjectURL(blob);
-                                      
-                                      const imageForViewer = {
-                                        seriesDescription: series.seriesDescription,
-                                        type: series.type,
-                                        imageCount: series.imageCount,
-                                        size: series.size,
-                                        imageId: study.id,
-                                        imageUrl: blobUrl,
-                                        mimeType: series.mimeType || "image/jpeg",
-                                        fileName: series.fileName || study.fileName,
-                                      };
-                                      setSelectedImageSeries(imageForViewer);
-                                      setShowImageViewer(true);
-                                    } catch (error) {
-                                      console.error("Error loading image:", error);
-                                      toast({
-                                        title: "Error",
-                                        description: "Failed to load medical image. Please try again.",
-                                        variant: "destructive",
-                                      });
-                                    }
-                                  }}
-                                >
-                                  <div className="font-medium text-sm text-gray-900 dark:text-gray-100">
-                                    {series.seriesDescription}
-                                  </div>
-                                  <div className="text-xs text-gray-600 dark:text-gray-300">
-                                    {series.imageCount} images • {series.size} •{" "}
-                                    {series.type}
-                                  </div>
+                                        try {
+                                          const token = localStorage.getItem("auth_token");
+                                          const headers: Record<string, string> = {
+                                            "X-Tenant-Subdomain": getActiveSubdomain(),
+                                          };
+                                          
+                                          if (token) {
+                                            headers["Authorization"] = `Bearer ${token}`;
+                                          }
+                                          
+                                          const response = await fetch(`/api/medical-images/${study.id}/image?t=${Date.now()}`, {
+                                            method: "GET",
+                                            headers,
+                                            credentials: "include",
+                                          });
+                                          
+                                          if (!response.ok) {
+                                            throw new Error(`Failed to load image: ${response.status}`);
+                                          }
+                                          
+                                          const blob = await response.blob();
+                                          const blobUrl = URL.createObjectURL(blob);
+                                          
+                                          const imageForViewer = {
+                                            seriesDescription: series.seriesDescription,
+                                            type: series.type,
+                                            imageCount: series.imageCount,
+                                            size: series.size,
+                                            imageId: study.id,
+                                            imageUrl: blobUrl,
+                                            mimeType: series.mimeType || "image/jpeg",
+                                            fileName: series.fileName || study.fileName,
+                                          };
+                                          setSelectedImageSeries(imageForViewer);
+                                          setShowImageViewer(true);
+                                        } catch (error) {
+                                          console.error("Error loading image:", error);
+                                          toast({
+                                            title: "Error",
+                                            description: "Failed to load medical image. Please try again.",
+                                            variant: "destructive",
+                                          });
+                                        }
+                                      }}
+                                    >
+                                      <div className="font-medium text-sm text-gray-900 dark:text-gray-100">
+                                        {series.seriesDescription}
+                                      </div>
+                                      <div className="text-xs text-gray-600 dark:text-gray-300">
+                                        {series.imageCount} images • {series.size} •{" "}
+                                        {series.type}
+                                      </div>
+                                    </div>
+                                  ))}
                                 </div>
-                              ))}
-                            </div>
+                              </div>
+                            )}
                           </div>
                         )}
 
