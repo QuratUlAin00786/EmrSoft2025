@@ -1822,6 +1822,7 @@ export default function ImagingPage() {
       prescriptionFilePath: image.prescriptionFilePath, // Include prescription file path
       imageId: image.imageId, // Include imageId
       orderStudyCreated: image.orderStudyCreated || false, // Include order study tracking
+      orderStudyReadyToGenerate: image.orderStudyReadyToGenerate || false, // Include order study ready to generate tracking
       orderStudyGenerated: image.orderStudyGenerated || false, // Include order study tracking
       orderStudyShared: image.orderStudyShared || false, // Include order study tracking
       images: [
