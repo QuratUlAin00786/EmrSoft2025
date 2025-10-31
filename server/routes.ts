@@ -12791,19 +12791,26 @@ This treatment plan should be reviewed and adjusted based on individual patient 
         
         // Now generate the final image_id and filename using the database ID
         const finalImageId = `IMG${timestamp}I${savedImage.id}ONC`;
-        const ext = file.filename.split('.').pop();
+        const ext = file.originalname.split('.').pop(); // Use original extension
         const finalFileName = `${finalImageId}.${ext}`;
         
-        // Rename the physical file
+        // Move file to organizational path: uploads/Imaging_Images/{organizationId}/patients/{patientId}/
+        const organizationId = req.tenant!.id;
+        const patientId = imageData.patientId;
+        const organizationalDir = path.join('./uploads/Imaging_Images', String(organizationId), 'patients', String(patientId));
+        
+        // Create organizational directory if it doesn't exist
+        await fse.ensureDir(organizationalDir);
+        
         const oldPath = path.join('./uploads/Imaging_Images', file.filename);
-        const newPath = path.join('./uploads/Imaging_Images', finalFileName);
+        const newPath = path.join(organizationalDir, finalFileName);
         
         try {
           await fs.promises.rename(oldPath, newPath);
-          console.log(`📷 Renamed file from ${file.filename} to ${finalFileName}`);
+          console.log(`📷 Moved file from ${file.filename} to organizational path: ${newPath}`);
         } catch (renameError) {
-          console.error('Error renaming file:', renameError);
-          // If rename fails, keep the old filename
+          console.error('Error moving file to organizational path:', renameError);
+          // If move fails, keep the old filename
         }
         
         // Update database with final image_id and filename

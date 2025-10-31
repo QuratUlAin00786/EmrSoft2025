@@ -1463,6 +1463,9 @@ export default function ImagingPage() {
 
         // Open the prescription PDF in a new tab
         window.open(data.viewUrl, '_blank');
+        
+        // Auto-refresh data after successful prescription generation
+        refetchStudies();
       } else {
         throw new Error("Failed to generate prescription");
       }
