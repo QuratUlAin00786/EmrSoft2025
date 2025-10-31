@@ -2536,12 +2536,36 @@ export default function ImagingPage() {
                                   variant="outline"
                                   size="sm"
                                   className="h-6 px-2 text-xs"
-                                  onClick={() => {
-                                    // Navigate to prescriptions or show prescription dialog
-                                    toast({
-                                      title: "View Prescription",
-                                      description: "Prescription viewer functionality will be implemented here.",
-                                    });
+                                  onClick={async () => {
+                                    if (!study.imageId) {
+                                      toast({
+                                        title: "No Image ID",
+                                        description: "Cannot load prescription without an image ID.",
+                                        variant: "destructive",
+                                      });
+                                      return;
+                                    }
+
+                                    try {
+                                      // Construct the prescription file path
+                                      const prescriptionFileName = `${study.imageId}.pdf`;
+                                      const prescriptionUrl = `/uploads/Image_Prescriptions/${prescriptionFileName}`;
+                                      
+                                      // Open the prescription in a new window
+                                      window.open(prescriptionUrl, '_blank');
+                                      
+                                      toast({
+                                        title: "Opening Prescription",
+                                        description: "Prescription document is being opened in a new window.",
+                                      });
+                                    } catch (error) {
+                                      console.error("Error opening prescription:", error);
+                                      toast({
+                                        title: "Error",
+                                        description: "Failed to open prescription. The file may not exist.",
+                                        variant: "destructive",
+                                      });
+                                    }
                                   }}
                                 >
                                   <FileText className="h-3 w-3 mr-1" />
