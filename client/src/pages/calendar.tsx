@@ -282,6 +282,30 @@ const physiotherapistSubcategories = [
   "Aquatic Physiotherapist"
 ];
 
+// Pharmacist Subcategories
+const pharmacistSubcategories = [
+  "Clinical Pharmacist",
+  "Hospital Pharmacist",
+  "Retail/Community Pharmacist",
+  "Industrial Pharmacist",
+  "Regulatory Affairs Pharmacist",
+  "Compounding Pharmacist",
+  "Oncology Pharmacist",
+  "Geriatric Pharmacist",
+  "Pediatric Pharmacist",
+  "Ambulatory Care Pharmacist",
+  "Nuclear Pharmacist",
+  "Infectious Disease Pharmacist",
+  "Pharmacovigilance Pharmacist",
+  "Academic/Research Pharmacist",
+  "Home Health Pharmacist",
+  "Military Pharmacist",
+  "Cardiology Pharmacist",
+  "Psychiatric Pharmacist",
+  "Emergency Medicine Pharmacist",
+  "Telepharmacist"
+];
+
 export default function CalendarPage() {
   const { user } = useAuth();
   const [selectedDoctor, setSelectedDoctor] = useState<any>(null);
@@ -1771,7 +1795,7 @@ export default function CalendarPage() {
                       </SelectContent>
                     </Select>
                     
-                    {staffFilterRole === 'doctor' && (
+                    {['doctor', 'nurse', 'dentist', 'dental_nurse', 'phlebotomist'].includes(staffFilterRole) && (
                       <Select 
                         value={staffFilterSpecialty} 
                         onValueChange={setStaffFilterSpecialty}
@@ -1877,6 +1901,25 @@ export default function CalendarPage() {
                         <SelectContent>
                           <SelectItem value="all">All Subcategories</SelectItem>
                           {physiotherapistSubcategories.map((subcategory) => (
+                            <SelectItem key={subcategory} value={subcategory}>
+                              {subcategory}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                    
+                    {staffFilterRole === 'pharmacist' && (
+                      <Select 
+                        value={staffFilterSpecialty} 
+                        onValueChange={setStaffFilterSpecialty}
+                      >
+                        <SelectTrigger className="w-full" data-testid="select-staff-pharmacist-subcategory">
+                          <SelectValue placeholder="Pharmacist Subcategory" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Subcategories</SelectItem>
+                          {pharmacistSubcategories.map((subcategory) => (
                             <SelectItem key={subcategory} value={subcategory}>
                               {subcategory}
                             </SelectItem>

@@ -812,12 +812,12 @@ export function DoctorList({
         
         // Apply specialty/subcategory filter based on role
         if (filterSpecialty && filterSpecialty !== 'all' && filterSpecialty !== '') {
-          if (filterRole === 'doctor') {
-            // For doctors, filter by medicalSpecialtyCategory
+          if (['doctor', 'nurse', 'dentist', 'dental_nurse', 'phlebotomist'].includes(filterRole)) {
+            // For doctors, nurses, dentists, dental nurses, and phlebotomists, filter by medicalSpecialtyCategory
             if (doctor.medicalSpecialtyCategory !== filterSpecialty) {
               return false;
             }
-          } else if (['lab_technician', 'aesthetician', 'optician', 'paramedic', 'physiotherapist'].includes(filterRole)) {
+          } else if (['lab_technician', 'aesthetician', 'optician', 'paramedic', 'physiotherapist', 'pharmacist'].includes(filterRole)) {
             // For other roles, filter by subSpecialty
             if (doctor.subSpecialty !== filterSpecialty) {
               return false;
@@ -844,12 +844,12 @@ export function DoctorList({
         
         // Apply specialty/subcategory filter based on role
         if (filterSpecialty && filterSpecialty !== 'all' && filterSpecialty !== '') {
-          if (filterRole === 'doctor') {
-            // For doctors, filter by medicalSpecialtyCategory
+          if (['doctor', 'nurse', 'dentist', 'dental_nurse', 'phlebotomist'].includes(filterRole)) {
+            // For doctors, nurses, dentists, dental nurses, and phlebotomists, filter by medicalSpecialtyCategory
             if (staff.medicalSpecialtyCategory !== filterSpecialty) {
               return false;
             }
-          } else if (['lab_technician', 'aesthetician', 'optician', 'paramedic', 'physiotherapist'].includes(filterRole)) {
+          } else if (['lab_technician', 'aesthetician', 'optician', 'paramedic', 'physiotherapist', 'pharmacist'].includes(filterRole)) {
             // For other roles, filter by subSpecialty
             if (staff.subSpecialty !== filterSpecialty) {
               return false;
