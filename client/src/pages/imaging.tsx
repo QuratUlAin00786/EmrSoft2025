@@ -152,6 +152,7 @@ interface ImagingStudy {
   radiologist?: string;
   reportFileName?: string;
   reportFilePath?: string;
+  prescriptionFilePath?: string;
   orderStudyCreated?: boolean;
   orderStudyReadyToGenerate?: boolean;
   orderStudyGenerated?: boolean;
@@ -1818,6 +1819,7 @@ export default function ImagingPage() {
       fileName: image.fileName, // Include image file name for PDF generation
       reportFileName: image.reportFileName, // Include PDF report file name
       reportFilePath: image.reportFilePath, // Include PDF report file path
+      prescriptionFilePath: image.prescriptionFilePath, // Include prescription file path
       imageId: image.imageId, // Include imageId
       orderStudyCreated: image.orderStudyCreated || false, // Include order study tracking
       orderStudyGenerated: image.orderStudyGenerated || false, // Include order study tracking
@@ -2578,19 +2580,21 @@ export default function ImagingPage() {
                                     size="sm"
                                     className="h-6 px-2 text-xs"
                                     onClick={async () => {
-                                      if (!study.imageId) {
+                                      if (!study.prescriptionFilePath) {
                                         toast({
-                                          title: "No Image ID",
-                                          description: "Cannot load prescription without an image ID.",
+                                          title: "No Prescription Available",
+                                          description: "Prescription has not been generated yet.",
                                           variant: "destructive",
                                         });
                                         return;
                                       }
 
                                       try {
-                                        // Construct the prescription file path
-                                        const prescriptionFileName = `${study.imageId}.pdf`;
-                                        const prescriptionUrl = `/uploads/Image_Prescriptions/${prescriptionFileName}`;
+                                        // Extract file name from the path
+                                        const fileName = study.prescriptionFilePath.split('/').pop() || '';
+                                        
+                                        // Construct the viewing URL using the endpoint
+                                        const prescriptionUrl = `/api/imaging/view-prescription/${study.organizationId}/${study.patientId}/${fileName}`;
                                         
                                         // Open the prescription in a new window
                                         window.open(prescriptionUrl, '_blank');
