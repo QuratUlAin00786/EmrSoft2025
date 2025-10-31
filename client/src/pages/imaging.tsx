@@ -2577,21 +2577,12 @@ export default function ImagingPage() {
                                 <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300">
                                   image_id
                                 </h4>
-                                {activeTab === "imaging-results" && (
+                                {activeTab === "imaging-results" && study.prescriptionFilePath && (
                                   <Button
                                     variant="outline"
                                     size="sm"
                                     className="h-6 px-2 text-xs"
                                     onClick={async () => {
-                                      if (!study.prescriptionFilePath) {
-                                        toast({
-                                          title: "No Prescription Available",
-                                          description: "Prescription has not been generated yet.",
-                                          variant: "destructive",
-                                        });
-                                        return;
-                                      }
-
                                       try {
                                         const token = localStorage.getItem("auth_token");
                                         if (!token) {
@@ -2603,45 +2594,43 @@ export default function ImagingPage() {
                                           return;
                                         }
 
-                                        // Extract file name from the path
-                                        const fileName = study.prescriptionFilePath.split('/').pop() || '';
+                                        const fileName = study.prescriptionFilePath.split('/').pop();
+                                        if (!fileName) {
+                                          throw new Error("Invalid prescription file path");
+                                        }
                                         
-                                        // Request a signed token from the backend
                                         const response = await fetch(`/api/imaging/generate-prescription-token`, {
                                           method: "POST",
                                           headers: {
                                             "Content-Type": "application/json",
-                                            "X-Tenant-Subdomain": tenant?.subdomain || "cura",
+                                            "X-Tenant-Subdomain": tenant?.subdomain || "",
                                             "Authorization": `Bearer ${token}`,
                                           },
                                           body: JSON.stringify({
-                                            organizationId: tenant?.id,
+                                            organizationId: study.organizationId,
                                             patientId: study.patientId,
                                             fileName: fileName
                                           }),
                                         });
 
                                         if (!response.ok) {
-                                          throw new Error("Failed to generate access token");
+                                          const errorData = await response.json();
+                                          throw new Error(errorData.error || "Failed to generate access token");
                                         }
 
                                         const data = await response.json();
-                                        
-                                        // Construct the viewing URL with the token
-                                        const prescriptionUrl = `/api/imaging/view-prescription/${tenant?.id}/${study.patientId}/${fileName}?token=${data.token}`;
-                                        
-                                        // Open the prescription in a new window
+                                        const prescriptionUrl = `/api/imaging/view-prescription/${study.organizationId}/${study.patientId}/${fileName}?token=${data.token}`;
                                         window.open(prescriptionUrl, '_blank');
                                         
                                         toast({
                                           title: "Opening Prescription",
-                                          description: "Prescription document is being opened in a new window.",
+                                          description: "Prescription document is being opened.",
                                         });
                                       } catch (error) {
                                         console.error("Error opening prescription:", error);
                                         toast({
                                           title: "Error",
-                                          description: "Failed to open prescription. Please try again.",
+                                          description: error instanceof Error ? error.message : "Failed to open prescription.",
                                           variant: "destructive",
                                         });
                                       }
