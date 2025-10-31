@@ -69,6 +69,7 @@ import {
   Grid,
   List,
   Pill,
+  CalendarIcon,
 } from "lucide-react";
 import { format } from "date-fns";
 import { isDoctorLike, formatRoleLabel } from "@/lib/role-utils";
@@ -1577,6 +1578,8 @@ export default function ImagingPage() {
             findings: reportFindings,
             impression: reportImpression,
             radiologist: reportRadiologist,
+            scheduledAt: scheduledDate ? scheduledDate.toISOString() : null,
+            performedAt: performedDate ? performedDate.toISOString() : null,
           },
           uploadedImageFileNames,
         },
@@ -3634,6 +3637,60 @@ export default function ImagingPage() {
                       {reportRadiologist || "Click edit to add radiologist..."}
                     </div>
                   )}
+                </div>
+
+                {/* Scheduled Date Field */}
+                <div>
+                  <Label htmlFor="scheduled-date" className="text-sm font-medium">
+                    Scheduled Date
+                  </Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={`w-full justify-start text-left font-normal ${!scheduledDate ? "text-muted-foreground" : ""}`}
+                        data-testid="button-scheduled-date"
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {scheduledDate ? format(scheduledDate, "PPP") : "Pick a date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={scheduledDate}
+                        onSelect={setScheduledDate}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                {/* Performed Date Field */}
+                <div>
+                  <Label htmlFor="performed-date" className="text-sm font-medium">
+                    Performed Date
+                  </Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={`w-full justify-start text-left font-normal ${!performedDate ? "text-muted-foreground" : ""}`}
+                        data-testid="button-performed-date"
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {performedDate ? format(performedDate, "PPP") : "Pick a date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={performedDate}
+                        onSelect={setPerformedDate}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
 
                 {/* File Upload - Medical Images */}

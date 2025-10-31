@@ -327,7 +327,7 @@ export interface IStorage {
   createMedicalImage(image: InsertMedicalImage): Promise<MedicalImage>;
   updateMedicalImage(id: number, organizationId: number, updates: Partial<InsertMedicalImage>): Promise<MedicalImage | undefined>;
   updateMedicalImageReportField(id: number, organizationId: number, fieldName: string, value: string): Promise<MedicalImage | undefined>;
-  updateMedicalImageReport(id: number, organizationId: number, reportData: { reportFileName?: string; reportFilePath?: string; findings?: string | null; impression?: string | null; radiologist?: string | null }): Promise<MedicalImage | undefined>;
+  updateMedicalImageReport(id: number, organizationId: number, reportData: { reportFileName?: string; reportFilePath?: string; findings?: string | null; impression?: string | null; radiologist?: string | null; scheduledAt?: string | null; performedAt?: string | null }): Promise<MedicalImage | undefined>;
   deleteMedicalImage(id: number, organizationId: number): Promise<boolean>;
 
   // Clinical Photos
@@ -4192,7 +4192,7 @@ export class DatabaseStorage implements IStorage {
     return updatedImage;
   }
 
-  async updateMedicalImageReport(id: number, organizationId: number, reportData: { reportFileName?: string; reportFilePath?: string; findings?: string | null; impression?: string | null; radiologist?: string | null }): Promise<MedicalImage | undefined> {
+  async updateMedicalImageReport(id: number, organizationId: number, reportData: { reportFileName?: string; reportFilePath?: string; findings?: string | null; impression?: string | null; radiologist?: string | null; scheduledAt?: string | null; performedAt?: string | null }): Promise<MedicalImage | undefined> {
     const updates: any = {
       updatedAt: new Date(),
     };
@@ -4212,6 +4212,12 @@ export class DatabaseStorage implements IStorage {
     }
     if (reportData.radiologist !== undefined) {
       updates.radiologist = reportData.radiologist;
+    }
+    if (reportData.scheduledAt !== undefined) {
+      updates.scheduledAt = reportData.scheduledAt ? new Date(reportData.scheduledAt) : null;
+    }
+    if (reportData.performedAt !== undefined) {
+      updates.performedAt = reportData.performedAt ? new Date(reportData.performedAt) : null;
     }
 
     const [updatedImage] = await db

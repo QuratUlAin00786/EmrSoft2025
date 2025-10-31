@@ -17722,6 +17722,24 @@ Cura EMR Team
       page.drawText(`Modality: ${study.modality}`, { x: rightColumnX + 20, y: rightColumnY, size: 10, font });
       rightColumnY -= 15;
       page.drawText(`Status: ${study.status || 'Complete'}`, { x: rightColumnX + 20, y: rightColumnY, size: 10, font });
+      rightColumnY -= 15;
+      
+      // Add Ordered, Scheduled, and Performed dates
+      const orderedDate = study.orderedAt ? new Date(study.orderedAt).toLocaleDateString() : 'N/A';
+      page.drawText(`Ordered: ${orderedDate}`, { x: rightColumnX + 20, y: rightColumnY, size: 10, font });
+      rightColumnY -= 15;
+      
+      if (reportFormData?.scheduledAt) {
+        const scheduledDate = new Date(reportFormData.scheduledAt).toLocaleDateString();
+        page.drawText(`Scheduled: ${scheduledDate}`, { x: rightColumnX + 20, y: rightColumnY, size: 10, font });
+        rightColumnY -= 15;
+      }
+      
+      if (reportFormData?.performedAt) {
+        const performedDate = new Date(reportFormData.performedAt).toLocaleDateString();
+        page.drawText(`Performed: ${performedDate}`, { x: rightColumnX + 20, y: rightColumnY, size: 10, font });
+        rightColumnY -= 15;
+      }
       
       yPosition = sectionsStartY - 130;
       
@@ -18188,7 +18206,9 @@ Cura EMR Team
             reportFilePath,
             findings: reportFormData?.findings || null,
             impression: reportFormData?.impression || null,
-            radiologist: reportFormData?.radiologist || null
+            radiologist: reportFormData?.radiologist || null,
+            scheduledAt: reportFormData?.scheduledAt || null,
+            performedAt: reportFormData?.performedAt || null
           });
           console.log(`Report file information saved to database for study ID: ${study.id}`);
         } catch (dbError) {
