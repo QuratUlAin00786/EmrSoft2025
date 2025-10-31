@@ -19103,7 +19103,7 @@ Cura EMR Team
         borderWidth: 1
       });
       
-      page.drawText('⚕ Laboratory Test Prescription', {
+      page.drawText('IMAGING STUDY PRESCRIPTION', {
         x: 50,
         y: yPosition,
         size: 11,
@@ -19364,16 +19364,16 @@ Cura EMR Team
           borderWidth: 1
         });
         
-        page.drawText('⚠', {
+        page.drawText('!', {
           x: 50,
           y: yPosition - 15,
-          size: 12,
+          size: 14,
           font: boldFont,
           color: rgb(0.8, 0.2, 0.2)
         });
         
         page.drawText('CRITICAL VALUES DETECTED', {
-          x: 70,
+          x: 65,
           y: yPosition - 12,
           size: 10,
           font: boldFont,
