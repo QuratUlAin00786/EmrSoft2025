@@ -17923,7 +17923,10 @@ Cura EMR Team
       if (uploadedImageFileNames && Array.isArray(uploadedImageFileNames) && uploadedImageFileNames.length > 0) {
         console.log("📷 SERVER: Processing additional uploaded images:", uploadedImageFileNames);
         
+        // Check both medical_images and Imaging_Images directories
+        const medicalImagesDir = path.resolve(process.cwd(), 'uploads', 'medical_images');
         const imagingImagesDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Images');
+        await fse.ensureDir(medicalImagesDir);
         await fse.ensureDir(imagingImagesDir);
         
         for (const uploadedFileName of uploadedImageFileNames) {
@@ -17934,10 +17937,18 @@ Cura EMR Team
           }
           
           try {
-            const imageFilePath = path.join(imagingImagesDir, uploadedFileName);
+            // Try medical_images directory first (where form uploads go)
+            let imageFilePath = path.join(medicalImagesDir, uploadedFileName);
+            let imageFound = await fse.pathExists(imageFilePath);
             
-            if (await fse.pathExists(imageFilePath)) {
-              console.log("📷 SERVER: Loading additional uploaded image:", uploadedFileName);
+            // If not found, try Imaging_Images directory
+            if (!imageFound) {
+              imageFilePath = path.join(imagingImagesDir, uploadedFileName);
+              imageFound = await fse.pathExists(imageFilePath);
+            }
+            
+            if (imageFound) {
+              console.log("📷 SERVER: Loading additional uploaded image from:", imageFilePath);
               
               const rawImageBuffer = await readFile(imageFilePath);
               
@@ -17948,7 +17959,7 @@ Cura EMR Team
               imageBuffers.push({ buffer: imageBuffer, mimeType });
               console.log("📷 SERVER: Successfully loaded additional uploaded image:", uploadedFileName, "mimeType:", mimeType);
             } else {
-              console.log("📷 SERVER: Additional uploaded image file not found:", uploadedFileName);
+              console.log("📷 SERVER: Additional uploaded image file not found in either directory:", uploadedFileName);
             }
           } catch (error) {
             console.error("📷 SERVER: Error loading additional uploaded image:", uploadedFileName, error);
