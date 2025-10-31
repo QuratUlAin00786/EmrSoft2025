@@ -21,7 +21,7 @@ import { gdprComplianceService } from "./services/gdpr-compliance";
 import { insertGdprConsentSchema, insertGdprDataRequestSchema, updateMedicalImageReportFieldSchema, insertAiInsightSchema, medicationsDatabase, patientDrugInteractions, insuranceVerifications, type Appointment, organizations, subscriptions, users, patients, symptomChecks, quickbooksConnections, insertClinicHeaderSchema, insertClinicFooterSchema, doctorsFee, invoices, labResults, insertMessageTemplateSchema } from "../shared/schema";
 import * as schema from "../shared/schema";
 import { db, pool } from "./db";
-import { and, eq, sql, desc } from "drizzle-orm";
+import { and, eq, sql, desc, isNull, isNotNull } from "drizzle-orm";
 import { processAppointmentBookingChat, generateAppointmentSummary } from "./anthropic";
 import { inventoryService } from "./services/inventory";
 import { emailService } from "./services/email";
