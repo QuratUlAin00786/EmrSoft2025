@@ -2325,15 +2325,6 @@ export default function ImagingPage() {
                             )}
                             <td className="px-6 py-4 whitespace-nowrap text-sm">
                               <div className="flex items-center gap-2">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleViewStudy(study)}
-                                  className="h-8 w-8 p-0"
-                                  data-testid={`button-view-${study.id}`}
-                                >
-                                  <Eye className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                                </Button>
                                 {user?.role !== 'patient' && (
                                   <>
                                     {activeTab === "order-study" ? (
@@ -2351,15 +2342,26 @@ export default function ImagingPage() {
                                         <Eye className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                                       </Button>
                                     ) : (
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => handleViewStudy(study)}
-                                        className="h-8 w-8 p-0"
-                                        data-testid={`button-edit-${study.id}`}
-                                      >
-                                        <Edit className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                                      </Button>
+                                      <>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => handleViewStudy(study)}
+                                          className="h-8 w-8 p-0"
+                                          data-testid={`button-view-${study.id}`}
+                                        >
+                                          <Eye className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                                        </Button>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => handleViewStudy(study)}
+                                          className="h-8 w-8 p-0"
+                                          data-testid={`button-edit-${study.id}`}
+                                        >
+                                          <Edit className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                                        </Button>
+                                      </>
                                     )}
                                     <Button
                                       variant="ghost"
@@ -3140,15 +3142,40 @@ export default function ImagingPage() {
                     </div>
 
                     <div className="flex items-center gap-2 justify-center">
-                      {/* Hide Edit icon for patient role and Imaging Results tab */}
-                      {user?.role !== 'patient' && activeTab !== 'imaging-results' && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleViewStudy(study)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
+                      {/* Show blue Eye icon for Order Study tab, regular Eye and Edit for others */}
+                      {user?.role !== 'patient' && (
+                        <>
+                          {activeTab === "order-study" ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedPrescriptionStudy(study);
+                                setShowPrescriptionDialog(true);
+                              }}
+                              title="View Prescription"
+                            >
+                              <Eye className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                            </Button>
+                          ) : activeTab !== 'imaging-results' ? (
+                            <>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleViewStudy(study)}
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleViewStudy(study)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            </>
+                          ) : null}
+                        </>
                       )}
 
                       {/* PDF Report Download and View Icons */}
