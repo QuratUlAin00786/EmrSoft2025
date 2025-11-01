@@ -5283,12 +5283,12 @@ This treatment plan should be reviewed and adjusted based on individual patient 
         return res.status(403).json({ error: "Permission denied" });
       }
 
-      // Only allow schedule updates for non-admin users updating themselves
+      // Only allow schedule and specialty updates for non-admin users updating themselves
       if (!isAdmin && isSelfUpdate) {
-        const allowedFields = ['workingDays', 'workingHours'];
+        const allowedFields = ['workingDays', 'workingHours', 'medicalSpecialtyCategory', 'subSpecialty'];
         const hasInvalidField = Object.keys(updates).some(key => !allowedFields.includes(key));
         if (hasInvalidField) {
-          return res.status(403).json({ error: "Can only update schedule information" });
+          return res.status(403).json({ error: "Can only update schedule and specialty information" });
         }
       }
       

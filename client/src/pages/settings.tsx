@@ -49,6 +49,14 @@ export default function Settings() {
   const [hasChanges, setHasChanges] = useState(false);
   const [showSaved, setShowSaved] = useState(false);
   
+  // Doctor profile editable fields state
+  const [doctorProfile, setDoctorProfile] = useState({
+    medicalSpecialtyCategory: "",
+    subSpecialty: "",
+    workingDays: [] as string[],
+    workingHours: { start: "", end: "" }
+  });
+  
   // Get tab from URL parameter
   const urlParams = new URLSearchParams(window.location.search);
   const tabParam = urlParams.get('tab');
@@ -254,6 +262,29 @@ export default function Settings() {
     }
   });
 
+  // Doctor profile update mutation
+  const updateDoctorProfileMutation = useMutation({
+    mutationFn: async (profileData: any) => {
+      if (!user?.id) throw new Error("User not found");
+      return apiRequest('PATCH', `/api/users/${user.id}`, profileData);
+    },
+    onSuccess: async () => {
+      // Refresh user data
+      await queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      toast({
+        title: "Profile updated",
+        description: "Your profile has been updated successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error updating profile",
+        description: error.message || "Failed to update profile. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+
   const handleInputChange = (field: string, value: any) => {
     setSettings(prev => ({ ...prev, [field]: value }));
     setHasChanges(true);
@@ -397,7 +428,7 @@ export default function Settings() {
                     </div>
                     <div className="space-y-2">
                       <Label>Username</Label>
-                      <Input value={user?.username || ""} disabled className="bg-gray-100 dark:bg-gray-800" />
+                      <Input value={(user as any)?.username || ""} disabled className="bg-gray-100 dark:bg-gray-800" />
                     </div>
                     <div className="space-y-2">
                       <Label>Role</Label>
@@ -409,17 +440,37 @@ export default function Settings() {
                     </div>
                     <div className="space-y-2">
                       <Label>Specialization (Medical Specialty)</Label>
-                      <Input value={user?.medicalSpecialtyCategory || "Not specified"} disabled className="bg-gray-100 dark:bg-gray-800" />
+                      <Input 
+                        value={
+                          (user as any)?.medicalSpecialtyCategory 
+                            ? (user as any).medicalSpecialtyCategory 
+                            : doctorProfile.medicalSpecialtyCategory
+                        } 
+                        onChange={(e) => setDoctorProfile({ ...doctorProfile, medicalSpecialtyCategory: e.target.value })}
+                        disabled={!!(user as any)?.medicalSpecialtyCategory} 
+                        className={(user as any)?.medicalSpecialtyCategory ? "bg-gray-100 dark:bg-gray-800" : ""}
+                        placeholder="Enter your medical specialty"
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label>Sub-Specialty</Label>
-                      <Input value={user?.subSpecialty || "Not specified"} disabled className="bg-gray-100 dark:bg-gray-800" />
+                      <Input 
+                        value={
+                          (user as any)?.subSpecialty 
+                            ? (user as any).subSpecialty 
+                            : doctorProfile.subSpecialty
+                        }
+                        onChange={(e) => setDoctorProfile({ ...doctorProfile, subSpecialty: e.target.value })}
+                        disabled={!!(user as any)?.subSpecialty} 
+                        className={(user as any)?.subSpecialty ? "bg-gray-100 dark:bg-gray-800" : ""}
+                        placeholder="Enter your sub-specialty"
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label>Working Days</Label>
                       <Input 
-                        value={user?.workingDays && Array.isArray(user.workingDays) && user.workingDays.length > 0 
-                          ? user.workingDays.join(", ") 
+                        value={(user as any)?.workingDays && Array.isArray((user as any).workingDays) && (user as any).workingDays.length > 0 
+                          ? (user as any).workingDays.join(", ") 
                           : "Not specified"
                         } 
                         disabled 
@@ -429,8 +480,8 @@ export default function Settings() {
                     <div className="space-y-2">
                       <Label>Working Hours</Label>
                       <Input 
-                        value={user?.workingHours && typeof user.workingHours === 'object' && (user.workingHours.start || user.workingHours.end)
-                          ? `${user.workingHours.start || 'N/A'} - ${user.workingHours.end || 'N/A'}` 
+                        value={(user as any)?.workingHours && typeof (user as any).workingHours === 'object' && ((user as any).workingHours.start || (user as any).workingHours.end)
+                          ? `${(user as any).workingHours.start || 'N/A'} - ${(user as any).workingHours.end || 'N/A'}` 
                           : "Not specified"
                         } 
                         disabled 
@@ -439,17 +490,44 @@ export default function Settings() {
                     </div>
                     <div className="space-y-2">
                       <Label>Status</Label>
-                      <Input value={user?.isActive ? "Active" : "Inactive"} disabled className="bg-gray-100 dark:bg-gray-800" />
+                      <Input value={(user as any)?.isActive ? "Active" : "Inactive"} disabled className="bg-gray-100 dark:bg-gray-800" />
                     </div>
                     <div className="space-y-2">
                       <Label>Member Since</Label>
                       <Input 
-                        value={user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : "N/A"} 
+                        value={(user as any)?.createdAt ? new Date((user as any).createdAt).toLocaleDateString() : "N/A"} 
                         disabled 
                         className="bg-gray-100 dark:bg-gray-800" 
                       />
                     </div>
                   </div>
+                  
+                  {(!(user as any)?.medicalSpecialtyCategory || !(user as any)?.subSpecialty) && (
+                    <div className="flex justify-end pt-4">
+                      <Button 
+                        onClick={() => {
+                          const updates: any = {};
+                          if (!(user as any)?.medicalSpecialtyCategory && doctorProfile.medicalSpecialtyCategory) {
+                            updates.medicalSpecialtyCategory = doctorProfile.medicalSpecialtyCategory;
+                          }
+                          if (!(user as any)?.subSpecialty && doctorProfile.subSpecialty) {
+                            updates.subSpecialty = doctorProfile.subSpecialty;
+                          }
+                          if (Object.keys(updates).length > 0) {
+                            updateDoctorProfileMutation.mutate(updates);
+                          }
+                        }}
+                        disabled={
+                          updateDoctorProfileMutation.isPending ||
+                          (!doctorProfile.medicalSpecialtyCategory && !doctorProfile.subSpecialty)
+                        }
+                        data-testid="button-saveDoctorProfile"
+                      >
+                        <Save className="h-4 w-4 mr-2" />
+                        {updateDoctorProfileMutation.isPending ? "Saving..." : "Save Profile"}
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
