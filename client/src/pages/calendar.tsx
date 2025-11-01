@@ -3419,9 +3419,13 @@ export default function CalendarPage() {
                           
                           const duplicateAppointment = allAppointments.find((apt: any) => {
                             const aptDateStr = format(new Date(apt.scheduledAt), 'yyyy-MM-dd');
+                            // Database uses snake_case (patient_id, provider_id), also check camelCase for compatibility
+                            const aptPatientId = apt.patient_id || apt.patientId;
+                            const aptProviderId = apt.provider_id || apt.providerId;
+                            
                             return (
-                              apt.patientId === numericPatientId &&
-                              apt.providerId.toString() === selectedProviderId &&
+                              aptPatientId === numericPatientId &&
+                              aptProviderId?.toString() === selectedProviderId &&
                               aptDateStr === selectedDateStr &&
                               apt.status !== 'cancelled' // Don't count cancelled appointments as duplicates
                             );
