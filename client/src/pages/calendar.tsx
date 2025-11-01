@@ -3755,7 +3755,8 @@ export default function CalendarPage() {
                       <Label className="text-sm font-medium text-gray-900 dark:text-white">Patient</Label>
                       <Input
                         value={(() => {
-                          const patient = patients.find((p: any) => p.id === pendingAppointmentData.patientId);
+                          // patientId in appointment refers to user ID, so find patient by userId
+                          const patient = patients.find((p: any) => p.userId === pendingAppointmentData.patientId || p.id === pendingAppointmentData.patientId);
                           return patient ? `${patient.firstName} ${patient.lastName}` : 'N/A';
                         })()}
                         disabled
