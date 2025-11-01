@@ -38,6 +38,8 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { Header } from "@/components/layout/header";
+import { useAuth } from "@/hooks/use-auth";
+import { isDoctorLike } from "@/lib/role-utils";
 
 function getTenantSubdomain(): string {
   return localStorage.getItem('user_subdomain') || 'demo';
@@ -99,6 +101,7 @@ interface AnalyticsData {
 const COLORS = ['#0ea5e9', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
 export default function AnalyticsPage() {
+  const { user } = useAuth();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filters, setFilters] = useState({
     dateRange: '30',
@@ -108,10 +111,13 @@ export default function AnalyticsPage() {
   });
 
   const { data: analyticsData, isLoading } = useQuery({
-    queryKey: ['/api/analytics'],
+    queryKey: ['/api/analytics', user?.id, isDoctorLike(user?.role)],
     queryFn: async () => {
       const token = localStorage.getItem('auth_token');
-      const response = await fetch('/api/analytics', {
+      const url = isDoctorLike(user?.role) && user?.id 
+        ? `/api/analytics?doctorId=${user.id}` 
+        : '/api/analytics';
+      const response = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'X-Tenant-Subdomain': getTenantSubdomain()
@@ -121,7 +127,8 @@ export default function AnalyticsPage() {
         throw new Error('Failed to fetch analytics data');
       }
       return response.json();
-    }
+    },
+    enabled: !!user
   });
 
   const formatCurrency = (amount: number) => {
@@ -357,11 +364,23 @@ export default function AnalyticsPage() {
 
         {/* Analytics Tabs */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="patients">Patients</TabsTrigger>
-            <TabsTrigger value="clinical">Clinical</TabsTrigger>
-            <TabsTrigger value="financial">Financial</TabsTrigger>
+          <TabsList className={`grid w-full ${isDoctorLike(user?.role) ? 'grid-cols-2 md:grid-cols-5' : 'grid-cols-2 md:grid-cols-4'}`}>
+            {isDoctorLike(user?.role) ? (
+              <>
+                <TabsTrigger value="overview">Overview ({user?.firstName} {user?.lastName})</TabsTrigger>
+                <TabsTrigger value="patients">Patients ({user?.firstName} {user?.lastName})</TabsTrigger>
+                <TabsTrigger value="appointments">My Appointments ({user?.firstName} {user?.lastName})</TabsTrigger>
+                <TabsTrigger value="clinical">Clinic ({user?.firstName} {user?.lastName})</TabsTrigger>
+                <TabsTrigger value="financial">Financial ({user?.firstName} {user?.lastName})</TabsTrigger>
+              </>
+            ) : (
+              <>
+                <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="patients">Patients</TabsTrigger>
+                <TabsTrigger value="clinical">Clinical</TabsTrigger>
+                <TabsTrigger value="financial">Financial</TabsTrigger>
+              </>
+            )}
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4">
@@ -752,6 +771,90 @@ export default function AnalyticsPage() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {isDoctorLike(user?.role) && (
+            <TabsContent value="appointments" className="space-y-4 lg:space-y-6">
+              {/* My Appointments Overview */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Appointments</p>
+                        <p className="text-3xl font-bold text-blue-600">
+                          {analyticsData?.overview?.totalAppointments || 0}
+                        </p>
+                      </div>
+                      <Calendar className="h-8 w-8 text-blue-600" />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Completed</p>
+                        <p className="text-3xl font-bold text-green-600">
+                          {analyticsData?.overview?.completedAppointments || 0}
+                        </p>
+                      </div>
+                      <Activity className="h-8 w-8 text-green-600" />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600 dark:text-gray-400">No-Shows</p>
+                        <p className="text-3xl font-bold text-orange-600">
+                          {analyticsData?.overview?.noShowCount || 0}
+                        </p>
+                      </div>
+                      <AlertTriangle className="h-8 w-8 text-orange-600" />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Cancelled</p>
+                        <p className="text-3xl font-bold text-red-600">
+                          {analyticsData?.overview?.cancelledCount || 0}
+                        </p>
+                      </div>
+                      <FileText className="h-8 w-8 text-red-600" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Appointment Volume Chart */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>My Appointment Volume</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={analyticsData?.trends?.appointmentVolume || []}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis />
+                      <Tooltip />
+                      <Bar dataKey="scheduled" fill="#0ea5e9" name="Scheduled" />
+                      <Bar dataKey="completed" fill="#10b981" name="Completed" />
+                      <Bar dataKey="cancelled" fill="#ef4444" name="Cancelled" />
+                      <Bar dataKey="noShow" fill="#f59e0b" name="No-Show" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
 
           <TabsContent value="clinical" className="space-y-4 lg:space-y-6">
             {/* Clinical Overview Cards */}
