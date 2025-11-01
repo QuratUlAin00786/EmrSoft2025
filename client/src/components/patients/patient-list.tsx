@@ -2503,7 +2503,7 @@ export function PatientList({ onSelectPatient, genderFilter = null, viewMode = "
       title: "Book Appointment",
       description: `Opening appointment booking for ${patient.firstName} ${patient.lastName}`,
     });
-    setLocation(`/calendar?patientId=${patient.id}`);
+    setLocation(`/appointments?patientId=${patient.id}`);
   };
 
   if (isLoading) {
