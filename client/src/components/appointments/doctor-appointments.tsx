@@ -254,7 +254,13 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
   // Get patient info for next appointment
   const nextAppointmentPatient = React.useMemo(() => {
     if (nextAppointment?.patientId && patientsData && Array.isArray(patientsData)) {
-      return patientsData.find((p: any) => p.userId === nextAppointment.patientId);
+      // Try multiple matching strategies to find the patient
+      return patientsData.find((p: any) => 
+        p.userId === nextAppointment.patientId || 
+        p.id === nextAppointment.patientId ||
+        (p.patientId && p.patientId === nextAppointment.patientId.toString()) ||
+        p.id.toString() === nextAppointment.patientId.toString()
+      );
     }
     return null;
   }, [nextAppointment, patientsData]);
@@ -676,9 +682,12 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
 
             {/* Description if available */}
             {nextAppointment.description && (
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-3 pt-3 border-t">
-                {nextAppointment.description}
-              </p>
+              <div className="mt-3 pt-3 border-t">
+                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Description:</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  {nextAppointment.description}
+                </p>
+              </div>
             )}
           </CardContent>
         </Card>
