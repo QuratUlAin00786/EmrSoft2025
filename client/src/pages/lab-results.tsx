@@ -5638,6 +5638,55 @@ Report generated from Cura EMR System`;
               </div>
             </div>
 
+            {/* Sample Collection Status */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Sample Collection Status</Label>
+              <div className="flex gap-6">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="sample-collected"
+                    checked={generateFormData.sampleCollected === true}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setGenerateFormData((prev: any) => ({
+                          ...prev,
+                          sampleCollected: true,
+                        }));
+                      }
+                    }}
+                    data-testid="checkbox-sample-collected"
+                  />
+                  <Label
+                    htmlFor="sample-collected"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                  >
+                    Sample Collected
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="sample-not-collected"
+                    checked={generateFormData.sampleCollected === false}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setGenerateFormData((prev: any) => ({
+                          ...prev,
+                          sampleCollected: false,
+                        }));
+                      }
+                    }}
+                    data-testid="checkbox-sample-not-collected"
+                  />
+                  <Label
+                    htmlFor="sample-not-collected"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                  >
+                    Not Collected
+                  </Label>
+                </div>
+              </div>
+            </div>
+
             {/* Notes */}
             <div className="space-y-2">
               <Label htmlFor="generate-notes">Clinical Notes (Optional)</Label>
@@ -5752,6 +5801,7 @@ Report generated from Cura EMR System`;
                         results: testResults,
                         notes: generateFormData.notes || "",
                         criticalValues: generateFormData.criticalValues || false,
+                        sampleCollected: generateFormData.sampleCollected !== undefined ? generateFormData.sampleCollected : false,
                       };
 
                       // Create lab result
