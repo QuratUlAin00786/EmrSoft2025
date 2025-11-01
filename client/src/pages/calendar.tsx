@@ -3968,7 +3968,10 @@ export default function CalendarPage() {
                       <div>
                         <p className="text-sm text-gray-600 dark:text-gray-400">Patient</p>
                         <p className="font-medium text-gray-900 dark:text-white">
-                          {patients.find((p: any) => p.id === pendingAppointmentData.patientId)?.firstName} {patients.find((p: any) => p.id === pendingAppointmentData.patientId)?.lastName}
+                          {(() => {
+                            const patient = patients.find((p: any) => (p.patientId || p.id.toString()) === pendingAppointmentData.patientId);
+                            return patient ? `${patient.firstName} ${patient.lastName}` : 'N/A';
+                          })()}
                         </p>
                       </div>
                       <div>
@@ -4067,7 +4070,7 @@ export default function CalendarPage() {
                     </Button>
                     <Button
                       onClick={() => {
-                        const patient = patients.find((p: any) => p.id === pendingAppointmentData.patientId);
+                        const patient = patients.find((p: any) => (p.patientId || p.id.toString()) === pendingAppointmentData.patientId);
                         
                         if (!patient) {
                           toast({
