@@ -243,8 +243,24 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
   // Get next upcoming appointment
   const nextAppointment = categorizedAppointments.upcoming[0] || null;
   
-  // Get doctor info for next appointment
+  // Get doctor info for next appointment (provider, not creator)
   const nextAppointmentDoctor = React.useMemo(() => {
+    if (nextAppointment?.providerId && usersData && Array.isArray(usersData)) {
+      return usersData.find((u: any) => u.id === nextAppointment.providerId);
+    }
+    return null;
+  }, [nextAppointment, usersData]);
+
+  // Get patient info for next appointment
+  const nextAppointmentPatient = React.useMemo(() => {
+    if (nextAppointment?.patientId && patientsData && Array.isArray(patientsData)) {
+      return patientsData.find((p: any) => p.userId === nextAppointment.patientId);
+    }
+    return null;
+  }, [nextAppointment, patientsData]);
+
+  // Get creator info for next appointment
+  const nextAppointmentCreator = React.useMemo(() => {
     if (nextAppointment?.createdBy && usersData && Array.isArray(usersData)) {
       return usersData.find((u: any) => u.id === nextAppointment.createdBy);
     }
@@ -599,51 +615,71 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2">
-                  <Calendar className="h-5 w-5 text-blue-600" />
-                  <span className="font-semibold text-lg">
-                    {format(new Date(nextAppointment.scheduledAt), "EEEE, MMMM d, yyyy")}
-                  </span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Clock className="h-5 w-5 text-blue-600" />
-                  <span className="font-semibold text-lg">
-                    {formatTime(nextAppointment.scheduledAt)}
-                  </span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <User className="h-5 w-5 text-blue-600" />
-                  <span className="text-gray-700 dark:text-gray-300">
-                    Patient: {getPatientName(nextAppointment.patientId)}
-                  </span>
-                </div>
-                {nextAppointmentDoctor && (
-                  <div className="flex items-center space-x-2">
-                    <Stethoscope className="h-5 w-5 text-blue-600" />
-                    <span className="text-gray-700 dark:text-gray-300">
-                      Doctor: {nextAppointmentDoctor.firstName} {nextAppointmentDoctor.lastName}
-                    </span>
-                  </div>
-                )}
-                <div className="text-sm text-gray-600 dark:text-gray-400">
-                  Type: {nextAppointment.type}
-                </div>
-              
-                {nextAppointment.description && (
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                    {nextAppointment.description}
-                  </div>
-                )}
-              </div>
+            <div className="flex items-start justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                {nextAppointment.title || `Appointment with ${nextAppointmentDoctor ? `${nextAppointmentDoctor.firstName} ${nextAppointmentDoctor.lastName}` : 'Doctor'}`}
+              </h3>
               <Badge 
                 style={{ backgroundColor: statusColors[nextAppointment.status as keyof typeof statusColors] }}
-                className="text-white text-lg px-4 py-2"
+                className="text-white"
               >
                 {nextAppointment.status.toUpperCase()}
               </Badge>
             </div>
+
+            {/* Two Column Grid Layout */}
+            <div className="grid grid-cols-2 gap-6">
+              {/* Left Column */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                  <Calendar className="h-4 w-4 text-blue-600" />
+                  <span className="font-semibold">{format(new Date(nextAppointment.scheduledAt), "EEEE, MMMM d, yyyy")}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                  <User className="h-4 w-4 text-blue-600" />
+                  <span>{nextAppointmentPatient ? `${nextAppointmentPatient.firstName} ${nextAppointmentPatient.lastName}` : 'N/A'}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                  <FileText className="h-4 w-4 text-blue-600" />
+                  <span>{nextAppointment.type || 'N/A'}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                  <MapPin className="h-4 w-4 text-blue-600" />
+                  <span>{nextAppointment.location || 'N/A'}</span>
+                </div>
+              </div>
+
+              {/* Right Column */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                  <Clock className="h-4 w-4 text-blue-600" />
+                  <span className="font-semibold">{formatTime(nextAppointment.scheduledAt)}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                  <Stethoscope className="h-4 w-4 text-blue-600" />
+                  <span>{nextAppointmentDoctor ? `${nextAppointmentDoctor.firstName} ${nextAppointmentDoctor.lastName}` : 'N/A'}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                  <FileText className="h-4 w-4 text-blue-600" />
+                  <span>{nextAppointmentDoctor?.medicalSpecialtyCategory || nextAppointmentDoctor?.department || 'N/A'}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Booked By Info */}
+            {nextAppointmentCreator && (
+              <div className="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                <User className="h-3 w-3 inline mr-1" />
+                Booked by: {nextAppointmentCreator.firstName} {nextAppointmentCreator.lastName}
+              </div>
+            )}
+
+            {/* Description if available */}
+            {nextAppointment.description && (
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-3 pt-3 border-t">
+                {nextAppointment.description}
+              </p>
+            )}
           </CardContent>
         </Card>
       )}
