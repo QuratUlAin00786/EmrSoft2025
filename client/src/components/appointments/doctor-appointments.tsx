@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Calendar, Clock, User, Video, Stethoscope, Plus, ArrowRight, Edit, Search, X, Filter } from "lucide-react";
+import { Calendar, Clock, User, Video, Stethoscope, Plus, ArrowRight, Edit, Search, X, Filter, FileText, MapPin } from "lucide-react";
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, isToday, isPast, isFuture, parseISO } from "date-fns";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -659,85 +659,103 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {filteredAppointments.map((appointment: any) => (
-              <Card 
-                key={appointment.id} 
-                className="border-l-4" 
-                style={{ borderLeftColor: statusColors[appointment.status as keyof typeof statusColors] }}
-                data-testid={`filtered-appointment-${appointment.id}`}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <div>
-                        <div className="flex items-center space-x-2">
-                          <Calendar className="h-4 w-4 text-gray-400" />
-                          <span className="font-medium">
-                            {format(new Date(appointment.scheduledAt), "EEEE, MMMM d, yyyy")}
-                          </span>
-                        </div>
-                        <div className="flex items-center space-x-2 mt-1">
-                          <Clock className="h-4 w-4 text-gray-400" />
-                          <span className="font-medium">{formatTime(appointment.scheduledAt)}</span>
-                        </div>
-                        <div className="flex items-center space-x-2 mt-1">
-                          <User className="h-4 w-4 text-gray-400" />
-                          <span className="text-sm">{getPatientName(appointment.patientId)}</span>
-                        </div>
-                        {isDoctorLike(user?.role || '') && usersData && (() => {
-                          const doctor = usersData.find((u: any) => u.id === user?.id);
-                          return doctor && (doctor.medicalSpecialtyCategory || doctor.subSpecialty) ? (
-                            <>
-                              {doctor.medicalSpecialtyCategory && (
-                                <div className="flex items-center space-x-2 mt-1">
-                                  <Stethoscope className="h-4 w-4 text-gray-400" />
-                                  <span className="text-xs text-gray-600">{doctor.medicalSpecialtyCategory}</span>
-                                </div>
-                              )}
-                              {doctor.subSpecialty && (
-                                <div className="flex items-center space-x-2 mt-1">
-                                  <Stethoscope className="h-4 w-4 text-gray-400" />
-                                  <span className="text-xs text-gray-600">{doctor.subSpecialty}</span>
-                                </div>
-                              )}
-                            </>
-                          ) : null;
-                        })()}
-                      </div>
-                    </div>
-                    <div className="text-right space-y-2">
-                      <div className="text-sm text-gray-600">Type: {appointment.type}</div>
-                      <div className="flex flex-col items-end gap-2">
+            {filteredAppointments.map((appointment: any) => {
+              const doctor = usersData?.find((u: any) => u.id === appointment.providerId);
+              const patient = patientsData?.find((p: any) => p.userId === appointment.patientId);
+              const createdBy = usersData?.find((u: any) => u.id === appointment.createdBy);
+              
+              return (
+                <Card 
+                  key={appointment.id} 
+                  className="border-l-4" 
+                  style={{ borderLeftColor: statusColors[appointment.status as keyof typeof statusColors] }}
+                  data-testid={`filtered-appointment-${appointment.id}`}
+                >
+                  <CardContent className="p-4">
+                    {/* Header with Title and Actions */}
+                    <div className="flex items-start justify-between mb-4">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                        {appointment.title || `Appointment with ${doctor ? `${doctor.firstName} ${doctor.lastName}` : 'Doctor'}`}
+                      </h3>
+                      <div className="flex items-center gap-2">
+                        <Edit className="h-4 w-4 text-gray-400 cursor-pointer hover:text-blue-600" />
+                        {appointment.status !== 'cancelled' && isDoctorLike(user?.role || '') && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            onClick={() => setAppointmentToCancel(appointment.id)}
+                            data-testid={`button-cancel-${appointment.id}`}
+                          >
+                            Cancel Appointment
+                          </Button>
+                        )}
                         <Badge 
                           style={{ backgroundColor: statusColors[appointment.status as keyof typeof statusColors] }}
                           className="text-white"
                         >
                           {appointment.status.toUpperCase()}
                         </Badge>
-                        {appointment.status !== 'cancelled' && isDoctorLike(user?.role || '') && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
-                            onClick={() => setAppointmentToCancel(appointment.id)}
-                            data-testid={`button-cancel-${appointment.id}`}
-                          >
-                            <Edit className="h-4 w-4" />
-                            Cancel Appointment
-                          </Button>
-                        )}
                       </div>
                     </div>
-                  </div>
-                  {appointment.description && (
-                    <p className="text-sm text-gray-600 mt-2">{appointment.description}</p>
-                  )}
-                  {appointment.location && (
-                    <p className="text-sm text-gray-500 mt-1">Location: {appointment.location}</p>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
+
+                    {/* Two Column Grid Layout */}
+                    <div className="grid grid-cols-2 gap-6">
+                      {/* Left Column */}
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                          <Calendar className="h-4 w-4 text-gray-400" />
+                          <span>{format(new Date(appointment.scheduledAt), "EEEE, MMMM d, yyyy")}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                          <User className="h-4 w-4 text-gray-400" />
+                          <span>{patient ? `${patient.firstName} ${patient.lastName}` : getPatientName(appointment.patientId)}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                          <FileText className="h-4 w-4 text-gray-400" />
+                          <span>{appointment.type || 'N/A'}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                          <MapPin className="h-4 w-4 text-gray-400" />
+                          <span>{appointment.location || 'N/A'}</span>
+                        </div>
+                      </div>
+
+                      {/* Right Column */}
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                          <Clock className="h-4 w-4 text-gray-400" />
+                          <span>{formatTime(appointment.scheduledAt)}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                          <User className="h-4 w-4 text-gray-400" />
+                          <span>{doctor ? `${doctor.firstName} ${doctor.lastName}` : 'N/A'}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                          <FileText className="h-4 w-4 text-gray-400" />
+                          <span>{doctor?.medicalSpecialtyCategory || doctor?.department || 'N/A'}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Booked By Info */}
+                    {createdBy && (
+                      <div className="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                        <User className="h-3 w-3 inline mr-1" />
+                        Booked by: {createdBy.firstName} {createdBy.lastName}
+                      </div>
+                    )}
+
+                    {/* Description if available */}
+                    {appointment.description && (
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-3 pt-3 border-t">
+                        {appointment.description}
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
             {filteredAppointments.length === 0 && (
               <div className="text-center py-8 text-gray-500">
                 <Calendar className="h-12 w-12 mx-auto mb-4 text-gray-300" />
