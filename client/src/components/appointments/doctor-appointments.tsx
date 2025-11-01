@@ -536,39 +536,61 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {getAppointmentsForDate(selectedDate).map((appointment: any) => (
-                <Card key={appointment.id} className="border-l-4" style={{ borderLeftColor: statusColors[appointment.status as keyof typeof statusColors] }}>
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <div>
-                          <div className="flex items-center space-x-2">
-                            <Clock className="h-4 w-4 text-gray-400" />
-                            <span className="font-medium">{formatTime(appointment.scheduledAt)}</span>
+              {getAppointmentsForDate(selectedDate).map((appointment: any) => {
+                const patient = patientsData?.find((p: any) => p.id === appointment.patientId);
+                
+                return (
+                  <Card key={appointment.id} className="border-l-4" style={{ borderLeftColor: statusColors[appointment.status as keyof typeof statusColors] }}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                          <div>
+                            <div className="flex items-center space-x-2">
+                              <Clock className="h-4 w-4 text-gray-400" />
+                              <span className="font-medium">{formatTime(appointment.scheduledAt)}</span>
+                            </div>
+                            <div className="flex items-center space-x-2 mt-1">
+                              <User className="h-4 w-4 text-gray-400" />
+                              <span className="text-sm font-medium">{getPatientName(appointment.patientId)}</span>
+                            </div>
+                            {patient && (
+                              <>
+                                {patient.patientId && (
+                                  <div className="flex items-center space-x-2 mt-1">
+                                    <span className="text-xs text-gray-500">Patient ID: {patient.patientId}</span>
+                                  </div>
+                                )}
+                                {patient.contactNumber && (
+                                  <div className="flex items-center space-x-2 mt-1">
+                                    <span className="text-xs text-gray-500">Contact: {patient.contactNumber}</span>
+                                  </div>
+                                )}
+                                {patient.email && (
+                                  <div className="flex items-center space-x-2 mt-1">
+                                    <span className="text-xs text-gray-500">Email: {patient.email}</span>
+                                  </div>
+                                )}
+                              </>
+                            )}
                           </div>
-                          <div className="flex items-center space-x-2 mt-1">
-                            <User className="h-4 w-4 text-gray-400" />
-                            <span className="text-sm">{getPatientName(appointment.patientId)}</span>
-                          </div>
-                         
+                        </div>
+                        <div className="text-right">
+                          <div className="font-medium">{appointment.title}</div>
+                          <Badge 
+                            style={{ backgroundColor: statusColors[appointment.status as keyof typeof statusColors] }}
+                            className="text-white"
+                          >
+                            {appointment.status.toUpperCase()}
+                          </Badge>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="font-medium">{appointment.title}</div>
-                        <Badge 
-                          style={{ backgroundColor: statusColors[appointment.status as keyof typeof statusColors] }}
-                          className="text-white"
-                        >
-                          {appointment.status.toUpperCase()}
-                        </Badge>
-                      </div>
-                    </div>
-                    {appointment.description && (
-                      <p className="text-sm text-gray-600 mt-2">{appointment.description}</p>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
+                      {appointment.description && (
+                        <p className="text-sm text-gray-600 mt-2">{appointment.description}</p>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
               {getAppointmentsForDate(selectedDate).length === 0 && (
                 <div className="text-center py-8 text-gray-500">
                   <Calendar className="h-12 w-12 mx-auto mb-4 text-gray-300" />
