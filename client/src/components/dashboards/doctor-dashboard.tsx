@@ -124,7 +124,7 @@ export function DoctorDashboard() {
   const quickActions = [
     { title: "New Consultation", description: "Start a patient consultation", icon: Stethoscope, href: `/${subdomain}/appointments` },
     { title: "Review Lab Results", description: "Check pending test results", icon: FileText, href: `/${subdomain}/lab-results` },
-    { title: "AI Insights", description: "View clinical recommendations", icon: Brain, href: `/${subdomain}/ai-insights` },
+    { title: "AI Insights", description: "View clinical recommendations", icon: Brain, href: `/${subdomain}/clinical-decision-support` },
     { title: "Patient Records", description: "Access medical histories", icon: Users, href: `/${subdomain}/patients` }
   ];
 
