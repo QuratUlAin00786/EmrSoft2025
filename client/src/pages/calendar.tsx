@@ -383,7 +383,7 @@ export default function CalendarPage() {
   const [invoiceForm, setInvoiceForm] = useState({
     serviceDate: new Date().toISOString().split('T')[0],
     invoiceDate: new Date().toISOString().split('T')[0],
-    dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    dueDate: new Date().toISOString().split('T')[0],
     serviceCode: "CONS-001",
     serviceDescription: "General Consultation",
     amount: "50.00",
@@ -3392,10 +3392,15 @@ export default function CalendarPage() {
                           }
                         }
 
-                        // Show confirmation modal for all users before booking
+                        // For doctors: Show invoice modal directly
+                        // For other users: Show confirmation modal before booking
                         setPendingAppointmentData(appointmentData);
                         setShowNewAppointmentModal(false); // Close the booking modal first
-                        setShowConfirmationModal(true);
+                        if (user?.role === 'doctor') {
+                          setShowInvoiceModal(true);
+                        } else {
+                          setShowConfirmationModal(true);
+                        }
                       }}
                       data-testid="button-book-appointment"
                     >
@@ -3749,7 +3754,10 @@ export default function CalendarPage() {
                     <div>
                       <Label className="text-sm font-medium text-gray-900 dark:text-white">Patient</Label>
                       <Input
-                        value={patients.find((p: any) => p.id === pendingAppointmentData.patientId)?.firstName + ' ' + patients.find((p: any) => p.id === pendingAppointmentData.patientId)?.lastName || 'N/A'}
+                        value={(() => {
+                          const patient = patients.find((p: any) => p.id === pendingAppointmentData.patientId);
+                          return patient ? `${patient.firstName} ${patient.lastName}` : 'N/A';
+                        })()}
                         disabled
                         className="mt-1 bg-gray-50 dark:bg-gray-700"
                       />
