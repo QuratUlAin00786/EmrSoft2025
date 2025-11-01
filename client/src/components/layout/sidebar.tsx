@@ -33,6 +33,7 @@ import {
   Activity,
   Thermometer,
   BookOpen,
+  PoundSterling,
 } from "lucide-react";
 import { useTenant } from "@/hooks/use-tenant";
 import { getActiveSubdomain } from "@/lib/subdomain-utils";
@@ -132,7 +133,7 @@ const ALL_NAVIGATION = [
     icon: Calculator,
     module: "billing",
   },
-  { name: "Billing", href: "/billing", icon: Receipt, module: "billing" },
+  { name: "Billing", href: "/billing", icon: PoundSterling, module: "billing" },
   {
     name: "QuickBooks",
     href: "/quickbooks",
