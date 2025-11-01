@@ -2448,10 +2448,10 @@ Report generated from Cura EMR System`;
 
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "request" | "generate" | "generated")} className="w-full">
-            <TabsList className="w-full grid grid-cols-3 mb-6">
-              {user?.role !== "patient" && <TabsTrigger value="request">Request Report</TabsTrigger>}
+            <TabsList className={`w-full mb-6 ${user?.role === 'patient' ? 'grid grid-cols-2' : 'grid grid-cols-3'}`}>
+              <TabsTrigger value="request">Request Report</TabsTrigger>
               {user?.role !== "patient" && <TabsTrigger value="generate">Generate Reports</TabsTrigger>}
-              {user?.role !== "patient" && <TabsTrigger value="generated"> Lab Results</TabsTrigger>}
+              <TabsTrigger value="generated">Lab Results</TabsTrigger>
             </TabsList>
             <TabsContent value={activeTab} className="mt-0">
 
