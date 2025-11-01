@@ -12,6 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import {
   Tooltip,
   TooltipContent,
@@ -53,6 +54,7 @@ function getTenantSubdomain(): string {
 }
 
 export default function Patients() {
+  const { user } = useAuth();
   const [showPatientModal, setShowPatientModal] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState<any>(null);
   const params = useParams();
@@ -397,15 +399,17 @@ export default function Patients() {
               View and manage patient information securely.
             </p>
           </div>
-          <Button 
-            onClick={() => setShowPatientModal(true)}
-            className="text-white"
-            style={{ backgroundColor: '#4A7DFF' }}
-            data-testid="button-add-patient"
-          >
-            <UserPlus className="h-4 w-4 mr-2" />
-            Add Patient
-          </Button>
+          {user?.role !== 'patient' && (
+            <Button 
+              onClick={() => setShowPatientModal(true)}
+              className="text-white"
+              style={{ backgroundColor: '#4A7DFF' }}
+              data-testid="button-add-patient"
+            >
+              <UserPlus className="h-4 w-4 mr-2" />
+              Add Patient
+            </Button>
+          )}
         </div>
 
         <PatientList genderFilter={genderFilter === "all" ? null : genderFilter} viewMode={isListView ? "list" : "grid"} />
