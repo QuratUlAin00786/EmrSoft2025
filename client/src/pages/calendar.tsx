@@ -848,6 +848,9 @@ export default function CalendarPage() {
       const aptDateStr = scheduledTime.substring(0, 10);
       if (aptDateStr !== dateStr) return false;
 
+      // CANCELLED appointments are treated as available (not booked)
+      if (apt.status === 'cancelled') return false;
+
       const aptTime = scheduledTime.substring(11, 16);
       if (!aptTime) return false;
 
