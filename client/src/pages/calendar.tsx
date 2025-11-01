@@ -1428,6 +1428,38 @@ export default function CalendarPage() {
       patientId = parseInt(bookingForm.patientId);
     }
 
+    // Check for duplicate appointments (same patient, same doctor, same date)
+    if (allAppointments && selectedDate) {
+      const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
+      const duplicateAppointment = allAppointments.find((apt: any) => {
+        const aptDateStr = format(new Date(apt.scheduledAt), 'yyyy-MM-dd');
+        return (
+          apt.patientId.toString() === patientId.toString() &&
+          apt.providerId.toString() === selectedDoctor.id.toString() &&
+          aptDateStr === selectedDateStr &&
+          apt.status !== 'cancelled' // Don't count cancelled appointments as duplicates
+        );
+      });
+      
+      if (duplicateAppointment) {
+        const doctorName = `${selectedDoctor.firstName} ${selectedDoctor.lastName}`;
+        const formattedDate = format(selectedDate, 'MMMM do, yyyy');
+        
+        // Find patient name
+        const patient = patients.find((p: any) => 
+          p.userId === patientId.toString() || 
+          p.id === patientId || 
+          (p.patientId && p.patientId === patientId.toString()) ||
+          p.id.toString() === patientId.toString()
+        );
+        const patientName = patient ? `${patient.firstName} ${patient.lastName}` : 'the patient';
+        
+        setDuplicateAppointmentDetails(`${patientName} on ${formattedDate}`);
+        setShowDuplicateWarning(true);
+        return;
+      }
+    }
+
     // Prepare appointment data
     const appointmentData = {
       ...bookingForm,
