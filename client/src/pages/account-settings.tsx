@@ -138,8 +138,7 @@ export default function AccountSettings() {
         subtitle="Manage your account information, security, and preferences."
       />
       
-      <div className="flex-1 overflow-auto">
-        <div className="max-w-4xl mx-auto px-6 py-4">
+      <div className="flex-1 overflow-auto px-6 py-4">
           <Tabs defaultValue="profile" className="space-y-6">
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="profile" data-testid="tab-profile">
@@ -515,7 +514,6 @@ export default function AccountSettings() {
               </Card>
             </TabsContent>
           </Tabs>
-        </div>
       </div>
     </>
   );
