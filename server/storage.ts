@@ -1497,9 +1497,47 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getPaymentsByOrganization(organizationId: number): Promise<any[]> {
-    return await db.select().from(payments)
-      .where(eq(payments.organizationId, organizationId))
-      .orderBy(desc(payments.createdAt));
+    return await db.select({
+      // Payment fields
+      id: payments.id,
+      organizationId: payments.organizationId,
+      invoiceId: payments.invoiceId,
+      patientId: payments.patientId,
+      transactionId: payments.transactionId,
+      amount: payments.amount,
+      currency: payments.currency,
+      paymentMethod: payments.paymentMethod,
+      paymentProvider: payments.paymentProvider,
+      paymentStatus: payments.paymentStatus,
+      paymentDate: payments.paymentDate,
+      metadata: payments.metadata,
+      createdAt: payments.createdAt,
+      // Invoice fields (joined)
+      invoice: {
+        id: invoices.id,
+        invoiceNumber: invoices.invoiceNumber,
+        patientName: invoices.patientName,
+        nhsNumber: invoices.nhsNumber,
+        serviceType: invoices.serviceType,
+        dateOfService: invoices.dateOfService,
+        invoiceDate: invoices.invoiceDate,
+        dueDate: invoices.dueDate,
+        status: invoices.status,
+        invoiceType: invoices.invoiceType,
+        subtotal: invoices.subtotal,
+        tax: invoices.tax,
+        discount: invoices.discount,
+        totalAmount: invoices.totalAmount,
+        paidAmount: invoices.paidAmount,
+        items: invoices.items,
+        insurance: invoices.insurance,
+        notes: invoices.notes,
+      }
+    })
+    .from(payments)
+    .leftJoin(invoices, eq(payments.invoiceId, invoices.id))
+    .where(eq(payments.organizationId, organizationId))
+    .orderBy(desc(payments.createdAt));
   }
 
   // AI Insights

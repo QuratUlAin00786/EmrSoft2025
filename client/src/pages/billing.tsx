@@ -3911,16 +3911,16 @@ export default function BillingPage() {
                           <tbody>
                             {Array.isArray(payments) && payments.length > 0 ? (
                               payments.map((payment: any) => {
-                                // Get patient name from metadata first, then fall back to looking up patient
-                                let patientName = payment.metadata?.patientName;
+                                // Get patient name from joined invoice data or metadata
+                                let patientName = payment.invoice?.patientName || payment.metadata?.patientName;
                                 
                                 if (!patientName) {
                                   const patient = patients?.find((p: any) => p.patientId === payment.patientId);
                                   patientName = patient ? `${patient.firstName} ${patient.lastName}` : payment.patientId;
                                 }
                                 
-                                // Find the invoice by invoiceId
-                                const invoice = invoices?.find((inv: any) => inv.id === payment.invoiceId);
+                                // Use joined invoice data
+                                const invoice = payment.invoice;
                                 const invoiceNumber = invoice?.invoiceNumber || payment.invoiceId;
                                 
                                 return (
@@ -3954,15 +3954,32 @@ export default function BillingPage() {
                                     </td>
                                     <td className="px-4 py-3 text-center">
                                       {invoice ? (
-                                        <Button 
-                                          variant="ghost" 
-                                          size="sm" 
-                                          onClick={() => handleViewInvoice(invoice)} 
-                                          data-testid="button-view-invoice-from-payment"
-                                          title="View Invoice"
-                                        >
-                                          <Eye className="h-4 w-4" />
-                                        </Button>
+                                        <div className="flex items-center justify-center gap-1">
+                                          <Button 
+                                            variant="ghost" 
+                                            size="sm" 
+                                            onClick={() => handleViewInvoice(invoice)} 
+                                            data-testid="button-view-invoice-from-payment"
+                                            title="View Invoice"
+                                          >
+                                            <Eye className="h-4 w-4" />
+                                          </Button>
+                                          <Button 
+                                            variant="ghost" 
+                                            size="sm" 
+                                            onClick={() => {
+                                              handleViewInvoice(invoice);
+                                              setTimeout(() => {
+                                                const printBtn = document.querySelector('[data-testid="button-download-invoice"]') as HTMLButtonElement;
+                                                if (printBtn) printBtn.click();
+                                              }, 500);
+                                            }}
+                                            data-testid="button-download-invoice-from-payment"
+                                            title="Download Invoice"
+                                          >
+                                            <Download className="h-4 w-4" />
+                                          </Button>
+                                        </div>
                                       ) : (
                                         <span className="text-xs text-gray-400">N/A</span>
                                       )}
