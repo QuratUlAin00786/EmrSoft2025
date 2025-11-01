@@ -3407,21 +3407,28 @@ export default function CalendarPage() {
                         };
 
                         // Check for duplicate appointments (same patient, same doctor, same date)
-                        if (user?.role === 'patient' && allAppointments && selectedDate) {
+                        if (allAppointments && selectedDate) {
                           const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
                           const duplicateAppointment = allAppointments.find((apt: any) => {
                             const aptDateStr = format(new Date(apt.scheduledAt), 'yyyy-MM-dd');
                             return (
                               apt.patientId.toString() === patientId.toString() &&
                               apt.providerId.toString() === selectedProviderId &&
-                              aptDateStr === selectedDateStr
+                              aptDateStr === selectedDateStr &&
+                              apt.status !== 'cancelled' // Don't count cancelled appointments as duplicates
                             );
                           });
                           
                           if (duplicateAppointment) {
-                            const doctorName = provider ? `${provider.firstName} ${provider.lastName}` : 'the selected doctor';
-                            const formattedDate = format(selectedDate, 'PPP');
-                            setDuplicateAppointmentDetails(`${doctorName} on ${formattedDate}`);
+                            // Find patient name
+                            const patient = patients.find((p: any) => 
+                              p.id === patientId || 
+                              p.id.toString() === patientId.toString() ||
+                              (p.patientId && p.patientId === patientId.toString())
+                            );
+                            const patientName = patient ? `${patient.firstName} ${patient.lastName}` : 'the patient';
+                            const formattedDate = format(selectedDate, 'MMMM do, yyyy');
+                            setDuplicateAppointmentDetails(`${patientName} on ${formattedDate}`);
                             setShowDuplicateWarning(true);
                             return;
                           }
