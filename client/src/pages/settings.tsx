@@ -830,8 +830,15 @@ function MyProfileContent({ user }: { user: any }) {
 
       const patients = await response.json();
       console.log("All patients:", patients);
-      console.log("Looking for email:", user?.email);
-      const myPatient = patients.find((p: any) => p.email === user?.email);
+      console.log("Looking for user:", { email: user?.email, id: user?.id });
+      
+      // Try multiple matching strategies to find patient record
+      const myPatient = patients.find((p: any) => 
+        p.email === user?.email || // Match by email
+        p.userId === user?.id ||   // Match by userId
+        p.userId?.toString() === user?.id?.toString() // Match by userId as string
+      );
+      
       console.log("Found patient:", myPatient);
       return myPatient || null;
     },
