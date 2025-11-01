@@ -825,8 +825,20 @@ export default function LabResultsPage() {
           console.log("❌ LAB RESULTS: Patient not found for user:", user.email);
           return [];
         }
+      } else if (isDoctorLike(user.role)) {
+        // For doctor roles, filter by doctor_name matching logged in doctor's full name
+        const doctorFullName = `${user.firstName} ${user.lastName}`;
+        console.log("🔍 LAB RESULTS: Filtering for doctor:", doctorFullName);
+        const response = await apiRequest("GET", "/api/lab-results");
+        const allResults = await response.json();
+        // Filter results where doctor_name matches logged in doctor's name
+        const doctorResults = allResults.filter((result: any) => 
+          result.doctorName === doctorFullName
+        );
+        console.log("✅ LAB RESULTS: Filtered results for doctor:", doctorResults.length);
+        return doctorResults;
       } else {
-        // For other roles (admin, doctor, nurse, etc.), show all lab results
+        // For other roles (admin, etc.), show all lab results
         const response = await apiRequest("GET", "/api/lab-results");
         return await response.json();
       }
@@ -2547,6 +2559,12 @@ Report generated from Cura EMR System`;
                             Priority
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            Sample Collected
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            Report Generated
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                             Test Status
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -2618,6 +2636,22 @@ Report generated from Cura EMR System`;
                                 className="text-xs"
                               >
                                 {result.priority || "routine"}
+                              </Badge>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                              <Badge
+                                variant={result.sampleCollected ? "default" : "secondary"}
+                                className="text-xs"
+                              >
+                                {result.sampleCollected ? "Collected" : "Not Collected"}
+                              </Badge>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                              <Badge
+                                variant={result.labReportGenerated ? "default" : "secondary"}
+                                className="text-xs"
+                              >
+                                {result.labReportGenerated ? "Report Generated" : "Report Not Generated"}
                               </Badge>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm">
@@ -2923,6 +2957,18 @@ Report generated from Cura EMR System`;
                           Critical
                         </Badge>
                       )}
+                      <Badge
+                        variant={result.sampleCollected ? "default" : "secondary"}
+                        className="text-xs"
+                      >
+                        {result.sampleCollected ? "Sample Collected" : "Sample Not Collected"}
+                      </Badge>
+                      <Badge
+                        variant={result.labReportGenerated ? "default" : "secondary"}
+                        className="text-xs"
+                      >
+                        {result.labReportGenerated ? "Report Generated" : "Report Not Generated"}
+                      </Badge>
                     </div>
 
                     {/* Main content area - with right margin for blue box */}
