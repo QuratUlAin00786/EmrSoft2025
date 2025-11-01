@@ -314,6 +314,12 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
         return false;
       }
       
+      // Exclude cancelled appointments - treat them as available slots
+      if (apt.status === 'CANCELLED') {
+        console.log('[Availability Check] Excluding cancelled appointment:', apt.id);
+        return false;
+      }
+      
       // Determine which provider to check: editing appointment's provider or selected provider for new appointments
       const providerToCheck = editingAppointment ? editingAppointment.providerId : (selectedProviderId ? parseInt(selectedProviderId) : null);
       
@@ -2480,7 +2486,8 @@ Medical License: [License Number]
                         return (
                           apt.patientId.toString() === newAppointmentData.patientId &&
                           apt.providerId.toString() === selectedProviderId &&
-                          aptDateStr === selectedDateStr
+                          aptDateStr === selectedDateStr &&
+                          apt.status !== 'CANCELLED'
                         );
                       });
                       
