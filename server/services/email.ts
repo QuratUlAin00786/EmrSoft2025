@@ -867,13 +867,9 @@ Cura EMR Team
                  <h1 class="clinic-name">${organizationName || 'Medical Clinic'}</h1>
                  <p class="clinic-tagline">Powered by Cura EMR Platform</p>
                </div>` :
-              `<table class="fallback-logo" style="width: 95px; height: 95px; margin-right: 20px;">
-                 <tr>
-                   <td style="text-align: center; vertical-align: middle; padding: 12px;">
-                     <img src="cid:cura-new-logo" alt="Cura EMR" style="width: 70px; height: 70px; object-fit: contain; display: block; margin: 0 auto;">
-                   </td>
-                 </tr>
-               </table>
+              `<div class="fallback-logo" style="width: 95px; height: 95px; margin-right: 20px; background: linear-gradient(135deg, #4A7DFF 0%, #7279FB 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 32px; font-weight: bold; box-shadow: 0 4px 20px rgba(74, 125, 255, 0.3);">
+                 C
+               </div>
                <div class="header-info">
                  <h1 class="clinic-name">Cura EMR</h1>
                  <p class="clinic-tagline">AI-Powered Healthcare Platform</p>
