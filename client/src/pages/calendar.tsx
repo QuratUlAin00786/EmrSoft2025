@@ -3374,17 +3374,14 @@ export default function CalendarPage() {
                           return;
                         }
 
-                        // Convert 12-hour time to 24-hour format and create proper local datetime
+                        // Convert 12-hour time to 24-hour format and create datetime string directly
                         const time24 = timeSlotTo24Hour(selectedTimeSlot);
-                        const [hours, minutes] = time24.split(':').map(Number);
                         
-                        // Create a proper Date object with local timezone
-                        const appointmentDate = new Date(selectedDate!);
-                        appointmentDate.setHours(hours, minutes, 0, 0);
+                        // Format date as YYYY-MM-DD directly without timezone conversion
+                        const dateStr = format(selectedDate!, 'yyyy-MM-dd');
                         
-                        // Format as SQL datetime string (YYYY-MM-DD HH:mm:ss) without timezone conversion
-                        // This works with timestamp without timezone column in database
-                        const appointmentDateTime = format(appointmentDate, 'yyyy-MM-dd HH:mm:ss');
+                        // Combine date and time directly without timezone conversion
+                        const appointmentDateTime = `${dateStr} ${time24}:00`;
                         
                         // Handle both numeric and string patient IDs
                         let patientId: string | number = bookingForm.patientId;
