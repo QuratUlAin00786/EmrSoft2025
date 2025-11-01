@@ -240,8 +240,8 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
     return result;
   }, [doctorAppointments, categorizedAppointments, appointmentFilter, filterDate, filterPatientName, filterPatientId, filterNhsNumber, patientsData, usersData]);
 
-  // Get next upcoming appointment
-  const nextAppointment = categorizedAppointments.upcoming[0] || null;
+  // Get next upcoming appointment (only SCHEDULED status)
+  const nextAppointment = categorizedAppointments.upcoming.find((apt: any) => apt.status === 'scheduled') || null;
   
   // Get doctor info for next appointment (provider, not creator)
   const nextAppointmentDoctor = React.useMemo(() => {
