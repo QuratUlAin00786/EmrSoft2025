@@ -2131,8 +2131,9 @@ export default function BillingPage() {
   const [clinicFooter, setClinicFooter] = useState<any>(null);
   const [savedInvoiceIds, setSavedInvoiceIds] = useState<Set<number>>(new Set());
   
-  // Check if user is admin
+  // Check if user is admin or patient
   const isAdmin = user?.role === 'admin';
+  const isPatient = user?.role === 'patient';
 
   // Fetch clinic headers and footers
   useEffect(() => {
@@ -2902,6 +2903,10 @@ export default function BillingPage() {
     }
   });
 
+  // Get the current patient's patientId if user is a patient
+  const currentPatient = isPatient && patients ? patients.find((p: any) => p.userId === user?.id) : null;
+  const currentPatientId = currentPatient?.patientId;
+
   // Fetch payments for Payment History tab
   const { data: payments = [], isLoading: paymentsLoading } = useQuery({
     queryKey: ["/api/billing/payments"],
@@ -2943,6 +2948,13 @@ export default function BillingPage() {
   }, [selectedPatient, patients]);
 
   const filteredInvoices = Array.isArray(invoices) ? invoices.filter((invoice: any) => {
+    // Filter by patient ID if user is a patient
+    if (isPatient && currentPatientId) {
+      if (invoice.patientId !== currentPatientId) {
+        return false;
+      }
+    }
+    
     // Unified search: Search by Invoice ID, Patient ID, or Patient Name
     const matchesSearch = !searchQuery || 
       invoice.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -3831,7 +3843,13 @@ export default function BillingPage() {
                           </tr>
                         </thead>
                         <tbody className="bg-white dark:bg-slate-900 divide-y divide-gray-200 dark:divide-gray-700">
-                          {Array.isArray(invoices) && invoices.filter(invoice => invoice.status !== 'paid').map((invoice) => (
+                          {Array.isArray(invoices) && invoices.filter(invoice => {
+                            // Filter for patients - only show their own invoices
+                            if (isPatient && currentPatientId && invoice.patientId !== currentPatientId) {
+                              return false;
+                            }
+                            return invoice.status !== 'paid';
+                          }).map((invoice) => (
                             <tr key={invoice.id} className="hover:bg-gray-50 dark:hover:bg-slate-800" data-testid={`outstanding-invoice-row-${invoice.id}`}>
                               <td className="px-4 py-4 text-sm font-medium text-gray-900 dark:text-gray-100">{invoice.id}</td>
                               <td className="px-4 py-4 text-sm text-gray-900 dark:text-gray-100">{invoice.patientName}</td>
@@ -3880,8 +3898,7 @@ export default function BillingPage() {
                 </Card>
               </TabsContent>
 
-              {isAdmin && (
-                <TabsContent value="payment-history" className="space-y-4 mt-6">
+              <TabsContent value="payment-history" className="space-y-4 mt-6">
                 <Card>
                   <CardHeader>
                     <CardTitle>Payment History</CardTitle>
@@ -3910,7 +3927,15 @@ export default function BillingPage() {
                           </thead>
                           <tbody>
                             {Array.isArray(payments) && payments.length > 0 ? (
-                              payments.map((payment: any) => {
+                              payments
+                                .filter((payment: any) => {
+                                  // Filter for patients - only show payments for their own invoices
+                                  if (isPatient && currentPatientId) {
+                                    return payment.invoice?.patientId === currentPatientId;
+                                  }
+                                  return true;
+                                })
+                                .map((payment: any) => {
                                 // Get patient name from joined invoice data or metadata
                                 let patientName = payment.invoice?.patientName || payment.metadata?.patientName;
                                 
@@ -4031,6 +4056,11 @@ export default function BillingPage() {
                           <tbody>
                             {(() => {
                               const selfPayInvoices = Array.isArray(invoices) ? invoices.filter((inv: any) => {
+                                // Filter for patients - only show their own invoices
+                                if (isPatient && currentPatientId && inv.patientId !== currentPatientId) {
+                                  return false;
+                                }
+                                
                                 if (!inv.insurance || inv.insurance === null || inv.insurance === '' || inv.insurance === 'none') {
                                   return true;
                                 }
@@ -4097,10 +4127,8 @@ export default function BillingPage() {
                   </CardContent>
                 </Card>
               </TabsContent>
-              )}
 
-              {isAdmin && (
-                <TabsContent value="insurance-claims" className="space-y-4 mt-6">
+              <TabsContent value="insurance-claims" className="space-y-4 mt-6">
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -4126,7 +4154,13 @@ export default function BillingPage() {
                         </thead>
                         <tbody>
                           {Array.isArray(invoices) && invoices
-                            .filter((invoice: any) => invoice.invoiceType === 'insurance_claim' && invoice.insurance)
+                            .filter((invoice: any) => {
+                              // Filter for patients - only show their own insurance claims
+                              if (isPatient && currentPatientId && invoice.patientId !== currentPatientId) {
+                                return false;
+                              }
+                              return invoice.invoiceType === 'insurance_claim' && invoice.insurance;
+                            })
                             .map((invoice: any) => (
                               <tr key={invoice.id} className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
                                 <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">
@@ -4187,8 +4221,6 @@ export default function BillingPage() {
                   </CardContent>
                 </Card>
               </TabsContent>
-              )}
-
 
               {/* Custom Reports Tab */}
               {isAdmin && (
