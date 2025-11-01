@@ -1399,182 +1399,365 @@ Report generated from Cura EMR System`;
         description: "Please wait while we create your lab test result PDF...",
       });
 
-      // Create PDF with proper lab test result format
-      const pdf = new jsPDF();
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      let yPos = 20;
+      // Create the same HTML as print function
+      const printHTML = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Lab Result Prescription - ${selectedResult.testId}</title>
+            <style>
+              * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+              }
+              body {
+                font-family: 'Arial', sans-serif;
+                margin: 0;
+                padding: 20px;
+                line-height: 1.5;
+                color: #333;
+                background: white;
+                font-size: 14px;
+              }
+              .prescription-content {
+                max-width: 800px;
+                margin: 0 auto;
+                background: white;
+                padding: 20px;
+              }
+              
+              .print-header {
+                text-align: center;
+                margin-bottom: 40px;
+                padding-bottom: 20px;
+                border-bottom: 2px solid #333;
+              }
+              .print-header h1 {
+                font-size: 28px;
+                font-weight: bold;
+                color: #333;
+                margin-bottom: 8px;
+                letter-spacing: 1px;
+              }
+              .print-header h2 {
+                font-size: 16px;
+                color: #666;
+                font-weight: normal;
+                margin: 0;
+              }
 
-      // Title - "Lab Test Result Report"
-      pdf.setFontSize(20);
-      pdf.setFont('helvetica', 'bold');
-      pdf.text('Lab Test Result Report', pageWidth / 2, yPos, { align: 'center' });
-      yPos += 20;
+              .header {
+                text-align: center;
+                margin-bottom: 30px;
+                border-bottom: 2px solid #333;
+                padding-bottom: 20px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+              }
+              .header-logo {
+                width: 60px;
+                height: 60px;
+                background: #4A90E2;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-weight: bold;
+                font-size: 24px;
+                margin-bottom: 15px;
+              }
+              .header h1 {
+                font-size: 24px;
+                font-weight: bold;
+                margin-bottom: 5px;
+                color: #333;
+              }
+              .header p {
+                font-size: 16px;
+                color: #666;
+              }
 
-      // Lab Order Information Section
-      pdf.setFontSize(14);
-      pdf.setFont('helvetica', 'bold');
-      pdf.text('Lab Order Information', 20, yPos);
-      yPos += 10;
+              .info-section {
+                margin-bottom: 30px;
+              }
+              .section-title {
+                font-size: 18px;
+                font-weight: bold;
+                margin-bottom: 15px;
+                color: #333;
+                border-bottom: 1px solid #ddd;
+                padding-bottom: 5px;
+              }
+              .info-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 30px;
+                margin-bottom: 20px;
+              }
+              .info-item {
+                margin-bottom: 8px;
+                display: flex;
+                align-items: center;
+              }
+              .info-label {
+                font-weight: bold;
+                margin-right: 10px;
+                min-width: 150px;
+              }
+              .info-value {
+                color: #333;
+              }
 
-      // Patient information
-      pdf.setFontSize(11);
-      pdf.setFont('helvetica', 'bold');
-      pdf.text('Patient Name:', 51, yPos);
-      pdf.setFont('helvetica', 'normal');
-      pdf.text(getPatientName(selectedResult.patientId), 109, yPos);
-      yPos += 7;
+              .lab-prescription-section {
+                margin: 30px 0;
+                padding: 20px;
+                border-radius: 8px;
+                background: #f0f8ff;
+              }
+              .lab-prescription-title {
+                font-size: 20px;
+                font-weight: bold;
+                margin-bottom: 20px;
+                color: #333;
+                text-align: center;
+              }
+              .test-details {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 20px;
+              }
+              .test-item {
+                margin-bottom: 15px;
+              }
+              .test-label {
+                font-size: 12px;
+                font-weight: bold;
+                color: #666;
+                text-transform: uppercase;
+                margin-bottom: 5px;
+              }
+              .test-value {
+                font-size: 16px;
+                font-weight: 600;
+                color: #333;
+              }
 
-      pdf.setFont('helvetica', 'bold');
-      pdf.text('Test ID:', 51, yPos);
-      pdf.setFont('helvetica', 'normal');
-      pdf.text(selectedResult.testId || 'N/A', 109, yPos);
-      yPos += 7;
+              .test-results {
+                margin-top: 30px;
+              }
+              .results-title {
+                font-size: 16px;
+                font-weight: bold;
+                margin-bottom: 15px;
+                color: #333;
+              }
+              .result-item {
+                margin-bottom: 10px;
+                padding: 10px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                background: white;
+              }
 
-      pdf.setFont('helvetica', 'bold');
-      pdf.text('Ordered Date:', 51, yPos);
-      pdf.setFont('helvetica', 'normal');
-      pdf.text(
-        selectedResult.orderedDate ? new Date(selectedResult.orderedDate).toLocaleDateString() : 'N/A',
-        109,
-        yPos
-      );
-      yPos += 7;
+              .notes-section {
+                margin-top: 30px;
+                padding: 15px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                background: #fffbeb;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="prescription-content">
+              <div style="display: grid; grid-template-columns: auto 1fr auto; align-items: center; border-bottom: 1px solid #ccc; padding: 1rem 0; position: relative;">
+                ${clinicHeader?.logoBase64 && (clinicHeader?.logoPosition === 'left' || clinicHeader?.logoPosition === 'center') ? `
+                  <div style="grid-column: 1 / 2;">
+                    <img src="${clinicHeader.logoBase64}" alt="Clinic Logo" style="max-width: 80px; max-height: 80px;" />
+                  </div>
+                ` : '<div></div>'}
 
-      pdf.setFont('helvetica', 'bold');
-      pdf.text('Ordered By:', 51, yPos);
-      pdf.setFont('helvetica', 'normal');
-      pdf.text(getUserName(selectedResult.orderedBy), 109, yPos);
-      yPos += 7;
+                <div style="grid-column: 2 / 3; text-align: center;">
+                  <span style="font-size: ${clinicHeader?.clinicNameFontSize || '25px'}; color: darkblue; font-weight: ${clinicHeader?.fontWeight || '700'}; font-family: ${clinicHeader?.fontFamily || 'verdana'}; font-style: ${clinicHeader?.fontStyle || 'normal'}; text-decoration: ${clinicHeader?.textDecoration || 'none'};">${clinicHeader?.clinicName || 'CURA EMR SYSTEM'}</span>
+                  <h2 style="margin: 4px 0; font-size: ${clinicHeader?.fontSize || '12pt'}; font-family: ${clinicHeader?.fontFamily || 'verdana'};">Laboratory Test Prescription</h2>
+                  ${clinicHeader?.address ? `<p style="font-size: ${clinicHeader.fontSize || '12pt'}; font-family: ${clinicHeader.fontFamily || 'verdana'}; margin: 2px 0;">${clinicHeader.address}</p>` : ''}
+                  ${clinicHeader?.phone ? `<p style="font-size: ${clinicHeader.fontSize || '12pt'}; font-family: ${clinicHeader.fontFamily || 'verdana'}; margin: 2px 0;">${clinicHeader.phone}</p>` : ''}
+                  ${clinicHeader?.email ? `<p style="font-size: ${clinicHeader.fontSize || '12pt'}; font-family: ${clinicHeader.fontFamily || 'verdana'}; margin: 2px 0;">${clinicHeader.email}</p>` : ''}
+                  ${clinicHeader?.website ? `<p style="font-size: ${clinicHeader.fontSize || '12pt'}; font-family: ${clinicHeader.fontFamily || 'verdana'}; margin: 2px 0;">${clinicHeader.website}</p>` : ''}
+                </div>
 
-      pdf.setFont('helvetica', 'bold');
-      pdf.text('Priority:', 51, yPos);
-      pdf.setFont('helvetica', 'normal');
-      pdf.text(selectedResult.priority || 'routine', 109, yPos);
-      yPos += 15;
+                ${clinicHeader?.logoBase64 && clinicHeader?.logoPosition === 'right' ? `
+                  <div style="grid-column: 3 / 4;">
+                    <img src="${clinicHeader.logoBase64}" alt="Clinic Logo" style="max-width: 80px; max-height: 80px;" />
+                  </div>
+                ` : '<div></div>'}
+              </div>
 
-      // Group results by test type
-      const resultsByTestType: Record<string, any[]> = {};
-      if (selectedResult.results && Array.isArray(selectedResult.results)) {
-        selectedResult.results.forEach((result: any) => {
-          // Extract test type and parameter name
-          let testType = result.testType;
-          let paramName = result.name;
-          
-          // Always try to extract from name if it has the separator
-          const nameParts = result.name.split(' - ');
-          if (nameParts.length > 1) {
-            // If no testType field, use the extracted one
-            if (!testType) {
-              testType = nameParts[0];
-            }
-            // Always use the parameter name after the separator
-            paramName = nameParts[1];
-          }
-          
-          // Skip results without a valid test type
-          if (testType) {
-            if (!resultsByTestType[testType]) {
-              resultsByTestType[testType] = [];
-            }
-            resultsByTestType[testType].push({
-              ...result,
-              displayName: paramName
-            });
-          }
-        });
-      }
+              <div style="display: flex; justify-content: space-between; gap: 2rem; margin-top: 1rem;">
+                <div style="flex: 1;">
+                  <h5 style="font-size: 16px; font-weight: bold; margin-bottom: 0.5rem;">Physician Information</h5>
+                  <div style="margin-bottom: 0.25rem;">
+                    <strong>Name:</strong>
+                    <span style="margin-left: 0.5rem;">${selectedResult.doctorName || "Doctor"}</span>
+                  </div>
+                  ${selectedResult.mainSpecialty ? `
+                  <div style="margin-bottom: 0.25rem;">
+                    <strong>Main Specialization:</strong>
+                    <span style="margin-left: 0.5rem;">${selectedResult.mainSpecialty}</span>
+                  </div>
+                  ` : ""}
+                  ${selectedResult.subSpecialty ? `
+                  <div style="margin-bottom: 0.25rem;">
+                    <strong>Sub-Specialization:</strong>
+                    <span style="margin-left: 0.5rem;">${selectedResult.subSpecialty}</span>
+                  </div>
+                  ` : ""}
+                  ${selectedResult.priority ? `
+                  <div style="margin-bottom: 0.25rem;">
+                    <strong>Priority:</strong>
+                    <span style="margin-left: 0.5rem;">${selectedResult.priority.toUpperCase()}</span>
+                  </div>
+                  ` : ""}
+                </div>
 
-      // Test Results - Each test type gets its own section
-      Object.entries(resultsByTestType).forEach(([testType, testResults]) => {
-        if (yPos > 240) {
-          pdf.addPage();
-          yPos = 20;
-        }
+                <div style="flex: 1;">
+                  <h5 style="font-size: 16px; font-weight: bold; margin-bottom: 0.5rem;">Patient Information</h5>
+                  <div style="margin-bottom: 0.25rem;">
+                    <strong>Name:</strong>
+                    <span style="margin-left: 0.5rem;">${getPatientName(selectedResult.patientId)}</span>
+                  </div>
+                  <div style="margin-bottom: 0.25rem;">
+                    <strong>Patient ID:</strong>
+                    <span style="margin-left: 0.5rem;">${selectedResult.patientId}</span>
+                  </div>
+                  <div style="margin-bottom: 0.25rem;">
+                    <strong>Date:</strong>
+                    <span style="margin-left: 0.5rem;">${format(new Date(), "MMM dd, yyyy")}</span>
+                  </div>
+                  <div style="margin-bottom: 0.25rem;">
+                    <strong>Time:</strong>
+                    <span style="margin-left: 0.5rem;">${format(new Date(), "HH:mm")}</span>
+                  </div>
+                </div>
+              </div>
 
-        // Test Type Header (Blue)
-        pdf.setFontSize(14);
-        pdf.setFont('helvetica', 'bold');
-        pdf.setTextColor(66, 133, 244);
-        pdf.text(testType, 20, yPos);
-        pdf.setTextColor(0, 0, 0);
-        yPos += 10;
+              <div class="lab-prescription-section" style="background-color:#FAF8F8 !important;">
+                <h2 class="lab-prescription-title">Laboratory Test Prescription</h2>
+                
+                <div class="test-details">
+                  <div class="test-item">
+                    <div class="test-label">TEST ID</div>
+                    <div class="test-value">${selectedResult.testId}</div>
+                  </div>
+                  <div class="test-item">
+                    <div class="test-label">TEST TYPE</div>
+                    <div class="test-value">${selectedResult.testType}</div>
+                  </div>
+                  <div class="test-item">
+                    <div class="test-label">ORDERED DATE</div>
+                    <div class="test-value">${format(new Date(selectedResult.orderedAt), "MMM dd, yyyy HH:mm")}</div>
+                  </div>
+                  <div class="test-item">
+                    <div class="test-label">STATUS</div>
+                    <div class="test-value">${selectedResult.status.toUpperCase()}</div>
+                  </div>
+                </div>
+              </div>
+              ${selectedResult.results && selectedResult.results.length > 0 ? `
+                <div class="test-results">
+                  <div class="results-title">Test Results:</div>
+                  ${selectedResult.results.map((testResult: any) => `
+                    <div class="result-item">
+                      <strong>${testResult.name}:</strong> ${testResult.value} ${testResult.unit} 
+                      (Reference: ${testResult.referenceRange}) - Status: ${testResult.status.replace("_", " ").toUpperCase()}
+                    </div>
+                  `).join("")}
+                </div>
+              ` : ""}
 
-        // Table Header
-        const tableStartY = yPos;
-        const rowHeight = 8;
-        const colWidths = [60, 30, 30, 50]; // Parameter, Value, Unit, Reference Range
-        const tableX = 20;
-        const tableWidth = colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3];
-        
-        // Header background (light gray)
-        pdf.setFillColor(240, 240, 240);
-        pdf.rect(tableX, tableStartY, tableWidth, rowHeight, 'F');
-        
-        // Header border
-        pdf.setDrawColor(200, 200, 200);
-        pdf.rect(tableX, tableStartY, tableWidth, rowHeight);
-        
-        // Header text
-        pdf.setFont('helvetica', 'bold');
-        pdf.setFontSize(10);
-        pdf.text('Parameter', tableX + 2, tableStartY + 5);
-        pdf.text('Value', tableX + colWidths[0] + 2, tableStartY + 5);
-        pdf.text('Unit', tableX + colWidths[0] + colWidths[1] + 2, tableStartY + 5);
-        pdf.text('Reference Range', tableX + colWidths[0] + colWidths[1] + colWidths[2] + 2, tableStartY + 5);
-        
-        yPos = tableStartY + rowHeight;
+              ${selectedResult.notes ? `
+                <div class="notes-section">
+                  <strong>Clinical Notes:</strong><br>
+                  ${selectedResult.notes}
+                </div>
+              ` : ""}
 
-        // Table rows
-        pdf.setFont('helvetica', 'normal');
-        testResults.forEach((result: any, index: number) => {
-          if (yPos > 270) {
-            pdf.addPage();
-            yPos = 20;
-          }
+              ${selectedResult.criticalValues ? `
+                <div style="margin-top: 20px; padding: 15px; background: #fef2f2; border: 2px solid #dc2626; border-radius: 8px;">
+                  <strong style="color: #dc2626;">⚠️ CRITICAL VALUES DETECTED</strong><br>
+                  <span style="color: #991b1b;">This lab result contains critical values that require immediate attention.</span>
+                </div>
+              ` : ""}
 
-          // Alternate row background
-          if (index % 2 === 0) {
-            pdf.setFillColor(250, 250, 250);
-            pdf.rect(tableX, yPos, tableWidth, rowHeight, 'F');
-          }
-          
-          // Row border
-          pdf.setDrawColor(200, 200, 200);
-          pdf.rect(tableX, yPos, tableWidth, rowHeight);
-          
-          // Vertical lines
-          pdf.line(tableX + colWidths[0], yPos, tableX + colWidths[0], yPos + rowHeight);
-          pdf.line(tableX + colWidths[0] + colWidths[1], yPos, tableX + colWidths[0] + colWidths[1], yPos + rowHeight);
-          pdf.line(tableX + colWidths[0] + colWidths[1] + colWidths[2], yPos, tableX + colWidths[0] + colWidths[1] + colWidths[2], yPos + rowHeight);
-          
-          // Row data
-          pdf.text(result.displayName || result.name, tableX + 2, yPos + 5);
-          pdf.text(String(result.value || ''), tableX + colWidths[0] + 2, yPos + 5);
-          pdf.text(result.unit || '', tableX + colWidths[0] + colWidths[1] + 2, yPos + 5);
-          pdf.text(result.referenceRange || '', tableX + colWidths[0] + colWidths[1] + colWidths[2] + 2, yPos + 5);
-          
-          yPos += rowHeight;
-        });
+              <div style="margin-top: 50px; text-align: center; border-top: 1px solid #ddd; padding-top: 20px;">
+                <div style="margin-bottom: 30px;">
+                  ${selectedResult.signatureData ? `
+                    <div style="margin-bottom: 15px;">
+                      <img src="${selectedResult.signatureData}" alt="E-Signature" style="height: 80px; max-width: 250px; margin: 0 auto; display: block;" />
+                    </div>
+                  ` : ""}
+                  <div style="border-top: 2px solid #333; width: 300px; margin: 0 auto 10px;"></div>
+                  <div style="font-weight: bold;">${selectedResult.doctorName || "Doctor"}</div>
+                  ${selectedResult.mainSpecialty ? `<div style="font-size: 12px; color: #666;">${selectedResult.mainSpecialty}</div>` : ""}
+                </div>
+                <div style="font-size: 12px; color: #666;">
+                  Generated by Cura EMR System - ${format(new Date(), "MMM dd, yyyy HH:mm")}
+                </div>
+              </div>
+            </div>
+          </body>
+        </html>
+      `;
 
-        yPos += 10;
+      // Create a temporary container
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = printHTML;
+      tempDiv.style.position = 'absolute';
+      tempDiv.style.left = '-9999px';
+      tempDiv.style.width = '800px';
+      document.body.appendChild(tempDiv);
+
+      // Wait for images to load
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Capture the content as canvas
+      const canvas = await html2canvas(tempDiv.querySelector('.prescription-content')!, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff'
       });
 
-      // Clinical Notes Section
-      if (yPos > 250) {
-        pdf.addPage();
-        yPos = 20;
-      }
-      
-      pdf.setFontSize(14);
-      pdf.setFont('helvetica', 'bold');
-      pdf.text('Clinical Notes', 20, yPos);
-      yPos += 10;
+      // Remove temporary element
+      document.body.removeChild(tempDiv);
 
-      pdf.setFontSize(11);
-      pdf.setFont('helvetica', 'normal');
-      const notes = selectedResult.notes || "none";
-      const splitNotes = pdf.splitTextToSize(notes, 170);
-      pdf.text(splitNotes, 20, yPos);
+      // Create PDF
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      const imgWidth = 210; // A4 width in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const pageHeight = 297; // A4 height in mm
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      // Add first page
+      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      // Add additional pages if needed
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
 
       // Create filename from testId
       const filename = `${selectedResult.testId}.pdf`;
