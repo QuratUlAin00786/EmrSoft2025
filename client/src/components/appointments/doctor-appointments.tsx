@@ -466,7 +466,7 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
             return (
               <Card 
                 key={day.toString()} 
-                className={`h-56 cursor-pointer transition-colors ${
+                className={`h-96 cursor-pointer transition-colors ${
                   isSelected ? 'border-blue-500 bg-blue-50' : ''
                 } ${isCurrentDay ? 'border-yellow-400 bg-yellow-50' : ''}`}
                 onClick={() => setSelectedDate(day)}
