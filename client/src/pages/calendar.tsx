@@ -1249,36 +1249,41 @@ export default function CalendarPage() {
 
   // Auto-detect doctor when modal opens if user is a doctor
   useEffect(() => {
-    if (showNewAppointmentModal && isDoctorLike(user?.role) && allDoctors.length > 0) {
+    if (showNewAppointmentModal && isDoctorLike(user?.role)) {
       console.log('🔍 DOCTOR AUTO-DETECT: Modal opened for doctor role');
-      console.log('📊 DOCTOR AUTO-DETECT: Total doctors fetched from users table:', allDoctors.length);
       console.log('👤 DOCTOR AUTO-DETECT: Current user ID:', user.id);
-      console.log('📋 DOCTOR AUTO-DETECT: All doctors from users table (where role=doctor):', allDoctors.map((d: any) => ({ id: d.id, name: `${d.firstName} ${d.lastName}`, organizationId: d.organizationId })));
       
-      const currentUserAsDoctor = allDoctors.find((doctor: any) => doctor.id === user.id);
-      if (currentUserAsDoctor) {
-        console.log('✅ DOCTOR AUTO-DETECT: Found current user in doctors list from users table:', {
-          id: currentUserAsDoctor.id,
-          name: `${currentUserAsDoctor.firstName} ${currentUserAsDoctor.lastName}`,
-          email: currentUserAsDoctor.email,
-          role: currentUserAsDoctor.role,
-          organizationId: currentUserAsDoctor.organizationId,
-          department: currentUserAsDoctor.department,
-          specialty: currentUserAsDoctor.medicalSpecialtyCategory,
-          subSpecialty: currentUserAsDoctor.subSpecialty
-        });
+      // Immediately set providerId from current user - don't wait for allDoctors to load
+      // This ensures time slots display immediately
+      setSelectedRole('doctor');
+      setSelectedProviderId(user.id.toString());
+      console.log('✅ DOCTOR AUTO-DETECT: Auto-populated role=doctor and providerId=' + user.id);
+      
+      // Set selectedDoctor if allDoctors is loaded
+      if (allDoctors.length > 0) {
+        console.log('📊 DOCTOR AUTO-DETECT: Total doctors fetched from users table:', allDoctors.length);
+        console.log('📋 DOCTOR AUTO-DETECT: All doctors from users table (where role=doctor):', allDoctors.map((d: any) => ({ id: d.id, name: `${d.firstName} ${d.lastName}`, organizationId: d.organizationId })));
         
-        // Always set the doctor details when modal opens
-        if (!selectedDoctor) {
-          setSelectedDoctor(currentUserAsDoctor);
+        const currentUserAsDoctor = allDoctors.find((doctor: any) => doctor.id === user.id);
+        if (currentUserAsDoctor) {
+          console.log('✅ DOCTOR AUTO-DETECT: Found current user in doctors list from users table:', {
+            id: currentUserAsDoctor.id,
+            name: `${currentUserAsDoctor.firstName} ${currentUserAsDoctor.lastName}`,
+            email: currentUserAsDoctor.email,
+            role: currentUserAsDoctor.role,
+            organizationId: currentUserAsDoctor.organizationId,
+            department: currentUserAsDoctor.department,
+            specialty: currentUserAsDoctor.medicalSpecialtyCategory,
+            subSpecialty: currentUserAsDoctor.subSpecialty
+          });
+          
+          // Always set the doctor details when modal opens
+          if (!selectedDoctor) {
+            setSelectedDoctor(currentUserAsDoctor);
+          }
+        } else {
+          console.log('❌ DOCTOR AUTO-DETECT: Current user not found in doctors list');
         }
-        
-        // Always set role-based selection for new appointment modal
-        setSelectedRole('doctor');
-        setSelectedProviderId(user.id.toString());
-        console.log('✅ DOCTOR AUTO-DETECT: Auto-populated role=doctor and providerId=' + user.id);
-      } else {
-        console.log('❌ DOCTOR AUTO-DETECT: Current user not found in doctors list');
       }
     }
   }, [showNewAppointmentModal, user, allDoctors]);
