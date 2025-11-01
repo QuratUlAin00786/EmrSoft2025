@@ -58,6 +58,7 @@ import QuickBooks from "@/pages/quickbooks";
 import FontTest from "@/pages/font-test";
 import TechSpecExport from "@/pages/tech-spec-export";
 import SymptomChecker from "@/pages/symptom-checker";
+import UserManual from "@/pages/user-manual";
 import NotFound from "@/pages/not-found";
 import Login from "@/pages/login";
 
@@ -382,6 +383,7 @@ function ProtectedApp() {
           <Route path="/:subdomain/subscription" component={Subscription} />
           <Route path="/:subdomain/settings" component={Settings} />
           <Route path="/:subdomain/account-settings" component={AccountSettings} />
+          <Route path="/:subdomain/user-manual" component={UserManual} />
 
           {/* Legacy routes without subdomain - redirect to subdomain-prefixed versions */}
           <Route path="/dashboard" component={LegacyRouteRedirect} />
@@ -402,6 +404,7 @@ function ProtectedApp() {
           <Route path="/users" component={LegacyRouteRedirect} />
           <Route path="/settings" component={LegacyRouteRedirect} />
           <Route path="/account-settings" component={LegacyRouteRedirect} />
+          <Route path="/user-manual" component={LegacyRouteRedirect} />
           <Route path="/gdpr-compliance" component={LegacyRouteRedirect} />
 
           {/* Root redirect */}

@@ -32,6 +32,7 @@ import {
   Bot,
   Activity,
   Thermometer,
+  BookOpen,
 } from "lucide-react";
 import { useTenant } from "@/hooks/use-tenant";
 import { getActiveSubdomain } from "@/lib/subdomain-utils";
@@ -161,6 +162,7 @@ const ADMIN_NAVIGATION = [
     module: "subscription",
   },
   { name: "Settings", href: "/settings", icon: Settings, module: "settings" },
+  { name: "User Manual", href: "/user-manual", icon: BookOpen, module: "settings" },
 ];
 
 export function Sidebar() {
