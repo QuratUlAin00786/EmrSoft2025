@@ -2292,10 +2292,10 @@ Report generated from Cura EMR System`;
 
         const matchesTab =
           activeTab === "request"
-            ? result.labReportGenerated === false
+            ? result.status === "pending"
             : activeTab === "generate"
             ? result.labReportGenerated === false && result.labRequestGenerated === true
-            : result.labReportGenerated === true;
+            : result.status === "completed";
 
         return matchesSearch && matchesStatus && matchesTab;
       })
