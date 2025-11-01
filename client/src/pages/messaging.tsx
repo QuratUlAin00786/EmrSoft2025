@@ -2220,7 +2220,7 @@ export default function MessagingPage() {
       {/* Messaging Content */}
       <div className="flex-1 overflow-auto p-6">
       <Tabs defaultValue="conversations" className="w-full">
-        <TabsList>
+        <TabsList className="w-full grid grid-cols-3">
           <TabsTrigger value="conversations">Conversations</TabsTrigger>
           <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
           <TabsTrigger value="templates">Announcement</TabsTrigger>
