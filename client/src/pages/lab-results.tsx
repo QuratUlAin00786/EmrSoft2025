@@ -2355,15 +2355,8 @@ Report generated from Cura EMR System`;
       />
 
       <div className="flex-1 overflow-auto p-6">
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "request" | "generate" | "generated")} className="w-full">
-          <TabsList className="mb-6">
-            {user?.role !== "patient" && <TabsTrigger value="request">Request Report</TabsTrigger>}
-            {user?.role !== "patient" && <TabsTrigger value="generate">Generate Reports</TabsTrigger>}
-            {user?.role !== "patient" && <TabsTrigger value="generated"> Lab Results</TabsTrigger>}
-          </TabsList>
-          <TabsContent value={activeTab} className="mt-0">
-            <div className="space-y-6">
-              {/* Quick Stats */}
+        <div className="space-y-6">
+          {/* Quick Stats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Card>
               <CardContent className="p-4">
@@ -2440,6 +2433,15 @@ Report generated from Cura EMR System`;
               </CardContent>
             </Card>
           </div>
+
+          {/* Tabs */}
+          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "request" | "generate" | "generated")} className="w-full">
+            <TabsList className="w-full grid grid-cols-3 mb-6">
+              {user?.role !== "patient" && <TabsTrigger value="request">Request Report</TabsTrigger>}
+              {user?.role !== "patient" && <TabsTrigger value="generate">Generate Reports</TabsTrigger>}
+              {user?.role !== "patient" && <TabsTrigger value="generated"> Lab Results</TabsTrigger>}
+            </TabsList>
+            <TabsContent value={activeTab} className="mt-0">
 
           {/* Filters */}
           <Card>
@@ -3303,9 +3305,9 @@ Report generated from Cura EMR System`;
               ))
             )}
           </div>
-            </div>
-          </TabsContent>
-        </Tabs>
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
 
       {/* Order Lab Test Dialog */}
