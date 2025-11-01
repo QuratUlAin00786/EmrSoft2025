@@ -706,7 +706,13 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
           <div className="space-y-3">
             {filteredAppointments.map((appointment: any) => {
               const doctor = usersData?.find((u: any) => u.id === appointment.providerId);
-              const patient = patientsData?.find((p: any) => p.userId === appointment.patientId);
+              // Try multiple matching strategies to find the patient
+              const patient = patientsData?.find((p: any) => 
+                p.userId === appointment.patientId || 
+                p.id === appointment.patientId ||
+                (p.patientId && p.patientId === appointment.patientId.toString()) ||
+                p.id.toString() === appointment.patientId.toString()
+              );
               const createdBy = usersData?.find((u: any) => u.id === appointment.createdBy);
               
               return (
@@ -793,9 +799,12 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
 
                     {/* Description if available */}
                     {appointment.description && (
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-3 pt-3 border-t">
-                        {appointment.description}
-                      </p>
+                      <div className="mt-3 pt-3 border-t">
+                        <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Description:</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          {appointment.description}
+                        </p>
+                      </div>
                     )}
                   </CardContent>
                 </Card>
