@@ -434,7 +434,7 @@ export function Sidebar() {
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link
-                  href={`/${tenant?.subdomain || getActiveSubdomain()}/settings`}
+                  href={`/${tenant?.subdomain || getActiveSubdomain()}/account-settings`}
                   className="flex items-center"
                 >
                   <SettingsIcon className="mr-2 h-4 w-4" />

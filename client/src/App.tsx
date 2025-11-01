@@ -28,6 +28,7 @@ import PermissionsReference from "@/pages/permissions-reference";
 import StaffProfile from "@/pages/staff-profile";
 import Subscription from "@/pages/subscription";
 import Settings from "@/pages/settings";
+import AccountSettings from "@/pages/account-settings";
 import ShiftsPage from "@/pages/shifts";
 import CalendarPage from "@/pages/calendar";
 import FormsPage from "@/pages/forms";
@@ -380,6 +381,7 @@ function ProtectedApp() {
           <Route path="/:subdomain/staff/:id" component={StaffProfile} />
           <Route path="/:subdomain/subscription" component={Subscription} />
           <Route path="/:subdomain/settings" component={Settings} />
+          <Route path="/:subdomain/account-settings" component={AccountSettings} />
 
           {/* Legacy routes without subdomain - redirect to subdomain-prefixed versions */}
           <Route path="/dashboard" component={LegacyRouteRedirect} />
@@ -399,6 +401,7 @@ function ProtectedApp() {
           <Route path="/symptom-checker" component={LegacyRouteRedirect} />
           <Route path="/users" component={LegacyRouteRedirect} />
           <Route path="/settings" component={LegacyRouteRedirect} />
+          <Route path="/account-settings" component={LegacyRouteRedirect} />
           <Route path="/gdpr-compliance" component={LegacyRouteRedirect} />
 
           {/* Root redirect */}
