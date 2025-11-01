@@ -1438,7 +1438,8 @@ export default function CalendarPage() {
           apt.patientId.toString() === patientId.toString() &&
           apt.providerId.toString() === selectedDoctor.id.toString() &&
           aptDateStr === selectedDateStr &&
-          apt.status !== 'cancelled' // Don't count cancelled appointments as duplicates
+          apt.status !== 'cancelled' && // Don't count cancelled appointments as duplicates
+          apt.status === 'scheduled' // Only count scheduled appointments as duplicates
         );
       });
       
@@ -3425,7 +3426,8 @@ export default function CalendarPage() {
                               aptPatientId === numericPatientId &&
                               aptProviderId?.toString() === selectedProviderId &&
                               aptDateStr === selectedDateStr &&
-                              apt.status !== 'cancelled' // Don't count cancelled appointments as duplicates
+                              apt.status !== 'cancelled' && // Don't count cancelled appointments as duplicates
+                              apt.status === 'scheduled' // Only count scheduled appointments as duplicates - show invoice modal only for scheduled status
                             );
                           });
                           
