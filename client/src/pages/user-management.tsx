@@ -1736,13 +1736,15 @@ export default function UserManagement() {
 2. Delete prescriptions where user is the doctor (doctorId)
 3. Delete appointments where user is provider
 4. Delete lab results ordered by user (orderedBy)
-5. Find patient record linked to this user
-6. Delete prescriptions FOR this patient (patientId)
-7. Delete lab results for this patient (patientId)
-8. Delete medical images for this patient (patientId)
-9. Delete symptom checks for this patient (patientId)
-10. Delete patient record
-11. Delete user`;
+5. Delete default shifts for user
+6. Delete custom shifts for user
+7. Find patient record linked to this user
+8. Delete prescriptions FOR this patient (patientId)
+9. Delete lab results for this patient (patientId)
+10. Delete medical images for this patient (patientId)
+11. Delete symptom checks for this patient (patientId)
+12. Delete patient record
+13. Delete user`;
       
       setSuccessTitle("User Deleted Successfully");
       setSuccessMessage(deletionSteps);
@@ -3588,6 +3590,8 @@ export default function UserManagement() {
                                             <li>Delete prescriptions where user is the doctor (doctorId)</li>
                                             <li>Delete appointments where user is provider</li>
                                             <li>Delete lab results ordered by user (orderedBy)</li>
+                                            <li>Delete default shifts for user</li>
+                                            <li>Delete custom shifts for user</li>
                                             <li>Find patient record linked to this user</li>
                                             <li>Delete prescriptions FOR this patient (patientId)</li>
                                             <li>Delete lab results for this patient (patientId)</li>
@@ -3731,6 +3735,8 @@ export default function UserManagement() {
                                       <li>Delete prescriptions where user is the doctor (doctorId)</li>
                                       <li>Delete appointments where user is provider</li>
                                       <li>Delete lab results ordered by user (orderedBy)</li>
+                                      <li>Delete default shifts for user</li>
+                                      <li>Delete custom shifts for user</li>
                                       <li>Find patient record linked to this user</li>
                                       <li>Delete prescriptions FOR this patient (patientId)</li>
                                       <li>Delete lab results for this patient (patientId)</li>

@@ -785,6 +785,14 @@ export class DatabaseStorage implements IStorage {
     await db.delete(labResults).where(eq(labResults.orderedBy, id));
     console.log(`Storage: Deleted lab results ordered by user ${id}`);
     
+    // Delete default shifts for this user
+    await db.delete(doctorDefaultShifts).where(eq(doctorDefaultShifts.userId, id));
+    console.log(`Storage: Deleted default shifts for user ${id}`);
+    
+    // Delete custom shifts for this user
+    await db.delete(staffShifts).where(eq(staffShifts.staffId, id));
+    console.log(`Storage: Deleted custom shifts for user ${id}`);
+    
     // Find patient record to get patient ID
     const [patientRecord] = await db.select().from(patients).where(eq(patients.userId, id));
     if (patientRecord) {
