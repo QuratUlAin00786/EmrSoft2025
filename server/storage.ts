@@ -1251,6 +1251,11 @@ export class DatabaseStorage implements IStorage {
       const appointmentStart = new Date(appointment.scheduledAt);
       const appointmentEnd = new Date(appointmentStart.getTime() + (appointment.duration || 30) * 60 * 1000);
       const conflicts = existingAppointments.filter(existing => {
+        // Exclude cancelled appointments - they are available for rebooking
+        if (existing.status === 'cancelled') {
+          return false;
+        }
+        
         const existingStart = new Date(existing.scheduledAt);
         const existingEnd = new Date(existingStart.getTime() + (existing.duration || 30) * 60 * 1000);
         // Check if the time ranges overlap
