@@ -4303,6 +4303,11 @@ export default function UserManagement() {
               <DialogTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100">
                 {successTitle}
               </DialogTitle>
+              {successTitle === "User Created Successfully" && (
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                  The user has been created successfully and saved.
+                </p>
+              )}
               {successTitle === "User Deleted Successfully" && (
                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
                   All related data has been permanently removed from the system
@@ -4344,10 +4349,10 @@ export default function UserManagement() {
                   setSuccessMessage("");
                   setSuccessTitle("");
                 }}
-                className="px-6"
+                className="w-full bg-[#4A7DFF] hover:bg-[#3A6DEF] text-white"
                 data-testid="button-success-ok"
               >
-                Got it, thanks!
+                Close
               </Button>
             </div>
           </div>
