@@ -1725,10 +1725,8 @@ export default function MessagingPage() {
         </div>
       </div>
 
-      {/* Messaging Content */}
-      <div className="flex-1 overflow-auto p-6">
-        {/* Healthcare Quick Actions */}
-        <div className="flex items-center gap-4 mb-8 px-[110px] flex-wrap">
+      {/* Healthcare Quick Actions */}
+      <div className="flex items-center gap-4 mb-4 px-6 flex-wrap">
             <Button 
               variant="outline" 
               size="sm"
@@ -2218,8 +2216,9 @@ export default function MessagingPage() {
             </DialogContent>
           </Dialog>
         </div>
-      </div>
 
+      {/* Messaging Content */}
+      <div className="flex-1 overflow-auto p-6">
       <Tabs defaultValue="conversations" className="w-full">
         <TabsList>
           <TabsTrigger value="conversations">Conversations</TabsTrigger>
@@ -3563,6 +3562,7 @@ export default function MessagingPage() {
           )}
         </TabsContent>
       </Tabs>
+      </div>
 
       {/* Active Video Call Interface */}
       {activeVideoCall && (

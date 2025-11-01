@@ -2425,9 +2425,9 @@ export default function ImagingPage() {
                       <div className="flex items-center gap-3 mb-3">
                         <div className="flex items-center gap-2">
                           {getModalityIcon(study.modality)}
-                          <h3 className="text-md font-semibold text-gray-900 dark:text-gray-100">
+                          <h5 className="text-md font-semibold text-gray-900 dark:text-gray-100">
                             {study.patientName}
-                          </h3>
+                          </h5>
                         </div>
                         {/* Status Badge - Editable */}
                         {selectedStudyId === study.id && editModes.status ? (
