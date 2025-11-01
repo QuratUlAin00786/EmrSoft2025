@@ -23,6 +23,14 @@ import {
   CheckCircle
 } from "lucide-react";
 
+// Import screenshots
+import roleScreenshot from "@assets/image_1762015428276.png";
+import shiftsScreenshot from "@assets/image_1762015503569.png";
+import billingScreenshot from "@assets/image_1762015541888.png";
+import documentScreenshot1 from "@assets/image_1762015587315.png";
+import documentScreenshot2 from "@assets/image_1762015622239.png";
+import documentScreenshot3 from "@assets/image_1762015666990.png";
+
 export default function UserManual() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
@@ -315,6 +323,23 @@ export default function UserManual() {
                         </table>
                       </div>
                     </div>
+
+                    <Separator />
+
+                    <div>
+                      <h3 className="font-semibold mb-3">Screenshot: Create New Role Interface</h3>
+                      <div className="border rounded-lg overflow-hidden shadow-lg">
+                        <img 
+                          src={roleScreenshot} 
+                          alt="Create New Role Dialog showing role name, display name, description, and module permissions matrix" 
+                          className="w-full h-auto"
+                          data-testid="img-role-screenshot"
+                        />
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Example: Creating an Administrator role with full system permissions including Dashboard, Patients, Appointments, Medical Records, Prescriptions, and more.
+                      </p>
+                    </div>
                   </div>
                 </ScrollArea>
               </CardContent>
@@ -419,6 +444,23 @@ export default function UserManual() {
                         </div>
                       </div>
                     </div>
+
+                    <Separator />
+
+                    <div>
+                      <h3 className="font-semibold mb-3">Screenshot: Shifts Management Interface</h3>
+                      <div className="border rounded-lg overflow-hidden shadow-lg">
+                        <img 
+                          src={shiftsScreenshot} 
+                          alt="Shifts Management showing default shifts with staff members and their working hours across different days" 
+                          className="w-full h-auto"
+                          data-testid="img-shifts-screenshot"
+                        />
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Example: Default shifts view showing multiple staff members (James Administrator, Paul Smith, Emma Johnson, etc.) with their assigned working hours and days of the week.
+                      </p>
+                    </div>
                   </div>
                 </ScrollArea>
               </CardContent>
@@ -521,6 +563,23 @@ export default function UserManual() {
                           </div>
                         </li>
                       </ol>
+                    </div>
+
+                    <Separator />
+
+                    <div>
+                      <h3 className="font-semibold mb-3">Screenshot: Billing & Pricing Management</h3>
+                      <div className="border rounded-lg overflow-hidden shadow-lg">
+                        <img 
+                          src={billingScreenshot} 
+                          alt="Billing & Payments interface showing pricing management for doctors' fees with service codes and pricing" 
+                          className="w-full h-auto"
+                          data-testid="img-billing-screenshot"
+                        />
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Example: Pricing Management showing Doctors Fee Pricing with various consultation types (Procedure Consultation, Home Visit, Emergency Visit, Teleconsultation, Follow-up Visit, etc.) with their respective codes, categories, and prices in GBP.
+                      </p>
                     </div>
                   </div>
                 </ScrollArea>
@@ -634,6 +693,57 @@ export default function UserManual() {
                           </ul>
                         </li>
                       </ol>
+                    </div>
+
+                    <Separator />
+
+                    <div>
+                      <h3 className="font-semibold mb-3">Screenshot 1: Create Clinic Information</h3>
+                      <div className="border rounded-lg overflow-hidden shadow-lg">
+                        <img 
+                          src={documentScreenshot1} 
+                          alt="Create Clinic Information dialog showing header design, clinic logo upload, and header information fields" 
+                          className="w-full h-auto"
+                          data-testid="img-document-screenshot-1"
+                        />
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Step 1: Upload clinic logo and configure header information including clinic name, address, phone, email, and website. Customize font family, font size, and text styling options.
+                      </p>
+                    </div>
+
+                    <Separator />
+
+                    <div>
+                      <h3 className="font-semibold mb-3">Screenshot 2: Saved Clinic Header & Footer</h3>
+                      <div className="border rounded-lg overflow-hidden shadow-lg">
+                        <img 
+                          src={documentScreenshot2} 
+                          alt="Saved Clinic Information showing preview of clinic header with logo and footer with copyright text" 
+                          className="w-full h-auto"
+                          data-testid="img-document-screenshot-2"
+                        />
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Step 2: Preview of saved clinic header showing "Clinical Care Hospital" with contact details and saved footer displaying "© 2025 CuraCare Hospital — All Rights Reserved" for use in all PDF documents.
+                      </p>
+                    </div>
+
+                    <Separator />
+
+                    <div>
+                      <h3 className="font-semibold mb-3">Screenshot 3: Document Editor with Header/Footer Options</h3>
+                      <div className="border rounded-lg overflow-hidden shadow-lg">
+                        <img 
+                          src={documentScreenshot3} 
+                          alt="Forms interface showing document editor with options to create clinic information, view custom clinic information, and manage clinical headers" 
+                          className="w-full h-auto"
+                          data-testid="img-document-screenshot-3"
+                        />
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Step 3: Document editor toolbar showing "Create Clinic Information", "View Custom Clinic Information", "Clinical Header", and "View Saved Templates" options for managing document templates and branding across all forms and reports.
+                      </p>
                     </div>
                   </div>
                 </ScrollArea>
