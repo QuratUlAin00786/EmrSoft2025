@@ -69,6 +69,7 @@ interface DoctorListProps {
   filterRole?: string;
   filterSearch?: string;
   filterSpecialty?: string;
+  patientSearch?: string;
 }
 
 const departmentColors = {
@@ -127,6 +128,7 @@ export function DoctorList({
   filterRole = "all",
   filterSearch = "",
   filterSpecialty = "",
+  patientSearch = "",
 }: DoctorListProps) {
   const [, setLocation] = useLocation();
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
@@ -766,9 +768,35 @@ export function DoctorList({
         .map((apt: any) => apt.patientId)
     );
 
-    // Return patients who have appointments with this doctor
-    return patients.filter((patient: any) => patientIds.has(patient.id));
-  }, [user, doctorAppointments, patients]);
+    // Get patients who have appointments with this doctor
+    let filteredPatients = patients.filter((patient: any) => patientIds.has(patient.id));
+    
+    // Apply patient search filter if provided
+    if (patientSearch && patientSearch.trim() !== "") {
+      const searchLower = patientSearch.toLowerCase().trim();
+      filteredPatients = filteredPatients.filter((patient: any) => {
+        const fullName = `${patient.firstName || ''} ${patient.lastName || ''}`.toLowerCase();
+        const email = (patient.email || '').toLowerCase();
+        const age = (patient.age || '').toString();
+        const id = (patient.id || '').toString();
+        const nhsNumber = (patient.nhsNumber || '').toLowerCase();
+        const phone = (patient.phone || '').toLowerCase();
+        const city = (patient.city || '').toLowerCase();
+        const country = (patient.country || '').toLowerCase();
+        
+        return fullName.includes(searchLower) ||
+               email.includes(searchLower) ||
+               age.includes(searchLower) ||
+               id.includes(searchLower) ||
+               nhsNumber.includes(searchLower) ||
+               phone.includes(searchLower) ||
+               city.includes(searchLower) ||
+               country.includes(searchLower);
+      });
+    }
+
+    return filteredPatients;
+  }, [user, doctorAppointments, patients, patientSearch]);
 
   // Predefined medical specialty categories for filtering
   const medicalSpecialtyCategories = [

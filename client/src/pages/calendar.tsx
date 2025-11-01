@@ -348,6 +348,9 @@ export default function CalendarPage() {
   const [staffFilterSearch, setStaffFilterSearch] = useState("");
   const [staffFilterSpecialty, setStaffFilterSpecialty] = useState("");
   
+  // Doctor's patient search state
+  const [doctorPatientSearch, setDoctorPatientSearch] = useState("");
+  
   // Calendar view state
   const [calendarView, setCalendarView] = useState<"month" | "week" | "day">("month");
   const [bookingForm, setBookingForm] = useState({
@@ -1772,167 +1775,181 @@ export default function CalendarPage() {
                 
                 {showStaffFilter && (
                   <div className="space-y-3 mb-4">
-                    <Select 
-                      value={staffFilterRole} 
-                      onValueChange={(value) => {
-                        setStaffFilterRole(value);
-                        setStaffFilterSpecialty(""); // Reset specialty when role changes
-                      }}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="All Roles" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Roles</SelectItem>
-                        {rolesData && Array.isArray(rolesData) && rolesData
-                          .filter((role: any) => role.name !== "patient" && role.name !== "admin")
-                          .map((role: any) => (
-                            <SelectItem key={role.id} value={role.name}>
-                              {role.displayName || role.name}
-                            </SelectItem>
-                          ))
-                        }
-                      </SelectContent>
-                    </Select>
-                    
-                    {['doctor', 'nurse', 'dentist', 'dental_nurse', 'phlebotomist'].includes(staffFilterRole) && (
-                      <Select 
-                        value={staffFilterSpecialty} 
-                        onValueChange={setStaffFilterSpecialty}
-                      >
-                        <SelectTrigger className="w-full" data-testid="select-staff-medical-specialty">
-                          <SelectValue placeholder="Medical Specialty Category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Categories</SelectItem>
-                          {medicalSpecialtyCategories.map((category) => (
-                            <SelectItem key={category} value={category}>
-                              {category}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                    {isDoctorLike(user?.role) ? (
+                      <div className="relative">
+                        <Input
+                          placeholder="Search patients by name, email, age, ID, NHS, phone, city, country..."
+                          value={doctorPatientSearch}
+                          onChange={(e) => setDoctorPatientSearch(e.target.value)}
+                          className="pl-10"
+                        />
+                        <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      </div>
+                    ) : (
+                      <>
+                        <Select 
+                          value={staffFilterRole} 
+                          onValueChange={(value) => {
+                            setStaffFilterRole(value);
+                            setStaffFilterSpecialty(""); // Reset specialty when role changes
+                          }}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="All Roles" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Roles</SelectItem>
+                            {rolesData && Array.isArray(rolesData) && rolesData
+                              .filter((role: any) => role.name !== "patient" && role.name !== "admin")
+                              .map((role: any) => (
+                                <SelectItem key={role.id} value={role.name}>
+                                  {role.displayName || role.name}
+                                </SelectItem>
+                              ))
+                            }
+                          </SelectContent>
+                        </Select>
+                        
+                        {['doctor', 'nurse', 'dentist', 'dental_nurse', 'phlebotomist'].includes(staffFilterRole) && (
+                          <Select 
+                            value={staffFilterSpecialty} 
+                            onValueChange={setStaffFilterSpecialty}
+                          >
+                            <SelectTrigger className="w-full" data-testid="select-staff-medical-specialty">
+                              <SelectValue placeholder="Medical Specialty Category" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">All Categories</SelectItem>
+                              {medicalSpecialtyCategories.map((category) => (
+                                <SelectItem key={category} value={category}>
+                                  {category}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                        
+                        {staffFilterRole === 'lab_technician' && (
+                          <Select 
+                            value={staffFilterSpecialty} 
+                            onValueChange={setStaffFilterSpecialty}
+                          >
+                            <SelectTrigger className="w-full" data-testid="select-staff-lab-subcategory">
+                              <SelectValue placeholder="Lab Technician Subcategory" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">All Subcategories</SelectItem>
+                              {labTechnicianSubcategories.map((subcategory) => (
+                                <SelectItem key={subcategory} value={subcategory}>
+                                  {subcategory}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                        
+                        {staffFilterRole === 'aesthetician' && (
+                          <Select 
+                            value={staffFilterSpecialty} 
+                            onValueChange={setStaffFilterSpecialty}
+                          >
+                            <SelectTrigger className="w-full" data-testid="select-staff-aesthetician-subcategory">
+                              <SelectValue placeholder="Aesthetician Subcategory" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">All Subcategories</SelectItem>
+                              {aestheticianSubcategories.map((subcategory) => (
+                                <SelectItem key={subcategory} value={subcategory}>
+                                  {subcategory}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                        
+                        {staffFilterRole === 'optician' && (
+                          <Select 
+                            value={staffFilterSpecialty} 
+                            onValueChange={setStaffFilterSpecialty}
+                          >
+                            <SelectTrigger className="w-full" data-testid="select-staff-optician-subcategory">
+                              <SelectValue placeholder="Optician Subcategory" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">All Subcategories</SelectItem>
+                              {opticianSubcategories.map((subcategory) => (
+                                <SelectItem key={subcategory} value={subcategory}>
+                                  {subcategory}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                        
+                        {staffFilterRole === 'paramedic' && (
+                          <Select 
+                            value={staffFilterSpecialty} 
+                            onValueChange={setStaffFilterSpecialty}
+                          >
+                            <SelectTrigger className="w-full" data-testid="select-staff-paramedic-subcategory">
+                              <SelectValue placeholder="Paramedic Subcategory" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">All Subcategories</SelectItem>
+                              {paramedicSubcategories.map((subcategory) => (
+                                <SelectItem key={subcategory} value={subcategory}>
+                                  {subcategory}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                        
+                        {staffFilterRole === 'physiotherapist' && (
+                          <Select 
+                            value={staffFilterSpecialty} 
+                            onValueChange={setStaffFilterSpecialty}
+                          >
+                            <SelectTrigger className="w-full" data-testid="select-staff-physiotherapist-subcategory">
+                              <SelectValue placeholder="Physiotherapist Subcategory" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">All Subcategories</SelectItem>
+                              {physiotherapistSubcategories.map((subcategory) => (
+                                <SelectItem key={subcategory} value={subcategory}>
+                                  {subcategory}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                        
+                        {staffFilterRole === 'pharmacist' && (
+                          <Select 
+                            value={staffFilterSpecialty} 
+                            onValueChange={setStaffFilterSpecialty}
+                          >
+                            <SelectTrigger className="w-full" data-testid="select-staff-pharmacist-subcategory">
+                              <SelectValue placeholder="Pharmacist Subcategory" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">All Subcategories</SelectItem>
+                              {pharmacistSubcategories.map((subcategory) => (
+                                <SelectItem key={subcategory} value={subcategory}>
+                                  {subcategory}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                        
+                        <Input
+                          placeholder="Search by name, email, specialization, department.."
+                          value={staffFilterSearch}
+                          onChange={(e) => setStaffFilterSearch(e.target.value)}
+                        />
+                      </>
                     )}
-                    
-                    {staffFilterRole === 'lab_technician' && (
-                      <Select 
-                        value={staffFilterSpecialty} 
-                        onValueChange={setStaffFilterSpecialty}
-                      >
-                        <SelectTrigger className="w-full" data-testid="select-staff-lab-subcategory">
-                          <SelectValue placeholder="Lab Technician Subcategory" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Subcategories</SelectItem>
-                          {labTechnicianSubcategories.map((subcategory) => (
-                            <SelectItem key={subcategory} value={subcategory}>
-                              {subcategory}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                    
-                    {staffFilterRole === 'aesthetician' && (
-                      <Select 
-                        value={staffFilterSpecialty} 
-                        onValueChange={setStaffFilterSpecialty}
-                      >
-                        <SelectTrigger className="w-full" data-testid="select-staff-aesthetician-subcategory">
-                          <SelectValue placeholder="Aesthetician Subcategory" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Subcategories</SelectItem>
-                          {aestheticianSubcategories.map((subcategory) => (
-                            <SelectItem key={subcategory} value={subcategory}>
-                              {subcategory}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                    
-                    {staffFilterRole === 'optician' && (
-                      <Select 
-                        value={staffFilterSpecialty} 
-                        onValueChange={setStaffFilterSpecialty}
-                      >
-                        <SelectTrigger className="w-full" data-testid="select-staff-optician-subcategory">
-                          <SelectValue placeholder="Optician Subcategory" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Subcategories</SelectItem>
-                          {opticianSubcategories.map((subcategory) => (
-                            <SelectItem key={subcategory} value={subcategory}>
-                              {subcategory}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                    
-                    {staffFilterRole === 'paramedic' && (
-                      <Select 
-                        value={staffFilterSpecialty} 
-                        onValueChange={setStaffFilterSpecialty}
-                      >
-                        <SelectTrigger className="w-full" data-testid="select-staff-paramedic-subcategory">
-                          <SelectValue placeholder="Paramedic Subcategory" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Subcategories</SelectItem>
-                          {paramedicSubcategories.map((subcategory) => (
-                            <SelectItem key={subcategory} value={subcategory}>
-                              {subcategory}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                    
-                    {staffFilterRole === 'physiotherapist' && (
-                      <Select 
-                        value={staffFilterSpecialty} 
-                        onValueChange={setStaffFilterSpecialty}
-                      >
-                        <SelectTrigger className="w-full" data-testid="select-staff-physiotherapist-subcategory">
-                          <SelectValue placeholder="Physiotherapist Subcategory" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Subcategories</SelectItem>
-                          {physiotherapistSubcategories.map((subcategory) => (
-                            <SelectItem key={subcategory} value={subcategory}>
-                              {subcategory}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                    
-                    {staffFilterRole === 'pharmacist' && (
-                      <Select 
-                        value={staffFilterSpecialty} 
-                        onValueChange={setStaffFilterSpecialty}
-                      >
-                        <SelectTrigger className="w-full" data-testid="select-staff-pharmacist-subcategory">
-                          <SelectValue placeholder="Pharmacist Subcategory" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Subcategories</SelectItem>
-                          {pharmacistSubcategories.map((subcategory) => (
-                            <SelectItem key={subcategory} value={subcategory}>
-                              {subcategory}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                    
-                    <Input
-                      placeholder="Search by name, email, specialization, department.."
-                      value={staffFilterSearch}
-                      onChange={(e) => setStaffFilterSearch(e.target.value)}
-                    />
                   </div>
                 )}
               </div>
@@ -1945,6 +1962,7 @@ export default function CalendarPage() {
                 filterRole={staffFilterRole}
                 filterSearch={staffFilterSearch}
                 filterSpecialty={staffFilterSpecialty}
+                patientSearch={doctorPatientSearch}
               />
             </div>
           </div>
