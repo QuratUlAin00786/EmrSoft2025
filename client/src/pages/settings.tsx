@@ -407,52 +407,48 @@ export default function Settings() {
                       <Label>Department</Label>
                       <Input value={user?.department || ""} disabled className="bg-gray-100 dark:bg-gray-800" />
                     </div>
-                    {user?.medicalSpecialtyCategory && (
-                      <div className="space-y-2">
-                        <Label>Medical Specialty Category</Label>
-                        <Input value={user.medicalSpecialtyCategory} disabled className="bg-gray-100 dark:bg-gray-800" />
-                      </div>
-                    )}
-                    {user?.subSpecialty && (
-                      <div className="space-y-2">
-                        <Label>Sub-Specialty</Label>
-                        <Input value={user.subSpecialty} disabled className="bg-gray-100 dark:bg-gray-800" />
-                      </div>
-                    )}
-                    {user?.workingDays && (
-                      <div className="space-y-2">
-                        <Label>Working Days</Label>
-                        <Input 
-                          value={Array.isArray(user.workingDays) ? user.workingDays.join(", ") : user.workingDays} 
-                          disabled 
-                          className="bg-gray-100 dark:bg-gray-800" 
-                        />
-                      </div>
-                    )}
-                    {user?.workingHours && (
-                      <div className="space-y-2">
-                        <Label>Working Hours</Label>
-                        <Input 
-                          value={typeof user.workingHours === 'object' ? `${user.workingHours.start} - ${user.workingHours.end}` : user.workingHours} 
-                          disabled 
-                          className="bg-gray-100 dark:bg-gray-800" 
-                        />
-                      </div>
-                    )}
+                    <div className="space-y-2">
+                      <Label>Specialization (Medical Specialty)</Label>
+                      <Input value={user?.medicalSpecialtyCategory || "Not specified"} disabled className="bg-gray-100 dark:bg-gray-800" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Sub-Specialty</Label>
+                      <Input value={user?.subSpecialty || "Not specified"} disabled className="bg-gray-100 dark:bg-gray-800" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Working Days</Label>
+                      <Input 
+                        value={user?.workingDays && Array.isArray(user.workingDays) && user.workingDays.length > 0 
+                          ? user.workingDays.join(", ") 
+                          : "Not specified"
+                        } 
+                        disabled 
+                        className="bg-gray-100 dark:bg-gray-800" 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Working Hours</Label>
+                      <Input 
+                        value={user?.workingHours && typeof user.workingHours === 'object' && (user.workingHours.start || user.workingHours.end)
+                          ? `${user.workingHours.start || 'N/A'} - ${user.workingHours.end || 'N/A'}` 
+                          : "Not specified"
+                        } 
+                        disabled 
+                        className="bg-gray-100 dark:bg-gray-800" 
+                      />
+                    </div>
                     <div className="space-y-2">
                       <Label>Status</Label>
                       <Input value={user?.isActive ? "Active" : "Inactive"} disabled className="bg-gray-100 dark:bg-gray-800" />
                     </div>
-                    {user?.createdAt && (
-                      <div className="space-y-2">
-                        <Label>Member Since</Label>
-                        <Input 
-                          value={new Date(user.createdAt).toLocaleDateString()} 
-                          disabled 
-                          className="bg-gray-100 dark:bg-gray-800" 
-                        />
-                      </div>
-                    )}
+                    <div className="space-y-2">
+                      <Label>Member Since</Label>
+                      <Input 
+                        value={user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : "N/A"} 
+                        disabled 
+                        className="bg-gray-100 dark:bg-gray-800" 
+                      />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
