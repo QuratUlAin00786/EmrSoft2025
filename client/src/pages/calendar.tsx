@@ -3407,19 +3407,40 @@ export default function CalendarPage() {
                         };
 
                         // Check for duplicate appointments (same patient, same doctor, same date)
+                        console.log('🔍 DUPLICATE CHECK - Starting validation');
+                        console.log('📊 DUPLICATE CHECK - allAppointments:', allAppointments?.length || 0, 'appointments');
+                        console.log('📊 DUPLICATE CHECK - selectedDate:', selectedDate);
+                        console.log('📊 DUPLICATE CHECK - patientId:', patientId);
+                        console.log('📊 DUPLICATE CHECK - selectedProviderId:', selectedProviderId);
+                        
                         if (allAppointments && selectedDate) {
                           const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
+                          console.log('📅 DUPLICATE CHECK - Looking for duplicates on date:', selectedDateStr);
+                          
                           const duplicateAppointment = allAppointments.find((apt: any) => {
                             const aptDateStr = format(new Date(apt.scheduledAt), 'yyyy-MM-dd');
-                            return (
+                            const isMatch = (
                               apt.patientId.toString() === patientId.toString() &&
                               apt.providerId.toString() === selectedProviderId &&
                               aptDateStr === selectedDateStr &&
                               apt.status !== 'cancelled' // Don't count cancelled appointments as duplicates
                             );
+                            
+                            if (isMatch) {
+                              console.log('❌ DUPLICATE FOUND:', {
+                                appointmentId: apt.id,
+                                patientId: apt.patientId,
+                                providerId: apt.providerId,
+                                date: aptDateStr,
+                                status: apt.status
+                              });
+                            }
+                            
+                            return isMatch;
                           });
                           
                           if (duplicateAppointment) {
+                            console.log('🚫 DUPLICATE CHECK - Blocking duplicate appointment');
                             // Find patient name
                             const patient = patients.find((p: any) => 
                               p.id === patientId || 
@@ -3431,7 +3452,11 @@ export default function CalendarPage() {
                             setDuplicateAppointmentDetails(`${patientName} on ${formattedDate}`);
                             setShowDuplicateWarning(true);
                             return;
+                          } else {
+                            console.log('✅ DUPLICATE CHECK - No duplicates found, proceeding');
                           }
+                        } else {
+                          console.log('⚠️ DUPLICATE CHECK - Skipped (missing allAppointments or selectedDate)');
                         }
 
                         // For doctors: Show invoice modal directly
