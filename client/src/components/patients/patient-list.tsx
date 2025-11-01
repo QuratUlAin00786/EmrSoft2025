@@ -2503,7 +2503,8 @@ export function PatientList({ onSelectPatient, genderFilter = null, viewMode = "
       title: "Book Appointment",
       description: `Opening appointment booking for ${patient.firstName} ${patient.lastName}`,
     });
-    setLocation(`/appointments?patientId=${patient.id}`);
+    const subdomain = getTenantSubdomain();
+    setLocation(`/${subdomain}/appointments?patientId=${patient.id}`);
   };
 
   if (isLoading) {
