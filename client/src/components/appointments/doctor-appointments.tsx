@@ -457,7 +457,7 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
 
       {/* Weekly View */}
       {viewMode === "week" && (
-        <div className="grid grid-cols-7 gap-4">
+        <div className="grid grid-cols-7 gap-2">
           {weekDays.map((day) => {
             const dayAppointments = getAppointmentsForDate(day);
             const isSelected = isSameDay(day, selectedDate);
@@ -466,21 +466,21 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
             return (
               <Card 
                 key={day.toString()} 
-                className={`h-96 cursor-pointer transition-colors ${
+                className={`h-56 cursor-pointer transition-colors ${
                   isSelected ? 'border-blue-500 bg-blue-50' : ''
                 } ${isCurrentDay ? 'border-yellow-400 bg-yellow-50' : ''}`}
                 onClick={() => setSelectedDate(day)}
               >
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">
+                <CardHeader className="pb-1 pt-2 px-2">
+                  <CardTitle className="text-xs font-medium">
                     {format(day, "EEE")}
                     <br />
-                    <span className={`text-lg ${isCurrentDay ? 'text-yellow-800 font-bold' : ''}`}>
+                    <span className={`text-base ${isCurrentDay ? 'text-yellow-800 font-bold' : ''}`}>
                       {format(day, "d")}
                     </span>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="pt-0 space-y-1">
+                <CardContent className="pt-0 px-2 pb-2 space-y-1">
                   {dayAppointments.slice(0, 4).map((appointment: any) => (
                     <div
                       key={appointment.id}
