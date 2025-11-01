@@ -861,7 +861,7 @@ export default function QuickBooks() {
       <ConnectionStatus />
 
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList>
+        <TabsList className="w-full grid grid-cols-4">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="dashboard">QuickBooks Dashboard</TabsTrigger>
           <TabsTrigger value="sync-activity">Sync Activity</TabsTrigger>
