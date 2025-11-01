@@ -415,23 +415,37 @@ export default function QuickBooks() {
             <p className="text-gray-600 mb-4">
               Connect your QuickBooks account to sync financial data and automate your accounting workflow.
             </p>
-            <Button 
-              onClick={() => connectMutation.mutate()}
-              disabled={connectMutation.isPending}
-              data-testid="button-connect-quickbooks"
-            >
-              {connectMutation.isPending ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Connecting...
-                </>
-              ) : (
-                <>
-                  <Link2 className="w-4 h-4 mr-2" />
-                  Connect to QuickBooks
-                </>
-              )}
-            </Button>
+            <div className="flex items-center justify-center gap-2">
+              <Button 
+                onClick={() => connectMutation.mutate()}
+                disabled={connectMutation.isPending}
+                data-testid="button-connect-quickbooks"
+              >
+                {connectMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Connecting...
+                  </>
+                ) : (
+                  <>
+                    <Link2 className="w-4 h-4 mr-2" />
+                    Connect to QuickBooks
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  queryClient.invalidateQueries({ queryKey: ['/api/quickbooks/connections'] });
+                  queryClient.invalidateQueries({ queryKey: ['/api/quickbooks/connection/active'] });
+                  queryClient.invalidateQueries({ queryKey: ['/api/quickbooks/sync-logs'] });
+                }}
+                data-testid="button-refresh-data"
+              >
+                <RefreshCw className="w-4 h-4 mr-1" />
+                Refresh
+              </Button>
+            </div>
           </CardContent>
         </Card>
       );
@@ -844,23 +858,6 @@ export default function QuickBooks() {
       <Header title="QuickBooks Integration" subtitle="Manage your accounting synchronization and financial data integration" />
       
       <div className="container mx-auto px-4 lg:px-6 py-6 max-w-7xl">
-        <div className="flex flex-wrap items-center justify-end gap-2 mb-6">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              queryClient.invalidateQueries({ queryKey: ['/api/quickbooks/connections'] });
-              queryClient.invalidateQueries({ queryKey: ['/api/quickbooks/connection/active'] });
-              queryClient.invalidateQueries({ queryKey: ['/api/quickbooks/sync-logs'] });
-            }}
-            data-testid="button-refresh-data"
-          >
-            <RefreshCw className="w-4 h-4 mr-1" />
-            Refresh
-          </Button>
-        </div>
-      </div>
-
       <ConnectionStatus />
 
       <Tabs defaultValue="overview" className="space-y-6">
@@ -1151,6 +1148,8 @@ export default function QuickBooks() {
           <DataMappingsOverview />
         </TabsContent>
       </Tabs>
+
+      </div>
 
       <SettingsDialog />
       
