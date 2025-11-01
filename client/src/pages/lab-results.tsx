@@ -6255,6 +6255,57 @@ Report generated from Cura EMR System`;
                 </div>
               </div>
 
+              {/* Sample Collection Status - Only show if sample not collected */}
+              {selectedLabOrder.sampleCollected === false && (
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Sample Collection Status</Label>
+                  <div className="flex gap-6">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="fill-sample-collected"
+                        checked={fillResultFormData.sampleCollected === true}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setFillResultFormData((prev: any) => ({
+                              ...prev,
+                              sampleCollected: true,
+                            }));
+                          }
+                        }}
+                        data-testid="checkbox-fill-sample-collected"
+                      />
+                      <Label
+                        htmlFor="fill-sample-collected"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                      >
+                        Sample Collected
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="fill-sample-not-collected"
+                        checked={fillResultFormData.sampleCollected === false}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setFillResultFormData((prev: any) => ({
+                              ...prev,
+                              sampleCollected: false,
+                            }));
+                          }
+                        }}
+                        data-testid="checkbox-fill-sample-not-collected"
+                      />
+                      <Label
+                        htmlFor="fill-sample-not-collected"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                      >
+                        Not Collected
+                      </Label>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Clinical Notes */}
               <div className="space-y-2">
                 <Label htmlFor="fill-clinical-notes">Clinical Notes (Optional)</Label>
@@ -6685,6 +6736,7 @@ Report generated from Cura EMR System`;
                       results: results,
                       notes: fillResultFormData.notes || selectedLabOrder.notes || "",
                       criticalValues: fillResultFormData.criticalValues || false,
+                      sampleCollected: fillResultFormData.sampleCollected !== undefined ? fillResultFormData.sampleCollected : selectedLabOrder.sampleCollected,
                     });
 
                     // Generate PDF matching the image format
