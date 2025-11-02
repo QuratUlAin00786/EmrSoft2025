@@ -3374,6 +3374,19 @@ Report generated from Cura EMR System`;
                             <Button
                               variant="outline"
                               size="sm"
+                              onClick={() => handleManageInvoice(result)}
+                              className="text-xs sm:text-sm px-2 sm:px-3"
+                              data-testid={`button-manage-invoice-card-${result.id}`}
+                            >
+                              <PoundSterling className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                              <span className="hidden lg:inline">Invoice</span>
+                              <span className="lg:hidden">£</span>
+                            </Button>
+                          )}
+                          {user?.role !== 'patient' && (
+                            <Button
+                              variant="outline"
+                              size="sm"
                               onClick={() => {
                                 setSelectedResult(result);
                                 setShowESignDialog(true);
