@@ -19639,8 +19639,13 @@ Cura EMR Team
       if (shareSource === 'prescription') {
         // For prescriptions, use the stored prescriptionFilePath if available
         if (study.prescriptionFilePath) {
-          // The stored path is relative, convert to absolute
-          reportPath = path.resolve(process.cwd(), study.prescriptionFilePath.replace(/^\//, ''));
+          // Check if the path is already absolute
+          if (path.isAbsolute(study.prescriptionFilePath)) {
+            reportPath = study.prescriptionFilePath;
+          } else {
+            // The stored path is relative, convert to absolute
+            reportPath = path.resolve(process.cwd(), study.prescriptionFilePath.replace(/^\//, ''));
+          }
           console.log(`[EMAIL-SHARE] Using stored prescriptionFilePath: ${reportPath}`);
         } else {
           // Fallback: Try both filename formats (with and without 'prescription-' prefix)
@@ -19661,8 +19666,13 @@ Cura EMR Team
       } else {
         // For reports, use the stored reportFilePath if available
         if (study.reportFilePath) {
-          // The stored path is relative, convert to absolute
-          reportPath = path.resolve(process.cwd(), study.reportFilePath.replace(/^\//, ''));
+          // Check if the path is already absolute
+          if (path.isAbsolute(study.reportFilePath)) {
+            reportPath = study.reportFilePath;
+          } else {
+            // The stored path is relative, convert to absolute
+            reportPath = path.resolve(process.cwd(), study.reportFilePath.replace(/^\//, ''));
+          }
           console.log(`[EMAIL-SHARE] Using stored reportFilePath: ${reportPath}`);
         } else {
           // Fallback: Try to find the imaging report
