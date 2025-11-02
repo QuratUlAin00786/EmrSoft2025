@@ -3361,8 +3361,8 @@ export default function ImagingPage() {
                         </>
                       )}
 
-                      {/* Hide Share icon for patient role and Order Study tab */}
-                      {user?.role !== 'patient' && activeTab !== 'order-study' && (
+                      {/* Plane icon (Send) - only in Generate Report tab */}
+                      {user?.role !== 'patient' && activeTab === 'generate-report' && (
                         <Button
                           variant="outline"
                           size="sm"
@@ -3371,6 +3371,19 @@ export default function ImagingPage() {
                           data-testid="button-share-prescription"
                         >
                           <Send className="h-4 w-4" />
+                        </Button>
+                      )}
+                      
+                      {/* Share icon (Share2) - only in Imaging Results tab */}
+                      {user?.role !== 'patient' && activeTab === 'imaging-results' && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleShareStudy(study, 'report')}
+                          title="Share Imaging Report"
+                          data-testid="button-share-report"
+                        >
+                          <Share2 className="h-4 w-4" />
                         </Button>
                       )}
                       
