@@ -312,6 +312,7 @@ export default function ImagingPage() {
     message: "",
     shareSource: 'report',
   });
+  const [isSendingShare, setIsSendingShare] = useState(false);
   const [patients, setPatients] = useState<any[]>([]);
   const [patientsLoading, setPatientsLoading] = useState(false);
   const [reportFindings, setReportFindings] = useState("");
@@ -3544,76 +3545,83 @@ export default function ImagingPage() {
                 <Button
                   variant="outline"
                   onClick={() => setShowShareDialog(false)}
+                  disabled={isSendingShare}
                 >
                   Cancel
                 </Button>
                 <Button
                   onClick={async () => {
-                    if (shareFormData.method === "email") {
-                      try {
-                        // Prepare authentication headers
-                        const token = localStorage.getItem("auth_token");
-                        const headers: Record<string, string> = {
-                          "Content-Type": "application/json",
-                          "X-Tenant-Subdomain": getActiveSubdomain(),
-                        };
-                        
-                        if (token) {
-                          headers["Authorization"] = `Bearer ${token}`;
-                        }
-                        
-                        const response = await fetch("/api/imaging/share-study", {
-                          method: "POST",
-                          headers,
-                          credentials: "include",
-                          body: JSON.stringify({
-                            studyId: selectedStudy.id,
-                            recipientEmail: shareFormData.email,
-                            customMessage: shareFormData.message,
-                            shareSource: shareFormData.shareSource || 'report', // 'prescription' or 'report'
-                          }),
-                        });
-
-                        const result = await response.json();
-
-                        if (response.ok) {
-                          toast({
-                            title: "Study Shared",
-                            description: `Imaging study sent to ${shareFormData.email} successfully`,
+                    setIsSendingShare(true);
+                    try {
+                      if (shareFormData.method === "email") {
+                        try {
+                          // Prepare authentication headers
+                          const token = localStorage.getItem("auth_token");
+                          const headers: Record<string, string> = {
+                            "Content-Type": "application/json",
+                            "X-Tenant-Subdomain": getActiveSubdomain(),
+                          };
+                          
+                          if (token) {
+                            headers["Authorization"] = `Bearer ${token}`;
+                          }
+                          
+                          const response = await fetch("/api/imaging/share-study", {
+                            method: "POST",
+                            headers,
+                            credentials: "include",
+                            body: JSON.stringify({
+                              studyId: selectedStudy.id,
+                              recipientEmail: shareFormData.email,
+                              customMessage: shareFormData.message,
+                              shareSource: shareFormData.shareSource || 'report', // 'prescription' or 'report'
+                            }),
                           });
-                        } else {
+
+                          const result = await response.json();
+
+                          if (response.ok) {
+                            toast({
+                              title: "Study Shared",
+                              description: `Imaging study sent to ${shareFormData.email} successfully`,
+                            });
+                          } else {
+                            toast({
+                              title: "Sharing Failed",
+                              description: result.error || "Failed to send email. Please try again.",
+                              variant: "destructive",
+                            });
+                          }
+                        } catch (error) {
+                          console.error("Email sharing error:", error);
                           toast({
                             title: "Sharing Failed",
-                            description: result.error || "Failed to send email. Please try again.",
+                            description: "Network error. Please check your connection and try again.",
                             variant: "destructive",
                           });
                         }
-                      } catch (error) {
-                        console.error("Email sharing error:", error);
+                      } else {
+                        // WhatsApp sharing - not implemented yet, show info message
                         toast({
-                          title: "Sharing Failed",
-                          description: "Network error. Please check your connection and try again.",
+                          title: "WhatsApp Sharing",
+                          description: "WhatsApp sharing is not yet implemented. Please use email sharing.",
                           variant: "destructive",
                         });
                       }
-                    } else {
-                      // WhatsApp sharing - not implemented yet, show info message
-                      toast({
-                        title: "WhatsApp Sharing",
-                        description: "WhatsApp sharing is not yet implemented. Please use email sharing.",
-                        variant: "destructive",
-                      });
-                    }
 
-                    setShowShareDialog(false);
-                    setShareFormData({
-                      method: "",
-                      email: "",
-                      whatsapp: "",
-                      message: "",
-                    });
+                      setShowShareDialog(false);
+                      setShareFormData({
+                        method: "",
+                        email: "",
+                        whatsapp: "",
+                        message: "",
+                      });
+                    } finally {
+                      setIsSendingShare(false);
+                    }
                   }}
                   disabled={
+                    isSendingShare ||
                     !shareFormData.method ||
                     (shareFormData.method === "email" &&
                       !shareFormData.email) ||
@@ -3623,7 +3631,7 @@ export default function ImagingPage() {
                   className="bg-medical-blue hover:bg-blue-700"
                 >
                   <Share className="h-4 w-4 mr-2" />
-                  Share Study
+                  {isSendingShare ? "Sending..." : "Share Study"}
                 </Button>
               </div>
             </div>
