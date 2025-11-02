@@ -67,6 +67,7 @@ import {
   AlertCircle,
   ChevronsUpDown,
   Check as CheckIcon,
+  CheckCircle,
   Grid,
   List,
   Pill,
@@ -297,6 +298,8 @@ export default function ImagingPage() {
     useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [studyToDelete, setStudyToDelete] = useState<any>(null);
+  const [showShareSuccessDialog, setShowShareSuccessDialog] = useState(false);
+  const [shareSuccessEmail, setShareSuccessEmail] = useState("");
   const [modalityFilter, setModalityFilter] = useState<string>("all");
   const [selectedStudyId, setSelectedStudyId] = useState<string | null>(null);
   const [shareFormData, setShareFormData] = useState<{
@@ -3581,9 +3584,15 @@ export default function ImagingPage() {
                           const result = await response.json();
 
                           if (response.ok) {
-                            toast({
-                              title: "Study Shared",
-                              description: `Imaging study sent to ${shareFormData.email} successfully`,
+                            // Show success modal instead of toast
+                            setShareSuccessEmail(shareFormData.email);
+                            setShowShareDialog(false);
+                            setShowShareSuccessDialog(true);
+                            setShareFormData({
+                              method: "",
+                              email: "",
+                              whatsapp: "",
+                              message: "",
                             });
                           } else {
                             toast({
@@ -3607,15 +3616,14 @@ export default function ImagingPage() {
                           description: "WhatsApp sharing is not yet implemented. Please use email sharing.",
                           variant: "destructive",
                         });
+                        setShowShareDialog(false);
+                        setShareFormData({
+                          method: "",
+                          email: "",
+                          whatsapp: "",
+                          message: "",
+                        });
                       }
-
-                      setShowShareDialog(false);
-                      setShareFormData({
-                        method: "",
-                        email: "",
-                        whatsapp: "",
-                        message: "",
-                      });
                     } finally {
                       setIsSendingShare(false);
                     }
@@ -3636,6 +3644,34 @@ export default function ImagingPage() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Share Success Dialog */}
+      <Dialog open={showShareSuccessDialog} onOpenChange={setShowShareSuccessDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="sr-only">Share Success</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col items-center justify-center py-6 space-y-4">
+            <div className="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
+              <CheckCircle className="h-10 w-10 text-green-600 dark:text-green-400" />
+            </div>
+            <div className="text-center space-y-2">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                Study Shared Successfully
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                Imaging study has been sent to <strong>{shareSuccessEmail}</strong> successfully
+              </p>
+            </div>
+            <Button
+              onClick={() => setShowShareSuccessDialog(false)}
+              className="bg-medical-blue hover:bg-blue-700 mt-4"
+            >
+              Close
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
 
