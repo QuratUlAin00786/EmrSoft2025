@@ -112,7 +112,7 @@ export async function seedDatabase() {
         },
         {
           organizationId: org.id,
-          email: "sampletaker@cura.com",
+          email: "sampletaker@curaemr.ai",
           username: "sampletaker",
           passwordHash: hashedSampleTakerPassword,
           firstName: "James",
