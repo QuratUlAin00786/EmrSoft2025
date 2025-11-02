@@ -1873,11 +1873,11 @@ export default function ImagingPage() {
     let matchesTab = true;
     if (activeTab === "order-study") {
       // Order Study tab: order_study_created = true AND order_study_generated = false
-      // For patient users: also check that patient equals logged in user id AND status = 'ordered'
+      // For patient users: also check that patient equals logged in user id AND status = 'ordered' or 'in_progress'
       if (user?.role === "patient" && currentPatient) {
         matchesTab = study.orderStudyCreated === true && 
                      study.orderStudyGenerated === false &&
-                     study.status === "ordered" &&
+                     (study.status === "ordered" || study.status === "in_progress") &&
                      String(study.patientId) === String(currentPatient.id);
       } else {
         matchesTab = study.orderStudyCreated === true && 
