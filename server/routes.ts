@@ -19639,14 +19639,19 @@ Cura EMR Team
       if (shareSource === 'prescription') {
         // For prescriptions, use the stored prescriptionFilePath if available
         if (study.prescriptionFilePath) {
-          // Check if the path is already absolute
-          if (path.isAbsolute(study.prescriptionFilePath)) {
+          // Paths starting with /uploads are relative to working directory, not absolute system paths
+          if (study.prescriptionFilePath.startsWith('/uploads/') || study.prescriptionFilePath.startsWith('uploads/')) {
+            // Convert to absolute path from working directory
+            reportPath = path.resolve(process.cwd(), study.prescriptionFilePath.replace(/^\//, ''));
+          } else if (path.isAbsolute(study.prescriptionFilePath)) {
+            // True absolute system paths (like /home/runner/...)
             reportPath = study.prescriptionFilePath;
           } else {
-            // The stored path is relative, convert to absolute
-            reportPath = path.resolve(process.cwd(), study.prescriptionFilePath.replace(/^\//, ''));
+            // Relative paths
+            reportPath = path.resolve(process.cwd(), study.prescriptionFilePath);
           }
-          console.log(`[EMAIL-SHARE] Using stored prescriptionFilePath: ${reportPath}`);
+          console.log(`[EMAIL-SHARE] Using stored prescriptionFilePath: ${study.prescriptionFilePath}`);
+          console.log(`[EMAIL-SHARE] Final path to share prescription from: ${reportPath}`);
         } else {
           // Fallback: Try both filename formats (with and without 'prescription-' prefix)
           const reportsDir = path.resolve(process.cwd(), 'uploads', 'Image_Prescriptions', String(organizationId), 'patients', String(study.patientId));
@@ -19666,14 +19671,19 @@ Cura EMR Team
       } else {
         // For reports, use the stored reportFilePath if available
         if (study.reportFilePath) {
-          // Check if the path is already absolute
-          if (path.isAbsolute(study.reportFilePath)) {
+          // Paths starting with /uploads are relative to working directory, not absolute system paths
+          if (study.reportFilePath.startsWith('/uploads/') || study.reportFilePath.startsWith('uploads/')) {
+            // Convert to absolute path from working directory
+            reportPath = path.resolve(process.cwd(), study.reportFilePath.replace(/^\//, ''));
+          } else if (path.isAbsolute(study.reportFilePath)) {
+            // True absolute system paths (like /home/runner/...)
             reportPath = study.reportFilePath;
           } else {
-            // The stored path is relative, convert to absolute
-            reportPath = path.resolve(process.cwd(), study.reportFilePath.replace(/^\//, ''));
+            // Relative paths
+            reportPath = path.resolve(process.cwd(), study.reportFilePath);
           }
-          console.log(`[EMAIL-SHARE] Using stored reportFilePath: ${reportPath}`);
+          console.log(`[EMAIL-SHARE] Using stored reportFilePath: ${study.reportFilePath}`);
+          console.log(`[EMAIL-SHARE] Final path to share report from: ${reportPath}`);
         } else {
           // Fallback: Try to find the imaging report
           const reportsDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Reports', String(organizationId), 'patients', String(study.patientId));
@@ -19682,8 +19692,6 @@ Cura EMR Team
           console.log(`[EMAIL-SHARE] No stored report path, trying constructed path: ${reportPath}`);
         }
       }
-      
-      console.log(`[EMAIL-SHARE] Final path to share ${actualDocType} from: ${reportPath}`);
       
       // Check if the PDF exists
       if (!await fse.pathExists(reportPath)) {
