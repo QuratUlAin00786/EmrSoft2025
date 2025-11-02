@@ -3692,7 +3692,7 @@ export default function CalendarPage() {
                   </Button>
                 </div>
                 <p className="text-gray-700 dark:text-gray-300 mb-6">
-                  You have already created an appointment with the same doctor on this date. ({duplicateAppointmentDetails}), you can update existing appointment.
+                  You have already created an appointment with the same doctor on this date ({duplicateAppointmentDetails}). Please update existing appointment instead of create new one.
                 </p>
                 <div className="flex justify-end">
                   <Button
