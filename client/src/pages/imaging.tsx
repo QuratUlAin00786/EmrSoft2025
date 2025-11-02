@@ -1412,6 +1412,8 @@ export default function ImagingPage() {
       setReportRadiologist(study.radiologist || "Dr. Michael Chen");
       setUploadedImagePreviews([]);
       setSelectedFiles([]);
+      setScheduledDate(new Date()); // Set to current date by default
+      setPerformedDate(new Date()); // Set to current date by default
       setShowReportDialog(true);
     }
   };
