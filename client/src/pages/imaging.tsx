@@ -1870,10 +1870,17 @@ export default function ImagingPage() {
     // Filter based on active tab
     let matchesTab = true;
     if (activeTab === "order-study") {
-      // Order Study tab: order_study_created = true AND order_study_ready_to_generate = false AND order_study_generated = false
-      matchesTab = study.orderStudyCreated === true && 
-                   study.orderStudyReadyToGenerate === false &&
-                   study.orderStudyGenerated === false;
+      // Order Study tab: order_study_created = true AND order_study_generated = false
+      // For patient users: also check that patient equals logged in user id
+      if (user?.role === "patient" && currentPatient) {
+        matchesTab = study.orderStudyCreated === true && 
+                     study.orderStudyGenerated === false &&
+                     String(study.patientId) === String(currentPatient.patientId);
+      } else {
+        matchesTab = study.orderStudyCreated === true && 
+                     study.orderStudyReadyToGenerate === false &&
+                     study.orderStudyGenerated === false;
+      }
     } else if (activeTab === "generate-report") {
       // Generate Report tab: order_study_created = true AND order_study_ready_to_generate = true AND order_study_generated = false
       matchesTab = study.orderStudyCreated === true && 
