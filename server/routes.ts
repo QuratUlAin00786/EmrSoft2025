@@ -19632,12 +19632,29 @@ Cura EMR Team
       const organizationId = req.tenant!.id;
       const imageId = study.imageId;
 
-      // Determine which folder to use based on shareSource
-      const folderName = shareSource === 'prescription' ? 'Image_Prescriptions' : 'Imaging_Reports';
-      const reportsDir = path.resolve(process.cwd(), 'uploads', folderName, String(organizationId), 'patients', String(study.patientId));
-      // Prescription files have 'prescription-' prefix, reports use imageId only
-      const fileName = shareSource === 'prescription' ? `prescription-${imageId}.pdf` : `${imageId}.pdf`;
-      const reportPath = path.join(reportsDir, fileName);
+      // Determine the file path based on shareSource
+      let reportPath: string;
+      
+      if (shareSource === 'prescription') {
+        // For prescriptions, use the stored prescriptionFilePath if available
+        if (study.prescriptionFilePath) {
+          // The stored path is relative, convert to absolute
+          reportPath = path.resolve(process.cwd(), study.prescriptionFilePath.replace(/^\//, ''));
+          console.log(`[EMAIL-SHARE] Using stored prescriptionFilePath: ${reportPath}`);
+        } else {
+          // Fallback: construct the path from imageId
+          const reportsDir = path.resolve(process.cwd(), 'uploads', 'Image_Prescriptions', String(organizationId), 'patients', String(study.patientId));
+          const fileName = `prescription-${imageId}.pdf`;
+          reportPath = path.join(reportsDir, fileName);
+          console.log(`[EMAIL-SHARE] No stored path found, constructing from imageId: ${reportPath}`);
+        }
+      } else {
+        // For reports, construct the path from imageId
+        const reportsDir = path.resolve(process.cwd(), 'uploads', 'Imaging_Reports', String(organizationId), 'patients', String(study.patientId));
+        const fileName = `${imageId}.pdf`;
+        reportPath = path.join(reportsDir, fileName);
+        console.log(`[EMAIL-SHARE] Constructing report path from imageId: ${reportPath}`);
+      }
       
       console.log(`[EMAIL-SHARE] Attempting to share ${shareSource} from: ${reportPath}`);
       
@@ -19645,6 +19662,11 @@ Cura EMR Team
       if (!await fse.pathExists(reportPath)) {
         const docType = shareSource === 'prescription' ? 'Image prescription' : 'Imaging report';
         console.error(`[EMAIL-SHARE] ${docType} PDF not found:`, reportPath);
+        console.error(`[EMAIL-SHARE] Study details:`, { 
+          imageId: study.imageId, 
+          prescriptionFilePath: study.prescriptionFilePath,
+          shareSource 
+        });
         return res.status(404).json({ 
           error: `${docType} not found. Please generate the ${shareSource === 'prescription' ? 'prescription' : 'report'} first.`
         });
