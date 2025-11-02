@@ -3408,8 +3408,7 @@ export default function CalendarPage() {
                         // Check for duplicate appointments (same patient, same doctor, same date)
                         // Convert patientId to numeric ID for comparison
                         const selectedPatient = patients.find((p: any) => {
-                          const pId = p.patientId || p.id.toString();
-                          return pId === bookingForm.patientId;
+                          return p.id.toString() === bookingForm.patientId || p.patientId === bookingForm.patientId;
                         });
                         const numericPatientId = selectedPatient?.id;
                         
