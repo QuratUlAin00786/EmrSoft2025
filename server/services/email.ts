@@ -97,8 +97,8 @@ class EmailService {
           user: 'noreply@curaemr.ai',
           pass: 'wxndhigmfhgjjklr'
         },
-        debug: false,
-        logger: false,
+        debug: true, // Enable debug to see what's happening
+        logger: true, // Enable logger to see SMTP conversation
         tls: {
           rejectUnauthorized: false
         },
@@ -111,8 +111,14 @@ class EmailService {
       // Gmail SMTP configured
       this.initialized = true;
       
-      // Skip verification in production to avoid blocking initialization
-      console.log('[EMAIL] ✅ Gmail SMTP configured for production');
+      // Verify the SMTP connection
+      try {
+        await this.transporter.verify();
+        console.log('[EMAIL] ✅ Gmail SMTP verified and ready to send emails');
+      } catch (verifyError: any) {
+        console.error('[EMAIL] ❌ Gmail SMTP verification failed:', verifyError.message);
+        console.error('[EMAIL] ⚠️ Emails may not be delivered - SMTP credentials invalid');
+      }
       
     } catch (error) {
       console.error('[EMAIL] Failed to initialize email service:', error);
