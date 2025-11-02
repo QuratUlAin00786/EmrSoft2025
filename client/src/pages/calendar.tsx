@@ -3413,14 +3413,36 @@ export default function CalendarPage() {
                         });
                         const numericPatientId = selectedPatient?.id;
                         
+                        console.log('[DUPLICATE CHECK] bookingForm.patientId:', bookingForm.patientId);
+                        console.log('[DUPLICATE CHECK] selectedPatient:', selectedPatient);
+                        console.log('[DUPLICATE CHECK] numericPatientId:', numericPatientId);
+                        console.log('[DUPLICATE CHECK] selectedProviderId:', selectedProviderId);
+                        console.log('[DUPLICATE CHECK] selectedDate:', selectedDate);
+                        console.log('[DUPLICATE CHECK] allAppointments:', allAppointments);
+                        
                         if (allAppointments && selectedDate && numericPatientId) {
                           const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
+                          console.log('[DUPLICATE CHECK] selectedDateStr:', selectedDateStr);
                           
                           const duplicateAppointment = allAppointments.find((apt: any) => {
                             const aptDateStr = format(new Date(apt.scheduledAt), 'yyyy-MM-dd');
                             // Database uses snake_case (patient_id, provider_id), also check camelCase for compatibility
                             const aptPatientId = apt.patient_id || apt.patientId;
                             const aptProviderId = apt.provider_id || apt.providerId;
+                            
+                            console.log('[DUPLICATE CHECK] Checking appointment:', apt.id, {
+                              aptPatientId,
+                              numericPatientId,
+                              match1: aptPatientId === numericPatientId,
+                              aptProviderId: aptProviderId?.toString(),
+                              selectedProviderId,
+                              match2: aptProviderId?.toString() === selectedProviderId,
+                              aptDateStr,
+                              selectedDateStr,
+                              match3: aptDateStr === selectedDateStr,
+                              status: apt.status,
+                              notCancelled: apt.status !== 'cancelled'
+                            });
                             
                             return (
                               aptPatientId === numericPatientId &&
@@ -3430,6 +3452,8 @@ export default function CalendarPage() {
                             );
                           });
                           
+                          console.log('[DUPLICATE CHECK] Found duplicate:', duplicateAppointment);
+                          
                           if (duplicateAppointment) {
                             // Find patient name
                             const patientName = selectedPatient ? `${selectedPatient.firstName} ${selectedPatient.lastName}` : 'the patient';
@@ -3438,6 +3462,12 @@ export default function CalendarPage() {
                             setShowDuplicateWarning(true);
                             return;
                           }
+                        } else {
+                          console.log('[DUPLICATE CHECK] Skipped - missing data:', {
+                            hasAllAppointments: !!allAppointments,
+                            hasSelectedDate: !!selectedDate,
+                            hasNumericPatientId: !!numericPatientId
+                          });
                         }
 
                         // For doctors and patients: Show invoice modal directly
