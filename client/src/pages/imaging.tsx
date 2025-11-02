@@ -56,6 +56,7 @@ import {
   Zap,
   Share,
   Share2,
+  Send,
   Mail,
   MessageCircle,
   Trash2,
@@ -3365,10 +3366,11 @@ export default function ImagingPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleShareStudy(study, activeTab === 'order-study' ? 'prescription' : 'report')}
-                          title={activeTab === 'order-study' ? 'Share Image Prescription' : 'Share Imaging Report'}
+                          onClick={() => handleShareStudy(study, 'prescription')}
+                          title="Share Image Prescription"
+                          data-testid="button-share-prescription"
                         >
-                          <Share2 className="h-4 w-4" />
+                          <Send className="h-4 w-4" />
                         </Button>
                       )}
                       
