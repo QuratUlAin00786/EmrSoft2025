@@ -864,15 +864,15 @@ Cura EMR Team
             ${clinicLogoUrl ? 
               `<img src="${clinicLogoUrl}" alt="${organizationName || 'Medical Clinic'} Logo" class="clinic-logo">
                <div class="header-info">
-                 <h1 class="clinic-name">${organizationName || 'Medical Clinic'}</h1>
-                 <p class="clinic-tagline">Powered by Cura EMR Platform</p>
+                 <h1 class="clinic-name" style="color: grey;">${organizationName || 'Medical Clinic'}</h1>
+                 <p class="clinic-tagline" style="color: grey;">Powered by Cura EMR Platform</p>
                </div>` :
               `<div class="fallback-logo" style="width: 95px; height: 95px; margin-right: 20px; background: darkblue; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: black; font-size: 32px; font-weight: bold; box-shadow: 0 4px 20px rgba(74, 125, 255, 0.3);">
                  C
                </div>
                <div class="header-info">
-                 <h1 class="clinic-name">Cura EMR</h1>
-                 <p class="clinic-tagline">AI-Powered Healthcare Platform</p>
+                 <h1 class="clinic-name" style="color: grey;">Cura EMR</h1>
+                 <p class="clinic-tagline" style="color: grey;">AI-Powered Healthcare Platform</p>
                </div>`
             }
           </div>
