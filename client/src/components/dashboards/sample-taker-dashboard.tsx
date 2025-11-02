@@ -217,6 +217,9 @@ export function SampleTakerDashboard() {
   const urgentRequests = pendingCollection.filter((req: LabRequest) => 
     req.priority === 'urgent' || req.priority === 'stat'
   );
+  const totalRequests = labRequests.filter((req: LabRequest) => 
+    req.Sample_Collected === false
+  );
 
   // Mutation to mark sample as collected (using existing endpoint)
   const collectSampleMutation = useMutation({
@@ -407,7 +410,7 @@ export function SampleTakerDashboard() {
     },
     {
       title: "Total Requests",
-      value: labRequests.length.toString(),
+      value: totalRequests.length.toString(),
       description: "All lab requests",
       icon: TestTube,
       color: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
