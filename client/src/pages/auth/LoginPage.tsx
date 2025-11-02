@@ -188,6 +188,10 @@ export default function LoginPage() {
                   <span>Lab-Technician:</span>
                   <span>amelia@curaemr.ai / lab123</span>
                 </div>
+                <div className="flex justify-between">
+                  <span>Sample-Taker:</span>
+                  <span>sampletaker@curaemr.ai / sample123</span>
+                </div>
               </div>
             </div>
 
@@ -257,6 +261,19 @@ export default function LoginPage() {
                 data-testid="button-login-labtech"
               >
                 Lab-Technician
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setEmail("sampletaker@curaemr.ai");
+                  setPassword("sample123");
+                }}
+                className="text-xs"
+                data-testid="button-login-sampletaker"
+              >
+                Sample Taker
               </Button>
             </div>
           </CardContent>
