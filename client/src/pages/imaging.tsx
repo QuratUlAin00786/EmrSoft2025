@@ -3360,8 +3360,8 @@ export default function ImagingPage() {
                         </>
                       )}
 
-                      {/* Hide Share icon for patient role and Generate Report tab */}
-                      {user?.role !== 'patient' && activeTab !== 'generate-report' && (
+                      {/* Hide Share icon for patient role and Order Study tab */}
+                      {user?.role !== 'patient' && activeTab !== 'order-study' && (
                         <Button
                           variant="outline"
                           size="sm"
