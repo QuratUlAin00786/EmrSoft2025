@@ -1448,10 +1448,11 @@ Medical License: [License Number]
                       <div className="font-medium">Dr. {appointment.providerName}</div>
                       {user?.role === 'admin' && (() => {
                         const provider = usersData?.find((u: any) => u.id === appointment.providerId);
-                        return provider && (provider.medicalSpecialtyCategory || provider.subSpecialty) ? (
+                        return provider && (provider.medicalSpecialtyCategory || provider.subSpecialty || provider.department) ? (
                           <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                             {provider.medicalSpecialtyCategory && <div>{provider.medicalSpecialtyCategory}</div>}
                             {provider.subSpecialty && <div>{provider.subSpecialty}</div>}
+                            {!provider.medicalSpecialtyCategory && !provider.subSpecialty && provider.department && <div>{provider.department}</div>}
                           </div>
                         ) : null;
                       })()}
