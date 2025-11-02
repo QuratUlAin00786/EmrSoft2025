@@ -1637,7 +1637,15 @@ export default function UserManagement() {
     },
     onSuccess: (updatedUserData) => {
       setSuccessTitle("User Updated Successfully");
-      setSuccessMessage("");
+      
+      // Format role name: convert underscores to spaces and capitalize each word
+      const formatRoleName = (role: string) => {
+        return role.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+      };
+      
+      const userName = `${updatedUserData.firstName || ''} ${updatedUserData.lastName || ''}`.trim();
+      const roleName = formatRoleName(updatedUserData.role || '');
+      setSuccessMessage(`User ${userName} (${roleName}) has been updated successfully`);
       setShowSuccessModal(true);
       
       // Update the form with fresh data from server response
@@ -4306,6 +4314,11 @@ export default function UserManagement() {
               {successTitle === "User Created Successfully" && (
                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
                   The user has been created successfully and saved.
+                </p>
+              )}
+              {successTitle === "User Updated Successfully" && successMessage && (
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                  {successMessage}
                 </p>
               )}
               {successTitle === "User Deleted Successfully" && (
