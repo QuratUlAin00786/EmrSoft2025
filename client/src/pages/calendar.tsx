@@ -3805,7 +3805,11 @@ export default function CalendarPage() {
                       <Input
                         value={(() => {
                           // Match the same patient lookup pattern used in the appointment form
-                          const patient = patients.find((p: any) => (p.patientId || p.id.toString()) === pendingAppointmentData.patientId);
+                          const patient = patients.find((p: any) => 
+                            p.id === pendingAppointmentData.patientId || 
+                            p.id.toString() === pendingAppointmentData.patientId?.toString() ||
+                            p.patientId === pendingAppointmentData.patientId
+                          );
                           return patient ? `${patient.firstName} ${patient.lastName}` : 'N/A';
                         })()}
                         disabled
@@ -4018,7 +4022,11 @@ export default function CalendarPage() {
                         <p className="text-sm text-gray-600 dark:text-gray-400">Patient</p>
                         <p className="font-medium text-gray-900 dark:text-white">
                           {(() => {
-                            const patient = patients.find((p: any) => (p.patientId || p.id.toString()) === pendingAppointmentData.patientId);
+                            const patient = patients.find((p: any) => 
+                              p.id === pendingAppointmentData.patientId || 
+                              p.id.toString() === pendingAppointmentData.patientId?.toString() ||
+                              p.patientId === pendingAppointmentData.patientId
+                            );
                             return patient ? `${patient.firstName} ${patient.lastName}` : 'N/A';
                           })()}
                         </p>
@@ -4119,7 +4127,11 @@ export default function CalendarPage() {
                     </Button>
                     <Button
                       onClick={() => {
-                        const patient = patients.find((p: any) => (p.patientId || p.id.toString()) === pendingAppointmentData.patientId);
+                        const patient = patients.find((p: any) => 
+                          p.id === pendingAppointmentData.patientId || 
+                          p.id.toString() === pendingAppointmentData.patientId?.toString() ||
+                          p.patientId === pendingAppointmentData.patientId
+                        );
                         
                         if (!patient) {
                           toast({
