@@ -31,7 +31,6 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
-import { Switch } from "@/components/ui/switch";
 import {
   Popover,
   PopoverContent,
@@ -449,7 +448,6 @@ export default function ImagingPage() {
   const [modalityOpen, setModalityOpen] = useState(false);
   const [bodyPartOpen, setBodyPartOpen] = useState(false);
   const [studyTypeOpen, setStudyTypeOpen] = useState(false);
-  const [showReport, setShowReport] = useState(false);
   
   const { toast } = useToast();
 
@@ -2082,71 +2080,6 @@ export default function ImagingPage() {
               </CardContent>
             </Card>
           </div>
-
-          {/* Toggle for Patient Report - Patient Users Only */}
-          {user?.role === 'patient' && (
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="report-toggle" className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer">
-                    See Report
-                  </Label>
-                  <Switch
-                    id="report-toggle"
-                    checked={showReport}
-                    onCheckedChange={setShowReport}
-                    data-testid="toggle-report"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Your Medical Imaging Report - Shown when toggle is ON */}
-          {user?.role === 'patient' && showReport && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  Your Medical Imaging Report
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Your medical imaging reports will be displayed here. This section shows all your radiology studies and their results.
-                  </p>
-                  {medicalImages.length > 0 ? (
-                    <div className="grid gap-3">
-                      {medicalImages.map((image: any) => (
-                        <div key={image.id} className="p-4 border dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <p className="font-medium text-gray-900 dark:text-gray-100">{image.studyType}</p>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">{image.modality} - {image.bodyPart}</p>
-                              <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                                {format(new Date(image.createdAt), 'PPP')}
-                              </p>
-                            </div>
-                            <Badge className={`${
-                              image.status === 'Completed' ? 'bg-green-100 text-green-800' :
-                              image.status === 'in_progress' ? 'bg-yellow-100 text-yellow-800' :
-                              'bg-gray-100 text-gray-800'
-                            }`}>
-                              {image.status}
-                            </Badge>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-gray-500 dark:text-gray-400 italic">
-                      No imaging reports available yet.
-                    </p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          )}
 
           {/* Tabs for Order Study, Generate Report, and Imaging Results */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
