@@ -555,8 +555,8 @@ export default function ImagingPage() {
     // For patient users, filter by patient ID
     if (user?.role === "patient" && currentPatient) {
       return medicalImagesRaw.filter((image: any) => {
-        // Use currentPatient.patientId to match with image.patientId
-        return String(image.patientId) === String(currentPatient.patientId);
+        // Use currentPatient.id to match with image.patientId from database
+        return String(image.patientId) === String(currentPatient.id);
       });
     }
     
@@ -1876,7 +1876,7 @@ export default function ImagingPage() {
         matchesTab = study.orderStudyCreated === true && 
                      study.orderStudyGenerated === false &&
                      study.status === "ordered" &&
-                     String(study.patientId) === String(currentPatient.patientId);
+                     String(study.patientId) === String(currentPatient.id);
       } else {
         matchesTab = study.orderStudyCreated === true && 
                      study.orderStudyReadyToGenerate === false &&
