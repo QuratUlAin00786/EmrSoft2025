@@ -19642,11 +19642,20 @@ Cura EMR Team
           reportPath = path.resolve(process.cwd(), study.prescriptionFilePath.replace(/^\//, ''));
           console.log(`[EMAIL-SHARE] Using stored prescriptionFilePath: ${reportPath}`);
         } else {
-          // Fallback: construct the path from imageId
+          // Fallback: Try both filename formats (with and without 'prescription-' prefix)
           const reportsDir = path.resolve(process.cwd(), 'uploads', 'Image_Prescriptions', String(organizationId), 'patients', String(study.patientId));
-          const fileName = `prescription-${imageId}.pdf`;
+          
+          // First try with 'prescription-' prefix (new format)
+          let fileName = `prescription-${imageId}.pdf`;
           reportPath = path.join(reportsDir, fileName);
-          console.log(`[EMAIL-SHARE] No stored path found, constructing from imageId: ${reportPath}`);
+          console.log(`[EMAIL-SHARE] No stored path found, trying with prefix: ${reportPath}`);
+          
+          // If not found, try without prefix (old format)
+          if (!await fse.pathExists(reportPath)) {
+            fileName = `${imageId}.pdf`;
+            reportPath = path.join(reportsDir, fileName);
+            console.log(`[EMAIL-SHARE] File not found with prefix, trying without prefix: ${reportPath}`);
+          }
         }
       } else {
         // For reports, construct the path from imageId
@@ -19656,7 +19665,7 @@ Cura EMR Team
         console.log(`[EMAIL-SHARE] Constructing report path from imageId: ${reportPath}`);
       }
       
-      console.log(`[EMAIL-SHARE] Attempting to share ${shareSource} from: ${reportPath}`);
+      console.log(`[EMAIL-SHARE] Final path to share ${shareSource} from: ${reportPath}`);
       
       // Check if the PDF exists
       if (!await fse.pathExists(reportPath)) {
