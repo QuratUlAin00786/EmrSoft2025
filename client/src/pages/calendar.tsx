@@ -3426,8 +3426,7 @@ export default function CalendarPage() {
                               aptPatientId === numericPatientId &&
                               aptProviderId?.toString() === selectedProviderId &&
                               aptDateStr === selectedDateStr &&
-                              apt.status !== 'cancelled' && // Don't count cancelled appointments as duplicates
-                              apt.status === 'scheduled' // Only count scheduled appointments as duplicates - show invoice modal only for scheduled status
+                              apt.status !== 'cancelled' // Don't count cancelled appointments as duplicates
                             );
                           });
                           
