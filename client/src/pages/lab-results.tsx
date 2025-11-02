@@ -233,6 +233,7 @@ import {
   Copy,
   Receipt,
   PenTool,
+  PoundSterling,
 } from "lucide-react";
 
 interface DatabaseLabResult {
@@ -1256,6 +1257,55 @@ export default function LabResultsPage() {
     
     // Open the invoice dialog
     setShowInvoiceDialog(true);
+  };
+
+  const handleManageInvoice = async (result: DatabaseLabResult) => {
+    try {
+      // Check if invoice exists for this lab result
+      const response = await apiRequest(
+        "GET",
+        `/api/invoices/by-service?serviceType=lab_result&serviceId=${result.testId}`
+      );
+      
+      if (response.ok) {
+        // Invoice exists - populate form with existing data for editing
+        const existingInvoice = await response.json();
+        
+        // Set pending order data
+        setPendingOrderData({
+          patientId: result.patientId,
+          patientName: getPatientName(result.patientId),
+          testTypes: result.testType.split(' | '),
+          testId: result.testId
+        });
+        
+        // Populate invoice form with existing invoice data
+        setInvoiceData({
+          id: existingInvoice.id,
+          invoiceNumber: existingInvoice.invoiceNumber,
+          serviceDate: new Date(existingInvoice.dateOfService).toISOString().split('T')[0],
+          invoiceDate: new Date(existingInvoice.invoiceDate).toISOString().split('T')[0],
+          dueDate: new Date(existingInvoice.dueDate).toISOString().split('T')[0],
+          items: existingInvoice.items || [],
+          totalAmount: parseFloat(existingInvoice.totalAmount),
+          paymentMethod: existingInvoice.insurance?.provider || '',
+          insuranceProvider: existingInvoice.insurance?.provider || '',
+          notes: existingInvoice.notes || ''
+        });
+        
+        // Open the invoice dialog for editing
+        setShowInvoiceDialog(true);
+      } else if (response.status === 404) {
+        // No invoice exists - create new one
+        handleCreateInvoiceForTest(result);
+      } else {
+        throw new Error('Failed to check invoice status');
+      }
+    } catch (error) {
+      console.error("Error checking invoice:", error);
+      // If there's an error checking, default to creating new invoice
+      handleCreateInvoiceForTest(result);
+    }
   };
 
   const handleDownloadResult = async (resultId: number | string) => {
@@ -2909,6 +2959,17 @@ Report generated from Cura EMR System`;
                                         data-testid={`button-edit-${result.id}`}
                                       >
                                         <Edit className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                                      </Button>
+                                    )}
+                                    {user?.role !== 'patient' && (
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => handleManageInvoice(result)}
+                                        className="h-8 w-8 p-0"
+                                        data-testid={`button-manage-invoice-${result.id}`}
+                                      >
+                                        <PoundSterling className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                                       </Button>
                                     )}
                                     {user?.role === 'admin' && (

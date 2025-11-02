@@ -7606,6 +7606,36 @@ This treatment plan should be reviewed and adjusted based on individual patient 
     }
   });
 
+  // Get invoice by service type and service ID
+  app.get("/api/invoices/by-service", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const { serviceType, serviceId } = req.query;
+      if (!serviceType || !serviceId) {
+        return res.status(400).json({ error: "serviceType and serviceId are required" });
+      }
+
+      const organizationId = req.tenant!.id;
+      const invoices = await storage.getInvoicesByOrganization(organizationId);
+      
+      const invoice = invoices.find(inv => 
+        inv.serviceType === serviceType && inv.serviceId === serviceId
+      );
+
+      if (!invoice) {
+        return res.status(404).json({ error: "Invoice not found" });
+      }
+
+      res.json(invoice);
+    } catch (error) {
+      console.error("Error fetching invoice by service:", error);
+      res.status(500).json({ error: "Failed to fetch invoice" });
+    }
+  });
+
   // Get paid lab result invoices with joined lab_results details
   app.get("/api/invoices/paid-lab-results", authMiddleware, async (req: TenantRequest, res) => {
     try {
