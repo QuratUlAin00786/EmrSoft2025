@@ -1997,7 +1997,12 @@ export default function ImagingPage() {
                       In Process Reports
                     </p>
                     <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                      {studies.filter((study: any) => study.status === "in_progress").length}
+                      {studies.filter((study: any) => {
+                        if (user?.role === "patient" && currentPatient) {
+                          return study.status === "in_progress" && String(study.patientId) === String(currentPatient.id);
+                        }
+                        return study.status === "in_progress";
+                      }).length}
                     </p>
                   </div>
                   <FileText className="h-8 w-8 text-yellow-600" />
@@ -2016,7 +2021,11 @@ export default function ImagingPage() {
                       {medicalImages.filter((image: any) => {
                         const createdDate = new Date(image.createdAt);
                         const today = new Date();
-                        return createdDate.toDateString() === today.toDateString();
+                        const isToday = createdDate.toDateString() === today.toDateString();
+                        if (user?.role === "patient" && currentPatient) {
+                          return isToday && String(image.patientId) === String(currentPatient.id);
+                        }
+                        return isToday;
                       }).length}
                     </p>
                   </div>
@@ -2033,7 +2042,12 @@ export default function ImagingPage() {
                       Completed Studies
                     </p>
                     <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                      {studies.filter((study: any) => study.status === "completed").length}
+                      {studies.filter((study: any) => {
+                        if (user?.role === "patient" && currentPatient) {
+                          return study.status === "completed" && String(study.patientId) === String(currentPatient.id);
+                        }
+                        return study.status === "completed";
+                      }).length}
                     </p>
                   </div>
                   <Zap className="h-8 w-8 text-red-600" />
@@ -2052,8 +2066,12 @@ export default function ImagingPage() {
                       {medicalImages.filter((image: any) => {
                         const createdDate = new Date(image.createdAt);
                         const today = new Date();
-                        return createdDate.getMonth() === today.getMonth() && 
+                        const isThisMonth = createdDate.getMonth() === today.getMonth() && 
                                createdDate.getFullYear() === today.getFullYear();
+                        if (user?.role === "patient" && currentPatient) {
+                          return isThisMonth && String(image.patientId) === String(currentPatient.id);
+                        }
+                        return isThisMonth;
                       }).length}
                     </p>
                   </div>
