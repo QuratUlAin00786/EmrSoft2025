@@ -710,7 +710,7 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
             {nextAppointmentCreator && (
               <div className="mt-3 text-xs text-gray-500 dark:text-gray-400">
                 <User className="h-3 w-3 inline mr-1" />
-                Booked by: {nextAppointmentCreator.firstName} {nextAppointmentCreator.lastName}
+                Booked by: {getCreatedByName(nextAppointmentCreator.id)}
               </div>
             )}
 
@@ -827,7 +827,7 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
                     {createdBy && (
                       <div className="mt-3 text-xs text-gray-500 dark:text-gray-400">
                         <User className="h-3 w-3 inline mr-1" />
-                        Booked by: {createdBy.firstName} {createdBy.lastName}
+                        Booked by: {getCreatedByName(createdBy.id)}
                       </div>
                     )}
 
