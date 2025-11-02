@@ -148,7 +148,15 @@ export default function DoctorAppointments({ onNewAppointment }: { onNewAppointm
     if (!creator) return `User ${createdById}`;
     
     const name = `${creator.firstName || ''} ${creator.lastName || ''}`.trim();
-    return name || `User ${createdById}`;
+    
+    // Format role for display (capitalize first letter of each word, replace underscores with spaces)
+    const role = creator.role || '';
+    const formattedRole = role
+      .split('_')
+      .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+    
+    return name ? `${name} (${formattedRole})` : `User ${createdById}`;
   };
 
   const formatTime = (timeString: string) => {
