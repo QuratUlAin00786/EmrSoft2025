@@ -229,6 +229,31 @@ export default function UserManual() {
 
                     <Separator />
 
+                    <div className="flex gap-4 items-start">
+                      <div className="flex-1">
+                        <h3 className="font-semibold mb-3">Create New Role Interface</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Example: Creating an Administrator role with full system permissions including Dashboard, Patients, Appointments, Medical Records, Prescriptions, and more.
+                        </p>
+                      </div>
+                      <div 
+                        className="w-48 h-32 flex-shrink-0 border rounded-lg overflow-hidden shadow-lg cursor-pointer hover:shadow-xl transition-shadow relative group"
+                        onClick={() => setPopupImage(roleScreenshot)}
+                        data-testid="img-role-screenshot-thumbnail"
+                      >
+                        <img 
+                          src={roleScreenshot} 
+                          alt="Create New Role Dialog showing role name, display name, description, and module permissions matrix" 
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                          <Maximize2 className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
+                      </div>
+                    </div>
+
+                    <Separator />
+
                     <div>
                       <h3 className="font-semibold mb-3 flex items-center gap-2">
                         <UserCog className="h-5 w-5 text-primary" />
@@ -328,31 +353,6 @@ export default function UserManual() {
                         </table>
                       </div>
                     </div>
-
-                    <Separator />
-
-                    <div className="flex gap-4 items-start">
-                      <div className="flex-1">
-                        <h3 className="font-semibold mb-3">Screenshot: Create New Role Interface</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Example: Creating an Administrator role with full system permissions including Dashboard, Patients, Appointments, Medical Records, Prescriptions, and more.
-                        </p>
-                      </div>
-                      <div 
-                        className="w-48 h-32 flex-shrink-0 border rounded-lg overflow-hidden shadow-lg cursor-pointer hover:shadow-xl transition-shadow relative group"
-                        onClick={() => setPopupImage(roleScreenshot)}
-                        data-testid="img-role-screenshot-thumbnail"
-                      >
-                        <img 
-                          src={roleScreenshot} 
-                          alt="Create New Role Dialog showing role name, display name, description, and module permissions matrix" 
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                          <Maximize2 className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </div>
-                      </div>
-                    </div>
                   </div>
                 </ScrollArea>
               </CardContent>
@@ -376,6 +376,31 @@ export default function UserManual() {
                       <p className="text-muted-foreground">
                         Define work hours for doctors, nurses, and support staff.
                       </p>
+                    </div>
+
+                    <Separator />
+
+                    <div className="flex gap-4 items-start">
+                      <div className="flex-1">
+                        <h3 className="font-semibold mb-3">Shifts Management Interface</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Example: Default shifts view showing multiple staff members (James Administrator, Paul Smith, Emma Johnson, etc.) with their assigned working hours and days of the week.
+                        </p>
+                      </div>
+                      <div 
+                        className="w-48 h-32 flex-shrink-0 border rounded-lg overflow-hidden shadow-lg cursor-pointer hover:shadow-xl transition-shadow relative group"
+                        onClick={() => setPopupImage(shiftsScreenshot)}
+                        data-testid="img-shifts-screenshot-thumbnail"
+                      >
+                        <img 
+                          src={shiftsScreenshot} 
+                          alt="Shifts Management showing default shifts with staff members and their working hours across different days" 
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                          <Maximize2 className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
+                      </div>
                     </div>
 
                     <Separator />
@@ -457,31 +482,6 @@ export default function UserManual() {
                         </div>
                       </div>
                     </div>
-
-                    <Separator />
-
-                    <div className="flex gap-4 items-start">
-                      <div className="flex-1">
-                        <h3 className="font-semibold mb-3">Screenshot: Shifts Management Interface</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Example: Default shifts view showing multiple staff members (James Administrator, Paul Smith, Emma Johnson, etc.) with their assigned working hours and days of the week.
-                        </p>
-                      </div>
-                      <div 
-                        className="w-48 h-32 flex-shrink-0 border rounded-lg overflow-hidden shadow-lg cursor-pointer hover:shadow-xl transition-shadow relative group"
-                        onClick={() => setPopupImage(shiftsScreenshot)}
-                        data-testid="img-shifts-screenshot-thumbnail"
-                      >
-                        <img 
-                          src={shiftsScreenshot} 
-                          alt="Shifts Management showing default shifts with staff members and their working hours across different days" 
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                          <Maximize2 className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </div>
-                      </div>
-                    </div>
                   </div>
                 </ScrollArea>
               </CardContent>
@@ -505,6 +505,31 @@ export default function UserManual() {
                       <p className="text-muted-foreground">
                         Set standard fees for doctors and diagnostic services.
                       </p>
+                    </div>
+
+                    <Separator />
+
+                    <div className="flex gap-4 items-start">
+                      <div className="flex-1">
+                        <h3 className="font-semibold mb-3">Billing & Pricing Management</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Example: Pricing Management showing Doctors Fee Pricing with various consultation types (Procedure Consultation, Home Visit, Emergency Visit, Teleconsultation, Follow-up Visit, etc.) with their respective codes, categories, and prices in GBP.
+                        </p>
+                      </div>
+                      <div 
+                        className="w-48 h-32 flex-shrink-0 border rounded-lg overflow-hidden shadow-lg cursor-pointer hover:shadow-xl transition-shadow relative group"
+                        onClick={() => setPopupImage(billingScreenshot)}
+                        data-testid="img-billing-screenshot-thumbnail"
+                      >
+                        <img 
+                          src={billingScreenshot} 
+                          alt="Billing & Payments interface showing pricing management for doctors' fees with service codes and pricing" 
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                          <Maximize2 className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
+                      </div>
                     </div>
 
                     <Separator />
@@ -585,31 +610,6 @@ export default function UserManual() {
                         </li>
                       </ol>
                     </div>
-
-                    <Separator />
-
-                    <div className="flex gap-4 items-start">
-                      <div className="flex-1">
-                        <h3 className="font-semibold mb-3">Screenshot: Billing & Pricing Management</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Example: Pricing Management showing Doctors Fee Pricing with various consultation types (Procedure Consultation, Home Visit, Emergency Visit, Teleconsultation, Follow-up Visit, etc.) with their respective codes, categories, and prices in GBP.
-                        </p>
-                      </div>
-                      <div 
-                        className="w-48 h-32 flex-shrink-0 border rounded-lg overflow-hidden shadow-lg cursor-pointer hover:shadow-xl transition-shadow relative group"
-                        onClick={() => setPopupImage(billingScreenshot)}
-                        data-testid="img-billing-screenshot-thumbnail"
-                      >
-                        <img 
-                          src={billingScreenshot} 
-                          alt="Billing & Payments interface showing pricing management for doctors' fees with service codes and pricing" 
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                          <Maximize2 className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </div>
-                      </div>
-                    </div>
                   </div>
                 </ScrollArea>
               </CardContent>
@@ -633,6 +633,81 @@ export default function UserManual() {
                       <p className="text-muted-foreground">
                         Customize branding for all printed and digital documents.
                       </p>
+                    </div>
+
+                    <Separator />
+
+                    <div className="flex gap-4 items-start">
+                      <div className="flex-1">
+                        <h3 className="font-semibold mb-3">Create Clinic Information</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Step 1: Upload clinic logo and configure header information including clinic name, address, phone, email, and website. Customize font family, font size, and text styling options.
+                        </p>
+                      </div>
+                      <div 
+                        className="w-48 h-32 flex-shrink-0 border rounded-lg overflow-hidden shadow-lg cursor-pointer hover:shadow-xl transition-shadow relative group"
+                        onClick={() => setPopupImage(documentScreenshot1)}
+                        data-testid="img-document-screenshot-1-thumbnail"
+                      >
+                        <img 
+                          src={documentScreenshot1} 
+                          alt="Create Clinic Information dialog showing header design, clinic logo upload, and header information fields" 
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                          <Maximize2 className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    <div className="flex gap-4 items-start">
+                      <div className="flex-1">
+                        <h3 className="font-semibold mb-3">Saved Clinic Header & Footer</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Step 2: Preview of saved clinic header showing "Clinical Care Hospital" with contact details and saved footer displaying "© 2025 CuraCare Hospital — All Rights Reserved" for use in all PDF documents.
+                        </p>
+                      </div>
+                      <div 
+                        className="w-48 h-32 flex-shrink-0 border rounded-lg overflow-hidden shadow-lg cursor-pointer hover:shadow-xl transition-shadow relative group"
+                        onClick={() => setPopupImage(documentScreenshot2)}
+                        data-testid="img-document-screenshot-2-thumbnail"
+                      >
+                        <img 
+                          src={documentScreenshot2} 
+                          alt="Saved Clinic Information showing preview of clinic header with logo and footer with copyright text" 
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                          <Maximize2 className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    <div className="flex gap-4 items-start">
+                      <div className="flex-1">
+                        <h3 className="font-semibold mb-3">Document Editor with Header/Footer Options</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Step 3: Document editor toolbar showing "Create Clinic Information", "View Custom Clinic Information", "Clinical Header", and "View Saved Templates" options for managing document templates and branding across all forms and reports.
+                        </p>
+                      </div>
+                      <div 
+                        className="w-48 h-32 flex-shrink-0 border rounded-lg overflow-hidden shadow-lg cursor-pointer hover:shadow-xl transition-shadow relative group"
+                        onClick={() => setPopupImage(documentScreenshot3)}
+                        data-testid="img-document-screenshot-3-thumbnail"
+                      >
+                        <img 
+                          src={documentScreenshot3} 
+                          alt="Forms interface showing document editor with options to create clinic information, view custom clinic information, and manage clinical headers" 
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                          <Maximize2 className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
+                      </div>
                     </div>
 
                     <Separator />
@@ -722,81 +797,6 @@ export default function UserManual() {
                           </ul>
                         </li>
                       </ol>
-                    </div>
-
-                    <Separator />
-
-                    <div className="flex gap-4 items-start">
-                      <div className="flex-1">
-                        <h3 className="font-semibold mb-3">Screenshot 1: Create Clinic Information</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Step 1: Upload clinic logo and configure header information including clinic name, address, phone, email, and website. Customize font family, font size, and text styling options.
-                        </p>
-                      </div>
-                      <div 
-                        className="w-48 h-32 flex-shrink-0 border rounded-lg overflow-hidden shadow-lg cursor-pointer hover:shadow-xl transition-shadow relative group"
-                        onClick={() => setPopupImage(documentScreenshot1)}
-                        data-testid="img-document-screenshot-1-thumbnail"
-                      >
-                        <img 
-                          src={documentScreenshot1} 
-                          alt="Create Clinic Information dialog showing header design, clinic logo upload, and header information fields" 
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                          <Maximize2 className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </div>
-                      </div>
-                    </div>
-
-                    <Separator />
-
-                    <div className="flex gap-4 items-start">
-                      <div className="flex-1">
-                        <h3 className="font-semibold mb-3">Screenshot 2: Saved Clinic Header & Footer</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Step 2: Preview of saved clinic header showing "Clinical Care Hospital" with contact details and saved footer displaying "© 2025 CuraCare Hospital — All Rights Reserved" for use in all PDF documents.
-                        </p>
-                      </div>
-                      <div 
-                        className="w-48 h-32 flex-shrink-0 border rounded-lg overflow-hidden shadow-lg cursor-pointer hover:shadow-xl transition-shadow relative group"
-                        onClick={() => setPopupImage(documentScreenshot2)}
-                        data-testid="img-document-screenshot-2-thumbnail"
-                      >
-                        <img 
-                          src={documentScreenshot2} 
-                          alt="Saved Clinic Information showing preview of clinic header with logo and footer with copyright text" 
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                          <Maximize2 className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </div>
-                      </div>
-                    </div>
-
-                    <Separator />
-
-                    <div className="flex gap-4 items-start">
-                      <div className="flex-1">
-                        <h3 className="font-semibold mb-3">Screenshot 3: Document Editor with Header/Footer Options</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Step 3: Document editor toolbar showing "Create Clinic Information", "View Custom Clinic Information", "Clinical Header", and "View Saved Templates" options for managing document templates and branding across all forms and reports.
-                        </p>
-                      </div>
-                      <div 
-                        className="w-48 h-32 flex-shrink-0 border rounded-lg overflow-hidden shadow-lg cursor-pointer hover:shadow-xl transition-shadow relative group"
-                        onClick={() => setPopupImage(documentScreenshot3)}
-                        data-testid="img-document-screenshot-3-thumbnail"
-                      >
-                        <img 
-                          src={documentScreenshot3} 
-                          alt="Forms interface showing document editor with options to create clinic information, view custom clinic information, and manage clinical headers" 
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                          <Maximize2 className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </div>
-                      </div>
                     </div>
                   </div>
                 </ScrollArea>
