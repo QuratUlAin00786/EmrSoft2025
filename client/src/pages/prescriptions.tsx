@@ -4531,22 +4531,25 @@ export default function PrescriptionsPage() {
       <Dialog open={showPharmacySuccessDialog} onOpenChange={setShowPharmacySuccessDialog}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-green-700">
-              <CheckCircle className="h-6 w-6" />
-              Prescription send successfully
-            </DialogTitle>
+            <DialogTitle className="sr-only">Prescription Sent Successfully</DialogTitle>
           </DialogHeader>
-          <div className="py-4">
-            <p className="text-gray-600">
-              The prescription has been successfully sent to the pharmacy via email with the PDF attachment.
-            </p>
-          </div>
-          <div className="flex justify-end">
+          <div className="flex flex-col items-center justify-center py-6 space-y-4">
+            <div className="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
+              <CheckCircle className="h-10 w-10 text-green-600 dark:text-green-400" />
+            </div>
+            <div className="text-center space-y-2">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                Prescription Sent Successfully
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                The prescription has been successfully sent to <strong>{pharmacyEmail}</strong> via email with the PDF attachment.
+              </p>
+            </div>
             <Button
               onClick={() => setShowPharmacySuccessDialog(false)}
-              className="bg-medical-blue hover:bg-blue-700"
+              className="bg-medical-blue hover:bg-blue-700 mt-4"
             >
-              OK
+              Close
             </Button>
           </div>
         </DialogContent>
