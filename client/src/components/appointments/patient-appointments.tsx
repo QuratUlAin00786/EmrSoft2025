@@ -253,7 +253,14 @@ export default function PatientAppointments({
     const lastName = creator.lastName || '';
     const fullName = `${firstName} ${lastName}`.trim();
     
-    return fullName || 'Unknown User';
+    // Format role for display (capitalize first letter of each word, replace underscores with spaces)
+    const role = creator.role || '';
+    const formattedRole = role
+      .split('_')
+      .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+    
+    return fullName ? `${fullName} (${formattedRole})` : 'Unknown User';
   };
 
   // Fetch appointments for selected date to check availability
