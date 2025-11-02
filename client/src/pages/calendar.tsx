@@ -3441,11 +3441,11 @@ export default function CalendarPage() {
                           }
                         }
 
-                        // For doctors: Show invoice modal directly
+                        // For doctors and patients: Show invoice modal directly
                         // For other users: Show confirmation modal before booking
                         setPendingAppointmentData(appointmentData);
                         setShowNewAppointmentModal(false); // Close the booking modal first
-                        if (user?.role === 'doctor') {
+                        if (user?.role === 'doctor' || user?.role === 'patient') {
                           setShowInvoiceModal(true);
                         } else {
                           setShowConfirmationModal(true);
