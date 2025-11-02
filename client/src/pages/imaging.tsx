@@ -31,6 +31,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
+import { Switch } from "@/components/ui/switch";
 import {
   Popover,
   PopoverContent,
@@ -422,6 +423,7 @@ export default function ImagingPage() {
   });
   const [summaryData, setSummaryData] = useState<any>(null);
   const [uploadedImageData, setUploadedImageData] = useState<any>(null);
+  const [showPatientReport, setShowPatientReport] = useState(false);
   
   // Invoice form fields
   const [invoicePatient, setInvoicePatient] = useState("");
@@ -2614,6 +2616,21 @@ export default function ImagingPage() {
                             <div>
                               <strong>Indication:</strong> {study.indication}
                             </div>
+                            
+                            {/* Toggle for patient users to show/hide report */}
+                            {user?.role === 'patient' && (
+                              <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
+                                <Switch
+                                  id="show-report-toggle"
+                                  checked={showPatientReport}
+                                  onCheckedChange={setShowPatientReport}
+                                  data-testid="switch-show-report"
+                                />
+                                <Label htmlFor="show-report-toggle" className="text-sm cursor-pointer">
+                                  See report
+                                </Label>
+                              </div>
+                            )}
                           </div>
                         </div>
 
@@ -3040,7 +3057,7 @@ export default function ImagingPage() {
                       )}
 
                       {/* Patient-Specific Information Section */}
-                      {user?.role === 'patient' && (
+                      {user?.role === 'patient' && showPatientReport && (
                         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-700 dark:to-slate-600 border-l-4 border-indigo-400 dark:border-indigo-500 p-5 mb-4 rounded-r-lg">
                           <div className="flex items-center gap-2 mb-3">
                             <FileImage className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
