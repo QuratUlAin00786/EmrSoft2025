@@ -38,6 +38,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Filter,
+  CheckCircle,
 } from "lucide-react";
 import { format, isSameDay, isToday, isFuture, isPast } from "date-fns";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -1545,22 +1546,35 @@ export default function PatientAppointments({
       {/* Success Modal */}
       <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
         <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-green-600">Success</DialogTitle>
-          </DialogHeader>
-          
-          <div className="py-4">
-            <p className="text-gray-700">{successMessage}</p>
-          </div>
-
-          <div className="flex justify-end">
+          <div className="flex flex-col items-center text-center py-6 space-y-4">
+            {/* Green Check Circle Icon */}
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+              <CheckCircle className="w-10 h-10 text-green-600" />
+            </div>
+            
+            {/* Title */}
+            <h2 className="text-xl font-bold text-gray-900">
+              {successMessage.includes("cancelled") 
+                ? "Appointment Cancelled Successfully" 
+                : successMessage.includes("updated") 
+                ? "Appointment Updated Successfully" 
+                : "Appointment Deleted Successfully"}
+            </h2>
+            
+            {/* Description */}
+            <p className="text-gray-600">
+              {successMessage}
+            </p>
+            
+            {/* Close Button */}
             <Button
               onClick={() => {
                 setShowSuccessModal(false);
                 setSuccessMessage("");
               }}
+              className="bg-blue-600 hover:bg-blue-700 w-full"
             >
-              OK
+              Close
             </Button>
           </div>
         </DialogContent>
