@@ -19715,6 +19715,9 @@ Cura EMR Team
       const buffer = await fs.promises.readFile(reportPath);
       const pdfBytes = new Uint8Array(buffer);
       
+      // Extract filename from path for email attachment
+      const fileName = path.basename(reportPath);
+      
       // Skip the old prescription PDF generation code
       if (false) {
         console.log('[EMAIL-SHARE] Old code - removed');
