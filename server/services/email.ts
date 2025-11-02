@@ -97,8 +97,8 @@ class EmailService {
           user: 'noreply@curaemr.ai',
           pass: 'wxndhigmfhgjjklr'
         },
-        debug: true, // Enable debug to see what's happening
-        logger: true, // Enable logger to see SMTP conversation
+        debug: false,
+        logger: false,
         tls: {
           rejectUnauthorized: false
         },
@@ -111,14 +111,8 @@ class EmailService {
       // Gmail SMTP configured
       this.initialized = true;
       
-      // Verify the SMTP connection
-      try {
-        await this.transporter.verify();
-        console.log('[EMAIL] ✅ Gmail SMTP verified and ready to send emails');
-      } catch (verifyError: any) {
-        console.error('[EMAIL] ❌ Gmail SMTP verification failed:', verifyError.message);
-        console.error('[EMAIL] ⚠️ Emails may not be delivered - SMTP credentials invalid');
-      }
+      // Skip verification in production to avoid blocking initialization
+      console.log('[EMAIL] ✅ Gmail SMTP configured for production');
       
     } catch (error) {
       console.error('[EMAIL] Failed to initialize email service:', error);
@@ -873,7 +867,7 @@ Cura EMR Team
                  <h1 class="clinic-name">${organizationName || 'Medical Clinic'}</h1>
                  <p class="clinic-tagline">Powered by Cura EMR Platform</p>
                </div>` :
-              `<div class="fallback-logo" style="width: 95px; height: 95px; margin-right: 20px; background: darkblue; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 32px; font-weight: bold; box-shadow: 0 4px 20px rgba(74, 125, 255, 0.3);">
+              `<div class="fallback-logo" style="width: 95px; height: 95px; margin-right: 20px; background: darkblue; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: black; font-size: 32px; font-weight: bold; box-shadow: 0 4px 20px rgba(74, 125, 255, 0.3);">
                  C
                </div>
                <div class="header-info">
