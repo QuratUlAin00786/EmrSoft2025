@@ -102,9 +102,9 @@ class EmailService {
         tls: {
           rejectUnauthorized: false
         },
-        connectionTimeout: 10000,
-        greetingTimeout: 10000,
-        socketTimeout: 10000
+        connectionTimeout: 60000,   // 60 seconds for large attachments
+        greetingTimeout: 30000,     // 30 seconds
+        socketTimeout: 60000        // 60 seconds for large attachments
       };
       
       this.transporter = nodemailer.createTransport(smtpConfig);
