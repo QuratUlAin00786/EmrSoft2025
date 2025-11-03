@@ -5516,7 +5516,15 @@ export class DatabaseStorage implements IStorage {
     })
     .from(organizations)
     .leftJoin(users, eq(organizations.id, users.organizationId))
-    .groupBy(organizations.id, organizations.features);
+    .groupBy(
+      organizations.id,
+      organizations.name,
+      organizations.brandName,
+      organizations.subdomain,
+      organizations.subscriptionStatus,
+      organizations.createdAt,
+      organizations.features
+    );
 
     // Apply filters
     const whereConditions = [];
