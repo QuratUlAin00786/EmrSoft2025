@@ -3088,7 +3088,7 @@ Medical License: [License Number]
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-gray-600 font-medium">Patient Name:</span>
                   <span className="text-gray-900">
-                    {patients?.find((p: any) => p.id === createdAppointmentDetails.patientId)?.patientName || 'N/A'}
+                    {getPatientName(createdAppointmentDetails.patientId)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
