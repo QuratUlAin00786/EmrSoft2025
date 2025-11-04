@@ -2142,13 +2142,18 @@ export default function ImagingPage() {
                   <SelectContent>
                     <SelectItem value="all">All Modalities</SelectItem>
                     <SelectItem value="X-Ray">X-Ray</SelectItem>
-                    <SelectItem value="CT">CT Scan</SelectItem>
+                    <SelectItem value="CT">CT</SelectItem>
                     <SelectItem value="MRI">MRI</SelectItem>
                     <SelectItem value="Ultrasound">Ultrasound</SelectItem>
-                    <SelectItem value="Nuclear Medicine">
-                      Nuclear Medicine
-                    </SelectItem>
                     <SelectItem value="Mammography">Mammography</SelectItem>
+                    <SelectItem value="Fluoroscopy">Fluoroscopy</SelectItem>
+                    <SelectItem value="Interventional Radiology">Interventional Radiology (IR)</SelectItem>
+                    <SelectItem value="Angiography">Angiography</SelectItem>
+                    <SelectItem value="DEXA">DEXA (Bone Densitometry)</SelectItem>
+                    <SelectItem value="Nuclear Medicine">Nuclear Medicine</SelectItem>
+                    <SelectItem value="SPECT">SPECT (Single Photon Emission CT)</SelectItem>
+                    <SelectItem value="PET">PET (Positron Emission Tomography)</SelectItem>
+                    <SelectItem value="Echocardiography">Echocardiography</SelectItem>
                   </SelectContent>
                 </Select>
 
