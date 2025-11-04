@@ -23,10 +23,12 @@ import {
   Receipt, 
   Plus, 
   Search, 
-  DollarSign, 
+  DollarSign,
+  PoundSterling, 
   CreditCard, 
   FileText, 
   Calendar,
+  CalendarDays,
   User,
   Download,
   Eye,
@@ -3152,7 +3154,7 @@ export default function BillingPage() {
                         <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Total Revenue</p>
                         <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{formatCurrency(getTotalRevenue())}</p>
                       </div>
-                      <DollarSign className="h-8 w-8 text-green-600" />
+                      <PoundSterling className="h-8 w-8 text-green-600" />
                     </div>
                   </CardContent>
                 </Card>
@@ -3188,7 +3190,7 @@ export default function BillingPage() {
                         <p className="text-sm font-medium text-gray-600 dark:text-gray-300">This Month</p>
                         <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">24</p>
                       </div>
-                      <Receipt className="h-8 w-8 text-blue-600" />
+                      <CalendarDays className="h-8 w-8 text-blue-600" />
                     </div>
                   </CardContent>
                 </Card>

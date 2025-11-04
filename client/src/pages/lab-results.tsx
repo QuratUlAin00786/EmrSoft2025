@@ -4276,13 +4276,13 @@ Report generated from Cura EMR System`;
                       <p className="font-medium">{item.description}</p>
                       <p className="text-sm text-gray-600 dark:text-gray-400">Code: {item.code}</p>
                     </div>
-                    <p className="font-semibold">${item.total.toFixed(2)}</p>
+                    <p className="font-semibold">£{item.total.toFixed(2)}</p>
                   </div>
                 ))}
               </div>
               <div className="flex justify-between items-center pt-3 border-t-2">
                 <p className="text-lg font-bold">Total Amount:</p>
-                <p className="text-2xl font-bold text-medical-blue">${invoiceData.totalAmount.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-medical-blue">£{invoiceData.totalAmount.toFixed(2)}</p>
               </div>
             </div>
 
