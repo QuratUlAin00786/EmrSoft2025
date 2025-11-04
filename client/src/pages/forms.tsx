@@ -154,7 +154,18 @@ function ViewClinicInfo({ user, onLoadHeader, onLoadFooter }: { user: any; onLoa
 
   const handleSaveHeader = () => {
     const { id, createdAt, updatedAt, ...headerDataToSend } = editHeaderData;
-    updateHeaderMutation.mutate(headerDataToSend);
+    const dataWithDefaults = {
+      ...headerDataToSend,
+      logoPosition: headerDataToSend.logoPosition || 'center',
+      clinicNameFontSize: headerDataToSend.clinicNameFontSize || '24pt',
+      fontSize: headerDataToSend.fontSize || '12pt',
+      fontFamily: headerDataToSend.fontFamily || 'verdana',
+      fontWeight: headerDataToSend.fontWeight || 'normal',
+      fontStyle: headerDataToSend.fontStyle || 'normal',
+      textDecoration: headerDataToSend.textDecoration || 'none',
+      isActive: headerDataToSend.isActive !== undefined ? headerDataToSend.isActive : true,
+    };
+    updateHeaderMutation.mutate(dataWithDefaults);
   };
 
   const handleEditFooter = () => {
