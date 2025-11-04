@@ -4439,7 +4439,7 @@ Report generated from Cura EMR System`;
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600 dark:text-gray-400">Amount Paid:</span>
-                <span className="font-semibold text-medical-blue">${paymentResult?.amount?.toFixed(2)}</span>
+                <span className="font-semibold text-medical-blue">£{paymentResult?.amount?.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600 dark:text-gray-400">Payment Method:</span>
