@@ -1900,7 +1900,9 @@ export default function ImagingPage() {
       !searchQuery ||
       study.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       study.studyType.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      study.bodyPart.toLowerCase().includes(searchQuery.toLowerCase());
+      study.bodyPart.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (study.imageId && study.imageId.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (study.patientId && study.patientId.toLowerCase().includes(searchQuery.toLowerCase()));
 
     const matchesStatus =
       statusFilter === "all" || study.status === statusFilter;
