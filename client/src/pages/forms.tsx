@@ -445,29 +445,52 @@ function ViewClinicInfo({ user, onLoadHeader, onLoadFooter }: { user: any; onLoa
 
       {/* Edit Header Dialog */}
       <Dialog open={isEditingHeader} onOpenChange={setIsEditingHeader}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Clinic Header</DialogTitle>
           </DialogHeader>
           {editHeaderData && (
             <div className="space-y-4 py-4">
-              <div>
-                <Label>Clinic Name</Label>
-                <Input
-                  value={editHeaderData.clinicName || ''}
-                  onChange={(e) => setEditHeaderData({...editHeaderData, clinicName: e.target.value})}
-                  placeholder="Enter clinic name"
-                />
-              </div>
-              <div>
-                <Label>Address</Label>
-                <Input
-                  value={editHeaderData.address || ''}
-                  onChange={(e) => setEditHeaderData({...editHeaderData, address: e.target.value})}
-                  placeholder="Enter address"
-                />
-              </div>
               <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Clinic Name</Label>
+                  <Input
+                    value={editHeaderData.clinicName || ''}
+                    onChange={(e) => setEditHeaderData({...editHeaderData, clinicName: e.target.value})}
+                    placeholder="Enter clinic name"
+                  />
+                </div>
+                <div>
+                  <Label>Clinic Name Font Size</Label>
+                  <Select
+                    value={editHeaderData.clinicNameFontSize || '24pt'}
+                    onValueChange={(value) => setEditHeaderData({...editHeaderData, clinicNameFontSize: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="18pt">18pt</SelectItem>
+                      <SelectItem value="20pt">20pt</SelectItem>
+                      <SelectItem value="22pt">22pt</SelectItem>
+                      <SelectItem value="24pt">24pt</SelectItem>
+                      <SelectItem value="26pt">26pt</SelectItem>
+                      <SelectItem value="28pt">28pt</SelectItem>
+                      <SelectItem value="30pt">30pt</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Address</Label>
+                  <Input
+                    value={editHeaderData.address || ''}
+                    onChange={(e) => setEditHeaderData({...editHeaderData, address: e.target.value})}
+                    placeholder="Enter address"
+                  />
+                </div>
                 <div>
                   <Label>Phone</Label>
                   <Input
@@ -476,6 +499,9 @@ function ViewClinicInfo({ user, onLoadHeader, onLoadFooter }: { user: any; onLoa
                     placeholder="Enter phone"
                   />
                 </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>Email</Label>
                   <Input
@@ -484,15 +510,97 @@ function ViewClinicInfo({ user, onLoadHeader, onLoadFooter }: { user: any; onLoa
                     placeholder="Enter email"
                   />
                 </div>
+                <div>
+                  <Label>Website</Label>
+                  <Input
+                    value={editHeaderData.website || ''}
+                    onChange={(e) => setEditHeaderData({...editHeaderData, website: e.target.value})}
+                    placeholder="Enter website"
+                  />
+                </div>
               </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Font Family</Label>
+                  <Select
+                    value={editHeaderData.fontFamily || 'verdana'}
+                    onValueChange={(value) => setEditHeaderData({...editHeaderData, fontFamily: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="arial">Arial</SelectItem>
+                      <SelectItem value="calibri">Calibri</SelectItem>
+                      <SelectItem value="cambria">Cambria</SelectItem>
+                      <SelectItem value="comic-sans">Comic Sans MS</SelectItem>
+                      <SelectItem value="courier">Courier New</SelectItem>
+                      <SelectItem value="georgia">Georgia</SelectItem>
+                      <SelectItem value="helvetica">Helvetica</SelectItem>
+                      <SelectItem value="lucida">Lucida Sans</SelectItem>
+                      <SelectItem value="tahoma">Tahoma</SelectItem>
+                      <SelectItem value="times">Times New Roman</SelectItem>
+                      <SelectItem value="trebuchet">Trebuchet MS</SelectItem>
+                      <SelectItem value="verdana">Verdana</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Font Size</Label>
+                  <Select
+                    value={editHeaderData.fontSize || '12pt'}
+                    onValueChange={(value) => setEditHeaderData({...editHeaderData, fontSize: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="8pt">8pt</SelectItem>
+                      <SelectItem value="10pt">10pt</SelectItem>
+                      <SelectItem value="12pt">12pt</SelectItem>
+                      <SelectItem value="14pt">14pt</SelectItem>
+                      <SelectItem value="16pt">16pt</SelectItem>
+                      <SelectItem value="18pt">18pt</SelectItem>
+                      <SelectItem value="20pt">20pt</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
               <div>
-                <Label>Website</Label>
-                <Input
-                  value={editHeaderData.website || ''}
-                  onChange={(e) => setEditHeaderData({...editHeaderData, website: e.target.value})}
-                  placeholder="Enter website"
-                />
+                <Label>Text Styling</Label>
+                <div className="flex gap-2 mt-2">
+                  <Button
+                    type="button"
+                    variant={editHeaderData.fontWeight === 'bold' ? 'default' : 'outline'}
+                    onClick={() => setEditHeaderData({...editHeaderData, fontWeight: editHeaderData.fontWeight === 'bold' ? 'normal' : 'bold'})}
+                    className="flex items-center gap-1"
+                  >
+                    <Bold className="h-4 w-4" />
+                    Bold
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={editHeaderData.fontStyle === 'italic' ? 'default' : 'outline'}
+                    onClick={() => setEditHeaderData({...editHeaderData, fontStyle: editHeaderData.fontStyle === 'italic' ? 'normal' : 'italic'})}
+                    className="flex items-center gap-1"
+                  >
+                    <Italic className="h-4 w-4" />
+                    Italic
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={editHeaderData.textDecoration === 'underline' ? 'default' : 'outline'}
+                    onClick={() => setEditHeaderData({...editHeaderData, textDecoration: editHeaderData.textDecoration === 'underline' ? 'none' : 'underline'})}
+                    className="flex items-center gap-1"
+                  >
+                    <Underline className="h-4 w-4" />
+                    Underline
+                  </Button>
+                </div>
               </div>
+
               <div>
                 <Label>Logo Position</Label>
                 <Select
@@ -509,6 +617,7 @@ function ViewClinicInfo({ user, onLoadHeader, onLoadFooter }: { user: any; onLoa
                   </SelectContent>
                 </Select>
               </div>
+              
               <div className="flex justify-end gap-2 mt-6">
                 <Button variant="outline" onClick={() => setIsEditingHeader(false)}>
                   Cancel
