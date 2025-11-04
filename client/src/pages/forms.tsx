@@ -657,7 +657,7 @@ function ViewClinicInfo({ user, onLoadHeader, onLoadFooter }: { user: any; onLoa
                 <Button
                   onClick={handleSaveHeader}
                   disabled={updateHeaderMutation.isPending}
-                  className="bg-[hsl(var(--cura-bluewave))] hover:bg-[hsl(var(--cura-electric-lilac))] text-white"
+                  className="bg-green-600 hover:bg-green-700 text-white"
                 >
                   {updateHeaderMutation.isPending ? 'Saving...' : 'Save Changes'}
                 </Button>
@@ -708,7 +708,7 @@ function ViewClinicInfo({ user, onLoadHeader, onLoadFooter }: { user: any; onLoa
                 <Button
                   onClick={handleSaveFooter}
                   disabled={updateFooterMutation.isPending}
-                  className="bg-[hsl(var(--cura-bluewave))] hover:bg-[hsl(var(--cura-electric-lilac))] text-white"
+                  className="bg-green-600 hover:bg-green-700 text-white"
                 >
                   {updateFooterMutation.isPending ? 'Saving...' : 'Save Changes'}
                 </Button>
