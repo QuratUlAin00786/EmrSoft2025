@@ -3061,6 +3061,9 @@ Medical License: [License Number]
       {/* Success Modal */}
       <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
         <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="sr-only">Appointment Created Successfully</DialogTitle>
+          </DialogHeader>
           <div className="flex flex-col items-center text-center py-6">
             {/* Green checkmark icon */}
             <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6">
