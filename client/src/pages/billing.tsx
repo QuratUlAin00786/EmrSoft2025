@@ -2133,6 +2133,21 @@ export default function BillingPage() {
   const [clinicFooter, setClinicFooter] = useState<any>(null);
   const [savedInvoiceIds, setSavedInvoiceIds] = useState<Set<number>>(new Set());
   
+  // Insurance claims workflow states
+  const [showSubmitClaimDialog, setShowSubmitClaimDialog] = useState(false);
+  const [showRecordPaymentDialog, setShowRecordPaymentDialog] = useState(false);
+  const [selectedClaimInvoice, setSelectedClaimInvoice] = useState<Invoice | null>(null);
+  const [claimFormData, setClaimFormData] = useState({
+    provider: '',
+    claimNumber: '',
+  });
+  const [paymentFormData, setPaymentFormData] = useState({
+    amountPaid: '',
+    paymentDate: new Date().toISOString().split('T')[0],
+    paymentReference: '',
+    notes: '',
+  });
+  
   // Check if user is admin or patient
   const isAdmin = user?.role === 'admin';
   const isPatient = user?.role === 'patient';
@@ -2246,6 +2261,83 @@ export default function BillingPage() {
   const handlePayNow = (invoice: Invoice) => {
     setInvoiceToPay(invoice);
     setShowPaymentModal(true);
+  };
+
+  // Insurance claims handlers
+  const handleSubmitClaim = (invoice: Invoice) => {
+    setSelectedClaimInvoice(invoice);
+    setClaimFormData({
+      provider: invoice.insurance?.provider || '',
+      claimNumber: invoice.insurance?.claimNumber || '',
+    });
+    setShowSubmitClaimDialog(true);
+  };
+
+  const handleRecordPayment = (invoice: Invoice) => {
+    setSelectedClaimInvoice(invoice);
+    setPaymentFormData({
+      amountPaid: '',
+      paymentDate: new Date().toISOString().split('T')[0],
+      paymentReference: '',
+      notes: '',
+    });
+    setShowRecordPaymentDialog(true);
+  };
+
+  const submitInsuranceClaim = async () => {
+    if (!selectedClaimInvoice) return;
+
+    try {
+      await apiRequest('POST', '/api/insurance/submit-claim', {
+        invoiceId: selectedClaimInvoice.id,
+        provider: claimFormData.provider,
+        claimNumber: claimFormData.claimNumber,
+      });
+
+      toast({
+        title: "Success",
+        description: "Insurance claim submitted successfully",
+      });
+
+      queryClient.invalidateQueries({ queryKey: ["/api/billing/invoices"] });
+      setShowSubmitClaimDialog(false);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to submit insurance claim",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const recordInsurancePayment = async () => {
+    if (!selectedClaimInvoice || !paymentFormData.amountPaid) return;
+
+    try {
+      await apiRequest('POST', '/api/insurance/record-payment', {
+        invoiceId: selectedClaimInvoice.id,
+        claimNumber: selectedClaimInvoice.insurance?.claimNumber || '',
+        amountPaid: parseFloat(paymentFormData.amountPaid),
+        paymentDate: paymentFormData.paymentDate,
+        insuranceProvider: selectedClaimInvoice.insurance?.provider || '',
+        paymentReference: paymentFormData.paymentReference,
+        notes: paymentFormData.notes,
+      });
+
+      toast({
+        title: "Success",
+        description: "Insurance payment recorded successfully",
+      });
+
+      queryClient.invalidateQueries({ queryKey: ["/api/billing/invoices"] });
+      setShowRecordPaymentDialog(false);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to record insurance payment",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSaveInvoice = async (invoiceId: string) => {
@@ -4138,92 +4230,178 @@ export default function BillingPage() {
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      🛡️ Insurance Claims
+                      🛡️ Insurance Claims Management
                     </CardTitle>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Track insurance-related invoices, claims submitted, their status, and amounts covered by insurers
+                      Submit claims, track payments, and manage insurance-related invoices
                     </p>
                   </CardHeader>
                   <CardContent>
-                    <div className="rounded-md border">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="border-b bg-gray-50 dark:bg-gray-800">
-                            <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Invoice</th>
-                            <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Provider</th>
-                            <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Claim Ref</th>
-                            <th className="px-4 py-3 text-right text-sm font-medium text-gray-700 dark:text-gray-300">Coverage</th>
-                            <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Status</th>
-                            <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Submitted</th>
-                            <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Approved</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {Array.isArray(invoices) && invoices
-                            .filter((invoice: any) => {
-                              // Filter for patients - only show their own insurance claims
-                              if (isPatient && currentPatientId && invoice.patientId !== currentPatientId) {
-                                return false;
-                              }
-                              return invoice.invoiceType === 'insurance_claim' && invoice.insurance;
-                            })
-                            .map((invoice: any) => (
-                              <tr key={invoice.id} className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
-                                <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">
-                                  {invoice.invoiceNumber || invoice.id}
-                                </td>
-                                <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
-                                  {invoice.insurance?.provider || 'N/A'}
-                                </td>
-                                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
-                                  {invoice.insurance?.claimNumber || 'N/A'}
-                                </td>
-                                <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100 text-right font-medium">
-                                  £{invoice.insurance?.paidAmount 
-                                    ? (typeof invoice.insurance.paidAmount === 'string' ? parseFloat(invoice.insurance.paidAmount) : invoice.insurance.paidAmount).toFixed(2)
-                                    : (typeof invoice.totalAmount === 'string' ? parseFloat(invoice.totalAmount) : invoice.totalAmount).toFixed(2)}
-                                </td>
-                                <td className="px-4 py-3 text-sm">
-                                  {invoice.insurance?.status === 'approved' ? (
-                                    <Badge className="bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400">
-                                      ✅ Approved
-                                    </Badge>
-                                  ) : invoice.insurance?.status === 'denied' ? (
-                                    <Badge className="bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400">
-                                      ❌ Denied
-                                    </Badge>
-                                  ) : invoice.insurance?.status === 'partially_paid' ? (
-                                    <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400">
-                                      ⚠️ Partial
-                                    </Badge>
-                                  ) : (
-                                    <Badge className="bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300">
-                                      ⏱ Pending
-                                    </Badge>
-                                  )}
-                                </td>
-                                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
-                                  {invoice.invoiceDate ? format(new Date(invoice.invoiceDate), 'MMM d') : '—'}
-                                </td>
-                                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
-                                  {invoice.insurance?.status === 'approved' && invoice.dueDate 
-                                    ? format(new Date(invoice.dueDate), 'MMM d')
-                                    : '—'}
-                                </td>
-                              </tr>
-                            ))}
-                          {(!Array.isArray(invoices) || invoices.filter((inv: any) => inv.invoiceType === 'insurance_claim' && inv.insurance).length === 0) && (
-                            <tr>
-                              <td colSpan={7} className="px-4 py-12 text-center text-gray-500 dark:text-gray-400">
-                                <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                                <p className="text-sm font-medium">No insurance claims found</p>
-                                <p className="text-xs mt-1">Insurance claims will appear here when invoices are billed to insurance providers</p>
-                              </td>
-                            </tr>
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
+                    {(() => {
+                      const insuranceClaims = Array.isArray(invoices) ? invoices.filter((inv: any) => {
+                        if (isPatient && currentPatientId && inv.patientId !== currentPatientId) {
+                          return false;
+                        }
+                        return inv.invoiceType === 'insurance_claim' || inv.insurance;
+                      }) : [];
+
+                      const totalBilled = insuranceClaims.reduce((sum, inv: any) => 
+                        sum + (typeof inv.totalAmount === 'string' ? parseFloat(inv.totalAmount) : inv.totalAmount || 0), 0);
+                      const totalPaid = insuranceClaims.reduce((sum, inv: any) => 
+                        sum + (inv.insurance?.paidAmount || 0), 0);
+                      const totalPending = totalBilled - totalPaid;
+
+                      return (
+                        <>
+                          {/* Summary Cards */}
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                            <Card>
+                              <CardContent className="pt-6">
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">Total Billed</p>
+                                    <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">£{totalBilled.toFixed(2)}</p>
+                                  </div>
+                                  <Receipt className="h-8 w-8 text-blue-500" />
+                                </div>
+                              </CardContent>
+                            </Card>
+                            <Card>
+                              <CardContent className="pt-6">
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">Total Paid</p>
+                                    <p className="text-2xl font-bold text-green-600 dark:text-green-400">£{totalPaid.toFixed(2)}</p>
+                                  </div>
+                                  <CheckCircle className="h-8 w-8 text-green-500" />
+                                </div>
+                              </CardContent>
+                            </Card>
+                            <Card>
+                              <CardContent className="pt-6">
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">Total Pending</p>
+                                    <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">£{totalPending.toFixed(2)}</p>
+                                  </div>
+                                  <Clock className="h-8 w-8 text-orange-500" />
+                                </div>
+                              </CardContent>
+                            </Card>
+                          </div>
+
+                          {/* Insurance Claims Table */}
+                          <div className="rounded-md border">
+                            <table className="w-full">
+                              <thead>
+                                <tr className="border-b bg-gray-50 dark:bg-gray-800">
+                                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Invoice</th>
+                                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Patient</th>
+                                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Provider</th>
+                                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Claim #</th>
+                                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-700 dark:text-gray-300">Billed</th>
+                                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-700 dark:text-gray-300">Paid</th>
+                                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-700 dark:text-gray-300">Balance</th>
+                                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Status</th>
+                                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Actions</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {insuranceClaims.length > 0 ? insuranceClaims.map((invoice: any) => {
+                                  const totalAmount = typeof invoice.totalAmount === 'string' ? parseFloat(invoice.totalAmount) : invoice.totalAmount || 0;
+                                  const paidAmount = invoice.insurance?.paidAmount || 0;
+                                  const balance = totalAmount - paidAmount;
+
+                                  return (
+                                    <tr key={invoice.id} className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
+                                      <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">
+                                        {invoice.invoiceNumber || invoice.id}
+                                      </td>
+                                      <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
+                                        {invoice.patientName}
+                                      </td>
+                                      <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
+                                        {invoice.insurance?.provider || '—'}
+                                      </td>
+                                      <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300 font-mono">
+                                        {invoice.insurance?.claimNumber || '—'}
+                                      </td>
+                                      <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100 text-right font-medium">
+                                        £{totalAmount.toFixed(2)}
+                                      </td>
+                                      <td className="px-4 py-3 text-sm text-green-600 dark:text-green-400 text-right font-medium">
+                                        £{paidAmount.toFixed(2)}
+                                      </td>
+                                      <td className="px-4 py-3 text-sm text-orange-600 dark:text-orange-400 text-right font-medium">
+                                        £{balance.toFixed(2)}
+                                      </td>
+                                      <td className="px-4 py-3 text-sm">
+                                        {invoice.insurance?.status === 'approved' ? (
+                                          <Badge className="bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400">
+                                            ✅ Approved
+                                          </Badge>
+                                        ) : invoice.insurance?.status === 'denied' ? (
+                                          <Badge className="bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400">
+                                            ❌ Denied
+                                          </Badge>
+                                        ) : invoice.insurance?.status === 'partially_paid' ? (
+                                          <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400">
+                                            ⚠️ Partial
+                                          </Badge>
+                                        ) : (
+                                          <Badge className="bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300">
+                                            ⏱ Pending
+                                          </Badge>
+                                        )}
+                                      </td>
+                                      <td className="px-4 py-3 text-sm">
+                                        <div className="flex gap-2">
+                                          {!invoice.insurance && (
+                                            <Button
+                                              size="sm"
+                                              variant="outline"
+                                              onClick={() => handleSubmitClaim(invoice)}
+                                              data-testid={`button-submit-claim-${invoice.id}`}
+                                            >
+                                              Submit Claim
+                                            </Button>
+                                          )}
+                                          {invoice.insurance && balance > 0 && (
+                                            <Button
+                                              size="sm"
+                                              onClick={() => handleRecordPayment(invoice)}
+                                              data-testid={`button-record-payment-${invoice.id}`}
+                                            >
+                                              Record Payment
+                                            </Button>
+                                          )}
+                                          <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            onClick={() => handleViewInvoice(invoice)}
+                                            data-testid={`button-view-${invoice.id}`}
+                                          >
+                                            <Eye className="h-4 w-4" />
+                                          </Button>
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  );
+                                }) : (
+                                  <tr>
+                                    <td colSpan={9} className="px-4 py-12 text-center text-gray-500 dark:text-gray-400">
+                                      <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                                      <p className="text-sm font-medium">No insurance claims found</p>
+                                      <p className="text-xs mt-1">Insurance claims will appear here when invoices are billed to insurance providers</p>
+                                    </td>
+                                  </tr>
+                                )}
+                              </tbody>
+                            </table>
+                          </div>
+                        </>
+                      );
+                    })()}
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -5307,6 +5485,133 @@ export default function BillingPage() {
           }}
         />
       )}
+
+      {/* Submit Insurance Claim Dialog */}
+      <Dialog open={showSubmitClaimDialog} onOpenChange={setShowSubmitClaimDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Submit Insurance Claim</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="insurance-provider">Insurance Provider</Label>
+              <Input
+                id="insurance-provider"
+                value={claimFormData.provider}
+                onChange={(e) => setClaimFormData({ ...claimFormData, provider: e.target.value })}
+                placeholder="Enter insurance provider name"
+                data-testid="input-insurance-provider"
+              />
+            </div>
+            <div>
+              <Label htmlFor="claim-number">Claim Number / Reference</Label>
+              <Input
+                id="claim-number"
+                value={claimFormData.claimNumber}
+                onChange={(e) => setClaimFormData({ ...claimFormData, claimNumber: e.target.value })}
+                placeholder="Enter claim number"
+                data-testid="input-claim-number"
+              />
+            </div>
+            {selectedClaimInvoice && (
+              <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                <h4 className="font-medium mb-2">Invoice Details</h4>
+                <div className="text-sm space-y-1">
+                  <p><strong>Invoice:</strong> {selectedClaimInvoice.invoiceNumber}</p>
+                  <p><strong>Patient:</strong> {selectedClaimInvoice.patientName}</p>
+                  <p><strong>Amount:</strong> £{(typeof selectedClaimInvoice.totalAmount === 'string' ? parseFloat(selectedClaimInvoice.totalAmount) : selectedClaimInvoice.totalAmount).toFixed(2)}</p>
+                </div>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowSubmitClaimDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={submitInsuranceClaim} data-testid="button-submit-claim-confirm">
+              Submit Claim
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Record Insurance Payment Dialog */}
+      <Dialog open={showRecordPaymentDialog} onOpenChange={setShowRecordPaymentDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Record Insurance Payment</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {selectedClaimInvoice && (
+              <>
+                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                  <h4 className="font-medium mb-2 text-gray-900 dark:text-gray-100">Claim Information</h4>
+                  <div className="text-sm space-y-1 text-gray-700 dark:text-gray-300">
+                    <p><strong>Invoice:</strong> {selectedClaimInvoice.invoiceNumber}</p>
+                    <p><strong>Patient:</strong> {selectedClaimInvoice.patientName}</p>
+                    <p><strong>Insurance:</strong> {selectedClaimInvoice.insurance?.provider}</p>
+                    <p><strong>Claim #:</strong> {selectedClaimInvoice.insurance?.claimNumber}</p>
+                    <p><strong>Total Billed:</strong> £{(typeof selectedClaimInvoice.totalAmount === 'string' ? parseFloat(selectedClaimInvoice.totalAmount) : selectedClaimInvoice.totalAmount).toFixed(2)}</p>
+                    <p><strong>Previously Paid:</strong> £{(selectedClaimInvoice.insurance?.paidAmount || 0).toFixed(2)}</p>
+                    <p className="text-orange-600 dark:text-orange-400"><strong>Outstanding:</strong> £{((typeof selectedClaimInvoice.totalAmount === 'string' ? parseFloat(selectedClaimInvoice.totalAmount) : selectedClaimInvoice.totalAmount) - (selectedClaimInvoice.insurance?.paidAmount || 0)).toFixed(2)}</p>
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="amount-paid">Amount Paid by Insurance</Label>
+                  <Input
+                    id="amount-paid"
+                    type="number"
+                    step="0.01"
+                    value={paymentFormData.amountPaid}
+                    onChange={(e) => setPaymentFormData({ ...paymentFormData, amountPaid: e.target.value })}
+                    placeholder="0.00"
+                    data-testid="input-amount-paid"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="payment-date">Payment Date</Label>
+                  <Input
+                    id="payment-date"
+                    type="date"
+                    value={paymentFormData.paymentDate}
+                    onChange={(e) => setPaymentFormData({ ...paymentFormData, paymentDate: e.target.value })}
+                    data-testid="input-payment-date"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="payment-reference">Payment Reference (Optional)</Label>
+                  <Input
+                    id="payment-reference"
+                    value={paymentFormData.paymentReference}
+                    onChange={(e) => setPaymentFormData({ ...paymentFormData, paymentReference: e.target.value })}
+                    placeholder="EOB number, check number, etc."
+                    data-testid="input-payment-reference"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="payment-notes">Notes (Optional)</Label>
+                  <Textarea
+                    id="payment-notes"
+                    value={paymentFormData.notes}
+                    onChange={(e) => setPaymentFormData({ ...paymentFormData, notes: e.target.value })}
+                    placeholder="Add any additional notes..."
+                    rows={3}
+                    data-testid="textarea-payment-notes"
+                  />
+                </div>
+              </>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowRecordPaymentDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={recordInsurancePayment} data-testid="button-record-payment-confirm">
+              Record Payment
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

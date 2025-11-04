@@ -7728,6 +7728,167 @@ This treatment plan should be reviewed and adjusted based on individual patient 
     }
   });
 
+  // Submit/Update insurance claim for an invoice
+  app.post("/api/insurance/submit-claim", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const claimData = z.object({
+        invoiceId: z.number().int().positive(),
+        provider: z.string().min(1),
+        claimNumber: z.string().min(1),
+        status: z.enum(['pending', 'approved', 'denied', 'partially_paid']).default('pending'),
+      }).parse(req.body);
+
+      const organizationId = req.tenant!.id;
+
+      // Update invoice with insurance information
+      await db
+        .update(schema.invoices)
+        .set({
+          invoiceType: 'insurance_claim',
+          insurance: {
+            provider: claimData.provider,
+            claimNumber: claimData.claimNumber,
+            status: claimData.status,
+            paidAmount: 0,
+          },
+          updatedAt: new Date(),
+        })
+        .where(eq(schema.invoices.id, claimData.invoiceId))
+        .execute();
+
+      res.json({ success: true, message: "Insurance claim submitted successfully" });
+    } catch (error) {
+      console.error("Error submitting insurance claim:", error);
+      res.status(500).json({ error: "Failed to submit insurance claim" });
+    }
+  });
+
+  // Record an insurance payment
+  app.post("/api/insurance/record-payment", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const paymentData = z.object({
+        invoiceId: z.number().int().positive(),
+        claimNumber: z.string().optional(),
+        amountPaid: z.coerce.number().positive(),
+        paymentDate: z.string(),
+        insuranceProvider: z.string().min(1),
+        paymentReference: z.string().optional(),
+        notes: z.string().optional(),
+      }).parse(req.body);
+
+      const organizationId = req.tenant!.id;
+
+      // Insert payment record
+      const [payment] = await db
+        .insert(schema.insurancePayments)
+        .values({
+          organizationId,
+          invoiceId: paymentData.invoiceId,
+          claimNumber: paymentData.claimNumber || null,
+          amountPaid: paymentData.amountPaid.toString(),
+          paymentDate: new Date(paymentData.paymentDate),
+          insuranceProvider: paymentData.insuranceProvider,
+          paymentReference: paymentData.paymentReference || null,
+          notes: paymentData.notes || null,
+          createdBy: req.user.id,
+        })
+        .returning();
+
+      // Get all payments for this invoice to calculate total
+      const allPayments = await db
+        .select()
+        .from(schema.insurancePayments)
+        .where(eq(schema.insurancePayments.invoiceId, paymentData.invoiceId))
+        .execute();
+
+      const totalPaid = allPayments.reduce((sum, p) => sum + parseFloat(p.amountPaid as string), 0);
+
+      // Get invoice to check total amount
+      const [invoice] = await db
+        .select()
+        .from(schema.invoices)
+        .where(eq(schema.invoices.id, paymentData.invoiceId))
+        .execute();
+
+      if (!invoice) {
+        return res.status(404).json({ error: "Invoice not found" });
+      }
+
+      const totalAmount = parseFloat(invoice.totalAmount as string);
+      const remaining = totalAmount - totalPaid;
+
+      // Update invoice with new paid amount and status
+      let newStatus = invoice.insurance?.status || 'pending';
+      if (remaining <= 0) {
+        newStatus = 'approved';
+      } else if (totalPaid > 0) {
+        newStatus = 'partially_paid';
+      }
+
+      await db
+        .update(schema.invoices)
+        .set({
+          paidAmount: totalPaid.toString(),
+          status: remaining <= 0 ? 'paid' : 'pending',
+          insurance: {
+            ...(invoice.insurance || {}),
+            provider: invoice.insurance?.provider || paymentData.insuranceProvider,
+            claimNumber: invoice.insurance?.claimNumber || paymentData.claimNumber || '',
+            status: newStatus,
+            paidAmount: totalPaid,
+          },
+          updatedAt: new Date(),
+        })
+        .where(eq(schema.invoices.id, paymentData.invoiceId))
+        .execute();
+
+      res.json({ 
+        success: true, 
+        payment,
+        totalPaid,
+        remaining,
+        message: "Insurance payment recorded successfully" 
+      });
+    } catch (error) {
+      console.error("Error recording insurance payment:", error);
+      res.status(500).json({ error: "Failed to record insurance payment" });
+    }
+  });
+
+  // Get all insurance payments for an invoice
+  app.get("/api/insurance/payments/:invoiceId", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      const invoiceId = parseInt(req.params.invoiceId);
+      if (isNaN(invoiceId)) {
+        return res.status(400).json({ error: "Invalid invoice ID" });
+      }
+
+      const payments = await db
+        .select()
+        .from(schema.insurancePayments)
+        .where(eq(schema.insurancePayments.invoiceId, invoiceId))
+        .orderBy(schema.insurancePayments.paymentDate)
+        .execute();
+
+      res.json(payments);
+    } catch (error) {
+      console.error("Error fetching insurance payments:", error);
+      res.status(500).json({ error: "Failed to fetch insurance payments" });
+    }
+  });
+
   // Generate PDF for lab result
   app.post("/api/lab-results/:id/generate-pdf", authMiddleware, requireNonPatientRole(), async (req: TenantRequest, res) => {
     try {
