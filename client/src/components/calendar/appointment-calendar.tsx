@@ -152,6 +152,7 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
   const [showConfirmationDialog, setShowConfirmationDialog] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showEditSuccessModal, setShowEditSuccessModal] = useState(false);
+  const [createdAppointmentDetails, setCreatedAppointmentDetails] = useState<any>(null);
   const [validationErrorMessage, setValidationErrorMessage] = useState<string>("");
   const [showValidationError, setShowValidationError] = useState(false);
   const [showDuplicateWarning, setShowDuplicateWarning] = useState(false);
@@ -457,8 +458,9 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
       const response = await apiRequest("POST", "/api/appointments", data);
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
+      setCreatedAppointmentDetails(data);
       setShowConfirmationDialog(false);
       setShowSuccessModal(true);
     },
@@ -3059,15 +3061,49 @@ Medical License: [License Number]
       {/* Success Modal */}
       <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
         <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-green-600">Success</DialogTitle>
-          </DialogHeader>
-          
-          <div className="py-4">
-            <p className="text-gray-700">The appointment has been successfully created.</p>
-          </div>
+          <div className="flex flex-col items-center text-center py-6">
+            {/* Green checkmark icon */}
+            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6">
+              <Check className="h-12 w-12 text-green-600" />
+            </div>
 
-          <div className="flex justify-end">
+            {/* Title */}
+            <h2 className="text-2xl font-bold text-green-600 mb-2">
+              Appointment Successful!
+            </h2>
+
+            {/* Subtitle */}
+            <p className="text-gray-600 mb-6">
+              Your appointment has been processed successfully
+            </p>
+
+            {/* Appointment Details */}
+            {createdAppointmentDetails && (
+              <div className="w-full bg-gray-50 rounded-lg p-4 mb-6 space-y-3">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-600 font-medium">Appointment ID:</span>
+                  <span className="text-gray-900">{createdAppointmentDetails.id}</span>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-600 font-medium">Patient Name:</span>
+                  <span className="text-gray-900">
+                    {patients?.find((p: any) => p.id === createdAppointmentDetails.patientId)?.patientName || 'N/A'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-600 font-medium">Date & Time:</span>
+                  <span className="text-gray-900">
+                    {createdAppointmentDetails.scheduledAt ? new Date(createdAppointmentDetails.scheduledAt).toLocaleString() : 'N/A'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-600 font-medium">Type:</span>
+                  <span className="text-gray-900 capitalize">{createdAppointmentDetails.type || 'N/A'}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Done Button */}
             <Button
               onClick={() => {
                 setShowSuccessModal(false);
@@ -3083,9 +3119,12 @@ Medical License: [License Number]
                   patientId: "",
                   description: "",
                 });
+                setCreatedAppointmentDetails(null);
               }}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+              data-testid="button-success-done"
             >
-              OK
+              Done
             </Button>
           </div>
         </DialogContent>
