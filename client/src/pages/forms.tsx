@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { queryClient } from "@/lib/queryClient";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import type { User, Patient } from "@shared/schema";
@@ -77,6 +77,12 @@ import {
 
 // View Clinic Info Component
 function ViewClinicInfo({ user, onLoadHeader, onLoadFooter }: { user: any; onLoadHeader: (header: any, footer: any) => void; onLoadFooter: (footer: any) => void }) {
+  const { toast } = useToast();
+  const [isEditingHeader, setIsEditingHeader] = useState(false);
+  const [isEditingFooter, setIsEditingFooter] = useState(false);
+  const [editHeaderData, setEditHeaderData] = useState<any>(null);
+  const [editFooterData, setEditFooterData] = useState<any>(null);
+  
   const { data: savedHeader, isLoading: headerLoading } = useQuery({
     queryKey: ['/api/clinic-headers'],
     enabled: !!user,
@@ -85,6 +91,48 @@ function ViewClinicInfo({ user, onLoadHeader, onLoadFooter }: { user: any; onLoa
   const { data: savedFooter, isLoading: footerLoading } = useQuery({
     queryKey: ['/api/clinic-footers'],
     enabled: !!user,
+  });
+
+  const updateHeaderMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return await apiRequest('/api/clinic-headers', 'POST', data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/clinic-headers'] });
+      setIsEditingHeader(false);
+      toast({
+        title: "Success",
+        description: "Clinic header updated successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update clinic header",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateFooterMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return await apiRequest('/api/clinic-footers', 'POST', data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/clinic-footers'] });
+      setIsEditingFooter(false);
+      toast({
+        title: "Success",
+        description: "Clinic footer updated successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update clinic footer",
+        variant: "destructive",
+      });
+    },
   });
 
   if (headerLoading || footerLoading) {
@@ -99,6 +147,24 @@ function ViewClinicInfo({ user, onLoadHeader, onLoadFooter }: { user: any; onLoa
     </div>;
   }
 
+  const handleEditHeader = () => {
+    setEditHeaderData({...savedHeader});
+    setIsEditingHeader(true);
+  };
+
+  const handleSaveHeader = () => {
+    updateHeaderMutation.mutate(editHeaderData);
+  };
+
+  const handleEditFooter = () => {
+    setEditFooterData({...savedFooter});
+    setIsEditingFooter(true);
+  };
+
+  const handleSaveFooter = () => {
+    updateFooterMutation.mutate(editFooterData);
+  };
+
   return (
     <div className="space-y-6 py-4">
       {/* Display Saved Header with Logo - Saved Position */}
@@ -109,13 +175,23 @@ function ViewClinicInfo({ user, onLoadHeader, onLoadFooter }: { user: any; onLoa
               <FileText className="h-5 w-5" />
               Saved Clinic Header ({savedHeader.logoPosition})
             </h3>
-            <Button
-              onClick={() => onLoadHeader(savedHeader, savedFooter)}
-              className="bg-[hsl(var(--cura-bluewave))] hover:bg-[hsl(var(--cura-electric-lilac))] text-light"
-              data-testid="button-load-header"
-            >
-              Load
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                onClick={handleEditHeader}
+                className="bg-gray-600 hover:bg-gray-700 text-white"
+                data-testid="button-edit-header"
+              >
+                <Edit className="h-4 w-4 mr-1" />
+                Edit
+              </Button>
+              <Button
+                onClick={() => onLoadHeader(savedHeader, savedFooter)}
+                className="bg-[hsl(var(--cura-bluewave))] hover:bg-[hsl(var(--cura-electric-lilac))] text-light"
+                data-testid="button-load-header"
+              >
+                Load
+              </Button>
+            </div>
           </div>
           <div className="space-y-4">
             {/* Left Position */}
@@ -330,13 +406,23 @@ function ViewClinicInfo({ user, onLoadHeader, onLoadFooter }: { user: any; onLoa
               <Palette className="h-5 w-5" />
               Saved Clinic Footer
             </h3>
-            <Button
-              onClick={() => onLoadFooter(savedFooter)}
-              className="bg-[hsl(var(--cura-bluewave))] hover:bg-[hsl(var(--cura-electric-lilac))] text-light"
-              data-testid="button-load-footer"
-            >
-              Load
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                onClick={handleEditFooter}
+                className="bg-gray-600 hover:bg-gray-700 text-white"
+                data-testid="button-edit-footer"
+              >
+                <Edit className="h-4 w-4 mr-1" />
+                Edit
+              </Button>
+              <Button
+                onClick={() => onLoadFooter(savedFooter)}
+                className="bg-[hsl(var(--cura-bluewave))] hover:bg-[hsl(var(--cura-electric-lilac))] text-light"
+                data-testid="button-load-footer"
+              >
+                Load
+              </Button>
+            </div>
           </div>
           <div 
             className="rounded-lg p-6 text-center"
@@ -356,6 +442,140 @@ function ViewClinicInfo({ user, onLoadHeader, onLoadFooter }: { user: any; onLoa
           </div>
         </div>
       )}
+
+      {/* Edit Header Dialog */}
+      <Dialog open={isEditingHeader} onOpenChange={setIsEditingHeader}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Clinic Header</DialogTitle>
+          </DialogHeader>
+          {editHeaderData && (
+            <div className="space-y-4 py-4">
+              <div>
+                <Label>Clinic Name</Label>
+                <Input
+                  value={editHeaderData.clinicName || ''}
+                  onChange={(e) => setEditHeaderData({...editHeaderData, clinicName: e.target.value})}
+                  placeholder="Enter clinic name"
+                />
+              </div>
+              <div>
+                <Label>Address</Label>
+                <Input
+                  value={editHeaderData.address || ''}
+                  onChange={(e) => setEditHeaderData({...editHeaderData, address: e.target.value})}
+                  placeholder="Enter address"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Phone</Label>
+                  <Input
+                    value={editHeaderData.phone || ''}
+                    onChange={(e) => setEditHeaderData({...editHeaderData, phone: e.target.value})}
+                    placeholder="Enter phone"
+                  />
+                </div>
+                <div>
+                  <Label>Email</Label>
+                  <Input
+                    value={editHeaderData.email || ''}
+                    onChange={(e) => setEditHeaderData({...editHeaderData, email: e.target.value})}
+                    placeholder="Enter email"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label>Website</Label>
+                <Input
+                  value={editHeaderData.website || ''}
+                  onChange={(e) => setEditHeaderData({...editHeaderData, website: e.target.value})}
+                  placeholder="Enter website"
+                />
+              </div>
+              <div>
+                <Label>Logo Position</Label>
+                <Select
+                  value={editHeaderData.logoPosition || 'center'}
+                  onValueChange={(value) => setEditHeaderData({...editHeaderData, logoPosition: value})}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="left">Left</SelectItem>
+                    <SelectItem value="center">Center</SelectItem>
+                    <SelectItem value="right">Right</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex justify-end gap-2 mt-6">
+                <Button variant="outline" onClick={() => setIsEditingHeader(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleSaveHeader}
+                  disabled={updateHeaderMutation.isPending}
+                  className="bg-[hsl(var(--cura-bluewave))] hover:bg-[hsl(var(--cura-electric-lilac))] text-white"
+                >
+                  {updateHeaderMutation.isPending ? 'Saving...' : 'Save Changes'}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Footer Dialog */}
+      <Dialog open={isEditingFooter} onOpenChange={setIsEditingFooter}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Clinic Footer</DialogTitle>
+          </DialogHeader>
+          {editFooterData && (
+            <div className="space-y-4 py-4">
+              <div>
+                <Label>Footer Text</Label>
+                <Input
+                  value={editFooterData.footerText || ''}
+                  onChange={(e) => setEditFooterData({...editFooterData, footerText: e.target.value})}
+                  placeholder="Enter footer text"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Background Color</Label>
+                  <Input
+                    type="color"
+                    value={editFooterData.backgroundColor || '#4A7DFF'}
+                    onChange={(e) => setEditFooterData({...editFooterData, backgroundColor: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <Label>Text Color</Label>
+                  <Input
+                    type="color"
+                    value={editFooterData.textColor || '#FFFFFF'}
+                    onChange={(e) => setEditFooterData({...editFooterData, textColor: e.target.value})}
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end gap-2 mt-6">
+                <Button variant="outline" onClick={() => setIsEditingFooter(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleSaveFooter}
+                  disabled={updateFooterMutation.isPending}
+                  className="bg-[hsl(var(--cura-bluewave))] hover:bg-[hsl(var(--cura-electric-lilac))] text-white"
+                >
+                  {updateFooterMutation.isPending ? 'Saving...' : 'Save Changes'}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
