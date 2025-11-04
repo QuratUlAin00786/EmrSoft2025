@@ -451,6 +451,38 @@ function ViewClinicInfo({ user, onLoadHeader, onLoadFooter }: { user: any; onLoa
           </DialogHeader>
           {editHeaderData && (
             <div className="space-y-4 py-4">
+              <div>
+                <Label>Clinic Logo</Label>
+                <div className="space-y-3">
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          setEditHeaderData({...editHeaderData, logoBase64: reader.result as string});
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                    className="flex-1"
+                  />
+                  <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800 min-h-[120px] flex items-center justify-center">
+                    {editHeaderData.logoBase64 ? (
+                      <img 
+                        src={editHeaderData.logoBase64} 
+                        alt="Logo Preview" 
+                        className="max-h-[100px] object-contain"
+                      />
+                    ) : (
+                      <p className="text-gray-400 dark:text-gray-500 text-sm italic">logo will preview here</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>Clinic Name</Label>
