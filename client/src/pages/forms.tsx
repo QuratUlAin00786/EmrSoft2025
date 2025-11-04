@@ -153,7 +153,8 @@ function ViewClinicInfo({ user, onLoadHeader, onLoadFooter }: { user: any; onLoa
   };
 
   const handleSaveHeader = () => {
-    updateHeaderMutation.mutate(editHeaderData);
+    const { id, createdAt, updatedAt, ...headerDataToSend } = editHeaderData;
+    updateHeaderMutation.mutate(headerDataToSend);
   };
 
   const handleEditFooter = () => {
@@ -162,7 +163,8 @@ function ViewClinicInfo({ user, onLoadHeader, onLoadFooter }: { user: any; onLoa
   };
 
   const handleSaveFooter = () => {
-    updateFooterMutation.mutate(editFooterData);
+    const { id, createdAt, updatedAt, ...footerDataToSend } = editFooterData;
+    updateFooterMutation.mutate(footerDataToSend);
   };
 
   return (
