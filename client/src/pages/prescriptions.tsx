@@ -222,6 +222,8 @@ export default function PrescriptionsPage() {
   const [showNewPrescription, setShowNewPrescription] = useState(false);
   const [showPharmacyDialog, setShowPharmacyDialog] = useState(false);
   const [showPharmacySuccessDialog, setShowPharmacySuccessDialog] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [createdPrescriptionDetails, setCreatedPrescriptionDetails] = useState<any>(null);
   const [selectedPrescriptionId, setSelectedPrescriptionId] =
     useState<string>("");
   const [pharmacyEmail, setPharmacyEmail] = useState<string>(
@@ -830,13 +832,10 @@ export default function PrescriptionsPage() {
     onSuccess: (data) => {
       console.log("🎉 PRESCRIPTION onSuccess triggered with data:", data);
       queryClient.invalidateQueries({ queryKey: ["/api/prescriptions"] });
+      setCreatedPrescriptionDetails(data);
       setShowNewPrescription(false);
       setSelectedPrescription(null);
-      toast({
-        title: "Success",
-        description:
-          "Prescription created successfully - ID: " + (data?.id || "Unknown"),
-      });
+      setShowSuccessModal(true);
     },
     onError: (error: any) => {
       console.error("❌ PRESCRIPTION ERROR:", error);
@@ -4523,6 +4522,67 @@ export default function PrescriptionsPage() {
                   : "Send PDF to Pharmacy"}
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Prescription Creation Success Modal */}
+      <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+        <DialogContent className="max-w-md">
+          <div className="flex flex-col items-center text-center py-6">
+            {/* Green checkmark icon */}
+            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6">
+              <Check className="h-12 w-12 text-green-600" />
+            </div>
+
+            {/* Title */}
+            <h2 className="text-2xl font-bold text-green-600 mb-2">
+              Prescription Successful!
+            </h2>
+
+            {/* Subtitle */}
+            <p className="text-gray-600 mb-6">
+              Your prescription has been processed successfully
+            </p>
+
+            {/* Prescription Details */}
+            {createdPrescriptionDetails && (
+              <div className="w-full bg-gray-50 rounded-lg p-4 mb-6 space-y-3">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-600 font-medium">Prescription ID:</span>
+                  <span className="text-gray-900">{createdPrescriptionDetails.id || 'N/A'}</span>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-600 font-medium">Patient Name:</span>
+                  <span className="text-gray-900">
+                    {createdPrescriptionDetails.patientName || 
+                     patients?.find((p: any) => p.id === createdPrescriptionDetails.patientId)?.patientName || 'N/A'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-600 font-medium">Created At:</span>
+                  <span className="text-gray-900">
+                    {createdPrescriptionDetails.createdAt ? new Date(createdPrescriptionDetails.createdAt).toLocaleString() : 'N/A'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-600 font-medium">Status:</span>
+                  <span className="text-gray-900 capitalize">{createdPrescriptionDetails.status || 'N/A'}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Done Button */}
+            <Button
+              onClick={() => {
+                setShowSuccessModal(false);
+                setCreatedPrescriptionDetails(null);
+              }}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+              data-testid="button-prescription-success-done"
+            >
+              Done
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
