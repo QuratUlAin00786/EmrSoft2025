@@ -4051,6 +4051,7 @@ export default function BillingPage() {
                               <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Service Date</th>
                               <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Due Date</th>
                               <th className="px-4 py-3 text-right text-sm font-medium text-gray-700 dark:text-gray-300">Total Amount</th>
+                              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Payment Method</th>
                               <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Status</th>
                               <th className="px-4 py-3 text-center text-sm font-medium text-gray-700 dark:text-gray-300">Actions</th>
                             </tr>
@@ -4094,6 +4095,9 @@ export default function BillingPage() {
                                       <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100 text-right font-medium">
                                         £{totalAmount.toFixed(2)}
                                       </td>
+                                      <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300 capitalize">
+                                        {invoice.paymentMethod || 'N/A'}
+                                      </td>
                                       <td className="px-4 py-3 text-sm">
                                         <Badge className={`${getStatusColor(invoice.status)}`}>
                                           {invoice.status}
@@ -4115,7 +4119,7 @@ export default function BillingPage() {
                                 })
                               ) : (
                                 <tr>
-                                  <td colSpan={7} className="px-4 py-12 text-center text-gray-500 dark:text-gray-400">
+                                  <td colSpan={8} className="px-4 py-12 text-center text-gray-500 dark:text-gray-400">
                                     <Receipt className="h-12 w-12 mx-auto mb-4 text-gray-300" />
                                     <p className="text-sm">No self-pay invoices available</p>
                                   </td>
