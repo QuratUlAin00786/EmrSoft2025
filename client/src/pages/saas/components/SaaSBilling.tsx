@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, CreditCard, DollarSign, AlertTriangle, TrendingUp, Plus, Filter, Download, Eye, Edit, Trash2, FileText, Printer } from "lucide-react";
+import { Loader2, CreditCard, DollarSign, PoundSterling, AlertTriangle, TrendingUp, Plus, Filter, Download, Eye, Edit, Trash2, FileText, Printer } from "lucide-react";
 import { queryClient, saasApiRequest } from "@/lib/saasQueryClient";
 import { useToast } from "@/hooks/use-toast";
 import InvoiceTemplate from "./InvoiceTemplate";
@@ -38,11 +38,11 @@ const getPaymentMethodIcon = (method: string) => {
     case 'stripe':
       return <CreditCard className="w-4 h-4" />;
     case 'paypal':
-      return <DollarSign className="w-4 h-4" />;
+      return <PoundSterling className="w-4 h-4" />;
     case 'bank_transfer':
       return <TrendingUp className="w-4 h-4" />;
     case 'cash':
-      return <DollarSign className="w-4 h-4" />;
+      return <PoundSterling className="w-4 h-4" />;
     default:
       return <CreditCard className="w-4 h-4" />;
   }
@@ -357,7 +357,7 @@ export default function SaaSBilling() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
+                <PoundSterling className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">

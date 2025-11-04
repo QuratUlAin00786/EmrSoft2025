@@ -64,6 +64,7 @@ import {
 } from "recharts";
 import {
   DollarSign,
+  PoundSterling,
   TrendingUp,
   TrendingDown,
   CreditCard,
@@ -1203,7 +1204,7 @@ export default function FinancialIntelligence() {
                       {formatCurrency(162000)}
                     </p>
                   </div>
-                  <DollarSign className="w-8 h-8 text-green-500" />
+                  <PoundSterling className="w-8 h-8 text-green-500" />
                 </div>
                 <div className="flex items-center mt-2 text-sm">
                   <TrendingUp className="w-4 h-4 text-green-500 mr-1" />

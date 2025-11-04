@@ -4363,7 +4363,7 @@ export default function BillingPage() {
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
-                        <DollarSign className="h-5 w-5" />
+                        <PoundSterling className="h-5 w-5" />
                         Pricing Management
                       </CardTitle>
                       <p className="text-sm text-gray-600 dark:text-gray-400">

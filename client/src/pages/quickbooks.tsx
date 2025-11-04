@@ -26,6 +26,7 @@ import {
   FileText,
   CreditCard,
   DollarSign,
+  PoundSterling,
   Calendar,
   Activity,
   TrendingUp,
@@ -982,7 +983,7 @@ export default function QuickBooks() {
                         <p className="text-sm font-medium text-gray-600">Total Expenses</p>
                         <p className="text-2xl font-bold">{qbExpenses.length}</p>
                       </div>
-                      <DollarSign className="w-8 h-8 text-red-600" />
+                      <PoundSterling className="w-8 h-8 text-red-600" />
                     </div>
                   </CardContent>
                 </Card>
@@ -1058,7 +1059,7 @@ export default function QuickBooks() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center">
-                    <DollarSign className="w-5 h-5 mr-2" />
+                    <PoundSterling className="w-5 h-5 mr-2" />
                     Recent Expenses
                   </CardTitle>
                   <CardDescription>Latest expense transactions from QuickBooks</CardDescription>
