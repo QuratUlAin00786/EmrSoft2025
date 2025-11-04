@@ -153,7 +153,7 @@ function ViewClinicInfo({ user, onLoadHeader, onLoadFooter }: { user: any; onLoa
   };
 
   const handleSaveHeader = () => {
-    const { id, createdAt, updatedAt, ...headerDataToSend } = editHeaderData;
+    const { id, createdAt, updatedAt, organizationId, ...headerDataToSend } = editHeaderData;
     const dataWithDefaults = {
       ...headerDataToSend,
       logoPosition: headerDataToSend.logoPosition || 'center',
@@ -174,7 +174,7 @@ function ViewClinicInfo({ user, onLoadHeader, onLoadFooter }: { user: any; onLoa
   };
 
   const handleSaveFooter = () => {
-    const { id, createdAt, updatedAt, ...footerDataToSend } = editFooterData;
+    const { id, createdAt, updatedAt, organizationId, ...footerDataToSend } = editFooterData;
     updateFooterMutation.mutate(footerDataToSend);
   };
 
