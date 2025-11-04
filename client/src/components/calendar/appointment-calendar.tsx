@@ -2980,7 +2980,7 @@ Medical License: [License Number]
                   };
                   
                   console.log("Creating appointment with payload:", appointmentPayload);
-                  await createAppointmentMutation.mutateAsync(appointmentPayload);
+                  const appointmentResult = await createAppointmentMutation.mutateAsync(appointmentPayload);
                   
                   // Invalidate queries to refresh data
                   queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
@@ -2989,11 +2989,9 @@ Medical License: [License Number]
                   setShowInvoiceSummaryDialog(false);
                   setShowNewAppointment(false);
                   
-                  // Show success
-                  toast({
-                    title: "Appointment Created",
-                    description: "Appointment and invoice have been created successfully.",
-                  });
+                  // Store appointment details and show success modal
+                  setCreatedAppointmentDetails(appointmentResult);
+                  setShowSuccessModal(true);
                   
                   // Reset form and invoice data
                   setNewAppointmentDate(undefined);
