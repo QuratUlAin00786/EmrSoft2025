@@ -25,6 +25,7 @@ import { and, eq, sql, desc, isNull, isNotNull } from "drizzle-orm";
 import { processAppointmentBookingChat, generateAppointmentSummary } from "./anthropic";
 import { inventoryService } from "./services/inventory";
 import { emailService } from "./services/email";
+import { sendEmail, generatePrescriptionEmailHTML } from "./email";
 import multer from "multer";
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
@@ -7003,15 +7004,26 @@ This treatment plan should be reviewed and adjusted based on individual patient 
         pharmacy: pharmacyData
       });
 
-      // TODO: In a real implementation, generate PDF here and send via email
-      // For now, simulate the process
-      console.log("Sending prescription to Halo Health pharmacy:", {
-        prescriptionId,
-        patient: `${patient.firstName} ${patient.lastName}`,
-        doctor: `${doctor.firstName} ${doctor.lastName}`,
-        pharmacy: pharmacyData,
-        medications: prescription.medications
+      // Get clinic header and footer for email
+      const clinicHeader = await storage.getActiveClinicHeader(req.tenant!.id);
+      const clinicFooter = await storage.getActiveClinicFooter(req.tenant!.id);
+
+      // Generate email HTML with clinic branding
+      const patientName = `${patient.firstName} ${patient.lastName}`;
+      const emailHTML = generatePrescriptionEmailHTML(patientName, clinicHeader, clinicFooter);
+
+      // Send email to pharmacy
+      const emailSent = await sendEmail({
+        to: pharmacyData.email || 'pharmacy@halohealth.com',
+        from: process.env.SENDGRID_FROM_EMAIL || 'noreply@curaemr.ai',
+        subject: `Prescription for ${patientName}`,
+        html: emailHTML,
+        text: `Please find attached the electronic prescription for ${patientName}.`
       });
+
+      if (!emailSent) {
+        return res.status(500).json({ error: "Failed to send email to pharmacy" });
+      }
 
       res.json({ 
         success: true,
