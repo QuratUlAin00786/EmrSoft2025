@@ -2775,10 +2775,30 @@ Medical License: [License Number]
 
             <div>
               <Label>Insurance Provider</Label>
-              <Input 
+              <Select
                 value={invoiceData.insuranceProvider}
-                onChange={(e) => setInvoiceData({...invoiceData, insuranceProvider: e.target.value})}
-              />
+                onValueChange={(value) => setInvoiceData({...invoiceData, insuranceProvider: value})}
+              >
+                <SelectTrigger data-testid="select-insurance-provider">
+                  <SelectValue placeholder="Select insurance provider..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="None (Patient Self-Pay)">None (Patient Self-Pay)</SelectItem>
+                  <SelectItem value="NHS (National Health Service)">NHS (National Health Service)</SelectItem>
+                  <SelectItem value="Bupa">Bupa</SelectItem>
+                  <SelectItem value="AXA PPP Healthcare">AXA PPP Healthcare</SelectItem>
+                  <SelectItem value="Vitality Health">Vitality Health</SelectItem>
+                  <SelectItem value="Aviva Health">Aviva Health</SelectItem>
+                  <SelectItem value="Simply Health">Simply Health</SelectItem>
+                  <SelectItem value="WPA">WPA</SelectItem>
+                  <SelectItem value="Benenden Health">Benenden Health</SelectItem>
+                  <SelectItem value="Healix Health Services">Healix Health Services</SelectItem>
+                  <SelectItem value="Sovereign Health Care">Sovereign Health Care</SelectItem>
+                  <SelectItem value="Exeter Friendly Society">Exeter Friendly Society</SelectItem>
+                  <SelectItem value="Self-Pay">Self-Pay</SelectItem>
+                  <SelectItem value="Other">Other</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
@@ -2948,7 +2968,23 @@ Medical License: [License Number]
                   };
                   
                   console.log("Creating invoice with payload:", invoicePayload);
-                  await createInvoiceMutation.mutateAsync(invoicePayload);
+                  const createdInvoice = await createInvoiceMutation.mutateAsync(invoicePayload);
+                  
+                  // If payment method is Insurance, automatically submit insurance claim
+                  if (invoiceData.paymentMethod === "Insurance" && invoiceData.insuranceProvider) {
+                    try {
+                      const claimNumber = `AUTO-${Date.now()}`;
+                      await apiRequest('POST', '/api/insurance/submit-claim', {
+                        invoiceId: createdInvoice.id,
+                        provider: invoiceData.insuranceProvider,
+                        claimNumber: claimNumber
+                      });
+                      console.log("Insurance claim submitted automatically:", { invoiceId: createdInvoice.id, provider: invoiceData.insuranceProvider, claimNumber });
+                    } catch (claimError) {
+                      console.error("Failed to auto-submit insurance claim:", claimError);
+                      // Don't fail the whole process if claim submission fails
+                    }
+                  }
                   
                   // Create appointment
                   const selectedDate = format(newAppointmentDate!, 'yyyy-MM-dd');
