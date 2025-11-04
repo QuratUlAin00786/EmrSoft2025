@@ -832,7 +832,15 @@ export default function PrescriptionsPage() {
     onSuccess: (data) => {
       console.log("🎉 PRESCRIPTION onSuccess triggered with data:", data);
       queryClient.invalidateQueries({ queryKey: ["/api/prescriptions"] });
-      setCreatedPrescriptionDetails(data);
+      
+      // Enhance prescription data with patient name
+      const patient = patients.find((p) => p.id === data.patientId);
+      const enhancedData = {
+        ...data,
+        patientName: patient ? `${patient.firstName} ${patient.lastName}` : null
+      };
+      
+      setCreatedPrescriptionDetails(enhancedData);
       setShowNewPrescription(false);
       setSelectedPrescription(null);
       setShowSuccessModal(true);
@@ -4555,8 +4563,7 @@ export default function PrescriptionsPage() {
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-gray-600 font-medium">Patient Name:</span>
                   <span className="text-gray-900">
-                    {createdPrescriptionDetails.patientName || 
-                     patients?.find((p: any) => p.id === createdPrescriptionDetails.patientId)?.patientName || 'N/A'}
+                    {createdPrescriptionDetails.patientName || 'Unknown Patient'}
                   </span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
