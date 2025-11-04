@@ -532,6 +532,22 @@ export const payments = pgTable("payments", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Insurance Payments - Track individual insurance payments for invoices
+export const insurancePayments = pgTable("insurance_payments", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  invoiceId: integer("invoice_id").notNull(), // Reference to invoices.id
+  claimNumber: varchar("claim_number", { length: 100 }), // Insurance claim ID/reference
+  amountPaid: decimal("amount_paid", { precision: 10, scale: 2 }).notNull(),
+  paymentDate: timestamp("payment_date").notNull(),
+  insuranceProvider: text("insurance_provider").notNull(),
+  paymentReference: text("payment_reference"), // EOB number, check number, etc.
+  notes: text("notes"),
+  createdBy: integer("created_by"), // User ID who recorded the payment
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // AI Insights
 export const aiInsights = pgTable("ai_insights", {
   id: serial("id").primaryKey(),
@@ -2248,6 +2264,19 @@ export const insertPaymentSchema = createInsertSchema(payments).omit({
 
 export type Payment = typeof payments.$inferSelect;
 export type InsertPayment = z.infer<typeof insertPaymentSchema>;
+
+export const insertInsurancePaymentSchema = createInsertSchema(insurancePayments).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  invoiceId: z.number().int().positive("Invoice ID is required"),
+  amountPaid: z.coerce.number().positive("Payment amount must be greater than 0"),
+  insuranceProvider: z.string().trim().min(1, "Insurance provider is required"),
+});
+
+export type InsurancePayment = typeof insurancePayments.$inferSelect;
+export type InsertInsurancePayment = z.infer<typeof insertInsurancePaymentSchema>;
 
 export const insertAiInsightSchema = createInsertSchema(aiInsights).omit({
   id: true,
