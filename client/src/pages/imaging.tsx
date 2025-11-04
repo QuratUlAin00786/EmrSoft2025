@@ -2128,6 +2128,7 @@ export default function ImagingPage() {
                     <SelectItem value="completed">Completed</SelectItem>
                     <SelectItem value="preliminary">Preliminary</SelectItem>
                     <SelectItem value="final">Final</SelectItem>
+                    <SelectItem value="cancelled">Cancelled</SelectItem>
                   </SelectContent>
                 </Select>
 
