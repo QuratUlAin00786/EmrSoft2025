@@ -16736,7 +16736,8 @@ This treatment plan should be reviewed and adjusted based on individual patient 
         nhsNumber: z.string().optional(),
         notes: z.string().optional(),
         serviceId: z.union([z.number(), z.string()]).optional(),
-        serviceType: z.string().optional()
+        serviceType: z.string().optional(),
+        paymentMethod: z.string().optional()
       }).parse(req.body);
 
       // Get patient name for the invoice
@@ -16774,6 +16775,7 @@ This treatment plan should be reviewed and adjusted based on individual patient 
         dateOfService: new Date(invoiceData.serviceDate),
         status: "draft" as const,
         invoiceType: invoiceType,
+        paymentMethod: invoiceData.paymentMethod || null,
         subtotal: totalAmt,
         tax: 0,
         discount: 0,

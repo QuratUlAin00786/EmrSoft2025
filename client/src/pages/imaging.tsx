@@ -6176,6 +6176,7 @@ export default function ImagingPage() {
                         notes: summaryData.invoice.notes || '',
                         serviceId: imageId,
                         serviceType: 'medical_images',
+                        paymentMethod: paymentMethod,
                       };
 
                       // Create invoice
