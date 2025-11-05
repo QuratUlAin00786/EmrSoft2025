@@ -1327,9 +1327,32 @@ export default function CalendarPage() {
       const invoiceResponse = await apiRequest("POST", "/api/invoices", invoiceData);
       const invoice = await invoiceResponse.json();
       
-      return { appointment, invoice };
+      // Auto-submit insurance claim if payment method is Insurance
+      let insuranceClaim = null;
+      let claimSubmissionFailed = false;
+      if (invoiceData.paymentMethod === 'Insurance') {
+        try {
+          const claimNumber = `AUTO-${Date.now()}`;
+          const claimResponse = await apiRequest('POST', '/api/insurance/submit-claim', {
+            invoiceId: invoice.id,
+            provider: invoiceData.insuranceProvider,
+            claimNumber: claimNumber
+          });
+          insuranceClaim = await claimResponse.json();
+          console.log("Insurance claim submitted automatically:", { 
+            invoiceId: invoice.id, 
+            provider: invoiceData.insuranceProvider, 
+            claimNumber 
+          });
+        } catch (claimError) {
+          console.error("Failed to auto-submit insurance claim:", claimError);
+          claimSubmissionFailed = true;
+        }
+      }
+      
+      return { appointment, invoice, insuranceClaim, claimSubmissionFailed };
     },
-    onSuccess: ({ appointment, invoice }) => {
+    onSuccess: ({ appointment, invoice, insuranceClaim, claimSubmissionFailed }) => {
       // Update calendar data with proper cache invalidation
       queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
       queryClient.invalidateQueries({ queryKey: ["/api/appointments", "patient-filtered"] });
@@ -1385,10 +1408,24 @@ export default function CalendarPage() {
         paymentMethod: ""
       });
       
-      toast({
-        title: "Success",
-        description: "Appointment and invoice created successfully",
-      });
+      // Show appropriate success message
+      if (claimSubmissionFailed) {
+        toast({
+          title: "Appointment Created - Claim Failed",
+          description: "Appointment and invoice created successfully, but insurance claim submission failed. Please submit the claim manually from the billing section.",
+          variant: "destructive",
+        });
+      } else if (insuranceClaim) {
+        toast({
+          title: "Success - Claim Submitted",
+          description: "Appointment and invoice created successfully. Insurance claim submitted automatically.",
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: "Appointment and invoice created successfully",
+        });
+      }
     },
     onError: (error) => {
       console.error("Creation error:", error);
