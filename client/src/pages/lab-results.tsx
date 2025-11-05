@@ -658,6 +658,7 @@ export default function LabResultsPage() {
   const [showInvoiceDialog, setShowInvoiceDialog] = useState(false);
   const [showSummaryDialog, setShowSummaryDialog] = useState(false);
   const [showPaymentConfirmation, setShowPaymentConfirmation] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [pendingOrderData, setPendingOrderData] = useState<any>(null);
   const [invoiceData, setInvoiceData] = useState<any>({
     serviceDate: new Date().toISOString().split('T')[0],
@@ -4473,10 +4474,8 @@ Report generated from Cura EMR System`;
 
                       // Show appropriate message based on claim submission result
                       if (claimSubmitted) {
-                        toast({
-                          title: "Invoice Created & Claim Submitted",
-                          description: "Invoice created successfully and insurance claim submitted automatically.",
-                        });
+                        setShowSummaryDialog(false);
+                        setShowSuccessModal(true);
                       } else if (claimError) {
                         toast({
                           title: "Invoice Created - Claim Failed",
@@ -7780,6 +7779,32 @@ Report generated from Cura EMR System`;
               </Button>
             </div>
           </Tabs>
+        </DialogContent>
+      </Dialog>
+
+      {/* Success Modal */}
+      <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-green-600 dark:text-green-400">
+              <CheckCircle className="h-6 w-6" />
+              Invoice Created & Claim Submitted
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-gray-700 dark:text-gray-300">
+              Invoice created successfully and insurance claim submitted automatically.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button
+              onClick={() => setShowSuccessModal(false)}
+              className="w-full"
+              data-testid="button-close-success"
+            >
+              Close
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>
