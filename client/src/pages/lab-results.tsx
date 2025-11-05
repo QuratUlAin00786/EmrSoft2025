@@ -4389,7 +4389,7 @@ Report generated from Cura EMR System`;
                           code: item.code,
                           description: item.description,
                           quantity: item.quantity || 1,
-                          amount: item.unitPrice || item.total || 0
+                          amount: parseFloat(item.unitPrice) || item.total || 0
                         })),
                         insuranceProvider: invoiceData.insuranceProvider,
                         notes: invoiceData.notes,
