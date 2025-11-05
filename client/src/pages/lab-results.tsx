@@ -4396,37 +4396,52 @@ Report generated from Cura EMR System`;
                         paymentMethod: invoiceData.paymentMethod
                       };
 
+                      console.log("Creating invoice with payload:", invoicePayload);
                       const response = await apiRequest("POST", "/api/invoices", invoicePayload);
+                      console.log("Invoice creation response status:", response.status);
+                      
                       if (!response.ok) {
                         const errorData = await response.json();
+                        console.error("Invoice creation error:", errorData);
                         throw new Error(errorData.error || "Failed to create invoice");
                       }
                       const createdInvoice = await response.json();
+                      console.log("Invoice created successfully:", createdInvoice);
 
                       // Automatically submit insurance claim
                       let claimSubmitted = false;
                       let claimError = null;
-                      if (invoiceData.insuranceProvider && invoiceData.insuranceProvider !== 'none') {
+                      console.log("Checking insurance provider:", invoiceData.insuranceProvider);
+                      if (invoiceData.insuranceProvider && invoiceData.insuranceProvider !== 'none' && invoiceData.insuranceProvider !== 'None') {
                         try {
                           const claimNumber = `AUTO-${Date.now()}`;
-                          const claimResponse = await apiRequest('POST', '/api/insurance/submit-claim', {
+                          const claimPayload = {
                             invoiceId: createdInvoice.id,
                             provider: invoiceData.insuranceProvider,
                             claimNumber: claimNumber
-                          });
+                          };
+                          console.log("Submitting insurance claim with payload:", claimPayload);
+                          
+                          const claimResponse = await apiRequest('POST', '/api/insurance/submit-claim', claimPayload);
+                          console.log("Claim submission response status:", claimResponse.status);
+                          
                           if (!claimResponse.ok) {
-                            throw new Error("Failed to submit insurance claim");
+                            const claimErrorData = await claimResponse.json();
+                            console.error("Claim submission error:", claimErrorData);
+                            throw new Error(claimErrorData.error || "Failed to submit insurance claim");
                           }
                           claimSubmitted = true;
-                          console.log("Insurance claim submitted automatically:", { 
+                          console.log("✅ Insurance claim submitted automatically:", { 
                             invoiceId: createdInvoice.id, 
                             provider: invoiceData.insuranceProvider, 
                             claimNumber 
                           });
                         } catch (err) {
                           claimError = err;
-                          console.error("Failed to auto-submit insurance claim:", err);
+                          console.error("❌ Failed to auto-submit insurance claim:", err);
                         }
+                      } else {
+                        console.log("⚠️ Skipping claim submission - no valid insurance provider selected");
                       }
 
                       // Update Lab_Request_Generated to true
