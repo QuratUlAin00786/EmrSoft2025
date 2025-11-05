@@ -4385,12 +4385,17 @@ Report generated from Cura EMR System`;
                         discount: '0',
                         totalAmount: invoiceData.totalAmount.toString(),
                         paidAmount: '0',
-                        items: invoiceData.items.map((item: any) => ({
-                          code: item.code,
-                          description: item.description,
-                          quantity: item.quantity || 1,
-                          amount: parseFloat(item.unitPrice) || item.total || 0
-                        })),
+                        items: invoiceData.items.map((item: any) => {
+                          const unitPrice = parseFloat(item.unitPrice) || 0;
+                          const quantity = item.quantity || 1;
+                          return {
+                            code: item.code,
+                            description: item.description,
+                            quantity: quantity,
+                            unitPrice: unitPrice,
+                            total: unitPrice * quantity
+                          };
+                        }),
                         insuranceProvider: invoiceData.insuranceProvider,
                         notes: invoiceData.notes,
                         paymentMethod: invoiceData.paymentMethod
