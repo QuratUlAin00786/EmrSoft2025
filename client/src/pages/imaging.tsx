@@ -5882,8 +5882,13 @@ export default function ImagingPage() {
                   <SelectValue placeholder="Select payment method" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="cash">Cash</SelectItem>
-                  <SelectItem value="debit_card">Debit Card</SelectItem>
+                  <SelectItem value="Cash">Cash</SelectItem>
+                  <SelectItem value="Debit Card">Debit Card</SelectItem>
+                  <SelectItem value="Credit Card">Credit Card</SelectItem>
+                  <SelectItem value="Insurance">Insurance</SelectItem>
+                  <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
+                  <SelectItem value="Check">Check</SelectItem>
+                  <SelectItem value="Online Payment">Online Payment</SelectItem>
                 </SelectContent>
               </Select>
               {invoicePaymentMethodError && (
@@ -6153,33 +6158,33 @@ export default function ImagingPage() {
                 <Button
                   onClick={async () => {
                     try {
-                      if (summaryData.invoice.paymentMethod === 'cash') {
-                        // For Cash payment: Create invoice with payment record
-                        // Get the image ID (e.g., IMG1761380377679I37ONC) from uploadResult for service_id
-                        const imageId = summaryData.uploadResult?.images?.[0]?.imageId || summaryData.invoice.serviceCode;
-                        
-                        const invoiceData = {
-                          patientId: summaryData.invoice.patient,
-                          serviceDate: summaryData.invoice.serviceDate,
-                          invoiceDate: summaryData.invoice.invoiceDate,
-                          dueDate: summaryData.invoice.dueDate,
-                          totalAmount: summaryData.invoice.totalAmount.toString(),
-                          firstServiceCode: summaryData.invoice.serviceCode,
-                          firstServiceDesc: summaryData.invoice.serviceDesc,
-                          firstServiceQty: summaryData.invoice.serviceQty,
-                          firstServiceAmount: summaryData.invoice.serviceAmount,
-                          insuranceProvider: summaryData.invoice.insuranceProvider,
-                          nhsNumber: summaryData.invoice.nhsNumber || '',
-                          notes: summaryData.invoice.notes || '',
-                          serviceId: imageId,
-                          serviceType: 'medical_images',
-                        };
+                      const paymentMethod = summaryData.invoice.paymentMethod;
+                      const imageId = summaryData.uploadResult?.images?.[0]?.imageId || summaryData.invoice.serviceCode;
+                      
+                      const invoiceData = {
+                        patientId: summaryData.invoice.patient,
+                        serviceDate: summaryData.invoice.serviceDate,
+                        invoiceDate: summaryData.invoice.invoiceDate,
+                        dueDate: summaryData.invoice.dueDate,
+                        totalAmount: summaryData.invoice.totalAmount.toString(),
+                        firstServiceCode: summaryData.invoice.serviceCode,
+                        firstServiceDesc: summaryData.invoice.serviceDesc,
+                        firstServiceQty: summaryData.invoice.serviceQty,
+                        firstServiceAmount: summaryData.invoice.serviceAmount,
+                        insuranceProvider: summaryData.invoice.insuranceProvider,
+                        nhsNumber: summaryData.invoice.nhsNumber || '',
+                        notes: summaryData.invoice.notes || '',
+                        serviceId: imageId,
+                        serviceType: 'medical_images',
+                      };
 
-                        // Create invoice
-                        const invoiceResponse = await apiRequest("POST", "/api/billing/invoices", invoiceData);
-                        const createdInvoice = await invoiceResponse.json();
+                      // Create invoice
+                      const invoiceResponse = await apiRequest("POST", "/api/billing/invoices", invoiceData);
+                      const createdInvoice = await invoiceResponse.json();
 
-                        // Create payment record
+                      // Handle different payment methods
+                      if (paymentMethod === 'Cash') {
+                        // Create payment record for cash
                         const paymentData = {
                           organizationId: createdInvoice.organizationId,
                           invoiceId: createdInvoice.id,
@@ -6187,7 +6192,7 @@ export default function ImagingPage() {
                           transactionId: `TXN-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
                           amount: summaryData.invoice.totalAmount,
                           currency: 'GBP',
-                          paymentMethod: 'cash',
+                          paymentMethod: 'Cash',
                           paymentProvider: 'cash',
                           paymentStatus: 'completed',
                           paymentDate: new Date().toISOString(),
@@ -6197,43 +6202,64 @@ export default function ImagingPage() {
 
                         await apiRequest("POST", "/api/billing/payments", paymentData);
 
-                        // Update invoice status to paid and paidAmount
+                        // Update invoice status to paid
                         await apiRequest("PATCH", `/api/billing/invoices/${createdInvoice.id}`, {
                           status: 'paid',
                           paidAmount: summaryData.invoice.totalAmount.toString(),
                         });
-
-                        // Show success modal with invoice details
-                        setPaymentSuccessData({
-                          invoiceId: createdInvoice.invoiceNumber,
-                          patientName: createdInvoice.patientName,
-                          amount: summaryData.invoice.totalAmount,
-                        });
-                        setShowPaymentSuccessDialog(true);
-
-                        // Reset all state
-                        setUploadFormData({
-                          patientId: "",
-                          studyType: "",
-                          modality: "X-Ray",
-                          bodyPart: "",
-                          indication: "",
-                          priority: "routine",
-                        });
-                        setSelectedFiles([]);
-                        setUploadedImageData(null);
-                        setSummaryData(null);
-                        setShowSummaryDialog(false);
-
-                        // Refresh the medical images list
-                        refetchImages();
-                      } else {
-                        // For Debit Card payment - handle Stripe flow
-                        toast({
-                          title: "Payment Processing",
-                          description: "Please complete Stripe payment",
-                        });
+                      } else if (paymentMethod === 'Insurance') {
+                        // Automatically submit insurance claim
+                        try {
+                          const claimNumber = `AUTO-${Date.now()}`;
+                          await apiRequest('POST', '/api/insurance/submit-claim', {
+                            invoiceId: createdInvoice.id,
+                            provider: summaryData.invoice.insuranceProvider,
+                            claimNumber: claimNumber
+                          });
+                          console.log("Insurance claim submitted automatically:", { 
+                            invoiceId: createdInvoice.id, 
+                            provider: summaryData.invoice.insuranceProvider, 
+                            claimNumber 
+                          });
+                          
+                          toast({
+                            title: "Invoice Created & Claim Submitted",
+                            description: "Invoice created successfully and insurance claim submitted automatically.",
+                          });
+                        } catch (claimError) {
+                          console.error("Failed to auto-submit insurance claim:", claimError);
+                          toast({
+                            title: "Invoice Created - Claim Failed",
+                            description: "Invoice created successfully, but insurance claim submission failed. Please submit manually.",
+                            variant: "destructive",
+                          });
+                        }
                       }
+
+                      // Show success modal with invoice details
+                      setPaymentSuccessData({
+                        invoiceId: createdInvoice.invoiceNumber,
+                        patientName: createdInvoice.patientName,
+                        amount: summaryData.invoice.totalAmount,
+                      });
+                      setShowPaymentSuccessDialog(true);
+
+                      // Reset all state
+                      setUploadFormData({
+                        patientId: "",
+                        studyType: "",
+                        modality: "X-Ray",
+                        bodyPart: "",
+                        indication: "",
+                        priority: "routine",
+                      });
+                      setSelectedFiles([]);
+                      setUploadedImageData(null);
+                      setSummaryData(null);
+                      setShowSummaryDialog(false);
+
+                      // Refresh the medical images list
+                      refetchImages();
                     } catch (error) {
                       toast({
                         title: "Error",
@@ -6244,7 +6270,7 @@ export default function ImagingPage() {
                   }}
                   className="bg-blue-600 hover:bg-blue-700"
                 >
-                  {summaryData.invoice?.paymentMethod === 'cash' ? 'Confirm Pay' : 'Confirm'}
+                  Confirm
                 </Button>
               </div>
             </div>
