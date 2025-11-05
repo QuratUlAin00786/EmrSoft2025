@@ -2810,6 +2810,21 @@ Medical License: [License Number]
               />
             </div>
 
+            {/* Invoice Type Display */}
+            {invoiceData.insuranceProvider && invoiceData.insuranceProvider !== "None (Patient Self-Pay)" && invoiceData.insuranceProvider !== "Self-Pay" && (
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                <div className="flex items-start gap-2 mb-2">
+                  <Label className="text-sm font-medium">Invoice Type:</Label>
+                  <Badge className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 border-blue-300 dark:border-blue-700">
+                    Insurance Claim
+                  </Badge>
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  This invoice will be submitted to the insurance provider for payment
+                </p>
+              </div>
+            )}
+
             <div>
               <Label>Notes</Label>
               <Textarea 
@@ -2947,6 +2962,11 @@ Medical License: [License Number]
                   const selectedPatient = patientsData?.find((p: any) => p.id.toString() === newAppointmentData.patientId);
                   
                   // Create invoice first
+                  // Determine invoice type based on insurance provider
+                  const isInsuranceClaim = invoiceData.insuranceProvider && 
+                    invoiceData.insuranceProvider !== "None (Patient Self-Pay)" && 
+                    invoiceData.insuranceProvider !== "Self-Pay";
+                  
                   const invoicePayload = {
                     patientId: selectedPatient?.patientId || '',
                     patientName: `${selectedPatient?.firstName || ''} ${selectedPatient?.lastName || ''}`,
@@ -2955,13 +2975,19 @@ Medical License: [License Number]
                     invoiceDate: invoiceData.invoiceDate,
                     dueDate: invoiceData.dueDate,
                     status: 'draft',
-                    invoiceType: 'payment',
+                    invoiceType: isInsuranceClaim ? 'insurance_claim' : 'payment',
                     subtotal: invoiceData.totalAmount,
                     tax: '0',
                     discount: '0',
                     totalAmount: invoiceData.totalAmount,
                     paidAmount: '0',
-                    items: invoiceData.services,
+                    items: invoiceData.services.map((service: any) => ({
+                      code: service.code,
+                      description: service.description,
+                      quantity: 1,
+                      unitPrice: parseFloat(service.amount || 0),
+                      total: parseFloat(service.amount || 0)
+                    })),
                     insuranceProvider: invoiceData.insuranceProvider,
                     notes: invoiceData.notes,
                     paymentMethod: invoiceData.paymentMethod
