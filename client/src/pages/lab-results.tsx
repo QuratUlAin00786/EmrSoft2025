@@ -7795,26 +7795,39 @@ Report generated from Cura EMR System`;
       {/* Success Modal */}
       <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
         <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-green-600 dark:text-green-400">
-              <CheckCircle className="h-6 w-6" />
-              Invoice Created & Claim Submitted
-            </DialogTitle>
-          </DialogHeader>
-          <div className="py-4">
-            <p className="text-gray-700 dark:text-gray-300">
+          <button
+            onClick={() => setShowSuccessModal(false)}
+            className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
+          >
+            <X className="h-4 w-4" />
+            <span className="sr-only">Close</span>
+          </button>
+          
+          <div className="flex flex-col items-center justify-center py-6">
+            {/* Large Green Checkmark Circle */}
+            <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
+              <CheckCircle className="h-12 w-12 text-green-600 dark:text-green-400" strokeWidth={2} />
+            </div>
+            
+            {/* Title */}
+            <h2 className="mb-2 text-2xl font-bold text-green-600 dark:text-green-400">
+              Invoice Created Successfully!
+            </h2>
+            
+            {/* Subtitle Message */}
+            <p className="mb-6 text-center text-gray-600 dark:text-gray-400">
               Invoice created successfully and insurance claim submitted automatically.
             </p>
-          </div>
-          <DialogFooter>
+            
+            {/* Done Button */}
             <Button
               onClick={() => setShowSuccessModal(false)}
-              className="w-full"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
               data-testid="button-close-success"
             >
-              Close
+              Done
             </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
     </>
