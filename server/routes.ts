@@ -3876,7 +3876,8 @@ This treatment plan should be reviewed and adjusted based on individual patient 
           code: z.string(),
           description: z.string(),
           quantity: z.number(),
-          amount: z.number()
+          unitPrice: z.number(),
+          total: z.number()
         })),
         insuranceProvider: z.string().optional(),
         notes: z.string().optional()
