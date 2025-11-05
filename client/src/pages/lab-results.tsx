@@ -3208,13 +3208,13 @@ Report generated from Cura EMR System`;
                         className={`text-xs flex items-center gap-1 ${
                           result.sampleCollected 
                             ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 border-green-300 dark:border-green-800" 
-                            : "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 border-yellow-300 dark:border-yellow-800"
+                            : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600"
                         }`}
                       >
                         {result.sampleCollected ? (
                           <CheckCircle className="h-3 w-3" />
                         ) : (
-                          <AlertTriangle className="h-3 w-3" />
+                          <Clock className="h-3 w-3" />
                         )}
                         {result.sampleCollected ? "Sample Collected" : "Sample Not Collected"}
                       </Badge>
