@@ -4131,15 +4131,24 @@ Report generated from Cura EMR System`;
                   value={invoiceData.insuranceProvider || "none"}
                   onValueChange={(value) => setInvoiceData({ ...invoiceData, insuranceProvider: value === 'none' ? '' : value })}
                 >
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Select insurance" />
+                  <SelectTrigger className="mt-1" data-testid="select-insurance-provider">
+                    <SelectValue placeholder="Select insurance provider..." />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">None (Patient Self-Pay)</SelectItem>
-                    <SelectItem value="bupa">Bupa</SelectItem>
-                    <SelectItem value="axa">AXA Health</SelectItem>
-                    <SelectItem value="vitality">Vitality Health</SelectItem>
-                    <SelectItem value="aviva">Aviva</SelectItem>
+                    <SelectItem value="NHS (National Health Service)">NHS (National Health Service)</SelectItem>
+                    <SelectItem value="Bupa">Bupa</SelectItem>
+                    <SelectItem value="AXA PPP Healthcare">AXA PPP Healthcare</SelectItem>
+                    <SelectItem value="Vitality Health">Vitality Health</SelectItem>
+                    <SelectItem value="Aviva Health">Aviva Health</SelectItem>
+                    <SelectItem value="Simply Health">Simply Health</SelectItem>
+                    <SelectItem value="WPA">WPA</SelectItem>
+                    <SelectItem value="Benenden Health">Benenden Health</SelectItem>
+                    <SelectItem value="Healix Health Services">Healix Health Services</SelectItem>
+                    <SelectItem value="Sovereign Health Care">Sovereign Health Care</SelectItem>
+                    <SelectItem value="Exeter Friendly Society">Exeter Friendly Society</SelectItem>
+                    <SelectItem value="Self-Pay">Self-Pay</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -4189,12 +4198,17 @@ Report generated from Cura EMR System`;
                 value={invoiceData.paymentMethod}
                 onValueChange={(value) => setInvoiceData({ ...invoiceData, paymentMethod: value })}
               >
-                <SelectTrigger className="mt-1">
+                <SelectTrigger className="mt-1" data-testid="select-payment-method">
                   <SelectValue placeholder="Select payment method" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="cash">Cash</SelectItem>
                   <SelectItem value="debit_card">Debit Card</SelectItem>
+                  <SelectItem value="credit_card">Credit Card</SelectItem>
+                  <SelectItem value="Insurance">Insurance</SelectItem>
+                  <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+                  <SelectItem value="check">Check</SelectItem>
+                  <SelectItem value="online_payment">Online Payment</SelectItem>
                 </SelectContent>
               </Select>
             </div>
