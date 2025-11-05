@@ -3543,7 +3543,7 @@ export default function BillingPage() {
                                   {invoice.items.slice(0, 2).map((item: any, index: number) => (
                                     <div key={index} className="flex justify-between text-sm text-gray-900 dark:text-gray-100">
                                       <span>{item.description}</span>
-                                      <span>{formatCurrency(item.total)}</span>
+                                      <span>{formatCurrency(item.total || item.amount || item.unitPrice || 0)}</span>
                                     </div>
                                   ))}
                                   {invoice.items.length > 2 && (
@@ -3859,7 +3859,7 @@ export default function BillingPage() {
                                     {invoice.items.slice(0, 2).map((item: any, index: number) => (
                                       <div key={index} className="flex justify-between text-sm text-gray-900 dark:text-gray-100">
                                         <span>{item.description}</span>
-                                        <span>{formatCurrency(item.total)}</span>
+                                        <span>{formatCurrency(item.total || item.amount || item.unitPrice || 0)}</span>
                                       </div>
                                     ))}
                                     {invoice.items.length > 2 && (
