@@ -2777,7 +2777,7 @@ export default function PrescriptionsPage() {
                         </div>
                         <div className="space-y-4">
                           {isDoctorLike(user?.role) ? (
-                            // For doctor roles: Show labels instead of dropdowns
+                            // For doctor roles: Show role label only
                             <>
                               <div>
                                 <Label htmlFor="role">Role</Label>
@@ -2785,19 +2785,6 @@ export default function PrescriptionsPage() {
                                   <User className="h-4 w-4 mr-2 text-muted-foreground" />
                                   <span data-testid="provider-role-display">
                                     {formatRoleLabel(user?.role)}
-                                  </span>
-                                </div>
-                              </div>
-
-                              <div>
-                                <Label htmlFor="provider">
-                                  {" "}
-                                  Name (doctor/nurse etc)
-                                </Label>
-                                <div className="flex items-center h-10 px-3 py-2 border border-input bg-background rounded-md text-sm ring-offset-background">
-                                  <User className="h-4 w-4 mr-2 text-muted-foreground" />
-                                  <span data-testid="provider-name-display">
-                                    {user?.firstName} {user?.lastName}
                                   </span>
                                 </div>
                               </div>
@@ -2850,7 +2837,20 @@ export default function PrescriptionsPage() {
                       </div>
 
                       <div className="grid grid-cols-2 gap-4">
-                        {user?.role !== "doctor" && (
+                        {isDoctorLike(user?.role) ? (
+                          <div>
+                            <Label htmlFor="provider">
+                              {" "}
+                              Name (doctor/nurse etc)
+                            </Label>
+                            <div className="flex items-center h-10 px-3 py-2 border border-input bg-background rounded-md text-sm ring-offset-background">
+                              <User className="h-4 w-4 mr-2 text-muted-foreground" />
+                              <span data-testid="provider-name-display">
+                                {user?.firstName} {user?.lastName}
+                              </span>
+                            </div>
+                          </div>
+                        ) : (
                           <div>
                             <Label htmlFor="provider">Select Name</Label>
                             <Select
