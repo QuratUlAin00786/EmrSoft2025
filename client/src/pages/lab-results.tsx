@@ -4129,7 +4129,11 @@ Report generated from Cura EMR System`;
                 <Label className="text-sm font-medium">Insurance Provider</Label>
                 <Select
                   value={invoiceData.insuranceProvider || "none"}
-                  onValueChange={(value) => setInvoiceData({ ...invoiceData, insuranceProvider: value === 'none' ? '' : value })}
+                  onValueChange={(value) => setInvoiceData({ 
+                    ...invoiceData, 
+                    insuranceProvider: value === 'none' ? '' : value,
+                    invoiceType: (value === 'none' || value === '' || value === 'Self-Pay') ? 'payment' : 'insurance_claim'
+                  })}
                 >
                   <SelectTrigger className="mt-1" data-testid="select-insurance-provider">
                     <SelectValue placeholder="Select insurance provider..." />
@@ -4168,12 +4172,19 @@ Report generated from Cura EMR System`;
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Invoice Type:</span>
-                    <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 border-green-300 dark:border-green-700">
-                      Payment (Self-Pay)
+                    <Badge className={
+                      invoiceData.invoiceType === 'insurance_claim' 
+                        ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100 border-blue-300 dark:border-blue-700"
+                        : "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 border-green-300 dark:border-green-700"
+                    }>
+                      {invoiceData.invoiceType === 'insurance_claim' ? 'Insurance Claim' : 'Payment (Self-Pay)'}
                     </Badge>
                   </div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    This invoice will be paid directly by the patient
+                    {invoiceData.invoiceType === 'insurance_claim' 
+                      ? 'This invoice will be submitted to the insurance provider for payment'
+                      : 'This invoice will be paid directly by the patient'
+                    }
                   </p>
                 </div>
               </div>
