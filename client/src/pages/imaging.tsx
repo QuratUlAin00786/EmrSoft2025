@@ -5675,7 +5675,16 @@ export default function ImagingPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="invoice-patient">Patient</Label>
-                <Select value={invoicePatient} onValueChange={setInvoicePatient}>
+                <Select value={invoicePatient} onValueChange={(value) => {
+                  setInvoicePatient(value);
+                  // Auto-fetch and populate NHS number from selected patient
+                  const selectedPatient = patients?.find((p: any) => p.patientId === value);
+                  if (selectedPatient?.nhsNumber) {
+                    setInvoiceNhsNumber(selectedPatient.nhsNumber);
+                  } else {
+                    setInvoiceNhsNumber("");
+                  }
+                }}>
                   <SelectTrigger id="invoice-patient">
                     <SelectValue placeholder="Select patient" />
                   </SelectTrigger>
@@ -5779,7 +5788,7 @@ export default function ImagingPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">None (Patient Self-Pay)</SelectItem>
-                    <SelectItem value="nhs">NHS (National Health Service)</SelectItem>
+                    <SelectItem value="NHS (National Health Service)">NHS (National Health Service)</SelectItem>
                     <SelectItem value="bupa">Bupa</SelectItem>
                     <SelectItem value="axa">AXA PPP Healthcare</SelectItem>
                     <SelectItem value="vitality">Vitality Health</SelectItem>
