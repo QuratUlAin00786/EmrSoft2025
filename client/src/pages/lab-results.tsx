@@ -4366,6 +4366,105 @@ Report generated from Cura EMR System`;
                       serviceType: 'lab_result',
                       serviceId: pendingOrderData?.testId,
                     });
+                  } else if (invoiceData.paymentMethod === 'Insurance') {
+                    // Handle Insurance payment with automatic claim submission
+                    try {
+                      // First create the invoice
+                      const patient = patients.find((p: any) => p.id === pendingOrderData?.patientId);
+                      const invoicePayload = {
+                        patientId: patient?.patientId || '',
+                        patientName: patientName,
+                        nhsNumber: patient?.nhsNumber || '',
+                        dateOfService: invoiceData.serviceDate,
+                        invoiceDate: invoiceData.invoiceDate,
+                        dueDate: invoiceData.dueDate,
+                        status: 'draft',
+                        invoiceType: 'payment',
+                        subtotal: invoiceData.totalAmount,
+                        tax: '0',
+                        discount: '0',
+                        totalAmount: invoiceData.totalAmount,
+                        paidAmount: '0',
+                        items: invoiceData.items,
+                        insuranceProvider: invoiceData.insuranceProvider,
+                        notes: invoiceData.notes,
+                        paymentMethod: invoiceData.paymentMethod
+                      };
+
+                      const response = await apiRequest("POST", "/api/invoices", invoicePayload);
+                      if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || "Failed to create invoice");
+                      }
+                      const createdInvoice = await response.json();
+
+                      // Automatically submit insurance claim
+                      let claimSubmitted = false;
+                      let claimError = null;
+                      if (invoiceData.insuranceProvider && invoiceData.insuranceProvider !== 'none') {
+                        try {
+                          const claimNumber = `AUTO-${Date.now()}`;
+                          const claimResponse = await apiRequest('POST', '/api/insurance/submit-claim', {
+                            invoiceId: createdInvoice.id,
+                            provider: invoiceData.insuranceProvider,
+                            claimNumber: claimNumber
+                          });
+                          if (!claimResponse.ok) {
+                            throw new Error("Failed to submit insurance claim");
+                          }
+                          claimSubmitted = true;
+                          console.log("Insurance claim submitted automatically:", { 
+                            invoiceId: createdInvoice.id, 
+                            provider: invoiceData.insuranceProvider, 
+                            claimNumber 
+                          });
+                        } catch (err) {
+                          claimError = err;
+                          console.error("Failed to auto-submit insurance claim:", err);
+                        }
+                      }
+
+                      // Update Lab_Request_Generated to true
+                      if (pendingOrderData?.testId) {
+                        try {
+                          await apiRequest("PATCH", `/api/lab-results/${pendingOrderData.testId}`, {
+                            labRequestGenerated: true
+                          });
+                        } catch (error) {
+                          console.error("Failed to update Lab_Request_Generated:", error);
+                        }
+                      }
+
+                      // Show appropriate message based on claim submission result
+                      if (claimSubmitted) {
+                        toast({
+                          title: "Invoice Created & Claim Submitted",
+                          description: "Invoice created successfully and insurance claim submitted automatically.",
+                        });
+                      } else if (claimError) {
+                        toast({
+                          title: "Invoice Created - Claim Failed",
+                          description: "Invoice created successfully, but insurance claim submission failed. Please submit the claim manually.",
+                          variant: "destructive",
+                        });
+                      } else {
+                        toast({
+                          title: "Invoice Created",
+                          description: "Invoice created successfully.",
+                        });
+                      }
+
+                      setShowSummaryDialog(false);
+                      queryClient.invalidateQueries({ queryKey: ["/api/lab-results"] });
+                      queryClient.invalidateQueries({ queryKey: ["/api/invoices"] });
+                    } catch (error) {
+                      console.error("Error creating invoice:", error);
+                      toast({
+                        title: "Creation Failed",
+                        description: error instanceof Error ? error.message : "Failed to create invoice. Please try again.",
+                        variant: "destructive",
+                      });
+                    }
                   }
                 }}
                 disabled={createCashPaymentMutation.isPending || createStripePaymentMutation.isPending}
