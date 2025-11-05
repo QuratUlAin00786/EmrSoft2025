@@ -2981,17 +2981,13 @@ Medical License: [License Number]
                     discount: '0',
                     totalAmount: invoiceData.totalAmount,
                     paidAmount: '0',
-                    items: invoiceData.services.map((service: any) => {
-                      const amount = parseFloat(service.amount);
-                      const validAmount = isNaN(amount) ? 0 : amount;
-                      return {
-                        code: service.code || '',
-                        description: service.description || '',
-                        quantity: 1,
-                        unitPrice: validAmount,
-                        total: validAmount
-                      };
-                    }),
+                    items: invoiceData.services.map((service: any) => ({
+                      code: service.code,
+                      description: service.description,
+                      quantity: 1,
+                      unitPrice: parseFloat(service.amount || 0),
+                      total: parseFloat(service.amount || 0)
+                    })),
                     insuranceProvider: invoiceData.insuranceProvider,
                     notes: invoiceData.notes,
                     paymentMethod: invoiceData.paymentMethod
