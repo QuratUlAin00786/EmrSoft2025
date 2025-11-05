@@ -2884,8 +2884,17 @@ Report generated from Cura EMR System`;
                             <td className="px-6 py-4 whitespace-nowrap text-sm">
                               <Badge
                                 variant={result.labReportGenerated ? "default" : "secondary"}
-                                className="text-xs"
+                                className={`text-xs flex items-center gap-1 ${
+                                  result.labReportGenerated 
+                                    ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 border-green-300 dark:border-green-800" 
+                                    : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600"
+                                }`}
                               >
+                                {result.labReportGenerated ? (
+                                  <CheckCircle className="h-3 w-3" />
+                                ) : (
+                                  <Clock className="h-3 w-3" />
+                                )}
                                 {result.labReportGenerated ? "Report Generated" : "Report Not Generated"}
                               </Badge>
                             </td>
@@ -3220,8 +3229,17 @@ Report generated from Cura EMR System`;
                       </Badge>
                       <Badge
                         variant={result.labReportGenerated ? "default" : "secondary"}
-                        className="text-xs"
+                        className={`text-xs flex items-center gap-1 ${
+                          result.labReportGenerated 
+                            ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 border-green-300 dark:border-green-800" 
+                            : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600"
+                        }`}
                       >
+                        {result.labReportGenerated ? (
+                          <CheckCircle className="h-3 w-3" />
+                        ) : (
+                          <Clock className="h-3 w-3" />
+                        )}
                         {result.labReportGenerated ? "Report Generated" : "Report Not Generated"}
                       </Badge>
                     </div>
