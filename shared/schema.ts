@@ -445,6 +445,7 @@ export const medicalRecords = pgTable("medical_records", {
 export const appointments = pgTable("appointments", {
   id: serial("id").primaryKey(),
   organizationId: integer("organization_id").notNull(),
+  appointmentId: text("appointment_id").notNull().unique(), // Unique appointment ID (e.g., APT1762331234567P10AUTO)
   patientId: integer("patient_id").notNull(),
   providerId: integer("provider_id").notNull(),
   assignedRole: varchar("assigned_role", { length: 50 }), // Role selected during booking

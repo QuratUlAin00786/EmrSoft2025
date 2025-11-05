@@ -3657,11 +3657,15 @@ This treatment plan should be reviewed and adjusted based on individual patient 
         console.log("Using provided numeric patient ID:", numericPatientId);
       }
 
+      // Generate unique appointment ID
+      const appointmentId = `APT${Date.now()}P${numericPatientId}AUTO`;
+
       const appointmentToCreate = {
         patientId: numericPatientId,
         providerId: appointmentData.providerId,
         assignedRole: appointmentData.assignedRole || null,
         organizationId: req.tenant!.id,
+        appointmentId: appointmentId, // Add auto-generated appointment ID
         title: appointmentData.title || `${appointmentData.type} appointment`,
         description: appointmentData.description || appointmentData.notes || "",
         scheduledAt: appointmentData.scheduledAt || appointmentData.appointmentDate,
