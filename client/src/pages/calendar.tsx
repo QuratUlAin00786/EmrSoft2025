@@ -3925,12 +3925,30 @@ export default function CalendarPage() {
                   {/* Insurance Provider */}
                   <div>
                     <Label className="text-sm font-medium text-gray-900 dark:text-white">Insurance Provider</Label>
-                    <Input
+                    <Select
                       value={invoiceForm.insuranceProvider}
-                      onChange={(e) => setInvoiceForm({ ...invoiceForm, insuranceProvider: e.target.value })}
-                      className="mt-1"
-                      placeholder="None (Patient Self-Pay)"
-                    />
+                      onValueChange={(value) => setInvoiceForm({ ...invoiceForm, insuranceProvider: value })}
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Select insurance provider" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="None (Patient Self-Pay)">None (Patient Self-Pay)</SelectItem>
+                        <SelectItem value="NHS (National Health Service)">NHS (National Health Service)</SelectItem>
+                        <SelectItem value="Bupa">Bupa</SelectItem>
+                        <SelectItem value="AXA PPP Healthcare">AXA PPP Healthcare</SelectItem>
+                        <SelectItem value="Vitality Health">Vitality Health</SelectItem>
+                        <SelectItem value="Aviva Health">Aviva Health</SelectItem>
+                        <SelectItem value="Simply Health">Simply Health</SelectItem>
+                        <SelectItem value="WPA">WPA</SelectItem>
+                        <SelectItem value="Benenden Health">Benenden Health</SelectItem>
+                        <SelectItem value="Healix Health Services">Healix Health Services</SelectItem>
+                        <SelectItem value="Sovereign Health Care">Sovereign Health Care</SelectItem>
+                        <SelectItem value="Exeter Friendly Society">Exeter Friendly Society</SelectItem>
+                        <SelectItem value="Self-Pay">Self-Pay</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   {/* Total Amount */}
@@ -3965,10 +3983,13 @@ export default function CalendarPage() {
                         <SelectValue placeholder="Select payment method" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="cash">Cash</SelectItem>
-                        <SelectItem value="card">Card</SelectItem>
-                        <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
-                        <SelectItem value="insurance">Insurance</SelectItem>
+                        <SelectItem value="Cash">Cash</SelectItem>
+                        <SelectItem value="Debit Card">Debit Card</SelectItem>
+                        <SelectItem value="Credit Card">Credit Card</SelectItem>
+                        <SelectItem value="Insurance">Insurance</SelectItem>
+                        <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
+                        <SelectItem value="Check">Check</SelectItem>
+                        <SelectItem value="Online Payment">Online Payment</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -4179,18 +4200,20 @@ export default function CalendarPage() {
                           dateOfService: invoiceForm.serviceDate,
                           invoiceDate: invoiceForm.invoiceDate,
                           dueDate: invoiceForm.dueDate,
-                          status: invoiceForm.paymentMethod === "cash" ? "paid" : "draft",
+                          status: invoiceForm.paymentMethod === "Cash" ? "paid" : "draft",
                           invoiceType: "payment",
+                          paymentMethod: invoiceForm.paymentMethod,
                           subtotal: invoiceForm.amount,
                           tax: "0",
                           discount: "0",
                           totalAmount: invoiceForm.amount,
-                          paidAmount: invoiceForm.paymentMethod === "cash" ? invoiceForm.amount : "0",
+                          paidAmount: invoiceForm.paymentMethod === "Cash" ? invoiceForm.amount : "0",
                           items: [{
                             code: invoiceForm.serviceCode,
                             description: invoiceForm.serviceDescription,
                             quantity: 1,
-                            amount: amount
+                            unitPrice: amount,
+                            total: amount
                           }],
                           insuranceProvider: invoiceForm.insuranceProvider,
                           notes: invoiceForm.notes
