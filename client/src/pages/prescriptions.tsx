@@ -2850,43 +2850,45 @@ export default function PrescriptionsPage() {
                       </div>
 
                       <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="provider">Select Name</Label>
-                          <Select
-                            value={formData.providerId}
-                            onValueChange={(value) =>
-                              setFormData((prev) => ({
-                                ...prev,
-                                providerId: value,
-                              }))
-                            }
-                            disabled={!selectedRole}
-                          >
-                            <SelectTrigger data-testid="select-provider" className="[&>span]:text-gray-900 dark:[&>span]:text-gray-100">
-                              <SelectValue
-                                placeholder={
-                                  selectedRole
-                                    ? "Select name..."
-                                    : "Select a role first"
-                                }
-                              />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {allUsers
-                                .filter(
-                                  (usr: any) => usr.role === selectedRole,
-                                )
-                                .map((usr: any) => (
-                                  <SelectItem
-                                    key={usr.id}
-                                    value={usr.id.toString()}
-                                  >
-                                    {usr.firstName} {usr.lastName}
-                                  </SelectItem>
-                                ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
+                        {user?.role !== "doctor" && (
+                          <div>
+                            <Label htmlFor="provider">Select Name</Label>
+                            <Select
+                              value={formData.providerId}
+                              onValueChange={(value) =>
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  providerId: value,
+                                }))
+                              }
+                              disabled={!selectedRole}
+                            >
+                              <SelectTrigger data-testid="select-provider" className="[&>span]:text-gray-900 dark:[&>span]:text-gray-100">
+                                <SelectValue
+                                  placeholder={
+                                    selectedRole
+                                      ? "Select name..."
+                                      : "Select a role first"
+                                  }
+                                />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {allUsers
+                                  .filter(
+                                    (usr: any) => usr.role === selectedRole,
+                                  )
+                                  .map((usr: any) => (
+                                    <SelectItem
+                                      key={usr.id}
+                                      value={usr.id.toString()}
+                                    >
+                                      {usr.firstName} {usr.lastName}
+                                    </SelectItem>
+                                  ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        )}
 
                         <div>
                           <Label htmlFor="diagnosis">Diagnosis *</Label>
