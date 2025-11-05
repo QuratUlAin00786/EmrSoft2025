@@ -2961,58 +2961,7 @@ Medical License: [License Number]
                 try {
                   const selectedPatient = patientsData?.find((p: any) => p.id.toString() === newAppointmentData.patientId);
                   
-                  // Create invoice first
-                  // Determine invoice type based on insurance provider
-                  const isInsuranceClaim = invoiceData.insuranceProvider && 
-                    invoiceData.insuranceProvider !== "None (Patient Self-Pay)" && 
-                    invoiceData.insuranceProvider !== "Self-Pay";
-                  
-                  const invoicePayload = {
-                    patientId: selectedPatient?.patientId || '',
-                    patientName: `${selectedPatient?.firstName || ''} ${selectedPatient?.lastName || ''}`,
-                    nhsNumber: selectedPatient?.nhsNumber || '',
-                    dateOfService: invoiceData.serviceDate,
-                    invoiceDate: invoiceData.invoiceDate,
-                    dueDate: invoiceData.dueDate,
-                    status: 'draft',
-                    invoiceType: isInsuranceClaim ? 'insurance_claim' : 'payment',
-                    subtotal: invoiceData.totalAmount,
-                    tax: '0',
-                    discount: '0',
-                    totalAmount: invoiceData.totalAmount,
-                    paidAmount: '0',
-                    items: invoiceData.services.map((service: any) => ({
-                      code: service.code,
-                      description: service.description,
-                      quantity: 1,
-                      unitPrice: parseFloat(service.amount || 0),
-                      total: parseFloat(service.amount || 0)
-                    })),
-                    insuranceProvider: invoiceData.insuranceProvider,
-                    notes: invoiceData.notes,
-                    paymentMethod: invoiceData.paymentMethod
-                  };
-                  
-                  console.log("Creating invoice with payload:", invoicePayload);
-                  const createdInvoice = await createInvoiceMutation.mutateAsync(invoicePayload);
-                  
-                  // If payment method is Insurance, automatically submit insurance claim
-                  if (invoiceData.paymentMethod === "Insurance" && invoiceData.insuranceProvider) {
-                    try {
-                      const claimNumber = `AUTO-${Date.now()}`;
-                      await apiRequest('POST', '/api/insurance/submit-claim', {
-                        invoiceId: createdInvoice.id,
-                        provider: invoiceData.insuranceProvider,
-                        claimNumber: claimNumber
-                      });
-                      console.log("Insurance claim submitted automatically:", { invoiceId: createdInvoice.id, provider: invoiceData.insuranceProvider, claimNumber });
-                    } catch (claimError) {
-                      console.error("Failed to auto-submit insurance claim:", claimError);
-                      // Don't fail the whole process if claim submission fails
-                    }
-                  }
-                  
-                  // Create appointment
+                  // Create appointment first to get the auto-generated appointment_id
                   const selectedDate = format(newAppointmentDate!, 'yyyy-MM-dd');
                   const [time, period] = newSelectedTimeSlot.split(' ');
                   const [hours, minutes] = time.split(':');
@@ -3043,6 +2992,57 @@ Medical License: [License Number]
                   
                   console.log("Creating appointment with payload:", appointmentPayload);
                   const appointmentResult = await createAppointmentMutation.mutateAsync(appointmentPayload);
+                  
+                  // Now create invoice with appointment_id as service_id
+                  const isInsuranceClaim = invoiceData.insuranceProvider && 
+                    invoiceData.insuranceProvider !== "None (Patient Self-Pay)" && 
+                    invoiceData.insuranceProvider !== "Self-Pay";
+                  
+                  const invoicePayload = {
+                    patientId: selectedPatient?.patientId || '',
+                    patientName: `${selectedPatient?.firstName || ''} ${selectedPatient?.lastName || ''}`,
+                    nhsNumber: selectedPatient?.nhsNumber || '',
+                    dateOfService: invoiceData.serviceDate,
+                    invoiceDate: invoiceData.invoiceDate,
+                    dueDate: invoiceData.dueDate,
+                    status: 'draft',
+                    invoiceType: isInsuranceClaim ? 'insurance_claim' : 'payment',
+                    subtotal: invoiceData.totalAmount,
+                    tax: '0',
+                    discount: '0',
+                    totalAmount: invoiceData.totalAmount,
+                    paidAmount: '0',
+                    items: invoiceData.services.map((service: any) => ({
+                      code: service.code,
+                      description: service.description,
+                      quantity: 1,
+                      unitPrice: parseFloat(service.amount || 0),
+                      total: parseFloat(service.amount || 0)
+                    })),
+                    insuranceProvider: invoiceData.insuranceProvider,
+                    notes: invoiceData.notes,
+                    paymentMethod: invoiceData.paymentMethod,
+                    serviceId: appointmentResult.appointmentId
+                  };
+                  
+                  console.log("Creating invoice with payload (including appointment_id):", invoicePayload);
+                  const createdInvoice = await createInvoiceMutation.mutateAsync(invoicePayload);
+                  
+                  // If payment method is Insurance, automatically submit insurance claim
+                  if (invoiceData.paymentMethod === "Insurance" && invoiceData.insuranceProvider) {
+                    try {
+                      const claimNumber = `AUTO-${Date.now()}`;
+                      await apiRequest('POST', '/api/insurance/submit-claim', {
+                        invoiceId: createdInvoice.id,
+                        provider: invoiceData.insuranceProvider,
+                        claimNumber: claimNumber
+                      });
+                      console.log("Insurance claim submitted automatically:", { invoiceId: createdInvoice.id, provider: invoiceData.insuranceProvider, claimNumber });
+                    } catch (claimError) {
+                      console.error("Failed to auto-submit insurance claim:", claimError);
+                      // Don't fail the whole process if claim submission fails
+                    }
+                  }
                   
                   // Invalidate queries to refresh data
                   queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
