@@ -16717,6 +16717,86 @@ This treatment plan should be reviewed and adjusted based on individual patient 
     }
   });
 
+  // Get doctor-specific invoices with table joins
+  app.get("/api/billing/doctor-invoices", requireRole(["doctor"]), async (req: TenantRequest, res) => {
+    try {
+      const doctorUserId = req.user!.id;
+      const organizationId = req.tenant!.id;
+      
+      console.log(`🩺 Fetching doctor-specific invoices for doctor ID: ${doctorUserId}, organization: ${organizationId}`);
+      
+      // Fetch all lab results for this doctor
+      const doctorLabResults = await db
+        .select()
+        .from(schema.labResults)
+        .where(
+          and(
+            eq(schema.labResults.organizationId, organizationId),
+            eq(schema.labResults.orderedBy, doctorUserId)
+          )
+        );
+      
+      // Fetch all medical images for this doctor
+      const doctorImages = await db
+        .select()
+        .from(schema.medicalImages)
+        .where(
+          and(
+            eq(schema.medicalImages.organizationId, organizationId),
+            eq(schema.medicalImages.uploadedBy, doctorUserId)
+          )
+        );
+      
+      // Fetch all appointments for this doctor
+      const doctorAppointments = await db
+        .select()
+        .from(schema.appointments)
+        .where(
+          and(
+            eq(schema.appointments.organizationId, organizationId),
+            eq(schema.appointments.providerId, doctorUserId)
+          )
+        );
+      
+      // Get all invoices for the organization
+      const allInvoices = await storage.getInvoicesByOrganization(organizationId);
+      
+      // Match invoices by service_id with the respective tables
+      const labInvoices = allInvoices.filter(invoice => 
+        invoice.serviceId && doctorLabResults.some(lr => lr.testId === invoice.serviceId)
+      );
+      
+      const imagingInvoices = allInvoices.filter(invoice => 
+        invoice.serviceId && doctorImages.some(img => img.imageId === invoice.serviceId)
+      );
+      
+      const appointmentInvoices = allInvoices.filter(invoice => 
+        invoice.serviceId && doctorAppointments.some(apt => apt.appointmentId === invoice.serviceId)
+      );
+      
+      // Overall: All unique invoices that match this doctor
+      const allMatchingIds = new Set([
+        ...labInvoices.map(i => i.id),
+        ...imagingInvoices.map(i => i.id),
+        ...appointmentInvoices.map(i => i.id)
+      ]);
+      
+      const overallInvoices = allInvoices.filter(invoice => allMatchingIds.has(invoice.id));
+      
+      console.log(`✅ Doctor invoices found - Overall: ${overallInvoices.length}, Appointments: ${appointmentInvoices.length}, Lab: ${labInvoices.length}, Imaging: ${imagingInvoices.length}`);
+      
+      res.json({
+        overall: overallInvoices,
+        appointments: appointmentInvoices,
+        labResults: labInvoices,
+        imaging: imagingInvoices
+      });
+    } catch (error) {
+      console.error("Doctor invoices fetch error:", error);
+      res.status(500).json({ error: "Failed to fetch doctor invoices" });
+    }
+  });
+
   app.post("/api/billing/invoices", requireRole(["admin", "doctor", "nurse", "receptionist"]), async (req: TenantRequest, res) => {
     try {
       const invoiceData = z.object({

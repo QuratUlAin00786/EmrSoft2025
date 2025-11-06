@@ -2960,6 +2960,7 @@ export default function BillingPage() {
     }
   };
 
+  // Fetch regular invoices for non-doctor roles
   const { data: invoices = [], isLoading: invoicesLoading } = useQuery({
     queryKey: ["/api/billing/invoices", statusFilter],
     queryFn: async () => {
@@ -2977,8 +2978,39 @@ export default function BillingPage() {
       if (!response.ok) throw new Error('Failed to fetch invoices');
       return response.json();
     },
-    enabled: true,
+    enabled: user?.role !== 'doctor',
   });
+
+  // Fetch doctor-specific invoices with table joins
+  const { data: doctorInvoices, isLoading: doctorInvoicesLoading } = useQuery({
+    queryKey: ["/api/billing/doctor-invoices"],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token');
+      const subdomain = localStorage.getItem('user_subdomain') || 'demo';
+      const response = await fetch('/api/billing/doctor-invoices', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-Subdomain': subdomain
+        }
+      });
+      if (!response.ok) throw new Error('Failed to fetch doctor invoices');
+      return response.json();
+    },
+    enabled: user?.role === 'doctor',
+  });
+
+  // Doctor invoice category tab state
+  const [doctorInvoiceTab, setDoctorInvoiceTab] = useState<'overall' | 'appointments' | 'labResults' | 'imaging'>('overall');
+
+  // Get the appropriate invoices based on user role
+  const displayInvoices = user?.role === 'doctor' && doctorInvoices 
+    ? (doctorInvoiceTab === 'overall' ? doctorInvoices.overall :
+       doctorInvoiceTab === 'appointments' ? doctorInvoices.appointments :
+       doctorInvoiceTab === 'labResults' ? doctorInvoices.labResults :
+       doctorInvoices.imaging)
+    : invoices;
+
+  const isLoadingInvoices = user?.role === 'doctor' ? doctorInvoicesLoading : invoicesLoading;
 
   // Fetch patients for new invoice dropdown
   const { data: patients, isLoading: patientsLoading } = useQuery({
@@ -3041,7 +3073,7 @@ export default function BillingPage() {
     }
   }, [selectedPatient, patients]);
 
-  const filteredInvoices = Array.isArray(invoices) ? invoices.filter((invoice: any) => {
+  const filteredInvoices = Array.isArray(displayInvoices) ? displayInvoices.filter((invoice: any) => {
     // Filter by patient ID if user is a patient
     if (isPatient && currentPatientId) {
       if (invoice.patientId !== currentPatientId) {
@@ -3687,6 +3719,50 @@ export default function BillingPage() {
                       </div>
                     </CardContent>
                   </Card>
+
+                  {/* Doctor-specific category tabs */}
+                  {user?.role === 'doctor' && (
+                    <Card>
+                      <CardContent className="p-4">
+                        <Tabs value={doctorInvoiceTab} onValueChange={(value) => setDoctorInvoiceTab(value as any)} className="w-full">
+                          <TabsList className="grid w-full grid-cols-4 gap-1">
+                            <TabsTrigger value="overall" data-testid="tab-doctor-overall">
+                              Overall
+                              {doctorInvoices && (
+                                <Badge variant="secondary" className="ml-2">
+                                  {doctorInvoices.overall?.length || 0}
+                                </Badge>
+                              )}
+                            </TabsTrigger>
+                            <TabsTrigger value="appointments" data-testid="tab-doctor-appointments">
+                              Appointments
+                              {doctorInvoices && (
+                                <Badge variant="secondary" className="ml-2">
+                                  {doctorInvoices.appointments?.length || 0}
+                                </Badge>
+                              )}
+                            </TabsTrigger>
+                            <TabsTrigger value="labResults" data-testid="tab-doctor-lab-results">
+                              Lab Results
+                              {doctorInvoices && (
+                                <Badge variant="secondary" className="ml-2">
+                                  {doctorInvoices.labResults?.length || 0}
+                                </Badge>
+                              )}
+                            </TabsTrigger>
+                            <TabsTrigger value="imaging" data-testid="tab-doctor-imaging">
+                              Imaging
+                              {doctorInvoices && (
+                                <Badge variant="secondary" className="ml-2">
+                                  {doctorInvoices.imaging?.length || 0}
+                                </Badge>
+                              )}
+                            </TabsTrigger>
+                          </TabsList>
+                        </Tabs>
+                      </CardContent>
+                    </Card>
+                  )}
 
                   {/* Invoices List */}
                   {isListView ? (
