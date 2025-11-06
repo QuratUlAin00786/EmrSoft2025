@@ -7143,7 +7143,24 @@ This treatment plan should be reviewed and adjusted based on individual patient 
         labResults = await storage.getLabResultsByOrganization(req.tenant!.id);
       }
 
-      res.json(labResults);
+      // Enrich with invoice information (paymentMethod, insuranceProvider)
+      const enrichedLabResults = await Promise.all(labResults.map(async (labResult: any) => {
+        // Find related invoice using serviceId matching testId
+        const invoices = await db
+          .select()
+          .from(schema.invoices)
+          .where(eq(schema.invoices.serviceId, labResult.testId));
+        
+        const invoice = invoices[0]; // Get the first matching invoice
+        
+        return {
+          ...labResult,
+          paymentMethod: invoice?.paymentMethod || null,
+          insuranceProvider: invoice?.insuranceProvider || null
+        };
+      }));
+
+      res.json(enrichedLabResults);
     } catch (error) {
       console.error("Error fetching lab results:", error);
       res.status(500).json({ error: "Failed to fetch lab results" });
