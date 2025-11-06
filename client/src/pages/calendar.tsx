@@ -3594,7 +3594,15 @@ export default function CalendarPage() {
                               const doctorFullName = conflictDoctor ? `${conflictDoctor.firstName} ${conflictDoctor.lastName}` : 'Unknown Doctor';
                               const patientName = selectedPatient ? `${selectedPatient.firstName} ${selectedPatient.lastName}` : 'Patient';
                               const formattedDate = format(new Date(conflictingAppointment.scheduledAt), 'MMMM do, yyyy');
-                              const formattedTime = format(new Date(conflictingAppointment.scheduledAt), 'p');
+                              
+                              // Extract time from scheduledAt string to avoid timezone conversion
+                              const timeString = conflictingAppointment.scheduledAt.substring(11, 16); // Get "HH:MM"
+                              const [hours24, minutes] = timeString.split(':');
+                              const hours = parseInt(hours24, 10);
+                              const ampm = hours >= 12 ? 'PM' : 'AM';
+                              const hours12 = hours % 12 || 12;
+                              const formattedTime = `${hours12}:${minutes} ${ampm}`;
+                              
                               const duration = conflictingAppointment.duration || 30;
                               setDuplicateAppointmentDetails(`Patient ${patientName} already has an appointment with ${doctorFullName} on ${formattedDate}, at ${formattedTime} for ${duration} minutes. Please select another time slot.`);
                               setShowDuplicateWarning(true);
@@ -3657,7 +3665,15 @@ export default function CalendarPage() {
                               const doctorFullName = conflictDoctor ? `${conflictDoctor.firstName} ${conflictDoctor.lastName}` : 'Unknown Doctor';
                               const patientName = selectedPatient ? `${selectedPatient.firstName} ${selectedPatient.lastName}` : 'Patient';
                               const formattedDate = format(new Date(conflictingAppointment.scheduledAt), 'MMMM do, yyyy');
-                              const formattedTime = format(new Date(conflictingAppointment.scheduledAt), 'p');
+                              
+                              // Extract time from scheduledAt string to avoid timezone conversion
+                              const timeString = conflictingAppointment.scheduledAt.substring(11, 16); // Get "HH:MM"
+                              const [hours24, minutes] = timeString.split(':');
+                              const hours = parseInt(hours24, 10);
+                              const ampm = hours >= 12 ? 'PM' : 'AM';
+                              const hours12 = hours % 12 || 12;
+                              const formattedTime = `${hours12}:${minutes} ${ampm}`;
+                              
                               const duration = conflictingAppointment.duration || 30;
                               setDuplicateAppointmentDetails(`Patient: ${patientName} already has an appointment with ${doctorFullName} on ${formattedDate}, at ${formattedTime} for ${duration} minutes. Please select another time slot.`);
                               setShowDuplicateWarning(true);
