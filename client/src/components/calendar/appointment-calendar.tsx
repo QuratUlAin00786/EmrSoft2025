@@ -2498,7 +2498,9 @@ Medical License: [License Number]
                         const doctorName = usersData?.find((u: any) => u.id.toString() === selectedProviderId);
                         const doctorFullName = doctorName ? `${doctorName.firstName} ${doctorName.lastName}` : 'the selected doctor';
                         const formattedDate = format(newAppointmentDate, 'PPP');
-                        setDuplicateAppointmentDetails(`${doctorFullName} on ${formattedDate}`);
+                        const selectedPatient = patientsData?.find((p: any) => p.id.toString() === newAppointmentData.patientId);
+                        const patientFullName = selectedPatient ? `${selectedPatient.firstName} ${selectedPatient.lastName}` : 'Patient';
+                        setDuplicateAppointmentDetails(`Patient ${patientFullName} already has an appointment with ${doctorFullName} on ${formattedDate}. Please select another time slot.`);
                         setShowDuplicateWarning(true);
                         return;
                       }
@@ -2560,7 +2562,9 @@ Medical License: [License Number]
                         const formattedDate = format(new Date(conflictingAppointment.scheduledAt), 'PPP');
                         const formattedTime = format(new Date(conflictingAppointment.scheduledAt), 'p');
                         const duration = conflictingAppointment.duration || 30;
-                        setDuplicateAppointmentDetails(`Patient has already appointment with ${doctorFullName} on ${formattedDate} at ${formattedTime} with time duration ${duration} minutes. Please select another time.`);
+                        const selectedPatient = patientsData?.find((p: any) => p.id.toString() === newAppointmentData.patientId);
+                        const patientFullName = selectedPatient ? `${selectedPatient.firstName} ${selectedPatient.lastName}` : 'Patient';
+                        setDuplicateAppointmentDetails(`Patient ${patientFullName} already has an appointment with ${doctorFullName} on ${formattedDate}, at ${formattedTime} for ${duration} minutes. Please select another time slot.`);
                         setShowDuplicateWarning(true);
                         return;
                       } else {
@@ -3296,7 +3300,7 @@ Medical License: [License Number]
           
           <div className="py-4">
             <p className="text-gray-700">
-              You have already created an appointment with the same doctor on this date. ({duplicateAppointmentDetails}), you can update existing appointment.
+              You have already created an appointment. ({duplicateAppointmentDetails}) You can choose a different time for the appointment.
             </p>
           </div>
 
