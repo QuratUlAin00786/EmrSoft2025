@@ -2506,7 +2506,35 @@ Medical License: [License Number]
                     
                     // Admin-only: Check for time slot conflicts (same patient, same time slot)
                     if (user?.role === 'admin' && appointmentsData && newAppointmentDate && newSelectedTimeSlot) {
+                      console.log('[Conflict Check] Starting conflict detection...');
+                      console.log('[Conflict Check] Patient ID:', newAppointmentData.patientId);
+                      console.log('[Conflict Check] Selected time slot:', newSelectedTimeSlot);
+                      console.log('[Conflict Check] Appointments data count:', appointmentsData.length);
+                      
                       const selectedDateStr = format(newAppointmentDate, 'yyyy-MM-dd');
+                      
+                      // Convert 12-hour time format to 24-hour format for comparison
+                      const convertTo24Hour = (time12h: string): string => {
+                        const [time, modifier] = time12h.split(' ');
+                        let [hours, minutes] = time.split(':');
+                        
+                        if (hours === '12') {
+                          hours = '00';
+                        }
+                        
+                        if (modifier === 'PM') {
+                          hours = String(parseInt(hours, 10) + 12);
+                        }
+                        
+                        return `${hours.padStart(2, '0')}:${minutes}`;
+                      };
+                      
+                      const selectedTime24h = newSelectedTimeSlot.includes('AM') || newSelectedTimeSlot.includes('PM') 
+                        ? convertTo24Hour(newSelectedTimeSlot)
+                        : newSelectedTimeSlot;
+                      
+                      console.log('[Conflict Check] Converted selected time to 24h:', selectedTime24h);
+                      
                       const conflictingAppointment = appointmentsData.find((apt: any) => {
                         if (apt.patientId.toString() !== newAppointmentData.patientId || apt.status === 'cancelled') {
                           return false;
@@ -2520,10 +2548,13 @@ Medical License: [License Number]
                         // Extract time from appointment's scheduledAt
                         const aptTimeString = apt.scheduledAt.substring(11, 16); // Extract "HH:MM"
                         
-                        return aptTimeString === newSelectedTimeSlot;
+                        console.log('[Conflict Check] Comparing times - Appointment:', aptTimeString, 'vs Selected:', selectedTime24h);
+                        
+                        return aptTimeString === selectedTime24h;
                       });
                       
                       if (conflictingAppointment) {
+                        console.log('[Conflict Check] CONFLICT FOUND:', conflictingAppointment);
                         const conflictDoctorName = usersData?.find((u: any) => u.id.toString() === conflictingAppointment.providerId.toString());
                         const doctorFullName = conflictDoctorName ? `${conflictDoctorName.firstName} ${conflictDoctorName.lastName}` : 'Unknown Doctor';
                         const formattedDate = format(new Date(conflictingAppointment.scheduledAt), 'PPP');
@@ -2532,6 +2563,8 @@ Medical License: [License Number]
                         setDuplicateAppointmentDetails(`Patient has already appointment with ${doctorFullName} on ${formattedDate} at ${formattedTime} with time duration ${duration} minutes. Please select another time.`);
                         setShowDuplicateWarning(true);
                         return;
+                      } else {
+                        console.log('[Conflict Check] No conflict found');
                       }
                     }
                     
