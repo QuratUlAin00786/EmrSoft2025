@@ -2123,6 +2123,12 @@ export default function BillingPage() {
   
   // Payment method filter for doctors
   const [paymentMethodFilter, setPaymentMethodFilter] = useState<string>("all");
+  
+  // Insurance provider filter for doctors
+  const [insuranceProviderFilter, setInsuranceProviderFilter] = useState<string>("all");
+  
+  // Universal search for doctors
+  const [universalSearch, setUniversalSearch] = useState("");
 
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [activeTab, setActiveTab] = useState("invoices");
@@ -3081,7 +3087,27 @@ export default function BillingPage() {
       }
     }
     
-    // Unified search: Search by Invoice ID, Patient ID, or Patient Name
+    // For doctors: Universal search across all invoice fields
+    if (user?.role === 'doctor' && universalSearch) {
+      const searchLower = universalSearch.toLowerCase();
+      const matchesUniversalSearch = 
+        invoice.patientName?.toLowerCase().includes(searchLower) ||
+        String(invoice.id).toLowerCase().includes(searchLower) ||
+        String(invoice.invoiceNumber || '').toLowerCase().includes(searchLower) ||
+        String(invoice.patientId).toLowerCase().includes(searchLower) ||
+        invoice.status?.toLowerCase().includes(searchLower) ||
+        String(invoice.totalAmount).includes(searchLower) ||
+        String(invoice.paidAmount).includes(searchLower) ||
+        invoice.paymentMethod?.toLowerCase().includes(searchLower) ||
+        invoice.insurance?.provider?.toLowerCase().includes(searchLower) ||
+        invoice.insurance?.claimNumber?.toLowerCase().includes(searchLower) ||
+        format(new Date(invoice.dateOfService), 'MMM d, yyyy').toLowerCase().includes(searchLower) ||
+        format(new Date(invoice.dueDate), 'MMM d, yyyy').toLowerCase().includes(searchLower);
+      
+      if (!matchesUniversalSearch) return false;
+    }
+    
+    // For non-doctors: Standard search by Invoice ID, Patient ID, or Patient Name
     const matchesSearch = !searchQuery || 
       invoice.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       String(invoice.id).toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -3096,10 +3122,13 @@ export default function BillingPage() {
     
     // Filter by payment method for doctors
     const matchesPaymentMethod = paymentMethodFilter === "all" || 
-      (invoice.insurance?.provider === paymentMethodFilter || 
-       invoice.insuranceProvider === paymentMethodFilter);
+      invoice.paymentMethod === paymentMethodFilter;
     
-    return matchesSearch && matchesStatus && matchesServiceDateFrom && matchesPaymentMethod;
+    // Filter by insurance provider for doctors
+    const matchesInsuranceProvider = insuranceProviderFilter === "all" || 
+      invoice.insurance?.provider === insuranceProviderFilter;
+    
+    return matchesSearch && matchesStatus && matchesServiceDateFrom && matchesPaymentMethod && matchesInsuranceProvider;
   }) : [];
 
   const getStatusColor = (status: string) => {
@@ -3335,16 +3364,29 @@ export default function BillingPage() {
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                          <div className="relative">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                            <Input
-                              placeholder="Search by Invoice ID, Patient ID or Name..."
-                              value={searchQuery}
-                              onChange={(e) => setSearchQuery(e.target.value)}
-                              className="pl-9 w-80"
-                              data-testid="input-search-invoices"
-                            />
-                          </div>
+                          {user?.role === 'doctor' ? (
+                            <div className="relative">
+                              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                              <Input
+                                placeholder="Search all invoice fields..."
+                                value={universalSearch}
+                                onChange={(e) => setUniversalSearch(e.target.value)}
+                                className="pl-9 w-80"
+                                data-testid="input-universal-search"
+                              />
+                            </div>
+                          ) : (
+                            <div className="relative">
+                              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                              <Input
+                                placeholder="Search by Invoice ID, Patient ID or Name..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="pl-9 w-80"
+                                data-testid="input-search-invoices"
+                              />
+                            </div>
+                          )}
                           
                           <Select value={statusFilter} onValueChange={setStatusFilter}>
                             <SelectTrigger className="w-40" data-testid="select-status-filter">
@@ -3360,6 +3402,48 @@ export default function BillingPage() {
                             </SelectContent>
                           </Select>
 
+                          {user?.role === 'doctor' && (
+                            <>
+                              <Select value={insuranceProviderFilter} onValueChange={setInsuranceProviderFilter}>
+                                <SelectTrigger className="w-52" data-testid="select-insurance-provider-filter">
+                                  <SelectValue placeholder="Insurance Provider" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="all">None (Patient Self-Pay)</SelectItem>
+                                  <SelectItem value="NHS">NHS (National Health Service)</SelectItem>
+                                  <SelectItem value="Bupa">Bupa</SelectItem>
+                                  <SelectItem value="AXA PPP Healthcare">AXA PPP Healthcare</SelectItem>
+                                  <SelectItem value="Vitality Health">Vitality Health</SelectItem>
+                                  <SelectItem value="Aviva Health">Aviva Health</SelectItem>
+                                  <SelectItem value="Simply Health">Simply Health</SelectItem>
+                                  <SelectItem value="WPA">WPA</SelectItem>
+                                  <SelectItem value="Benenden Health">Benenden Health</SelectItem>
+                                  <SelectItem value="Healix Health Services">Healix Health Services</SelectItem>
+                                  <SelectItem value="Sovereign Health Care">Sovereign Health Care</SelectItem>
+                                  <SelectItem value="Exeter Friendly Society">Exeter Friendly Society</SelectItem>
+                                  <SelectItem value="Self-Pay">Self-Pay</SelectItem>
+                                  <SelectItem value="Other">Other</SelectItem>
+                                </SelectContent>
+                              </Select>
+
+                              <Select value={paymentMethodFilter} onValueChange={setPaymentMethodFilter}>
+                                <SelectTrigger className="w-48" data-testid="select-payment-method-filter">
+                                  <SelectValue placeholder="Select payment method" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="all">All Payment Methods</SelectItem>
+                                  <SelectItem value="Cash">Cash</SelectItem>
+                                  <SelectItem value="Debit Card">Debit Card</SelectItem>
+                                  <SelectItem value="Credit Card">Credit Card</SelectItem>
+                                  <SelectItem value="Insurance">Insurance</SelectItem>
+                                  <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
+                                  <SelectItem value="Check">Check</SelectItem>
+                                  <SelectItem value="Online Payment">Online Payment</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </>
+                          )}
+
                           <div className="flex flex-col gap-1">
                             <Label htmlFor="service-date-from" className="text-xs text-gray-600 dark:text-gray-400">Service Date From</Label>
                             <Input
@@ -3372,11 +3456,18 @@ export default function BillingPage() {
                             />
                           </div>
 
-                          {serviceDateFrom && (
+                          {(serviceDateFrom || (user?.role === 'doctor' && (insuranceProviderFilter !== 'all' || paymentMethodFilter !== 'all' || universalSearch))) && (
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => setServiceDateFrom("")}
+                              onClick={() => {
+                                setServiceDateFrom("");
+                                if (user?.role === 'doctor') {
+                                  setInsuranceProviderFilter('all');
+                                  setPaymentMethodFilter('all');
+                                  setUniversalSearch('');
+                                }
+                              }}
                               data-testid="button-clear-filters"
                               className="mt-5"
                             >
