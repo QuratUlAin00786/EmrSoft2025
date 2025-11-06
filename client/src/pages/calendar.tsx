@@ -3603,6 +3603,69 @@ export default function CalendarPage() {
                               console.log('[TIME SLOT CHECK] No conflict found');
                             }
                           }
+                          
+                          // Patient-only: Check for time slot conflicts (same patient, same time slot)
+                          if (user?.role === 'patient' && selectedTimeSlot) {
+                            console.log('[PATIENT TIME SLOT CHECK] Starting time slot conflict detection...');
+                            console.log('[PATIENT TIME SLOT CHECK] Selected time slot:', selectedTimeSlot);
+                            
+                            // Convert 12-hour time format to 24-hour format for comparison
+                            const convertTo24Hour = (time12h: string): string => {
+                              const [time, modifier] = time12h.split(' ');
+                              let [hours, minutes] = time.split(':');
+                              
+                              if (hours === '12') {
+                                hours = '00';
+                              }
+                              
+                              if (modifier === 'PM') {
+                                hours = String(parseInt(hours, 10) + 12);
+                              }
+                              
+                              return `${hours.padStart(2, '0')}:${minutes}`;
+                            };
+                            
+                            const selectedTime24h = selectedTimeSlot.includes('AM') || selectedTimeSlot.includes('PM') 
+                              ? convertTo24Hour(selectedTimeSlot)
+                              : selectedTimeSlot;
+                            
+                            console.log('[PATIENT TIME SLOT CHECK] Converted selected time to 24h:', selectedTime24h);
+                            
+                            const conflictingAppointment = allAppointments.find((apt: any) => {
+                              const aptPatientId = apt.patient_id || apt.patientId;
+                              if (aptPatientId !== numericPatientId || apt.status === 'cancelled') {
+                                return false;
+                              }
+                              
+                              const aptDateStr = format(new Date(apt.scheduledAt), 'yyyy-MM-dd');
+                              if (aptDateStr !== selectedDateStr) {
+                                return false;
+                              }
+                              
+                              // Extract time from appointment's scheduledAt
+                              const aptTimeString = apt.scheduledAt.substring(11, 16); // Extract "HH:MM"
+                              
+                              console.log('[PATIENT TIME SLOT CHECK] Comparing times - Appointment:', aptTimeString, 'vs Selected:', selectedTime24h);
+                              
+                              return aptTimeString === selectedTime24h;
+                            });
+                            
+                            if (conflictingAppointment) {
+                              console.log('[PATIENT TIME SLOT CHECK] CONFLICT FOUND:', conflictingAppointment);
+                              const aptProviderId = conflictingAppointment.provider_id || conflictingAppointment.providerId;
+                              const conflictDoctor = filteredUsers.find((u: any) => u.id === aptProviderId);
+                              const doctorFullName = conflictDoctor ? `${conflictDoctor.firstName} ${conflictDoctor.lastName}` : 'Unknown Doctor';
+                              const patientName = selectedPatient ? `${selectedPatient.firstName} ${selectedPatient.lastName}` : 'Patient';
+                              const formattedDate = format(new Date(conflictingAppointment.scheduledAt), 'MMMM do, yyyy');
+                              const formattedTime = format(new Date(conflictingAppointment.scheduledAt), 'p');
+                              const duration = conflictingAppointment.duration || 30;
+                              setDuplicateAppointmentDetails(`Patient: ${patientName} already has an appointment with ${doctorFullName} on ${formattedDate}, at ${formattedTime} for ${duration} minutes. Please select another time slot.`);
+                              setShowDuplicateWarning(true);
+                              return;
+                            } else {
+                              console.log('[PATIENT TIME SLOT CHECK] No conflict found');
+                            }
+                          }
                         } else {
                           console.log('[DUPLICATE CHECK] Skipped - missing data:', {
                             hasAllAppointments: !!allAppointments,
