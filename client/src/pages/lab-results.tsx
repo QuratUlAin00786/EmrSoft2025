@@ -2806,6 +2806,9 @@ Report generated from Cura EMR System`;
                             Status
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            Payment Method
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                             Actions
                           </th>
                         </tr>
@@ -2947,6 +2950,11 @@ Report generated from Cura EMR System`;
                                   )}
                                 </div>
                               )}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                              <Badge variant="outline" className="bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-700">
+                                {(result as any).paymentMethod || 'N/A'}
+                              </Badge>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm">
                               <div className="flex items-center gap-2">
@@ -4037,14 +4045,24 @@ Report generated from Cura EMR System`;
               </div>
             </div>
 
-            {/* Row 2: Doctor */}
-            <div>
-              <Label className="text-sm font-medium">Doctor</Label>
-              <Input
-                value={`${user?.firstName || ''} ${user?.lastName || 'Admin User'}`}
-                readOnly
-                className="mt-1 bg-gray-50 dark:bg-gray-800"
-              />
+            {/* Row 2: Doctor & Service Type */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-sm font-medium">Doctor</Label>
+                <Input
+                  value={`${user?.firstName || ''} ${user?.lastName || 'Admin User'}`}
+                  readOnly
+                  className="mt-1 bg-gray-50 dark:bg-gray-800"
+                />
+              </div>
+              <div>
+                <Label className="text-sm font-medium">Service Type</Label>
+                <Input
+                  value="Lab Result"
+                  readOnly
+                  className="mt-1 bg-gray-50 dark:bg-gray-800"
+                />
+              </div>
             </div>
 
             {/* Row 3: Invoice Date & Due Date */}
