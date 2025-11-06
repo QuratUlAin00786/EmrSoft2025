@@ -16725,6 +16725,15 @@ This treatment plan should be reviewed and adjusted based on individual patient 
       
       console.log(`🩺 Fetching doctor-specific invoices for doctor ID: ${doctorUserId}, organization: ${organizationId}`);
       
+      // Get the doctor's full name
+      const doctor = await db
+        .select()
+        .from(schema.users)
+        .where(eq(schema.users.id, doctorUserId))
+        .limit(1);
+      
+      const doctorFullName = doctor[0] ? `${doctor[0].firstName} ${doctor[0].lastName}` : '';
+      
       // Fetch all lab results for this doctor
       const doctorLabResults = await db
         .select()
@@ -16736,16 +16745,15 @@ This treatment plan should be reviewed and adjusted based on individual patient 
           )
         );
       
-      // Fetch all medical images for this doctor
-      const doctorImages = await db
+      // Fetch all medical images for this doctor (uploaded by OR radiologist)
+      const allOrgImages = await db
         .select()
         .from(schema.medicalImages)
-        .where(
-          and(
-            eq(schema.medicalImages.organizationId, organizationId),
-            eq(schema.medicalImages.uploadedBy, doctorUserId)
-          )
-        );
+        .where(eq(schema.medicalImages.organizationId, organizationId));
+      
+      const doctorImages = allOrgImages.filter(img => 
+        img.uploadedBy === doctorUserId || img.radiologist === doctorFullName
+      );
       
       // Fetch all appointments for this doctor
       const doctorAppointments = await db
