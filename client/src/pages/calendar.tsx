@@ -1323,9 +1323,17 @@ export default function CalendarPage() {
       });
       const appointment = await appointmentResponse.json();
       
-      // Create invoice
-      const invoiceResponse = await apiRequest("POST", "/api/invoices", invoiceData);
+      // Use appointment_id from the created appointment as serviceId in invoice
+      const invoiceDataWithServiceId = {
+        ...invoiceData,
+        serviceId: appointment.appointmentId || appointment.appointment_id
+      };
+      
+      // Create invoice with appointment_id as serviceId
+      const invoiceResponse = await apiRequest("POST", "/api/invoices", invoiceDataWithServiceId);
       const invoice = await invoiceResponse.json();
+      
+      console.log("✅ Invoice created with serviceId:", invoiceDataWithServiceId.serviceId);
       
       // Auto-submit insurance claim if payment method is Insurance
       let insuranceClaim = null;
@@ -1509,26 +1517,60 @@ export default function CalendarPage() {
       duration: parseInt(bookingForm.duration)
     };
 
-    // Store appointment data and open invoice modal
-    setPendingAppointmentData(appointmentData);
+    // Find patient to get their name for the invoice
+    const patient = patients.find((p: any) => 
+      p.userId === patientId.toString() || 
+      p.id === patientId || 
+      (p.patientId && p.patientId === patientId.toString()) ||
+      p.id.toString() === patientId.toString()
+    );
     
-    // Pre-populate invoice form
-    setInvoiceForm({
-      serviceDate: bookingForm.scheduledAt ? new Date(bookingForm.scheduledAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+    if (!patient) {
+      toast({
+        title: "Patient Not Found",
+        description: "Could not find patient information. Please try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const patientName = `${patient.firstName} ${patient.lastName}`;
+    const defaultAmount = "50.00";
+    
+    // Create default invoice data
+    const invoiceData = {
+      patientId: patientId.toString(),
+      patientName: patientName,
+      nhsNumber: patient.nhsNumber || undefined,
+      dateOfService: bookingForm.scheduledAt ? new Date(bookingForm.scheduledAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
       invoiceDate: new Date().toISOString().split('T')[0],
       dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      serviceCode: "CONS-001",
-      serviceDescription: "General Consultation",
-      amount: "50.00",
-      insuranceProvider: "None (Patient Self-Pay)",
-      notes: "",
-      paymentMethod: ""
-    });
+      status: "draft",
+      invoiceType: "payment",
+      paymentMethod: "Cash",
+      subtotal: defaultAmount,
+      tax: "0",
+      discount: "0",
+      totalAmount: defaultAmount,
+      paidAmount: "0",
+      items: [
+        {
+          code: "CONS-001",
+          description: bookingForm.title || `${bookingForm.type} with ${selectedDoctor.firstName} ${selectedDoctor.lastName}`,
+          quantity: 1,
+          unitPrice: parseFloat(defaultAmount),
+          total: parseFloat(defaultAmount)
+        }
+      ],
+      insuranceProvider: undefined,
+      notes: `Auto-generated invoice for appointment`
+    };
     
-    // Close appointment modal and open invoice modal
-    setShowNewAppointmentModal(false);
-    setShowInvoiceModal(true);
-    setShowInvoiceSummary(false);
+    // Automatically create both appointment and invoice
+    createAppointmentAndInvoiceMutation.mutate({
+      appointmentData,
+      invoiceData
+    });
   };
 
   return (
