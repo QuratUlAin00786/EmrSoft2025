@@ -2504,6 +2504,37 @@ Medical License: [License Number]
                       }
                     }
                     
+                    // Admin-only: Check for time slot conflicts (same patient, same time slot)
+                    if (user?.role === 'admin' && appointmentsData && newAppointmentDate && newSelectedTimeSlot) {
+                      const selectedDateStr = format(newAppointmentDate, 'yyyy-MM-dd');
+                      const conflictingAppointment = appointmentsData.find((apt: any) => {
+                        if (apt.patientId.toString() !== newAppointmentData.patientId || apt.status === 'cancelled') {
+                          return false;
+                        }
+                        
+                        const aptDateStr = format(new Date(apt.scheduledAt), 'yyyy-MM-dd');
+                        if (aptDateStr !== selectedDateStr) {
+                          return false;
+                        }
+                        
+                        // Extract time from appointment's scheduledAt
+                        const aptTimeString = apt.scheduledAt.substring(11, 16); // Extract "HH:MM"
+                        
+                        return aptTimeString === newSelectedTimeSlot;
+                      });
+                      
+                      if (conflictingAppointment) {
+                        const conflictDoctorName = usersData?.find((u: any) => u.id.toString() === conflictingAppointment.providerId.toString());
+                        const doctorFullName = conflictDoctorName ? `${conflictDoctorName.firstName} ${conflictDoctorName.lastName}` : 'Unknown Doctor';
+                        const formattedDate = format(new Date(conflictingAppointment.scheduledAt), 'PPP');
+                        const formattedTime = format(new Date(conflictingAppointment.scheduledAt), 'p');
+                        const duration = conflictingAppointment.duration || 30;
+                        setDuplicateAppointmentDetails(`Patient has already appointment with ${doctorFullName} on ${formattedDate} at ${formattedTime} with time duration ${duration} minutes. Please select another time.`);
+                        setShowDuplicateWarning(true);
+                        return;
+                      }
+                    }
+                    
                     // Fetch doctor's fee
                     try {
                       const response = await apiRequest("GET", `/api/doctors-fee/${selectedProviderId}`);
