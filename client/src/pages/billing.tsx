@@ -2120,6 +2120,9 @@ export default function BillingPage() {
   
   // Date filter states
   const [serviceDateFrom, setServiceDateFrom] = useState("");
+  
+  // Payment method filter for doctors
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState<string>("all");
 
   const { data: billingData = [], isLoading, error } = useQuery({
     queryKey: ["/api/billing"],
@@ -3094,7 +3097,12 @@ export default function BillingPage() {
     const invoiceDateStr = invoiceServiceDate.toISOString().split('T')[0]; // Get YYYY-MM-DD
     const matchesServiceDateFrom = !serviceDateFrom || invoiceDateStr >= serviceDateFrom;
     
-    return matchesSearch && matchesStatus && matchesServiceDateFrom;
+    // Filter by payment method for doctors
+    const matchesPaymentMethod = paymentMethodFilter === "all" || 
+      (invoice.insurance?.provider === paymentMethodFilter || 
+       invoice.insuranceProvider === paymentMethodFilter);
+    
+    return matchesSearch && matchesStatus && matchesServiceDateFrom && matchesPaymentMethod;
   }) : [];
 
   const getStatusColor = (status: string) => {
@@ -3673,6 +3681,31 @@ export default function BillingPage() {
                                 <SelectItem value="cancelled">Cancelled</SelectItem>
                               </SelectContent>
                             </Select>
+
+                            {user?.role === 'doctor' && (
+                              <Select value={paymentMethodFilter} onValueChange={setPaymentMethodFilter}>
+                                <SelectTrigger className="w-52">
+                                  <SelectValue placeholder="Filter by payment method" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="all">All Payment Methods</SelectItem>
+                                  <SelectItem value="None (Patient Self-Pay)">None (Patient Self-Pay)</SelectItem>
+                                  <SelectItem value="NHS (National Health Service)">NHS (National Health Service)</SelectItem>
+                                  <SelectItem value="Bupa">Bupa</SelectItem>
+                                  <SelectItem value="AXA PPP Healthcare">AXA PPP Healthcare</SelectItem>
+                                  <SelectItem value="Vitality Health">Vitality Health</SelectItem>
+                                  <SelectItem value="Aviva Health">Aviva Health</SelectItem>
+                                  <SelectItem value="Simply Health">Simply Health</SelectItem>
+                                  <SelectItem value="WPA">WPA</SelectItem>
+                                  <SelectItem value="Benenden Health">Benenden Health</SelectItem>
+                                  <SelectItem value="Healix Health Services">Healix Health Services</SelectItem>
+                                  <SelectItem value="Sovereign Health Care">Sovereign Health Care</SelectItem>
+                                  <SelectItem value="Exeter Friendly Society">Exeter Friendly Society</SelectItem>
+                                  <SelectItem value="Self-Pay">Self-Pay</SelectItem>
+                                  <SelectItem value="Other">Other</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            )}
 
                             <div className="flex flex-col gap-1">
                               <Label htmlFor="admin-service-date-from" className="text-xs text-gray-600 dark:text-gray-400">Service Date From</Label>
