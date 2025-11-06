@@ -3884,7 +3884,8 @@ This treatment plan should be reviewed and adjusted based on individual patient 
           total: z.number()
         })),
         insuranceProvider: z.string().optional(),
-        notes: z.string().optional()
+        notes: z.string().optional(),
+        serviceId: z.string().optional()
       }).parse(req.body);
 
       // Generate unique invoice number
@@ -3911,7 +3912,8 @@ This treatment plan should be reviewed and adjusted based on individual patient 
           paidAmount: invoiceData.paidAmount,
           items: invoiceData.items as any,
           insuranceProvider: invoiceData.insuranceProvider || null,
-          notes: invoiceData.notes || null
+          notes: invoiceData.notes || null,
+          serviceId: invoiceData.serviceId || null
         })
         .returning();
 

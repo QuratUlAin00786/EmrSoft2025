@@ -2992,6 +2992,8 @@ Medical License: [License Number]
                   
                   console.log("Creating appointment with payload:", appointmentPayload);
                   const appointmentResult = await createAppointmentMutation.mutateAsync(appointmentPayload);
+                  console.log("✅ Appointment created successfully:", appointmentResult);
+                  console.log("✅ Auto-generated appointment_id:", appointmentResult.appointmentId);
                   
                   // Now create invoice with appointment_id as service_id
                   const isInsuranceClaim = invoiceData.insuranceProvider && 
@@ -3025,7 +3027,8 @@ Medical License: [License Number]
                     serviceId: appointmentResult.appointmentId
                   };
                   
-                  console.log("Creating invoice with payload (including appointment_id):", invoicePayload);
+                  console.log("✅ Creating invoice with appointment_id in service_id:", appointmentResult.appointmentId);
+                  console.log("Creating invoice with full payload:", invoicePayload);
                   const createdInvoice = await createInvoiceMutation.mutateAsync(invoicePayload);
                   
                   // If payment method is Insurance, automatically submit insurance claim
