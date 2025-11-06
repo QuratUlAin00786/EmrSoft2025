@@ -4458,7 +4458,9 @@ Report generated from Cura EMR System`;
                         }),
                         insuranceProvider: invoiceData.insuranceProvider,
                         notes: invoiceData.notes,
-                        paymentMethod: invoiceData.paymentMethod
+                        paymentMethod: invoiceData.paymentMethod,
+                        serviceType: 'lab_result',
+                        serviceId: pendingOrderData?.testId
                       };
 
                       console.log("Creating invoice with payload:", invoicePayload);
