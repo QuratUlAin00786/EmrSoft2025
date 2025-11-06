@@ -16774,9 +16774,13 @@ This treatment plan should be reviewed and adjusted based on individual patient 
         invoice.serviceId && doctorLabResults.some(lr => lr.testId === invoice.serviceId)
       );
       
-      const imagingInvoices = allInvoices.filter(invoice => 
-        invoice.serviceId && doctorImages.some(img => img.imageId === invoice.serviceId)
-      );
+      const imagingInvoices = allInvoices.filter(invoice => {
+        // Match by serviceId with image IDs
+        const matchesImageId = invoice.serviceId && doctorImages.some(img => img.imageId === invoice.serviceId);
+        // Also include any invoice with serviceType = 'medical_images' if doctor has imaging capability
+        const isImagingInvoice = invoice.serviceType === 'medical_images' && doctorImages.length > 0;
+        return matchesImageId || isImagingInvoice;
+      });
       
       const appointmentInvoices = allInvoices.filter(invoice => 
         invoice.serviceId && doctorAppointments.some(apt => apt.appointmentId === invoice.serviceId)
