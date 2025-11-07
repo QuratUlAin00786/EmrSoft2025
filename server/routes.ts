@@ -1398,7 +1398,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const foundUser = user[0];
 
       // Generate secure reset token (this will be sent in email)
-      const resetToken = require('crypto').randomBytes(32).toString('hex');
+      const resetToken = crypto.randomBytes(32).toString('hex');
       const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
 
       // Hash the token before storing in database for security
