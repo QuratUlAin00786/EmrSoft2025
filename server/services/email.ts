@@ -1232,7 +1232,8 @@ Company Registration: 16556912
   }
 
   generatePasswordResetEmail(userFirstName: string, resetToken: string): EmailTemplate {
-    const resetUrl = `${process.env.REPLIT_DEV_DOMAIN || 'https://your-domain.com'}/auth/reset-password?token=${resetToken}`;
+    const baseUrl = process.env.REPLIT_DEV_DOMAIN || 'your-domain.com';
+    const resetUrl = `https://${baseUrl}/auth/reset-password?token=${resetToken}`;
     const subject = 'Password Reset Request - Cura EMR';
     
     const html = `
@@ -1351,7 +1352,8 @@ Cura EMR Team`;
 
   generatePasswordResetConfirmationEmail(userFirstName: string): EmailTemplate {
     const subject = 'Password Successfully Changed - Cura EMR';
-    const loginUrl = `${process.env.REPLIT_DEV_DOMAIN || 'https://your-domain.com'}/auth/login`;
+    const baseUrl = process.env.REPLIT_DEV_DOMAIN || 'your-domain.com';
+    const loginUrl = `https://${baseUrl}/auth/login`;
     
     const html = `
 <!DOCTYPE html>
