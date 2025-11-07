@@ -492,7 +492,8 @@ function AppRouter() {
     if (
       !isAuthenticated &&
       !isLandingPage &&
-      !location.includes("/auth/login")
+      !location.includes("/auth/login") &&
+      !location.includes("/auth/reset-password")
     ) {
       // Check if we're on a subdomain route (e.g., /maryamkhan/dashboard)
       if (isSubdomainRoute) {
