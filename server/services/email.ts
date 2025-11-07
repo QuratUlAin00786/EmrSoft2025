@@ -1230,6 +1230,235 @@ Company Registration: 16556912
       text: template.text
     });
   }
+
+  generatePasswordResetEmail(userFirstName: string, resetToken: string): EmailTemplate {
+    const resetUrl = `${process.env.REPLIT_DEV_DOMAIN || 'https://your-domain.com'}/auth/reset-password?token=${resetToken}`;
+    const subject = 'Password Reset Request - Cura EMR';
+    
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Password Reset Request</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Arial', sans-serif; background-color: #f4f7fa;">
+  <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #f4f7fa;">
+    <tr>
+      <td align="center" style="padding: 40px 0;">
+        <table role="presentation" style="width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+          <tr>
+            <td style="padding: 40px 40px 30px 40px; background: linear-gradient(135deg, #4A7DFF 0%, #7279FB 100%); border-radius: 8px 8px 0 0;">
+              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold; text-align: center;">
+                Cura EMR
+              </h1>
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="padding: 40px;">
+              <h2 style="margin: 0 0 20px 0; color: #2d3748; font-size: 24px; font-weight: 600;">
+                Password Reset Request
+              </h2>
+              
+              <p style="margin: 0 0 20px 0; color: #4a5568; font-size: 16px; line-height: 1.6;">
+                Hello ${userFirstName},
+              </p>
+              
+              <p style="margin: 0 0 30px 0; color: #4a5568; font-size: 16px; line-height: 1.6;">
+                You requested to reset your password for your Cura EMR account. Click the button below to create a new password:
+              </p>
+              
+              <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td align="center" style="padding: 20px 0;">
+                    <a href="${resetUrl}" 
+                       style="display: inline-block; padding: 16px 40px; background-color: #4A7DFF; color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 600; box-shadow: 0 4px 6px rgba(74, 125, 255, 0.3);">
+                      Reset Password
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              
+              <p style="margin: 30px 0 20px 0; color: #718096; font-size: 14px; line-height: 1.6;">
+                Or copy and paste this URL into your browser:
+              </p>
+              
+              <p style="margin: 0 0 30px 0; padding: 15px; background-color: #f7fafc; border-radius: 4px; color: #4A7DFF; font-size: 14px; word-break: break-all; border-left: 4px solid #4A7DFF;">
+                ${resetUrl}
+              </p>
+              
+              <div style="margin: 30px 0; padding: 20px; background-color: #fff5f5; border-left: 4px solid #f56565; border-radius: 4px;">
+                <p style="margin: 0; color: #c53030; font-size: 14px; line-height: 1.6;">
+                  <strong>Important:</strong> This link will expire in 1 hour for security reasons.
+                </p>
+              </div>
+              
+              <p style="margin: 30px 0 0 0; color: #718096; font-size: 14px; line-height: 1.6;">
+                If you did not request a password reset, please ignore this email and your password will remain unchanged.
+              </p>
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="padding: 30px 40px; background-color: #f7fafc; border-radius: 0 0 8px 8px; border-top: 1px solid #e2e8f0;">
+              <p style="margin: 0 0 10px 0; color: #718096; font-size: 14px; text-align: center;">
+                Best regards,<br>
+                <strong style="color: #4a5568;">Cura EMR Team</strong>
+              </p>
+              
+              <p style="margin: 20px 0 0 0; color: #a0aec0; font-size: 12px; text-align: center; line-height: 1.5;">
+                This is an automated message. Please do not reply to this email.<br>
+                &copy; ${new Date().getFullYear()} Cura EMR. All rights reserved.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+    `;
+    
+    const text = `Hello ${userFirstName},
+
+You requested to reset your password for your Cura EMR account.
+
+Please click the following link to reset your password:
+${resetUrl}
+
+This link will expire in 1 hour.
+
+If you did not request a password reset, please ignore this email and your password will remain unchanged.
+
+Best regards,
+Cura EMR Team`;
+    
+    return { subject, html, text };
+  }
+
+  async sendPasswordResetEmail(toEmail: string, resetToken: string, userFirstName: string): Promise<boolean> {
+    const template = this.generatePasswordResetEmail(userFirstName, resetToken);
+    return this.sendEmail({
+      to: toEmail,
+      subject: template.subject,
+      html: template.html,
+      text: template.text
+    });
+  }
+
+  generatePasswordResetConfirmationEmail(userFirstName: string): EmailTemplate {
+    const subject = 'Password Successfully Changed - Cura EMR';
+    const loginUrl = `${process.env.REPLIT_DEV_DOMAIN || 'https://your-domain.com'}/auth/login`;
+    
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Password Changed</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Arial', sans-serif; background-color: #f4f7fa;">
+  <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #f4f7fa;">
+    <tr>
+      <td align="center" style="padding: 40px 0;">
+        <table role="presentation" style="width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+          <tr>
+            <td style="padding: 40px 40px 30px 40px; background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); border-radius: 8px 8px 0 0;">
+              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold; text-align: center;">
+                Cura EMR
+              </h1>
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="padding: 40px;">
+              <div style="text-align: center; margin-bottom: 20px;">
+                <div style="display: inline-block; width: 60px; height: 60px; background-color: #c6f6d5; border-radius: 50%; padding: 15px;">
+                  <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: block; margin: 0 auto;">
+                    <path d="M5 13l4 4L19 7" stroke="#38a169" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+              </div>
+              
+              <h2 style="margin: 0 0 20px 0; color: #2d3748; font-size: 24px; font-weight: 600; text-align: center;">
+                Password Successfully Changed
+              </h2>
+              
+              <p style="margin: 0 0 20px 0; color: #4a5568; font-size: 16px; line-height: 1.6; text-align: center;">
+                Hello ${userFirstName},
+              </p>
+              
+              <p style="margin: 0 0 30px 0; color: #4a5568; font-size: 16px; line-height: 1.6; text-align: center;">
+                Your password has been successfully changed for your Cura EMR account.
+              </p>
+              
+              <div style="margin: 30px 0; padding: 20px; background-color: #fffaf0; border-left: 4px solid #ed8936; border-radius: 4px;">
+                <p style="margin: 0; color: #7c2d12; font-size: 14px; line-height: 1.6;">
+                  <strong>Security Notice:</strong> If you did not make this change, please contact our support team immediately to secure your account.
+                </p>
+              </div>
+              
+              <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td align="center" style="padding: 20px 0;">
+                    <a href="${loginUrl}" 
+                       style="display: inline-block; padding: 16px 40px; background-color: #4A7DFF; color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 600; box-shadow: 0 4px 6px rgba(74, 125, 255, 0.3);">
+                      Sign In
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="padding: 30px 40px; background-color: #f7fafc; border-radius: 0 0 8px 8px; border-top: 1px solid #e2e8f0;">
+              <p style="margin: 0 0 10px 0; color: #718096; font-size: 14px; text-align: center;">
+                Best regards,<br>
+                <strong style="color: #4a5568;">Cura EMR Team</strong>
+              </p>
+              
+              <p style="margin: 20px 0 0 0; color: #a0aec0; font-size: 12px; text-align: center; line-height: 1.5;">
+                This is an automated message. Please do not reply to this email.<br>
+                &copy; ${new Date().getFullYear()} Cura EMR. All rights reserved.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+    `;
+    
+    const text = `Hello ${userFirstName},
+
+Your password has been successfully changed for your Cura EMR account.
+
+If you did not make this change, please contact our support team immediately.
+
+You can now sign in at: ${loginUrl}
+
+Best regards,
+Cura EMR Team`;
+    
+    return { subject, html, text };
+  }
+
+  async sendPasswordResetConfirmationEmail(toEmail: string, userFirstName: string): Promise<boolean> {
+    const template = this.generatePasswordResetConfirmationEmail(userFirstName);
+    return this.sendEmail({
+      to: toEmail,
+      subject: template.subject,
+      html: template.html,
+      text: template.text
+    });
+  }
 }
 
 export const emailService = new EmailService();

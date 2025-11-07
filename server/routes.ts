@@ -18,7 +18,7 @@ import { messagingService } from "./messaging-service";
 import { isDoctorLike } from './utils/role-utils.js';
 // PayPal imports moved to dynamic imports to avoid initialization errors when credentials are missing
 import { gdprComplianceService } from "./services/gdpr-compliance";
-import { insertGdprConsentSchema, insertGdprDataRequestSchema, updateMedicalImageReportFieldSchema, insertAiInsightSchema, medicationsDatabase, patientDrugInteractions, insuranceVerifications, type Appointment, organizations, subscriptions, users, patients, symptomChecks, quickbooksConnections, insertClinicHeaderSchema, insertClinicFooterSchema, doctorsFee, invoices, labResults, insertMessageTemplateSchema } from "../shared/schema";
+import { insertGdprConsentSchema, insertGdprDataRequestSchema, updateMedicalImageReportFieldSchema, insertAiInsightSchema, medicationsDatabase, patientDrugInteractions, insuranceVerifications, type Appointment, organizations, subscriptions, users, patients, symptomChecks, quickbooksConnections, insertClinicHeaderSchema, insertClinicFooterSchema, doctorsFee, invoices, labResults, insertMessageTemplateSchema, passwordResetTokens } from "../shared/schema";
 import * as schema from "../shared/schema";
 import { db, pool } from "./db";
 import { and, eq, sql, desc, isNull, isNotNull } from "drizzle-orm";
@@ -1374,6 +1374,130 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Login error:", error);
       res.status(500).json({ error: "Login failed" });
+    }
+  });
+
+  // Password Reset Request endpoint (no auth required)
+  app.post("/api/auth/forgot-password", async (req: express.Request, res: express.Response) => {
+    try {
+      const { email } = z.object({
+        email: z.string().email()
+      }).parse(req.body);
+
+      console.log(`[PASSWORD RESET] Request for email: ${email}`);
+
+      // Find user by email across all organizations
+      const user = await db.select().from(users).where(eq(users.email, email)).limit(1);
+      
+      if (!user || user.length === 0 || !user[0].isActive) {
+        // For security, return success even if user not found
+        console.log(`[PASSWORD RESET] User not found or inactive: ${email}`);
+        return res.json({ message: "If the email exists, a password reset link has been sent." });
+      }
+
+      const foundUser = user[0];
+
+      // Generate secure reset token (this will be sent in email)
+      const resetToken = require('crypto').randomBytes(32).toString('hex');
+      const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
+
+      // Hash the token before storing in database for security
+      const hashedToken = await authService.hashPassword(resetToken);
+
+      // Store hashed token in database
+      await db.insert(passwordResetTokens).values({
+        userId: foundUser.id,
+        token: hashedToken,
+        expiresAt,
+        isUsed: false
+      });
+
+      // Send password reset email with unhashed token
+      await emailService.sendPasswordResetEmail(
+        foundUser.email,
+        resetToken,
+        foundUser.firstName
+      );
+
+      console.log(`[PASSWORD RESET] Email sent to: ${email}`);
+
+      res.json({ message: "If the email exists, a password reset link has been sent." });
+    } catch (error) {
+      console.error("[PASSWORD RESET] Error:", error);
+      res.status(500).json({ error: "Failed to process password reset request" });
+    }
+  });
+
+  // Password Reset Confirmation endpoint (no auth required)
+  app.post("/api/auth/reset-password", async (req: express.Request, res: express.Response) => {
+    try {
+      const { token, newPassword } = z.object({
+        token: z.string(),
+        newPassword: z.string().min(6, "Password must be at least 6 characters")
+      }).parse(req.body);
+
+      console.log(`[PASSWORD RESET] Attempting to reset password with token`);
+
+      // Get all non-expired, unused tokens
+      const allTokens = await db.select()
+        .from(passwordResetTokens)
+        .where(eq(passwordResetTokens.isUsed, false));
+
+      // Find matching token by comparing hashes
+      let matchedTokenData = null;
+      for (const tokenRecord of allTokens) {
+        const isMatch = await authService.comparePassword(token, tokenRecord.token);
+        if (isMatch && new Date() <= tokenRecord.expiresAt) {
+          matchedTokenData = tokenRecord;
+          break;
+        }
+      }
+
+      if (!matchedTokenData) {
+        console.log(`[PASSWORD RESET] Invalid or expired token`);
+        return res.status(400).json({ error: "Invalid or expired reset token" });
+      }
+
+      const tokenData = matchedTokenData;
+
+      // Get user
+      const userRecord = await db.select()
+        .from(users)
+        .where(eq(users.id, tokenData.userId))
+        .limit(1);
+
+      if (!userRecord || userRecord.length === 0) {
+        console.log(`[PASSWORD RESET] User not found for token`);
+        return res.status(400).json({ error: "User not found" });
+      }
+
+      const user = userRecord[0];
+
+      // Hash new password
+      const hashedPassword = await authService.hashPassword(newPassword);
+
+      // Update user password
+      await db.update(users)
+        .set({ passwordHash: hashedPassword })
+        .where(eq(users.id, user.id));
+
+      // Mark token as used
+      await db.update(passwordResetTokens)
+        .set({ isUsed: true })
+        .where(eq(passwordResetTokens.id, tokenData.id));
+
+      // Send confirmation email
+      await emailService.sendPasswordResetConfirmationEmail(
+        user.email,
+        user.firstName
+      );
+
+      console.log(`[PASSWORD RESET] Password successfully reset for user: ${user.email}`);
+
+      res.json({ message: "Password successfully reset. You can now log in with your new password." });
+    } catch (error) {
+      console.error("[PASSWORD RESET] Error:", error);
+      res.status(500).json({ error: "Failed to reset password" });
     }
   });
 

@@ -69,6 +69,7 @@ import FeaturesPage from "@/pages/landing/FeaturesPage";
 import PricingPage from "@/pages/landing/PricingPage";
 import HelpCentre from "@/pages/landing/HelpCentre";
 import LoginPage from "@/pages/auth/LoginPage";
+import ResetPasswordPage from "@/pages/auth/ResetPasswordPage";
 
 // Legal Pages
 import PrivacyPolicy from "@/pages/legal/PrivacyPolicy";
@@ -538,6 +539,7 @@ function AppRouter() {
         <Route path="/landing/help" component={HelpCentre} />
         <Route path="/auth/login" component={LoginPage} />
         <Route path="/:subdomain/auth/login" component={LoginPage} />
+        <Route path="/auth/reset-password" component={ResetPasswordPage} />
         <Route path="/legal/privacy" component={PrivacyPolicy} />
         <Route path="/legal/terms" component={TermsOfService} />
         <Route path="/legal/gdpr" component={GDPRCompliancePage} />

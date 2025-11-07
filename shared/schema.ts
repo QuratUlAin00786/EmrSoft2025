@@ -253,6 +253,16 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Password Reset Tokens
+export const passwordResetTokens = pgTable("password_reset_tokens", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  token: text("token").notNull().unique(),
+  expiresAt: timestamp("expires_at").notNull(),
+  isUsed: boolean("is_used").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // User Document Preferences
 export const userDocumentPreferences = pgTable("user_document_preferences", {
   id: serial("id").primaryKey(),
@@ -2125,6 +2135,15 @@ export const insertUserSchema = createInsertSchema(users).omit({
   passwordHash: z.string().min(6, "Password must be at least 6 characters"),
   role: z.string().min(1, "Please select a role"), // Accept any role from database
 });
+
+export const insertPasswordResetTokenSchema = createInsertSchema(passwordResetTokens).omit({
+  id: true,
+  createdAt: true,
+  isUsed: true,
+});
+
+export type InsertPasswordResetToken = z.infer<typeof insertPasswordResetTokenSchema>;
+export type SelectPasswordResetToken = typeof passwordResetTokens.$inferSelect;
 
 export const insertUserDocumentPreferencesSchema = createInsertSchema(userDocumentPreferences).omit({
   id: true,
