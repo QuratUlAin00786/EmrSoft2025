@@ -2422,7 +2422,7 @@ export default function ImagingPage() {
                       data-testid="button-order-study"
                     >
                       <Share className="h-4 w-4 mr-2" />
-                      Order Study
+                      Create Order Study
                     </Button>
                   )}
                 </div>
@@ -5040,7 +5040,7 @@ export default function ImagingPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="patient" className="text-sm font-medium">
-                  Patient
+                  Patient *
                 </Label>
                 {user?.role === "patient" && currentPatient ? (
                   <div className="flex items-center gap-3 px-3 py-2 border rounded-md bg-gray-50 dark:bg-slate-700">
@@ -5053,43 +5053,73 @@ export default function ImagingPage() {
                     </span>
                   </div>
                 ) : (
-                  <Select
-                    value={orderFormData.patientId}
-                    onValueChange={(value) =>
-                      setOrderFormData((prev) => ({ ...prev, patientId: value }))
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue
-                        placeholder={
-                          patientsLoading
-                            ? "Loading patients..."
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        className="w-full justify-between"
+                      >
+                        {orderFormData.patientId
+                          ? patients.find(
+                              (patient: any) => patient.id.toString() === orderFormData.patientId
+                            )
+                            ? `${
+                                patients.find(
+                                  (patient: any) => patient.id.toString() === orderFormData.patientId
+                                )?.firstName
+                              } ${
+                                patients.find(
+                                  (patient: any) => patient.id.toString() === orderFormData.patientId
+                                )?.lastName
+                              } (${
+                                patients.find(
+                                  (patient: any) => patient.id.toString() === orderFormData.patientId
+                                )?.patientId
+                              })`
                             : "Select patient"
-                        }
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {patientsLoading ? (
-                        <SelectItem value="loading" disabled>
-                          Loading patients...
-                        </SelectItem>
-                      ) : patients.length > 0 ? (
-                        patients.map((patient: any) => (
-                          <SelectItem
-                            key={patient.id}
-                            value={patient.id.toString()}
-                          >
-                            {patient.firstName} {patient.lastName} (
-                            {patient.patientId})
-                          </SelectItem>
-                        ))
-                      ) : (
-                        <SelectItem value="no-patients" disabled>
-                          No patients found
-                        </SelectItem>
-                      )}
-                    </SelectContent>
-                  </Select>
+                          : patientsLoading
+                          ? "Loading patients..."
+                          : "Select patient"}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-full p-0">
+                      <Command>
+                        <CommandInput placeholder="Search patients..." />
+                        <CommandEmpty>No patient found.</CommandEmpty>
+                        <CommandGroup className="max-h-64 overflow-auto">
+                          {patientsLoading ? (
+                            <CommandItem disabled>Loading patients...</CommandItem>
+                          ) : patients.length > 0 ? (
+                            patients.map((patient: any) => (
+                              <CommandItem
+                                key={patient.id}
+                                value={`${patient.firstName} ${patient.lastName} ${patient.patientId}`}
+                                onSelect={() => {
+                                  setOrderFormData((prev) => ({
+                                    ...prev,
+                                    patientId: patient.id.toString(),
+                                  }));
+                                }}
+                              >
+                                <Check
+                                  className={`mr-2 h-4 w-4 ${
+                                    orderFormData.patientId === patient.id.toString()
+                                      ? "opacity-100"
+                                      : "opacity-0"
+                                  }`}
+                                />
+                                {patient.firstName} {patient.lastName} ({patient.patientId})
+                              </CommandItem>
+                            ))
+                          ) : (
+                            <CommandItem disabled>No patients found</CommandItem>
+                          )}
+                        </CommandGroup>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                 )}
               </div>
 
