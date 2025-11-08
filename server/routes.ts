@@ -19132,14 +19132,6 @@ Cura EMR Team
       
       yPosition -= 20;
       
-      // Add signature line
-      page.drawLine({
-        start: { x: width - 200, y: yPosition + 30 },
-        end: { x: width - 60, y: yPosition + 30 },
-        thickness: 0.5,
-        color: darkText
-      });
-      
       if (req.user?.firstName && req.user?.lastName) {
         page.drawText(`${req.user.firstName} ${req.user.lastName}`, {
           x: width - 180,
