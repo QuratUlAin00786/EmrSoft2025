@@ -3054,6 +3054,30 @@ export default function ImagingPage() {
                           </div>
                         )}
 
+                        {/* E-Signature Preview - Show if signature exists */}
+                        {study.signatureData && (
+                          <div>
+                            <p className="text-sm text-gray-700 dark:text-gray-300 mb-1">
+                              Resident Physician
+                            </p>
+                            <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                              (Signature)
+                            </p>
+                            <div className="border border-gray-300 dark:border-gray-600 rounded p-2 bg-white dark:bg-slate-700" style={{width: '200px', height: '100px'}}>
+                              <img 
+                                src={study.signatureData} 
+                                alt="E-Signature" 
+                                className="w-full h-full object-contain"
+                              />
+                            </div>
+                            {study.signatureDate && (
+                              <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                                ✓ E-Signed by - {format(new Date(study.signatureDate), "MMM d, yyyy HH:mm")}
+                              </p>
+                            )}
+                          </div>
+                        )}
+
                         <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                           <h4 className="font-semibold text-blue-900">
                             Timeline
