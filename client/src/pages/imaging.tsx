@@ -4889,7 +4889,7 @@ export default function ImagingPage() {
                       <img
                         src={selectedStudy.signatureData}
                         alt="Resident Physician Signature"
-                        className="w-[170px] h-[70px] object-contain"
+                        className="w-[120px] h-[50px] object-contain"
                       />
                     </div>
                     {selectedStudy.signatureDate && (

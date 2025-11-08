@@ -18416,9 +18416,9 @@ Cura EMR Team
           }
           
           if (signatureImage) {
-            // Draw signature box (170×70 pixels = ~48×20 points at 72 DPI)
-            const signatureBoxWidth = 170 * 0.75; // Convert px to points (72 DPI = 0.75 factor)
-            const signatureBoxHeight = 70 * 0.75;
+            // Draw signature box (120×50 pixels = smaller compact size)
+            const signatureBoxWidth = 120 * 0.75; // Convert px to points (72 DPI = 0.75 factor)
+            const signatureBoxHeight = 50 * 0.75;
             
             // Draw border
             page.drawRectangle({
