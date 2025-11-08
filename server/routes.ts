@@ -18380,6 +18380,100 @@ Cura EMR Team
       // Ensure proper spacing between radiologist report and medical image sections
       yPosition -= 80; // Increased spacing to prevent overlap
       
+      // E-Signature Section (if signature data provided)
+      const { signatureData, signatureDate } = req.body;
+      if (signatureData) {
+        yPosition -= 20;
+        
+        // Signature section title
+        page.drawText('Resident Physician (Signature)', {
+          x: 40,
+          y: yPosition,
+          size: 10,
+          font: boldFont,
+          color: blackColor
+        });
+        
+        yPosition -= 10;
+        
+        try {
+          // Remove data URL prefix if present
+          const base64Data = signatureData.includes(',') 
+            ? signatureData.split(',')[1] 
+            : signatureData;
+          const signatureBuffer = Buffer.from(base64Data, 'base64');
+          
+          // Try to embed signature as PNG first, then JPEG
+          let signatureImage;
+          try {
+            signatureImage = await pdfDoc.embedPng(signatureBuffer);
+          } catch {
+            try {
+              signatureImage = await pdfDoc.embedJpg(signatureBuffer);
+            } catch (error) {
+              console.error('Failed to embed signature:', error);
+            }
+          }
+          
+          if (signatureImage) {
+            // Draw signature box (170×70 pixels = ~48×20 points at 72 DPI)
+            const signatureBoxWidth = 170 * 0.75; // Convert px to points (72 DPI = 0.75 factor)
+            const signatureBoxHeight = 70 * 0.75;
+            
+            // Draw border
+            page.drawRectangle({
+              x: 40,
+              y: yPosition - signatureBoxHeight - 5,
+              width: signatureBoxWidth,
+              height: signatureBoxHeight,
+              borderColor: rgb(0.7, 0.7, 0.7),
+              borderWidth: 1,
+            });
+            
+            // Draw signature image inside the box
+            page.drawImage(signatureImage, {
+              x: 42,
+              y: yPosition - signatureBoxHeight - 3,
+              width: signatureBoxWidth - 4,
+              height: signatureBoxHeight - 4,
+            });
+            
+            yPosition -= signatureBoxHeight + 10;
+            
+            // Add green timestamp
+            const signatureDateStr = signatureDate 
+              ? new Date(signatureDate).toLocaleDateString('en-US', { 
+                  month: 'short',
+                  day: 'numeric', 
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: false
+                })
+              : new Date().toLocaleDateString('en-US', { 
+                  month: 'short',
+                  day: 'numeric', 
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: false
+                });
+            
+            page.drawText(`✓ E-Signed by - ${signatureDateStr}`, {
+              x: 40,
+              y: yPosition,
+              size: 9,
+              font,
+              color: rgb(0, 0.6, 0) // Green color
+            });
+            
+            yPosition -= 20;
+          }
+        } catch (error) {
+          console.error('Error processing signature:', error);
+        }
+      }
+      
       // Medical Image Section (moved after radiologist report)
       let imageHeight = 0;
       

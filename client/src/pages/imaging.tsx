@@ -1613,7 +1613,7 @@ export default function ImagingPage() {
         }
       }
 
-      // Call server-side PDF generation endpoint with fileName and uploaded image filenames
+      // Call server-side PDF generation endpoint with fileName, uploaded image filenames, and signature data
       const response = await apiRequest(
         "POST",
         "/api/imaging/generate-report",
@@ -1627,6 +1627,8 @@ export default function ImagingPage() {
             performedAt: performedDate ? performedDate.toISOString() : null,
           },
           uploadedImageFileNames,
+          signatureData: study.signatureData || null,
+          signatureDate: study.signatureDate || null,
         },
       );
 
@@ -4875,6 +4877,26 @@ export default function ImagingPage() {
                   <div>
                     <h4 className="font-medium text-lg mb-2">Radiologist</h4>
                     <p className="text-gray-700">{selectedStudy.radiologist}</p>
+                  </div>
+                )}
+
+                {selectedStudy.signatureData && (
+                  <div>
+                    <h4 className="font-medium text-lg mb-2">
+                      Resident Physician (Signature)
+                    </h4>
+                    <div className="border border-gray-300 rounded-lg p-2 inline-block">
+                      <img
+                        src={selectedStudy.signatureData}
+                        alt="Resident Physician Signature"
+                        className="w-[170px] h-[70px] object-contain"
+                      />
+                    </div>
+                    {selectedStudy.signatureDate && (
+                      <div className="mt-2 text-sm" style={{ color: 'rgb(0, 153, 0)' }}>
+                        ✓ E-Signed by - {format(new Date(selectedStudy.signatureDate), "MMM d, yyyy HH:mm")}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
