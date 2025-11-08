@@ -424,6 +424,7 @@ export default function ImagingPage() {
   const [selectedPrescriptionStudy, setSelectedPrescriptionStudy] = useState<any>(null);
   const [isSavingPrescription, setIsSavingPrescription] = useState(false);
   const [showSummaryDialog, setShowSummaryDialog] = useState(false);
+  const [eSignStudy, setESignStudy] = useState<any>(null);
   const [invoiceFormData, setInvoiceFormData] = useState({
     paymentMethod: "",
     subtotal: 0,
@@ -1921,7 +1922,7 @@ export default function ImagingPage() {
   };
 
   const saveSignature = async () => {
-    if (!canvasRef.current || !selectedStudy) return;
+    if (!canvasRef.current || !eSignStudy) return;
 
     const canvas = canvasRef.current;
     const signatureData = canvas.toDataURL();
@@ -1941,7 +1942,7 @@ export default function ImagingPage() {
     try {
       const response = await apiRequest(
         "PATCH",
-        `/api/medical-images/${selectedStudy.id}`,
+        `/api/medical-images/${eSignStudy.id}`,
         {
           signatureData: signatureData,
         },
@@ -1952,8 +1953,8 @@ export default function ImagingPage() {
 
         queryClient.invalidateQueries({ queryKey: ["/api/medical-images"] });
 
-        // Update selectedStudy to include the signature immediately
-        setSelectedStudy((prev: any) => ({
+        // Update eSignStudy to include the signature immediately
+        setESignStudy((prev: any) => ({
           ...prev,
           signatureData: signatureData,
         }));
@@ -2661,7 +2662,7 @@ export default function ImagingPage() {
                                       variant="ghost"
                                       size="sm"
                                       onClick={() => {
-                                        setSelectedStudy(study);
+                                        setESignStudy(study);
                                         setShowESignDialog(true);
                                       }}
                                       className="h-8 w-8 p-0"
@@ -3722,7 +3723,7 @@ export default function ImagingPage() {
                           variant="outline"
                           size="sm"
                           onClick={() => {
-                            setSelectedStudy(study);
+                            setESignStudy(study);
                             setShowESignDialog(true);
                           }}
                           title="Electronic Signature"
@@ -6895,7 +6896,7 @@ export default function ImagingPage() {
 
                       setShowPrescriptionDialog(false);
                       setSelectedPrescriptionStudy(null);
-                      refetchStudies();
+                      queryClient.invalidateQueries({ queryKey: ["/api/medical-images"] });
                     } catch (error) {
                       console.error('Error saving prescription:', error);
                       toast({
@@ -6945,7 +6946,7 @@ export default function ImagingPage() {
 
             {/* Signature Tab */}
             <TabsContent value="signature" className="space-y-4">
-              {selectedStudy && (
+              {eSignStudy && (
                 <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-200">
                   <h4 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
                     <FileText className="h-5 w-5" />
@@ -6954,25 +6955,25 @@ export default function ImagingPage() {
                   <div className="grid grid-cols-2 gap-4 text-sm text-blue-800">
                     <div>
                       <p>
-                        <strong>Patient:</strong> {selectedStudy.patientName}
+                        <strong>Patient:</strong> {eSignStudy.patientName}
                       </p>
                       <p>
-                        <strong>Patient ID:</strong> {selectedStudy.patientId}
+                        <strong>Patient ID:</strong> {eSignStudy.patientId}
                       </p>
                       <p>
                         <strong>Date Ordered:</strong>{" "}
-                        {format(new Date(selectedStudy.orderedAt), "MMM dd, yyyy HH:mm")}
+                        {format(new Date(eSignStudy.orderedAt || eSignStudy.createdAt), "MMM dd, yyyy HH:mm")}
                       </p>
                     </div>
                     <div>
                       <p>
-                        <strong>Study Type:</strong> {selectedStudy.studyType}
+                        <strong>Study Type:</strong> {eSignStudy.studyType}
                       </p>
                       <p>
-                        <strong>Modality:</strong> {selectedStudy.modality}
+                        <strong>Modality:</strong> {eSignStudy.modality}
                       </p>
                       <p>
-                        <strong>Status:</strong> {selectedStudy.status}
+                        <strong>Status:</strong> {eSignStudy.status}
                       </p>
                     </div>
                   </div>
@@ -6981,7 +6982,7 @@ export default function ImagingPage() {
                       Study to be signed:
                     </p>
                     <div className="text-xs text-gray-600 mb-1">
-                      • Image ID: {selectedStudy.imageId} - {selectedStudy.studyType}
+                      • Image ID: {eSignStudy.imageId} - {eSignStudy.studyType}
                     </div>
                   </div>
                 </div>
