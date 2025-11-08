@@ -18459,7 +18459,7 @@ Cura EMR Team
                   hour12: false
                 });
             
-            page.drawText(`✓ E-Signed by - ${signatureDateStr}`, {
+            page.drawText(`[E-Signed] ${signatureDateStr}`, {
               x: 40,
               y: yPosition,
               size: 9,
@@ -19298,7 +19298,7 @@ Cura EMR Team
             const signDate = new Date(medicalImage.signatureDate);
             const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
             const formattedDate = `${months[signDate.getMonth()]} ${signDate.getDate()}, ${signDate.getFullYear()} ${signDate.getHours().toString().padStart(2, '0')}:${signDate.getMinutes().toString().padStart(2, '0')}`;
-            const timestampText = `✓ E-Signed by - ${formattedDate}`;
+            const timestampText = `[E-Signed] ${formattedDate}`;
             
             // Draw timestamp in green below the signature box
             page.drawText(timestampText, {
