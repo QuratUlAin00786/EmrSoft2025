@@ -6902,9 +6902,9 @@ export default function ImagingPage() {
 
               {/* E-Signature Section */}
               {selectedPrescriptionStudy.signatureData && (
-                <div className="border rounded-lg p-4 bg-white">
-                  <h5 className="font-semibold text-gray-900 mb-3">Resident Physician (Signature)</h5>
-                  <div className="border border-gray-300 rounded-lg p-2 inline-block">
+                <div>
+                  <h5 className="font-semibold text-gray-900 mb-2">Resident Physician (Signature)</h5>
+                  <div className="border border-gray-300 rounded inline-block">
                     <img
                       src={selectedPrescriptionStudy.signatureData}
                       alt="Resident Physician Signature"
