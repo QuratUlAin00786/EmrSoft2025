@@ -2661,6 +2661,19 @@ export default function ImagingPage() {
                                       variant="ghost"
                                       size="sm"
                                       onClick={() => {
+                                        setSelectedStudy(study);
+                                        setShowESignDialog(true);
+                                      }}
+                                      className="h-8 w-8 p-0"
+                                      data-testid={`button-esign-${study.id}`}
+                                      title="Electronic Signature"
+                                    >
+                                      <PenTool className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => {
                                         setStudyToDelete(study);
                                         setShowDeleteDialog(true);
                                       }}
@@ -5158,23 +5171,13 @@ export default function ImagingPage() {
               <Button variant="outline" onClick={() => setShowNewOrder(false)}>
                 Cancel
               </Button>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowESignDialog(true)}
-                  className="border-medical-blue text-medical-blue hover:bg-blue-50"
-                >
-                  <PenTool className="h-4 w-4 mr-2" />
-                  E-Sign
-                </Button>
-                <Button
-                  onClick={handleOrderSubmit}
-                  className="bg-medical-blue hover:bg-blue-700"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Order Study
-                </Button>
-              </div>
+              <Button
+                onClick={handleOrderSubmit}
+                className="bg-medical-blue hover:bg-blue-700"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Order Study
+              </Button>
             </div>
           </div>
         </DialogContent>
