@@ -2659,19 +2659,22 @@ export default function ImagingPage() {
                                         </Button>
                                       </>
                                     )}
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => {
-                                        setESignStudy(study);
-                                        setShowESignDialog(true);
-                                      }}
-                                      className="h-8 w-8 p-0"
-                                      data-testid={`button-esign-${study.id}`}
-                                      title="Electronic Signature"
-                                    >
-                                      <PenTool className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                                    </Button>
+                                    {/* E-Sign icon - hide from Generate Report and Imaging Results tabs */}
+                                    {activeTab !== 'generate-report' && activeTab !== 'imaging-results' && (
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => {
+                                          setESignStudy(study);
+                                          setShowESignDialog(true);
+                                        }}
+                                        className="h-8 w-8 p-0"
+                                        data-testid={`button-esign-${study.id}`}
+                                        title="Electronic Signature"
+                                      >
+                                        <PenTool className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                      </Button>
+                                    )}
                                     <Button
                                       variant="ghost"
                                       size="sm"
@@ -3718,8 +3721,8 @@ export default function ImagingPage() {
                         </Button>
                       )}
                       
-                      {/* E-Sign icon - for non-patient users */}
-                      {user?.role !== 'patient' && (
+                      {/* E-Sign icon - for non-patient users, hide from Generate Report and Imaging Results tabs */}
+                      {user?.role !== 'patient' && activeTab !== 'generate-report' && activeTab !== 'imaging-results' && (
                         <Button
                           variant="outline"
                           size="sm"
