@@ -19145,7 +19145,7 @@ Cura EMR Team
         color: darkText
       });
       
-      yPosition -= 20;
+      yPosition -= 15;
       
       // Add e-signature image if available (from database)
       if (medicalImage.signatureData) {
@@ -19159,8 +19159,8 @@ Cura EMR Team
           const signatureImage = await pdfDoc.embedPng(signatureBuffer);
           
           // Calculate dimensions (keep signature reasonably sized)
-          const maxWidth = 150;
-          const maxHeight = 60;
+          const maxWidth = 180;
+          const maxHeight = 70;
           const aspectRatio = signatureImage.width / signatureImage.height;
           
           let imgWidth = maxWidth;
@@ -19171,23 +19171,42 @@ Cura EMR Team
             imgWidth = maxHeight * aspectRatio;
           }
           
-          // Draw signature image below the "(Signature)" text
+          // Define signature box dimensions
+          const boxWidth = 200;
+          const boxHeight = 80;
+          const boxX = 60;
+          const boxY = yPosition - boxHeight;
+          
+          // Draw signature box border
+          page.drawRectangle({
+            x: boxX,
+            y: boxY,
+            width: boxWidth,
+            height: boxHeight,
+            borderColor: rgb(0, 0, 0),
+            borderWidth: 1,
+          });
+          
+          // Draw signature image centered inside the box with padding
+          const paddingX = (boxWidth - imgWidth) / 2;
+          const paddingY = (boxHeight - imgHeight) / 2;
+          
           page.drawImage(signatureImage, {
-            x: 60,
-            y: yPosition,
+            x: boxX + paddingX,
+            y: boxY + paddingY,
             width: imgWidth,
             height: imgHeight,
           });
           
           console.log("IMAGE PRESCRIPTION: E-signature added successfully");
-          yPosition -= (imgHeight + 10); // Adjust position after signature
+          yPosition -= (boxHeight + 10); // Adjust position after signature box
         } catch (signatureError) {
           console.error("IMAGE PRESCRIPTION: Error adding e-signature:", signatureError);
           // Continue without signature if there's an error
         }
+      } else {
+        yPosition -= 20;
       }
-      
-      yPosition -= 20;
       
       if (req.user?.firstName && req.user?.lastName) {
         page.drawText(`${req.user.firstName} ${req.user.lastName}`, {
