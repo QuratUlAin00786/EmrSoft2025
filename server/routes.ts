@@ -19160,8 +19160,8 @@ Cura EMR Team
           const signatureImage = await pdfDoc.embedPng(signatureBuffer);
           
           // Calculate dimensions (keep signature reasonably sized)
-          const maxWidth = 180;
-          const maxHeight = 70;
+          const maxWidth = 160;
+          const maxHeight = 60;
           const aspectRatio = signatureImage.width / signatureImage.height;
           
           let imgWidth = maxWidth;
@@ -19172,9 +19172,9 @@ Cura EMR Team
             imgWidth = maxHeight * aspectRatio;
           }
           
-          // Define signature box dimensions
-          const boxWidth = 200;
-          const boxHeight = 80;
+          // Define signature box dimensions (compact size like UI)
+          const boxWidth = 170;
+          const boxHeight = 70;
           const boxX = 60;
           const boxY = yPosition - boxHeight;
           
@@ -19184,7 +19184,7 @@ Cura EMR Team
             y: boxY,
             width: boxWidth,
             height: boxHeight,
-            borderColor: rgb(0, 0, 0),
+            borderColor: rgb(0.3, 0.3, 0.3),
             borderWidth: 1,
           });
           
