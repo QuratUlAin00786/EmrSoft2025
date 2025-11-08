@@ -320,6 +320,8 @@ export default function ImagingPage() {
   const [isSendingShare, setIsSendingShare] = useState(false);
   const [patients, setPatients] = useState<any[]>([]);
   const [patientsLoading, setPatientsLoading] = useState(false);
+  const [patientSearchTerm, setPatientSearchTerm] = useState("");
+  const [patientSearchFocus, setPatientSearchFocus] = useState(false);
   const [reportFindings, setReportFindings] = useState("");
   const [reportImpression, setReportImpression] = useState("");
   const [reportRadiologist, setReportRadiologist] = useState("");
@@ -5053,72 +5055,57 @@ export default function ImagingPage() {
                     </span>
                   </div>
                 ) : (
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        role="combobox"
-                        className="w-full justify-between"
-                      >
-                        {orderFormData.patientId
-                          ? patients.find(
-                              (patient: any) => patient.id.toString() === orderFormData.patientId
-                            )
-                            ? `${
-                                patients.find(
-                                  (patient: any) => patient.id.toString() === orderFormData.patientId
-                                )?.firstName
-                              } ${
-                                patients.find(
-                                  (patient: any) => patient.id.toString() === orderFormData.patientId
-                                )?.lastName
-                              } (${
-                                patients.find(
-                                  (patient: any) => patient.id.toString() === orderFormData.patientId
-                                )?.patientId
-                              })`
-                            : "Select patient"
-                          : patientsLoading
-                          ? "Loading patients..."
-                          : "Select patient"}
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-full p-0">
-                      <Command>
-                        <CommandInput placeholder="Search patients..." />
-                        <CommandEmpty>No patient found.</CommandEmpty>
-                        <CommandGroup className="max-h-64 overflow-auto">
+                  <Popover open={!!patientSearchFocus} onOpenChange={(open) => !open && setPatientSearchFocus(false)}>
+                    <div className="relative">
+                      <Input
+                        id="patient"
+                        placeholder="Select patient"
+                        value={patientSearchTerm}
+                        onChange={(e) => {
+                          setPatientSearchTerm(e.target.value);
+                          setPatientSearchFocus(true);
+                        }}
+                        onFocus={() => setPatientSearchFocus(true)}
+                        className="w-full"
+                      />
+                      {patientSearchFocus && (
+                        <div className="absolute z-50 w-full mt-1 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-md shadow-lg max-h-64 overflow-auto">
                           {patientsLoading ? (
-                            <CommandItem disabled>Loading patients...</CommandItem>
+                            <div className="px-3 py-2 text-sm text-gray-500">Loading patients...</div>
                           ) : patients.length > 0 ? (
-                            patients.map((patient: any) => (
-                              <CommandItem
-                                key={patient.id}
-                                value={`${patient.firstName} ${patient.lastName} ${patient.patientId}`}
-                                onSelect={() => {
-                                  setOrderFormData((prev) => ({
-                                    ...prev,
-                                    patientId: patient.id.toString(),
-                                  }));
-                                }}
-                              >
-                                <Check
-                                  className={`mr-2 h-4 w-4 ${
+                            patients
+                              .filter((patient: any) => {
+                                const searchLower = patientSearchTerm.toLowerCase();
+                                const fullName = `${patient.firstName} ${patient.lastName}`.toLowerCase();
+                                const patientId = patient.patientId?.toLowerCase() || '';
+                                return fullName.includes(searchLower) || patientId.includes(searchLower);
+                              })
+                              .map((patient: any) => (
+                                <div
+                                  key={patient.id}
+                                  className={`px-3 py-2 text-sm cursor-pointer hover:bg-cyan-400 hover:text-white ${
                                     orderFormData.patientId === patient.id.toString()
-                                      ? "opacity-100"
-                                      : "opacity-0"
+                                      ? "bg-cyan-400 text-white"
+                                      : "text-gray-900 dark:text-gray-100"
                                   }`}
-                                />
-                                {patient.firstName} {patient.lastName} ({patient.patientId})
-                              </CommandItem>
-                            ))
+                                  onClick={() => {
+                                    setOrderFormData((prev) => ({
+                                      ...prev,
+                                      patientId: patient.id.toString(),
+                                    }));
+                                    setPatientSearchTerm(`${patient.firstName} ${patient.lastName} (${patient.patientId})`);
+                                    setPatientSearchFocus(false);
+                                  }}
+                                >
+                                  {patient.firstName} {patient.lastName} ({patient.patientId})
+                                </div>
+                              ))
                           ) : (
-                            <CommandItem disabled>No patients found</CommandItem>
+                            <div className="px-3 py-2 text-sm text-gray-500">No patients found</div>
                           )}
-                        </CommandGroup>
-                      </Command>
-                    </PopoverContent>
+                        </div>
+                      )}
+                    </div>
                   </Popover>
                 )}
               </div>
