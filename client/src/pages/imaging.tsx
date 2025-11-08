@@ -6900,6 +6900,25 @@ export default function ImagingPage() {
                 </div>
               </div>
 
+              {/* E-Signature Section */}
+              {selectedPrescriptionStudy.signatureData && (
+                <div className="border rounded-lg p-4 bg-white">
+                  <h5 className="font-semibold text-gray-900 mb-3">Resident Physician (Signature)</h5>
+                  <div className="border border-gray-300 rounded-lg p-2 inline-block">
+                    <img
+                      src={selectedPrescriptionStudy.signatureData}
+                      alt="Resident Physician Signature"
+                      className="w-[120px] h-[50px] object-contain"
+                    />
+                  </div>
+                  {selectedPrescriptionStudy.signatureDate && (
+                    <div className="mt-2 text-sm" style={{ color: 'rgb(0, 153, 0)' }}>
+                      ✓ E-Signed by - {format(new Date(selectedPrescriptionStudy.signatureDate), "MMM d, yyyy HH:mm")}
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Critical Values Alert */}
               {(selectedPrescriptionStudy.priority === 'stat' || selectedPrescriptionStudy.priority === 'urgent') && (
                 <div className="bg-red-50 border border-red-200 rounded p-3 flex items-start gap-2">
