@@ -1461,12 +1461,13 @@ export default function ImagingPage() {
         description: "Please wait...",
       });
 
-      // Call backend to generate image prescription PDF
+      // Call backend to generate image prescription PDF with signature
       const response = await apiRequest(
         "POST",
         "/api/imaging/generate-image-prescription",
         {
           imageId: study.imageId,
+          signatureData: study.signatureData || null,
         }
       );
 

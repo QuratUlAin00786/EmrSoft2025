@@ -18655,8 +18655,9 @@ Cura EMR Team
         return res.status(401).json({ error: "User not authenticated" });
       }
 
-      const { imageId } = req.body;
+      const { imageId, signatureData } = req.body;
       console.log("IMAGE PRESCRIPTION: Received imageId:", imageId);
+      console.log("IMAGE PRESCRIPTION: Has signature:", !!signatureData);
       
       if (!imageId) {
         console.log("IMAGE PRESCRIPTION: Image ID is required");
@@ -19129,6 +19130,48 @@ Cura EMR Team
         font,
         color: darkText
       });
+      
+      yPosition -= 20;
+      
+      // Add e-signature image if available
+      if (signatureData) {
+        try {
+          console.log("IMAGE PRESCRIPTION: Adding e-signature to PDF...");
+          // Extract base64 data from data URL (format: data:image/png;base64,...)
+          const base64Data = signatureData.replace(/^data:image\/\w+;base64,/, '');
+          const signatureBuffer = Buffer.from(base64Data, 'base64');
+          
+          // Embed PNG image
+          const signatureImage = await pdfDoc.embedPng(signatureBuffer);
+          
+          // Calculate dimensions (keep signature reasonably sized)
+          const maxWidth = 150;
+          const maxHeight = 60;
+          const aspectRatio = signatureImage.width / signatureImage.height;
+          
+          let imgWidth = maxWidth;
+          let imgHeight = maxWidth / aspectRatio;
+          
+          if (imgHeight > maxHeight) {
+            imgHeight = maxHeight;
+            imgWidth = maxHeight * aspectRatio;
+          }
+          
+          // Draw signature image below the "(Signature)" text
+          page.drawImage(signatureImage, {
+            x: 60,
+            y: yPosition,
+            width: imgWidth,
+            height: imgHeight,
+          });
+          
+          console.log("IMAGE PRESCRIPTION: E-signature added successfully");
+          yPosition -= (imgHeight + 10); // Adjust position after signature
+        } catch (signatureError) {
+          console.error("IMAGE PRESCRIPTION: Error adding e-signature:", signatureError);
+          // Continue without signature if there's an error
+        }
+      }
       
       yPosition -= 20;
       
