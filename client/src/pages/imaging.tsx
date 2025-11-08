@@ -3057,13 +3057,13 @@ export default function ImagingPage() {
                         {/* E-Signature Preview - Show if signature exists */}
                         {study.signatureData && (
                           <div>
-                            <p className="text-sm text-gray-700 dark:text-gray-300 mb-1">
+                            <p className="text-xs text-gray-700 dark:text-gray-300 mb-1">
                               Resident Physician
                             </p>
-                            <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                            <p className="text-xs text-gray-700 dark:text-gray-300 mb-2">
                               (Signature)
                             </p>
-                            <div className="border border-gray-300 dark:border-gray-600 rounded p-2 bg-white dark:bg-slate-700" style={{width: '200px', height: '100px'}}>
+                            <div className="border border-gray-400 dark:border-gray-500 bg-white dark:bg-slate-700 p-1" style={{width: '170px', height: '70px'}}>
                               <img 
                                 src={study.signatureData} 
                                 alt="E-Signature" 
@@ -3071,7 +3071,7 @@ export default function ImagingPage() {
                               />
                             </div>
                             {study.signatureDate && (
-                              <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                              <p className="text-xs text-green-600 dark:text-green-400 mt-1 font-normal">
                                 ✓ E-Signed by - {format(new Date(study.signatureDate), "MMM d, yyyy HH:mm")}
                               </p>
                             )}
