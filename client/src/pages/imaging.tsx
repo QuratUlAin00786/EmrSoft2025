@@ -6904,11 +6904,25 @@ export default function ImagingPage() {
               {selectedPrescriptionStudy.signatureData && (
                 <div>
                   <h5 className="font-semibold text-gray-900 mb-2">Resident Physician (Signature)</h5>
-                  <div className="border border-gray-200 rounded inline-block p-0">
+                  <div 
+                    className="inline-block rounded"
+                    style={{ 
+                      border: '1px solid #E5E7EB',
+                      padding: '0',
+                      margin: '0'
+                    }}
+                  >
                     <img
                       src={selectedPrescriptionStudy.signatureData}
                       alt="Resident Physician Signature"
-                      className="w-[120px] h-[50px] object-contain block"
+                      style={{
+                        width: '120px',
+                        height: '50px',
+                        objectFit: 'contain',
+                        display: 'block',
+                        margin: '0',
+                        padding: '0'
+                      }}
                     />
                   </div>
                   {selectedPrescriptionStudy.signatureDate && (
