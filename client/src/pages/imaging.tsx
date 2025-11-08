@@ -5057,6 +5057,7 @@ export default function ImagingPage() {
                 ) : (
                   <Popover open={!!patientSearchFocus} onOpenChange={(open) => !open && setPatientSearchFocus(false)}>
                     <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                       <Input
                         id="patient"
                         placeholder="Select patient"
@@ -5066,7 +5067,7 @@ export default function ImagingPage() {
                           setPatientSearchFocus(true);
                         }}
                         onFocus={() => setPatientSearchFocus(true)}
-                        className="w-full"
+                        className="w-full pl-10"
                       />
                       {patientSearchFocus && (
                         <div className="absolute z-50 w-full mt-1 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-md shadow-lg max-h-64 overflow-auto">
