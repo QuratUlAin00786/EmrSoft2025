@@ -13337,6 +13337,7 @@ This treatment plan should be reviewed and adjusted based on individual patient 
         console.log("✅ SIGNATURE UPDATE: Saving signature for image ID:", imageId);
         console.log("✅ SIGNATURE UPDATE: Signature data length:", validatedData.signatureData.length);
         updateData.signatureData = validatedData.signatureData;
+        updateData.signatureDate = new Date(); // Capture timestamp when signature is applied
       }
 
       const success = await storage.updateMedicalImage(imageId, req.tenant!.id, updateData);
@@ -19198,8 +19199,25 @@ Cura EMR Team
             height: imgHeight,
           });
           
+          // Add timestamp below signature box if signatureDate exists
+          if (medicalImage.signatureDate) {
+            const signDate = new Date(medicalImage.signatureDate);
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const formattedDate = `${months[signDate.getMonth()]} ${signDate.getDate()}, ${signDate.getFullYear()} ${signDate.getHours().toString().padStart(2, '0')}:${signDate.getMinutes().toString().padStart(2, '0')}`;
+            const timestampText = `✓ E-Signed by - ${formattedDate}`;
+            
+            // Draw timestamp in green below the signature box
+            page.drawText(timestampText, {
+              x: boxX,
+              y: boxY - 15,
+              size: 8,
+              font,
+              color: rgb(0, 0.5, 0), // Green color
+            });
+          }
+          
           console.log("IMAGE PRESCRIPTION: E-signature added successfully");
-          yPosition -= (boxHeight + 10); // Adjust position after signature box
+          yPosition -= (boxHeight + 20); // Adjust position after signature box and timestamp
         } catch (signatureError) {
           console.error("IMAGE PRESCRIPTION: Error adding e-signature:", signatureError);
           // Continue without signature if there's an error
