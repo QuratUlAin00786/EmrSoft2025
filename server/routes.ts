@@ -18655,9 +18655,8 @@ Cura EMR Team
         return res.status(401).json({ error: "User not authenticated" });
       }
 
-      const { imageId, signatureData } = req.body;
+      const { imageId } = req.body;
       console.log("IMAGE PRESCRIPTION: Received imageId:", imageId);
-      console.log("IMAGE PRESCRIPTION: Has signature:", !!signatureData);
       
       if (!imageId) {
         console.log("IMAGE PRESCRIPTION: Image ID is required");
@@ -18674,6 +18673,7 @@ Cura EMR Team
       
       const medicalImage = medicalImages.find(img => img.imageId === imageId);
       console.log("IMAGE PRESCRIPTION: Found medical image:", medicalImage ? "YES" : "NO");
+      console.log("IMAGE PRESCRIPTION: Has signature from DB:", !!(medicalImage?.signatureData));
       
       if (!medicalImage) {
         console.log("IMAGE PRESCRIPTION: Medical image not found for imageId:", imageId);
@@ -19133,12 +19133,12 @@ Cura EMR Team
       
       yPosition -= 20;
       
-      // Add e-signature image if available
-      if (signatureData) {
+      // Add e-signature image if available (from database)
+      if (medicalImage.signatureData) {
         try {
           console.log("IMAGE PRESCRIPTION: Adding e-signature to PDF...");
           // Extract base64 data from data URL (format: data:image/png;base64,...)
-          const base64Data = signatureData.replace(/^data:image\/\w+;base64,/, '');
+          const base64Data = medicalImage.signatureData.replace(/^data:image\/\w+;base64,/, '');
           const signatureBuffer = Buffer.from(base64Data, 'base64');
           
           // Embed PNG image
