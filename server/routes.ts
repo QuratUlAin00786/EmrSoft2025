@@ -13334,10 +13334,16 @@ This treatment plan should be reviewed and adjusted based on individual patient 
         updateData.orderStudyGenerated = validatedData.orderStudyGenerated;
       }
       if (validatedData.signatureData) {
+        console.log("✅ SIGNATURE UPDATE: Saving signature for image ID:", imageId);
+        console.log("✅ SIGNATURE UPDATE: Signature data length:", validatedData.signatureData.length);
         updateData.signatureData = validatedData.signatureData;
       }
 
       const success = await storage.updateMedicalImage(imageId, req.tenant!.id, updateData);
+      
+      if (success && validatedData.signatureData) {
+        console.log("✅ SIGNATURE UPDATE: Signature saved successfully!");
+      }
       
       if (!success) {
         return res.status(404).json({ error: "Medical image not found" });
@@ -18678,6 +18684,10 @@ Cura EMR Team
       const medicalImage = medicalImages.find(img => img.imageId === imageId);
       console.log("IMAGE PRESCRIPTION: Found medical image:", medicalImage ? "YES" : "NO");
       console.log("IMAGE PRESCRIPTION: Has signature from DB:", !!(medicalImage?.signatureData));
+      if (medicalImage?.signatureData) {
+        console.log("IMAGE PRESCRIPTION: Signature data length:", medicalImage.signatureData.length);
+        console.log("IMAGE PRESCRIPTION: Signature data preview:", medicalImage.signatureData.substring(0, 50) + "...");
+      }
       
       if (!medicalImage) {
         console.log("IMAGE PRESCRIPTION: Medical image not found for imageId:", imageId);
