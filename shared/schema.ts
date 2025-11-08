@@ -790,6 +790,8 @@ export const medicalImages = pgTable("medical_images", {
   orderStudyReadyToGenerate: boolean("order_study_ready_to_generate").notNull().default(false),
   orderStudyGenerated: boolean("order_study_generated").notNull().default(false),
   orderStudyShared: boolean("order_study_shared").notNull().default(false),
+  // E-signature field
+  signatureData: text("signature_data"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
