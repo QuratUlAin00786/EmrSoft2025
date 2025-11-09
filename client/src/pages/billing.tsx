@@ -2130,6 +2130,9 @@ export default function BillingPage() {
   
   // Universal search for doctors
   const [universalSearch, setUniversalSearch] = useState("");
+  
+  // Invoice ID filter
+  const [invoiceIdFilter, setInvoiceIdFilter] = useState("");
 
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [activeTab, setActiveTab] = useState("invoices");
@@ -3396,6 +3399,15 @@ export default function BillingPage() {
                               <SelectItem value="cancelled">Cancelled</SelectItem>
                             </SelectContent>
                           </Select>
+
+                          <SearchComboBox
+                            value={invoiceIdFilter}
+                            onValueChange={setInvoiceIdFilter}
+                            placeholder="Filter by Invoice ID..."
+                            className="w-52"
+                            testId="input-invoice-id-filter"
+                            queryEndpoint="/api/billing/invoice-ids"
+                          />
 
                           {user?.role === 'doctor' && (
                             <>
