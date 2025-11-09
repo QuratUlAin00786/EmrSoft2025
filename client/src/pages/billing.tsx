@@ -3555,7 +3555,24 @@ export default function BillingPage() {
                           <tbody className="bg-white dark:bg-slate-900 divide-y divide-gray-200 dark:divide-gray-700">
                             {filteredInvoices.map((invoice) => (
                               <tr key={invoice.id} className="hover:bg-gray-50 dark:hover:bg-slate-800" data-testid={`invoice-row-${invoice.id}`}>
-                                <td className="px-4 py-4 text-sm font-medium text-gray-900 dark:text-gray-100">{invoice.invoiceNumber || invoice.id}</td>
+                                <td 
+                                  className="px-4 py-4 text-sm font-medium text-gray-900 dark:text-gray-100 cursor-pointer hover:text-primary hover:underline" 
+                                  onClick={() => {
+                                    const invoiceNum = invoice.invoiceNumber || invoice.id;
+                                    const isDoctorRole = isDoctorLike(user?.role);
+                                    const isAdminRole = user?.role === 'admin';
+                                    
+                                    if (isDoctorRole || isAdminRole) {
+                                      setUniversalSearch(String(invoiceNum));
+                                    } else {
+                                      setSearchQuery(String(invoiceNum));
+                                    }
+                                  }}
+                                  title="Click to search this invoice"
+                                  data-testid="button-invoice-number-list"
+                                >
+                                  {invoice.invoiceNumber || invoice.id}
+                                </td>
                                 <td className="px-4 py-4 text-sm text-gray-900 dark:text-gray-100">{invoice.patientName}</td>
                                 <td className="px-4 py-4 text-sm">
                                   <Badge variant="outline" className="bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-700">
@@ -3678,7 +3695,28 @@ export default function BillingPage() {
                                 <div>
                                   <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">Invoice Details</h4>
                                   <div className="space-y-1 text-sm text-gray-900 dark:text-gray-100">
-                                    <div><strong>Invoice:</strong> {invoice.invoiceNumber || invoice.id}</div>
+                                    <div>
+                                      <strong>Invoice:</strong>{' '}
+                                      <button
+                                        type="button"
+                                        className="font-medium cursor-pointer hover:text-primary hover:underline inline-block"
+                                        onClick={() => {
+                                          const invoiceNum = invoice.invoiceNumber || invoice.id;
+                                          const isDoctorRole = isDoctorLike(user?.role);
+                                          const isAdminRole = user?.role === 'admin';
+                                          
+                                          if (isDoctorRole || isAdminRole) {
+                                            setUniversalSearch(String(invoiceNum));
+                                          } else {
+                                            setSearchQuery(String(invoiceNum));
+                                          }
+                                        }}
+                                        title="Click to search this invoice"
+                                        data-testid="button-invoice-number-grid"
+                                      >
+                                        {invoice.invoiceNumber || invoice.id}
+                                      </button>
+                                    </div>
                                     <div className="flex items-center gap-2">
                                       <strong>Payment Method:</strong>
                                       <Badge variant="outline" className="bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-700">
