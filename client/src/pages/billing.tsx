@@ -48,6 +48,9 @@ import {
   List
 } from "lucide-react";
 import { SearchComboBox } from "@/components/SearchComboBox";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Check, ChevronsUpDown } from "lucide-react";
 
 interface Invoice {
   id: number;
@@ -2140,6 +2143,14 @@ export default function BillingPage() {
   const [reportRole, setReportRole] = useState("all");
   const [reportUserName, setReportUserName] = useState("all");
   const [reportGenerated, setReportGenerated] = useState(false);
+  
+  // Searchable dropdown states
+  const [insuranceSearchOpen, setInsuranceSearchOpen] = useState(false);
+  const [roleSearchOpen, setRoleSearchOpen] = useState(false);
+  const [nameSearchOpen, setNameSearchOpen] = useState(false);
+  const [insuranceSearch, setInsuranceSearch] = useState("");
+  const [roleSearch, setRoleSearch] = useState("");
+  const [nameSearch, setNameSearch] = useState("");
 
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [activeTab, setActiveTab] = useState("invoices");
@@ -4822,64 +4833,151 @@ export default function BillingPage() {
                         </div>
                         <div>
                           <Label>Insurance Type</Label>
-                          <Select value={reportInsuranceType} onValueChange={setReportInsuranceType}>
-                            <SelectTrigger data-testid="select-report-insurance-type">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="all">All Insurance</SelectItem>
-                              <SelectItem value="NHS (National Health Service)">NHS (National Health Service)</SelectItem>
-                              <SelectItem value="Bupa">Bupa</SelectItem>
-                              <SelectItem value="AXA PPP Healthcare">AXA PPP Healthcare</SelectItem>
-                              <SelectItem value="Vitality Health">Vitality Health</SelectItem>
-                              <SelectItem value="Aviva Health">Aviva Health</SelectItem>
-                              <SelectItem value="Simply Health">Simply Health</SelectItem>
-                              <SelectItem value="WPA">WPA</SelectItem>
-                              <SelectItem value="Benenden Health">Benenden Health</SelectItem>
-                              <SelectItem value="Healix Health Services">Healix Health Services</SelectItem>
-                              <SelectItem value="Sovereign Health Care">Sovereign Health Care</SelectItem>
-                              <SelectItem value="Exeter Friendly Society">Exeter Friendly Society</SelectItem>
-                              <SelectItem value="Self-Pay">Self-Pay</SelectItem>
-                              <SelectItem value="Other">Other</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <Popover open={insuranceSearchOpen} onOpenChange={setInsuranceSearchOpen}>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                aria-expanded={insuranceSearchOpen}
+                                className="w-full justify-between"
+                                data-testid="select-report-insurance-type"
+                              >
+                                {reportInsuranceType === "all" ? "All Insurance" : reportInsuranceType}
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-full p-0">
+                              <Command>
+                                <CommandInput placeholder="Search insurance..." />
+                                <CommandEmpty>No insurance provider found.</CommandEmpty>
+                                <CommandGroup className="max-h-64 overflow-auto">
+                                  <CommandItem
+                                    value="all"
+                                    onSelect={() => {
+                                      setReportInsuranceType("all");
+                                      setInsuranceSearchOpen(false);
+                                    }}
+                                  >
+                                    <Check className={reportInsuranceType === "all" ? "mr-2 h-4 w-4 opacity-100" : "mr-2 h-4 w-4 opacity-0"} />
+                                    All Insurance
+                                  </CommandItem>
+                                  {["NHS (National Health Service)", "Bupa", "AXA PPP Healthcare", "Vitality Health", "Aviva Health", "Simply Health", "WPA", "Benenden Health", "Healix Health Services", "Sovereign Health Care", "Exeter Friendly Society", "Self-Pay", "Other"].map((provider) => (
+                                    <CommandItem
+                                      key={provider}
+                                      value={provider}
+                                      onSelect={() => {
+                                        setReportInsuranceType(provider);
+                                        setInsuranceSearchOpen(false);
+                                      }}
+                                    >
+                                      <Check className={reportInsuranceType === provider ? "mr-2 h-4 w-4 opacity-100" : "mr-2 h-4 w-4 opacity-0"} />
+                                      {provider}
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
                         </div>
                         <div>
                           <Label>Select Role</Label>
-                          <Select value={reportRole} onValueChange={(value) => {
-                            setReportRole(value);
-                            setReportUserName("all");
-                          }}>
-                            <SelectTrigger data-testid="select-report-role">
-                              <SelectValue placeholder="Select role" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="all">All Roles</SelectItem>
-                              {roles.map((role: any) => (
-                                <SelectItem key={role.id} value={role.name}>
-                                  {role.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          <Popover open={roleSearchOpen} onOpenChange={setRoleSearchOpen}>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                aria-expanded={roleSearchOpen}
+                                className="w-full justify-between"
+                                data-testid="select-report-role"
+                              >
+                                {reportRole === "all" ? "All Roles" : reportRole}
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-full p-0">
+                              <Command>
+                                <CommandInput placeholder="Search role..." />
+                                <CommandEmpty>No role found.</CommandEmpty>
+                                <CommandGroup className="max-h-64 overflow-auto">
+                                  <CommandItem
+                                    value="all"
+                                    onSelect={() => {
+                                      setReportRole("all");
+                                      setReportUserName("all");
+                                      setRoleSearchOpen(false);
+                                    }}
+                                  >
+                                    <Check className={reportRole === "all" ? "mr-2 h-4 w-4 opacity-100" : "mr-2 h-4 w-4 opacity-0"} />
+                                    All Roles
+                                  </CommandItem>
+                                  {roles.map((role: any) => (
+                                    <CommandItem
+                                      key={role.id}
+                                      value={role.name}
+                                      onSelect={() => {
+                                        setReportRole(role.name);
+                                        setReportUserName("all");
+                                        setRoleSearchOpen(false);
+                                      }}
+                                    >
+                                      <Check className={reportRole === role.name ? "mr-2 h-4 w-4 opacity-100" : "mr-2 h-4 w-4 opacity-0"} />
+                                      {role.name}
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
                         </div>
                         <div>
                           <Label>Select Name</Label>
-                          <Select value={reportUserName} onValueChange={setReportUserName}>
-                            <SelectTrigger data-testid="select-report-user-name">
-                              <SelectValue placeholder="Select name" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="all">All Names</SelectItem>
-                              {users
-                                .filter((user: any) => reportRole === "all" || user.role === reportRole)
-                                .map((user: any) => (
-                                  <SelectItem key={user.id} value={String(user.id)}>
-                                    {user.firstName} {user.lastName}
-                                  </SelectItem>
-                                ))}
-                            </SelectContent>
-                          </Select>
+                          <Popover open={nameSearchOpen} onOpenChange={setNameSearchOpen}>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                aria-expanded={nameSearchOpen}
+                                className="w-full justify-between"
+                                data-testid="select-report-user-name"
+                              >
+                                {reportUserName === "all" ? "All Names" : users.find((u: any) => String(u.id) === reportUserName)?.firstName + " " + users.find((u: any) => String(u.id) === reportUserName)?.lastName || "Select name"}
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-full p-0">
+                              <Command>
+                                <CommandInput placeholder="Search name..." />
+                                <CommandEmpty>No user found.</CommandEmpty>
+                                <CommandGroup className="max-h-64 overflow-auto">
+                                  <CommandItem
+                                    value="all"
+                                    onSelect={() => {
+                                      setReportUserName("all");
+                                      setNameSearchOpen(false);
+                                    }}
+                                  >
+                                    <Check className={reportUserName === "all" ? "mr-2 h-4 w-4 opacity-100" : "mr-2 h-4 w-4 opacity-0"} />
+                                    All Names
+                                  </CommandItem>
+                                  {users
+                                    .filter((user: any) => reportRole === "all" || user.role === reportRole)
+                                    .map((user: any) => (
+                                      <CommandItem
+                                        key={user.id}
+                                        value={`${user.firstName} ${user.lastName}`}
+                                        onSelect={() => {
+                                          setReportUserName(String(user.id));
+                                          setNameSearchOpen(false);
+                                        }}
+                                      >
+                                        <Check className={reportUserName === String(user.id) ? "mr-2 h-4 w-4 opacity-100" : "mr-2 h-4 w-4 opacity-0"} />
+                                        {user.firstName} {user.lastName}
+                                      </CommandItem>
+                                    ))}
+                                </CommandGroup>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
                         </div>
                         <div className="flex items-end">
                           <Button 
