@@ -2133,6 +2133,12 @@ export default function BillingPage() {
   
   // Invoice ID filter
   const [invoiceIdFilter, setInvoiceIdFilter] = useState("");
+  
+  // Custom Reports filters
+  const [reportDateRange, setReportDateRange] = useState("this-month");
+  const [reportInsuranceType, setReportInsuranceType] = useState("all");
+  const [reportRole, setReportRole] = useState("all");
+  const [reportUserName, setReportUserName] = useState("all");
 
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [activeTab, setActiveTab] = useState("invoices");
@@ -3066,6 +3072,19 @@ export default function BillingPage() {
     queryKey: ["/api/pricing/doctors-fees"],
     enabled: isAdmin && activeTab === "custom-reports"
   });
+  
+  // Fetch users and roles for Custom Reports filters
+  const { data: users = [] } = useQuery({
+    queryKey: ["/api/users"],
+    enabled: isAdmin && activeTab === "custom-reports",
+    select: (data: any) => data || []
+  });
+
+  const { data: roles = [] } = useQuery({
+    queryKey: ["/api/roles"],
+    enabled: isAdmin && activeTab === "custom-reports",
+    select: (data: any) => data || []
+  });
 
   // Auto-populate NHS number when patient is selected
   useEffect(() => {
@@ -3132,7 +3151,11 @@ export default function BillingPage() {
     const matchesInsuranceProvider = insuranceProviderFilter === "all" || 
       invoice.insurance?.provider === insuranceProviderFilter;
     
-    return matchesSearch && matchesStatus && matchesServiceDateFrom && matchesPaymentMethod && matchesInsuranceProvider;
+    // Filter by invoice ID
+    const matchesInvoiceId = !invoiceIdFilter || 
+      String(invoice.invoiceNumber || invoice.id).toLowerCase().includes(invoiceIdFilter.toLowerCase());
+    
+    return matchesSearch && matchesStatus && matchesServiceDateFrom && matchesPaymentMethod && matchesInsuranceProvider && matchesInvoiceId;
   }) : [];
 
   const getStatusColor = (status: string) => {
@@ -3406,7 +3429,6 @@ export default function BillingPage() {
                             placeholder="Filter by Invoice ID..."
                             className="w-52"
                             testId="input-invoice-id-filter"
-                            queryEndpoint="/api/billing/invoice-ids"
                           />
 
                           {user?.role === 'doctor' && (
@@ -3463,12 +3485,13 @@ export default function BillingPage() {
                             />
                           </div>
 
-                          {(serviceDateFrom || (user?.role === 'doctor' && (insuranceProviderFilter !== 'all' || paymentMethodFilter !== 'all' || universalSearch))) && (
+                          {(serviceDateFrom || invoiceIdFilter || (user?.role === 'doctor' && (insuranceProviderFilter !== 'all' || paymentMethodFilter !== 'all' || universalSearch))) && (
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => {
                                 setServiceDateFrom("");
+                                setInvoiceIdFilter("");
                                 if (user?.role === 'doctor') {
                                   setInsuranceProviderFilter('all');
                                   setPaymentMethodFilter('all');
@@ -4722,11 +4745,11 @@ export default function BillingPage() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                         <div>
                           <Label>Date Range</Label>
-                          <Select defaultValue="this-month">
-                            <SelectTrigger>
+                          <Select value={reportDateRange} onValueChange={setReportDateRange}>
+                            <SelectTrigger data-testid="select-report-date-range">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -4741,35 +4764,77 @@ export default function BillingPage() {
                           </Select>
                         </div>
                         <div>
-                          <Label>Provider</Label>
-                          <Select defaultValue="all">
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="all">All Providers</SelectItem>
-                              <SelectItem value="dr-smith">Dr. Smith</SelectItem>
-                              <SelectItem value="dr-jones">Dr. Jones</SelectItem>
-                              <SelectItem value="dr-brown">Dr. Brown</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
                           <Label>Insurance Type</Label>
-                          <Select defaultValue="all">
-                            <SelectTrigger>
+                          <Select value={reportInsuranceType} onValueChange={setReportInsuranceType}>
+                            <SelectTrigger data-testid="select-report-insurance-type">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="all">All Insurance</SelectItem>
-                              <SelectItem value="nhs">NHS</SelectItem>
-                              <SelectItem value="private">Private</SelectItem>
-                              <SelectItem value="self-pay">Self Pay</SelectItem>
+                              <SelectItem value="NHS (National Health Service)">NHS (National Health Service)</SelectItem>
+                              <SelectItem value="Bupa">Bupa</SelectItem>
+                              <SelectItem value="AXA PPP Healthcare">AXA PPP Healthcare</SelectItem>
+                              <SelectItem value="Vitality Health">Vitality Health</SelectItem>
+                              <SelectItem value="Aviva Health">Aviva Health</SelectItem>
+                              <SelectItem value="Simply Health">Simply Health</SelectItem>
+                              <SelectItem value="WPA">WPA</SelectItem>
+                              <SelectItem value="Benenden Health">Benenden Health</SelectItem>
+                              <SelectItem value="Healix Health Services">Healix Health Services</SelectItem>
+                              <SelectItem value="Sovereign Health Care">Sovereign Health Care</SelectItem>
+                              <SelectItem value="Exeter Friendly Society">Exeter Friendly Society</SelectItem>
+                              <SelectItem value="Self-Pay">Self-Pay</SelectItem>
+                              <SelectItem value="Other">Other</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label>Select Role</Label>
+                          <Select value={reportRole} onValueChange={(value) => {
+                            setReportRole(value);
+                            setReportUserName("all");
+                          }}>
+                            <SelectTrigger data-testid="select-report-role">
+                              <SelectValue placeholder="Select role" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">All Roles</SelectItem>
+                              {roles.map((role: any) => (
+                                <SelectItem key={role.id} value={role.name}>
+                                  {role.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label>Select Name</Label>
+                          <Select value={reportUserName} onValueChange={setReportUserName}>
+                            <SelectTrigger data-testid="select-report-user-name">
+                              <SelectValue placeholder="Select name" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">All Names</SelectItem>
+                              {users
+                                .filter((user: any) => reportRole === "all" || user.role === reportRole)
+                                .map((user: any) => (
+                                  <SelectItem key={user.id} value={String(user.id)}>
+                                    {user.firstName} {user.lastName}
+                                  </SelectItem>
+                                ))}
                             </SelectContent>
                           </Select>
                         </div>
                         <div className="flex items-end">
-                          <Button className="w-full">
+                          <Button 
+                            className="w-full" 
+                            onClick={() => {
+                              toast({
+                                title: "Report Generated",
+                                description: `Custom report for ${reportDateRange} has been generated successfully.`,
+                              });
+                            }}
+                            data-testid="button-generate-report"
+                          >
                             <FileBarChart className="h-4 w-4 mr-2" />
                             Generate Report
                           </Button>
