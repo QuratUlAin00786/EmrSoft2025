@@ -586,6 +586,114 @@ Cura EMR Team
     });
   }
 
+  // Template for password change notification
+  generatePasswordChangeEmail(userName: string, timestamp: string): EmailTemplate {
+    const subject = `Password Changed - Cura EMR`;
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background-color: #EF4444; color: white; padding: 20px; text-align: center; }
+          .content { padding: 20px; background-color: #f9f9f9; }
+          .alert-box { background-color: #FEE2E2; border-left: 4px solid #EF4444; padding: 15px; margin: 20px 0; }
+          .details-box { background-color: white; padding: 15px; border-radius: 5px; margin: 20px 0; }
+          .footer { text-align: center; color: #666; font-size: 12px; }
+          .warning { color: #DC2626; font-weight: bold; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Cura EMR</h1>
+            <h2>Password Changed</h2>
+          </div>
+          <div class="content">
+            <p>Dear ${userName},</p>
+            
+            <div class="alert-box">
+              <p class="warning">⚠️ Your password was successfully changed</p>
+            </div>
+            
+            <div class="details-box">
+              <h3>Change Details</h3>
+              <p><strong>Date & Time:</strong> ${timestamp}</p>
+              <p><strong>Account:</strong> ${userName}</p>
+            </div>
+            
+            <p>If you did not make this change, please contact your system administrator immediately and secure your account.</p>
+            
+            <p>For security reasons:</p>
+            <ul>
+              <li>Never share your password with anyone</li>
+              <li>Use a strong, unique password</li>
+              <li>Change your password regularly</li>
+              <li>Enable two-factor authentication if available</li>
+            </ul>
+            
+            <p>Best regards,<br>Cura EMR Security Team</p>
+          </div>
+          <div class="footer">
+            <p>© 2025 Cura EMR by Halo Group. All rights reserved.</p>
+            <p>This is an automated security notification.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+    
+    const text = `
+Dear ${userName},
+
+⚠️ PASSWORD CHANGED
+
+Your Cura EMR account password was successfully changed.
+
+Change Details:
+Date & Time: ${timestamp}
+Account: ${userName}
+
+If you did not make this change, please contact your system administrator immediately and secure your account.
+
+Security Best Practices:
+- Never share your password with anyone
+- Use a strong, unique password
+- Change your password regularly
+- Enable two-factor authentication if available
+
+Best regards,
+Cura EMR Security Team
+
+© 2025 Cura EMR by Halo Group. All rights reserved.
+This is an automated security notification.
+    `;
+
+    return { subject, html, text };
+  }
+
+  // Send password change notification
+  async sendPasswordChangeNotification(userEmail: string, userName: string): Promise<boolean> {
+    const timestamp = new Date().toLocaleString('en-GB', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    });
+    
+    const template = this.generatePasswordChangeEmail(userName, timestamp);
+    return this.sendEmail({
+      to: userEmail,
+      subject: template.subject,
+      html: template.html,
+      text: template.text
+    });
+  }
+
   // Template for sharing imaging studies
   generateImagingStudyShareEmail(recipientEmail: string, patientName: string, studyType: string, sharedBy: string, customMessage: string = '', reportUrl?: string): EmailTemplate {
     const subject = `Imaging Study Shared - ${patientName}`;

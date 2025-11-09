@@ -1317,6 +1317,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Password change endpoint (requires authentication)
+  app.patch("/api/user/change-password", authMiddleware, async (req: TenantRequest, res) => {
+    try {
+      const { currentPassword, newPassword } = z.object({
+        currentPassword: z.string().min(1, "Current password is required"),
+        newPassword: z.string().min(8, "New password must be at least 8 characters long")
+      }).parse(req.body);
+
+      // Get current user
+      const userId = req.user!.id;
+      const organizationId = requireOrgId(req);
+      const user = await storage.getUser(userId, organizationId);
+      
+      if (!user || !user.isActive) {
+        return res.status(404).json({ error: "User not found or inactive" });
+      }
+
+      // Verify current password
+      const isValidPassword = await bcrypt.compare(currentPassword, user.passwordHash);
+      if (!isValidPassword) {
+        return res.status(401).json({ error: "Current password is incorrect" });
+      }
+
+      // Hash new password
+      const newPasswordHash = await bcrypt.hash(newPassword, 10);
+
+      // Update password in database via storage layer
+      await storage.updateUser(userId, organizationId, { passwordHash: newPasswordHash });
+
+      // Send email notification
+      const userName = `${user.firstName} ${user.lastName}`;
+      let emailSent = false;
+      try {
+        emailSent = await emailService.sendPasswordChangeNotification(user.email, userName);
+        if (emailSent) {
+          console.log(`[PASSWORD CHANGE] Email notification sent to ${user.email}`);
+        } else {
+          console.log(`[PASSWORD CHANGE] Email notification failed for ${user.email}`);
+        }
+      } catch (emailError) {
+        console.error('[PASSWORD CHANGE] Email notification failed:', emailError);
+        // Don't fail the password change if email fails
+      }
+
+      res.json({ 
+        success: true, 
+        message: emailSent 
+          ? "Password changed successfully. A confirmation email has been sent to your registered email address." 
+          : "Password changed successfully."
+      });
+    } catch (error) {
+      console.error("[PASSWORD CHANGE] Error:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors[0].message });
+      }
+      res.status(500).json({ error: "Failed to change password" });
+    }
+  });
+
   // Authentication routes (no auth required)
   app.post("/api/auth/login", async (req: TenantRequest, res) => {
     try {
