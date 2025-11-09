@@ -7104,6 +7104,41 @@ export default function ImagingPage() {
                       • Image ID: {eSignStudy.imageId} - {eSignStudy.studyType}
                     </div>
                   </div>
+
+                  {/* Display Signature if Already Signed */}
+                  {eSignStudy.signatureData && (
+                    <div className="mt-4 p-4 bg-green-50 rounded border border-green-200">
+                      <h5 className="text-sm font-semibold text-gray-900 mb-3">
+                        Resident Physician (Signature)
+                      </h5>
+                      <div 
+                        className="inline-block rounded bg-white"
+                        style={{ 
+                          border: '1px solid #E5E7EB',
+                          padding: '0',
+                          margin: '0'
+                        }}
+                      >
+                        <img
+                          src={eSignStudy.signatureData}
+                          alt="Resident Physician Signature"
+                          style={{
+                            width: '120px',
+                            height: '50px',
+                            objectFit: 'contain',
+                            display: 'block',
+                            margin: '0',
+                            padding: '0'
+                          }}
+                        />
+                      </div>
+                      {eSignStudy.signatureDate && (
+                        <div className="mt-2 text-sm" style={{ color: 'rgb(0, 153, 0)' }}>
+                          ✓ E-Signed by - {format(new Date(eSignStudy.signatureDate), "MMM d, yyyy HH:mm")}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 
