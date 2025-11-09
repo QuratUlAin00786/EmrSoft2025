@@ -415,6 +415,13 @@ const COMMON_MEDICATIONS = [
   "Midazolam",
 ];
 
+const COMMON_DOSAGES = [
+  "250 mg",
+  "500 mg",
+  "5 mL",
+  "10 units",
+];
+
 export default function PrescriptionsPage() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
@@ -442,6 +449,7 @@ export default function PrescriptionsPage() {
   const [nameSearchOpen, setNameSearchOpen] = useState(false);
   const [diagnosisSearchOpen, setDiagnosisSearchOpen] = useState(false);
   const [medicationSearchOpen, setMedicationSearchOpen] = useState<{[key: number]: boolean}>({});
+  const [dosageSearchOpen, setDosageSearchOpen] = useState<{[key: number]: boolean}>({});
   const queryClient = useQueryClient();
 
   // Fetch roles from the roles table filtered by organization_id
@@ -3397,24 +3405,70 @@ export default function PrescriptionsPage() {
                                 <Label htmlFor={`medication-dosage-${index}`}>
                                   Dosage *
                                 </Label>
-                                <Input
-                                  id={`medication-dosage-${index}`}
-                                  placeholder="e.g., 10mg"
-                                  value={medication.dosage}
-                                  onChange={(e) =>
-                                    updateMedication(
-                                      index,
-                                      "dosage",
-                                      e.target.value,
-                                    )
+                                <Popover
+                                  open={dosageSearchOpen[index] || false}
+                                  onOpenChange={(open) =>
+                                    setDosageSearchOpen((prev) => ({
+                                      ...prev,
+                                      [index]: open,
+                                    }))
                                   }
-                                  data-testid={`input-dosage-${index}`}
-                                  className={
-                                    formErrors.medications[index]?.dosage
-                                      ? "border-red-500"
-                                      : ""
-                                  }
-                                />
+                                >
+                                  <PopoverTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      role="combobox"
+                                      aria-expanded={dosageSearchOpen[index] || false}
+                                      className="w-full justify-between"
+                                      data-testid={`input-dosage-${index}`}
+                                    >
+                                      <span className="truncate">
+                                        {medication.dosage || "Select or type dosage..."}
+                                      </span>
+                                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-[300px] p-0" align="start">
+                                    <Command shouldFilter={false}>
+                                      <CommandInput
+                                        placeholder="Search or type custom dosage..."
+                                        value={medication.dosage}
+                                        onValueChange={(value) =>
+                                          updateMedication(index, "dosage", value)
+                                        }
+                                      />
+                                      <CommandEmpty>
+                                        Press Enter to use "{medication.dosage}" as custom dosage
+                                      </CommandEmpty>
+                                      <CommandGroup className="max-h-64 overflow-auto">
+                                        {COMMON_DOSAGES.filter((dosage) =>
+                                          dosage.toLowerCase().includes(medication.dosage.toLowerCase())
+                                        ).map((dosage) => (
+                                          <CommandItem
+                                            key={dosage}
+                                            value={dosage}
+                                            onSelect={() => {
+                                              updateMedication(index, "dosage", dosage);
+                                              setDosageSearchOpen((prev) => ({
+                                                ...prev,
+                                                [index]: false,
+                                              }));
+                                            }}
+                                          >
+                                            <Check
+                                              className={`mr-2 h-4 w-4 ${
+                                                medication.dosage === dosage
+                                                  ? "opacity-100"
+                                                  : "opacity-0"
+                                              }`}
+                                            />
+                                            {dosage}
+                                          </CommandItem>
+                                        ))}
+                                      </CommandGroup>
+                                    </Command>
+                                  </PopoverContent>
+                                </Popover>
                                 {formErrors.medications[index]?.dosage && (
                                   <p
                                     className="text-red-500 text-sm mt-1"
