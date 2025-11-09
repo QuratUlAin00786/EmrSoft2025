@@ -944,6 +944,12 @@ export default function UserManagement() {
   const [specialtyCategoryOpen, setSpecialtyCategoryOpen] = useState(false);
   const [subSpecialtyOpen, setSubSpecialtyOpen] = useState(false);
   const [specificAreaOpen, setSpecificAreaOpen] = useState(false);
+  const [labTechSubcategoryOpen, setLabTechSubcategoryOpen] = useState(false);
+  const [pharmacistSubcategoryOpen, setPharmacistSubcategoryOpen] = useState(false);
+  const [opticianSubcategoryOpen, setOpticianSubcategoryOpen] = useState(false);
+  const [paramedicSubcategoryOpen, setParamedicSubcategoryOpen] = useState(false);
+  const [physiotherapistSubcategoryOpen, setPhysiotherapistSubcategoryOpen] = useState(false);
+  const [aestheticianSubcategoryOpen, setAestheticianSubcategoryOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<string>("doctor");
 
   // Fetch roles from the roles table filtered by organization_id
@@ -2746,24 +2752,63 @@ export default function UserManagement() {
                 {['lab technician', 'lab_technician'].includes(selectedRole.toLowerCase()) && (
                   <div className="space-y-2">
                     <Label htmlFor="labTechSubcategory">Lab Technician Subcategory</Label>
-                    <Select 
-                      onValueChange={(value) => {
-                        setSelectedLabTechSubcategory(value);
-                        form.setValue("medicalSpecialtyCategory", value);
-                      }} 
-                      value={selectedLabTechSubcategory}
-                    >
-                      <SelectTrigger data-testid="dropdown-lab-tech-subcategory">
-                        <SelectValue placeholder="Select subcategory" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {labTechnicianSubcategories.map((subcategory) => (
-                          <SelectItem key={subcategory} value={subcategory}>
-                            {subcategory}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Popover open={labTechSubcategoryOpen} onOpenChange={setLabTechSubcategoryOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={labTechSubcategoryOpen}
+                          className="w-full justify-between font-normal"
+                          data-testid="button-lab-tech-subcategory"
+                        >
+                          <span className={selectedLabTechSubcategory ? "text-foreground" : "text-muted-foreground"}>
+                            {selectedLabTechSubcategory || "Select or type subcategory..."}
+                          </span>
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-full p-0" align="start">
+                        <Command>
+                          <CommandInput 
+                            placeholder="Search or type subcategory..." 
+                            onValueChange={(value) => {
+                              setSelectedLabTechSubcategory(value);
+                              form.setValue("medicalSpecialtyCategory", value, { shouldDirty: true });
+                            }}
+                            data-testid="command-input-lab-tech-subcategory"
+                          />
+                          <CommandList>
+                            <CommandEmpty>
+                              <div className="py-2 px-3 text-sm">
+                                <p className="text-muted-foreground mb-2">No subcategory found.</p>
+                                <p className="text-xs text-muted-foreground">
+                                  Press Enter to use: <span className="font-medium">{selectedLabTechSubcategory}</span>
+                                </p>
+                              </div>
+                            </CommandEmpty>
+                            <CommandGroup>
+                              {labTechnicianSubcategories.map((subcategory) => (
+                                <CommandItem
+                                  key={subcategory}
+                                  value={subcategory}
+                                  onSelect={(currentValue) => {
+                                    setSelectedLabTechSubcategory(currentValue);
+                                    form.setValue("medicalSpecialtyCategory", currentValue, { shouldDirty: true });
+                                    setLabTechSubcategoryOpen(false);
+                                  }}
+                                  data-testid={`command-item-lab-tech-${subcategory.toLowerCase().replace(/\s+/g, '-')}`}
+                                >
+                                  <Check
+                                    className={`mr-2 h-4 w-4 ${selectedLabTechSubcategory === subcategory ? "opacity-100" : "opacity-0"}`}
+                                  />
+                                  {subcategory}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                   </div>
                 )}
 
@@ -2771,24 +2816,63 @@ export default function UserManagement() {
                 {selectedRole.toLowerCase() === 'pharmacist' && (
                   <div className="space-y-2">
                     <Label htmlFor="pharmacistSubcategory">Pharmacist Subcategory</Label>
-                    <Select 
-                      onValueChange={(value) => {
-                        setSelectedPharmacistSubcategory(value);
-                        form.setValue("medicalSpecialtyCategory", value);
-                      }} 
-                      value={selectedPharmacistSubcategory}
-                    >
-                      <SelectTrigger data-testid="dropdown-pharmacist-subcategory">
-                        <SelectValue placeholder="Select subcategory" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {pharmacistSubcategories.map((subcategory) => (
-                          <SelectItem key={subcategory} value={subcategory}>
-                            {subcategory}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Popover open={pharmacistSubcategoryOpen} onOpenChange={setPharmacistSubcategoryOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={pharmacistSubcategoryOpen}
+                          className="w-full justify-between font-normal"
+                          data-testid="button-pharmacist-subcategory"
+                        >
+                          <span className={selectedPharmacistSubcategory ? "text-foreground" : "text-muted-foreground"}>
+                            {selectedPharmacistSubcategory || "Select or type subcategory..."}
+                          </span>
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-full p-0" align="start">
+                        <Command>
+                          <CommandInput 
+                            placeholder="Search or type subcategory..." 
+                            onValueChange={(value) => {
+                              setSelectedPharmacistSubcategory(value);
+                              form.setValue("medicalSpecialtyCategory", value, { shouldDirty: true });
+                            }}
+                            data-testid="command-input-pharmacist-subcategory"
+                          />
+                          <CommandList>
+                            <CommandEmpty>
+                              <div className="py-2 px-3 text-sm">
+                                <p className="text-muted-foreground mb-2">No subcategory found.</p>
+                                <p className="text-xs text-muted-foreground">
+                                  Press Enter to use: <span className="font-medium">{selectedPharmacistSubcategory}</span>
+                                </p>
+                              </div>
+                            </CommandEmpty>
+                            <CommandGroup>
+                              {pharmacistSubcategories.map((subcategory) => (
+                                <CommandItem
+                                  key={subcategory}
+                                  value={subcategory}
+                                  onSelect={(currentValue) => {
+                                    setSelectedPharmacistSubcategory(currentValue);
+                                    form.setValue("medicalSpecialtyCategory", currentValue, { shouldDirty: true });
+                                    setPharmacistSubcategoryOpen(false);
+                                  }}
+                                  data-testid={`command-item-pharmacist-${subcategory.toLowerCase().replace(/\s+/g, '-')}`}
+                                >
+                                  <Check
+                                    className={`mr-2 h-4 w-4 ${selectedPharmacistSubcategory === subcategory ? "opacity-100" : "opacity-0"}`}
+                                  />
+                                  {subcategory}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                   </div>
                 )}
 
@@ -2796,24 +2880,63 @@ export default function UserManagement() {
                 {selectedRole.toLowerCase() === 'optician' && (
                   <div className="space-y-2">
                     <Label htmlFor="opticianSubcategory">Optician Subcategory</Label>
-                    <Select 
-                      onValueChange={(value) => {
-                        setSelectedOpticianSubcategory(value);
-                        form.setValue("medicalSpecialtyCategory", value);
-                      }} 
-                      value={selectedOpticianSubcategory}
-                    >
-                      <SelectTrigger data-testid="dropdown-optician-subcategory">
-                        <SelectValue placeholder="Select subcategory" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {opticianSubcategories.map((subcategory) => (
-                          <SelectItem key={subcategory} value={subcategory}>
-                            {subcategory}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Popover open={opticianSubcategoryOpen} onOpenChange={setOpticianSubcategoryOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={opticianSubcategoryOpen}
+                          className="w-full justify-between font-normal"
+                          data-testid="button-optician-subcategory"
+                        >
+                          <span className={selectedOpticianSubcategory ? "text-foreground" : "text-muted-foreground"}>
+                            {selectedOpticianSubcategory || "Select or type subcategory..."}
+                          </span>
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-full p-0" align="start">
+                        <Command>
+                          <CommandInput 
+                            placeholder="Search or type subcategory..." 
+                            onValueChange={(value) => {
+                              setSelectedOpticianSubcategory(value);
+                              form.setValue("medicalSpecialtyCategory", value, { shouldDirty: true });
+                            }}
+                            data-testid="command-input-optician-subcategory"
+                          />
+                          <CommandList>
+                            <CommandEmpty>
+                              <div className="py-2 px-3 text-sm">
+                                <p className="text-muted-foreground mb-2">No subcategory found.</p>
+                                <p className="text-xs text-muted-foreground">
+                                  Press Enter to use: <span className="font-medium">{selectedOpticianSubcategory}</span>
+                                </p>
+                              </div>
+                            </CommandEmpty>
+                            <CommandGroup>
+                              {opticianSubcategories.map((subcategory) => (
+                                <CommandItem
+                                  key={subcategory}
+                                  value={subcategory}
+                                  onSelect={(currentValue) => {
+                                    setSelectedOpticianSubcategory(currentValue);
+                                    form.setValue("medicalSpecialtyCategory", currentValue, { shouldDirty: true });
+                                    setOpticianSubcategoryOpen(false);
+                                  }}
+                                  data-testid={`command-item-optician-${subcategory.toLowerCase().replace(/\s+/g, '-')}`}
+                                >
+                                  <Check
+                                    className={`mr-2 h-4 w-4 ${selectedOpticianSubcategory === subcategory ? "opacity-100" : "opacity-0"}`}
+                                  />
+                                  {subcategory}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                   </div>
                 )}
 
@@ -2821,24 +2944,63 @@ export default function UserManagement() {
                 {selectedRole.toLowerCase() === 'paramedic' && (
                   <div className="space-y-2">
                     <Label htmlFor="paramedicSubcategory">Paramedic Subcategory</Label>
-                    <Select 
-                      onValueChange={(value) => {
-                        setSelectedParamedicSubcategory(value);
-                        form.setValue("medicalSpecialtyCategory", value);
-                      }} 
-                      value={selectedParamedicSubcategory}
-                    >
-                      <SelectTrigger data-testid="dropdown-paramedic-subcategory">
-                        <SelectValue placeholder="Select subcategory" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {paramedicSubcategories.map((subcategory) => (
-                          <SelectItem key={subcategory} value={subcategory}>
-                            {subcategory}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Popover open={paramedicSubcategoryOpen} onOpenChange={setParamedicSubcategoryOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={paramedicSubcategoryOpen}
+                          className="w-full justify-between font-normal"
+                          data-testid="button-paramedic-subcategory"
+                        >
+                          <span className={selectedParamedicSubcategory ? "text-foreground" : "text-muted-foreground"}>
+                            {selectedParamedicSubcategory || "Select or type subcategory..."}
+                          </span>
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-full p-0" align="start">
+                        <Command>
+                          <CommandInput 
+                            placeholder="Search or type subcategory..." 
+                            onValueChange={(value) => {
+                              setSelectedParamedicSubcategory(value);
+                              form.setValue("medicalSpecialtyCategory", value, { shouldDirty: true });
+                            }}
+                            data-testid="command-input-paramedic-subcategory"
+                          />
+                          <CommandList>
+                            <CommandEmpty>
+                              <div className="py-2 px-3 text-sm">
+                                <p className="text-muted-foreground mb-2">No subcategory found.</p>
+                                <p className="text-xs text-muted-foreground">
+                                  Press Enter to use: <span className="font-medium">{selectedParamedicSubcategory}</span>
+                                </p>
+                              </div>
+                            </CommandEmpty>
+                            <CommandGroup>
+                              {paramedicSubcategories.map((subcategory) => (
+                                <CommandItem
+                                  key={subcategory}
+                                  value={subcategory}
+                                  onSelect={(currentValue) => {
+                                    setSelectedParamedicSubcategory(currentValue);
+                                    form.setValue("medicalSpecialtyCategory", currentValue, { shouldDirty: true });
+                                    setParamedicSubcategoryOpen(false);
+                                  }}
+                                  data-testid={`command-item-paramedic-${subcategory.toLowerCase().replace(/\s+/g, '-')}`}
+                                >
+                                  <Check
+                                    className={`mr-2 h-4 w-4 ${selectedParamedicSubcategory === subcategory ? "opacity-100" : "opacity-0"}`}
+                                  />
+                                  {subcategory}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                   </div>
                 )}
 
@@ -2846,24 +3008,63 @@ export default function UserManagement() {
                 {selectedRole.toLowerCase() === 'physiotherapist' && (
                   <div className="space-y-2">
                     <Label htmlFor="physiotherapistSubcategory">Physiotherapist Subcategory</Label>
-                    <Select 
-                      onValueChange={(value) => {
-                        setSelectedPhysiotherapistSubcategory(value);
-                        form.setValue("medicalSpecialtyCategory", value);
-                      }} 
-                      value={selectedPhysiotherapistSubcategory}
-                    >
-                      <SelectTrigger data-testid="dropdown-physiotherapist-subcategory">
-                        <SelectValue placeholder="Select subcategory" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {physiotherapistSubcategories.map((subcategory) => (
-                          <SelectItem key={subcategory} value={subcategory}>
-                            {subcategory}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Popover open={physiotherapistSubcategoryOpen} onOpenChange={setPhysiotherapistSubcategoryOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={physiotherapistSubcategoryOpen}
+                          className="w-full justify-between font-normal"
+                          data-testid="button-physiotherapist-subcategory"
+                        >
+                          <span className={selectedPhysiotherapistSubcategory ? "text-foreground" : "text-muted-foreground"}>
+                            {selectedPhysiotherapistSubcategory || "Select or type subcategory..."}
+                          </span>
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-full p-0" align="start">
+                        <Command>
+                          <CommandInput 
+                            placeholder="Search or type subcategory..." 
+                            onValueChange={(value) => {
+                              setSelectedPhysiotherapistSubcategory(value);
+                              form.setValue("medicalSpecialtyCategory", value, { shouldDirty: true });
+                            }}
+                            data-testid="command-input-physiotherapist-subcategory"
+                          />
+                          <CommandList>
+                            <CommandEmpty>
+                              <div className="py-2 px-3 text-sm">
+                                <p className="text-muted-foreground mb-2">No subcategory found.</p>
+                                <p className="text-xs text-muted-foreground">
+                                  Press Enter to use: <span className="font-medium">{selectedPhysiotherapistSubcategory}</span>
+                                </p>
+                              </div>
+                            </CommandEmpty>
+                            <CommandGroup>
+                              {physiotherapistSubcategories.map((subcategory) => (
+                                <CommandItem
+                                  key={subcategory}
+                                  value={subcategory}
+                                  onSelect={(currentValue) => {
+                                    setSelectedPhysiotherapistSubcategory(currentValue);
+                                    form.setValue("medicalSpecialtyCategory", currentValue, { shouldDirty: true });
+                                    setPhysiotherapistSubcategoryOpen(false);
+                                  }}
+                                  data-testid={`command-item-physiotherapist-${subcategory.toLowerCase().replace(/\s+/g, '-')}`}
+                                >
+                                  <Check
+                                    className={`mr-2 h-4 w-4 ${selectedPhysiotherapistSubcategory === subcategory ? "opacity-100" : "opacity-0"}`}
+                                  />
+                                  {subcategory}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                   </div>
                 )}
 
@@ -2871,24 +3072,63 @@ export default function UserManagement() {
                 {selectedRole.toLowerCase() === 'aesthetician' && (
                   <div className="space-y-2">
                     <Label htmlFor="aestheticianSubcategory">Aesthetician Subcategory</Label>
-                    <Select 
-                      onValueChange={(value) => {
-                        setSelectedAestheticianSubcategory(value);
-                        form.setValue("medicalSpecialtyCategory", value);
-                      }} 
-                      value={selectedAestheticianSubcategory}
-                    >
-                      <SelectTrigger data-testid="dropdown-aesthetician-subcategory">
-                        <SelectValue placeholder="Select subcategory" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {aestheticianSubcategories.map((subcategory) => (
-                          <SelectItem key={subcategory} value={subcategory}>
-                            {subcategory}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Popover open={aestheticianSubcategoryOpen} onOpenChange={setAestheticianSubcategoryOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={aestheticianSubcategoryOpen}
+                          className="w-full justify-between font-normal"
+                          data-testid="button-aesthetician-subcategory"
+                        >
+                          <span className={selectedAestheticianSubcategory ? "text-foreground" : "text-muted-foreground"}>
+                            {selectedAestheticianSubcategory || "Select or type subcategory..."}
+                          </span>
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-full p-0" align="start">
+                        <Command>
+                          <CommandInput 
+                            placeholder="Search or type subcategory..." 
+                            onValueChange={(value) => {
+                              setSelectedAestheticianSubcategory(value);
+                              form.setValue("medicalSpecialtyCategory", value, { shouldDirty: true });
+                            }}
+                            data-testid="command-input-aesthetician-subcategory"
+                          />
+                          <CommandList>
+                            <CommandEmpty>
+                              <div className="py-2 px-3 text-sm">
+                                <p className="text-muted-foreground mb-2">No subcategory found.</p>
+                                <p className="text-xs text-muted-foreground">
+                                  Press Enter to use: <span className="font-medium">{selectedAestheticianSubcategory}</span>
+                                </p>
+                              </div>
+                            </CommandEmpty>
+                            <CommandGroup>
+                              {aestheticianSubcategories.map((subcategory) => (
+                                <CommandItem
+                                  key={subcategory}
+                                  value={subcategory}
+                                  onSelect={(currentValue) => {
+                                    setSelectedAestheticianSubcategory(currentValue);
+                                    form.setValue("medicalSpecialtyCategory", currentValue, { shouldDirty: true });
+                                    setAestheticianSubcategoryOpen(false);
+                                  }}
+                                  data-testid={`command-item-aesthetician-${subcategory.toLowerCase().replace(/\s+/g, '-')}`}
+                                >
+                                  <Check
+                                    className={`mr-2 h-4 w-4 ${selectedAestheticianSubcategory === subcategory ? "opacity-100" : "opacity-0"}`}
+                                  />
+                                  {subcategory}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                   </div>
                 )}
 
