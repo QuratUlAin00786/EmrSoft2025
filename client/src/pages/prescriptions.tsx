@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Header } from "@/components/layout/header";
@@ -33,6 +33,7 @@ import {
   CommandGroup,
   CommandInput,
   CommandItem,
+  CommandList,
 } from "@/components/ui/command";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
@@ -62,6 +63,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { getActiveSubdomain } from "@/lib/subdomain-utils";
 import { useLocation } from "wouter";
 import { isDoctorLike, formatRoleLabel } from "@/lib/role-utils";
+import { cn } from "@/lib/utils";
 
 interface Prescription {
   id: string;
@@ -427,6 +429,8 @@ export default function PrescriptionsPage() {
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [prescriptionIdFilter, setPrescriptionIdFilter] = useState<string>("all");
+  const [prescriptionIdPopoverOpen, setPrescriptionIdPopoverOpen] = useState(false);
   const [selectedPrescription, setSelectedPrescription] =
     useState<Prescription | null>(null);
   const [showNewPrescription, setShowNewPrescription] = useState(false);
@@ -2686,6 +2690,15 @@ export default function PrescriptionsPage() {
     }
   };
 
+  // Compute unique prescription IDs for the filter dropdown
+  const uniquePrescriptionIds = useMemo(() => {
+    if (!Array.isArray(prescriptions)) return [];
+    const ids = prescriptions
+      .map((p: any) => p.prescriptionNumber)
+      .filter((id: string | undefined) => id !== undefined && id !== null && id !== "");
+    return Array.from(new Set(ids)).sort();
+  }, [prescriptions]);
+
   // For summary statistics - only apply search filter, not status filter
   const searchFilteredPrescriptions = Array.isArray(prescriptions)
     ? prescriptions.filter((prescription: any) => {
@@ -2702,7 +2715,7 @@ export default function PrescriptionsPage() {
       })
     : [];
 
-  // For display area - apply both search and status filters
+  // For display area - apply search, status, and prescription ID filters
   const filteredPrescriptions = Array.isArray(prescriptions)
     ? prescriptions.filter((prescription: any) => {
         const matchesSearch =
@@ -2717,7 +2730,10 @@ export default function PrescriptionsPage() {
         const matchesStatus =
           statusFilter === "all" || prescription.status === statusFilter;
 
-        return matchesSearch && matchesStatus;
+        const matchesPrescriptionId =
+          prescriptionIdFilter === "all" || prescription.prescriptionNumber === prescriptionIdFilter;
+
+        return matchesSearch && matchesStatus && matchesPrescriptionId;
       })
     : [];
 
@@ -2869,6 +2885,67 @@ export default function PrescriptionsPage() {
                     <SelectItem value="cancelled">Cancelled</SelectItem>
                   </SelectContent>
                 </Select>
+
+                {user?.role === 'admin' && uniquePrescriptionIds.length > 0 && (
+                  <Popover open={prescriptionIdPopoverOpen} onOpenChange={setPrescriptionIdPopoverOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={prescriptionIdPopoverOpen}
+                        className="w-64 justify-between"
+                      >
+                        {prescriptionIdFilter === "all"
+                          ? "All Prescription IDs"
+                          : prescriptionIdFilter}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-64 p-0" align="start">
+                      <Command>
+                        <CommandInput placeholder="Search prescription ID..." />
+                        <CommandList>
+                          <CommandEmpty>No prescription ID found.</CommandEmpty>
+                          <CommandGroup>
+                            <CommandItem
+                              value="all"
+                              onSelect={() => {
+                                setPrescriptionIdFilter("all");
+                                setPrescriptionIdPopoverOpen(false);
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  prescriptionIdFilter === "all" ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              All Prescription IDs
+                            </CommandItem>
+                            {uniquePrescriptionIds.map((id: string) => (
+                              <CommandItem
+                                key={id}
+                                value={id}
+                                onSelect={() => {
+                                  setPrescriptionIdFilter(id);
+                                  setPrescriptionIdPopoverOpen(false);
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    prescriptionIdFilter === id ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                                {id}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                )}
 
                 <Dialog
                   open={showNewPrescription}
