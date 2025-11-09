@@ -196,6 +196,10 @@ export default function AppointmentCalendar({ onNewAppointment }: { onNewAppoint
     paymentMethod: ""
   });
   const [doctorFee, setDoctorFee] = useState<any>(null);
+  
+  // State for appointment ID filter (admin only)
+  const [appointmentIdFilter, setAppointmentIdFilter] = useState<string>("all");
+  const [appointmentIdPopoverOpen, setAppointmentIdPopoverOpen] = useState(false);
 
 
   // Convert time slot string to 24-hour format
@@ -1242,6 +1246,15 @@ Medical License: [License Number]
   console.log("[Calendar] Final processed appointments count:", appointments.length);
   console.log("[Calendar] All appointments:", appointments.map((apt: any) => ({ id: apt.id, title: apt.title, scheduledAt: apt.scheduledAt })));
   
+  // Compute unique appointment IDs for the filter dropdown (admin only)
+  const uniqueAppointmentIds = useMemo(() => {
+    if (!Array.isArray(appointments)) return [];
+    const ids = appointments
+      .map((apt: any) => apt.appointmentId)
+      .filter((id: string | undefined) => id !== undefined && id !== null && id !== "");
+    return Array.from(new Set(ids)).sort();
+  }, [appointments]);
+  
   // Data processing complete
   const monthStart = startOfMonth(selectedDate);
   const monthEnd = endOfMonth(selectedDate);
@@ -1256,7 +1269,11 @@ Medical License: [License Number]
     });
   };
 
-  const selectedDateAppointments = getAppointmentsForDate(selectedDate);
+  const selectedDateAppointments = getAppointmentsForDate(selectedDate).filter((apt: any) => {
+    // Apply appointment ID filter for admin users
+    const matchesAppointmentId = appointmentIdFilter === "all" || apt.appointmentId === appointmentIdFilter;
+    return matchesAppointmentId;
+  });
 
   if (isLoading) {
     return (
@@ -1395,10 +1412,78 @@ Medical License: [License Number]
       {/* Selected Date Appointments */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center text-blue-800">
-            <Calendar className="h-5 w-5 mr-2" />
-            Appointments for {format(selectedDate, "EEEE, MMMM d, yyyy")}
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center text-blue-800">
+              <Calendar className="h-5 w-5 mr-2" />
+              Appointments for {format(selectedDate, "EEEE, MMMM d, yyyy")}
+            </CardTitle>
+            
+            {/* Admin-only appointment ID filter */}
+            {user?.role === 'admin' && uniqueAppointmentIds.length > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Filter by ID:</span>
+                <Popover open={appointmentIdPopoverOpen} onOpenChange={setAppointmentIdPopoverOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={appointmentIdPopoverOpen}
+                      className="w-64 justify-between"
+                      data-testid="filter-appointment-id"
+                    >
+                      {appointmentIdFilter === "all"
+                        ? "All Appointment IDs"
+                        : appointmentIdFilter}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-64 p-0" align="end">
+                    <Command>
+                      <CommandInput placeholder="Search appointment ID..." />
+                      <CommandList>
+                        <CommandEmpty>No appointment ID found.</CommandEmpty>
+                        <CommandGroup>
+                          <CommandItem
+                            value="all"
+                            onSelect={() => {
+                              setAppointmentIdFilter("all");
+                              setAppointmentIdPopoverOpen(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                appointmentIdFilter === "all" ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            All Appointment IDs
+                          </CommandItem>
+                          {uniqueAppointmentIds.map((id: string) => (
+                            <CommandItem
+                              key={id}
+                              value={id}
+                              onSelect={() => {
+                                setAppointmentIdFilter(id);
+                                setAppointmentIdPopoverOpen(false);
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  appointmentIdFilter === id ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {id}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              </div>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           {selectedDateAppointments.length === 0 ? (
