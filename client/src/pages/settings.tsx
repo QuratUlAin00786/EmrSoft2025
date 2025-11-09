@@ -894,7 +894,7 @@ function MyProfileContent({ user }: { user: any }) {
         firstName: patientData.firstName || "",
         lastName: patientData.lastName || "",
         dateOfBirth: patientData.dateOfBirth || "",
-        gender: patientData.gender || "",
+        gender: patientData.genderAtBirth || "",
         phone: patientData.phone || "",
         address: patientData.address?.street || "",
         city: patientData.city || "",
@@ -938,6 +938,9 @@ function MyProfileContent({ user }: { user: any }) {
           street: formData.address,
         },
       });
+    } else if (field === "gender") {
+      // Map UI field 'gender' to database column 'genderAtBirth'
+      updatePatientMutation.mutate({ genderAtBirth: formData.gender });
     } else {
       updatePatientMutation.mutate({ [field]: formData[field] });
     }
@@ -953,6 +956,10 @@ function MyProfileContent({ user }: { user: any }) {
     }
     if (field === "address") {
       return !patientData?.address?.street || patientData.address.street === "";
+    }
+    if (field === "gender") {
+      // Check database column 'genderAtBirth'
+      return !patientData?.genderAtBirth || patientData.genderAtBirth === "";
     }
     return !patientData?.[field] || patientData[field] === "";
   };
@@ -1097,7 +1104,12 @@ function MyProfileContent({ user }: { user: any }) {
                 variant="outline"
                 onClick={() => {
                   setIsEditing((prev) => ({ ...prev, [field]: false }));
-                  setFormData((prev: any) => ({ ...prev, [field]: patientData?.[field] || "" }));
+                  // Handle gender field specially - restore from genderAtBirth
+                  if (field === "gender") {
+                    setFormData((prev: any) => ({ ...prev, [field]: patientData?.genderAtBirth || "" }));
+                  } else {
+                    setFormData((prev: any) => ({ ...prev, [field]: patientData?.[field] || "" }));
+                  }
                 }}
                 data-testid={`button-cancel-${field}`}
               >
