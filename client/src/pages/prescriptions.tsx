@@ -225,6 +225,81 @@ const getSeverityColor = (severity: string) => {
   }
 };
 
+const COMMON_DIAGNOSES = [
+  "Hypertension (High blood pressure)",
+  "Coronary artery disease (CAD)",
+  "Myocardial infarction (Heart attack)",
+  "Heart failure",
+  "Arrhythmia (e.g., Atrial fibrillation)",
+  "Peripheral artery disease",
+  "Asthma",
+  "Chronic obstructive pulmonary disease (COPD)",
+  "Pneumonia",
+  "Tuberculosis",
+  "Acute bronchitis",
+  "Pulmonary embolism",
+  "Diabetes mellitus (Type 1 and Type 2)",
+  "Hypothyroidism",
+  "Hyperthyroidism",
+  "Obesity",
+  "Metabolic syndrome",
+  "Gastritis",
+  "Peptic ulcer disease",
+  "Gastroesophageal reflux disease (GERD)",
+  "Irritable bowel syndrome (IBS)",
+  "Hepatitis (A, B, C)",
+  "Cirrhosis",
+  "Gallstones",
+  "Stroke (Cerebrovascular accident)",
+  "Epilepsy",
+  "Migraine",
+  "Parkinson's disease",
+  "Alzheimer's disease",
+  "Peripheral neuropathy",
+  "Osteoarthritis",
+  "Rheumatoid arthritis",
+  "Osteoporosis",
+  "Low back pain",
+  "Gout",
+  "Influenza",
+  "COVID-19",
+  "Urinary tract infection (UTI)",
+  "Sepsis",
+  "HIV/AIDS",
+  "Dengue fever",
+  "Malaria",
+  "Acute kidney injury (AKI)",
+  "Chronic kidney disease (CKD)",
+  "Nephrotic syndrome",
+  "Kidney stones (Urolithiasis)",
+  "Anemia (Iron deficiency, B12 deficiency, etc.)",
+  "Leukemia",
+  "Lymphoma",
+  "Thrombocytopenia",
+  "Depression",
+  "Anxiety disorder",
+  "Bipolar disorder",
+  "Schizophrenia",
+  "Post-traumatic stress disorder (PTSD)",
+  "Eczema (Atopic dermatitis)",
+  "Psoriasis",
+  "Acne",
+  "Fungal infections (Tinea)",
+  "Contact dermatitis",
+  "Polycystic ovarian syndrome (PCOS)",
+  "Endometriosis",
+  "Menstrual disorders",
+  "Pregnancy complications (e.g., preeclampsia, gestational diabetes)",
+  "Infertility",
+  "Fever (unspecified cause)",
+  "Dehydration",
+  "Viral infection",
+  "Allergic rhinitis",
+  "Headache",
+  "Back pain",
+  "Fatigue",
+];
+
 export default function PrescriptionsPage() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
@@ -250,6 +325,7 @@ export default function PrescriptionsPage() {
   const [patientSearchOpen, setPatientSearchOpen] = useState(false);
   const [roleSearchOpen, setRoleSearchOpen] = useState(false);
   const [nameSearchOpen, setNameSearchOpen] = useState(false);
+  const [diagnosisSearchOpen, setDiagnosisSearchOpen] = useState(false);
   const queryClient = useQueryClient();
 
   // Fetch roles from the roles table filtered by organization_id
@@ -3009,23 +3085,68 @@ export default function PrescriptionsPage() {
 
                         <div>
                           <Label htmlFor="diagnosis">Diagnosis *</Label>
-                          <Input
-                            id="diagnosis"
-                            placeholder="Enter diagnosis"
-                            value={formData.diagnosis}
-                            onChange={(e) =>
-                              setFormData((prev) => ({
-                                ...prev,
-                                diagnosis: e.target.value,
-                              }))
-                            }
-                            data-testid="input-diagnosis"
-                            className={
-                              formErrors.general && !formData.diagnosis.trim()
-                                ? "border-red-500"
-                                : ""
-                            }
-                          />
+                          <Popover
+                            open={diagnosisSearchOpen}
+                            onOpenChange={setDiagnosisSearchOpen}
+                          >
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                aria-expanded={diagnosisSearchOpen}
+                                className="w-full justify-between"
+                                data-testid="input-diagnosis"
+                              >
+                                <span className="truncate">
+                                  {formData.diagnosis || "Select or type diagnosis..."}
+                                </span>
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-[500px] p-0" align="start">
+                              <Command shouldFilter={false}>
+                                <CommandInput
+                                  placeholder="Search or type custom diagnosis..."
+                                  value={formData.diagnosis}
+                                  onValueChange={(value) =>
+                                    setFormData((prev) => ({
+                                      ...prev,
+                                      diagnosis: value,
+                                    }))
+                                  }
+                                />
+                                <CommandEmpty>
+                                  Press Enter to use "{formData.diagnosis}" as custom diagnosis
+                                </CommandEmpty>
+                                <CommandGroup className="max-h-64 overflow-auto">
+                                  {COMMON_DIAGNOSES.filter((diagnosis) =>
+                                    diagnosis.toLowerCase().includes(formData.diagnosis.toLowerCase())
+                                  ).map((diagnosis) => (
+                                    <CommandItem
+                                      key={diagnosis}
+                                      value={diagnosis}
+                                      onSelect={() => {
+                                        setFormData((prev) => ({
+                                          ...prev,
+                                          diagnosis: diagnosis,
+                                        }));
+                                        setDiagnosisSearchOpen(false);
+                                      }}
+                                    >
+                                      <Check
+                                        className={`mr-2 h-4 w-4 ${
+                                          formData.diagnosis === diagnosis
+                                            ? "opacity-100"
+                                            : "opacity-0"
+                                        }`}
+                                      />
+                                      {diagnosis}
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
                           {formErrors.general && !formData.diagnosis.trim() && (
                             <p
                               className="text-red-500 text-sm mt-1"
