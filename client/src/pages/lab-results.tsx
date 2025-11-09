@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import curaIcon from "@/assets/cura-icon.png";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -176,6 +176,7 @@ import {
   CommandGroup,
   CommandInput,
   CommandItem,
+  CommandList,
 } from "@/components/ui/command";
 import {
   Popover,
@@ -633,6 +634,8 @@ export default function LabResultsPage() {
   const { isDoctor, isAdmin } = useRolePermissions();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [filterTestId, setFilterTestId] = useState<string>("");
+  const [testIdPopoverOpen, setTestIdPopoverOpen] = useState(false);
   const [showOrderDialog, setShowOrderDialog] = useState(false);
   const [showViewDialog, setShowViewDialog] = useState(false);
   const [showReviewDialog, setShowReviewDialog] = useState(false);
@@ -850,6 +853,13 @@ export default function LabResultsPage() {
     },
     enabled: !!user && patients.length > 0, // Wait for user and patients data to be loaded
   });
+
+  // Compute unique test IDs for filter dropdown
+  const uniqueTestIds = useMemo(() => {
+    if (!Array.isArray(labResults) || labResults.length === 0) return [];
+    const testIds = Array.from(new Set(labResults.map((result: DatabaseLabResult) => result.testId))).filter(Boolean);
+    return testIds.sort();
+  }, [labResults]);
 
   // Check file existence for all lab results
   useEffect(() => {
@@ -2527,6 +2537,9 @@ Report generated from Cura EMR System`;
         const matchesStatus =
           statusFilter === "all" || result.status === statusFilter;
 
+        const matchesTestId =
+          !filterTestId || result.testId === filterTestId;
+
         const matchesTab =
           activeTab === "request"
             ? result.status === "pending"
@@ -2534,7 +2547,7 @@ Report generated from Cura EMR System`;
             ? result.labReportGenerated === false && result.labRequestGenerated === true
             : result.status === "completed";
 
-        return matchesSearch && matchesStatus && matchesTab;
+        return matchesSearch && matchesStatus && matchesTestId && matchesTab;
       })
     : [];
 
@@ -2719,6 +2732,63 @@ Report generated from Cura EMR System`;
                     <SelectItem value="cancelled">Cancelled</SelectItem>
                   </SelectContent>
                 </Select>
+
+                {/* Test ID Filter (Admin Only) */}
+                {isAdmin() && uniqueTestIds.length > 0 && (
+                  <Popover open={testIdPopoverOpen} onOpenChange={setTestIdPopoverOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={testIdPopoverOpen}
+                        className="w-[220px] justify-between"
+                        data-testid="button-filter-testid"
+                      >
+                        {filterTestId || "Filter by Test ID"}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[220px] p-0">
+                      <Command>
+                        <CommandInput placeholder="Search test ID..." />
+                        <CommandList>
+                          <CommandEmpty>No test ID found.</CommandEmpty>
+                          <CommandGroup>
+                            <CommandItem
+                              value=""
+                              onSelect={() => {
+                                setFilterTestId("");
+                                setTestIdPopoverOpen(false);
+                              }}
+                              data-testid="option-testid-all"
+                            >
+                              <Check
+                                className={`mr-2 h-4 w-4 ${filterTestId === "" ? "opacity-100" : "opacity-0"}`}
+                              />
+                              All Test IDs
+                            </CommandItem>
+                            {uniqueTestIds.map((testId) => (
+                              <CommandItem
+                                key={testId}
+                                value={testId}
+                                onSelect={(currentValue) => {
+                                  setFilterTestId(currentValue === filterTestId ? "" : currentValue);
+                                  setTestIdPopoverOpen(false);
+                                }}
+                                data-testid={`option-testid-${testId}`}
+                              >
+                                <Check
+                                  className={`mr-2 h-4 w-4 ${filterTestId === testId ? "opacity-100" : "opacity-0"}`}
+                                />
+                                {testId}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                )}
 
                 {/* View Mode Toggle */}
                 <div className="flex gap-1 border rounded-lg p-1">
