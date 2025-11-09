@@ -897,16 +897,16 @@ function MyProfileContent({ user }: { user: any }) {
         gender: patientData.genderAtBirth || "",
         phone: patientData.phone || "",
         address: patientData.address?.street || "",
-        city: patientData.city || "",
-        state: patientData.state || "",
-        zipCode: patientData.zipCode || "",
-        country: patientData.country || "",
+        city: patientData.address?.city || "",
+        state: patientData.address?.state || "",
+        zipCode: patientData.address?.postcode || "",
+        country: patientData.address?.country || "",
         emergencyContactName: patientData.emergencyContact?.name || "",
         emergencyContactPhone: patientData.emergencyContact?.phone || "",
         bloodType: patientData.bloodType || "",
         allergies: patientData.allergies || "",
-        insuranceProvider: patientData.insuranceProvider || "",
-        insuranceNumber: patientData.insuranceNumber || "",
+        insuranceProvider: patientData.insuranceInfo?.provider || "",
+        insuranceNumber: patientData.insuranceInfo?.policyNumber || "",
       });
     }
   }, [patientData]);
@@ -920,22 +920,64 @@ function MyProfileContent({ user }: { user: any }) {
     if (field === "emergencyContactName") {
       updatePatientMutation.mutate({
         emergencyContact: {
-          ...patientData?.emergencyContact,
+          ...(patientData?.emergencyContact ?? {}),
           name: formData.emergencyContactName,
         },
       });
     } else if (field === "emergencyContactPhone") {
       updatePatientMutation.mutate({
         emergencyContact: {
-          ...patientData?.emergencyContact,
+          ...(patientData?.emergencyContact ?? {}),
           phone: formData.emergencyContactPhone,
         },
       });
     } else if (field === "address") {
       updatePatientMutation.mutate({
         address: {
-          ...patientData?.address,
+          ...(patientData?.address ?? {}),
           street: formData.address,
+        },
+      });
+    } else if (field === "city") {
+      updatePatientMutation.mutate({
+        address: {
+          ...(patientData?.address ?? {}),
+          city: formData.city,
+        },
+      });
+    } else if (field === "state") {
+      updatePatientMutation.mutate({
+        address: {
+          ...(patientData?.address ?? {}),
+          state: formData.state,
+        },
+      });
+    } else if (field === "zipCode") {
+      updatePatientMutation.mutate({
+        address: {
+          ...(patientData?.address ?? {}),
+          postcode: formData.zipCode,
+        },
+      });
+    } else if (field === "country") {
+      updatePatientMutation.mutate({
+        address: {
+          ...(patientData?.address ?? {}),
+          country: formData.country,
+        },
+      });
+    } else if (field === "insuranceProvider") {
+      updatePatientMutation.mutate({
+        insuranceInfo: {
+          ...(patientData?.insuranceInfo ?? {}),
+          provider: formData.insuranceProvider,
+        },
+      });
+    } else if (field === "insuranceNumber") {
+      updatePatientMutation.mutate({
+        insuranceInfo: {
+          ...(patientData?.insuranceInfo ?? {}),
+          policyNumber: formData.insuranceNumber,
         },
       });
     } else if (field === "gender") {
@@ -956,6 +998,24 @@ function MyProfileContent({ user }: { user: any }) {
     }
     if (field === "address") {
       return !patientData?.address?.street || patientData.address.street === "";
+    }
+    if (field === "city") {
+      return !patientData?.address?.city || patientData.address.city === "";
+    }
+    if (field === "state") {
+      return !patientData?.address?.state || patientData.address.state === "";
+    }
+    if (field === "zipCode") {
+      return !patientData?.address?.postcode || patientData.address.postcode === "";
+    }
+    if (field === "country") {
+      return !patientData?.address?.country || patientData.address.country === "";
+    }
+    if (field === "insuranceProvider") {
+      return !patientData?.insuranceInfo?.provider || patientData.insuranceInfo.provider === "";
+    }
+    if (field === "insuranceNumber") {
+      return !patientData?.insuranceInfo?.policyNumber || patientData.insuranceInfo.policyNumber === "";
     }
     if (field === "gender") {
       // Check database column 'genderAtBirth'
@@ -1026,13 +1086,25 @@ function MyProfileContent({ user }: { user: any }) {
                 variant="outline"
                 onClick={() => {
                   setIsEditing((prev) => ({ ...prev, [field]: false }));
-                  // Handle emergency contact fields specially
+                  // Handle nested JSONB fields specially
                   if (field === "emergencyContactName") {
                     setFormData((prev: any) => ({ ...prev, emergencyContactName: patientData?.emergencyContact?.name || "" }));
                   } else if (field === "emergencyContactPhone") {
                     setFormData((prev: any) => ({ ...prev, emergencyContactPhone: patientData?.emergencyContact?.phone || "" }));
                   } else if (field === "address") {
                     setFormData((prev: any) => ({ ...prev, address: patientData?.address?.street || "" }));
+                  } else if (field === "city") {
+                    setFormData((prev: any) => ({ ...prev, city: patientData?.address?.city || "" }));
+                  } else if (field === "state") {
+                    setFormData((prev: any) => ({ ...prev, state: patientData?.address?.state || "" }));
+                  } else if (field === "zipCode") {
+                    setFormData((prev: any) => ({ ...prev, zipCode: patientData?.address?.postcode || "" }));
+                  } else if (field === "country") {
+                    setFormData((prev: any) => ({ ...prev, country: patientData?.address?.country || "" }));
+                  } else if (field === "insuranceProvider") {
+                    setFormData((prev: any) => ({ ...prev, insuranceProvider: patientData?.insuranceInfo?.provider || "" }));
+                  } else if (field === "insuranceNumber") {
+                    setFormData((prev: any) => ({ ...prev, insuranceNumber: patientData?.insuranceInfo?.policyNumber || "" }));
                   } else {
                     setFormData((prev: any) => ({ ...prev, [field]: patientData?.[field] || "" }));
                   }
@@ -1104,9 +1176,11 @@ function MyProfileContent({ user }: { user: any }) {
                 variant="outline"
                 onClick={() => {
                   setIsEditing((prev) => ({ ...prev, [field]: false }));
-                  // Handle gender field specially - restore from genderAtBirth
+                  // Handle nested JSONB fields specially
                   if (field === "gender") {
-                    setFormData((prev: any) => ({ ...prev, [field]: patientData?.genderAtBirth || "" }));
+                    setFormData((prev: any) => ({ ...prev, gender: patientData?.genderAtBirth || "" }));
+                  } else if (field === "insuranceProvider") {
+                    setFormData((prev: any) => ({ ...prev, insuranceProvider: patientData?.insuranceInfo?.provider || "" }));
                   } else {
                     setFormData((prev: any) => ({ ...prev, [field]: patientData?.[field] || "" }));
                   }
@@ -1206,18 +1280,6 @@ function MyProfileContent({ user }: { user: any }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {renderField("Emergency Contact Name", "emergencyContactName")}
             {renderField("Emergency Contact Phone", "emergencyContactPhone", "tel")}
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Medical Information</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {renderReadOnlyField("Blood Type", "bloodType")}
-            {renderReadOnlyField("Allergies", "allergies")}
           </div>
         </CardContent>
       </Card>
