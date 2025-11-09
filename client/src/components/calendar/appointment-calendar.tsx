@@ -1412,7 +1412,7 @@ Medical License: [License Number]
                 >
                   {user?.role === 'admin' && appointment.appointmentId && (
                     <Badge
-                      className="absolute top-1.5 left-1/2 transform -translate-x-1/2 text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                      className="absolute top-1.5 left-2 text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
                     >
                       ID: {appointment.appointmentId}
                     </Badge>
