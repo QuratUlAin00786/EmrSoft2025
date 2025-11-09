@@ -3414,8 +3414,169 @@ export default function BillingPage() {
     });
   };
 
+  // Build comprehensive report dataset with patient and insurance data
+  const buildReportDataset = () => {
+    // Get filtered invoices
+    const currentDate = new Date();
+    let startDate: Date, endDate: Date;
+    
+    switch(reportDateRange) {
+      case 'this-week':
+        const dayOfWeek = currentDate.getDay();
+        startDate = new Date(currentDate);
+        startDate.setDate(currentDate.getDate() - dayOfWeek);
+        endDate = new Date(startDate);
+        endDate.setDate(startDate.getDate() + 6);
+        break;
+      case 'this-month':
+        startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+        endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+        break;
+      case 'this-quarter':
+        const quarter = Math.floor(currentDate.getMonth() / 3);
+        startDate = new Date(currentDate.getFullYear(), quarter * 3, 1);
+        endDate = new Date(currentDate.getFullYear(), quarter * 3 + 3, 0);
+        break;
+      case 'this-year':
+        startDate = new Date(currentDate.getFullYear(), 0, 1);
+        endDate = new Date(currentDate.getFullYear(), 11, 31);
+        break;
+      default:
+        startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+        endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+    }
+    
+    // Create patient lookup map for insurance data
+    const patientMap = new Map();
+    if (patients && patients.length > 0) {
+      patients.forEach((patient: any) => {
+        patientMap.set(patient.patientId, {
+          name: `${patient.firstName} ${patient.lastName}`,
+          insurance: patient.insuranceProvider || 'Self-Pay',
+          insuranceNumber: patient.insuranceNumber || 'N/A',
+          phone: patient.phoneNumber || 'N/A',
+          email: patient.email || 'N/A'
+        });
+      });
+    }
+    
+    // Filter invoices based on all criteria
+    const filteredInvoices = invoices.filter((invoice: any) => {
+      const invoiceDate = new Date(invoice.dateOfService);
+      const matchesDateRange = invoiceDate >= startDate && invoiceDate <= endDate;
+      
+      // Insurance type filter - check both invoice insurance and patient insurance
+      let matchesInsurance = reportInsuranceType === 'all';
+      if (reportInsuranceType !== 'all') {
+        const patientInfo = patientMap.get(invoice.patientId);
+        const invoiceInsurance = invoice.insurance?.provider || invoice.insuranceProvider;
+        const patientInsurance = patientInfo?.insurance;
+        
+        if (reportInsuranceType === 'Self-Pay') {
+          matchesInsurance = (!invoiceInsurance || invoiceInsurance === 'self-pay' || invoiceInsurance === 'Self-Pay') &&
+                            (!patientInsurance || patientInsurance === 'Self-Pay');
+        } else {
+          matchesInsurance = invoiceInsurance === reportInsuranceType || patientInsurance === reportInsuranceType;
+        }
+      }
+      
+      // Role filter
+      let matchesRole = reportRole === 'all';
+      if (reportRole !== 'all' && users && users.length > 0) {
+        const invoiceUser = users.find((u: any) => u.id === invoice.providerId || u.id === invoice.userId);
+        matchesRole = invoiceUser?.role === reportRole;
+      }
+      
+      // User name filter
+      const matchesUser = reportUserName === 'all' || 
+        invoice.providerId === parseInt(reportUserName) ||
+        invoice.userId === parseInt(reportUserName);
+      
+      return matchesDateRange && matchesInsurance && matchesRole && matchesUser;
+    });
+    
+    // Get patient information if specific patient selected
+    let selectedPatientInfo = null;
+    if (reportUserName !== 'all' && reportRole === 'patient') {
+      const selectedUser = users.find((u: any) => String(u.id) === reportUserName);
+      if (selectedUser && filteredInvoices.length > 0) {
+        const patientId = filteredInvoices[0].patientId;
+        const patientData = patientMap.get(patientId);
+        selectedPatientInfo = {
+          name: `${selectedUser.firstName} ${selectedUser.lastName}`,
+          patientId: patientId,
+          insurance: patientData?.insurance || 'Self-Pay',
+          insuranceNumber: patientData?.insuranceNumber || 'N/A',
+          phone: patientData?.phone || 'N/A',
+          email: patientData?.email || selectedUser.email || 'N/A'
+        };
+      }
+    }
+    
+    // Group invoices by service type with detailed information
+    const invoicesByService: Record<string, any> = {};
+    
+    filteredInvoices.forEach((invoice: any) => {
+      const matchingFee = doctorsFees.find((fee: any) => 
+        fee.serviceName === invoice.serviceType || fee.serviceName === invoice.serviceId
+      );
+      const serviceName = matchingFee?.serviceName || invoice.serviceType || 'Other Services';
+      
+      if (!invoicesByService[serviceName]) {
+        invoicesByService[serviceName] = {
+          serviceName,
+          procedures: 0,
+          revenue: 0,
+          insurance: 0,
+          selfPay: 0,
+          totalAmount: 0,
+          paidAmount: 0,
+          invoices: []
+        };
+      }
+      
+      const amount = typeof invoice.totalAmount === 'string' ? parseFloat(invoice.totalAmount) : invoice.totalAmount;
+      const paid = typeof invoice.paidAmount === 'string' ? parseFloat(invoice.paidAmount) : invoice.paidAmount;
+      const patientInfo = patientMap.get(invoice.patientId);
+      
+      invoicesByService[serviceName].procedures += 1;
+      invoicesByService[serviceName].revenue += amount;
+      invoicesByService[serviceName].totalAmount += amount;
+      invoicesByService[serviceName].paidAmount += paid;
+      
+      if (invoice.insuranceProvider && invoice.insuranceProvider !== 'self-pay') {
+        invoicesByService[serviceName].insurance += amount;
+      } else {
+        invoicesByService[serviceName].selfPay += amount;
+      }
+      
+      // Add detailed invoice info
+      invoicesByService[serviceName].invoices.push({
+        invoiceNumber: invoice.invoiceNumber,
+        date: invoice.dateOfService,
+        patientName: invoice.patientName,
+        patientInsurance: patientInfo?.insurance || 'Self-Pay',
+        amount: amount,
+        paid: paid,
+        status: invoice.status
+      });
+    });
+    
+    return {
+      patientInfo: selectedPatientInfo,
+      invoicesByService,
+      dateRange: { start: startDate, end: endDate },
+      filters: {
+        insuranceType: reportInsuranceType,
+        role: reportRole,
+        userName: reportUserName
+      }
+    };
+  };
+
   // Export Revenue Breakdown as PDF
   const exportRevenuePDF = () => {
+    const reportData = buildReportDataset();
     const data = getRevenueBreakdown();
     
     if (data.length === 0) {
@@ -3429,51 +3590,89 @@ export default function BillingPage() {
 
     const pdf = new jsPDF();
     const pageWidth = pdf.internal.pageSize.getWidth();
+    let yPos = 20;
     
     // Add title
     pdf.setFontSize(18);
-    pdf.text('Revenue Breakdown Report', pageWidth / 2, 20, { align: 'center' });
+    pdf.text('Custom Revenue Report', pageWidth / 2, yPos, { align: 'center' });
+    yPos += 10;
     
-    // Add date range
+    // Add generation date and period
     pdf.setFontSize(12);
-    pdf.text(`Generated: ${format(new Date(), 'MMM d, yyyy')}`, pageWidth / 2, 30, { align: 'center' });
-    pdf.text(`Period: ${reportDateRange.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}`, pageWidth / 2, 38, { align: 'center' });
+    pdf.text(`Generated: ${format(new Date(), 'MMM d, yyyy')}`, pageWidth / 2, yPos, { align: 'center' });
+    yPos += 8;
+    pdf.text(`Period: ${format(reportData.dateRange.start, 'MMM d, yyyy')} - ${format(reportData.dateRange.end, 'MMM d, yyyy')}`, pageWidth / 2, yPos, { align: 'center' });
+    yPos += 12;
     
-    // Add filters if applied
-    let yPos = 48;
-    if (reportInsuranceType !== 'all') {
+    // Add patient information section if specific patient selected
+    if (reportData.patientInfo) {
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Patient Information', 14, yPos);
+      yPos += 8;
+      
       pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(`Name: ${reportData.patientInfo.name}`, 14, yPos);
+      yPos += 6;
+      pdf.text(`Patient ID: ${reportData.patientInfo.patientId}`, 14, yPos);
+      yPos += 6;
+      pdf.text(`Insurance Provider: ${reportData.patientInfo.insurance}`, 14, yPos);
+      yPos += 6;
+      pdf.text(`Insurance Number: ${reportData.patientInfo.insuranceNumber}`, 14, yPos);
+      yPos += 6;
+      pdf.text(`Phone: ${reportData.patientInfo.phone}`, 14, yPos);
+      yPos += 6;
+      pdf.text(`Email: ${reportData.patientInfo.email}`, 14, yPos);
+      yPos += 10;
+      
+      pdf.line(14, yPos, pageWidth - 14, yPos);
+      yPos += 10;
+    }
+    
+    // Add filter information
+    pdf.setFontSize(12);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Report Filters', 14, yPos);
+    yPos += 8;
+    
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+    if (reportInsuranceType !== 'all') {
       pdf.text(`Insurance Type: ${reportInsuranceType}`, 14, yPos);
       yPos += 6;
     }
     if (reportRole !== 'all') {
-      pdf.setFontSize(10);
       pdf.text(`Role: ${reportRole}`, 14, yPos);
       yPos += 6;
     }
-    if (reportUserName !== 'all') {
+    if (reportUserName !== 'all' && !reportData.patientInfo) {
       const userName = users.find((u: any) => String(u.id) === reportUserName);
       if (userName) {
-        pdf.setFontSize(10);
         pdf.text(`User: ${userName.firstName} ${userName.lastName}`, 14, yPos);
         yPos += 6;
       }
     }
     
-    yPos += 10;
+    yPos += 8;
+    
+    // Revenue Breakdown Table
+    pdf.setFontSize(12);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Revenue Breakdown by Service Type', 14, yPos);
+    yPos += 8;
     
     // Table headers
-    pdf.setFontSize(10);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('Service Type', 14, yPos);
-    pdf.text('Procedures', 80, yPos);
-    pdf.text('Revenue', 110, yPos);
-    pdf.text('Insurance', 140, yPos);
-    pdf.text('Self-Pay', 170, yPos);
+    pdf.setFontSize(9);
+    pdf.text('Service', 14, yPos);
+    pdf.text('Count', 70, yPos);
+    pdf.text('Revenue', 95, yPos);
+    pdf.text('Insurance', 130, yPos);
+    pdf.text('Self-Pay', 165, yPos);
     pdf.text('Rate', 195, yPos);
     
     yPos += 2;
-    pdf.line(14, yPos, 200, yPos);
+    pdf.line(14, yPos, pageWidth - 14, yPos);
     yPos += 6;
     
     // Table data
@@ -3487,28 +3686,32 @@ export default function BillingPage() {
       const isTotal = row.serviceName === 'Total';
       if (isTotal) {
         pdf.setFont('helvetica', 'bold');
+        pdf.line(14, yPos - 2, pageWidth - 14, yPos - 2);
       }
       
-      pdf.text(row.serviceName.substring(0, 25), 14, yPos);
-      pdf.text(String(row.procedures), 80, yPos);
-      pdf.text(`£${row.revenue.toFixed(2)}`, 110, yPos);
-      pdf.text(`£${row.insurance.toFixed(2)}`, 140, yPos);
-      pdf.text(`£${row.selfPay.toFixed(2)}`, 170, yPos);
+      pdf.text(row.serviceName.substring(0, 20), 14, yPos);
+      pdf.text(String(row.procedures), 70, yPos);
+      pdf.text(`£${row.revenue.toFixed(2)}`, 95, yPos);
+      pdf.text(`£${row.insurance.toFixed(2)}`, 130, yPos);
+      pdf.text(`£${row.selfPay.toFixed(2)}`, 165, yPos);
       pdf.text(`${row.collectionRate}%`, 195, yPos);
       
       if (isTotal) {
         pdf.setFont('helvetica', 'normal');
       }
       
-      yPos += 8;
+      yPos += 7;
     });
     
     // Save the PDF
-    pdf.save(`revenue-breakdown-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+    const fileName = reportData.patientInfo 
+      ? `patient-report-${reportData.patientInfo.patientId}-${format(new Date(), 'yyyy-MM-dd')}.pdf`
+      : `revenue-report-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+    pdf.save(fileName);
 
     toast({
-      title: "PDF Exported",
-      description: "Revenue breakdown has been exported successfully.",
+      title: "Report Generated",
+      description: "Custom revenue report has been generated and downloaded successfully.",
     });
   };
 
