@@ -43,6 +43,7 @@ import {
   CommandGroup,
   CommandInput,
   CommandItem,
+  CommandList,
 } from "@/components/ui/command";
 import {
   FileImage,
@@ -289,6 +290,8 @@ export default function ImagingPage() {
   const { isDoctor, isAdmin, canEdit, canDelete } = useRolePermissions();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [filterImageId, setFilterImageId] = useState<string>("");
+  const [imageIdPopoverOpen, setImageIdPopoverOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("order-study");
   const [showNewOrder, setShowNewOrder] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
@@ -2102,6 +2105,13 @@ export default function ImagingPage() {
     }));
   }
 
+  // Compute unique image IDs for filter dropdown
+  const uniqueImageIds = useMemo(() => {
+    if (!Array.isArray(studies) || studies.length === 0) return [];
+    const imageIds = Array.from(new Set(studies.map((study: any) => study.imageId).filter(Boolean)));
+    return imageIds.sort();
+  }, [studies]);
+
   const filteredStudies = ((studies as any) || []).filter((study: any) => {
     // First check if this study has been deleted
     if (deletedStudyIds.has(study.id)) {
@@ -2147,8 +2157,10 @@ export default function ImagingPage() {
       statusFilter === "all" || study.status === statusFilter;
     const matchesModality =
       modalityFilter === "all" || study.modality === modalityFilter;
+    const matchesImageId =
+      !filterImageId || study.imageId === filterImageId;
 
-    return matchesTab && matchesSearch && matchesStatus && matchesModality;
+    return matchesTab && matchesSearch && matchesStatus && matchesModality && matchesImageId;
   });
 
   const getStatusColor = (status: string) => {
@@ -2370,6 +2382,63 @@ export default function ImagingPage() {
                     <SelectItem value="cancelled">Cancelled</SelectItem>
                   </SelectContent>
                 </Select>
+
+                {/* Image ID Filter (Admin Only) */}
+                {isAdmin() && uniqueImageIds.length > 0 && (
+                  <Popover open={imageIdPopoverOpen} onOpenChange={setImageIdPopoverOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={imageIdPopoverOpen}
+                        className="w-[220px] justify-between"
+                        data-testid="button-filter-imageid"
+                      >
+                        {filterImageId || "Filter by Image ID"}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[220px] p-0">
+                      <Command>
+                        <CommandInput placeholder="Search image ID..." />
+                        <CommandList>
+                          <CommandEmpty>No image ID found.</CommandEmpty>
+                          <CommandGroup>
+                            <CommandItem
+                              value=""
+                              onSelect={() => {
+                                setFilterImageId("");
+                                setImageIdPopoverOpen(false);
+                              }}
+                              data-testid="option-imageid-all"
+                            >
+                              <CheckIcon
+                                className={`mr-2 h-4 w-4 ${filterImageId === "" ? "opacity-100" : "opacity-0"}`}
+                              />
+                              All Image IDs
+                            </CommandItem>
+                            {uniqueImageIds.map((imageId) => (
+                              <CommandItem
+                                key={imageId}
+                                value={imageId}
+                                onSelect={(currentValue) => {
+                                  setFilterImageId(currentValue === filterImageId ? "" : currentValue);
+                                  setImageIdPopoverOpen(false);
+                                }}
+                                data-testid={`option-imageid-${imageId}`}
+                              >
+                                <CheckIcon
+                                  className={`mr-2 h-4 w-4 ${filterImageId === imageId ? "opacity-100" : "opacity-0"}`}
+                                />
+                                {imageId}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                )}
 
                 <Select
                   value={modalityFilter}
