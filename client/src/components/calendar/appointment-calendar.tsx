@@ -1408,13 +1408,13 @@ Medical License: [License Number]
               {selectedDateAppointments.map((appointment: any) => (
                 <div
                   key={appointment.id}
-                  className="relative flex items-center justify-between p-4 border dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
+                  className="relative flex items-center justify-between p-4 pt-8 border dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
                 >
                   {user?.role === 'admin' && appointment.appointmentId && (
                     <Badge
-                      className="absolute top-2 right-2 text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                      className="absolute top-1.5 left-1/2 transform -translate-x-1/2 text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
                     >
-                      {appointment.appointmentId}
+                      ID: {appointment.appointmentId}
                     </Badge>
                   )}
                   <div 
