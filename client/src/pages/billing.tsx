@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import jsPDF from "jspdf";
+import autoTable from 'jspdf-autotable';
 import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import { 
@@ -3575,7 +3576,7 @@ export default function BillingPage() {
     };
   };
 
-  // Export Revenue Breakdown as PDF
+  // Export Revenue Breakdown as PDF with Professional Layout
   const exportRevenuePDF = () => {
     const reportData = buildReportDataset();
     const data = getRevenueBreakdown();
@@ -3591,118 +3592,256 @@ export default function BillingPage() {
 
     const pdf = new jsPDF();
     const pageWidth = pdf.internal.pageSize.getWidth();
-    let yPos = 20;
+    const pageHeight = pdf.internal.pageSize.getHeight();
     
-    // Add title
-    pdf.setFontSize(18);
-    pdf.text('Custom Revenue Report', pageWidth / 2, yPos, { align: 'center' });
-    yPos += 10;
+    // Cura Brand Colors
+    const primaryColor = '#4A7DFF'; // Bluewave
+    const accentColor = '#6CFFEB'; // Mint Drift
+    const darkGray = '#1F2937';
+    const lightGray = '#F3F4F6';
     
-    // Add generation date and period
-    pdf.setFontSize(12);
-    pdf.text(`Generated: ${format(new Date(), 'MMM d, yyyy')}`, pageWidth / 2, yPos, { align: 'center' });
-    yPos += 8;
-    pdf.text(`Period: ${format(reportData.dateRange.start, 'MMM d, yyyy')} - ${format(reportData.dateRange.end, 'MMM d, yyyy')}`, pageWidth / 2, yPos, { align: 'center' });
-    yPos += 12;
+    // Helper function to add page footer
+    const addFooter = (pageNum: number) => {
+      const footerY = pageHeight - 15;
+      pdf.setFontSize(8);
+      pdf.setTextColor(100, 100, 100);
+      pdf.text(`Generated: ${format(new Date(), 'MMM d, yyyy HH:mm')}`, 14, footerY);
+      pdf.text(`Page ${pageNum}`, pageWidth - 30, footerY);
+      pdf.text('Cura EMR - Confidential', pageWidth / 2, footerY, { align: 'center' });
+    };
     
-    // Add patient information section if specific patient selected
-    if (reportData.patientInfo) {
-      pdf.setFontSize(14);
-      pdf.setFont('helvetica', 'bold');
-      pdf.text('Patient Information', 14, yPos);
-      yPos += 8;
-      
-      pdf.setFontSize(10);
-      pdf.setFont('helvetica', 'normal');
-      pdf.text(`Name: ${reportData.patientInfo.name}`, 14, yPos);
-      yPos += 6;
-      pdf.text(`Patient ID: ${reportData.patientInfo.patientId}`, 14, yPos);
-      yPos += 6;
-      pdf.text(`Insurance Provider: ${reportData.patientInfo.insurance}`, 14, yPos);
-      yPos += 6;
-      pdf.text(`Insurance Number: ${reportData.patientInfo.insuranceNumber}`, 14, yPos);
-      yPos += 6;
-      pdf.text(`Phone: ${reportData.patientInfo.phone}`, 14, yPos);
-      yPos += 6;
-      pdf.text(`Email: ${reportData.patientInfo.email}`, 14, yPos);
-      yPos += 10;
-      
-      pdf.line(14, yPos, pageWidth - 14, yPos);
-      yPos += 10;
-    }
+    let currentPage = 1;
+    let yPos = 15;
     
-    // Add filter information
-    pdf.setFontSize(12);
+    // ===== HEADER SECTION WITH BRANDING =====
+    // Blue header band
+    pdf.setFillColor(74, 125, 255); // Primary color
+    pdf.rect(0, 0, pageWidth, 35, 'F');
+    
+    // Company name and report title
+    pdf.setTextColor(255, 255, 255);
+    pdf.setFontSize(20);
     pdf.setFont('helvetica', 'bold');
-    pdf.text('Report Filters', 14, yPos);
-    yPos += 8;
+    pdf.text('CURA EMR', 14, 15);
     
+    pdf.setFontSize(14);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text('Custom Revenue Report', 14, 25);
+    
+    // Report date on right side of header
     pdf.setFontSize(10);
-    pdf.setFont('helvetica', 'normal');
-    if (reportInsuranceType !== 'all') {
-      pdf.text(`Insurance Type: ${reportInsuranceType}`, 14, yPos);
-      yPos += 6;
-    }
-    if (reportRole !== 'all') {
-      pdf.text(`Role: ${reportRole}`, 14, yPos);
-      yPos += 6;
-    }
-    if (reportUserName !== 'all' && !reportData.patientInfo) {
-      const userName = users.find((u: any) => String(u.id) === reportUserName);
-      if (userName) {
-        pdf.text(`User: ${userName.firstName} ${userName.lastName}`, 14, yPos);
-        yPos += 6;
-      }
-    }
+    pdf.text(`Report Period`, pageWidth - 14, 15, { align: 'right' });
+    pdf.text(`${format(reportData.dateRange.start, 'MMM d, yyyy')} - ${format(reportData.dateRange.end, 'MMM d, yyyy')}`, pageWidth - 14, 22, { align: 'right' });
     
+    // Reset text color
+    pdf.setTextColor(0, 0, 0);
+    yPos = 45;
+    
+    // ===== EXECUTIVE SUMMARY SECTION =====
+    // Calculate summary metrics
+    const totalRow = data.find(row => row.serviceName === 'Total');
+    const totalRevenue = totalRow ? totalRow.revenue : 0;
+    const totalInsurance = totalRow ? totalRow.insurance : 0;
+    const totalSelfPay = totalRow ? totalRow.selfPay : 0;
+    const avgCollectionRate = totalRow ? totalRow.collectionRate : 0;
+    const totalProcedures = totalRow ? totalRow.procedures : 0;
+    
+    pdf.setFontSize(13);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(31, 41, 55);
+    pdf.text('EXECUTIVE SUMMARY', 14, yPos);
     yPos += 8;
     
-    // Revenue Breakdown Table
+    // Summary boxes
+    const boxWidth = (pageWidth - 40) / 4;
+    const boxHeight = 22;
+    const boxY = yPos;
+    
+    // Box 1: Total Revenue
+    pdf.setFillColor(243, 244, 246);
+    pdf.roundedRect(14, boxY, boxWidth, boxHeight, 2, 2, 'F');
+    pdf.setFontSize(9);
+    pdf.setTextColor(100, 100, 100);
+    pdf.text('Total Revenue', 14 + boxWidth/2, boxY + 6, { align: 'center' });
+    pdf.setFontSize(14);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(74, 125, 255);
+    pdf.text(`£${totalRevenue.toFixed(2)}`, 14 + boxWidth/2, boxY + 15, { align: 'center' });
+    
+    // Box 2: Procedures
+    pdf.setFillColor(243, 244, 246);
+    pdf.roundedRect(14 + boxWidth + 3, boxY, boxWidth, boxHeight, 2, 2, 'F');
+    pdf.setFontSize(9);
+    pdf.setTextColor(100, 100, 100);
+    pdf.text('Total Procedures', 14 + boxWidth*1.5 + 3, boxY + 6, { align: 'center' });
+    pdf.setFontSize(14);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(74, 125, 255);
+    pdf.text(String(totalProcedures), 14 + boxWidth*1.5 + 3, boxY + 15, { align: 'center' });
+    
+    // Box 3: Insurance Revenue
+    pdf.setFillColor(243, 244, 246);
+    pdf.roundedRect(14 + boxWidth*2 + 6, boxY, boxWidth, boxHeight, 2, 2, 'F');
+    pdf.setFontSize(9);
+    pdf.setTextColor(100, 100, 100);
+    pdf.text('Insurance', 14 + boxWidth*2.5 + 6, boxY + 6, { align: 'center' });
+    pdf.setFontSize(14);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(108, 255, 235);
+    pdf.text(`£${totalInsurance.toFixed(2)}`, 14 + boxWidth*2.5 + 6, boxY + 15, { align: 'center' });
+    
+    // Box 4: Collection Rate
+    pdf.setFillColor(243, 244, 246);
+    pdf.roundedRect(14 + boxWidth*3 + 9, boxY, boxWidth, boxHeight, 2, 2, 'F');
+    pdf.setFontSize(9);
+    pdf.setTextColor(100, 100, 100);
+    pdf.text('Collection Rate', 14 + boxWidth*3.5 + 9, boxY + 6, { align: 'center' });
+    pdf.setFontSize(14);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(67, 160, 71);
+    pdf.text(`${avgCollectionRate}%`, 14 + boxWidth*3.5 + 9, boxY + 15, { align: 'center' });
+    
+    yPos = boxY + boxHeight + 15;
+    
+    // ===== PATIENT INFORMATION SECTION =====
+    if (reportData.patientInfo) {
+      pdf.setFillColor(239, 246, 255);
+      pdf.roundedRect(14, yPos, pageWidth - 28, 35, 2, 2, 'F');
+      
+      pdf.setFontSize(11);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(31, 41, 55);
+      pdf.text('PATIENT INFORMATION', 20, yPos + 8);
+      
+      pdf.setFontSize(9);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(60, 60, 60);
+      
+      const col1X = 20;
+      const col2X = pageWidth / 2 + 10;
+      let infoY = yPos + 16;
+      
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Name:', col1X, infoY);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(reportData.patientInfo.name, col1X + 25, infoY);
+      
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Patient ID:', col2X, infoY);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(reportData.patientInfo.patientId, col2X + 25, infoY);
+      
+      infoY += 6;
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Insurance:', col1X, infoY);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(reportData.patientInfo.insurance, col1X + 25, infoY);
+      
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Policy #:', col2X, infoY);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(reportData.patientInfo.insuranceNumber, col2X + 25, infoY);
+      
+      infoY += 6;
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Phone:', col1X, infoY);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(reportData.patientInfo.phone, col1X + 25, infoY);
+      
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Email:', col2X, infoY);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(reportData.patientInfo.email, col2X + 25, infoY);
+      
+      yPos += 45;
+    }
+    
+    // ===== APPLIED FILTERS SECTION =====
+    const hasFilters = reportInsuranceType !== 'all' || reportRole !== 'all' || (reportUserName !== 'all' && !reportData.patientInfo);
+    if (hasFilters) {
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(31, 41, 55);
+      pdf.text('Applied Filters:', 14, yPos);
+      
+      pdf.setFontSize(9);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(60, 60, 60);
+      let filterText = [];
+      if (reportInsuranceType !== 'all') filterText.push(`Insurance: ${reportInsuranceType}`);
+      if (reportRole !== 'all') filterText.push(`Role: ${reportRole}`);
+      if (reportUserName !== 'all' && !reportData.patientInfo) {
+        const userName = users.find((u: any) => String(u.id) === reportUserName);
+        if (userName) filterText.push(`User: ${userName.firstName} ${userName.lastName}`);
+      }
+      pdf.text(filterText.join(' • '), 14, yPos + 6);
+      yPos += 15;
+    }
+    
+    // ===== REVENUE BREAKDOWN TABLE =====
     pdf.setFontSize(12);
     pdf.setFont('helvetica', 'bold');
-    pdf.text('Revenue Breakdown by Service Type', 14, yPos);
-    yPos += 8;
+    pdf.setTextColor(31, 41, 55);
+    pdf.text('REVENUE BREAKDOWN BY SERVICE TYPE', 14, yPos);
+    yPos += 5;
     
-    // Table headers
-    pdf.setFontSize(9);
-    pdf.text('Service', 14, yPos);
-    pdf.text('Count', 70, yPos);
-    pdf.text('Revenue', 95, yPos);
-    pdf.text('Insurance', 130, yPos);
-    pdf.text('Self-Pay', 165, yPos);
-    pdf.text('Rate', 195, yPos);
+    // Prepare table data
+    const tableData = data.map(row => [
+      row.serviceName,
+      String(row.procedures),
+      `£${row.revenue.toFixed(2)}`,
+      `£${row.insurance.toFixed(2)}`,
+      `£${row.selfPay.toFixed(2)}`,
+      `${row.collectionRate}%`
+    ]);
     
-    yPos += 2;
-    pdf.line(14, yPos, pageWidth - 14, yPos);
-    yPos += 6;
-    
-    // Table data
-    pdf.setFont('helvetica', 'normal');
-    data.forEach((row) => {
-      if (yPos > 270) {
-        pdf.addPage();
-        yPos = 20;
+    // Use autoTable for professional table layout
+    autoTable(pdf, {
+      startY: yPos,
+      head: [['Service Type', 'Count', 'Total Revenue', 'Insurance', 'Self-Pay', 'Collection Rate']],
+      body: tableData,
+      theme: 'grid',
+      headStyles: {
+        fillColor: [74, 125, 255],
+        textColor: [255, 255, 255],
+        fontSize: 9,
+        fontStyle: 'bold',
+        halign: 'left'
+      },
+      bodyStyles: {
+        fontSize: 8,
+        textColor: [31, 41, 55]
+      },
+      alternateRowStyles: {
+        fillColor: [249, 250, 251]
+      },
+      columnStyles: {
+        0: { cellWidth: 60 },
+        1: { halign: 'center', cellWidth: 20 },
+        2: { halign: 'right', cellWidth: 28 },
+        3: { halign: 'right', cellWidth: 28 },
+        4: { halign: 'right', cellWidth: 28 },
+        5: { halign: 'center', cellWidth: 24 }
+      },
+      didParseCell: function(data) {
+        // Bold and highlight the Total row
+        if (data.row.index === tableData.length - 1) {
+          data.cell.styles.fontStyle = 'bold';
+          data.cell.styles.fillColor = [229, 231, 235];
+          data.cell.styles.textColor = [31, 41, 55];
+        }
+      },
+      margin: { left: 14, right: 14 },
+      didDrawPage: function(data) {
+        addFooter(currentPage);
+        currentPage++;
       }
-      
-      const isTotal = row.serviceName === 'Total';
-      if (isTotal) {
-        pdf.setFont('helvetica', 'bold');
-        pdf.line(14, yPos - 2, pageWidth - 14, yPos - 2);
-      }
-      
-      pdf.text(row.serviceName.substring(0, 20), 14, yPos);
-      pdf.text(String(row.procedures), 70, yPos);
-      pdf.text(`£${row.revenue.toFixed(2)}`, 95, yPos);
-      pdf.text(`£${row.insurance.toFixed(2)}`, 130, yPos);
-      pdf.text(`£${row.selfPay.toFixed(2)}`, 165, yPos);
-      pdf.text(`${row.collectionRate}%`, 195, yPos);
-      
-      if (isTotal) {
-        pdf.setFont('helvetica', 'normal');
-      }
-      
-      yPos += 7;
     });
+    
+    // Add footer to first page if table didn't span multiple pages
+    if (currentPage === 1) {
+      addFooter(1);
+    }
     
     // Save the PDF
     const fileName = reportData.patientInfo 
@@ -3712,7 +3851,7 @@ export default function BillingPage() {
 
     toast({
       title: "Report Generated",
-      description: "Custom revenue report has been generated and downloaded successfully.",
+      description: "Professional revenue report has been downloaded successfully.",
     });
   };
 
