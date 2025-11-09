@@ -234,6 +234,9 @@ export default function PrescriptionsPage() {
   const [providers, setProviders] = useState<any[]>([]);
   const [selectedRole, setSelectedRole] = useState<string>("");
   const [allUsers, setAllUsers] = useState<any[]>([]);
+  const [patientSearchOpen, setPatientSearchOpen] = useState(false);
+  const [roleSearchOpen, setRoleSearchOpen] = useState(false);
+  const [nameSearchOpen, setNameSearchOpen] = useState(false);
   const queryClient = useQueryClient();
 
   // Fetch roles from the roles table filtered by organization_id
@@ -2749,30 +2752,71 @@ export default function PrescriptionsPage() {
                             </div>
                           ) : (
                             // For other roles: Show patient dropdown
-                            <Select
-                              value={formData.patientId}
-                              onValueChange={(value) =>
-                                setFormData((prev) => ({
-                                  ...prev,
-                                  patientId: value,
-                                }))
-                              }
+                            <Popover
+                              open={patientSearchOpen}
+                              onOpenChange={setPatientSearchOpen}
                             >
-                              <SelectTrigger data-testid="select-patient">
-                                <SelectValue placeholder="Select patient" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {patients.map((patient: any) => (
-                                  <SelectItem
-                                    key={patient.id}
-                                    value={patient.id.toString()}
-                                  >
-                                    {patient.firstName} {patient.lastName} (
-                                    {patient.patientId})
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  role="combobox"
+                                  aria-expanded={patientSearchOpen}
+                                  className="w-full justify-between"
+                                  data-testid="select-patient"
+                                >
+                                  {formData.patientId
+                                    ? patients.find(
+                                        (patient: any) => patient.id.toString() === formData.patientId
+                                      )
+                                      ? `${
+                                          patients.find(
+                                            (patient: any) => patient.id.toString() === formData.patientId
+                                          )?.firstName
+                                        } ${
+                                          patients.find(
+                                            (patient: any) => patient.id.toString() === formData.patientId
+                                          )?.lastName
+                                        } (${
+                                          patients.find(
+                                            (patient: any) => patient.id.toString() === formData.patientId
+                                          )?.patientId
+                                        })`
+                                      : "Select patient"
+                                    : "Select patient"}
+                                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-[300px] p-0" align="start">
+                                <Command>
+                                  <CommandInput placeholder="Search patients..." />
+                                  <CommandEmpty>No patient found.</CommandEmpty>
+                                  <CommandGroup className="max-h-64 overflow-auto">
+                                    {patients.map((patient: any) => (
+                                      <CommandItem
+                                        key={patient.id}
+                                        value={`${patient.firstName} ${patient.lastName} ${patient.patientId}`}
+                                        onSelect={() => {
+                                          setFormData((prev) => ({
+                                            ...prev,
+                                            patientId: patient.id.toString(),
+                                          }));
+                                          setPatientSearchOpen(false);
+                                        }}
+                                      >
+                                        <Check
+                                          className={`mr-2 h-4 w-4 ${
+                                            formData.patientId === patient.id.toString()
+                                              ? "opacity-100"
+                                              : "opacity-0"
+                                          }`}
+                                        />
+                                        {patient.firstName} {patient.lastName} ({patient.patientId})
+                                      </CommandItem>
+                                    ))}
+                                  </CommandGroup>
+                                </Command>
+                              </PopoverContent>
+                            </Popover>
                           )}
                         </div>
                         <div className="space-y-4">
@@ -2794,41 +2838,67 @@ export default function PrescriptionsPage() {
                             <>
                               <div>
                                 <Label htmlFor="role">Select Role</Label>
-                                <Select
-                                  value={selectedRole}
-                                  onValueChange={(value) => {
-                                    setSelectedRole(value);
-                                    setFormData((prev) => ({
-                                      ...prev,
-                                      providerId: "",
-                                    }));
-                                  }}
+                                <Popover
+                                  open={roleSearchOpen}
+                                  onOpenChange={setRoleSearchOpen}
                                 >
-                                  <SelectTrigger data-testid="select-role">
-                                    <SelectValue placeholder="Select a role..." />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {rolesData
-                                      .filter((role: any) => {
-                                        const roleName = (
-                                          role.name || ""
-                                        ).toLowerCase();
-                                        return ![
-                                          "patient",
-                                          "admin",
-                                          "administrator",
-                                        ].includes(roleName);
-                                      })
-                                      .map((role: any) => (
-                                        <SelectItem
-                                          key={role.id}
-                                          value={role.name}
-                                        >
-                                          {role.displayName || role.name}
-                                        </SelectItem>
-                                      ))}
-                                  </SelectContent>
-                                </Select>
+                                  <PopoverTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      role="combobox"
+                                      aria-expanded={roleSearchOpen}
+                                      className="w-full justify-between"
+                                      data-testid="select-role"
+                                    >
+                                      {selectedRole
+                                        ? rolesData.find((role: any) => role.name === selectedRole)?.displayName || selectedRole
+                                        : "Select a role..."}
+                                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-[300px] p-0" align="start">
+                                    <Command>
+                                      <CommandInput placeholder="Search roles..." />
+                                      <CommandEmpty>No role found.</CommandEmpty>
+                                      <CommandGroup className="max-h-64 overflow-auto">
+                                        {rolesData
+                                          .filter((role: any) => {
+                                            const roleName = (
+                                              role.name || ""
+                                            ).toLowerCase();
+                                            return ![
+                                              "patient",
+                                              "admin",
+                                              "administrator",
+                                            ].includes(roleName);
+                                          })
+                                          .map((role: any) => (
+                                            <CommandItem
+                                              key={role.id}
+                                              value={`${role.displayName || role.name} ${role.name}`}
+                                              onSelect={() => {
+                                                setSelectedRole(role.name);
+                                                setFormData((prev) => ({
+                                                  ...prev,
+                                                  providerId: "",
+                                                }));
+                                                setRoleSearchOpen(false);
+                                              }}
+                                            >
+                                              <Check
+                                                className={`mr-2 h-4 w-4 ${
+                                                  selectedRole === role.name
+                                                    ? "opacity-100"
+                                                    : "opacity-0"
+                                                }`}
+                                              />
+                                              {role.displayName || role.name}
+                                            </CommandItem>
+                                          ))}
+                                      </CommandGroup>
+                                    </Command>
+                                  </PopoverContent>
+                                </Popover>
                               </div>
 
                             </>
@@ -2853,40 +2923,74 @@ export default function PrescriptionsPage() {
                         ) : (
                           <div>
                             <Label htmlFor="provider">Select Name</Label>
-                            <Select
-                              value={formData.providerId}
-                              onValueChange={(value) =>
-                                setFormData((prev) => ({
-                                  ...prev,
-                                  providerId: value,
-                                }))
-                              }
-                              disabled={!selectedRole}
+                            <Popover
+                              open={nameSearchOpen}
+                              onOpenChange={setNameSearchOpen}
                             >
-                              <SelectTrigger data-testid="select-provider" className="[&>span]:text-gray-900 dark:[&>span]:text-gray-100">
-                                <SelectValue
-                                  placeholder={
-                                    selectedRole
-                                      ? "Select name..."
-                                      : "Select a role first"
-                                  }
-                                />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {allUsers
-                                  .filter(
-                                    (usr: any) => usr.role === selectedRole,
-                                  )
-                                  .map((usr: any) => (
-                                    <SelectItem
-                                      key={usr.id}
-                                      value={usr.id.toString()}
-                                    >
-                                      {usr.firstName} {usr.lastName}
-                                    </SelectItem>
-                                  ))}
-                              </SelectContent>
-                            </Select>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  role="combobox"
+                                  aria-expanded={nameSearchOpen}
+                                  className="w-full justify-between"
+                                  data-testid="select-provider"
+                                  disabled={!selectedRole}
+                                >
+                                  {formData.providerId
+                                    ? allUsers.find(
+                                        (usr: any) => usr.id.toString() === formData.providerId
+                                      )
+                                      ? `${
+                                          allUsers.find(
+                                            (usr: any) => usr.id.toString() === formData.providerId
+                                          )?.firstName
+                                        } ${
+                                          allUsers.find(
+                                            (usr: any) => usr.id.toString() === formData.providerId
+                                          )?.lastName
+                                        }`
+                                      : "Select name..."
+                                    : selectedRole
+                                    ? "Select name..."
+                                    : "Select a role first"}
+                                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-[300px] p-0" align="start">
+                                <Command>
+                                  <CommandInput placeholder="Search names..." />
+                                  <CommandEmpty>No name found.</CommandEmpty>
+                                  <CommandGroup className="max-h-64 overflow-auto">
+                                    {allUsers
+                                      .filter(
+                                        (usr: any) => usr.role === selectedRole,
+                                      )
+                                      .map((usr: any) => (
+                                        <CommandItem
+                                          key={usr.id}
+                                          value={`${usr.firstName} ${usr.lastName}`}
+                                          onSelect={() => {
+                                            setFormData((prev) => ({
+                                              ...prev,
+                                              providerId: usr.id.toString(),
+                                            }));
+                                            setNameSearchOpen(false);
+                                          }}
+                                        >
+                                          <Check
+                                            className={`mr-2 h-4 w-4 ${
+                                              formData.providerId === usr.id.toString()
+                                                ? "opacity-100"
+                                                : "opacity-0"
+                                            }`}
+                                          />
+                                          {usr.firstName} {usr.lastName}
+                                        </CommandItem>
+                                      ))}
+                                  </CommandGroup>
+                                </Command>
+                              </PopoverContent>
+                            </Popover>
                           </div>
                         )}
 
