@@ -4273,6 +4273,216 @@ This treatment plan should be reviewed and adjusted based on individual patient 
     }
   });
 
+  // Get revenue breakdown by service type (Custom Reports)
+  app.get("/api/reports/revenue-breakdown", authMiddleware, requireRole(["admin"]), async (req: TenantRequest, res) => {
+    try {
+      const organizationId = requireOrgId(req);
+      const { dateRange, insuranceType, role, userName } = req.query;
+      
+      console.log("[REVENUE-BREAKDOWN] Fetching revenue breakdown with filters:", {
+        organizationId,
+        dateRange,
+        insuranceType,
+        role,
+        userName
+      });
+      
+      // Calculate date range
+      const now = new Date();
+      let startDate = new Date();
+      let endDate = new Date();
+      
+      switch (dateRange) {
+        case 'today':
+          startDate.setHours(0, 0, 0, 0);
+          endDate.setHours(23, 59, 59, 999);
+          break;
+        case 'this-week':
+          startDate.setDate(now.getDate() - now.getDay());
+          startDate.setHours(0, 0, 0, 0);
+          break;
+        case 'this-month':
+          startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+          endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+          break;
+        case 'last-month':
+          startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+          endDate = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+          break;
+        case 'this-quarter':
+          const quarter = Math.floor(now.getMonth() / 3);
+          startDate = new Date(now.getFullYear(), quarter * 3, 1);
+          endDate = new Date(now.getFullYear(), (quarter + 1) * 3, 0, 23, 59, 59, 999);
+          break;
+        case 'this-year':
+          startDate = new Date(now.getFullYear(), 0, 1);
+          endDate = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
+          break;
+        default:
+          startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+          endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+      }
+      
+      console.log("[REVENUE-BREAKDOWN] Date range:", { startDate, endDate });
+      
+      // Build query conditions
+      const { invoices, patients, users } = await import("../shared/schema");
+      let conditions: any[] = [
+        eq(invoices.organizationId, organizationId),
+        gte(invoices.dateOfService, startDate),
+        lte(invoices.dateOfService, endDate)
+      ];
+      
+      // Fetch invoices with filters - CRITICAL: Include organizationId in join to prevent tenant data leaks
+      let query = db.select({
+        invoice: invoices,
+        patient: patients
+      })
+      .from(invoices)
+      .leftJoin(patients, and(
+        eq(invoices.patientId, patients.patientId),
+        eq(patients.organizationId, organizationId)
+      ))
+      .where(and(...conditions));
+      
+      const results = await query;
+      
+      console.log("[REVENUE-BREAKDOWN] Total invoices found:", results.length);
+      
+      // Filter results based on role and userName
+      let filteredResults = results;
+      
+      // Filter by insurance type
+      if (insuranceType && insuranceType !== 'all') {
+        filteredResults = filteredResults.filter(r => {
+          const insProvider = r.invoice.insurance?.provider || r.patient?.insuranceInfo?.provider || 'Self-Pay';
+          return insProvider === insuranceType;
+        });
+        console.log("[REVENUE-BREAKDOWN] After insurance filter:", filteredResults.length);
+      }
+      
+      // Filter by role and userName
+      if (role && role !== 'all') {
+        if (role === 'patient' && userName && userName !== 'all') {
+          // Filter by specific patient - FIXED: Compare against patient.userId instead of patient.id
+          filteredResults = filteredResults.filter(r => {
+            return r.patient && String(r.patient.userId) === userName;
+          });
+          console.log("[REVENUE-BREAKDOWN] After patient filter:", filteredResults.length);
+        } else if (role !== 'patient' && userName && userName !== 'all') {
+          // Filter by staff member who created the invoice
+          filteredResults = filteredResults.filter(r => {
+            return String(r.invoice.createdBy) === userName;
+          });
+          console.log("[REVENUE-BREAKDOWN] After staff filter:", filteredResults.length);
+        }
+      }
+      
+      // Aggregate revenue by service type
+      const serviceTypeMap = new Map<string, {
+        procedures: number;
+        revenue: number;
+        insurance: number;
+        selfPay: number;
+      }>();
+      
+      let totalRevenue = 0;
+      let totalInsurance = 0;
+      let totalSelfPay = 0;
+      let totalProcedures = 0;
+      
+      filteredResults.forEach(({ invoice }) => {
+        // NULL SAFETY: Guard against null or non-array items
+        if (invoice.items && Array.isArray(invoice.items) && invoice.items.length > 0) {
+          invoice.items.forEach((item: any) => {
+            const serviceType = item.description || item.code || 'Uncategorized';
+            const itemTotal = parseFloat(String(item.total || item.amount || 0));
+            const isInsurance = invoice.insurance?.provider && invoice.insurance.provider !== 'Self-Pay';
+            
+            if (!serviceTypeMap.has(serviceType)) {
+              serviceTypeMap.set(serviceType, {
+                procedures: 0,
+                revenue: 0,
+                insurance: 0,
+                selfPay: 0
+              });
+            }
+            
+            const entry = serviceTypeMap.get(serviceType)!;
+            entry.procedures += 1;
+            entry.revenue += itemTotal;
+            
+            if (isInsurance) {
+              entry.insurance += itemTotal;
+            } else {
+              entry.selfPay += itemTotal;
+            }
+            
+            totalRevenue += itemTotal;
+            totalProcedures += 1;
+            if (isInsurance) {
+              totalInsurance += itemTotal;
+            } else {
+              totalSelfPay += itemTotal;
+            }
+          });
+        }
+      });
+      
+      // Convert map to array
+      const breakdown = Array.from(serviceTypeMap.entries()).map(([serviceName, data]) => ({
+        serviceName,
+        procedures: data.procedures,
+        revenue: data.revenue,
+        insurance: data.insurance,
+        selfPay: data.selfPay,
+        collectionRate: data.revenue > 0 ? Math.round((data.revenue / data.revenue) * 100) : 0
+      }));
+      
+      // Add total row
+      breakdown.push({
+        serviceName: 'Total',
+        procedures: totalProcedures,
+        revenue: totalRevenue,
+        insurance: totalInsurance,
+        selfPay: totalSelfPay,
+        collectionRate: totalRevenue > 0 ? Math.round((totalRevenue / totalRevenue) * 100) : 0
+      });
+      
+      // Get patient info if specific patient selected
+      let patientInfo = null;
+      if (role === 'patient' && userName && userName !== 'all') {
+        const patientRecord = filteredResults[0]?.patient;
+        if (patientRecord) {
+          patientInfo = {
+            name: `${patientRecord.firstName} ${patientRecord.lastName}`,
+            patientId: patientRecord.patientId,
+            insurance: patientRecord.insuranceInfo?.provider || 'Not specified',
+            insuranceNumber: patientRecord.insuranceInfo?.policyNumber || 'N/A',
+            phone: patientRecord.phone || 'N/A',
+            email: patientRecord.email || 'N/A'
+          };
+        }
+      }
+      
+      console.log("[REVENUE-BREAKDOWN] Breakdown summary:", {
+        totalServices: breakdown.length - 1,
+        totalRevenue,
+        totalProcedures
+      });
+      
+      res.json({
+        breakdown,
+        dateRange: { start: startDate, end: endDate },
+        filters: { insuranceType, role, userName },
+        patientInfo
+      });
+    } catch (error) {
+      console.error("[REVENUE-BREAKDOWN] Error:", error);
+      handleRouteError(error, "fetch revenue breakdown", res);
+    }
+  });
+
   // Submit new claim
   app.post("/api/financial/claims", authMiddleware, requireRole(["admin", "finance", "doctor", "nurse"]), async (req: TenantRequest, res) => {
     try {

@@ -5328,11 +5328,41 @@ export default function BillingPage() {
                         <div className="flex items-end">
                           <Button 
                             className="w-full" 
-                            onClick={() => {
-                              const reportData = buildReportDataset();
-                              const breakdown = getRevenueBreakdown();
-                              setDisplayedReportData({ ...reportData, breakdown });
-                              setReportGenerated(true);
+                            onClick={async () => {
+                              try {
+                                const params = new URLSearchParams({
+                                  dateRange: reportDateRange,
+                                  insuranceType: reportInsuranceType,
+                                  role: reportRole,
+                                  userName: reportUserName
+                                });
+                                
+                                const response = await fetch(`/api/reports/revenue-breakdown?${params}`, {
+                                  headers: {
+                                    'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+                                    'X-Tenant-Subdomain': localStorage.getItem('user_subdomain') || 'cura'
+                                  }
+                                });
+                                
+                                if (response.ok) {
+                                  const data = await response.json();
+                                  setDisplayedReportData(data);
+                                  setReportGenerated(true);
+                                } else {
+                                  toast({
+                                    title: "Error",
+                                    description: "Failed to generate report",
+                                    variant: "destructive"
+                                  });
+                                }
+                              } catch (error) {
+                                console.error("Report generation error:", error);
+                                toast({
+                                  title: "Error",
+                                  description: "Failed to generate report",
+                                  variant: "destructive"
+                                });
+                              }
                             }}
                             data-testid="button-generate-report"
                           >
