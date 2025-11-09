@@ -1408,8 +1408,15 @@ Medical License: [License Number]
               {selectedDateAppointments.map((appointment: any) => (
                 <div
                   key={appointment.id}
-                  className="flex items-center justify-between p-4 border dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
+                  className="relative flex items-center justify-between p-4 border dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
                 >
+                  {user?.role === 'admin' && appointment.appointmentId && (
+                    <Badge
+                      className="absolute top-2 right-2 text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                    >
+                      {appointment.appointmentId}
+                    </Badge>
+                  )}
                   <div 
                     className="flex items-center space-x-4 flex-1 cursor-pointer"
                     onClick={() => {
@@ -1436,13 +1443,6 @@ Medical License: [License Number]
                         <User className="h-4 w-4 text-gray-400" />
                         <span className="text-sm text-gray-600 dark:text-gray-300">{getPatientName(appointment.patientId)}</span>
                       </div>
-                      {user?.role === 'admin' && appointment.appointmentId && (
-                        <div className="flex items-center space-x-2 mt-1">
-                          <span className="text-xs text-gray-500 dark:text-gray-400">
-                            ID: {appointment.appointmentId}
-                          </span>
-                        </div>
-                      )}
                       <div className="flex items-center space-x-2 mt-1">
                         <Clock className="h-4 w-4 text-gray-400" />
                         <span className="text-sm text-gray-600 dark:text-gray-300">
