@@ -735,6 +735,8 @@ export default function LabResultsPage() {
   });
   const [patientSearchOpen, setPatientSearchOpen] = useState(false);
   const [testTypeOpen, setTestTypeOpen] = useState(false);
+  const [orderRoleSearchOpen, setOrderRoleSearchOpen] = useState(false);
+  const [orderNameSearchOpen, setOrderNameSearchOpen] = useState(false);
   const [editingStatusId, setEditingStatusId] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [activeTab, setActiveTab] = useState<"request" | "generate" | "generated">("request");
@@ -3762,66 +3764,123 @@ Report generated from Cura EMR System`;
                   <>
                     <div className="space-y-2">
                       <Label htmlFor="role">Select Role</Label>
-                      <Select
-                        value={orderFormData.selectedRole}
-                        onValueChange={(value) => {
-                          setOrderFormData((prev) => ({
-                            ...prev,
-                            selectedRole: value,
-                            selectedUserId: "",
-                            selectedUserName: "",
-                          }));
-                        }}
+                      <Popover
+                        open={orderRoleSearchOpen}
+                        onOpenChange={setOrderRoleSearchOpen}
                       >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a role" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {rolesData
-                            .filter((role: any) => {
-                              const roleName = (role.name || '').toLowerCase();
-                              return !['patient', 'admin', 'administrator'].includes(roleName);
-                            })
-                            .map((role: any) => (
-                              <SelectItem key={role.id} value={role.name}>
-                                {role.displayName || role.name}
-                              </SelectItem>
-                            ))}
-                        </SelectContent>
-                      </Select>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={orderRoleSearchOpen}
+                            className="w-full justify-between"
+                          >
+                            {orderFormData.selectedRole
+                              ? rolesData.find((role: any) => role.name === orderFormData.selectedRole)?.displayName || orderFormData.selectedRole
+                              : "Select a role"}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[300px] p-0" align="start">
+                          <Command>
+                            <CommandInput placeholder="Search roles..." />
+                            <CommandEmpty>No role found.</CommandEmpty>
+                            <CommandGroup className="max-h-64 overflow-auto">
+                              {rolesData
+                                .filter((role: any) => {
+                                  const roleName = (role.name || '').toLowerCase();
+                                  return !['patient', 'admin', 'administrator'].includes(roleName);
+                                })
+                                .map((role: any) => (
+                                  <CommandItem
+                                    key={role.id}
+                                    value={`${role.displayName || role.name} ${role.name}`}
+                                    onSelect={() => {
+                                      setOrderFormData((prev) => ({
+                                        ...prev,
+                                        selectedRole: role.name,
+                                        selectedUserId: "",
+                                        selectedUserName: "",
+                                      }));
+                                      setOrderRoleSearchOpen(false);
+                                    }}
+                                  >
+                                    <Check
+                                      className={`mr-2 h-4 w-4 ${
+                                        orderFormData.selectedRole === role.name
+                                          ? "opacity-100"
+                                          : "opacity-0"
+                                      }`}
+                                    />
+                                    {role.displayName || role.name}
+                                  </CommandItem>
+                                ))}
+                            </CommandGroup>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
                     </div>
 
                     {orderFormData.selectedRole && (
                       <div className="space-y-2">
                         <Label htmlFor="user">Select Name</Label>
-                        <Select
-                          value={orderFormData.selectedUserId}
-                          onValueChange={(value) => {
-                            const selectedUser = users.find(
-                              (u: any) => u.id.toString() === value,
-                            );
-                            setOrderFormData((prev) => ({
-                              ...prev,
-                              selectedUserId: value,
-                              selectedUserName: selectedUser
-                                ? `${selectedUser.firstName} ${selectedUser.lastName}`
-                                : "",
-                            }));
-                          }}
+                        <Popover
+                          open={orderNameSearchOpen}
+                          onOpenChange={setOrderNameSearchOpen}
                         >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a user" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {users
-                              .filter((u: any) => u.role === orderFormData.selectedRole)
-                              .map((u: any) => (
-                                <SelectItem key={u.id} value={u.id.toString()}>
-                                  {u.firstName} {u.lastName} ({u.email})
-                                </SelectItem>
-                              ))}
-                          </SelectContent>
-                        </Select>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              aria-expanded={orderNameSearchOpen}
+                              className="w-full justify-between"
+                            >
+                              {orderFormData.selectedUserId
+                                ? users.find((u: any) => u.id.toString() === orderFormData.selectedUserId)
+                                  ? `${
+                                      users.find((u: any) => u.id.toString() === orderFormData.selectedUserId)?.firstName
+                                    } ${
+                                      users.find((u: any) => u.id.toString() === orderFormData.selectedUserId)?.lastName
+                                    }`
+                                  : "Select a user"
+                                : "Select a user"}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-[400px] p-0" align="start">
+                            <Command>
+                              <CommandInput placeholder="Search users..." />
+                              <CommandEmpty>No user found.</CommandEmpty>
+                              <CommandGroup className="max-h-64 overflow-auto">
+                                {users
+                                  .filter((u: any) => u.role === orderFormData.selectedRole)
+                                  .map((u: any) => (
+                                    <CommandItem
+                                      key={u.id}
+                                      value={`${u.firstName} ${u.lastName} ${u.email}`}
+                                      onSelect={() => {
+                                        setOrderFormData((prev) => ({
+                                          ...prev,
+                                          selectedUserId: u.id.toString(),
+                                          selectedUserName: `${u.firstName} ${u.lastName}`,
+                                        }));
+                                        setOrderNameSearchOpen(false);
+                                      }}
+                                    >
+                                      <Check
+                                        className={`mr-2 h-4 w-4 ${
+                                          orderFormData.selectedUserId === u.id.toString()
+                                            ? "opacity-100"
+                                            : "opacity-0"
+                                        }`}
+                                      />
+                                      {u.firstName} {u.lastName} ({u.email})
+                                    </CommandItem>
+                                  ))}
+                              </CommandGroup>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
                       </div>
                     )}
                   </>
