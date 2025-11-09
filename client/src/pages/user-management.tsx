@@ -54,7 +54,7 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Plus, Edit, Trash2, UserPlus, Shield, Stethoscope, Users, Calendar, User, TestTube, Lock, BookOpen, X, Check, LayoutGrid, LayoutList, Eye, EyeOff } from "lucide-react";
+import { Plus, Edit, Trash2, UserPlus, Shield, Stethoscope, Users, Calendar, User, TestTube, Lock, BookOpen, X, Check, LayoutGrid, LayoutList, Eye, EyeOff, ChevronsUpDown } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { toast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -307,6 +307,77 @@ const PLAN_TYPES = [
   { value: "Dental Plan", description: "Covers private dental care (check-ups, fillings, orthodontics, etc.)." },
   { value: "Travel Health Plan", description: "Covers medical emergencies abroad — often used for frequent travelers or expats." },
   { value: "Other", description: "Other" }
+];
+
+// Medical Departments for the editable dropdown
+const DEPARTMENTS = [
+  "General Medicine",
+  "Family Medicine",
+  "Emergency Medicine / ER",
+  "Geriatrics",
+  "General Surgery",
+  "Cardiothoracic Surgery",
+  "Neurosurgery",
+  "Orthopedic Surgery",
+  "Plastic & Reconstructive Surgery",
+  "Pediatric Surgery",
+  "Urology",
+  "Cardiology (Heart diseases, hypertension, arrhythmia)",
+  "Cardiothoracic Surgery (Heart surgery)",
+  "Interventional Cardiology (Stents, angioplasty)",
+  "Cardiac Rehabilitation",
+  "Neurology (Brain, spinal cord, nerves)",
+  "Psychiatry & Mental Health",
+  "Neurorehabilitation",
+  "Pediatrics (General child health)",
+  "Neonatology (Newborns)",
+  "Pediatric Cardiology",
+  "Obstetrics (Pregnancy & childbirth)",
+  "Gynecology (Female reproductive health)",
+  "Infertility & IVF",
+  "Maternal-Fetal Medicine",
+  "Pulmonology (Lungs & breathing)",
+  "Thoracic Surgery",
+  "Sleep Medicine",
+  "Gastroenterology (Digestive system)",
+  "Hepatology (Liver & pancreas)",
+  "Endoscopy / GI Surgery",
+  "Nephrology (Kidneys)",
+  "Dialysis",
+  "Orthopedic Surgery (Bones & joints)",
+  "Physiotherapy / Rehabilitation",
+  "Sports Medicine",
+  "Ear, Nose, Throat (ENT)",
+  "Audiology / Hearing clinic",
+  "Maxillofacial Surgery",
+  "Eye Clinic / Vision Care",
+  "Retina / Cornea / Glaucoma",
+  "Pediatric Ophthalmology",
+  "Medical Oncology (Chemotherapy)",
+  "Surgical Oncology",
+  "Radiation Oncology",
+  "Hematology-Oncology",
+  "Radiology / X-ray / CT / MRI / Ultrasound",
+  "Nuclear Medicine",
+  "Pathology / Lab Medicine",
+  "Genetic Testing",
+  "Dermatology",
+  "Cosmetology / Aesthetic Medicine",
+  "Venereology (STDs)",
+  "Dentistry / Orthodontics",
+  "Oral & Maxillofacial Surgery",
+  "Prosthodontics",
+  "ICU (Intensive Care Unit)",
+  "CCU (Coronary Care Unit)",
+  "Trauma / Accident & Emergency",
+  "Anesthesiology",
+  "Pain Management",
+  "Rheumatology",
+  "Endocrinology (Diabetes, Thyroid)",
+  "Immunology & Allergy",
+  "Transplant Services (Liver, Kidney, Heart)",
+  "Palliative Care / Hospice",
+  "Occupational Medicine"
 ];
 
 const userSchema = z.object({
@@ -790,6 +861,7 @@ export default function UserManagement() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [departmentOpen, setDepartmentOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<string>("doctor");
 
   // Fetch roles from the roles table filtered by organization_id
@@ -3367,11 +3439,75 @@ export default function UserManagement() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="department">Department (Optional)</Label>
-                    <Input
-                      id="department"
-                      {...form.register("department")}
-                      placeholder="e.g., Cardiology, Emergency, etc."
-                    />
+                    <Popover open={departmentOpen} onOpenChange={setDepartmentOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={departmentOpen}
+                          className="w-full justify-between font-normal"
+                          data-testid="button-department"
+                        >
+                          <span className={form.watch("department") ? "text-foreground" : "text-muted-foreground"}>
+                            {form.watch("department") || "Select or type department..."}
+                          </span>
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-full p-0" align="start">
+                        <Command>
+                          <CommandInput 
+                            placeholder="Search or type department..." 
+                            onValueChange={(value) => {
+                              // Allow typing custom values
+                              form.setValue("department", value, { shouldDirty: true });
+                            }}
+                            data-testid="command-input-department"
+                          />
+                          <CommandList>
+                            <CommandEmpty>
+                              <div className="py-2 px-3 text-sm">
+                                <p className="text-muted-foreground mb-2">No department found.</p>
+                                <p className="text-xs text-muted-foreground">
+                                  Press Enter to use: <span className="font-medium">{form.watch("department")}</span>
+                                </p>
+                              </div>
+                            </CommandEmpty>
+                            <CommandGroup>
+                              <CommandItem
+                                value=""
+                                onSelect={() => {
+                                  form.setValue("department", "", { shouldDirty: true });
+                                  setDepartmentOpen(false);
+                                }}
+                                data-testid="command-item-department-none"
+                              >
+                                <Check
+                                  className={`mr-2 h-4 w-4 ${!form.watch("department") ? "opacity-100" : "opacity-0"}`}
+                                />
+                                (None)
+                              </CommandItem>
+                              {DEPARTMENTS.map((dept) => (
+                                <CommandItem
+                                  key={dept}
+                                  value={dept}
+                                  onSelect={(currentValue) => {
+                                    form.setValue("department", currentValue, { shouldDirty: true });
+                                    setDepartmentOpen(false);
+                                  }}
+                                  data-testid={`command-item-department-${dept.toLowerCase().replace(/\s+/g, '-')}`}
+                                >
+                                  <Check
+                                    className={`mr-2 h-4 w-4 ${form.watch("department") === dept ? "opacity-100" : "opacity-0"}`}
+                                  />
+                                  {dept}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="password">
