@@ -853,6 +853,84 @@ const sampleTakerSubcategories = [
   "Infection Control Sample Taker"
 ] as const;
 
+// Reusable SearchableSelect Component
+interface SearchableSelectProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  value: string;
+  onSelect: (value: string) => void;
+  options: Array<{ value: string; label: string }>;
+  placeholder?: string;
+  searchPlaceholder?: string;
+  emptyText?: string;
+  testId?: string;
+  disabled?: boolean;
+}
+
+function SearchableSelect({
+  open,
+  onOpenChange,
+  value,
+  onSelect,
+  options,
+  placeholder = "Select option...",
+  searchPlaceholder = "Search...",
+  emptyText = "No option found.",
+  testId = "searchable-select",
+  disabled = false
+}: SearchableSelectProps) {
+  const selectedOption = options.find(opt => opt.value === value);
+  
+  return (
+    <Popover open={open} onOpenChange={onOpenChange}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="w-full justify-between font-normal"
+          data-testid={`${testId}-trigger`}
+          disabled={disabled}
+        >
+          <span className={value ? "text-foreground" : "text-muted-foreground"}>
+            {selectedOption?.label || placeholder}
+          </span>
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-full p-0" align="start">
+        <Command>
+          <CommandInput 
+            placeholder={searchPlaceholder} 
+            data-testid={`${testId}-input`}
+          />
+          <CommandList>
+            <CommandEmpty>{emptyText}</CommandEmpty>
+            <CommandGroup>
+              {options.map((option, index) => (
+                <CommandItem
+                  key={option.value}
+                  value={option.value}
+                  onSelect={() => {
+                    onSelect(option.value);
+                    onOpenChange(false);
+                  }}
+                  data-testid={`${testId}-option-${index}`}
+                >
+                  <Check
+                    className={`mr-2 h-4 w-4 ${value === option.value ? "opacity-100" : "opacity-0"}`}
+                  />
+                  {option.label}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 export default function UserManagement() {
   const [, setLocation] = useLocation();
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -862,6 +940,10 @@ export default function UserManagement() {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [departmentOpen, setDepartmentOpen] = useState(false);
+  const [roleOpen, setRoleOpen] = useState(false);
+  const [specialtyCategoryOpen, setSpecialtyCategoryOpen] = useState(false);
+  const [subSpecialtyOpen, setSubSpecialtyOpen] = useState(false);
+  const [specificAreaOpen, setSpecificAreaOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<string>("doctor");
 
   // Fetch roles from the roles table filtered by organization_id
@@ -2522,64 +2604,65 @@ export default function UserManagement() {
                       </div>
                     ) : (
                       // Editable role dropdown for create mode
-                      <Select onValueChange={(value) => {
-                        form.setValue("role", value as any);
-                        setSelectedRole(value);
-                        // Reset specialty selections when role changes to non-doctor-like role
-                        if (!isDoctorLike(value)) {
-                          setSelectedSpecialtyCategory("");
-                          setSelectedSubSpecialty("");
-                          setSelectedSpecificArea("");
-                        }
-                        // Clear lab tech subcategory when switching from lab technician
-                        if (!['lab technician', 'lab_technician'].includes(value.toLowerCase())) {
-                          setSelectedLabTechSubcategory("");
-                        }
-                        // Clear pharmacist subcategory when switching from pharmacist
-                        if (value.toLowerCase() !== 'pharmacist') {
-                          setSelectedPharmacistSubcategory("");
-                        }
-                        // Clear optician subcategory when switching from optician
-                        if (value.toLowerCase() !== 'optician') {
-                          setSelectedOpticianSubcategory("");
-                        }
-                        // Clear paramedic subcategory when switching from paramedic
-                        if (value.toLowerCase() !== 'paramedic') {
-                          setSelectedParamedicSubcategory("");
-                        }
-                        // Clear physiotherapist subcategory when switching from physiotherapist
-                        if (value.toLowerCase() !== 'physiotherapist') {
-                          setSelectedPhysiotherapistSubcategory("");
-                        }
-                        // Clear aesthetician subcategory when switching from aesthetician
-                        if (value.toLowerCase() !== 'aesthetician') {
-                          setSelectedAestheticianSubcategory("");
-                        }
-                        // Clear sample taker subcategory when switching from sample taker
-                        if (value.toLowerCase() !== 'sample taker') {
-                          setSelectedSampleTakerSubcategory("");
-                        }
-                        // Clear plan type when switching from patient
-                        if (value.toLowerCase() !== 'patient') {
-                          setSelectedPlanType("");
-                        }
-                      }} defaultValue={form.getValues("role")}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a role" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {rolesData
-                            .filter((role: any) => {
-                              const roleName = (role.name || '').toLowerCase();
-                              return !['admin', 'administrator'].includes(roleName);
-                            })
-                            .map((role: any) => (
-                              <SelectItem key={role.id} value={role.name}>
-                                {role.displayName || role.name}
-                              </SelectItem>
-                            ))}
-                        </SelectContent>
-                      </Select>
+                      <SearchableSelect
+                        open={roleOpen}
+                        onOpenChange={setRoleOpen}
+                        value={selectedRole}
+                        onSelect={(value) => {
+                          form.setValue("role", value as any);
+                          setSelectedRole(value);
+                          // Reset specialty selections when role changes to non-doctor-like role
+                          if (!isDoctorLike(value)) {
+                            setSelectedSpecialtyCategory("");
+                            setSelectedSubSpecialty("");
+                            setSelectedSpecificArea("");
+                          }
+                          // Clear lab tech subcategory when switching from lab technician
+                          if (!['lab technician', 'lab_technician'].includes(value.toLowerCase())) {
+                            setSelectedLabTechSubcategory("");
+                          }
+                          // Clear pharmacist subcategory when switching from pharmacist
+                          if (value.toLowerCase() !== 'pharmacist') {
+                            setSelectedPharmacistSubcategory("");
+                          }
+                          // Clear optician subcategory when switching from optician
+                          if (value.toLowerCase() !== 'optician') {
+                            setSelectedOpticianSubcategory("");
+                          }
+                          // Clear paramedic subcategory when switching from paramedic
+                          if (value.toLowerCase() !== 'paramedic') {
+                            setSelectedParamedicSubcategory("");
+                          }
+                          // Clear physiotherapist subcategory when switching from physiotherapist
+                          if (value.toLowerCase() !== 'physiotherapist') {
+                            setSelectedPhysiotherapistSubcategory("");
+                          }
+                          // Clear aesthetician subcategory when switching from aesthetician
+                          if (value.toLowerCase() !== 'aesthetician') {
+                            setSelectedAestheticianSubcategory("");
+                          }
+                          // Clear sample taker subcategory when switching from sample taker
+                          if (value.toLowerCase() !== 'sample taker') {
+                            setSelectedSampleTakerSubcategory("");
+                          }
+                          // Clear plan type when switching from patient
+                          if (value.toLowerCase() !== 'patient') {
+                            setSelectedPlanType("");
+                          }
+                        }}
+                        options={rolesData
+                          .filter((role: any) => {
+                            const roleName = (role.name || '').toLowerCase();
+                            return !['admin', 'administrator'].includes(roleName);
+                          })
+                          .map((role: any) => ({
+                            value: role.name,
+                            label: role.displayName || role.name
+                          }))}
+                        placeholder="Select a role"
+                        searchPlaceholder="Search roles..."
+                        testId="role"
+                      />
                     )}
                     {form.formState.errors.role && (
                       <p className="text-sm text-red-500">{form.formState.errors.role.message}</p>
@@ -2592,64 +2675,68 @@ export default function UserManagement() {
                   <>
                     <div className="space-y-2">
                       <Label htmlFor="specialtyCategory">Medical Specialty Category</Label>
-                      <Select onValueChange={(value) => {
-                        setSelectedSpecialtyCategory(value);
-                        setSelectedSubSpecialty("");
-                        setSelectedSpecificArea("");
-                      }} value={selectedSpecialtyCategory}>
-                        <SelectTrigger data-testid="dropdown-specialty-category">
-                          <SelectValue placeholder="Select specialty category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.keys(medicalSpecialties).map((category) => (
-                            <SelectItem key={category} value={category}>
-                              {category}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <SearchableSelect
+                        open={specialtyCategoryOpen}
+                        onOpenChange={setSpecialtyCategoryOpen}
+                        value={selectedSpecialtyCategory}
+                        onSelect={(value) => {
+                          setSelectedSpecialtyCategory(value);
+                          setSelectedSubSpecialty("");
+                          setSelectedSpecificArea("");
+                        }}
+                        options={Object.keys(medicalSpecialties).map(category => ({
+                          value: category,
+                          label: category
+                        }))}
+                        placeholder="Select specialty category"
+                        searchPlaceholder="Search specialty categories..."
+                        testId="specialty-category"
+                      />
                     </div>
 
                     {selectedSpecialtyCategory && (
                       <div className="space-y-2">
                         <Label htmlFor="subSpecialty">Sub-Specialty</Label>
-                        <Select onValueChange={(value) => {
-                          setSelectedSubSpecialty(value);
-                          setSelectedSpecificArea("");
-                        }} value={selectedSubSpecialty}>
-                          <SelectTrigger data-testid="dropdown-sub-specialty">
-                            <SelectValue placeholder="Select sub-specialty" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {Object.keys(medicalSpecialties[selectedSpecialtyCategory as keyof typeof medicalSpecialties] || {}).map((subSpecialty) => (
-                              <SelectItem key={subSpecialty} value={subSpecialty}>
-                                {subSpecialty}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <SearchableSelect
+                          open={subSpecialtyOpen}
+                          onOpenChange={setSubSpecialtyOpen}
+                          value={selectedSubSpecialty}
+                          onSelect={(value) => {
+                            setSelectedSubSpecialty(value);
+                            setSelectedSpecificArea("");
+                          }}
+                          options={Object.keys(medicalSpecialties[selectedSpecialtyCategory as keyof typeof medicalSpecialties] || {}).map(subSpecialty => ({
+                            value: subSpecialty,
+                            label: subSpecialty
+                          }))}
+                          placeholder="Select sub-specialty"
+                          searchPlaceholder="Search sub-specialties..."
+                          testId="sub-specialty"
+                        />
                       </div>
                     )}
 
                     {selectedSubSpecialty && selectedSpecialtyCategory && (
                       <div className="space-y-2">
                         <Label htmlFor="specificArea">Specific Area</Label>
-                        <Select onValueChange={setSelectedSpecificArea} value={selectedSpecificArea}>
-                          <SelectTrigger data-testid="dropdown-specific-area">
-                            <SelectValue placeholder="Select specific area" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {selectedSpecialtyCategory && selectedSubSpecialty && 
-                              medicalSpecialties[selectedSpecialtyCategory as keyof typeof medicalSpecialties] &&
-                              medicalSpecialties[selectedSpecialtyCategory as keyof typeof medicalSpecialties][selectedSubSpecialty as keyof typeof medicalSpecialties[keyof typeof medicalSpecialties]] ?
-                              (medicalSpecialties[selectedSpecialtyCategory as keyof typeof medicalSpecialties][selectedSubSpecialty as keyof typeof medicalSpecialties[keyof typeof medicalSpecialties]] as string[]).map((area: string) => (
-                                <SelectItem key={area} value={area}>
-                                  {area}
-                                </SelectItem>
-                              )) : []
-                            }
-                          </SelectContent>
-                        </Select>
+                        <SearchableSelect
+                          open={specificAreaOpen}
+                          onOpenChange={setSpecificAreaOpen}
+                          value={selectedSpecificArea}
+                          onSelect={setSelectedSpecificArea}
+                          options={
+                            selectedSpecialtyCategory && selectedSubSpecialty && 
+                            medicalSpecialties[selectedSpecialtyCategory as keyof typeof medicalSpecialties] &&
+                            medicalSpecialties[selectedSpecialtyCategory as keyof typeof medicalSpecialties][selectedSubSpecialty as keyof typeof medicalSpecialties[keyof typeof medicalSpecialties]] ?
+                            (medicalSpecialties[selectedSpecialtyCategory as keyof typeof medicalSpecialties][selectedSubSpecialty as keyof typeof medicalSpecialties[keyof typeof medicalSpecialties]] as string[]).map((area: string) => ({
+                              value: area,
+                              label: area
+                            })) : []
+                          }
+                          placeholder="Select specific area"
+                          searchPlaceholder="Search specific areas..."
+                          testId="specific-area"
+                        />
                       </div>
                     )}
                   </>
