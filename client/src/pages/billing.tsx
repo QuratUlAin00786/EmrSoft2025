@@ -5126,10 +5126,7 @@ export default function BillingPage() {
                             className="w-full" 
                             onClick={() => {
                               setReportGenerated(true);
-                              toast({
-                                title: "Report Generated",
-                                description: `Custom report has been generated successfully with selected filters.`,
-                              });
+                              exportRevenuePDF();
                             }}
                             data-testid="button-generate-report"
                           >
