@@ -341,6 +341,8 @@ export default function CalendarPage() {
   // Role-based filter state for admin users
   const [filterRole, setFilterRole] = useState("");
   const [filterProvider, setFilterProvider] = useState("");
+  const [filterAppointmentId, setFilterAppointmentId] = useState("");
+  const [appointmentIdPopoverOpen, setAppointmentIdPopoverOpen] = useState(false);
   
   // Staff filter visibility state
   const [showStaffFilter, setShowStaffFilter] = useState(false);
@@ -635,6 +637,15 @@ export default function CalendarPage() {
     return usersData.filter((u: any) => u.role?.toLowerCase() === filterRole.toLowerCase());
   }, [filterRole, usersData]);
 
+  // Compute unique appointment IDs for the filter dropdown (admin only)
+  const uniqueAppointmentIds = useMemo(() => {
+    if (!Array.isArray(allAppointments)) return [];
+    const ids = allAppointments
+      .map((apt: any) => apt.appointmentId)
+      .filter((id: string | undefined) => id !== undefined && id !== null && id !== "");
+    return Array.from(new Set(ids)).sort();
+  }, [allAppointments]);
+
   // Get available roles from roles table (exclude patient)
   const availableRoles: Array<{ name: string; displayName: string }> = useMemo(() => {
     if (!rolesData || !Array.isArray(rolesData)) return [];
@@ -918,7 +929,7 @@ export default function CalendarPage() {
   const applyFilters = () => {
     // For admin users, use role-based filtering
     if (user?.role === 'admin') {
-      if (!filterProvider && !filterDate) {
+      if (!filterProvider && !filterDate && !filterAppointmentId) {
         setFilteredAppointments([]);
         return;
       }
@@ -939,6 +950,11 @@ export default function CalendarPage() {
           const appointmentDateStr = scheduledTime?.split('T')[0];
           return appointmentDateStr === filterDateStr;
         });
+      }
+
+      // Filter by appointment ID
+      if (filterAppointmentId) {
+        filtered = filtered.filter((appointment: any) => appointment.appointmentId === filterAppointmentId);
       }
       
       setFilteredAppointments(filtered);
@@ -976,7 +992,7 @@ export default function CalendarPage() {
     if (showFilterPanel) {
       applyFilters();
     }
-  }, [filterDoctor, filterProvider, filterDate, allAppointments, showFilterPanel, user?.role]);
+  }, [filterDoctor, filterProvider, filterDate, filterAppointmentId, allAppointments, showFilterPanel, user?.role]);
   
   // Filter doctors by specialty for filter panel - reactive to filter changes
   const filteredDoctorsBySpecialty = useMemo(() => {
@@ -1605,6 +1621,7 @@ export default function CalendarPage() {
                         setFilterRole("");
                         setFilterProvider("");
                         setFilterDate(undefined);
+                        setFilterAppointmentId("");
                         setFilteredAppointments([]);
                       }
                     }}
@@ -1773,6 +1790,56 @@ export default function CalendarPage() {
                       </PopoverContent>
                     </Popover>
                   </div>
+
+                  {/* Appointment ID (Admin Only) */}
+                  {user?.role === 'admin' && uniqueAppointmentIds.length > 0 && (
+                    <div>
+                      <Label>Appointment ID</Label>
+                      <Popover open={appointmentIdPopoverOpen} onOpenChange={setAppointmentIdPopoverOpen}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={appointmentIdPopoverOpen}
+                            className="w-full justify-between"
+                            data-testid="filter-appointment-id"
+                          >
+                            {filterAppointmentId
+                              ? filterAppointmentId
+                              : "Select appointment ID..."}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-full p-0" align="start">
+                          <Command>
+                            <CommandInput placeholder="Search appointment ID..." />
+                            <CommandList>
+                              <CommandEmpty>No appointment ID found.</CommandEmpty>
+                              <CommandGroup>
+                                {uniqueAppointmentIds.map((id: string) => (
+                                  <CommandItem
+                                    key={id}
+                                    value={id}
+                                    onSelect={() => {
+                                      setFilterAppointmentId(id);
+                                      setAppointmentIdPopoverOpen(false);
+                                    }}
+                                  >
+                                    <Check
+                                      className={`mr-2 h-4 w-4 ${
+                                        filterAppointmentId === id ? "opacity-100" : "opacity-0"
+                                      }`}
+                                    />
+                                    {id}
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -1780,7 +1847,7 @@ export default function CalendarPage() {
         )}
 
         {/* Conditional Content - Either Default Calendar or Filtered Appointments */}
-        {showFilterPanel && ((user?.role === 'admin' ? filterProvider : filterDoctor) || filterDate) ? (
+        {showFilterPanel && ((user?.role === 'admin' ? (filterProvider || filterAppointmentId) : filterDoctor) || filterDate) ? (
           /* Filtered Appointments View */
           <div className="space-y-4">
             <div className="flex items-center justify-between">
