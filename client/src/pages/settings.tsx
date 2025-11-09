@@ -1046,6 +1046,75 @@ function MyProfileContent({ user }: { user: any }) {
     );
   };
 
+  const renderSelectField = (label: string, field: string, options: { value: string; label: string }[]) => {
+    const isEmpty = canEdit(field);
+    const isCurrentlyEditing = isEditing[field];
+
+    return (
+      <div className="space-y-2">
+        <Label htmlFor={field}>{label}</Label>
+        <div className="flex gap-2">
+          <Select
+            value={formData[field] || ""}
+            onValueChange={(value) => handleFieldChange(field, value)}
+            disabled={!isEmpty && !isCurrentlyEditing}
+          >
+            <SelectTrigger
+              className={!isEmpty && !isCurrentlyEditing ? "bg-gray-100 dark:bg-gray-800" : ""}
+              data-testid={`select-${field}`}
+            >
+              <SelectValue placeholder={`Select ${label.toLowerCase()}`} />
+            </SelectTrigger>
+            <SelectContent>
+              {options.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {isEmpty && !isCurrentlyEditing && (
+            <Button
+              size="sm"
+              onClick={() => setIsEditing((prev) => ({ ...prev, [field]: true }))}
+              data-testid={`button-edit-${field}`}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          )}
+          {isCurrentlyEditing && (
+            <>
+              <Button
+                size="sm"
+                onClick={() => handleFieldSave(field)}
+                disabled={updatePatientMutation.isPending}
+                data-testid={`button-save-${field}`}
+              >
+                Save
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  setIsEditing((prev) => ({ ...prev, [field]: false }));
+                  setFormData((prev: any) => ({ ...prev, [field]: patientData?.[field] || "" }));
+                }}
+                data-testid={`button-cancel-${field}`}
+              >
+                Cancel
+              </Button>
+            </>
+          )}
+        </div>
+        {!isEmpty && !isCurrentlyEditing && (
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            This field cannot be edited as it already has a value.
+          </p>
+        )}
+      </div>
+    );
+  };
+
   if (patientLoading) {
     return (
       <Card>
@@ -1079,8 +1148,27 @@ function MyProfileContent({ user }: { user: any }) {
             {renderField("First Name", "firstName")}
             {renderField("Last Name", "lastName")}
             {renderField("Date of Birth", "dateOfBirth", "date")}
-            {renderField("Gender", "gender")}
+            {renderSelectField("Gender", "gender", [
+              { value: "Male", label: "Male" },
+              { value: "Female", label: "Female" },
+              { value: "Other", label: "Other" },
+              { value: "Prefer not to say", label: "Prefer not to say" }
+            ])}
             {renderField("Phone", "phone", "tel")}
+            {renderSelectField("Insurance Provider", "insuranceProvider", [
+              { value: "NHS", label: "NHS" },
+              { value: "Bupa", label: "Bupa" },
+              { value: "AXA Health", label: "AXA Health" },
+              { value: "Vitality Health", label: "Vitality Health" },
+              { value: "Aviva", label: "Aviva" },
+              { value: "Cigna", label: "Cigna" },
+              { value: "WPA", label: "WPA" },
+              { value: "Benenden Health", label: "Benenden Health" },
+              { value: "The Exeter", label: "The Exeter" },
+              { value: "Freedom Health", label: "Freedom Health" },
+              { value: "Other", label: "Other" },
+              { value: "None", label: "None" }
+            ])}
             <div className="space-y-2">
               <Label>Email</Label>
               <Input
