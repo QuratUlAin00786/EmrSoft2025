@@ -1,0 +1,259 @@
+🩺 1. Pain Relief (Analgesics / Antipyretics)
+
+Paracetamol (Acetaminophen)
+
+Ibuprofen
+
+Aspirin (Acetylsalicylic acid)
+
+Diclofenac
+
+Naproxen
+
+Ketorolac
+
+Tramadol
+
+Morphine
+
+Codeine
+
+💊 2. Antibiotics (Infections)
+
+Amoxicillin
+
+Azithromycin
+
+Ciprofloxacin
+
+Cefixime
+
+Ceftriaxone
+
+Doxycycline
+
+Metronidazole
+
+Clarithromycin
+
+Levofloxacin
+
+Erythromycin
+
+💊 3. Antihypertensives (High Blood Pressure)
+
+Amlodipine
+
+Losartan
+
+Lisinopril
+
+Enalapril
+
+Metoprolol
+
+Atenolol
+
+Carvedilol
+
+Telmisartan
+
+Valsartan
+
+Hydrochlorothiazide
+
+💊 4. Antidiabetic Medications
+
+Metformin
+
+Glimepiride
+
+Glipizide
+
+Insulin (Regular, NPH, Glargine, Lispro)
+
+Sitagliptin
+
+Empagliflozin
+
+Dapagliflozin
+
+Pioglitazone
+
+💊 5. Antacids / Gastrointestinal Drugs
+
+Omeprazole
+
+Pantoprazole
+
+Ranitidine (less used now)
+
+Esomeprazole
+
+Rabeprazole
+
+Sucralfate
+
+Domperidone
+
+Ondansetron
+
+Loperamide
+
+💊 6. Antidepressants / Psychiatric Medications
+
+Sertraline
+
+Fluoxetine
+
+Escitalopram
+
+Paroxetine
+
+Amitriptyline
+
+Duloxetine
+
+Mirtazapine
+
+Venlafaxine
+
+Alprazolam
+
+Diazepam
+
+💊 7. Antiallergics / Antihistamines
+
+Cetirizine
+
+Loratadine
+
+Fexofenadine
+
+Levocetirizine
+
+Diphenhydramine
+
+Chlorpheniramine
+
+Montelukast
+
+💊 8. Respiratory (Asthma / COPD)
+
+Salbutamol (Albuterol)
+
+Budesonide
+
+Formoterol
+
+Tiotropium
+
+Ipratropium
+
+Theophylline
+
+💊 9. Lipid-Lowering Agents (Cholesterol)
+
+Atorvastatin
+
+Rosuvastatin
+
+Simvastatin
+
+Fenofibrate
+
+💊 10. Antiviral / Antifungal
+
+Acyclovir
+
+Oseltamivir
+
+Fluconazole
+
+Ketoconazole
+
+Clotrimazole
+
+Terbinafine
+
+💊 11. Steroids / Anti-inflammatory
+
+Prednisolone
+
+Dexamethasone
+
+Hydrocortisone
+
+Methylprednisolone
+
+Betamethasone
+
+💊 12. Vitamins & Supplements
+
+Vitamin C (Ascorbic acid)
+
+Vitamin D (Cholecalciferol)
+
+Vitamin B12 (Cyanocobalamin)
+
+Calcium carbonate
+
+Iron (Ferrous sulfate)
+
+Folic acid
+
+Multivitamin combinations
+
+💊 13. Cardiac Medications
+
+Digoxin
+
+Nitroglycerin
+
+Furosemide
+
+Spironolactone
+
+Clopidogrel
+
+Aspirin (Low dose for heart)
+
+💊 14. Thyroid & Hormonal
+
+Levothyroxine
+
+Carbimazole
+
+Methimazole
+
+Prednisone
+
+Hydrocortisone
+
+💊 15. Miscellaneous Common Drugs
+
+Clonazepam
+
+Gabapentin
+
+Pregabalin
+
+Allopurinol
+
+Colchicine
+
+Tamsulosin
+
+Finasteride
+
+💊 16. Emergency / Critical Care
+
+Adrenaline (Epinephrine)
+
+Atropine
+
+Dopamine
+
+Noradrenaline
+
+Midazolam

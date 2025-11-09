@@ -300,6 +300,121 @@ const COMMON_DIAGNOSES = [
   "Fatigue",
 ];
 
+const COMMON_MEDICATIONS = [
+  "Paracetamol (Acetaminophen)",
+  "Ibuprofen",
+  "Aspirin (Acetylsalicylic acid)",
+  "Diclofenac",
+  "Naproxen",
+  "Ketorolac",
+  "Tramadol",
+  "Morphine",
+  "Codeine",
+  "Amoxicillin",
+  "Azithromycin",
+  "Ciprofloxacin",
+  "Cefixime",
+  "Ceftriaxone",
+  "Doxycycline",
+  "Metronidazole",
+  "Clarithromycin",
+  "Levofloxacin",
+  "Erythromycin",
+  "Amlodipine",
+  "Losartan",
+  "Lisinopril",
+  "Enalapril",
+  "Metoprolol",
+  "Atenolol",
+  "Carvedilol",
+  "Telmisartan",
+  "Valsartan",
+  "Hydrochlorothiazide",
+  "Metformin",
+  "Glimepiride",
+  "Glipizide",
+  "Insulin (Regular, NPH, Glargine, Lispro)",
+  "Sitagliptin",
+  "Empagliflozin",
+  "Dapagliflozin",
+  "Pioglitazone",
+  "Omeprazole",
+  "Pantoprazole",
+  "Ranitidine",
+  "Esomeprazole",
+  "Rabeprazole",
+  "Sucralfate",
+  "Domperidone",
+  "Ondansetron",
+  "Loperamide",
+  "Sertraline",
+  "Fluoxetine",
+  "Escitalopram",
+  "Paroxetine",
+  "Amitriptyline",
+  "Duloxetine",
+  "Mirtazapine",
+  "Venlafaxine",
+  "Alprazolam",
+  "Diazepam",
+  "Cetirizine",
+  "Loratadine",
+  "Fexofenadine",
+  "Levocetirizine",
+  "Diphenhydramine",
+  "Chlorpheniramine",
+  "Montelukast",
+  "Salbutamol (Albuterol)",
+  "Budesonide",
+  "Formoterol",
+  "Tiotropium",
+  "Ipratropium",
+  "Theophylline",
+  "Atorvastatin",
+  "Rosuvastatin",
+  "Simvastatin",
+  "Fenofibrate",
+  "Acyclovir",
+  "Oseltamivir",
+  "Fluconazole",
+  "Ketoconazole",
+  "Clotrimazole",
+  "Terbinafine",
+  "Prednisolone",
+  "Dexamethasone",
+  "Hydrocortisone",
+  "Methylprednisolone",
+  "Betamethasone",
+  "Vitamin C (Ascorbic acid)",
+  "Vitamin D (Cholecalciferol)",
+  "Vitamin B12 (Cyanocobalamin)",
+  "Calcium carbonate",
+  "Iron (Ferrous sulfate)",
+  "Folic acid",
+  "Multivitamin combinations",
+  "Digoxin",
+  "Nitroglycerin",
+  "Furosemide",
+  "Spironolactone",
+  "Clopidogrel",
+  "Levothyroxine",
+  "Carbimazole",
+  "Methimazole",
+  "Prednisone",
+  "Clonazepam",
+  "Gabapentin",
+  "Pregabalin",
+  "Allopurinol",
+  "Colchicine",
+  "Tamsulosin",
+  "Finasteride",
+  "Adrenaline (Epinephrine)",
+  "Atropine",
+  "Dopamine",
+  "Noradrenaline",
+  "Midazolam",
+];
+
 export default function PrescriptionsPage() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
@@ -326,6 +441,7 @@ export default function PrescriptionsPage() {
   const [roleSearchOpen, setRoleSearchOpen] = useState(false);
   const [nameSearchOpen, setNameSearchOpen] = useState(false);
   const [diagnosisSearchOpen, setDiagnosisSearchOpen] = useState(false);
+  const [medicationSearchOpen, setMedicationSearchOpen] = useState<{[key: number]: boolean}>({});
   const queryClient = useQueryClient();
 
   // Fetch roles from the roles table filtered by organization_id
@@ -3204,24 +3320,70 @@ export default function PrescriptionsPage() {
                                 <Label htmlFor={`medication-name-${index}`}>
                                   Medication Name *
                                 </Label>
-                                <Input
-                                  id={`medication-name-${index}`}
-                                  placeholder="Enter medication"
-                                  value={medication.name}
-                                  onChange={(e) =>
-                                    updateMedication(
-                                      index,
-                                      "name",
-                                      e.target.value,
-                                    )
+                                <Popover
+                                  open={medicationSearchOpen[index] || false}
+                                  onOpenChange={(open) =>
+                                    setMedicationSearchOpen((prev) => ({
+                                      ...prev,
+                                      [index]: open,
+                                    }))
                                   }
-                                  data-testid={`input-medication-name-${index}`}
-                                  className={
-                                    formErrors.medications[index]?.name
-                                      ? "border-red-500"
-                                      : ""
-                                  }
-                                />
+                                >
+                                  <PopoverTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      role="combobox"
+                                      aria-expanded={medicationSearchOpen[index] || false}
+                                      className="w-full justify-between"
+                                      data-testid={`input-medication-name-${index}`}
+                                    >
+                                      <span className="truncate">
+                                        {medication.name || "Select or type medication..."}
+                                      </span>
+                                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-[400px] p-0" align="start">
+                                    <Command shouldFilter={false}>
+                                      <CommandInput
+                                        placeholder="Search or type custom medication..."
+                                        value={medication.name}
+                                        onValueChange={(value) =>
+                                          updateMedication(index, "name", value)
+                                        }
+                                      />
+                                      <CommandEmpty>
+                                        Press Enter to use "{medication.name}" as custom medication
+                                      </CommandEmpty>
+                                      <CommandGroup className="max-h-64 overflow-auto">
+                                        {COMMON_MEDICATIONS.filter((med) =>
+                                          med.toLowerCase().includes(medication.name.toLowerCase())
+                                        ).map((med) => (
+                                          <CommandItem
+                                            key={med}
+                                            value={med}
+                                            onSelect={() => {
+                                              updateMedication(index, "name", med);
+                                              setMedicationSearchOpen((prev) => ({
+                                                ...prev,
+                                                [index]: false,
+                                              }));
+                                            }}
+                                          >
+                                            <Check
+                                              className={`mr-2 h-4 w-4 ${
+                                                medication.name === med
+                                                  ? "opacity-100"
+                                                  : "opacity-0"
+                                              }`}
+                                            />
+                                            {med}
+                                          </CommandItem>
+                                        ))}
+                                      </CommandGroup>
+                                    </Command>
+                                  </PopoverContent>
+                                </Popover>
                                 {formErrors.medications[index]?.name && (
                                   <p
                                     className="text-red-500 text-sm mt-1"
