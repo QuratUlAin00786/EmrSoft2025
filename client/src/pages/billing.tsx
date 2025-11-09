@@ -3559,10 +3559,8 @@ export default function BillingPage() {
                                   className="px-4 py-4 text-sm font-medium text-gray-900 dark:text-gray-100 cursor-pointer hover:text-primary hover:underline" 
                                   onClick={() => {
                                     const invoiceNum = invoice.invoiceNumber || invoice.id;
-                                    const isDoctorRole = isDoctorLike(user?.role);
-                                    const isAdminRole = user?.role === 'admin';
                                     
-                                    if (isDoctorRole || isAdminRole) {
+                                    if (user?.role === 'doctor') {
                                       setUniversalSearch(String(invoiceNum));
                                     } else {
                                       setSearchQuery(String(invoiceNum));
@@ -3702,10 +3700,8 @@ export default function BillingPage() {
                                         className="font-medium cursor-pointer hover:text-primary hover:underline inline-block"
                                         onClick={() => {
                                           const invoiceNum = invoice.invoiceNumber || invoice.id;
-                                          const isDoctorRole = isDoctorLike(user?.role);
-                                          const isAdminRole = user?.role === 'admin';
                                           
-                                          if (isDoctorRole || isAdminRole) {
+                                          if (user?.role === 'doctor') {
                                             setUniversalSearch(String(invoiceNum));
                                           } else {
                                             setSearchQuery(String(invoiceNum));
